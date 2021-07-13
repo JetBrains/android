@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 
+import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 
 typealias EntrySelectionListener = (BackgroundTaskEntry?) -> Unit
 
@@ -40,4 +42,7 @@ class EntrySelectionModel {
   fun registerWorkSelectionListener(listener: EntrySelectionListener) {
     listeners.add(listener)
   }
+
+  val selectedWork: WorkManagerInspectorProtocol.WorkInfo?
+    get() = (selectedEntry as? WorkEntry)?.getWorkInfo()
 }

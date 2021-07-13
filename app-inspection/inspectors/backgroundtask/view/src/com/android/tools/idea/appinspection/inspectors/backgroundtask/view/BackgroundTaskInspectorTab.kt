@@ -20,18 +20,16 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.intellij.ui.JBSplitter
-import com.intellij.ui.components.JBTextArea
-import kotlinx.coroutines.launch
 
 /**
  * View class for the Background Task Inspector Tab.
  */
-class BackgroundTaskInspectorTab(private val client: BackgroundTaskInspectorClient, ideServices: AppInspectionIdeServices) {
+class BackgroundTaskInspectorTab(client: BackgroundTaskInspectorClient, ideServices: AppInspectionIdeServices) {
 
-  private val textArea = JBTextArea("")
   private val selectionModel = EntrySelectionModel()
-  private val instanceView = BackgroundTaskInstanceView(client, selectionModel)
-  private val detailsView = EntryDetailsView(this, client, ideServices, instanceView.model, selectionModel)
+
+  private val entriesView = BackgroundTaskEntriesView(client, selectionModel)
+  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel)
 
   var isDetailsViewVisible = false
     set(value) {
@@ -44,21 +42,11 @@ class BackgroundTaskInspectorTab(private val client: BackgroundTaskInspectorClie
   private val splitter = JBSplitter(false).apply {
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
     isOpaque = true
-    firstComponent = instanceView
+    firstComponent = entriesView
     secondComponent = null
     dividerWidth = 1
     divider.background = AdtUiUtils.DEFAULT_BORDER_COLOR
   }
 
   val component = splitter
-
-  init {
-    var count = 0
-    client.addEventListener { event ->
-      client.scope.launch(client.uiThread) {
-        count += 1
-        textArea.text = "Event#$count\n${event}\n${textArea.text}"
-      }
-    }
-  }
 }

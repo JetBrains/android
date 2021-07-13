@@ -21,7 +21,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskEventManager
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.android.tools.idea.protobuf.ProtocolStringList
 import com.intellij.ide.HelpTooltip
@@ -143,7 +143,7 @@ object StringListProvider : ComponentProvider<ProtocolStringList> {
  *
  * @param A callback which can be triggered to select some target worker.
  */
-class IdListProvider(private val model: BackgroundTaskEventManager,
+class IdListProvider(private val client: BackgroundTaskInspectorClient,
                      private val currentWork: WorkInfo,
                      private val selectWork: (WorkEntry) -> Unit) : ComponentProvider<List<String>> {
   override fun convert(ids: List<String>): JComponent {
@@ -151,10 +151,9 @@ class IdListProvider(private val model: BackgroundTaskEventManager,
     return if (ids.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
         ids.forEach { id ->
-          val node = model.getTreeNode(id)
-          if (node != null) {
-            val entry = node.userObject as WorkEntry
-            val work = entry.getWorkInfo()
+          val entry = client.getEntry(id)
+          if (entry != null) {
+            val work = (entry as WorkEntry).getWorkInfo()
 
             add(HyperlinkLabel().apply {
               val suffix = if (id == currId) "  (Current)" else ""
