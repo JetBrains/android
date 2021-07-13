@@ -243,7 +243,6 @@ MODULE                        : TestCompositeLib1.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -824,12 +823,10 @@ MODULE                        : TestCompositeLib1.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -1426,12 +1423,10 @@ MODULE                        : TestCompositeLib1.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -2024,12 +2019,10 @@ MODULE                        : TestCompositeLib1.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -2264,7 +2257,6 @@ MODULE                        : TestCompositeLib1.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2822,7 +2814,6 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -3386,12 +3377,10 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -3957,12 +3946,10 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -4212,7 +4199,6 @@ MODULE                        : TestCompositeLib3.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -4790,7 +4776,6 @@ MODULE                        : TestCompositeLib3.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5384,7 +5369,6 @@ MODULE                        : TestCompositeLib3.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5974,7 +5958,6 @@ MODULE                        : TestCompositeLib3.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -6209,7 +6192,6 @@ MODULE                        : TestCompositeLib3.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -7278,7 +7260,6 @@ MODULE                        : TestCompositeLib3.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -7820,7 +7801,6 @@ MODULE                        : TestCompositeLib3.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -8073,7 +8053,6 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.compositeapp
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -8654,17 +8633,14 @@ MODULE                        : project.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -9261,17 +9237,14 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -9864,17 +9837,14 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -10109,7 +10079,6 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -11213,7 +11182,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -11773,7 +11741,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
