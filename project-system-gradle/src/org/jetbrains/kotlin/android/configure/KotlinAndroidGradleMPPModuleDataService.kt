@@ -29,9 +29,9 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.kotlin.gradle.KotlinCompilation
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.gradle.KotlinSourceSet
-import org.jetbrains.kotlin.idea.addModuleDependencyIfNeeded
-import org.jetbrains.kotlin.idea.configuration.*
+import org.jetbrains.kotlin.idea.gradle.addModuleDependencyIfNeeded
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.idea.gradle.configuration.*
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.io.IOException

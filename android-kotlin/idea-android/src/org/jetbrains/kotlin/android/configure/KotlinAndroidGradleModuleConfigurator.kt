@@ -26,7 +26,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
-import org.jetbrains.kotlin.idea.configuration.KotlinWithGradleConfigurator
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
 import org.jetbrains.kotlin.idea.gradle.KotlinGradleFacadeImpl

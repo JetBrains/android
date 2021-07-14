@@ -26,10 +26,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.configuration.configureFacetByGradleModule
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.kotlin.idea.gradle.configuration.GradleProjectImportHandler
+import org.jetbrains.kotlin.idea.gradle.configuration.configureFacetByGradleModule
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModel, Void>() {
     override fun getTargetDataKey() = ANDROID_MODEL
