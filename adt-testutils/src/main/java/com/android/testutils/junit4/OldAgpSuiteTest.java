@@ -18,6 +18,8 @@ package com.android.testutils.junit4;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.android.testutils.JarTestSuiteRunner;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,6 +77,10 @@ public class OldAgpSuiteTest {
     @OldAgpTest(gradleVersions = "4.2")
     public void missingAgpVersions() {
     }
+  }
+
+  @JarTestSuiteRunner.ExcludeClasses({ExampleSuite.class, MethodOnly.class})
+  public static class ExampleSuite {
   }
 
   @Test
@@ -137,6 +143,13 @@ public class OldAgpSuiteTest {
     catch (IllegalStateException e) {
       // expected as no runners were left to run
     }
+  }
+
+  @Test
+  public void excludeTests() {
+    List<Class<?>> testClasses = ImmutableList.of(ExampleSuite.class, MethodOnly.class, OverrideAgpTest.class);
+
+    assertThat(OldAgpSuite.excludeTests(testClasses, ExampleSuite.class)).containsExactly(OverrideAgpTest.class);
   }
 
   private static String className(Runner runner) {
