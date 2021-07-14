@@ -159,7 +159,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
     PROFILER, "profileable.qr", "Support profileable processes on Q & R",
     "Show profileable processes on Q and R",
-    PROFILEABLE.get() && false);
+    PROFILEABLE.get() && true);
   //endregion
 
   //region ML

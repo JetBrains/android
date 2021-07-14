@@ -146,7 +146,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we support profileable processes in Q & R
    */
-  private boolean myProfileableInQrEnabled = false;
+  private boolean myProfileableInQrEnabled = true;
 
   /**
    * List of custom CPU profiling configurations.
