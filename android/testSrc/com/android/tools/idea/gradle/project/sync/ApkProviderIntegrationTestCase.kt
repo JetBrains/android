@@ -375,9 +375,6 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
               Files:
                 project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
-            """,
-            AGP_40 to """
-              ApkProvisionException*> Couldn't get post build model. Module: project.app Variant: release
             """
           )
         ),
