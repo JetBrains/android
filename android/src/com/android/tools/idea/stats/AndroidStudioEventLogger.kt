@@ -39,8 +39,8 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     when (group.id) {
       "file.types" -> logFileType(eventId, data)
-      "file.types.usage" -> logFileTypeUsage(data)
-      "kotlin.project.configuration" -> logKotlinProjectConfiguration(data)
+      "file.types.usage" -> logFileTypeUsage(eventId, data)
+      "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
     }
@@ -50,6 +50,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun rollOver() {}
 
   private fun logFileType(eventId: String, data: Map<String, Any>) {
+    // filter out events that Jetbrains does not require
     if (eventId != "file.in.project") {
       return
     }
@@ -64,7 +65,11 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }.withProjectId(data))
   }
 
-  private fun logFileTypeUsage(data: Map<String, Any>) {
+  private fun logFileTypeUsage(eventId: String, data: Map<String, Any>) {
+    // filter out events that Jetbrains does not require
+    if (eventId == "registered") {
+      return
+    }
 
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.FILE_USAGE
@@ -76,7 +81,12 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }.withProjectId(data))
   }
 
-  private fun logKotlinProjectConfiguration(data: Map<String, Any>) {
+  private fun logKotlinProjectConfiguration(eventId: String, data: Map<String, Any>) {
+    // filter out events that Jetbrains does not require
+    if (eventId == "invoked") {
+      return
+    }
+
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
       kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
