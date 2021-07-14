@@ -869,7 +869,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       isGroovy -> gradleBuildModel.ext().findProperty("prop3")
       else -> gradleBuildModel.declaredProperties.find { it.name == "prop3" }!!
     }
-    assertEquals(INTERPOLATED, propertyModel.valueType)
+    //assertEquals(INTERPOLATED, propertyModel.valueType) // this enum value does not exist in 4.2 yet
     assertEquals(VARIABLE, propertyModel.propertyType)
     assertEquals("${'$'}{prop2[\"key2\"]prop2[\"key1\"]}", propertyModel.getRawValue(STRING_TYPE))
   }
