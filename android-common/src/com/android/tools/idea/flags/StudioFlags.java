@@ -1303,6 +1303,11 @@ public final class StudioFlags {
     "Enables a Network Inspector Tab in the App Inspection tool window",
     true
   );
+  public static final Flag<Boolean> ENABLE_NETWORK_INTERCEPTION = Flag.create(
+    NETWORK_INSPECTOR, "enable.network.interception", "Enable Network Interception",
+    "Enables interceptions on network requests and responses",
+    false
+  );
   // endregion
 
   // region BackgroundTask Inspector

@@ -24,22 +24,22 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -71,6 +71,7 @@ class NetworkInspectorViewTest {
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
   private lateinit var disposable: Disposable
+  private lateinit var scope: CoroutineScope
   private val timer = FakeTimer()
 
   @get:Rule
@@ -107,7 +108,8 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 200)
     fakeUi = FakeUi(component)
@@ -116,6 +118,7 @@ class NetworkInspectorViewTest {
 
   @After
   fun tearDown() {
+    scope.cancel()
     Disposer.dispose(disposable)
   }
 

@@ -54,6 +54,7 @@ class TestNetworkInspectorServices(
   timer: StopwatchTimer,
   override val client: NetworkInspectorClient = object : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
+    override suspend fun interceptResponse(url: String, body: String) = Unit
   }
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)

@@ -33,8 +33,13 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fa
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.codenavigation.CodeNavigator
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -58,6 +63,7 @@ class ConnectionsViewTest {
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
+  private lateinit var scope: CoroutineScope
 
   private val timer = FakeTimer()
 
@@ -83,8 +89,14 @@ class ConnectionsViewTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
+  }
+
+  @After
+  fun tearDown() {
+    scope.cancel()
   }
 
   @Test

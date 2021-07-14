@@ -16,12 +16,14 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
 
 interface NetworkInspectorClient {
   suspend fun getStartTimeStampNs(): Long
+  suspend fun interceptResponse(url: String, body: String)
 }
 
 class NetworkInspectorClientImpl(
@@ -33,6 +35,16 @@ class NetworkInspectorClientImpl(
     }
     return response.startInspectionResponse.timestamp
   }
+
+  override suspend fun interceptResponse(url: String, body: String) {
+    messenger.sendRawCommand {
+      interceptCommand = NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+        this.url = url
+        this.responseBody = body
+      }.build()
+    }
+  }
+
 
   private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
     val response = sendRawCommand(Command.newBuilder().also(init).build().toByteArray())

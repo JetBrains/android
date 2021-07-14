@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspe
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.util.function.Consumer
@@ -34,6 +35,7 @@ import javax.swing.JPanel
  */
 class ConnectionDetailsView(
   private val inspectorView: NetworkInspectorView,
+  private val scope: CoroutineScope,
   private val usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
   private val tabsPanel: CommonTabbedPane
@@ -73,7 +75,7 @@ class ConnectionDetailsView(
 
   private fun populateTabs() {
     tabs.add(OverviewTabContent(inspectorView.componentsProvider))
-    tabs.add(ResponseTabContent(inspectorView.componentsProvider))
+    tabs.add(ResponseTabContent(inspectorView.componentsProvider, inspectorView.inspectorServices, scope))
     tabs.add(RequestTabContent(inspectorView.componentsProvider))
     tabs.add(
       CallStackTabContent(
