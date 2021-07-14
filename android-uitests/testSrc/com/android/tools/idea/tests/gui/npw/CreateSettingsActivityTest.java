@@ -52,8 +52,7 @@ public class CreateSettingsActivityTest {
    *   4. Configure the activity details and click Finish (Verify 1)
    *
    *   Verification
-   *   1. An activity template that presents alternative layouts on handsets
-   *      and tablet-sized screens is added to the project
+   *   1. An activity template is added to the project.
    * </pre>
    */
   @RunIn(TestGroup.FAT_BAZEL)
@@ -73,12 +72,10 @@ public class CreateSettingsActivityTest {
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();
     String content = editorFixture.getCurrentFileContents();
 
-    String settingClassDef = "public class SettingsActivity extends AppCompatPreferenceActivity";
-    String tabletSizedScreen = "private static boolean isXLargeTablet(Context context)";
-    String layout = "context.getResources().getConfiguration().screenLayout";
+    String settingClassDef = "public class SettingsActivity extends AppCompatActivity";
+    String layout = "setContentView(R.layout.settings_activity)";
 
     assertThat(content.contains(settingClassDef)).isTrue();
-    assertThat(content.contains(tabletSizedScreen)).isTrue();
     assertThat(content.contains(layout)).isTrue();
   }
 }
