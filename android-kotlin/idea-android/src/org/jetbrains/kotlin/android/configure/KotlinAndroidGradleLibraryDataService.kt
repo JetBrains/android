@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
-import org.jetbrains.kotlin.idea.configuration.detectPlatformKindByPlugin
+import org.jetbrains.kotlin.idea.gradle.configuration.detectPlatformKindByPlugin
 import org.jetbrains.kotlin.idea.framework.detectLibraryKind
 import org.jetbrains.kotlin.idea.platform.tooling
 import java.io.File

@@ -24,9 +24,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.configuration.configureFacetByCompilerArguments
-import org.jetbrains.kotlin.idea.configuration.sourceSetName
+import org.jetbrains.kotlin.idea.gradle.configuration.compilerArgumentsBySourceSet
+import org.jetbrains.kotlin.idea.gradle.configuration.configureFacetByCompilerArguments
+import org.jetbrains.kotlin.idea.gradle.configuration.sourceSetName
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
 fun setUpModules(project: Project) {
