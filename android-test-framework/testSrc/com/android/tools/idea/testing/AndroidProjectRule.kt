@@ -270,7 +270,7 @@ class AndroidProjectRule private constructor(
         AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
         AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
 
-    val name = fixtureName ?: description.testClass.simpleName
+    val name = fixtureName ?: description.className.substringAfterLast('.')
     val tempDirFixture = object: AndroidTempDirTestFixture(name) {
       private val tempRoot: String = FileUtil.createTempDirectory(UsefulTestCase.TEMP_DIR_MARKER + name, "", false).path
       override fun getRootTempDirectory(): String = tempRoot
