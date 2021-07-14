@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.visual.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.MultiViewEvent
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
 import java.util.function.Consumer
@@ -60,12 +62,26 @@ private class MultiViewMetricTrackerImpl internal constructor(
   private val surface: DesignSurface?,
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMultiViewMetricTracker {
 
+  /**
+   * Returns the [MultiViewEvent.AssociatedSplitEditorMode] for the associated editor to track it.
+   */
+  private fun getAssociatedEditorMode(): MultiViewEvent.AssociatedSplitEditorMode =
+    when ((surface?.fileEditorDelegate as? DesignToolsSplitEditor)?.layout) {
+      TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
+      TextEditorWithPreview.Layout.SHOW_EDITOR -> MultiViewEvent.AssociatedSplitEditorMode.TEXT_MODE
+      TextEditorWithPreview.Layout.SHOW_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
+      else -> MultiViewEvent.AssociatedSplitEditorMode.UNKNOWN_MODE
+  }
+
   override fun track(eventType: MultiViewEvent.MultiViewEventType) {
     try {
       myExecutor.execute {
         val event = AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
-          .setMultiViewEvent(MultiViewEvent.newBuilder().setType(eventType).build())
+          .setMultiViewEvent(MultiViewEvent.newBuilder()
+                               .setType(eventType)
+                               .setAssociatedSplitEditorMode(getAssociatedEditorMode())
+                               .build())
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
         myConsumer.accept(event)

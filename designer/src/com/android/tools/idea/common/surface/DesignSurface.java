@@ -1414,6 +1414,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
+  @Nullable
+  public FileEditor getFileEditorDelegate() {
+    return myFileEditorDelegate.get();
+  }
+
   /**
    * Return the ScreenView under the given (x, y) position if any or the focused one otherwise. The coordinates are in the viewport view
    * coordinate space so they will not change with scrolling.
