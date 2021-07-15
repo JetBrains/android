@@ -57,7 +57,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
       AndroidExecutors.getInstance().ioThreadExecutor.execute {
         var changesDone = false
         val currentAgpVersion = GradleUtil.getAndroidGradleModelVersionInUse(project)
-        if ((currentAgpVersion == null) || (!StudioFlags.AGP_UPGRADE_ASSISTANT.get())) {
+        if (currentAgpVersion == null) {
           val updater = AndroidPluginVersionUpdater.getInstance(project)
           if (updater.updatePluginVersion(agpVersion, gradleVersion)) {
             changesDone = true

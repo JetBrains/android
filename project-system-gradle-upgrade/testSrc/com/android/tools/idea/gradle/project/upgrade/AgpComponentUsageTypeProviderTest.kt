@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Truth.assertThat
@@ -28,21 +27,7 @@ import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import org.jetbrains.android.AndroidTestCase
 
 class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGP_UPGRADE_ASSISTANT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
-  // TODO(b/161888480): think of a way to make a parameterization across Groovy/KotlinScript and FlagOn/FlagOff not horrible
+  // TODO(b/161888480): parameterize across Groovy/KotlinScript
   fun testAgpClasspathDependencyRefactoringProcessor() {
     myFixture.addFileToProject("build.gradle", """
       buildscript {
@@ -150,27 +135,6 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     assertThat(usages).hasLength(2)
     assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
       .containsExactly("Change dependency configuration", "Rename configuration")
-  }
-
-  fun testAgpUpgradeAssistantFlagOff() {
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(false)
-    myFixture.addFileToProject("build.gradle", """
-      plugins {
-        id 'com.android.application'
-      }
-      configurations {
-        paidReleaseCompile { }
-      }
-      dependencies {
-        androidTestCompile 'org.junit:junit:4.11'
-      }
-    """.trimIndent())
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
-    assertTrue(processor.isEnabled)
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.mapNotNull { it.element?.let { e -> getUsageType(e).toString() } })
-      .containsNoneOf("Change dependency configuration", "Rename configuration")
   }
 
   private fun getUsageType(element: PsiElement) : UsageType? {

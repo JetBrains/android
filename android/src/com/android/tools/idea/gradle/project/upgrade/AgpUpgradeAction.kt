@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
@@ -31,8 +30,6 @@ class AgpUpgradeAction: BaseRefactoringAction() {
   override fun isEnabledOnDataContext(dataContext: DataContext) = true
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = true
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = AgpUpgradeActionHandler()
-
-  override fun isHidden() = !StudioFlags.AGP_UPGRADE_ASSISTANT.get()
 }
 
 class AgpUpgradeActionHandler: RefactoringActionHandler {

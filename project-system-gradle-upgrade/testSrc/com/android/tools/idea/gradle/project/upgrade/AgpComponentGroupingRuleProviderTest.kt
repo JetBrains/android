@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.usageView.UsageInfo
@@ -31,30 +30,11 @@ import org.jetbrains.android.AndroidTestCase
 import java.util.ArrayList
 
 class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGP_UPGRADE_ASSISTANT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   fun testRuleIsActive() {
     val groupingRules = getActiveGroupingRules(myFixture.project)
     assertThat(groupingRules.filterIsInstance(ComponentGroupingRule::class.java)).isNotEmpty()
     assertThat(groupingRules.indexOfFirst { it is ComponentGroupingRule })
       .isLessThan(groupingRules.indexOfFirst { it is UsageTypeGroupingRule })
-  }
-
-  fun testRuleIsInactiveFlagOff() {
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(false)
-    assertThat(getActiveGroupingRules(myFixture.project).filterIsInstance(ComponentGroupingRule::class.java)).isEmpty()
   }
 
   // TODO(b/161888480): parameterize by Groovy/KotlinScript

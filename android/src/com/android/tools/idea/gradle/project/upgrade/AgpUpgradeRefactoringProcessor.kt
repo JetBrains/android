@@ -930,8 +930,7 @@ data class RemovePropertiesInfo(
  * a high-level description of the effect the refactoring will have on this usage.
  */
 class AgpComponentUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement): UsageType? =
-    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) (element as? WrappedPsiElement)?.usageType else null
+  override fun getUsageType(element: PsiElement): UsageType? = (element as? WrappedPsiElement)?.usageType
 }
 
 /**

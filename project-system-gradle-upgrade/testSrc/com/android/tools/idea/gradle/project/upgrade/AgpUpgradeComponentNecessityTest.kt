@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
@@ -28,20 +27,6 @@ class AgpUpgradeComponentNecessityTest : AndroidTestCase() {
   val two = GradleVersion(2, 0, 0)
   val three = GradleVersion(3, 0, 0)
   val four = GradleVersion(4, 0, 0)
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGP_UPGRADE_ASSISTANT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGP_UPGRADE_ASSISTANT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   fun testStandardPointNecessityReturns() {
     assertEquals(IRRELEVANT_PAST, standardPointNecessity(one, one, one))

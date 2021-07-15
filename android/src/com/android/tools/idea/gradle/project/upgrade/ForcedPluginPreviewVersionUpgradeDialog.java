@@ -35,7 +35,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.releaseNotesUrl;
 import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
@@ -74,12 +73,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     super(project);
     myProject = project;
 
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      setTitle("Android Gradle Plugin Upgrade Assistant");
-    }
-    else {
-      setTitle("Android Gradle Plugin Update Required");
-    }
+    setTitle("Android Gradle Plugin Upgrade Assistant");
     init();
 
     setUpAsHtmlLabel(myMessagePane);
@@ -92,20 +86,11 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
                          ("version " + myCurrentPluginVersion + " of the " + AndroidPluginInfo.DESCRIPTION +
                           ", which is incompatible with this version of Android Studio") :
                          ("an unknown version of the " + AndroidPluginInfo.DESCRIPTION);
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      myMessage = "<p><b>This project is using " + versionText + ".</b></p>" +
-                  "<p>To continue importing this project (" + myProject.getName() +
-                  "), Android Studio will upgrade the project's build files to use version " +
-                  pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
-                  "from the <a href='"+ url + "'>release notes</a>).</p>";
-    }
-    else {
-      myMessage = "<b>This project is using " + versionText + ".</b><br/><br/>" +
-                  "To continue opening this project (" + myProject.getName() +
-                  "), the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
-                  "You can learn more about this version of the plugin from the " +
-                  "<a href='" + url + "'>release notes</a>.<br/><br/>";
-    }
+    myMessage = "<p><b>This project is using " + versionText + ".</b></p>" +
+                "<p>To continue importing this project (" + myProject.getName() +
+                "), Android Studio will upgrade the project's build files to use version " +
+                pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
+                "from the <a href='"+ url + "'>release notes</a>).</p>";
     myMessagePane.setText(myMessage);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -143,12 +128,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action getOKAction() {
     Action action = super.getOKAction();
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      action.putValue(NAME, "Begin Upgrade");
-    }
-    else {
-      action.putValue(NAME, "Update");
-    }
+    action.putValue(NAME, "Begin Upgrade");
     return action;
   }
 
@@ -156,12 +136,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action getCancelAction() {
     Action action = super.getCancelAction();
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      action.putValue(NAME, "Cancel (and update build files manually)");
-    }
-    else {
-      action.putValue(NAME, "Cancel and update manually");
-    }
+    action.putValue(NAME, "Cancel (and update build files manually)");
     return action;
   }
 
