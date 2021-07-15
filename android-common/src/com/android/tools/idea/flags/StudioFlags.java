@@ -626,9 +626,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", true);
-  public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT = Flag.create(
-    GRADLE_IDE, "agp.upgrade.assistant", "Enable AGP Upgrade Assistant",
-    "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT_TOOL_WINDOW = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant.tool.window", "Enable the AGP Upgrade Assistant Tool Window",
     "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", true);

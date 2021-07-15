@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -91,7 +90,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     //  which require overrides (e.g. of DialogWrapper.showAndGet()) just for testing purposes, and those tests end up not testing the
     //  production codepaths anyway.  On moving to an asynchronous handling of plugin upgrades, this test and others will need to be
     //  adapted, rewritten or removed.
-    if (!StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+    if (false) {
       myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
       boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);

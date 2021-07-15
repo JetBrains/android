@@ -16,25 +16,21 @@
 @file:JvmName("GradlePluginUpgrade")
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -58,7 +54,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 
-private val LOG = Logger.getInstance(if (AGP_UPGRADE_ASSISTANT.get()) "Upgrade Assistant" else "AndroidGradlePluginUpdates")
+private val LOG = Logger.getInstance("Upgrade Assistant")
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 // **************************************************************************
@@ -119,16 +115,7 @@ fun recommendPluginUpgrade(project: Project) {
   if (existing.isEmpty()) {
     val listener = NotificationListener { notification, _ ->
       notification.expire()
-      if (AGP_UPGRADE_ASSISTANT.get()) {
-        ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
-      }
-      else {
-        if (performRecommendedPluginUpgrade(project)) {
-          // Trigger a re-sync if the plugin upgrade was performed.
-          val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
-          GradleSyncInvoker.getInstance().requestProjectSync(project, request)
-        }
-      }
+      ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
     }
 
     val notification = ProjectUpgradeNotification(
@@ -170,20 +157,7 @@ fun performRecommendedPluginUpgrade(
 
   if (userAccepted) {
     // The user accepted the upgrade
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
-      // AgpUpgradeRefactoringProcessor is responsible for its own syncs
-      return false
-    }
-
-    val updater = AndroidPluginVersionUpdater.getInstance(project)
-
-    val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
-    val updateResult = updater.updatePluginVersion(recommendedVersion, latestGradleVersion, currentVersion)
-    if (updateResult.versionUpdateSuccess()) {
-      // plugin version updated; request sync.
-      return true
-    }
+    showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
   }
 
   return false
@@ -353,18 +327,12 @@ fun performForcedPluginUpgrade(
 
   if (upgradeAccepted) {
     // The user accepted the upgrade
-    if (AGP_UPGRADE_ASSISTANT.get()) {
-      val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
-      val runProcessor = showAndGetAgpUpgradeDialog(processor)
-      if (runProcessor) {
-        DumbService.getInstance(project).smartInvokeLater { processor.run() }
-      }
-      return false
+    val processor = AgpUpgradeRefactoringProcessor(project, currentPluginVersion, newPluginVersion)
+    val runProcessor = showAndGetAgpUpgradeDialog(processor)
+    if (runProcessor) {
+      DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }
-    else {
-      val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
-      versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
-    }
+    return false
   } else {
     // The user did not accept the upgrade
     val syncMessage = SyncMessage(
@@ -379,7 +347,6 @@ fun performForcedPluginUpgrade(
     GradleSyncMessages.getInstance(project).report(syncMessage)
     return false
   }
-  return true
 }
 
 fun displayForceUpdatesDisabledMessage(project: Project) {

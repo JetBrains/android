@@ -229,7 +229,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
   }
 
-  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = StudioFlags.AGP_UPGRADE_ASSISTANT.get()
+  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = true
 
   override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
     ApplicationManager.getApplication().executeOnPooledThread {

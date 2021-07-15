@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.usages.Usage
@@ -48,8 +47,7 @@ import javax.swing.Icon
  * are apparently over the whole refactoring, not the group.
  */
 class ComponentGroupingRuleProvider : UsageGroupingRuleProvider {
-  override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
-    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) arrayOf(ComponentGroupingRule()) else UsageGroupingRule.EMPTY_ARRAY
+  override fun getActiveRules(project: Project): Array<UsageGroupingRule> = arrayOf(ComponentGroupingRule())
   // TODO(xof): do we need createGroupingActions()?
 }
 
