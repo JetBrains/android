@@ -271,10 +271,9 @@ class InspectorClientLauncherTest {
   }
 
   @Test
-  fun inspectorLauncherCanBeDisabledAndRenabled() {
+  fun inspectorLauncherCanBeDisabledAndReenabled() {
     val process1 = MODERN_DEVICE.createProcess(pid = 1)
     val process2 = MODERN_DEVICE.createProcess(pid = 2)
-    val process3 = MODERN_DEVICE.createProcess(pid = 3)
     val deadProcess3 = MODERN_DEVICE.createProcess(pid = 3, isRunning = false)
 
     val notifier = TestProcessNotifier()

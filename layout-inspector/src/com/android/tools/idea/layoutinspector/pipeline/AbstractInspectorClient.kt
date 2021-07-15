@@ -80,7 +80,7 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
       }
 
       override fun onFailure(t: Throwable) {
-        state = InspectorClient.State.DISCONNECTED
+        disconnect()
         Logger.getInstance(AbstractInspectorClient::class.java).warn(
           "Connection failure with " +
           "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
@@ -93,7 +93,7 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   protected abstract fun doConnect(): ListenableFuture<Nothing>
 
   final override fun disconnect() {
-    assert(state == InspectorClient.State.CONNECTED)
+    assert(state == InspectorClient.State.CONNECTED || state == InspectorClient.State.CONNECTING)
     state = InspectorClient.State.DISCONNECTING
 
     doDisconnect().addListener(

@@ -27,6 +27,8 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
+import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -36,6 +38,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -43,6 +46,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
@@ -73,8 +77,19 @@ class AppInspectionInspectorClient(
   var composeInspector: ComposeLayoutInspectorClient? = null
     private set
 
-  private val exceptionHandler = CoroutineExceptionHandler { _, t ->
+  private val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)
+  }
+
+  private val bannerExceptionHandler = CoroutineExceptionHandler { ctx, t ->
+    loggingExceptionHandler.handleException(ctx, t)
+    InspectorBannerService.getInstance(model.project).setNotification(
+      when {
+        t is ConnectionFailedException -> t.message!!
+        process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
+        else -> "Unknown error"
+      }
+    )
   }
 
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
@@ -105,9 +120,12 @@ class AppInspectionInspectorClient(
 
   override fun doConnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
-    val connectFailureHandler = CoroutineExceptionHandler { _, t -> future.setException(t) }
 
-    scope.launch(connectFailureHandler) {
+    val exceptionHandler = CoroutineExceptionHandler { ctx, t ->
+      bannerExceptionHandler.handleException(ctx, t)
+      future.setException(t)
+    }
+    scope.launch(exceptionHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
@@ -122,12 +140,11 @@ class AppInspectionInspectorClient(
       debugViewAttributes.set()
 
       if (isCapturing) {
-        startFetching()
+        startFetchingInternal()
       }
       else {
-        refresh()
+        refreshInternal()
       }
-
       future.set(null)
     }
     return future
@@ -135,7 +152,8 @@ class AppInspectionInspectorClient(
 
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
-    scope.launch(exceptionHandler) {
+    // Create a new scope since we might be disconnecting because the original one died.
+    model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
       debugViewAttributes.clear()
       viewInspector.disconnect()
       composeInspector?.disconnect()
@@ -148,14 +166,18 @@ class AppInspectionInspectorClient(
   }
 
   override fun startFetching() {
-    scope.launch(exceptionHandler) {
-      stats.live.toggledToLive()
-      viewInspector.startFetching(continuous = true)
+    scope.launch(bannerExceptionHandler) {
+      startFetchingInternal()
     }
   }
 
+  private suspend fun startFetchingInternal() {
+    stats.live.toggledToLive()
+    viewInspector.startFetching(continuous = true)
+  }
+
   override fun stopFetching() {
-    scope.launch(exceptionHandler) {
+    scope.launch(loggingExceptionHandler) {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
@@ -169,10 +191,14 @@ class AppInspectionInspectorClient(
   }
 
   override fun refresh() {
-    scope.launch(exceptionHandler) {
-      stats.live.toggledToRefresh()
-      viewInspector.startFetching(continuous = false)
+    scope.launch(loggingExceptionHandler) {
+      refreshInternal()
     }
+  }
+
+  private suspend fun refreshInternal() {
+    stats.live.toggledToRefresh()
+    viewInspector.startFetching(continuous = false)
   }
 
   override fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float) {
@@ -195,3 +221,5 @@ class AppInspectionInspectorClient(
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
 }
+
+class ConnectionFailedException(message: String): Exception(message)

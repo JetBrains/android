@@ -116,7 +116,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
             }
 
             activeClient = client // client.connect() call internally might throw
-            latch.await()
+            latch.await(10, TimeUnit.SECONDS)
             if (validClientConnected) {
               break
             }

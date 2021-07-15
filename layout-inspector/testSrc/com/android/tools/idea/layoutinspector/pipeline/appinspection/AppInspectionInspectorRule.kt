@@ -71,7 +71,7 @@ class AppInspectionInspectorRule(withDefaultResponse: Boolean = true) : TestRule
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
   private val devModeFlagRule = SetFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
-  private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
+  val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
   val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
     override fun sendEvent(event: ViewProtocol.Event) {

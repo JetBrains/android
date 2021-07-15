@@ -139,14 +139,6 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
-    updateConnectionNotification(client)
-  }
-
-  private fun updateConnectionNotification(client: InspectorClient) {
-    if (client.isConnected && !client.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE) && client.process.device.apiLevel >= 29) {
-      InspectorBannerService.getInstance(project).notification = StatusNotificationImpl(
-        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
-    }
   }
 
   /**

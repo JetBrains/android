@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
@@ -181,11 +182,14 @@ class ViewLayoutInspectorClient(
 
   suspend fun startFetching(continuous: Boolean) {
     isFetchingContinuously = continuous
-    messenger.sendCommand {
+    val response = messenger.sendCommand {
       startFetchCommand = StartFetchCommand.newBuilder().apply {
         this.continuous = continuous
         skipSystemViews = TreeSettings.skipSystemNodesInAgent
       }.build()
+    }
+    if (!response.startFetchResponse.error.isNullOrEmpty()) {
+      throw ConnectionFailedException(response.startFetchResponse.error)
     }
   }
 
