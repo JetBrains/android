@@ -17,15 +17,19 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.updater.Updater
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 
 interface NetworkInspectorServices {
   val navigationProvider: CodeNavigationProvider
   val client: NetworkInspectorClient
-  val scope: CoroutineScope
   val updater: Updater
+  val workerDispatcher: CoroutineDispatcher
   val uiDispatcher: CoroutineDispatcher
+  val usageTracker: NetworkInspectorTracker
 }
 
 /**
@@ -34,9 +38,32 @@ interface NetworkInspectorServices {
 class NetworkInspectorServicesImpl(
   override val navigationProvider: CodeNavigationProvider,
   override val client: NetworkInspectorClient,
-  override val scope: CoroutineScope,
   timer: StopwatchTimer,
-  override val uiDispatcher: CoroutineDispatcher
+  override val workerDispatcher: CoroutineDispatcher,
+  override val uiDispatcher: CoroutineDispatcher,
+  override val usageTracker: NetworkInspectorTracker
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
+}
+
+/**
+ * For tests only.
+ */
+class TestNetworkInspectorServices(
+  override val navigationProvider: CodeNavigationProvider,
+  timer: StopwatchTimer,
+  override val client: NetworkInspectorClient = object : NetworkInspectorClient {
+    override suspend fun getStartTimeStampNs() = 0L
+  }
+) : NetworkInspectorServices {
+  override val updater = Updater(timer)
+  override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
+  override val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+  override val usageTracker = object : NetworkInspectorTracker {
+    override fun trackMigrationDialogSelected() = Unit
+    override fun trackConnectionDetailsSelected() = Unit
+    override fun trackRequestTabSelected() = Unit
+    override fun trackResponseTabSelected() = Unit
+    override fun trackCallstackTabSelected() = Unit
+  }
 }

@@ -22,12 +22,12 @@ import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClientImpl
+import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.emptyFlow
@@ -47,8 +47,15 @@ class NetworkInspectorTabTest {
     val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
     val timer = FakeTimer()
     timer.start()
-    val tab = NetworkInspectorTab(
-      NetworkInspectorClient(
+    val services = TestNetworkInspectorServices(
+      object : CodeNavigationProvider {
+        override val codeNavigator = object : CodeNavigator() {
+          override fun isNavigatable(location: CodeLocation) = true
+          override fun handleNavigate(location: CodeLocation) = Unit
+        }
+      },
+      timer,
+      NetworkInspectorClientImpl(
         object : AppInspectorMessenger {
           override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
             return NetworkInspectorProtocol.Response.newBuilder().apply {
@@ -61,19 +68,14 @@ class NetworkInspectorTabTest {
           override val eventFlow = emptyFlow<ByteArray>()
           override val scope = scope
         }
-      ),
-      scope,
+      )
+    )
+    val tab = NetworkInspectorTab(
       FakeUiComponentsProvider(),
-      object : CodeNavigationProvider {
-        override val codeNavigator = object : CodeNavigator() {
-          override fun isNavigatable(location: CodeLocation) = true
-          override fun handleNavigate(location: CodeLocation) = Unit
-        }
-      },
       FakeNetworkInspectorDataSource(),
-      EdtExecutorService.getInstance().asCoroutineDispatcher(),
+      services,
+      scope,
       projectRule.fixture.testRootDisposable,
-      timer
     )
 
     tab.launchJob.join()

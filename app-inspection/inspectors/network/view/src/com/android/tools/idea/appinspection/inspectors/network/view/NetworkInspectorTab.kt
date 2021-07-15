@@ -18,22 +18,15 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
-import com.android.tools.adtui.model.FpsTimer
-import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.adtui.stdui.DefaultContextMenuItem
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServicesImpl
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4_FONT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
@@ -45,7 +38,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -69,23 +61,14 @@ private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
 private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
 
-/**
- * The number of updates per second our simulated object models receive.
- */
-private const val UPDATE_RATE = 60
 
 class NetworkInspectorTab(
-  private val client: NetworkInspectorClient,
-  scope: CoroutineScope,
   private val componentsProvider: UiComponentsProvider,
-  private val codeNavigationProvider: CodeNavigationProvider,
   private val dataSource: NetworkInspectorDataSource,
-  private val uiDispatcher: CoroutineDispatcher,
+  private val services: NetworkInspectorServices,
+  scope: CoroutineScope,
   parentDisposable: Disposable,
-  private val timer: StopwatchTimer = FpsTimer(UPDATE_RATE),
-  usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker()
 ) : AspectObserver(), Disposable {
-  private lateinit var inspectorServices: NetworkInspectorServices
 
   @VisibleForTesting
   lateinit var model: NetworkInspectorModel
@@ -112,8 +95,8 @@ class NetworkInspectorTab(
 
     component = TooltipLayeredPane(splitter)
     launchJob = scope.launch {
-      val deviceTime = client.getStartTimeStampNs()
-      withContext(uiDispatcher) {
+      val deviceTime = services.client.getStartTimeStampNs()
+      withContext(services.uiDispatcher) {
         val stagePanel = JPanel(BorderLayout())
         val toolbar = JPanel(BorderLayout())
         toolbar.border = DEFAULT_BOTTOM_BORDER
@@ -122,9 +105,8 @@ class NetworkInspectorTab(
         parentPanel.add(toolbar, BorderLayout.NORTH)
         parentPanel.add(stagePanel, BorderLayout.CENTER)
 
-        inspectorServices = NetworkInspectorServicesImpl(codeNavigationProvider, client, scope, timer, uiDispatcher)
-        model = NetworkInspectorModel(inspectorServices, dataSource, startTimeStampNs =  deviceTime)
-        view = NetworkInspectorView(model, componentsProvider, component, usageTracker)
+        model = NetworkInspectorModel(services, dataSource, startTimeStampNs = deviceTime)
+        view = NetworkInspectorView(model, componentsProvider, component, services.usageTracker)
         stagePanel.add(view.component)
 
         actionsToolBar = JPanel(GridBagLayout())
@@ -247,6 +229,6 @@ class NetworkInspectorTab(
   }
 
   override fun dispose() {
-    timer.stop()
+    services.updater.stop()
   }
 }

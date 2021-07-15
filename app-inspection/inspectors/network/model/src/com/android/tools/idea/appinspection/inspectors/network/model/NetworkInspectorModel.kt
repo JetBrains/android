@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import kotlinx.coroutines.asExecutor
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
@@ -49,7 +50,7 @@ class NetworkInspectorModel(
 
   val aspect = AspectModel<NetworkInspectorAspect>()
   val timeline = StreamingTimeline(services.updater)
-  val networkUsage = NetworkSpeedLineChartModel(timeline, dataSource)
+  val networkUsage = NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
   val legends = LegendsModel(networkUsage, timeline.dataRange, false)
   val tooltipLegends = LegendsModel(networkUsage, timeline.tooltipRange, true)
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()

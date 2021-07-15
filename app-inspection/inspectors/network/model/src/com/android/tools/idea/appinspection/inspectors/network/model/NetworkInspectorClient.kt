@@ -16,25 +16,26 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
 
-class NetworkInspectorClient(
+interface NetworkInspectorClient {
+  suspend fun getStartTimeStampNs(): Long
+}
+
+class NetworkInspectorClientImpl(
   private val messenger: AppInspectorMessenger
-) {
-  suspend fun getStartTimeStampNs(): Long {
+) : NetworkInspectorClient {
+  override suspend fun getStartTimeStampNs(): Long {
     val response = messenger.sendRawCommand {
       startInspectionCommand = StartInspectionCommand.getDefaultInstance()
     }
     return response.startInspectionResponse.timestamp
   }
 
-  suspend fun awaitForTermination() = messenger.awaitForDisposal()
-}
-
-private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
-  val response = sendRawCommand(Command.newBuilder().also(init).build().toByteArray())
-  return Response.parseFrom(response)
+  private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
+    val response = sendRawCommand(Command.newBuilder().also(init).build().toByteArray())
+    return Response.parseFrom(response)
+  }
 }
