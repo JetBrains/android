@@ -277,10 +277,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Nullable
   private RenderResult myRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
-  private String myPreviousDeviceName;
-  private Locale myPreviousLocale;
-  private String myPreviousVersion;
-  private String myPreviousTheme;
+  private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
   private final Object myFuturesLock = new Object();
@@ -448,7 +445,6 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderingQueue = renderingQueueFactory.apply(this);
     mySessionClockFactory = sessionClockFactory;
     createSceneView();
-    updateTrackingConfiguration();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
 
@@ -821,6 +817,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ConfigurationChangeListener implements ConfigurationListener {
     @Override
     public boolean changed(int flags) {
+      myConfigurationUpdatedFlags.getAndUpdate((value) -> value |= flags);
       if ((flags & CFG_DEVICE) != 0) {
         int newDpi = getModel().getConfiguration().getDensity().getDpiValue();
         if (myDpi != newDpi) {
@@ -1297,26 +1294,22 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private void logConfigurationChange(@NotNull DesignSurface surface) {
-    Configuration configuration = getModel().getConfiguration();
-
-    if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
+    int flags = myConfigurationUpdatedFlags.getAndSet(0);  // Get and reset the saved flags
+    if (flags != 0) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
       NlAnalyticsManager analyticsManager = ((NlDesignSurface)surface).getAnalyticsManager();
-      if (!StringUtil.equals(configuration.getTheme(), myPreviousTheme)) {
-        myPreviousTheme = configuration.getTheme();
+
+      if ((flags & ConfigurationListener.CFG_THEME) != 0) {
         analyticsManager.trackThemeChange();
       }
-      else if (configuration.getTarget() != null && !StringUtil.equals(configuration.getTarget().getVersionName(), myPreviousVersion)) {
-        myPreviousVersion = configuration.getTarget().getVersionName();
+      if ((flags & ConfigurationListener.CFG_TARGET) != 0) {
         analyticsManager.trackApiLevelChange();
       }
-      else if (!configuration.getLocale().equals(myPreviousLocale)) {
-        myPreviousLocale = configuration.getLocale();
+      if ((flags & ConfigurationListener.CFG_LOCALE) != 0) {
         analyticsManager.trackLanguageChange();
       }
-      else if (configuration.getDevice() != null && !StringUtil.equals(configuration.getDevice().getDisplayName(), myPreviousDeviceName)) {
-        myPreviousDeviceName = configuration.getDevice().getDisplayName();
+      if ((flags & ConfigurationListener.CFG_DEVICE) != 0) {
         analyticsManager.trackDeviceChange();
       }
     }
@@ -1460,17 +1453,6 @@ public class LayoutlibSceneManager extends SceneManager {
 
   public void setElapsedFrameTimeMs(long ms) {
     myElapsedFrameTimeMs = ms;
-  }
-
-  /**
-   * Updates the saved values that are used to log user changes to the configuration toolbar.
-   */
-  private void updateTrackingConfiguration() {
-    Configuration configuration = getModel().getConfiguration();
-    myPreviousDeviceName = configuration.getCachedDevice() != null ? configuration.getCachedDevice().getDisplayName() : null;
-    myPreviousVersion = configuration.getTarget() != null ? configuration.getTarget().getVersionName() : null;
-    myPreviousLocale = configuration.getLocale();
-    myPreviousTheme = configuration.getTheme();
   }
 
   /**

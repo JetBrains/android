@@ -472,8 +472,7 @@ public class ConfigurationManager implements Disposable {
         configuration.startBulkEditing();
         configuration.setTheme(null);
       }
-
-      configuration.updated(CFG_DEVICE);
+      configuration.setDevice(device, true);
 
       if (updateTheme) {
         configuration.finishBulkEditing();
