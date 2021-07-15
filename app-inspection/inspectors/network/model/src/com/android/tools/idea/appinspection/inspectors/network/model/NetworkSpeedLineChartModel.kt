@@ -21,11 +21,13 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.StreamingTimeline
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Executor
 
 class NetworkSpeedLineChartModel(
   timeline: StreamingTimeline,
-  private val dataSource: NetworkInspectorDataSource
-) : LineChartModel(AppExecutorUtil.getAppExecutorService()) {
+  private val dataSource: NetworkInspectorDataSource,
+  backgroundExecutor: Executor
+) : LineChartModel(backgroundExecutor) {
   val trafficRange = Range(0.0, 4.0)
 
   val rxSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_RECEIVED.getLabel(false),

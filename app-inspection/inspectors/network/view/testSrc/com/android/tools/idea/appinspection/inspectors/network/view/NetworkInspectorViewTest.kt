@@ -20,14 +20,12 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
@@ -39,8 +37,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -87,16 +83,7 @@ class NetworkInspectorViewTest {
         override fun handleNavigate(location: CodeLocation) = Unit
       }
     }
-    val services = object : NetworkInspectorServices {
-      override val navigationProvider = codeNavigationProvider
-      override val updater = Updater(timer)
-      override val client: NetworkInspectorClient
-        get() = throw NotImplementedError()
-      override val scope: CoroutineScope
-        get() = throw NotImplementedError()
-      override val uiDispatcher: CoroutineDispatcher
-        get() = throw NotImplementedError()
-    }
+    val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(
       speedEventList = listOf(
         createSpeedEvent(0, 0, 0),

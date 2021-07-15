@@ -15,24 +15,17 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model
 
-import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.legend.LegendComponentModel
-import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
@@ -42,8 +35,6 @@ class NetworkInspectorModelTest {
   private lateinit var model: NetworkInspectorModel
   private val timer = FakeTimer()
 
-  @Rule @JvmField
-  public val ignoreTests = IgnoreTestRule()
 
   @Before
   fun setUp() {
@@ -53,16 +44,7 @@ class NetworkInspectorModelTest {
         override fun handleNavigate(location: CodeLocation) = Unit
       }
     }
-    val services = object : NetworkInspectorServices {
-      override val navigationProvider = codeNavigationProvider
-      override val updater = Updater(timer)
-      override val client: NetworkInspectorClient
-        get() = throw NotImplementedError()
-      override val scope: CoroutineScope
-        get() = throw NotImplementedError()
-      override val uiDispatcher: CoroutineDispatcher
-        get() = throw NotImplementedError()
-    }
+    val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(speedEventList = listOf(
       Event.newBuilder().apply {
         timestamp = 0
@@ -130,7 +112,6 @@ class NetworkInspectorModelTest {
     assertThat(sending.series[0].value.toLong()).isEqualTo(2)
   }
 
-  @IgnoreWithCondition(reason = "b/193710264", condition = OnWindows::class)
   @Test
   fun updaterRegisteredCorrectly() {
     val observer = AspectObserver()
