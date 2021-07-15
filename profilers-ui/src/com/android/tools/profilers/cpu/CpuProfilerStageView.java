@@ -170,7 +170,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Order matters as such our tooltip component should be first so it draws on top of all elements.
     details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
 
-    if (stage.getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.FULL) {
+    if (stage.getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.DEBUGGABLE) {
       final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
       eventsView.registerTooltip(myTooltipComponent, getStage());
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));

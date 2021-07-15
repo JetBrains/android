@@ -73,6 +73,7 @@ import org.jetbrains.annotations.NotNull;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
+  private static final String SHOW_DEBUGGABLE_MESSAGE = "debuggable.monitor.message";
   private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.monitor.message";
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
@@ -254,12 +255,19 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Override
   public JComponent getToolbar() {
-    return getStage().getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.PROFILEABLE
-           ? DismissibleMessage.of(getStage().getStudioProfilers(),
-                                   SHOW_PROFILEABLE_MESSAGE,
-                                   "Only CPU and Memory profilers are enabled for profileable processes",
-                                   () -> Unit.INSTANCE)
-           : new JPanel();
+    switch (getStage().getStudioProfilers().getSelectedSessionSupportLevel()) {
+      case DEBUGGABLE:
+        return DismissibleMessage.of(getStage().getStudioProfilers(),
+                                     SHOW_DEBUGGABLE_MESSAGE,
+                                     "Timing data from debuggable processes may deviate from real world performance",
+                                     () -> Unit.INSTANCE);
+      case PROFILEABLE:
+        return DismissibleMessage.of(getStage().getStudioProfilers(),
+                                     SHOW_PROFILEABLE_MESSAGE,
+                                     "Only CPU and Memory profilers are enabled for profileable processes",
+                                     () -> Unit.INSTANCE);
+    }
+    return new JPanel();
   }
 
   @Override

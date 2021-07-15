@@ -91,7 +91,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
     // Order matters, as such we want to put the tooltip component first so we draw the tooltip line on top of all other
     // components.
     add(tooltip, TabularLayout.Constraint(0, 0, 2, 1))
-    if (stage.studioProfilers.selectedSessionSupportLevel == SupportLevel.FULL) {
+    if (stage.studioProfilers.selectedSessionSupportLevel == SupportLevel.DEBUGGABLE) {
       val eventsView = EventMonitorView(stageView.profilersView, stage.eventMonitor).apply { registerTooltip(tooltip, stage) }
       add(eventsView.component, TabularLayout.Constraint(0, 0))
     }

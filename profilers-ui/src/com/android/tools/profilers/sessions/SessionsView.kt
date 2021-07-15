@@ -56,7 +56,6 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.io.File
-import java.util.Locale
 import javax.swing.AbstractButton
 import javax.swing.BorderFactory
 import javax.swing.Box
@@ -268,7 +267,9 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
               if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
               // Only add the separator if there are preferred processes added.
               if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
-              val (debuggables, profileables) = otherProcesses.partition { profilers.getProcessSupportLevel(it.pid) == SupportLevel.FULL }
+              val (debuggables, profileables) = otherProcesses.partition {
+                profilers.getProcessSupportLevel(it.pid) == SupportLevel.DEBUGGABLE
+              }
               addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
               addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
             }
