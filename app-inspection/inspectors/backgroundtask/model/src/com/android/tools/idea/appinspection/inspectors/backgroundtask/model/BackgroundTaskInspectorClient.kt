@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 typealias EntryUpdateEventListener = (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
 
@@ -101,7 +102,8 @@ class BackgroundTaskInspectorClient(
     }
   }
 
-  private fun handleEvent(event: EventWrapper) {
+  @VisibleForTesting
+  fun handleEvent(event: EventWrapper) {
     scope.launch(uiThread) {
       val candidate = createBackgroundTaskEntry(event)
 
