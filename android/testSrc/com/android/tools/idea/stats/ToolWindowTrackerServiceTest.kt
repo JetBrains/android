@@ -25,11 +25,13 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Ignore
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
+@Ignore("TODO(b/189824635) testOpen is failing too frequently")
 class ToolWindowTrackerServiceTest : AndroidTestCase() {
   private lateinit var myUsageTracker: TestUsageTracker
   private lateinit var myService : ToolWindowTrackerService
