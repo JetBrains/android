@@ -1199,6 +1199,14 @@ public final class StudioFlags {
     "If enabled, a given compose 'StateObject' type object will be rendered by the corresponding custom renderer",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_INTERACTIVE_ANIMATION_CURVES = Flag.create(
+    COMPOSE, "preview.animation.curves",
+    "Enable animation curves in Animation Inspector",
+    "If enabled, animation curves will be rendered in Animation Inspector timeline.",
+    true
+  );
+
   //endregion
 
   //region Manifests

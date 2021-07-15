@@ -29,6 +29,7 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_CURVES
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -44,6 +45,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
@@ -73,13 +75,16 @@ import java.util.Hashtable
 import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
-import javax.swing.text.DefaultCaret
 import kotlin.math.ceil
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.geom.Path2D
+import javax.swing.JEditorPane
+import javax.swing.text.DefaultCaret
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 
@@ -89,19 +94,33 @@ private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 private const val TIMELINE_HEADER_HEIGHT = 25
 
 /**
- * Half width of the shape used as the handle of the timeline scrubber.
+ * Height of the animation inspector footer.
  */
-private const val TIMELINE_HANDLE_HALF_WIDTH = 5
-
-/**
- * Half height of the shape used as the handle of the timeline scrubber.
- */
-private const val TIMELINE_HANDLE_HALF_HEIGHT = 5
+private const val TIMELINE_FOOTER_HEIGHT = 20
 
 /**
  * Default max duration (ms) of the animation preview when it's not possible to get it from Compose.
  */
 private const val DEFAULT_MAX_DURATION_MS = 10000L
+
+/** Height of one row for animation. */
+private const val TIMELINE_ROW_HEIGHT = 70
+
+/** Offset between animation curves. */
+private const val TIMELINE_CURVE_OFFSET = 45
+
+/** Offset from the top of timeline to the first animation curve. */
+private const val TIMELINE_TOP_OFFSET = 20
+
+/** Minimum distance between labels in the timeline. */
+private const val MINIMUM_LABEL_DISTANCE = 100
+
+/** Number of ticks per label in the timeline. */
+private const val TICKS_PER_LABEL = 5
+
+//TODO(b/161344747) This value could be dynamic depending on the curve type.
+/** Number of points for one curve. */
+private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the properties (e.g. `ColorPropKeys`) being
@@ -110,6 +129,19 @@ private const val DEFAULT_MAX_DURATION_MS = 10000L
  * therefore allows a detailed inspection of Compose animations.
  */
 class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
+
+  /**
+   * Animation transition for selected from/to states.
+   * @param properties - map of properties for this Animation, it maps the index of the property to an [AnimatedProperty].
+   */
+  class Transition(val properties: Map<Int, AnimatedProperty<Double>?> = mutableMapOf()) {
+    private val numberOfSubcomponents by lazy {
+      properties.map { it.value?.dimension }.filterNotNull().sum()
+    }
+    val transitionTimelineHeight by lazy {
+      numberOfSubcomponents * TIMELINE_ROW_HEIGHT + TIMELINE_HEADER_HEIGHT + TIMELINE_FOOTER_HEIGHT
+    }
+  }
 
   /**
    * Tabs panel where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but have
@@ -124,6 +156,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
         super.selectionChanged(oldSelection, newSelection)
         val tab = newSelection?.component as? AnimationTab ?: return
+        // Load animation when first tab was just created or transition has changed.
+        tab.loadTransition()
         // The following callbacks only need to be called when old selection is not null, which excludes the addition/selection of the first
         // tab. In that case, the logic will be handled by updateTransitionStates.
         if (oldSelection != null) {
@@ -169,6 +203,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
    */
   internal var animationClock: AnimationClock? = null
+
+  private var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
 
   /**
    * Executor responsible for updating animation states off EDT.
@@ -251,7 +287,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   fun updateTimelineWindowSize(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
-    var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
     if (!executeOnRenderThread(longTimeout) {
         maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
       }) return
@@ -375,14 +410,16 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      */
     private val animatedPropertiesPanel = AnimatedPropertiesPanel()
 
-    private val timelinePanel = JPanel(BorderLayout())
+    private val timelinePanelWithCurves = JBScrollPane()
+    private val timelinePanelNoCurves = JPanel(BorderLayout())
+    private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
     /**
      * Horizontal [JBSplitter] comprising of the animated properties panel and the animation timeline.
      */
     private val propertiesTimelineSplitter = JBSplitter(0.45f).apply {
       firstComponent = createAnimatedPropertiesPanel()
-      secondComponent = timelinePanel
+      secondComponent = timelinePanelNoCurves
       dividerWidth = 1
     }
 
@@ -394,7 +431,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val splitterWrapper = JPanel(BorderLayout()).apply {
         border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
       }
-      splitterWrapper.add(propertiesTimelineSplitter, BorderLayout.CENTER)
+      if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get())
+        splitterWrapper.add(timelinePanelWithCurves)
+      else
+        splitterWrapper.add(propertiesTimelineSplitter, BorderLayout.CENTER)
       add(splitterWrapper, TabularLayout.Constraint(1, 0, 3))
     }
 
@@ -417,6 +457,50 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       timeline.cachedVal = 0
       // Move the timeline slider to 0.
       UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
+    }
+
+    /**
+     * Load transition for current start and end state. If transition was loaded before, the cached result is used.
+     */
+    fun loadTransition(longTimeout: Boolean = false) {
+      if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
+
+      val stateHash = Pair(
+        startStateComboBox.selectedItem?.hashCode(),
+        endStateComboBox.selectedItem?.hashCode()).hashCode()
+
+      cachedTransitions[stateHash]?.let {
+        timeline.updateTransition(cachedTransitions[stateHash]!!)
+        timelinePanelWithCurves.doLayout()
+        return@loadTransition
+      }
+
+      val clock = animationClock ?: return
+      val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
+
+      executeOnRenderThread(longTimeout) {
+        for (clockTimeMs in 0..maxDurationPerIteration step maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER) {
+          clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
+          try {
+            val properties = clock.getAnimatedPropertiesFunction.invoke(clock.clock, animation) as List<ComposeAnimatedProperty>
+
+            for ((index, property) in properties.withIndex()) {
+              ComposeUnit.parse(property)?.let { unit ->
+                builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
+              }
+            }
+          }
+          catch (e: Exception) {
+            LOG.warn("Failed to load the Compose Animation properties", e)
+          }
+        }
+        builders.mapValues { it.value.build() }.let {
+          val transition = Transition(it)
+          cachedTransitions[stateHash] = transition
+          timeline.updateTransition(transition)
+          timelinePanelWithCurves.doLayout()
+        }
+      }
     }
 
     /**
@@ -469,6 +553,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         }
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
         updateAnimationStartAndEndStates()
+        loadTransition()
         updateProperties()
       })
       endStateComboBox.addActionListener(ActionListener {
@@ -477,6 +562,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
         }
         updateAnimationStartAndEndStates()
+        loadTransition()
         updateProperties()
       })
     }
@@ -505,14 +591,20 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * child of multiple components simultaneously. Therefore, this method needs to be called everytime we change tabs.
      */
     fun addTimeline() {
-      timelinePanel.add(timeline, BorderLayout.CENTER)
+      if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) {
+        timelinePanelWithCurves.setViewportView(timeline)
+        timelinePanelWithCurves.doLayout()
+      }
+      else timelinePanelNoCurves.add(timeline)
     }
 
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        val animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
-        animatedPropertiesPanel.updateProperties(animatedPropKeys)
+        val properties = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get())
+          timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it, ComposeUnit.parse(it)) })
+        else animatedPropertiesPanel.updateProperties(properties)
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
@@ -794,7 +886,24 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      */
     var maxLoopCount = 1L
 
+    override fun getPreferredSize(): Dimension {
+      return Dimension(width - 50, transition.transitionTimelineHeight)
+    }
+
+    /** Get the dynamic size of the tick for horizontal slider. */
+    private fun getTickSizeForHorizSlider(slider: JSlider, minimumTickSize: Int): Int {
+      val increment = if (slider.width == 0) 1 else minimumTickSize * (slider.maximum - slider.minimum) / width
+      return when {
+        increment > 200 -> (increment + 49) / 50 * 50 // Round up to 50x
+        increment > 50 -> (increment + 24) / 25 * 25 // Round up to 25x
+        increment > 20 -> (increment + 9) / 10 * 10 //Round up to 10x
+        increment > 5 -> 5
+        else -> 1
+      }
+    }
+
     private val slider = object : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
+      private var cachedSliderWidth = 0
       override fun updateUI() {
         setUI(TimelineSliderUI())
         updateLabelUIs()
@@ -802,14 +911,15 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
       override fun setMaximum(maximum: Int) {
         super.setMaximum(maximum)
-        updateMajorTicks()
-        updateMinorTicks()
+        updateMajorTicks(width)
       }
 
-      fun updateMajorTicks() {
+      fun updateMajorTicks(width: Int) {
+        if (width == cachedSliderWidth) return
+        cachedSliderWidth = width
+        val tickIncrement = getTickSizeForHorizSlider(this, minimumTickSize = MINIMUM_LABEL_DISTANCE)
         // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
         // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
-        val tickIncrement = maximum / 2 // One label in start, middle and end.
         setMajorTickSpacing(tickIncrement)
         // Now, add the "ms" suffix to each label.
         labelTable = if (tickIncrement == 0) {
@@ -821,21 +931,17 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         }
       }
 
-      fun updateMinorTicks() {
-        // Split the timeline into 6 blocks, i.e. 7 vertical lines (without label) including start and end.
-        setMinorTickSpacing(maximum / 6)
-      }
-
     }.apply {
       paintTicks = true
       paintLabels = true
-      updateMajorTicks()
+      updateMajorTicks(width)
       setUI(TimelineSliderUI())
+      addComponentListener(object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) = updateMajorTicks(width)
+      })
     }
 
     init {
-      border = MatteBorder(0, 1, 0, 0, JBColor.border()) // Left border to separate the timeline from the properties panel
-
       add(slider, BorderLayout.CENTER)
       slider.addChangeListener {
         if (slider.value == cachedVal) return@addChangeListener // Ignore repeated values
@@ -843,6 +949,30 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         cachedVal = newValue
         setClockTime(newValue)
       }
+    }
+
+    var transition = Transition()
+
+    /**
+     * List of [ComposeUnit.TimelineUnit] for the clockTime set in [AnimationClock].
+     * Corresponds to the selected time in the timeline.
+     */
+    var selectedProperties: List<ComposeUnit.TimelineUnit> = mutableListOf()
+
+    /**
+     * Update currently selected transition.
+     */
+    fun updateTransition(newTransition: Transition) {
+      transition = newTransition
+      preferredSize = Dimension(width - 50, transition.transitionTimelineHeight)
+      repaint()
+    }
+
+    /**
+     * Update currently selected properties in the timeline.
+     */
+    fun updateSelectedProperties(animatedPropKeys: List<ComposeUnit.TimelineUnit>) {
+      selectedProperties = animatedPropKeys
     }
 
     fun updateMaxDuration(durationMs: Long) {
@@ -908,6 +1038,24 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     private inner class TimelineSliderUI : BasicSliderUI(slider) {
 
       private val labelVerticalMargin = 5
+      private val trackBackground = JBColor(Gray._235, JBColor.background())
+      private val tickColor = JBColor(Gray._223, Gray._50)
+
+      fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): CurvePainter.CurveInfo? =
+        animation.components[componentId].let { component ->
+          val curve: Path2D = Path2D.Double()
+          val animationYMin = component.minValue
+          val minX = xPositionForValue(animation.startMs)
+          val maxX = xPositionForValue(animation.endMs)
+          val stepY = (maxY - minY) / (component.maxValue - animationYMin)
+          curve.moveTo(minX.toDouble(), maxY.toDouble())
+          component.points.forEach { (ms, value) ->
+            curve.lineTo(xPositionForValue(ms).toDouble(), maxY - (value.toDouble() - animationYMin) * stepY)
+          }
+          curve.lineTo(maxX.toDouble(), maxY.toDouble())
+          curve.lineTo(minX.toDouble(), maxY.toDouble())
+          return CurvePainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
+        }
 
       override fun getThumbSize(): Dimension {
         val originalSize = super.getThumbSize()
@@ -928,7 +1076,33 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
       override fun paintTrack(g: Graphics) {
-        // Track should not be painted.
+        g as Graphics2D
+        paintMajorTicks(g)
+        // Leave the track empty if feature is not enabled
+        if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
+        if (selectedProperties.isEmpty()) return
+        val minX = xPositionForValue(slider.minimum)
+        val maxX = xPositionForValue(slider.maximum)
+        var rowIndex = 0
+        for ((index, animation) in transition.properties) {
+          if (animation == null) continue
+          for (componentId in 0 until animation.dimension) {
+            val minY = TIMELINE_HEADER_HEIGHT - 1 + TIMELINE_ROW_HEIGHT * rowIndex + TIMELINE_TOP_OFFSET
+            val maxY = minY + TIMELINE_ROW_HEIGHT
+            val curveInfo = createCurveInfo(animation, componentId, minY, (maxY - TIMELINE_CURVE_OFFSET))
+            if (selectedProperties.size > index) {
+              with(selectedProperties[index]) {
+                val label = "${property.label} ${unit?.toString(componentId)}"
+                CurvePainter.BoxedLabel.paintBoxedLabel(g, label, minX, maxY - TIMELINE_CURVE_OFFSET + 7)
+              }
+            }
+
+            if (curveInfo != null)
+              CurvePainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
+            rowIndex++
+          }
+        }
+        return
       }
 
       override fun paintFocus(g: Graphics?) {
@@ -946,44 +1120,32 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
       override fun paintThumb(g: Graphics) {
-        g as Graphics2D
-        g.color = JBColor(0x4A81FF, 0xB4D7FF)
-        g.stroke = BasicStroke(1f)
-        val halfWidth = thumbRect.width / 2
-        val x = thumbRect.x + halfWidth
-        val y = thumbRect.y + TIMELINE_HEADER_HEIGHT
-        g.drawLine(x, y, thumbRect.x + halfWidth, thumbRect.height + labelsAndTicksHeight());
+        CurvePainter.Thumb.paintThumbForHorizSlider(
+          g as Graphics2D,
+          x = thumbRect.x + thumbRect.width / 2,
+          y = thumbRect.y + TIMELINE_HEADER_HEIGHT,
+          height = thumbRect.height)
 
-        // The scrubber handle should have the following shape:
-        //         ___
-        //        |   |
-        //         \ /
-        // We add 5 points with the following coordinates:
-        // (x, y): bottom of the scrubber handle
-        // (x - halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (left side)
-        // (x - halfWidth, y - Height): top-left point of the scrubber, where there is a right angle
-        // (x + halfWidth, y - Height): top-right point of the scrubber, where there is a right angle
-        // (x + halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (right side)
-        val handleHeight = TIMELINE_HANDLE_HALF_HEIGHT * 2
-        val xPoints = intArrayOf(
-          x,
-          x - TIMELINE_HANDLE_HALF_WIDTH,
-          x - TIMELINE_HANDLE_HALF_WIDTH,
-          x + TIMELINE_HANDLE_HALF_WIDTH,
-          x + TIMELINE_HANDLE_HALF_WIDTH
-        )
-        val yPoints = intArrayOf(y, y - TIMELINE_HANDLE_HALF_HEIGHT, y - handleHeight, y - handleHeight, y - TIMELINE_HANDLE_HALF_HEIGHT)
-        g.fillPolygon(xPoints, yPoints, xPoints.size)
+      }
+
+      fun paintMajorTicks(g: Graphics2D) {
+        g.color = trackBackground
+        g.fillRect(0, TIMELINE_HEADER_HEIGHT, width, height - TIMELINE_HEADER_HEIGHT)
+        g.color = tickColor
+        val tickIncrement = getTickSizeForHorizSlider(slider, minimumTickSize = MINIMUM_LABEL_DISTANCE) / TICKS_PER_LABEL
+        val numberOfTicks = TICKS_PER_LABEL * slider.width / MINIMUM_LABEL_DISTANCE
+        for (i in 0..numberOfTicks) {
+          val xPos = xPositionForValue(i * tickIncrement)
+          g.drawLine(xPos, tickRect.y + TIMELINE_HEADER_HEIGHT, xPos, tickRect.height)
+        }
       }
 
       override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
-        // Major ticks should not be painted.
+        // Major ticks are not painted here, but inside the [paintTrack()] method, so ticks are behind the animation curves.
       }
 
       override fun paintMinorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
-        g as Graphics2D
-        g.color = JBColor.border()
-        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height)
+        // Minor ticks should not be painted
       }
 
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
