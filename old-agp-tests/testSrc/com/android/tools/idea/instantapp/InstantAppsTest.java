@@ -20,6 +20,7 @@ import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantApp
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import org.junit.Before;
@@ -30,7 +31,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
   }
-
+  @OldAgpTest(gradleVersions = "LATEST", agpVersions = "3.5.0")
   public void testFindBaseFeatureWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
     loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
@@ -42,6 +43,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertNull(findBaseFeature(myAndroidFacet));
   }
 
+  @OldAgpTest(gradleVersions = "LATEST", agpVersions = "3.5.0")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
     loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
