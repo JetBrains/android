@@ -1233,13 +1233,6 @@ public class Configuration implements Disposable, ModificationTracker {
     myFolderConfigDirty |= flags;
     myModificationCount++;
 
-    if (myManager.getStateVersion() != myProjectStateVersion) {
-      myNotifyDirty |= MASK_PROJECT_STATE;
-      myFolderConfigDirty |= MASK_PROJECT_STATE;
-      myDevice = null;
-      myState = null;
-    }
-
     if (myBulkEditingCount == 0) {
       int changed = myNotifyDirty;
       if (myListeners != null) {
