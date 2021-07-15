@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -44,7 +45,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-/** Timeout used in this test. While debugging, you may want extend the timeout */
+/** Timeout used in this test. While debugging, you may want to extend the timeout */
 private const val TIMEOUT = 1L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
@@ -53,7 +54,7 @@ class AppInspectionInspectorClientTest {
   private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { listOf(MODERN_PROCESS.name) }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun clientCanConnectDisconnectAndReconnect() {
@@ -236,7 +237,7 @@ class AppInspectionInspectorClientTest {
     }
 
     inspectorRule.launcher.addClientChangedListener { client ->
-      client.registerTreeEventCallback { data ->
+      client.registerTreeEventCallback {
         (client as AppInspectionInspectorClient).updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED)
       }
     }
@@ -388,5 +389,59 @@ class AppInspectionInspectorClientTest {
     val composeView = inspectorRule.inspectorModel[6]!!
     assertThat(composeView.qualifiedName).isEqualTo("android.view.ComposeView")
     assertThat(composeView.children.single().qualifiedName).isEqualTo("Surface")
+  }
+
+  @Test
+  fun errorShownOnConnectException() {
+    InspectorClientSettings.isCapturingModeOn = true
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        startFetchResponseBuilder.error = "here's my error"
+      }.build()
+    }
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+
+    assertThat(banner.text.text).isEqualTo("here's my error")
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+  }
+
+  @Test
+  fun errorShownOnRefreshException() {
+    InspectorClientSettings.isCapturingModeOn = false
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        startFetchResponseBuilder.error = "here's my error"
+      }.build()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+
+    assertThat(banner.text.text).isEqualTo("here's my error")
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+  }
+}
+
+class AppInspectionInspectorClientWithFailingClientTest {
+  private val inspectionRule = AppInspectionInspectorRule()
+  private val inspectorRule = LayoutInspectorRule(
+    AppInspectionClientProvider({ mock() }, { inspectionRule.inspectionService.scope })) {
+    listOf(MODERN_PROCESS.name)
+  }
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
+
+  @Test
+  fun errorShownOnNoAgentWithApi29() {
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      throw Exception()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(banner.text.text).isEqualTo("Unable to detect a live inspection service. To enable live inspections, restart the device.")
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
 }
