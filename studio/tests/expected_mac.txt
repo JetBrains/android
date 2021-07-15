@@ -662,7 +662,7 @@ Android Studio Preview.app/Contents/lib/plexus-utils-3.2.0.jar
 Android Studio Preview.app/Contents/lib/proto-google-common-protos-1.12.0.jar
 Android Studio Preview.app/Contents/lib/protobuf-java-3.13.0.jar
 Android Studio Preview.app/Contents/lib/proxy-vole-1.0.5-jb.2.jar
-Android Studio Preview.app/Contents/lib/pty4j-0.11.1.jar
+Android Studio Preview.app/Contents/lib/pty4j-0.11.3.jar
 Android Studio Preview.app/Contents/lib/pty4j-native/darwin/libpty.dylib
 Android Studio Preview.app/Contents/lib/purejavacomm-0.0.11.1.jar
 Android Studio Preview.app/Contents/lib/qdox-2.0-M10.jar
