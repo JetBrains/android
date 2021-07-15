@@ -115,6 +115,13 @@ public class WidgetConstraintModel implements SelectionListener {
     ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
   }};
 
+  private static final String[] ourHorizontalConstraintStringPriorToMinApi17 = {
+    ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+    ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+  };
+
   private static final String[][] ourMarginString_ltr = {
     {ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_START},
     {ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_END},
@@ -132,6 +139,11 @@ public class WidgetConstraintModel implements SelectionListener {
   private static final String[] ourMarginStringPriorToMinApi17 = {
     ATTR_LAYOUT_MARGIN_LEFT,
     ATTR_LAYOUT_MARGIN_RIGHT,
+  };
+
+  private static final String[] ourMarginStringFromApi17 = {
+    ATTR_LAYOUT_MARGIN_START,
+    ATTR_LAYOUT_MARGIN_END,
   };
 
   private static final String[][] ourDeleteAttributes_ltr = {
@@ -362,28 +374,37 @@ public class WidgetConstraintModel implements SelectionListener {
    * @param margin the margin value in dp (e.g. "0") or resource (e.g. "@dimen/left_margin")
    */
   public void setMargin(int type, String margin) {
-    if (myComponent == null || myIsInCallback) {
+    NlComponent component = myComponent;
+    if (component == null || myIsInCallback) {
       return;
     }
-    boolean rtl = ConstraintUtilities.isInRTL(myComponent);
+    boolean rtl = ConstraintUtilities.isInRTL(component);
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
-    int myMinSdkVersion = getMinSdkVersion();
+
+    AndroidFacet facet = component.getModel().getFacet();
+    AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
+    int minSdkVersion = info.getMinSdkVersion().getApiLevel();
+    int targetSdkVersion = info.getTargetSdkVersion().getApiLevel();
+
+    boolean hasLeftRightAttribute = false;
+    for (String rtlAttribute : ourHorizontalConstraintStringPriorToMinApi17) {
+      if (component.getAttribute(SHERPA_URI, rtlAttribute) != null) {
+        hasLeftRightAttribute = true;
+        break;
+      }
+    }
 
     for (int i = 0; i < marginsAttr[type].length; i++) {
       String attr = marginsAttr[type][i];
-      if (myMinSdkVersion < RtlSupportProcessor.RTL_TARGET_SDK_START || !ArrayUtil.contains(attr, ourMarginStringPriorToMinApi17)) {
+      if ((minSdkVersion < RtlSupportProcessor.RTL_TARGET_SDK_START || hasLeftRightAttribute)
+          && ArrayUtil.contains(attr, ourMarginStringPriorToMinApi17)) {
+        // It is possible that using left and right margin even when min sdk is higher than or equal to 17.
+        setDimension(attr, margin);
+      }
+      if (targetSdkVersion >= RtlSupportProcessor.RTL_TARGET_SDK_START && ArrayUtil.contains(attr, ourMarginStringFromApi17)) {
         setDimension(attr, margin);
       }
     }
-  }
-
-  /**
-   * Return the min sdk API level. Default to 17 (RTL_TARGET_SDK_START) if not found.
-   */
-  private int getMinSdkVersion() {
-    AndroidFacet facet = myModel != null ? myModel.getFacet() : null;
-    AndroidModuleInfo info = facet != null ? AndroidModuleInfo.getInstance(facet) : null;
-    return info != null ? info.getMinSdkVersion().getApiLevel() : RtlSupportProcessor.RTL_TARGET_SDK_START;
   }
 
   /**
@@ -629,7 +650,7 @@ public class WidgetConstraintModel implements SelectionListener {
     return ConstraintUtilities.getDpValue(myComponent, v);
   }
 
-  private void setDimension(@Nullable String attribute, String currentValue) {
+  private void setDimension(@NotNull String attribute, String currentValue) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
