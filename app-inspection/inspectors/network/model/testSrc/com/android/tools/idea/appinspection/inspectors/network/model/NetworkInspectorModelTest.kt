@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model
 
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
@@ -29,6 +32,7 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
@@ -37,6 +41,9 @@ import java.util.concurrent.TimeUnit
 class NetworkInspectorModelTest {
   private lateinit var model: NetworkInspectorModel
   private val timer = FakeTimer()
+
+  @Rule @JvmField
+  public val ignoreTests = IgnoreTestRule()
 
   @Before
   fun setUp() {
@@ -123,6 +130,7 @@ class NetworkInspectorModelTest {
     assertThat(sending.series[0].value.toLong()).isEqualTo(2)
   }
 
+  @IgnoreWithCondition(reason = "b/193710264", condition = OnWindows::class)
   @Test
   fun updaterRegisteredCorrectly() {
     val observer = AspectObserver()
