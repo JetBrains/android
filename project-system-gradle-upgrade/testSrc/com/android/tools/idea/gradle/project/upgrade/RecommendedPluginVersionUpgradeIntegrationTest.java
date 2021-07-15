@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.upgrade;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -31,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 
 /**
  * Tests for {@link GradlePluginUpgrade#performRecommendedPluginUpgrade(Project)} and
@@ -41,7 +44,10 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
-  @Mock private ContentManager myContentManager;
+  private ContentManager myContentManager;
+  @Mock private AssistantInvoker myAssistantInvoker;
+  @Mock private AgpUpgradeRefactoringProcessor myProcessor;
+  @Mock private AgpClasspathDependencyRefactoringProcessor myAgpClasspathDependencyRefactoringProcessor;
 
   @Override
   protected void setUp() throws Exception {
@@ -49,10 +55,16 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     initMocks(this);
 
     Project project = getProject();
+    myContentManager = spy(new ContentManager(project));
     ServiceContainerUtil.replaceService(project, ContentManager.class, myContentManager, project);
+    ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
+    when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
+    // TODO(xof): this is a clear leak of implementation details.  Figure out how to remove it.
+    when(myProcessor.getClasspathRefactoringProcessor()).thenReturn(myAgpClasspathDependencyRefactoringProcessor);
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());
+    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("4.0.0"));
   }
 
   public void testCheckUpgradeWhenUpgradeReminderIsNotDue() {
@@ -106,6 +118,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
   private void verifyUpgradeAssistantWasNotInvoked() {
     verifyNoInteractions(myContentManager);
+    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myProcessor);
   }
 
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
@@ -116,18 +130,24 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
-    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
-
-    verifyUpgradeAssistantWasInvoked();
+    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
+      androidPluginInfoMock.when(() -> AndroidPluginInfo.find(myProject)).thenReturn(myPluginInfo);
+      assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
+      verifyUpgradeAssistantWasInvoked();
+    }
   }
 
   private void verifyUpgradeAssistantWasInvoked() {
     if (StudioFlags.AGP_UPGRADE_ASSISTANT_TOOL_WINDOW.get()) {
       verify(myContentManager).showContent();
+      // need more user action to check that myProcessor.run() is executed, but we can punt to ContentManager tests.
     }
     else {
-      fail("Can't test whether Upgrade Assistant was invoked without tool window");
+      verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(same(myProcessor), same(false));
+      verify(myProcessor).run();
     }
+    verify(myAssistantInvoker).createProcessor(same(myProject), any(), any());
   }
 
   private void simulateUpgradeReminderIsDue() {

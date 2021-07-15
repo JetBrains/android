@@ -588,8 +588,9 @@ internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, curre
     }
     return
   }
-  val processor = AgpUpgradeRefactoringProcessor(project, current, new)
-  val runProcessor = showAndGetAgpUpgradeDialog(processor)
+  val assistantInvoker = ServiceManager.getService(project, AssistantInvoker::class.java)
+  val processor = assistantInvoker.createProcessor(project, current, new)
+  val runProcessor = assistantInvoker.showAndGetAgpUpgradeDialog(processor)
   if (runProcessor) {
     DumbService.getInstance(project).smartInvokeLater { processor.run() }
   }
