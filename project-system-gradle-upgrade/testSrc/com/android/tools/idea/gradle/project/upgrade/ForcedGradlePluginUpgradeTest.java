@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.ui.Messages.OK;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
+import com.intellij.mock.MockDumbService;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.List;
 import org.mockito.Mock;
 
@@ -40,8 +42,8 @@ import org.mockito.Mock;
  * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, GradleVersion, GradleVersion)}}.
  */
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
-  @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private AndroidPluginVersionUpdater myVersionUpdater;
+  @Mock private AssistantInvoker myAssistantInvoker;
+  @Mock private AgpUpgradeRefactoringProcessor myProcessor;
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
@@ -52,9 +54,10 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    when(myPluginInfo.getModule()).thenReturn(getModule());
 
-    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
+    ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
+    ServiceContainerUtil.replaceService(project, AssistantInvoker.class, myAssistantInvoker, project);
+    when(myAssistantInvoker.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
   }
 
@@ -70,39 +73,44 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     }
   }
 
-  public void testPerformUpgradeWhenUpgradeNotNeeded() {
+  public void testUpgradeNotNeeded() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
     boolean upgraded = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
     assertFalse(upgraded);
-
-    verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
+    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myProcessor);
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
-  public void testPerformUpgradeWhenUserAcceptsUpgrade() {
+  public void testUpgradeAccepted() {
     GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
     // Simulate user accepting the upgrade.
-    //
-    // TODO(b/159995302): if the upgrade assistant is turned on, there are more user interaction points within performForcedPluginUpgrade,
-    //  which require overrides (e.g. of DialogWrapper.showAndGet()) just for testing purposes, and those tests end up not testing the
-    //  production codepaths anyway.  On moving to an asynchronous handling of plugin upgrades, this test and others will need to be
-    //  adapted, rewritten or removed.
-    if (false) {
-      myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(true);
+    GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
+    verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(any(), same(false));
+    verify(myProcessor).run();
+    assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+  }
 
-      boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-      assertTrue(upgraded);
-
-      verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
-      assertThat(mySyncMessages.getReportedMessages()).isEmpty();
-    }
+  public void testUpgradeAcceptedThenCancelled() {
+    GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
+    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
+    // Simulate user accepting then cancelling the upgrade.
+    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+    when(myAssistantInvoker.showAndGetAgpUpgradeDialog(any(), same(false))).thenReturn(false);
+    GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
+    verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(any(), same(false));
+    verifyNoInteractions(myProcessor);
+    // TODO(xof): this is suboptimal and should probably show the same message as if we cancelled from the first dialog.
+    assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
-  public void testPerformUpgradeWhenUserDeclinesUpgrade() {
+  public void testUpgradeDeclined() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     GradleVersion currentPluginVersion = GradleVersion.parse("2.0.0-alpha9");
 
@@ -117,6 +125,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     String message = messages.get(0).getText()[1];
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
-    verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
+    verifyNoInteractions(myAssistantInvoker);
+    verifyNoInteractions(myProcessor);
   }
 }

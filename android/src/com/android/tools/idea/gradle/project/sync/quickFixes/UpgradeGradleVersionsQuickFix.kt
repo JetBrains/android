@@ -17,17 +17,16 @@ package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
-import com.android.tools.idea.gradle.project.upgrade.showAndGetAgpUpgradeDialog
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
@@ -66,10 +65,11 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
           }
         }
         else {
-          val processor = AgpUpgradeRefactoringProcessor(project, currentAgpVersion, agpVersion)
+          val assistantInvoker = ServiceManager.getService(project, AssistantInvoker::class.java)
+          val processor = assistantInvoker.createProcessor(project, currentAgpVersion, agpVersion)
           val runProcessor =
             if ((!isUnitTestMode()) || (showDialogResultForTest == null))
-              showAndGetAgpUpgradeDialog(processor)
+              assistantInvoker.showAndGetAgpUpgradeDialog(processor)
             else
               showDialogResultForTest!!
           if (runProcessor) {
