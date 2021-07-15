@@ -24,7 +24,8 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  OldAgpTestSuite.class  // a suite mustn't contain itself
+  OldAgpTestSuite.class,  // a suite mustn't contain itself
+  OldAgpTests.class
 })
 public class OldAgpTestSuite extends IdeaTestSuiteBase {
 

@@ -1,4 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
+load(":agp_versions.bzl", "AGP_3_5", "AGP_MAVEN_REPOS")
+load(":gradle_versions.bzl", "GRADLE_DISTRIBUTIONS", "GRADLE_LATEST")
 
 # managed by go/iml_to_build
 iml_module(
@@ -81,4 +84,44 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
+)
+
+COMMON_DATA = [
+    "//prebuilts/studio/jdk",
+    "//prebuilts/studio/layoutlib:build.prop",
+    "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    "//prebuilts/studio/layoutlib/data:native_libs",
+    "//prebuilts/studio/layoutlib/data/fonts",
+    "//prebuilts/studio/layoutlib/data/icu",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:cmake",
+    "//prebuilts/studio/sdk:docs",
+    "//prebuilts/studio/sdk:licenses",
+    "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/studio/sdk:platforms/latest",
+    "//prebuilts/studio/sdk:sources",
+    "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-gradle-plugin.1.5.10",
+    "//tools/adt/idea/android/annotations",
+    "//tools/adt/idea/android/lib:sampleData",
+    "//tools/adt/idea/android/testData:projects",
+    "//tools/adt/idea/artwork:device-art-resources",
+]
+
+COMMON_MAVEN_DEPS = [
+    "//tools/adt/idea/android:test_deps",
+    "//tools/base/build-system:studio_repo",
+    "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+    "//tools/base/third_party/kotlin:kotlin-m2repository",
+    "//tools/data-binding:data_binding_runtime.zip",
+]
+
+old_agp_test(
+    name = "OldAgpTests",
+    agp_version = AGP_3_5,
+    data = COMMON_DATA + GRADLE_DISTRIBUTIONS[GRADLE_LATEST] + ["//prebuilts/studio/sdk:platforms/android-28"],
+    gradle_version = GRADLE_LATEST,
+    iml_module = ":intellij.android.old-agp-tests",
+    maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[AGP_3_5],
+    tags = ["manual"],
+    test_class = "com.android.tools.idea.OldAgpTests",
 )
