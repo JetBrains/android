@@ -17,6 +17,8 @@ package com.android.tools.idea.model
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.queryByPackageName
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.run.activity.IndexedActivityWrapper
@@ -27,10 +29,15 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule;
 
 class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   private val LIB_MODULE1_WITH_DEPENDENCY = "withDependency1"
   private val LIB_MODULE2_WITH_DEPENDENCY = "withDependency2"
+
+  // TODO (b/192850109): AndroidManifestIndexQueryUtilsTest is failing too frequently.
+  @Rule @JvmField
+  public val ignoreTests = IgnoreTestRule.allTestsMatching(OnWindows::class.java)
 
   override fun setUp() {
     super.setUp()
