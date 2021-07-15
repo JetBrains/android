@@ -24,7 +24,7 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 
 /**
  * Profiler's support level depending on a process's exposure level.
- * For example, support is `FULL` for debuggable processes, and `PROFILEABLE` for profileable processes.
+ * For example, support is `DEBUGGABLE` for debuggable processes, and `PROFILEABLE` for profileable processes.
  */
 enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) -> Boolean,
                         private val enablesStage: (Class<out Stage<*>>) -> Boolean,
@@ -38,7 +38,7 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
                      MEMORY_JVM_RECORDING,
                      MEMORY_GC,
                      EVENT_MONITOR)),
-  FULL(all(), all(), all());
+  DEBUGGABLE(all(), all(), all());
 
   fun isMonitorSupported(profiler: StudioProfiler) = enablesMonitor(profiler::class.java)
   fun isStageSupported(stage: Class<out Stage<*>>) = enablesStage(stage)
@@ -63,7 +63,7 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
     fun of(level: ExposureLevel) = when (level) {
       ExposureLevel.UNKNOWN, ExposureLevel.RELEASE, ExposureLevel.UNRECOGNIZED -> NONE
       ExposureLevel.PROFILEABLE -> PROFILEABLE
-      ExposureLevel.DEBUGGABLE -> FULL
+      ExposureLevel.DEBUGGABLE -> DEBUGGABLE
     }
   }
 }

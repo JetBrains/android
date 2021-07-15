@@ -887,7 +887,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void gcEnabledForLiveDebuggableProcess() {
-    assumeTrue(myProfilers.getSelectedSessionSupportLevel() == SupportLevel.FULL);
+    assumeTrue(myProfilers.getSelectedSessionSupportLevel() == SupportLevel.DEBUGGABLE);
     myProfilers.setStage(new NullMonitorStage(myProfilers));
     myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
