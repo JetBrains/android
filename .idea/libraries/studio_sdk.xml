@@ -204,7 +204,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/proto-google-common-protos-1.12.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/protobuf-java-3.13.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/proxy-vole-1.0.5-jb.2.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/pty4j-0.11.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/pty4j-0.11.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/purejavacomm-0.0.11.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/qdox-2.0-M10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/lib/rd-core-0.203.181.jar!/" />
