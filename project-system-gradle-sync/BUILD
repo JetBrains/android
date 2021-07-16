@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repo")
 
 # managed by go/iml_to_build
 iml_module(
@@ -29,12 +30,12 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.sync.tests.iml"],
     test_class = "com.android.tools.idea.projectsystem.gradle.sync.GradleProjectSystemSyncTestSuite",
     test_data = [
+        ":test_deps",
         "//tools/base/build-system/previous-versions:2.2.0",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
@@ -59,5 +60,13 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+    ],
+)
+
+maven_repo(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "//prebuilts/tools/common/m2:junit.junit.4.12",
     ],
 )

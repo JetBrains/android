@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repo")
 
 # managed by go/iml_to_build
 iml_module(
@@ -39,6 +40,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
     test_data = [
+        ":test_deps",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
@@ -46,7 +48,6 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
-        "//tools/adt/idea/android:test_deps",
         "//prebuilts/studio/sdk:platforms/latest",
     ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
@@ -75,5 +76,26 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+    ],
+)
+
+maven_repo(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-common.1.0.0_aar",
+        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-fragment.1.0.0_aar",
+        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-runtime.1.0.0_aar",
+        "//prebuilts/tools/common/m2:androidx.fragment.fragment.1.3.4_aar",
+        "//prebuilts/tools/common/m2:androidx.navigation.navigation-common.2.3.5_aar",
+        "//prebuilts/tools/common/m2:androidx.navigation.navigation-fragment.2.3.5_aar",
+        "//prebuilts/tools/common/m2:androidx.navigation.navigation-runtime.2.3.5_aar",
+        "//prebuilts/tools/common/m2:com.android.support.support-fragment.28.0.0_aar",
+        "//prebuilts/tools/common/m2:com.google.jimfs.jimfs.1.1",
+        "//prebuilts/tools/common/m2:com.sun.activation.javax.activation.1.2.0",
+        "//prebuilts/tools/common/m2:javax.inject.javax.inject.1",
+        "//prebuilts/tools/common/m2:junit.junit.4.12",
+        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib-jdk7.1.4.32",
+        "//prebuilts/tools/common/m2:xmlpull.xmlpull.1.1.3.1",
     ],
 )
