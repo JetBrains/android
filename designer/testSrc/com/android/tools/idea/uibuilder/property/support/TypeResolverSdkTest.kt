@@ -140,7 +140,7 @@ class TypeResolverSdkTest {
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
-  // b/193894599 @Test
+  @Test
   fun testMaterialViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, "appcompat/appcompat")
     Dependencies.add(projectRule.fixture, MATERIAL_ID)
