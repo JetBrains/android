@@ -18,6 +18,7 @@
 package com.android.tools.idea.gradle.util
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.tools.idea.AndroidStartupActivity
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -55,32 +57,32 @@ enum class OutputType {
 }
 
 /**
- * Retrieve the location of generated APK or Bundle for the given run configuration.
+ * Retrieve the location of generated APK or APK from Bundle for the given run configuration.
  *
- * This method finds the location from build output listing file if it is supported, falls back to
- * ArtifactOutput model otherwise.
- *
- * If the generated file is a bundle file, this method returns the location of bundle.
+ * If the generated file is a bundle file, this method returns the location of the single APK extracted from the bundle.
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-@Deprecated("This method supports a limited set of AGP versions and devices only. Use ApkProviders instead.")
-fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigurationBase, isTest: Boolean): File? {
-  val androidModel = AndroidModuleModel.get(module) ?: return null
-  val selectedVariant = androidModel.selectedVariant
-  val artifact =
-    if (isTest) selectedVariant.androidTestArtifact ?: return null
-    else selectedVariant.mainArtifact
-
-  return if (androidModel.features.isBuildOutputFileSupported)
-    artifact.buildInformation
-      .getOutputListingFile(getOutputType(module, configuration))
-      ?.let { getOutputFilesFromListingFile(it) }
-      ?.let {
-        if (it.size > 1) it.first().parentFile
-        else it.firstOrNull()
-      }
-  else artifact.outputs.firstOrNull()?.outputFile
+@Deprecated("This method supports the case of one app and one test APks only. Use ApkProviders instead.")
+fun getSingleApkOrParentFolderForRunConfiguration(
+  module: Module,
+  configuration: AndroidRunConfigurationBase,
+  isTest: Boolean,
+  device: IDevice
+): File? {
+  val projectSystem = module.project.getProjectSystem()
+  val apkProvider = projectSystem.getApkProvider(configuration) ?: return null
+  val applicationIdProvider = projectSystem.getApplicationIdProvider(configuration) ?: return null
+  val applicationId = if (isTest) applicationIdProvider.testPackageName else applicationIdProvider.packageName
+  val apks =
+    apkProvider.getApks(device).asSequence()
+      .filter { info -> info.applicationId == applicationId }
+      .flatMap { it.files.asSequence() }
+      .map { it.apkFile }
+      .distinct()
+      .toList()
+  return if (apks.size == 1) apks[0]
+  else apks.map { it.parentFile }.singleOrNull()
 }
 
 fun getOutputFilesFromListingFile(listingFile: String): List<File> {
