@@ -86,11 +86,13 @@ object AndroidAttributeFact {
       "errorTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "expandedHintEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "extendMotionSpec" -> return NlPropertyType.ANIMATOR
+      "extraMultilineHeightEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "fabAlignmentMode" -> return NlPropertyType.ENUM
       "fabAnimationMode" -> return NlPropertyType.ENUM
       "fabCradleMargin" -> return NlPropertyType.DIMENSION
       "fabCradleRoundedCornerRadius" -> return NlPropertyType.DIMENSION
       "fabCradleVerticalOffset" -> return NlPropertyType.DIMENSION
+      "forceApplySystemWindowInsetTop" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "haloColor" -> return NlPropertyType.COLOR_STATE_LIST
       "haloRadius" -> return NlPropertyType.DIMENSION
       "helperTextTextColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -130,6 +132,7 @@ object AndroidAttributeFact {
       "layout_scrollInterpolator" -> return NlPropertyType.INTERPOLATOR
       "liftOnScrollTargetViewId" -> return NlPropertyType.ID
       "lineSpacing" -> return NlPropertyType.DIMENSION
+      "menuGravity" -> return NlPropertyType.ENUM
       "minHideDelay" -> return NlPropertyType.INTEGER
       "minSeparation" -> return NlPropertyType.DIMENSION
       "navigationIconTint" -> return NlPropertyType.COLOR
@@ -157,6 +160,7 @@ object AndroidAttributeFact {
       "statusBarForeground" -> return NlPropertyType.DRAWABLE
       "strokeColor" -> return NlPropertyType.COLOR_STATE_LIST
       "strokeWidth" -> return NlPropertyType.DIMENSION
+      "subtitleCentered" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "suffixText" -> return NlPropertyType.STRING
       "suffixTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "suffixTextColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -189,6 +193,8 @@ object AndroidAttributeFact {
       "tickColor" -> return NlPropertyType.COLOR_STATE_LIST
       "tickColorActive" -> return NlPropertyType.COLOR_STATE_LIST
       "tickColorInactive" -> return NlPropertyType.COLOR_STATE_LIST
+      "titleCentered" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "titleCollapseMode" -> return NlPropertyType.ENUM
       "textEndPadding" -> return NlPropertyType.DIMENSION
       "textInputLayoutFocusedRectEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "textStartPadding" -> return NlPropertyType.DIMENSION
