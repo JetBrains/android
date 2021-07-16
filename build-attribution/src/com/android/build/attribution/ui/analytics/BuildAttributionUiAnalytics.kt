@@ -178,6 +178,18 @@ class BuildAttributionUiAnalytics(
       .setEventProcessingTimeMs(duration.toMillis())
   )
 
+  fun runCheckJetifierTaskClicked(duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.RUN_CHECK_JETIFIER_TASK_CLICKED)
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
+
+  fun turnJetifierOffClicked(duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.REMOVE_JETIFIER_PROPERTY_CLICKED)
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
+
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
@@ -289,6 +301,7 @@ class BuildAttributionUiAnalytics(
       if (filter.showAnnotationProcessorWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS)
       if (filter.showNonCriticalPathTasks) add(BuildAttributionUiEvent.FilterItem.SHOW_WARNINGS_FOR_TASK_NOT_FROM_CRITICAL_PATH)
       if (filter.showConfigurationCacheWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS)
+      if (filter.showJetifierWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_JETIFIER_USAGE_WARNINGS)
     }.sorted()
   }
 

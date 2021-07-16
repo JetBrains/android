@@ -21,12 +21,18 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth
 import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito
 
 class ConfigurationCachingCompatibilityAnalyzerUnitTest {
+
+  @get:Rule
+  val temporaryFolder = TemporaryFolder()
 
   val compatiblePlugin = GradlePluginsData.PluginInfo(
     name = "Compatible Plugin",
@@ -159,7 +165,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   private fun test(testCaseData: TestCase) {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
-    val studioProvidedInfo = StudioProvidedInfo(
+    val studioProvidedInfo = studioProvidedInfo(
       agpVersion = testCaseData.agpVersion,
       configurationCachingGradlePropertyState = null,
       isInConfigurationCacheTestFlow = false
@@ -179,7 +185,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun testPluginAppliedInSeveralProjects() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
-    val studioProvidedInfo = StudioProvidedInfo(
+    val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
       isInConfigurationCacheTestFlow = false
@@ -211,7 +217,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun testWhenCCFlagIsAlreadyOn() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
-    val studioProvidedInfo = StudioProvidedInfo(
+    val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "true",
       isInConfigurationCacheTestFlow = false
@@ -235,7 +241,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun testWhenCCFlagIsAlreadyOff() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
-    val studioProvidedInfo = StudioProvidedInfo(
+    val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "false",
       isInConfigurationCacheTestFlow = false
@@ -259,7 +265,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun testWhenRunningConfigurationCacheCompatibilityTestBuild() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
-    val studioProvidedInfo = StudioProvidedInfo(
+    val studioProvidedInfo = studioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
       isInConfigurationCacheTestFlow = true
@@ -285,6 +291,19 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       override fun getClassName(): String = pluginClassName
       override fun getPluginId(): String = pluginClassName
     }, projectPath)
+
+  private fun studioProvidedInfo(
+    agpVersion: GradleVersion?,
+    configurationCachingGradlePropertyState: String?,
+    isInConfigurationCacheTestFlow: Boolean
+  ): StudioProvidedInfo = StudioProvidedInfo(
+    agpVersion = agpVersion,
+    configurationCachingGradlePropertyState = configurationCachingGradlePropertyState,
+    isInConfigurationCacheTestFlow = isInConfigurationCacheTestFlow,
+    enableJetifierPropertyState = false,
+    useAndroidXPropertyState = false,
+    buildRequestHolder = mock()
+  )
 
   data class TestCase(
     val agpVersion: GradleVersion = GradleVersion.parse("7.0.0"),

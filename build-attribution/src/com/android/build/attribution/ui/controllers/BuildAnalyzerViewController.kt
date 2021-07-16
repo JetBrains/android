@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.checkJetifierResultFile
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
@@ -31,6 +32,7 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.builder.model.AndroidProject.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -39,6 +41,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
+import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.FutureCallback
@@ -48,12 +51,14 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
+import org.jetbrains.android.refactoring.disableJetifier
 import java.time.Duration
 
 class BuildAnalyzerViewController(
@@ -201,6 +206,23 @@ class BuildAnalyzerViewController(
     analytics.updatePluginButtonClicked(duration)
   }
 
+  override fun runCheckJetifierTask() {
+    val duration = runAndMeasureDuration {
+      val request = createCheckJetifierTaskRequest(model.reportUiData.buildRequest)
+      GradleBuildInvoker.getInstance(project).executeTasks(request)
+    }
+    analytics.runCheckJetifierTaskClicked(duration)
+  }
+
+  override fun turnJetifierOffInProperties() {
+    val duration = runAndMeasureDuration {
+      WriteCommandAction.runWriteCommandAction(project) {
+        project.disableJetifier()
+      }
+    }
+    analytics.turnJetifierOffClicked(duration)
+  }
+
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
     val watch = Stopwatch.createStarted()
     action()
@@ -345,7 +367,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
           Messages.getInformationIcon(), null
         )
       }
-      //TODO(b/186203445): we have configuration cache exception with a detailed message and a link to the html report inside.
+      //TODO (b/186203445): we have configuration cache exception with a detailed message and a link to the html report inside.
       // So I can present that in the Dialog. find cause recursively?
       Messages.showIdeaMessageDialog(
         project,
@@ -356,4 +378,14 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
       )
     }
   }
+}
+
+fun createCheckJetifierTaskRequest(originalBuildRequest: GradleBuildInvoker.Request): GradleBuildInvoker.Request {
+  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf("checkJetifier"))
+    .setCommandLineArguments(listOf(
+      createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequest).absolutePath),
+      // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.
+      "--no-configuration-cache"
+    ))
+    .build()
 }

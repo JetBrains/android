@@ -87,4 +87,6 @@ interface ViewActionHandlers {
   fun runTestConfigurationCachingBuild()
   fun turnConfigurationCachingOnInProperties()
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
+  fun runCheckJetifierTask()
+  fun turnJetifierOffInProperties()
 }

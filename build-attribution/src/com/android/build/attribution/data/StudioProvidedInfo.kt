@@ -23,22 +23,31 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.getProjectProperties
+import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.refactoring.isEnableJetifier
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
-  val isInConfigurationCacheTestFlow: Boolean
+  val isInConfigurationCacheTestFlow: Boolean,
+  val enableJetifierPropertyState: Boolean,
+  val useAndroidXPropertyState: Boolean,
+  val buildRequestHolder: BuildRequestHolder
 ) {
+
   companion object {
     private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
 
-    fun fromProject(project: Project) = StudioProvidedInfo(
+    fun fromProject(project: Project, buildRequest: BuildRequestHolder) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
         project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
       },
-      isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild
+      isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild,
+      enableJetifierPropertyState = project.isEnableJetifier(),
+      useAndroidXPropertyState = project.isAndroidx(),
+      buildRequestHolder = buildRequest
     )
 
     fun turnOnConfigurationCacheInProperties(project: Project) {

@@ -1,0 +1,19 @@
+apply plugin: 'com.android.application'
+
+android.compileSdkVersion 30
+android.defaultConfig.minSdkVersion 14
+
+android.defaultConfig.versionCode 1
+
+dependencies {
+    testImplementation 'junit:junit:4.+'
+}
+
+repositories {
+    // This will be populated by AndroidGradleTestCase
+}
+dependencies {
+    implementation project(':lib')
+    // This will be replaced by JetifierUsageAnalyzerTest
+}
+

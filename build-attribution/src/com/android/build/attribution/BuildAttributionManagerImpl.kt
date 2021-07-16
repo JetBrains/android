@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
 import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
@@ -55,6 +56,7 @@ class BuildAttributionManagerImpl(
   override fun onBuildSuccess(request: GradleBuildInvoker.Request) {
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
+    val buildRequestHolder = BuildRequestHolder(request)
     val attributionFileDir = getAgpAttributionFileDir(request)
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
@@ -62,7 +64,7 @@ class BuildAttributionManagerImpl(
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           val pluginsData = ServiceManager.getService(KnownGradlePluginsService::class.java).gradlePluginsData
-          val studioProvidedInfo = StudioProvidedInfo.fromProject(project)
+          val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder)
           analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
         }
         finally {
@@ -73,7 +75,7 @@ class BuildAttributionManagerImpl(
       analyticsManager.logAnalyzersData(analyzersProxy)
 
       BuildAttributionUiManager.getInstance(project).showNewReport(
-        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, BuildAttributionReportBuilder.RequestHolder(request)).build(),
+        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
         buildSessionId
       )
     }

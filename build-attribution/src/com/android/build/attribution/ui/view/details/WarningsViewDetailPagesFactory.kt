@@ -21,9 +21,15 @@ import com.android.build.attribution.analyzers.ConfigurationCachingCompatibility
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.JetifierCanBeRemoved
+import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -38,6 +44,7 @@ import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDesc
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDescriptor
+import com.android.build.attribution.ui.model.JetifierUsageWarningRootNodeDescriptor
 import com.android.build.attribution.ui.model.PluginGroupingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.TaskUnderPluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
@@ -110,6 +117,7 @@ class WarningsViewDetailPagesFactory(
                                                                                            nodeDescriptor.projectConfigurationTime)
     is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
                                                                                           nodeDescriptor.projectConfigurationTime)
+    is JetifierUsageWarningRootNodeDescriptor -> createJetifierUsageWarningPage(nodeDescriptor.data)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
@@ -335,5 +343,53 @@ class WarningsViewDetailPagesFactory(
         }
       }
     }
+  }
+
+  private fun createJetifierUsageWarningPage(data: JetifierUsageAnalyzerResult): JPanel = when(data) {
+    JetifierUsedCheckRequired -> JPanel().apply {
+      layout = VerticalLayout(10, SwingConstants.LEFT)
+      val contentHtml = """
+        <b>Confirm need for Jetifier flag in your project</b>
+        Your project’s gradle.settings file includes ‘enableJetifier’. This flag is needed
+        to enable AndroidX for libraries that don’t support it natively. ${externalLink("Learn more", JETIIFER_MIGRATE)}.
+
+        Your project may no longer need this flag and could save build time by removing it.
+        Click the button below to verify if enableJetifier is needed.
+      """.trimIndent().insertBRTags()
+      add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+      add(JButton("Check Jetifier").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
+    }
+    JetifierCanBeRemoved -> JPanel().apply {
+      layout = VerticalLayout(10, SwingConstants.LEFT)
+      val contentHtml = """
+      <b>Remove Jetifier flag</b>
+      Your project’s gradle.settings includes enableJetifier. This flag is not needed by your project
+      and removing it will improve build performance.
+      
+      <a href='remove'>Remove enableJetifier</a>
+      """.trimIndent().insertBRTags()
+      add(htmlTextLabelWithFixedLines(contentHtml).apply {
+        addHyperlinkListener({ actionHandlers.turnJetifierOffInProperties()})
+      })
+    }
+    is JetifierRequiredForLibraries -> JPanel().apply {
+      layout = VerticalLayout(10, SwingConstants.LEFT)
+      val contentHtml = """
+      <b>Jetifier flag is needed by some libraries in your project</b>
+      The following libraries rely on the ‘enableJetifier’ flag to work with AndroidX.
+      Please consider upgrading to more recent versions of those libraries or contact
+      the library authors to request native AndroidX support, if it’s not available yet.
+      """.trimIndent().insertBRTags()
+      // TODO (b/194299417): replace with a tree component and present in a reversed way
+      val librariesListHtml = data.checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence()
+        .joinToString(separator = "", prefix = "<ul>", postfix = "</ul>") {
+          val reversedPath = it.value.dependencyPath.elements.reversed().run { if (size > 1) drop(1) else this}
+          "<li>${reversedPath.plus(it.value.projectPath).joinToString(" -> ")}</li>"
+        }
+      add(htmlTextLabelWithFixedLines(contentHtml))
+      add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
+      add(htmlTextLabelWithFixedLines(librariesListHtml))
+    }
+    JetifierNotUsed -> JPanel()
   }
 }

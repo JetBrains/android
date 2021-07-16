@@ -59,7 +59,8 @@ data class WarningsFilter(
   val showTaskWarningTypes: Set<TaskIssueType>,
   val showAnnotationProcessorWarnings: Boolean,
   val showNonCriticalPathTasks: Boolean,
-  val showConfigurationCacheWarnings: Boolean
+  val showConfigurationCacheWarnings: Boolean,
+  val showJetifierWarnings: Boolean
 ) {
 
   fun acceptTaskIssue(issueData: TaskIssueUiData): Boolean =
@@ -77,8 +78,9 @@ data class WarningsFilter(
 
     val annotationProcessorsPart = if (showAnnotationProcessorWarnings) "Annotation processors" else ""
     val configurationCachePart = if (showConfigurationCacheWarnings) "Configuration cache" else ""
+    val jetifierPart = if (showJetifierWarnings) "Jetifier" else ""
 
-    return sequenceOf(taskWarningsPart, annotationProcessorsPart, configurationCachePart)
+    return sequenceOf(taskWarningsPart, annotationProcessorsPart, configurationCachePart, jetifierPart)
              .filter { it.isNotBlank() }
              .joinToString(separator = ", ")
              .takeIf { it.isNotBlank() } ?: "Nothing selected"
@@ -90,7 +92,8 @@ data class WarningsFilter(
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
       showAnnotationProcessorWarnings = true,
       showNonCriticalPathTasks = false,
-      showConfigurationCacheWarnings = true
+      showConfigurationCacheWarnings = true,
+      showJetifierWarnings = true
     )
   }
 }
@@ -212,6 +215,9 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
     add(BoolValueWarningsFilterToggleAction("Show configuration cache issues", model, actionHandlers,
                                             valueGetter = { filter -> filter.showConfigurationCacheWarnings },
                                             valueSetter = { filter, value -> filter.copy(showConfigurationCacheWarnings = value) }))
+    add(BoolValueWarningsFilterToggleAction("Show Jetifier usage warning", model, actionHandlers,
+                                            valueGetter = { filter -> filter.showJetifierWarnings },
+                                            valueSetter = { filter, value -> filter.copy(showJetifierWarnings = value) }))
   }
 }
 

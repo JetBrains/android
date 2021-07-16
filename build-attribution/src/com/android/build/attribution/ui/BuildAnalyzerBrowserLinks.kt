@@ -52,5 +52,9 @@ enum class BuildAnalyzerBrowserLinks(
   CONFIGURATION_CACHING(
     "https://d.android.com/r/tools/build-attribution/configuration-cache",
     BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURATION_CACHING
+  ),
+  JETIIFER_MIGRATE(
+    "https://d.android.com/r/tools/build-attribution/migrate-to-androidx",
+    BuildAttributionUiEvent.OutgoingLinkTarget.JETIFIER_MIGRATION
   )
 }

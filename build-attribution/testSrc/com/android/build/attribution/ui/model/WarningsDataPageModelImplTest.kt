@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -60,6 +60,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -86,7 +87,8 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |=>CONFIGURATION_CACHING
+      |  CONFIGURATION_CACHING
+      |=>JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -115,6 +117,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
   }
@@ -139,6 +142,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -163,6 +167,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -182,6 +187,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
   }
 
@@ -204,12 +210,50 @@ class WarningsDataPageModelImplTest {
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
+  }
+
+  fun testNoJetifierIssueDetected() {
+    // Arrange
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
+      jetifierData = JetifierNotUsed
+    })
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  ALWAYS_RUN_TASKS
+      |    ALWAYS_RUN_TASKS-:app:compile
+      |    ALWAYS_RUN_TASKS-:app:resources
+      |  TASK_SETUP_ISSUE
+      |    TASK_SETUP_ISSUE-:app:compile
+      |    TASK_SETUP_ISSUE-:lib:compile
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
+    """.trimMargin())
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
   }
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
+  }
+
+  @Test
+  fun testAllWarningsFilteredOut() {
+    model.filter = WarningsFilter.DEFAULT.copy(
+      showTaskWarningTypes = setOf(),
+      showAnnotationProcessorWarnings = false,
+      showConfigurationCacheWarnings = false,
+      showJetifierWarnings = false
+    )
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+    """.trimMargin())
+
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 0")
   }
 
   @Test
@@ -229,6 +273,7 @@ class WarningsDataPageModelImplTest {
       |===>ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -253,6 +298,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -273,6 +319,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
       |  CONFIGURATION_CACHING
+      |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }

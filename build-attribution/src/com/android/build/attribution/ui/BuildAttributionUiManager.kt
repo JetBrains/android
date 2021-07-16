@@ -20,6 +20,7 @@ import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -163,6 +164,8 @@ class BuildAttributionUiManagerImpl(
       override val annotationProcessors: AnnotationProcessorsReport
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val confCachingData: ConfigurationCachingCompatibilityProjectResult
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val jetifierData: JetifierUsageAnalyzerResult
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
     }
   }

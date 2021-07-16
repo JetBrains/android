@@ -40,7 +40,7 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 public class TestProjectPathsGenerator {
   @SuppressWarnings("SpellCheckingInspection")
   private static final List<String> TEST_SUB_FOLDERS =
-    Arrays.asList("apk", "manifestConflict", "moduleInfo", "navigationEditor", "projectModel", "runConfig", "signapk", "sync",
+    Arrays.asList("apk", "buildAnalyzer", "manifestConflict", "moduleInfo", "navigationEditor", "projectModel", "runConfig", "signapk", "sync",
                   "testArtifacts", "uibuilder");
 
   public static void main(@NotNull String... args) throws IOException {
