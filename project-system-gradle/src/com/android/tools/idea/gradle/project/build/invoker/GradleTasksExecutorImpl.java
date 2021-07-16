@@ -380,7 +380,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           buildState.buildFinished(SUCCESS);
           taskListener.onSuccess(id);
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildSuccess(attributionFileDir);
+            buildAttributionManager.onBuildSuccess(attributionFileDir, myRequest);
           }
         }
         catch (BuildException e) {

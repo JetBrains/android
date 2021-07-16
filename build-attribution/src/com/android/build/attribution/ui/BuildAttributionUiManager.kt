@@ -33,6 +33,7 @@ import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
@@ -147,6 +148,8 @@ class BuildAttributionUiManagerImpl(
     return object : BuildAttributionReportUiData {
       override val successfulBuild: Boolean
         get() = false
+      override val buildRequest: GradleBuildInvoker.Request
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val buildSummary: BuildSummary
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val criticalPathTasks: CriticalPathTasksUiData

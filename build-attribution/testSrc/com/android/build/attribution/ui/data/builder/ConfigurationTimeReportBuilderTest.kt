@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -41,7 +42,7 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(2000)
     assertThat(report.configurationTime.projects.size).isEqualTo(2)

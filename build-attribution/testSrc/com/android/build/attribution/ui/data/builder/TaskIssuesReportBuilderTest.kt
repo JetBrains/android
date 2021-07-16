@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.data.TaskIssueType.ALWAYS_RUN_TASKS
 import com.android.build.attribution.ui.data.TaskIssueType.TASK_SETUP_ISSUE
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -58,7 +59,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.criticalPathTasks.size).isEqualTo(4)
     // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
@@ -100,7 +101,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
     report.criticalPathPlugins.verify(expectedSize = 2, expectedWarnings = 5, expectedInfos = 0)
@@ -146,7 +147,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.issues.size).isEqualTo(2)
     report.issues[0].verify(ALWAYS_RUN_TASKS, 3, 3, 0)

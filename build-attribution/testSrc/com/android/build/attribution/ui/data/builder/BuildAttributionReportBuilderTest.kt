@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -24,7 +25,7 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
 
   @Test
   fun testBuilderOnEmptyResults() {
-    val report = BuildAttributionReportBuilder(MockResultsProvider(), 0).build()
+    val report = BuildAttributionReportBuilder(MockResultsProvider(), 0, mock()).build()
 
     assertThat(report.buildSummary.buildFinishedTimestamp).isEqualTo(0)
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(0)
@@ -42,7 +43,7 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
       }
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.buildSummary.buildFinishedTimestamp).isEqualTo(12345)
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)

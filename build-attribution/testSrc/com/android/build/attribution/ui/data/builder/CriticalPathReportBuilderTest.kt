@@ -20,6 +20,7 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -46,7 +47,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)
     assertThat(report.criticalPathTasks.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
@@ -80,7 +81,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.criticalPathPlugins.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
     assertThat(report.criticalPathPlugins.miscStepsTime).isEqualTo(TimeWithPercentage(500, 1500))
@@ -111,7 +112,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       override fun buildUsesConfigurationCache(): Boolean = true
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     //Sorted by time descending
     assertThat(report.criticalPathTasks.tasks[0].pluginUnknownBecauseOfCC).isTrue()

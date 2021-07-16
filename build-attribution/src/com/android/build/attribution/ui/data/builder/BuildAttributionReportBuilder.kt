@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 
@@ -36,7 +37,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  */
 class BuildAttributionReportBuilder(
   val buildAnalysisResult: BuildEventsAnalysisResult,
-  val buildFinishedTimestamp: Long
+  val buildFinishedTimestamp: Long,
+  val buildRequestHolder: RequestHolder
 ) {
 
   private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime }
@@ -49,6 +51,8 @@ class BuildAttributionReportBuilder(
     val buildSummary = createBuildSummary(pluginConfigurationTimeReport)
     return object : BuildAttributionReportUiData {
       override val successfulBuild: Boolean = true
+      override val buildRequest: GradleBuildInvoker.Request
+        get() = buildRequestHolder.buildRequest
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
@@ -117,4 +121,6 @@ class BuildAttributionReportBuilder(
       override val warningCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.WARNING }
       override val infoCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.INFO }
     }
+
+  open class RequestHolder(val buildRequest: GradleBuildInvoker.Request)
 }
