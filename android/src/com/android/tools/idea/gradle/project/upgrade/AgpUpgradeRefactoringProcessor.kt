@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT_TOOL_WINDOW
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -581,23 +579,9 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  * to the process, and then running the processor under that user input's direction.
  */
 internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
-  if (AGP_UPGRADE_ASSISTANT_TOOL_WINDOW.get()) {
-    DumbService.getInstance(project).smartInvokeLater {
-      val contentManager = ServiceManager.getService(project, ContentManager::class.java)
-      contentManager.showContent()
-    }
-    return
-  }
-  val assistantInvoker = ServiceManager.getService(project, AssistantInvoker::class.java)
-  val processor = assistantInvoker.createProcessor(project, current, new)
-  val runProcessor = assistantInvoker.showAndGetAgpUpgradeDialog(processor)
-  if (runProcessor) {
-    DumbService.getInstance(project).smartInvokeLater { processor.run() }
-  }
-  else {
-    // TODO(xof): This adds a notification when the user selects Cancel from the dialog box, but not when they select Cancel from the
-    //  refactoring preview.
-    notifyCancelledUpgrade(project, processor)
+  DumbService.getInstance(project).smartInvokeLater {
+    val contentManager = ServiceManager.getService(project, ContentManager::class.java)
+    contentManager.showContent()
   }
 }
 

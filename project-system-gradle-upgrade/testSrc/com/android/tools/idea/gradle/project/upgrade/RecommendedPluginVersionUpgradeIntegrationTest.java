@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
@@ -139,14 +138,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   }
 
   private void verifyUpgradeAssistantWasInvoked() {
-    if (StudioFlags.AGP_UPGRADE_ASSISTANT_TOOL_WINDOW.get()) {
-      verify(myContentManager).showContent();
-      // need more user action to check that myProcessor.run() is executed, but we can punt to ContentManager tests.
-    }
-    else {
-      verify(myAssistantInvoker).showAndGetAgpUpgradeDialog(same(myProcessor), same(false));
-      verify(myProcessor).run();
-    }
+    verify(myContentManager).showContent();
     verify(myAssistantInvoker).createProcessor(same(myProject), any(), any());
   }
 
