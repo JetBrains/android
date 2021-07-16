@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest")
+      linkIntoOfflineMavenRepo("tools/adt/idea/compose-designer/test_deps.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest")
     }
