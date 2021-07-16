@@ -198,5 +198,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" />
     <orderEntry type="library" name="Velocity" level="project" />
+    <orderEntry type="library" name="ASM" level="project" />
+    <orderEntry type="library" name="CGLIB" level="project" />
   </component>
 </module>

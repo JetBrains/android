@@ -24,5 +24,6 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="library" name="ASM" level="project" />
   </component>
 </module>
