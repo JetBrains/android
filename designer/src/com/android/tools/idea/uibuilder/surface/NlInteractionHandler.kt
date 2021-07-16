@@ -23,13 +23,19 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.navigateToComponent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Rectangle
 
 class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
+  private val scope = AndroidCoroutineScope(surface)
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
@@ -133,18 +139,25 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     }
   }
 
+  /**
+   * Handles a click in a preview. The click is handled asynchronously since finding the component to navigate might be a
+   * slow operation.
+   */
   private fun clickPreview(@SwingCoordinate x: Int, @SwingCoordinate y: Int, needsFocusEditor: Boolean) {
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
+    val navHandler = (surface as NlDesignSurface).navigationHandler ?: return
+    val scene = sceneView.scene
+    scope.launch(workerThread) {
+      val sceneComponent = scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
 
-    val sceneComponent = sceneView.scene.findComponent(sceneView.context, androidX, androidY) ?: return
-
-    if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
-                                                                       sceneComponent,
-                                                                       x, y,
-                                                                       needsFocusEditor) != true) {
-      navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
+      if (!navHandler.handleNavigate(sceneView,
+                                     sceneComponent,
+                                     x, y,
+                                     needsFocusEditor)) {
+        navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
+      }
     }
   }
 

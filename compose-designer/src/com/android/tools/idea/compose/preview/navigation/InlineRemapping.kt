@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
@@ -146,5 +147,5 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
  * [SourceLocation] is returned.
  */
 fun remapInline(module: Module): (SourceLocation) -> SourceLocation = { sourceLocation ->
-  sourceLocation.asSourceLocationWithVirtualFile(module) ?: sourceLocation
+  runReadAction { sourceLocation.asSourceLocationWithVirtualFile(module) } ?: sourceLocation
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -27,6 +28,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -84,10 +87,12 @@ object NopPsiFileSnapshotFilter : PsiFileSnapshotFilter, ModificationTracker by 
  *  built since it was open, this file is used to find if there are any existing .class files that indicate that has
  *  been built before.
  * @param psiFilter the filter to apply while detecting the changes in the [editorFile].
+ * @param scope [CoroutineScope] to run the execution of the initialization of this ProjectBuildStatusManager.
  */
 class ProjectBuildStatusManager(parentDisposable: Disposable,
                                 private val editorFile: PsiFile,
-                                private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter) {
+                                private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
+                                scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)) {
   private val project: Project = editorFile.project
   private val fileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
   private val _isBuilding = AtomicBoolean(false)
@@ -158,8 +163,15 @@ class ProjectBuildStatusManager(parentDisposable: Disposable,
       fileChangeDetector.markFileAsUpToDate(editorFile)
 
       if (projectBuildStatus === ProjectBuildStatus.NotReady) {
-        // Set the initial state of the project and initialize the modification count.
-        projectBuildStatus = if (hasBeenBuiltSuccessfully(project) { editorFile }) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
+        // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
+        scope.launch {
+          val newState = if (hasBeenBuiltSuccessfully(project) { editorFile }) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
+          // Only update the status if we are still in NotReady.
+          if (projectBuildStatus === ProjectBuildStatus.NotReady) {
+            // Set the initial state of the project and initialize the modification count.
+            projectBuildStatus = newState
+          }
+        }
       }
     })
   }

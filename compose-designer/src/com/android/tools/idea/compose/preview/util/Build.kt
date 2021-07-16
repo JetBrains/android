@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
@@ -126,6 +127,7 @@ else false
  * @param lazyFileProvider a lazy provider for the [PsiFile]. It will only be called if needed to obtain the status
  *  of the build.
  */
+@Slow
 fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile): Boolean {
   val result = ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult()
 
@@ -143,6 +145,7 @@ fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile):
  * Returns whether the [PsiFile] has been built. It does this by checking the build status of the module if available.
  * If not available, this method will look for the compiled classes and check if they exist.
  */
+@Slow
 fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): Boolean =
   hasBeenBuiltSuccessfully(psiFilePointer.project) { ReadAction.compute<PsiFile, Throwable> { psiFilePointer.element } }
 
