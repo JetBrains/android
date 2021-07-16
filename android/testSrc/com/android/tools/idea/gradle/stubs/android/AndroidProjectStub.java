@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.tools.idea.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.ModuleId;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -403,6 +404,6 @@ public class AndroidProjectStub implements AndroidProject {
     ModelCache modelCache = ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get());
     GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
     IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
-    return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, emptyList()));
+    return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, new ModuleId("", "")));
   }
 }

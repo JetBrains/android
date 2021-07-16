@@ -47,7 +47,7 @@ interface ModelCache {
     androidProject: IdeAndroidProject,
     variant: Variant,
     modelVersion: GradleVersion?,
-    androidModulesIds: List<ModuleId>
+    androidModuleId: ModuleId
   ): IdeVariantImpl
   fun variantFrom(
     androidProject: IdeAndroidProject,
