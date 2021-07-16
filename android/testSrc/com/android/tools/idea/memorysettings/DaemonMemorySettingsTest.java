@@ -19,6 +19,7 @@ import static com.android.utils.FileUtils.join;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +56,6 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
 
   private DaemonMemorySettings getDaemonMemorySettings(String gradleUserHomeOpts, String userHomeOpts, String projectOpts) throws Exception {
     System.clearProperty("gradle.user.home");
-    System.clearProperty("user.home");
 
     if (gradleUserHomeOpts != null) {
       File tempGradleUserHomeDir = createTempDir("gradle-user-home");
@@ -85,6 +85,7 @@ public class DaemonMemorySettingsTest extends PlatformTestCase {
     }
     if (content != null) {
       FileUtil.writeToFile(file, content);
+      assertNotNull(VfsUtil.findFile(file.toPath(), true)); // GradleProperties will read the file using VFS
     }
     return file;
   }
