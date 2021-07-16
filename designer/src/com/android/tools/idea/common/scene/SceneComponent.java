@@ -571,7 +571,6 @@ public class SceneComponent {
    * Returns a copy of the list containing this component's targets
    */
   public ImmutableList<Target> getTargets() {
-    assert ApplicationManager.getApplication().isDispatchThread();
     synchronized (myTargets) {
       // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
 

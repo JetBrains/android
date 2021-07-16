@@ -17,6 +17,8 @@ package com.android.tools.idea.customview.preview
 
 import com.android.tools.adtui.workbench.DetachedToolWindowManager
 import com.android.tools.adtui.workbench.WorkBenchManager
+import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -67,6 +69,9 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
     // For workbench
     project.registerServiceInstance(DetachedToolWindowManager::class.java, detachedToolWindowManager)
     ApplicationManager.getApplication().registerServiceInstance(WorkBenchManager::class.java, workbenchManager)
+    // For co-routine execution
+    ApplicationManager.getApplication().registerServiceInstance(AndroidIoManager::class.java, AndroidIoManager())
+    ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, AndroidExecutors())
     // For setupBuildListener
     project.registerServiceInstance(ProjectSystemService::class.java, projectSystemService)
     Mockito.`when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)

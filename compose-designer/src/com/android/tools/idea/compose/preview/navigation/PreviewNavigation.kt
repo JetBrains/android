@@ -23,16 +23,20 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
 import java.util.WeakHashMap
 
@@ -107,7 +111,7 @@ fun findNavigatableComponentHit(module: Module,
   }
 
   return hits
-    .mapNotNull { it.toNavigatable(module) }
+    .mapNotNull { runReadAction { it.toNavigatable(module) } }
     .firstOrNull()
 }
 
@@ -147,7 +151,9 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
       // file. If requestFocus is false, we only allow single clicks
       requestFocus || it.fileName == fileName
     }?.let {
-      it.navigate(requestFocus)
+      runBlocking(uiThread) {
+        it.navigate(requestFocus)
+      }
       return true
     }
 

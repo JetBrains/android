@@ -31,6 +31,9 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.Assert.assertEquals
@@ -38,6 +41,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.Executor
 
 class ProjectBuildStatusManagerTest {
   @get:Rule
@@ -57,7 +61,10 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.openFileInEditor(mainFile)
     }
 
-    val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
+    val statusManager = ProjectBuildStatusManager(
+      projectRule.fixture.testRootDisposable,
+      projectRule.fixture.file,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
 
@@ -91,7 +98,10 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
+    val statusManager = ProjectBuildStatusManager(
+      projectRule.fixture.testRootDisposable,
+      projectRule.fixture.file,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     assertFalse(projectRule.build().isBuildSuccessful)
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
@@ -128,7 +138,11 @@ class ProjectBuildStatusManagerTest {
     }
 
     val fileFilter = TestFilter()
-    val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file, fileFilter)
+    val statusManager = ProjectBuildStatusManager(
+      projectRule.fixture.testRootDisposable,
+      projectRule.fixture.file,
+      fileFilter,
+      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
     assertTrue(projectRule.build().isBuildSuccessful)
     assertEquals("Builds status is not Ready after successful build", ProjectStatus.Ready, statusManager.status)
 
