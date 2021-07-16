@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest")
+      linkIntoOfflineMavenRepo("tools/adt/idea/build-attribution/test_deps.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/kgp1.3.72.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
