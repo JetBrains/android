@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.StudioProvidedInfo
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
@@ -29,6 +31,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.File
 
 @RunsInEdt
 class ConfigurationCachePropertyAccessTest {
@@ -39,6 +42,7 @@ class ConfigurationCachePropertyAccessTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private lateinit var gradlePropertiesFile: VirtualFile
+  private lateinit var buildRequestHolder: BuildRequestHolder
 
   @Before
   fun setUp() {
@@ -46,19 +50,22 @@ class ConfigurationCachePropertyAccessTest {
       gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
       Assert.assertTrue(gradlePropertiesFile.isWritable)
     }
+    buildRequestHolder = BuildRequestHolder(
+      GradleBuildInvoker.Request.builder(projectRule.project, File(projectRule.fixture.tempDirPath), "assemble").build()
+    )
   }
 
   @Test
   fun testPropertyStateReadWhenSetToTrue() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "org.gradle.unsafe.configuration-cache=true") }
 
-    val info = StudioProvidedInfo.fromProject(projectRule.project)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isEqualTo("true")
   }
 
   @Test
   fun testPropertyStateWhenNotSet() {
-    val info = StudioProvidedInfo.fromProject(projectRule.project)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isNull()
   }
 
@@ -66,13 +73,14 @@ class ConfigurationCachePropertyAccessTest {
   fun testPropertyStateReadWhenSetToFalse() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "org.gradle.unsafe.configuration-cache=false") }
 
-    val info = StudioProvidedInfo.fromProject(projectRule.project)
+    val info = StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder)
     Truth.assertThat(info.configurationCachingGradlePropertyState).isEqualTo("false")
   }
 
   @Test
   fun testAddingPropertyWhenNotSet() {
-    Truth.assertThat(StudioProvidedInfo.fromProject(projectRule.project).configurationCachingGradlePropertyState).isNull()
+    Truth.assertThat(
+      StudioProvidedInfo.fromProject(projectRule.project, buildRequestHolder).configurationCachingGradlePropertyState).isNull()
 
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project)
 

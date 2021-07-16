@@ -22,6 +22,8 @@ import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -247,6 +249,15 @@ private class WarningsTreeStructure(
         treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
       }
       treeStats.totalWarningsCount += reportData.confCachingData.warningsCount()
+
+      // Add Jetifier usage warning
+      if (reportData.jetifierData.shouldShowWarning()) {
+        if (filter.showJetifierWarnings) {
+          rootNode.add(treeNode(JetifierUsageWarningRootNodeDescriptor(reportData.jetifierData)))
+          treeStats.filteredWarningsCount++
+        }
+        treeStats.totalWarningsCount++
+      }
     }
   }
 
@@ -276,6 +287,7 @@ enum class WarningsPageType {
   ANNOTATION_PROCESSOR_GROUP,
   CONFIGURATION_CACHING_ROOT,
   CONFIGURATION_CACHING_WARNING,
+  JETIFIER_USAGE_WARNING,
 }
 
 data class WarningsPageId(
@@ -299,6 +311,7 @@ data class WarningsPageId(
 
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
     val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
+    val jetifierUsageWarningRoot = WarningsPageId(WarningsPageType.JETIFIER_USAGE_WARNING, "JETIFIER_USAGE")
     val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
@@ -453,6 +466,18 @@ class ConfigurationCachingWarningNodeDescriptor(
     )
 }
 
+class JetifierUsageWarningRootNodeDescriptor(
+  val data: JetifierUsageAnalyzerResult
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.jetifierUsageWarningRoot
+  override val analyticsPageType = PageType.JETIFIER_USAGE_WARNING
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = "Jetifier",
+    )
+
+}
+
 private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
@@ -463,6 +488,8 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
 }
 
 fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0
+
+fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = this != JetifierNotUsed
 
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
   if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"

@@ -32,6 +32,12 @@ fun Project.setAndroidxProperties(value: String = "true") {
   }
 }
 
+fun Project.disableJetifier() {
+  getProjectProperties(true)?.let {
+    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.setValue("false")
+  }
+}
+
 /**
  * Checks that the "useAndroidx" is set explicitly. This method does not say anything about its value.
  */
@@ -44,6 +50,13 @@ fun Project.hasAndroidxProperty(): Boolean = runReadAction {
  */
 fun Project.isAndroidx(): Boolean = runReadAction {
   getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBoolean() ?: false
+}
+
+/**
+ * Checks that the "enableJetifier" property is set to true
+ */
+fun Project.isEnableJetifier(): Boolean = runReadAction {
+  getProjectProperties()?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.value?.toBoolean() ?: false
 }
 
 /**

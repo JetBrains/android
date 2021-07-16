@@ -25,13 +25,10 @@ import com.android.build.attribution.ui.mockTask
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -69,6 +66,7 @@ class BuildAnalyzerFiltersTest {
     BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
     BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS,
     BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS,
+    BuildAttributionUiEvent.FilterItem.SHOW_JETIFIER_USAGE_WARNINGS,
   )
 
   private val defaultTasksFilterItemsList = listOf(
@@ -107,6 +105,7 @@ class BuildAnalyzerFiltersTest {
       "Include issues for tasks non determining this build duration" to false,
       "Show annotation processors issues" to true,
       "Show configuration cache issues" to true,
+      "Show Jetifier usage warning" to true,
     )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)
@@ -118,12 +117,12 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Always-run tasks" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP and CC warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP, CC and Jetifier warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS, defaultWarningFilterItemsList)
   }
@@ -135,12 +134,12 @@ class BuildAnalyzerFiltersTest {
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // Mock tasks have only one Always-run tasks warning and task is attributed to Android plugin.
-    // When it is filtered out, only AP and CC warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    // When it is filtered out, only AP, CC and Jetifier warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS, defaultWarningFilterItemsList)
   }
@@ -151,12 +150,12 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show annotation processors issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // When AP warnings are filtered out only Always-run tasks and CC warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    // When AP warnings are filtered out only Always-run tasks, CC and Jetifier warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All warnings should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS, defaultWarningFilterItemsList)
   }
@@ -167,14 +166,30 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show configuration cache issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // When CC warnings are filtered out only Always-run tasks and AP warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    // When CC warnings are filtered out only Always-run tasks, AP and Jetifier warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All warnings should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS, defaultWarningFilterItemsList)
+  }
+
+  @Test
+  fun testShowJetifierUsageWarningFilterApplyToWarnings() {
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Jetifier usage warning" }
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // When Jetifier warnings are filtered out only Always-run tasks, AP and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // All warnings should be back.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(4)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_JETIFIER_USAGE_WARNINGS, defaultWarningFilterItemsList)
   }
 
   @Test
