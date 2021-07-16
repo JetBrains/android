@@ -33,6 +33,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.mockito.Mockito
 import java.util.Calendar
@@ -58,6 +59,8 @@ class MockUiData(
   val tasksList: List<TestTaskUiData> = emptyList()
 ) : BuildAttributionReportUiData {
   override val successfulBuild = true
+  override val buildRequest: GradleBuildInvoker.Request
+    get() = throw UnsupportedOperationException("Should be overridden for tests requiring to access the request.")
   override var buildSummary = mockBuildOverviewData()
   override var criticalPathTasks = mockCriticalPathTasksUiData()
   override var criticalPathPlugins = mockCriticalPathPluginsUiData()

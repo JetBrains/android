@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildF
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.components.ServiceManager
@@ -51,7 +52,7 @@ class BuildAttributionManagerImpl(
     ServiceManager.getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
-  override fun onBuildSuccess(attributionFileDir: File) {
+  override fun onBuildSuccess(attributionFileDir: File, request: GradleBuildInvoker.Request) {
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
 
@@ -71,7 +72,9 @@ class BuildAttributionManagerImpl(
       analyticsManager.logAnalyzersData(analyzersProxy)
 
       BuildAttributionUiManager.getInstance(project).showNewReport(
-        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build(), buildSessionId)
+        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, BuildAttributionReportBuilder.RequestHolder(request)).build(),
+        buildSessionId
+      )
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Duration
@@ -41,7 +42,7 @@ class AnnotationProcessorsReportBuilderTest : AbstractBuildAttributionReportBuil
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
 
     assertThat(report.annotationProcessors.nonIncrementalProcessors.size).isEqualTo(3)
     assertThat(report.annotationProcessors.nonIncrementalProcessors[0].className).isEqualTo(

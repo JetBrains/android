@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -61,7 +62,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     )
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
-    reportUiData = BuildAttributionReportBuilder(AbstractBuildAttributionReportBuilderTest.MockResultsProvider(), 0).build()
+    reportUiData = BuildAttributionReportBuilder(AbstractBuildAttributionReportBuilderTest.MockResultsProvider(), 0, mock()).build()
     buildSessionId = UUID.randomUUID().toString()
   }
 

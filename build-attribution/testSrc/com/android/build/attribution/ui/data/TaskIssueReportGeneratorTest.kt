@@ -22,6 +22,7 @@ import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
@@ -76,7 +77,7 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
   // 2019-11-19 17:12:13
   private val buildFinishedTimestamp = 1574183533000
   private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
-  private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp).build()
+  private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp, mock()).build()
 
   private val reporter = TaskIssueReportGenerator(
     buildReportData,
