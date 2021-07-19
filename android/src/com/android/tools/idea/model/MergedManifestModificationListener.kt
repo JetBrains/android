@@ -41,11 +41,13 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -67,12 +69,15 @@ class MergedManifestModificationListener(
 
   private val lastRequestToUpdateModificationTrackers = AtomicReference<Request?>()
 
-  @VisibleForTesting
-  @JvmField
-  val trackerUpdaterExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+  private val trackerUpdaterExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
     "Merged Manifest Modification Tracker Updater Pool",
     1
   )
+
+  @TestOnly
+  fun waitAllUpdatesCompletedWithTimeout(timeout: Long, unit: TimeUnit) {
+    (trackerUpdaterExecutor as BoundedTaskExecutor).waitAllTasksExecuted(timeout, unit)
+  }
 
   // If a directory was deleted, we won't get a separate event for each descendant, so we
   // must let directories pass through this fail-fast filter in case they contain relevant files.

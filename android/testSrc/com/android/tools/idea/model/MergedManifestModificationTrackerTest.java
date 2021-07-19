@@ -34,7 +34,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import com.intellij.util.concurrency.BoundedTaskExecutor;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -115,7 +114,7 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
       Thread.sleep(50);
     }
 
-    ensureTaskIsCompletedWithTimeout(modificationListener, 2, TimeUnit.SECONDS);
+    modificationListener.waitAllUpdatesCompletedWithTimeout(2, TimeUnit.SECONDS);
 
     assertThat(dependencyModuleTracker.getModificationCount()).isEqualTo(dependencyModuleTrackerBaseCount + 20);
     assertThat(myModuleTracker.getModificationCount()).isEqualTo(myModuleTrackerBaseCount + 1);
@@ -174,13 +173,6 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
                                                        PathString stringPath,
                                                        AndroidFacet androidFacet) throws Exception {
     modificationListener.fileChanged(stringPath, androidFacet);
-    ensureTaskIsCompletedWithTimeout(modificationListener, 3, TimeUnit.SECONDS);
-  }
-
-  private static void ensureTaskIsCompletedWithTimeout(@NotNull MergedManifestModificationListener modificationListener,
-                                                       long timeout,
-                                                       @NotNull TimeUnit unit) throws Exception {
-    BoundedTaskExecutor internalExecutor = (BoundedTaskExecutor)modificationListener.trackerUpdaterExecutor;
-    internalExecutor.waitAllTasksExecuted(timeout, unit);
+    modificationListener.waitAllUpdatesCompletedWithTimeout(3, TimeUnit.SECONDS);
   }
 }
