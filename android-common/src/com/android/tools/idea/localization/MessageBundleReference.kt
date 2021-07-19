@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.localization
 
-import com.intellij.CommonBundle
+import com.intellij.AbstractBundle
 import com.intellij.reference.SoftReference
+import org.jetbrains.annotations.Nls
 import java.lang.ref.Reference
 import java.util.ResourceBundle
+import java.util.function.Supplier
 
 /**
  * Simple helper class useful for creating a message bundle for your module.
@@ -51,5 +53,7 @@ class MessageBundleReference(private val name: String) {
   fun getBundle(): ResourceBundle =
     SoftReference.dereference(bundleRef) ?: ResourceBundle.getBundle(name).also { bundleRef = SoftReference(it) }
 
-  fun message(key: String, vararg params: String) = CommonBundle.message(getBundle(), key, *params)
+  fun message(key: String, vararg params: String) = AbstractBundle.message(getBundle(), key, *params)
+
+  fun lazyMessage(key: String, vararg params: String) = Supplier { message(key, *params) }
 }
