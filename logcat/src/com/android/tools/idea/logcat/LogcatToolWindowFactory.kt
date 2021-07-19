@@ -15,15 +15,27 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.util.text.UniqueNameGenerator
+import javax.swing.JComponent
+import javax.swing.JLabel
 
-class LogcatToolWindowFactory : ToolWindowFactory, DumbAware {
-  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
+  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
+
+  // During development of the base class SplittingTabsToolWindowFactory, having a fake tab name helps verify things work.
+  override fun generateTabName(tabNames: Set<String>) =
+    UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
+
+  // During development of the base class SplittingTabsToolWindowFactory, having a fake component helps verify things work.
+  override fun generateChildComponent(): JComponent = LogcatPanel("Child ${++count} ")
+
+  companion object {
+    var count: Int = 0
   }
 
-  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
+  private class LogcatPanel(text: String) : JLabel(text)
 }
