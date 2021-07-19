@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.run.OutputBuildAction
+import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
@@ -37,6 +42,7 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -44,6 +50,7 @@ import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfiguration.shouldDeployApkFromBundle
 import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
@@ -147,6 +154,50 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
+  internal fun getBuiltApksForSelectedVariant(
+    androidFacet: AndroidFacet,
+    assembleResult: AssembleInvocationResult,
+    forTests: Boolean = false
+  ): List<ApkInfo>? {
+    val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
+
+    // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
+    // `PostBuildModel`s were not designed to handle this.
+    val postBuildModel: PostBuildModel? =
+      (assembleResult.invocationResult.models.firstOrNull() as? OutputBuildAction.PostBuildProjectModels)
+        ?.let { PostBuildModel(it) }
+
+    val postBuildModelProvider = PostBuildModelProvider { postBuildModel }
+
+    return object : GradleApkProvider(
+      androidFacet,
+      GradleApplicationIdProvider(
+        androidFacet,
+        forTests,
+        androidModel,
+        androidModel.selectedVariant,
+        postBuildModelProvider
+      ),
+      postBuildModelProvider,
+      forTests,
+      false // Overriden and doesn't matter.
+    ) {
+      override fun getOutputKind(targetDevicesMinVersion: AndroidVersion?): OutputKind {
+        return when (assembleResult.buildMode) {
+          BuildMode.APK_FROM_BUNDLE -> OutputKind.AppBundleOutputModel
+          BuildMode.ASSEMBLE -> OutputKind.Default
+          else -> error("Unsupported build mode: ${assembleResult.buildMode}")
+        }
+      }
+    }
+      .getApks(
+        emptyList(),
+        AndroidVersion(30),
+        androidModel,
+        androidModel.selectedVariant
+      )
+  }
+
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
@@ -227,3 +278,9 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
   )
 }
 
+fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, forTests: Boolean = false): List<ApkInfo>? {
+  val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem
+                      ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
+                               "Module: ${androidFacet.module.name}")
+  return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
+}
