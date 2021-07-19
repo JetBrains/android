@@ -64,7 +64,6 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   init {
     // Make sure the initial property load by model is done before replacing the properties in the model:
-    model.lastSelectionUpdate.get()
     NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
 
     model.setPropertiesInTest(properties)
