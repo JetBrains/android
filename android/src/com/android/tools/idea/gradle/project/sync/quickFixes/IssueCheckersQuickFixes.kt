@@ -25,6 +25,7 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -81,6 +82,16 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
       }
     }
     return future
+  }
+}
+
+class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
+  override val description: String = "See Android Studio download options"
+  override val id: String = "download.android.studio"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    BrowserUtil.browse("http://developer.android.com/studio/index.html#downloads")
+    return CompletableFuture.completedFuture(null)
   }
 }
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
@@ -166,16 +167,6 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
       future.complete(null)
     }
     return future
-  }
-}
-
-private class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "See Android Studio download options"
-  override val id: String = "download.android.studio"
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    BrowserUtil.browse("http://developer.android.com/studio/index.html#downloads")
-    return CompletableFuture.completedFuture(null)
   }
 }
 
