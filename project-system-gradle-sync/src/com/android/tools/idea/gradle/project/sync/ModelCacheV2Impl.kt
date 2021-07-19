@@ -654,8 +654,6 @@ internal fun modelCacheV2Impl(): ModelCache {
       multiFlavorSourceProvider = copyNewModel(artifact::multiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = additionalClassesFoldersFrom(artifact.classesFolders),
       level2Dependencies = dependenciesFrom(artifactDependencies, libraryMap),
-      outputs = emptyList(),  // this is a deprecated property.
-
       applicationId = "",
       generatedResourceFolders = copy(artifact::generatedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,

@@ -627,26 +627,6 @@ public class GradleApkProvider implements ApkProvider {
     return fileName.substring(0, separatorIndex);
   }
 
-  /**
-   * Get the APKs file for the selected variant.
-   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
-   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
-   */
-  @NotNull
-  private static List<File> getOutputFiles(@NotNull AndroidModuleModel androidModel) {
-    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      String outputListingFile =
-        // Do not call getOutputListingFile to avoid unnecessary warnings in the log.
-        androidModel.getSelectedVariant().getMainArtifact().getBuildInformation().getAssembleTaskOutputListingFile();
-      return outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();
-    }
-    else {
-      //noinspection deprecation
-      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
-      return outputs.stream().map(IdeAndroidArtifactOutput::getOutputFile).collect(Collectors.toList());
-    }
-  }
-
   private boolean isArtifactSigned(AndroidModuleModel androidModuleModel) {
     IdeAndroidArtifact artifact = myTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
     return artifact != null && artifact.isSigned();

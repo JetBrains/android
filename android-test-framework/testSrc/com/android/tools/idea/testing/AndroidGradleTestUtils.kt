@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
@@ -586,7 +585,6 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     level2Dependencies = dependenciesStub,
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
-    outputs = listOf<IdeAndroidArtifactOutputImpl>(),
     isSigned = false,
     generatedResourceFolders = listOf(),
     additionalRuntimeApks = listOf(),
@@ -625,7 +623,6 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     level2Dependencies = dependenciesStub,
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
-    outputs = listOf<IdeAndroidArtifactOutputImpl>(),
     isSigned = false,
     generatedResourceFolders = listOf(),
     additionalRuntimeApks = listOf(),

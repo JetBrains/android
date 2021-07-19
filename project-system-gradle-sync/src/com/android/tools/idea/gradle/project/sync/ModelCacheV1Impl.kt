@@ -67,7 +67,6 @@ import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
@@ -138,7 +137,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import java.io.File
-import java.util.HashMap
 
 internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
@@ -671,23 +669,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun copyOutputs(
-    artifact: AndroidArtifact,
-    agpVersion: GradleVersion?
-  ): List<IdeAndroidArtifactOutput> {
-    // getOutputs is deprecated in AGP 4.0.0.
-    if (agpVersion != null && agpVersion.compareIgnoringQualifiers("4.0.0") >= 0) {
-      return emptyList()
-    }
-    return try {
-      copy(artifact::getOutputs, ::androidArtifactOutputFrom)
-    }
-    catch (_: RuntimeException) {
-      // Handle "Invalid main APK outputs".
-      emptyList()
-    }
-  }
-
   fun convertExecution(execution: TestOptions.Execution?): IdeTestOptions.Execution? {
     return if (execution == null) null
     else when (execution) {
@@ -739,7 +720,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = copy(artifact::getAdditionalClassesFolders, ::deduplicateFile).toList(),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
-      outputs = copyOutputs(artifact, agpVersion),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
