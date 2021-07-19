@@ -53,6 +53,8 @@ import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.ScrollPaneFactory.createScrollPane
+import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
@@ -620,7 +622,7 @@ class ContentManager(val project: Project) {
       }
       add(topPanel, BorderLayout.NORTH)
       val treePanel = JBPanel<JBPanel<*>>(BorderLayout()).apply {
-        add(tree, BorderLayout.WEST)
+        add(createScrollPane(tree, SideBorder.NONE), BorderLayout.WEST)
         add(JSeparator(SwingConstants.VERTICAL), BorderLayout.CENTER)
       }
       add(treePanel, BorderLayout.WEST)
