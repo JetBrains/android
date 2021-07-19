@@ -20,7 +20,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.rd.attach
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
@@ -47,7 +47,9 @@ class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExten
         CaptureKotlinModelsProjectResolverExtension(), // Note: a new instance is created by the external system.
         disposable
       )
-      disposable.attach { reset() }
+      Disposer.register(disposable, object : Disposable {
+        override fun dispose() { reset() }
+      })
     }
   }
 
