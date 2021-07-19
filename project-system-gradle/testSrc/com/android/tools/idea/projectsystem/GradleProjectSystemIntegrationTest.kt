@@ -112,6 +112,8 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   fun testGetDefaultApkFile() {
     // TODO(b/191146142): Remove assumption when fixed.
     assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersion.AGP_40)
+    // TODO(b/191146142): Remove assumption when fixed.
+    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersion.AGP_35)
     runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
       // Invoke assemble task to generate output listing file and apk file.
       project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE) }

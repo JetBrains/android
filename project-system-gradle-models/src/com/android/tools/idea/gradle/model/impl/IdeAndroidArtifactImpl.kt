@@ -41,7 +41,6 @@ data class IdeAndroidArtifactImpl(
   override val level2Dependencies: IdeDependencies,
   override val applicationId: String,
   override val signingConfigName: String?,
-  override val outputs: List<IdeAndroidArtifactOutput>,
   override val isSigned: Boolean,
   override val generatedResourceFolders: Collection<File>,
   override val additionalRuntimeApks: List<File>,

@@ -112,7 +112,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
             .orEmpty()
         }
         else {
-          androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.outputFile }
+          emptySequence()
         }
       }
       .filterNotNull()
