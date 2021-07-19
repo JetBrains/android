@@ -90,6 +90,12 @@ public interface LintOptionsModel extends GradleBlockModel {
   ResolvedPropertyModel quiet();
 
   @NotNull
+  ResolvedPropertyModel sarifOutput();
+
+  @NotNull
+  ResolvedPropertyModel sarifReport();
+
+  @NotNull
   ResolvedPropertyModel showAll();
 
   @NotNull

@@ -23,6 +23,8 @@ android {
     lintConfig = file("other-lint.config")
     isNoLines = true
     isQuiet = false
+    sarifOutput = file("other-sarif.output")
+    sarifReport = false
     isShowAll = true
     textOutput = file("other-text.output")
     textReport = false

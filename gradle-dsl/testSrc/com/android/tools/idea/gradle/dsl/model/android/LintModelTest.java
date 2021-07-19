@@ -70,6 +70,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     lint.lintConfig().setValue("other-lint.config");
     lint.noLines().setValue(true);
     lint.quiet().setValue(false);
+    lint.sarifOutput().setValue("other-sarif.output");
+    lint.sarifReport().setValue(false);
     lint.showAll().setValue(true);
     lint.textOutput().setValue("other-text.output");
     lint.textReport().setValue(false);
@@ -108,6 +110,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     assertEquals("lintConfig", "other-lint.config", lint.lintConfig());
     assertEquals("noLines", Boolean.TRUE, lint.noLines());
     assertEquals("quiet", Boolean.FALSE, lint.quiet());
+    assertEquals("sarifOutput", "other-sarif.output", lint.sarifOutput());
+    assertEquals("sarifReport", Boolean.FALSE, lint.sarifReport());
     assertEquals("showAll", Boolean.TRUE, lint.showAll());
     assertEquals("textOutput", "other-text.output", lint.textOutput());
     assertEquals("textReport", Boolean.FALSE, lint.textReport());
@@ -150,6 +154,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     lint.lintConfig().setValue("lint.config");
     lint.noLines().setValue(false);
     lint.quiet().setValue(true);
+    lint.sarifOutput().setValue("sarif.output");
+    lint.sarifReport().setValue(true);
     lint.showAll().setValue(false);
     lint.textOutput().setValue("text.output");
     lint.textReport().setValue(true);
@@ -189,6 +195,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     assertEquals("lintConfig", "lint.config", lint.lintConfig());
     assertEquals("noLines", Boolean.FALSE, lint.noLines());
     assertEquals("quiet", Boolean.TRUE, lint.quiet());
+    assertEquals("sarifOutput", "sarif.output", lint.sarifOutput());
+    assertEquals("sarifReport", Boolean.TRUE, lint.sarifReport());
     assertEquals("showAll", Boolean.FALSE, lint.showAll());
     assertEquals("textOutput", "text.output", lint.textOutput());
     assertEquals("textReport", Boolean.TRUE, lint.textReport());
@@ -232,6 +240,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     lint.lintConfig().delete();
     lint.noLines().delete();
     lint.quiet().delete();
+    lint.sarifOutput().delete();
+    lint.sarifReport().delete();
     lint.showAll().delete();
     lint.textOutput().delete();
     lint.textReport().delete();
@@ -279,6 +289,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     assertEquals("lintConfig", "lint.config", lint.lintConfig());
     assertEquals("noLines", Boolean.FALSE, lint.noLines());
     assertEquals("quiet", Boolean.TRUE, lint.quiet());
+    assertEquals("sarifOutput", "sarif.output", lint.sarifOutput());
+    assertEquals("sarifReport", Boolean.TRUE, lint.sarifReport());
     assertEquals("showAll", Boolean.FALSE, lint.showAll());
     assertEquals("textOutput", "text.output", lint.textOutput());
     assertEquals("textReport", Boolean.TRUE, lint.textReport());
@@ -312,6 +324,8 @@ public class LintModelTest extends GradleFileModelTestCase {
     assertMissingProperty("lintConfig", lint.lintConfig());
     assertMissingProperty("noLines", lint.noLines());
     assertMissingProperty("quiet", lint.quiet());
+    assertMissingProperty("sarifOutput", lint.sarifOutput());
+    assertMissingProperty("sarifReport", lint.sarifReport());
     assertMissingProperty("showAll", lint.showAll());
     assertMissingProperty("textOutput", lint.textOutput());
     assertMissingProperty("textReport", lint.textReport());

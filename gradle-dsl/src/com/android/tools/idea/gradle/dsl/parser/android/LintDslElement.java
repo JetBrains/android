@@ -51,6 +51,8 @@ public class LintDslElement extends GradleDslBlockElement {
     {"lintConfig", property, LINT_CONFIG, VAR},
     {"htmlOutput", property, HTML_OUTPUT, VAR},
     {"htmlReport", property, HTML_REPORT, VAR},
+    {"sarifOutput", property, SARIF_OUTPUT, VAR},
+    {"sarifReport", property, SARIF_REPORT, VAR},
     {"textOutput", property, TEXT_OUTPUT, VAR},
     {"textOutput", exactly(1), TEXT_OUTPUT, SET}, // special-case String method as well as File
     {"textReport", property, TEXT_REPORT, VAR},
@@ -101,6 +103,8 @@ public class LintDslElement extends GradleDslBlockElement {
     {"lintConfig", exactly(1), LINT_CONFIG, SET},
     {"htmlOutput", exactly(1), HTML_OUTPUT, SET},
     {"htmlReport", exactly(1), HTML_REPORT, SET},
+    {"sarifOutput", exactly(1), SARIF_OUTPUT, SET},
+    {"sarifReport", exactly(1), SARIF_REPORT, SET},
     {"textOutput", exactly(1), TEXT_OUTPUT, SET},
     {"textReport", exactly(1), TEXT_REPORT, SET},
     {"xmlOutput", exactly(1), XML_OUTPUT, SET},

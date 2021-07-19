@@ -58,6 +58,8 @@ val MIGRATE_LINT_OPTIONS_TO_LINT =
           Pair({ android().lintOptions().lintConfig() }, { android().lint().lintConfig() }),
           Pair({ android().lintOptions().noLines() }, { android().lint().noLines() }),
           Pair({ android().lintOptions().quiet() }, { android().lint().quiet() }),
+          Pair({ android().lintOptions().sarifOutput() }, { android().lint().sarifOutput() }),
+          Pair({ android().lintOptions().sarifReport() }, { android().lint().sarifReport() }),
           Pair({ android().lintOptions().showAll() }, { android().lint().showAll() }),
           Pair({ android().lintOptions().textOutput() }, { android().lint().textOutput() }),
           Pair({ android().lintOptions().textReport() }, { android().lint().textReport() }),
