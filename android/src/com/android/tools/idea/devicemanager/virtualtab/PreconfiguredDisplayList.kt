@@ -113,7 +113,7 @@ class PreconfiguredDisplayList(
         }
       })
     }
-    refreshDevices()
+    // refreshDevices()
 
     model.isSortable = true
     model.columnInfos = listOf(
