@@ -1,0 +1,5 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <backendProjectPaneProvider implementation="org.intellij.android.cwm.BackendAndroidPaneProvider"/>
+  </extensions>
+</idea-plugin>
