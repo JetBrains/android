@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
@@ -54,7 +53,6 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
@@ -130,7 +128,7 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @VisibleForTesting
-  OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) {
+  protected OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) {
     if (DynamicAppUtils.useSelectApksFromBundleBuilder(
       myFacet.getModule(),
       myAlwaysDeployApkFromBundle,
@@ -159,10 +157,10 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  private List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
-                                @NotNull AndroidVersion deviceVersion,
-                                @NotNull AndroidModuleModel androidModel,
-                                @NotNull IdeVariant variant) throws ApkProvisionException {
+  public List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
+                               @NotNull AndroidVersion deviceVersion,
+                               @NotNull AndroidModuleModel androidModel,
+                               @NotNull IdeVariant variant) throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
 
     IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
