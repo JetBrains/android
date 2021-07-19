@@ -15,16 +15,32 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.intellij.openapi.diagnostic.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class Resolution {
+final class Resolution {
+  private static final @NotNull Pattern PATTERN = Pattern.compile("Physical size: (\\d+)x(\\d+)");
+
   private final int myWidth;
   private final int myHeight;
 
-  public Resolution(int width, int height) {
+  Resolution(int width, int height) {
     myWidth = width;
     myHeight = height;
+  }
+
+  static @Nullable Resolution newResolution(@NotNull String string) {
+    Matcher matcher = PATTERN.matcher(string);
+
+    if (!matcher.matches()) {
+      Logger.getInstance(Resolution.class).warn(string);
+      return null;
+    }
+
+    return new Resolution(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
   }
 
   int getWidth() {
