@@ -17,38 +17,83 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.util.Targets;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class AsyncPhysicalDeviceBuilder {
   private final @NotNull IDevice myDevice;
+  private final @NotNull Key myKey;
+  private final @Nullable Instant myLastOnlineTime;
+  private final @NotNull AdbShellCommandExecutor myExecutor;
 
   private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
-
-  private final @NotNull Key myKey;
-  private final @Nullable Instant myLastOnlineTime;
+  private final @NotNull ListenableFuture<@Nullable Resolution> myResolutionFuture;
 
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key, @Nullable Instant lastOnlineTime) {
+    this(device, key, lastOnlineTime, new AdbShellCommandExecutor());
+  }
+
+  @VisibleForTesting
+  AsyncPhysicalDeviceBuilder(@NotNull IDevice device,
+                             @NotNull Key key,
+                             @Nullable Instant lastOnlineTime,
+                             @NotNull AdbShellCommandExecutor executor) {
     myDevice = device;
+    myKey = key;
+    myLastOnlineTime = lastOnlineTime;
+    myExecutor = executor;
 
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+    myResolutionFuture = getResolution(device);
+  }
 
-    myKey = key;
-    myLastOnlineTime = lastOnlineTime;
+  private @NotNull ListenableFuture<@Nullable Resolution> getResolution(@NotNull IDevice device) {
+    ExecutorService service = AppExecutorUtil.getAppExecutorService();
+
+    // noinspection UnstableApiUsage
+    return FluentFuture.from(MoreExecutors.listeningDecorator(service).submit(() -> myExecutor.execute(device, "wm size")))
+      .transform(AsyncPhysicalDeviceBuilder::newResolution, EdtExecutorService.getInstance());
+  }
+
+  private static @Nullable Resolution newResolution(@NotNull AdbShellCommandResult result) {
+    List<String> output = result.getOutput();
+
+    if (result.isError()) {
+      String separator = System.lineSeparator();
+
+      StringBuilder builder = new StringBuilder("Command failed:")
+        .append(separator);
+
+      output.forEach(line -> builder.append(line).append(separator));
+
+      Logger.getInstance(AsyncPhysicalDeviceBuilder.class).warn(builder.toString());
+      return null;
+    }
+
+    return Resolution.newResolution(output.get(0));
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture).call(this::build, EdtExecutorService.getInstance());
+    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture)
+      .call(this::build, EdtExecutorService.getInstance());
   }
 
   private @NotNull PhysicalDevice build() {
@@ -65,6 +110,8 @@ final class AsyncPhysicalDeviceBuilder {
       builder.addConnectionType(myKey.getConnectionType());
     }
 
-    return builder.build();
+    return builder
+      .setResolution(FutureUtils.getDoneOrNull(myResolutionFuture))
+      .build();
   }
 }
