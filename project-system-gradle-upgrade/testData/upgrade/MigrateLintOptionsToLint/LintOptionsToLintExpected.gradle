@@ -1,0 +1,10 @@
+android {
+  lint {
+    abortOnError true
+    checkOnly 'check-id-1'
+    error 'error-id-1'
+    informational 'informational-id-1', 'informational-id-2'
+    noLines false
+    xmlOutput file('xmlOutput.xml')
+  }
+}
