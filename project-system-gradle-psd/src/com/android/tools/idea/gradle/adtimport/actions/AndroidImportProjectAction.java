@@ -58,6 +58,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import javax.swing.Icon;
 import org.jdom.Element;
@@ -191,7 +192,9 @@ public class AndroidImportProjectAction extends AnAction {
       Messages.showErrorDialog(message, "Import Project");
     }
     else if (canImportAsGradleProject(target)) {
-      ProjectUtil.openOrImport(target.getPath(), null, true);
+      if (ProjectUtil.findAndFocusExistingProjectForPath(targetDir.toNioPath()) == null) {
+        ProjectUtil.openOrImport(target.getPath(), null, true);
+      }
     }
     else {
       return importWithExtensions(file);
