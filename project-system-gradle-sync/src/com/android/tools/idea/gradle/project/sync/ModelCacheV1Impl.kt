@@ -527,35 +527,21 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       variantName: String?,
       androidModuleId: ModuleId?
     ) {
-      try {
-        for (identifier in dependencies.javaModules) {
-          createModuleLibrary(
-            visited,
-            identifier.projectPath,
-            computeAddress(identifier),
-            identifier.buildId,
-            if (androidModuleId != null &&
-                androidModuleId.gradlePath  == identifier.projectPath &&
-                androidModuleId.buildId == identifier.buildId
-            ) {
-              variantName
-            } else{
-              null
-            }
-          )
-        }
-      }
-      catch (ignored: UnsupportedOperationException) {
-        // Dependencies::getJavaModules is available for AGP 3.1+. Use
-        // Dependencies::getProjects for the old plugins.
-        for (projectPath in dependencies.projects) {
-          createModuleLibrary(
-            visited,
-            projectPath,
-            projectPath,
-            null,
-            null)
-        }
+      for (identifier in dependencies.javaModules) {
+        createModuleLibrary(
+          visited,
+          identifier.projectPath,
+          computeAddress(identifier),
+          identifier.buildId,
+          if (androidModuleId != null &&
+              androidModuleId.gradlePath  == identifier.projectPath &&
+              androidModuleId.buildId == identifier.buildId
+          ) {
+            variantName
+          } else{
+            null
+          }
+        )
       }
     }
 
@@ -959,14 +945,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   }
 
   fun lintOptionsFrom(options: LintOptions, modelVersion: GradleVersion?): IdeLintOptionsImpl = IdeLintOptionsImpl(
-    baselineFile = if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0, "beta", 2, true))
+    baselineFile = if (modelVersion != null)
       options.baselineFile
     else
       null,
     lintConfig = copyNewProperty(options::lintConfig),
     severityOverrides = options.severityOverrides?.let { ImmutableMap.copyOf(it) },
     isCheckTestSources = modelVersion != null &&
-                         modelVersion.isAtLeast(2, 4, 0) &&
                          options.isCheckTestSources,
     isCheckDependencies = copyNewProperty({ options.isCheckDependencies }, false),
     disable = copy(options::disable, ::deduplicateString),
@@ -1085,7 +1070,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   }
 
   fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): IdeAndroidProjectType {
-    if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
+    if (modelVersion != null) {
       return project.projectType.toIdeAndroidProjectType()
     }
     // Support for old Android Gradle Plugins must be maintained.

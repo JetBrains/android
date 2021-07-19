@@ -137,16 +137,6 @@ internal class AndroidExtraModelProviderWorker(
     val modules: List<GradleModule> = actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule {
-          // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-          val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
-          val nativeAndroidProject: NativeAndroidProject? =
-            if (nativeModule == null)
-              controller.findParameterizedAndroidModel(
-                gradleProject,
-                NativeAndroidProject::class.java,
-                shouldBuildVariant = isFullSync
-              )
-            else null
 
           var androidProjectResult: AndroidProjectResult? = null
           // Request V2 models if flag is enabled.
@@ -154,13 +144,22 @@ internal class AndroidExtraModelProviderWorker(
             // First request the Versions model to make sure we can fetch V2 models.
             val modelVersion = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
 
-            if (modelVersion != null && canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
+            if (modelVersion != null &&
+                verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp) &&
+                canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
               val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
               val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
               if (androidProject != null && androidDsl != null)  {
                 if (canFetchV2Models == null) canFetchV2Models = true
                 androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
+                // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
+                val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+                val nativeAndroidProject: NativeAndroidProject? =
+                  if (nativeModule == null)
+                    controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isFullSync)
+                  else null
+
                 return createAndroidModule(
                   gradleProject,
                   androidProjectResult,
@@ -178,9 +177,16 @@ internal class AndroidExtraModelProviderWorker(
               AndroidProject::class.java,
               shouldBuildVariant = isFullSync
             )
-            if (androidProject != null) {
+            if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion)) {
               if (canFetchV2Models == null) canFetchV2Models = false
               androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
+
+              val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+              val nativeAndroidProject: NativeAndroidProject? =
+                if (nativeModule == null)
+                  controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isFullSync)
+                else null
+
               return createAndroidModule(
                 gradleProject,
                 androidProjectResult,
@@ -216,6 +222,16 @@ internal class AndroidExtraModelProviderWorker(
     )
 
     return modules
+  }
+
+  private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?): Boolean {
+    val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
+    // Minimum supported AGP version is 3.2.
+    if (!gradleVersion.isAtLeast(3,2, 0, "alpha", 1, true)) {
+      throw UnsupportedVersionException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
+                                        "Minimum supported version is AGP 3.2.")
+    }
+    return true
   }
 
   private fun fetchNativeVariantsAndroidModels(
@@ -295,7 +311,7 @@ internal class AndroidExtraModelProviderWorker(
         }
         if (model != null) return model
       }
-      catch (e: UnsupportedVersionException) {
+      catch (e: UnsupportedVersionException) {  // TODO: We can now remove this.
         // Using old version of Gradle. Fall back to full variants sync for this module.
       }
     }
