@@ -39,17 +39,13 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
-import java.awt.EventQueue;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,7 +69,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MotionLayoutPropertyProvider implements PropertiesProvider {
   private final AndroidFacet myFacet;
-  private final Project myProject;
   private final XmlElementDescriptorProvider myDescriptorProvider;
   private final Table<String, String, NlPropertyItem> myEmptyTable;
 
@@ -83,7 +78,6 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
                                                                            MotionSceneAttrs.Tags.TRANSITION);
   public MotionLayoutPropertyProvider(@NotNull AndroidFacet facet) {
     myFacet = facet;
-    myProject = facet.getModule().getProject();
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myEmptyTable = ImmutableTable.of();
   }
@@ -97,21 +91,14 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   }
 
   @NotNull
-  public Map<String, PropertiesTable<NlPropertyItem>> getAllProperties(@NotNull NlPropertiesModel model,
-                                                                       @NotNull MotionSelection selection) {
-    assert (!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode());
-
-    return DumbService.getInstance(myProject).runReadActionInSmartMode(() -> getPropertiesImpl(model, selection));
-  }
-
-  @NotNull
   @Override
   public PropertiesTable<NlPropertyItem> createEmptyTable() {
     return PropertiesTable.Companion.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW));
   }
 
-  private Map<String, PropertiesTable<NlPropertyItem>> getPropertiesImpl(@NotNull NlPropertiesModel model,
-                                                                         @NotNull MotionSelection selection) {
+  @NotNull
+  public Map<String, PropertiesTable<NlPropertyItem>> getAllProperties(@NotNull NlPropertiesModel model,
+                                                                       @NotNull MotionSelection selection) {
     if (selection.getComponents().isEmpty()) {
       return Collections.emptyMap();
     }

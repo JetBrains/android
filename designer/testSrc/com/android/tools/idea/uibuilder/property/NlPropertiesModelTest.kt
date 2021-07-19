@@ -39,7 +39,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import java.util.EnumSet
-import kotlin.test.assertNotEquals
 
 class NlPropertiesModelTest: LayoutTestCase() {
 
@@ -246,37 +245,35 @@ class NlPropertiesModelTest: LayoutTestCase() {
     nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilLastSelectionUpdateCompleted(model)
 
-    var lastSelectionUpdate = model.lastSelectionUpdate
+    val lastUpdateCount = model.updateCount
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
     waitUntilLastSelectionUpdateCompleted(model)
-    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
     waitUntilLastSelectionUpdateCompleted(model)
-    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
     waitUntilLastSelectionUpdateCompleted(model)
-    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
     waitUntilLastSelectionUpdateCompleted(model)
-    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
     waitUntilLastSelectionUpdateCompleted(model)
-    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(button, null)
     waitUntilLastSelectionUpdateCompleted(model)
-    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
-
-    lastSelectionUpdate = model.lastSelectionUpdate
+    assertThat(model.updateCount).isNotEqualTo(lastUpdateCount)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
     waitUntilLastSelectionUpdateCompleted(model)
-    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+    assertThat(model.updateCount).isNotEqualTo(lastUpdateCount)
   }
 
   private fun createNlModel(vararg tag: String): SyncNlModel {
@@ -359,10 +356,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
     // then we also need to wait for events on the UI thread.
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
-      if (model.lastSelectionUpdate.get()) {
-        while (!model.lastUpdateCompleted) {
-          LaterInvocator.dispatchPendingFlushes()
-        }
+      while (!model.lastUpdateCompleted) {
+        LaterInvocator.dispatchPendingFlushes()
       }
     }
   }

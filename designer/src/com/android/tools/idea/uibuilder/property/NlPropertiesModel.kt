@@ -43,22 +43,23 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import java.util.Collections
-import java.util.concurrent.Future
+import java.util.concurrent.Callable
+import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
@@ -114,8 +115,8 @@ open class NlPropertiesModel(
     }
 
   @VisibleForTesting
-  var lastSelectionUpdate: Future<Boolean> = Futures.immediateFuture(false)
-    private set
+  var updateCount = 0
+    protected set
 
   @VisibleForTesting
   var lastUpdateCompleted: Boolean = true
@@ -183,7 +184,7 @@ open class NlPropertiesModel(
     property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
 
 
-    ApplicationManager.getApplication().invokeLater(Runnable {
+    ApplicationManager.getApplication().invokeLater({
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
         val compatibleAttribute = compatibleMarginAttribute(property)
@@ -208,7 +209,7 @@ open class NlPropertiesModel(
           }
         }
       }
-    }, Condition<Boolean> { Disposer.isDisposed(this) })
+    }, { Disposer.isDisposed(this) })
   }
 
   private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
@@ -319,14 +320,8 @@ open class NlPropertiesModel(
   ) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
-    val application = ApplicationManager.getApplication()
     val wantUpdate = { wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory) }
-    val future = application.executeOnPooledThread<Boolean> { loadProperties(type, accessory, components, wantUpdate) }
-
-    // Enable our testing code to wait for the above pooled thread execution.
-    if (application.isUnitTestMode) {
-      lastSelectionUpdate = future
-    }
+    loadProperties(type, accessory, components, wantUpdate)
   }
 
   protected fun updateLiveListeners(components: List<NlComponent>) {
@@ -355,15 +350,17 @@ open class NlPropertiesModel(
     }
   }
 
-  protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
+  protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean) {
     if (!wantUpdate()) {
-      return false
+      return
     }
-    val newProperties = provider.getProperties(this, accessory, components)
     lastUpdateCompleted = false
-    defaultValueProvider?.clearCache()
-
-    UIUtil.invokeLaterIfNeeded {
+    val getProperties = Callable {
+      val newProperties = provider.getProperties(this@NlPropertiesModel, accessory, components)
+      defaultValueProvider?.clearCache()
+      newProperties
+    }
+    val notifyUI = Consumer<PropertiesTable<NlPropertyItem>> { newProperties ->
       try {
         if (wantUpdate()) {
           updateLiveListeners(components)
@@ -373,10 +370,16 @@ open class NlPropertiesModel(
         }
       }
       finally {
+        updateCount++
         lastUpdateCompleted = true
       }
     }
-    return true
+    ReadAction
+      .nonBlocking(getProperties)
+      .inSmartMode(project)
+      .expireWith(this)
+      .finishOnUiThread(ModalityState.defaultModalityState(), notifyUI)
+      .submit(AppExecutorUtil.getAppExecutorService())
   }
 
   private fun handleRenderingCompleted() {
