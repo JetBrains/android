@@ -28,13 +28,13 @@ import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildF
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
+import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
-import java.io.File
 import java.util.UUID
 
 class BuildAttributionManagerImpl(
@@ -52,9 +52,10 @@ class BuildAttributionManagerImpl(
     ServiceManager.getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
-  override fun onBuildSuccess(attributionFileDir: File, request: GradleBuildInvoker.Request) {
+  override fun onBuildSuccess(request: GradleBuildInvoker.Request) {
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
+    val attributionFileDir = getAgpAttributionFileDir(request)
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
@@ -78,7 +79,8 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  override fun onBuildFailure(attributionFileDir: File) {
+  override fun onBuildFailure(request: GradleBuildInvoker.Request) {
+    val attributionFileDir = getAgpAttributionFileDir(request)
     FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
     analyzersWrapper.onBuildFailure()
     BuildAttributionUiManager.getInstance(project).onBuildFailure(UUID.randomUUID().toString())

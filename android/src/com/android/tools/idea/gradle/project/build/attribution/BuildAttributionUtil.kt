@@ -21,6 +21,7 @@ import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -40,7 +41,7 @@ private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedA
 
 fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
 
-fun getAgpAttributionFileDir(buildDir: File): File {
+fun getAgpAttributionFileDir(request: GradleBuildInvoker.Request): File {
   // $projectDir/.gradle
-  return FileUtils.join(buildDir, DOT_GRADLE)
+  return FileUtils.join(request.rootProjectPath, DOT_GRADLE)
 }
