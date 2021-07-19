@@ -65,6 +65,7 @@ class MavenClassRegistryManager : Disposable {
   override fun dispose() {}
 
   companion object {
+    @JvmStatic
     fun getInstance(): MavenClassRegistryManager = ServiceManager.getService(MavenClassRegistryManager::class.java)
   }
 }

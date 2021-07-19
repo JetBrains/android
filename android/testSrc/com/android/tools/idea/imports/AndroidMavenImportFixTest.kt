@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.replaceService
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 import java.util.concurrent.TimeUnit
 
@@ -120,7 +121,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
   }
 
-  fun testSuggestedImport_unresolvedFragmentTag_attrName() {
+  fun testSuggestedImport_unresolvedAttrName() {
     // Unresolved fragment class: <fragment android:name="com.google.android.gms.maps.SupportMapFragment" .../>.
     StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
@@ -129,7 +130,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
       myFixture.testRootDisposable
     )
 
-    val inspection = AndroidUnresolvableTagInspection()
+    val inspection = AndroidDomInspection()
     myFixture.enableInspections(inspection)
 
     loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
@@ -138,68 +139,31 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     myFixture.loadNewFile(
       "app/src/main/res/layout/my_layout.xml",
       """
-    <?xml version="1.0" encoding="utf-8"?>
-    <${
-        "fragment".highlightedAs(ERROR, "Cannot resolve class com.google.android.gms.maps.SupportMapFragment")
-      } xmlns:android="http://schemas.android.com/apk/res/android"
-      android:name="${
-        "com.google.android.gms.maps.SupportMapFragment"
-          .highlightedAs(ERROR, "Cannot resolve class com.google.android.gms.maps.SupportMapFragment")
-      }" />
-    """.trimIndent()
+        <?xml version="1.0" encoding="utf-8"?>
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+          android:name="com.google.${
+            "android".highlightedAs(ERROR, "Unresolved package 'android'")
+          }.${
+            "gms".highlightedAs(ERROR, "Unresolved package 'gms'")
+          }.${
+            "maps".highlightedAs(ERROR, "Unresolved package 'maps'")
+          }.${
+            "SupportMapFragment".highlightedAs(ERROR, "Unresolved class 'SupportMapFragment'")
+          }" android:layout_width="match_parent" android:layout_height="match_parent" />
+      """.trimIndent()
     )
 
     myFixture.checkHighlighting(true, false, false)
+    myFixture.moveCaret("gm|s")
+    val actionOnPackage = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
+    assertTrue(actionOnPackage.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+
     myFixture.moveCaret("SupportMap|Fragment")
-    val action = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
+    val actionOnClass = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
+    assertTrue(actionOnClass.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
 
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
-
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state of the first action
-
-    assertBuildGradle(project) { it.contains("implementation 'com.google.android.gms:play-services-maps:") }
-  }
-
-  fun testSuggestedImport_unresolvedFragmentTag_attrClass() {
-    // Unresolved fragment class: <fragment class="com.google.android.gms.maps.SupportMapFragment" .../>.
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
-    ApplicationManager.getApplication().replaceService(
-      MavenClassRegistryManager::class.java,
-      fakeMavenClassRegistryManager,
-      myFixture.testRootDisposable
-    )
-
-    val inspection = AndroidUnresolvableTagInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // project using AndroidX
-    assertBuildGradle(project) { !it.contains("com.google.android.gms:play-services-maps:") } // not already using SupportMapFragment
-
-    myFixture.loadNewFile(
-      "app/src/main/res/layout/my_layout.xml",
-      """
-    <?xml version="1.0" encoding="utf-8"?>
-    <${
-        "fragment".highlightedAs(ERROR, "Cannot resolve class com.google.android.gms.maps.SupportMapFragment")
-      } xmlns:android="http://schemas.android.com/apk/res/android"
-      class="${
-        "com.google.android.gms.maps.SupportMapFragment"
-          .highlightedAs(ERROR, "Cannot resolve class com.google.android.gms.maps.SupportMapFragment")
-      }" />
-    """.trimIndent()
-    )
-
-    myFixture.checkHighlighting(true, false, false)
-    myFixture.moveCaret("fragmen|t")
-    val action = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
-
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+      actionOnClass.invoke(myFixture.project, myFixture.editor, myFixture.file)
     })
 
     // Wait for the sync
