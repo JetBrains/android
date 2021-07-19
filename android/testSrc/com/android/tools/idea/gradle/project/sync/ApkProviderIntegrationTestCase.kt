@@ -25,7 +25,9 @@ import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -471,7 +473,16 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         if (variant != null) {
           switchVariant(project, variant.first, variant.second)
         }
-        val runConfiguration = runReadAction {
+        val device = mockDeviceFor(device, listOf(Abi.X86, Abi.X86_64), density = 160)
+
+        fun getApkProviderFromRunConfiguration(runConfiguration: AndroidRunConfigurationBase): ApkProvider {
+          if (executeMakeBeforeRun) {
+            runConfiguration.executeMakeBeforeRunStepInTest(device)
+          }
+          return project.getProjectSystem().getApkProvider(runConfiguration)!!
+        }
+
+        val apkProviderGetter: () -> ApkProvider = runReadAction {
           when (testConfiguration) {
             is NamedAppTargetRunConfiguration ->
               RunManager
@@ -484,17 +495,14 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
                 }
                 .also {
                   it.DEPLOY_APK_FROM_BUNDLE = viaBundle
-                }
+                }.let { { getApkProviderFromRunConfiguration(it) } }
             is TestTargetRunConfiguration ->
               createAndroidTestConfigurationFromClass(project, testConfiguration.testClassFqn)!!
+                .let { { getApkProviderFromRunConfiguration(it) } }
           }
         }
-        val device = mockDeviceFor(device, listOf(Abi.X86, Abi.X86_64), density = 160)
-        if (executeMakeBeforeRun) {
-          runConfiguration.executeMakeBeforeRunStepInTest(device)
-        }
-        val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
 
+        val apkProvider = apkProviderGetter()
         assertThat(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
         val apks = runCatching { apkProvider.getApks(device) }
