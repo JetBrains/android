@@ -88,6 +88,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
@@ -703,7 +704,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private static void updateTargetProviders(@NotNull SceneComponent component) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
+    ViewHandler handler = SlowOperations.allowSlowOperations(
+      () -> NlComponentHelperKt.getViewHandler(component.getNlComponent()));
     component.setTargetProvider(handler);
 
     for (SceneComponent child : component.getChildren()) {
