@@ -1,5 +1,6 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <backendProjectPaneProvider implementation="org.intellij.android.cwm.BackendAndroidPaneProvider"/>
+    <toolWindowExtractorMode id="Logcat" mode="mirror"/>
   </extensions>
 </idea-plugin>
