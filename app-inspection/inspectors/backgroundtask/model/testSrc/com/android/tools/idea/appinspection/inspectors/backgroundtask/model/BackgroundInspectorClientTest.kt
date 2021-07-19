@@ -25,6 +25,9 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkRemovedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
@@ -38,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -220,6 +224,9 @@ class BackgroundInspectorClientTest {
     }.join()
   }
 
+  @get:Rule val ignoreTests = IgnoreTestRule()
+
+  @IgnoreWithCondition(reason = "b/194122078", condition = OnWindows::class)
   @Test
   fun getWorkChain() = runBlocking {
     /**
