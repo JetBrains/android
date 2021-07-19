@@ -53,6 +53,8 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NonNls public static final String LINT_CONFIG = "mLintConfig";
   @NonNls public static final String NO_LINES = "mNoLines";
   @NonNls public static final String QUIET = "mQuiet";
+  @NonNls public static final String SARIF_OUTPUT = "mSarifOutput";
+  @NonNls public static final String SARIF_REPORT = "mSarifReport";
   @NonNls public static final String SHOW_ALL = "mShowAll";
   @NonNls public static final String TEXT_OUTPUT = "mTextOutput";
   @NonNls public static final String TEXT_REPORT = "mTextReport";
@@ -196,6 +198,18 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NotNull
   public ResolvedPropertyModel quiet() {
     return getModelForProperty(QUIET);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel sarifOutput() {
+    return getFileModelForProperty(SARIF_OUTPUT);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel sarifReport() {
+    return getModelForProperty(SARIF_REPORT);
   }
 
   @Override
