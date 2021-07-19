@@ -22,9 +22,9 @@ import java.io.File
 interface BuildAttributionManager : ProgressListener {
   fun onBuildStart()
 
-  fun onBuildSuccess(attributionFileDir: File, request: GradleBuildInvoker.Request)
+  fun onBuildSuccess(request: GradleBuildInvoker.Request)
 
-  fun onBuildFailure(attributionFileDir: File)
+  fun onBuildFailure(request: GradleBuildInvoker.Request)
 
   fun openResultsTab()
 

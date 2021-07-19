@@ -282,7 +282,6 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
 
         BuildAttributionManager buildAttributionManager = null;
         boolean enableBuildAttribution = BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject);
-        File attributionFileDir = null;
 
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -298,7 +297,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
           if (enableBuildAttribution) {
-            attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getRootProjectPath());
+            File attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest);
             commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                            attributionFileDir.getAbsolutePath()));
           }
@@ -380,7 +379,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           buildState.buildFinished(SUCCESS);
           taskListener.onSuccess(id);
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildSuccess(attributionFileDir, myRequest);
+            buildAttributionManager.onBuildSuccess(myRequest);
           }
         }
         catch (BuildException e) {
@@ -394,11 +393,10 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           Application application = ApplicationManager.getApplication();
           if (buildError != null) {
             if (buildAttributionManager != null) {
-              final File finalAttributionFileDir = attributionFileDir;
               final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
               application.invokeLater(() -> {
                 if (!project.isDisposed()) {
-                  finalBuildAttributionManager.onBuildFailure(finalAttributionFileDir);
+                  finalBuildAttributionManager.onBuildFailure(myRequest);
                 }
               });
             }
