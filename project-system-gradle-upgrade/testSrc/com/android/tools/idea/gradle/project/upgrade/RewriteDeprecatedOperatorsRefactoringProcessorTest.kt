@@ -1,0 +1,131 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.project.upgrade
+
+import com.android.ide.common.repository.GradleVersion
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Test
+
+@RunsInEdt
+class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+  private fun rewriteDeprecatedOperatorsRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+    REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(project, current, new)
+
+  @Test
+  fun testBuildToolsVersion() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/BuildToolsVersion"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/BuildToolsVersionExpected"))
+  }
+
+  @Test
+  fun testCompileSdkVersion() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersion"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionExpected"))
+  }
+
+  @Test
+  fun testCompileSdkVersionPreview() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersionPreview"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionPreviewExpected"))
+  }
+
+  @Test
+  fun testCompileSdkVersionVariable() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/CompileSdkVersionVariable"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/CompileSdkVersionVariableExpected"))
+  }
+
+  @Test
+  fun testFlavorDimensions() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/FlavorDimensions"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/FlavorDimensionsExpected"))
+  }
+
+  @Test
+  fun testMaxSdkVersion() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MaxSdkVersion"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/MaxSdkVersionExpected"))
+  }
+
+  @Test
+  fun testMinSdkVersionPreview() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MinSdkVersionPreview"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/MinSdkVersionPreviewExpected"))
+  }
+
+  @Test
+  fun testMinSdkVersion() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MinSdkVersion"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/MinSdkVersionExpected"))
+  }
+
+  @Test
+  fun testSetDimension() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetDimension"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetDimensionExpected"))
+  }
+
+  @Test
+  fun testSetTestFunctionalTest() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetTestFunctionalTest"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetTestFunctionalTestExpected"))
+  }
+
+  @Test
+  fun testSetTestHandleProfiling() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetTestHandleProfiling"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetTestHandleProfilingExpected"))
+  }
+
+  @Test
+  fun testTargetSdkVersion() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TargetSdkVersion"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TargetSdkVersionExpected"))
+  }
+
+  @Test
+  fun testTargetSdkVersionPreview() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TargetSdkVersionPreview"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TargetSdkVersionPreviewExpected"))
+  }
+}

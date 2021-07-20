@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    minSdk 29
+  }
+  productFlavors {
+    foo {
+      minSdk 28
+    }
+  }
+}

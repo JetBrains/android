@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    testHandleProfiling true
+  }
+  productFlavors {
+    foo {
+      testHandleProfiling false
+    }
+  }
+}
