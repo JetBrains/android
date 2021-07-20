@@ -24,8 +24,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -108,7 +108,7 @@ class BackgroundTaskTreeModelTest {
     }
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
 
-    scope.launch {
+    withContext(scope.coroutineContext) {
       val root = model.root as DefaultMutableTreeNode
       assertThat(root.childCount).isEqualTo(4)
       val workChild = root.firstChild as DefaultMutableTreeNode
@@ -127,7 +127,7 @@ class BackgroundTaskTreeModelTest {
       assertThat(wakeLockChild.childCount).isEqualTo(1)
       assertThat(wakeLockChild.userObject).isEqualTo("WakeLocks")
       assertThat(wakeLockChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("2"))
-    }.join()
+    }
   }
 
   @Test
@@ -142,7 +142,7 @@ class BackgroundTaskTreeModelTest {
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
 
     var entryNode: DefaultMutableTreeNode? = null
-    scope.launch {
+    withContext(scope.coroutineContext) {
       val root = model.root as DefaultMutableTreeNode
       assertThat(root.childCount).isEqualTo(4)
       val workChild = root.firstChild as DefaultMutableTreeNode
@@ -150,7 +150,7 @@ class BackgroundTaskTreeModelTest {
       assertThat(workChild.userObject).isEqualTo("Works")
       entryNode = workChild.firstChild as DefaultMutableTreeNode
       assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
-    }.join()
+    }
 
     val removeWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
       workRemovedBuilder.apply {
@@ -159,7 +159,7 @@ class BackgroundTaskTreeModelTest {
     }.build()
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, removeWorkEvent.toByteArray()))
 
-    scope.launch {
+    withContext(scope.coroutineContext) {
       assertThat(entryNode?.parent).isNull()
       assertThat(model.getTreeNode("test")).isNull()
     }

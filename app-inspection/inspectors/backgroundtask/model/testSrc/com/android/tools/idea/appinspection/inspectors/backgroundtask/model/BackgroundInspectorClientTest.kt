@@ -25,9 +25,6 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkRemovedEvent
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
-import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnWindows
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
@@ -37,11 +34,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -62,7 +58,7 @@ class BackgroundInspectorClientTest {
   }
 
   /**
-   * A fake class to cache latest background task entry updtes.
+   * A fake class to cache latest background task entry updates.
    */
   private class Listener(client: BackgroundTaskInspectorClient, private val scope: CoroutineScope) {
     private lateinit var type: EntryUpdateEventType
@@ -75,7 +71,10 @@ class BackgroundInspectorClientTest {
       }
     }
 
-    fun consume(listener: EntryUpdateEventListener) = scope.launch { listener(type, entry) }
+    /**
+     * Waits for the single threaded scope to update its listeners and consumes the latest one.
+     */
+    suspend fun consume(listener: EntryUpdateEventListener) = withContext(scope.coroutineContext) { listener(type, entry) }
   }
 
   private lateinit var executor: ExecutorService
@@ -115,10 +114,10 @@ class BackgroundInspectorClientTest {
     backgroundTaskInspectorMessenger.sendRawCommand(backgroundTaskCommand.toByteArray())
 
     // This scope is single threaded so the following block should occur after sending commands.
-    scope.launch {
+    withContext(scope.coroutineContext) {
       assertThat(workManagerInspectorMessenger.rawDataSent).isEqualTo(workCommand.toByteArray())
       assertThat(backgroundTaskInspectorMessenger.rawDataSent).isEqualTo(backgroundTaskCommand.toByteArray())
-    }.join()
+    }
   }
 
   @Test
@@ -132,7 +131,7 @@ class BackgroundInspectorClientTest {
     listener.consume { type, entry ->
       assertThat(type).isEqualTo(EntryUpdateEventType.ADD)
       assertThat((entry as WorkEntry).getWorkInfo()).isEqualTo(workInfo)
-    }.join()
+    }
   }
 
   @Test
@@ -161,7 +160,7 @@ class BackgroundInspectorClientTest {
       assertThat(type).isEqualTo(EntryUpdateEventType.REMOVE)
       assertThat((entry as WorkEntry).getWorkInfo()).isEqualTo(workInfo1)
       assertThat(client.getEntry(workInfo1.id)).isNull()
-    }.join()
+    }
   }
 
   @Test
@@ -182,7 +181,7 @@ class BackgroundInspectorClientTest {
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
       assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().state).isEqualTo(WorkInfo.State.ENQUEUED)
-    }.join()
+    }
 
     val data = Data.newBuilder()
       .addEntries(DataEntry.newBuilder().setKey("key").setValue("value").build())
@@ -196,7 +195,7 @@ class BackgroundInspectorClientTest {
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
       assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().data).isEqualTo(data)
-    }.join()
+    }
 
     val runAttemptCount = 1
     val workRunAttemptCountUpdatedEvent = WorkUpdatedEvent.newBuilder()
@@ -209,7 +208,7 @@ class BackgroundInspectorClientTest {
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
       assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().runAttemptCount).isEqualTo(runAttemptCount)
-    }.join()
+    }
 
     val scheduleRequestedAt = 10L
     val workScheduleRequestedAtUpdatedEvent = WorkUpdatedEvent.newBuilder()
@@ -221,12 +220,9 @@ class BackgroundInspectorClientTest {
       assertThat(type).isEqualTo(EntryUpdateEventType.UPDATE)
       assertThat(entry.id).isEqualTo(id)
       assertThat((client.getEntry(entry.id) as WorkEntry).getWorkInfo().scheduleRequestedAt).isEqualTo(scheduleRequestedAt)
-    }.join()
+    }
   }
 
-  @get:Rule val ignoreTests = IgnoreTestRule()
-
-  @IgnoreWithCondition(reason = "b/194122078", condition = OnWindows::class)
   @Test
   fun getWorkChain() = runBlocking {
     /**
@@ -251,7 +247,8 @@ class BackgroundInspectorClientTest {
       sendWorkAddedEvent(workInfo)
     }
 
-    scope.launch {
+    // This scope is single threaded so the following block should occur after receiving events.
+    withContext(scope.coroutineContext) {
       val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
       assertThat(complexWorkChain.size).isEqualTo(7)
       for ((from, to) in dependencyList) {
@@ -261,7 +258,7 @@ class BackgroundInspectorClientTest {
       val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
       assertThat(singleWorkChain.size).isEqualTo(1)
       assertThat(singleWorkChain[0]).isEqualTo("work8")
-    }.join()
+    }
   }
 
 
