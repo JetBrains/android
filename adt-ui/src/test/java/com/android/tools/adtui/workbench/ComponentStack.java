@@ -16,24 +16,22 @@ package com.android.tools.adtui.workbench;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.serviceContainer.ComponentManagerImpl;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 // TODO: Move this to a place to be shared with AndroidTestCase
 public class ComponentStack {
-  private final ComponentManager myComponentManager;
-  private final MutablePicoContainer myContainer;
+  private final ComponentManagerImpl myComponentManager;
   private final Deque<ComponentItem> myComponents;
   private final Deque<ComponentItem> myServices;
   private final Disposable myDisposable;
 
   public ComponentStack(@NotNull ComponentManager manager) {
-    myComponentManager = manager;
-    myContainer = (MutablePicoContainer)manager.getPicoContainer();
+    myComponentManager = (ComponentManagerImpl)manager;
     myComponents = new ArrayDeque<>();
     myServices = new ArrayDeque<>();
     myDisposable = Disposer.newDisposable();
@@ -64,7 +62,7 @@ public class ComponentStack {
       ServiceContainerUtil.registerComponentInstance(myComponentManager, (Class)component.key, component.instance, myComponentManager);
     }
     while (!myServices.isEmpty()) {
-      myContainer.unregisterComponent(myServices.pop().key);
+      myComponentManager.unregisterComponent(myServices.pop().key);
     }
   }
 

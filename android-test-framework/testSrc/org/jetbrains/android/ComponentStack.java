@@ -18,30 +18,28 @@ package org.jetbrains.android;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.serviceContainer.ComponentManagerImpl;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 public final class ComponentStack {
-  private final ComponentManager myComponentManager;
-  private final MutablePicoContainer myContainer;
+  private final ComponentManagerImpl myComponentManager;
   private final Deque<ComponentItem> myComponents;
   private final Deque<ComponentItem> myServices;
   private final Disposable myDisposable;
 
   public ComponentStack(@NotNull ComponentManager manager) {
-    myComponentManager = manager;
-    myContainer = (MutablePicoContainer)manager.getPicoContainer();
+    myComponentManager = (ComponentManagerImpl)manager;
     myComponents = new ArrayDeque<>();
     myServices = new ArrayDeque<>();
     myDisposable = Disposer.newDisposable();
   }
 
   public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
-    T oldInstance = myComponentManager.getService(key, false);
+    T oldInstance = myComponentManager.getServiceIfCreated(key);
     if (oldInstance == null) {
       ServiceContainerUtil.registerServiceInstance(myComponentManager, key, instance);
       myServices.push(new ComponentItem(key, oldInstance));
@@ -64,7 +62,7 @@ public final class ComponentStack {
       ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance, null);
     }
     while (!myServices.isEmpty()) {
-      myContainer.unregisterComponent(myServices.pop().key);
+      myComponentManager.unregisterComponent(myServices.pop().key);
     }
   }
 
