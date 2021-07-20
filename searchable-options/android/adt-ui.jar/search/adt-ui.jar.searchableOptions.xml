@@ -1,5 +1,12 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="" path="ActionManager" hit="" />
+    <option name="left" path="ActionManager" hit="Move Tab Left" />
+    <option name="move" path="ActionManager" hit="Move Tab Left" />
+    <option name="tab" path="ActionManager" hit="Move Tab Left" />
+    <option name="move" path="ActionManager" hit="Move Tab Right" />
+    <option name="right" path="ActionManager" hit="Move Tab Right" />
+    <option name="tab" path="ActionManager" hit="Move Tab Right" />
     <option name="reset" path="ActionManager" hit="Reset Zoom" />
     <option name="zoom" path="ActionManager" hit="Reset Zoom" />
     <option name="default" path="ActionManager" hit="Reset zoom level to default" />
