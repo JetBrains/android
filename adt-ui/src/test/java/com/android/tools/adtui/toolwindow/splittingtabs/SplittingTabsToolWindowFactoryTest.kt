@@ -60,6 +60,7 @@ class SplittingTabsToolWindowFactoryTest {
     val content = toolWindow.contentManager.contents[0]
     assertThat(content.displayName).isEqualTo("TabName")
     assertThat(content.component).isSameAs(component)
+    assertThat(content.isSplittingTab()).isTrue()
   }
 
   @Test
@@ -86,6 +87,7 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(toolWindow.contentManager.contents).asList().hasSize(2)
     assertContent(toolWindow.contentManager.contents[0], 1)
     assertContent(toolWindow.contentManager.contents[1], 2)
+    assertThat(toolWindow.contentManager.contents[1].isSplittingTab()).isTrue()
   }
 
   @Test

@@ -57,6 +57,7 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
       }
       it.component = component
       it.isCloseable = true
+      it.setIsSplittingTab()
     }
   }
 }

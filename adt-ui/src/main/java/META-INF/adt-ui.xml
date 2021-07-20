@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
     <projectService serviceImplementation="com.android.tools.adtui.workbench.DetachedToolWindowManager" />
@@ -71,4 +71,5 @@
     </group>
   </actions>
 
+  <xi:include href="/META-INF/splittingtabs.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
