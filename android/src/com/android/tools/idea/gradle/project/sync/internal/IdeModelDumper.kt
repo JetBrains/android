@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -171,6 +170,12 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
           nest {
             dump(it)
           }
+      }
+      ideVariant.testFixturesArtifact?.let {
+        head("TestFixtureArtifact")
+        nest {
+          dump(it)
+        }
       }
       ideVariant.testedTargetVariants.forEach {
         head("TestedTargetVariants")
