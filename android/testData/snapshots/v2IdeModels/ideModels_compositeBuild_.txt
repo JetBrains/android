@@ -244,7 +244,6 @@ MODULE                        : TestCompositeLib1.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -2258,7 +2257,6 @@ MODULE                        : TestCompositeLib1.lib
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -4200,7 +4198,6 @@ MODULE                        : TestCompositeLib3.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -6193,7 +6190,6 @@ MODULE                        : TestCompositeLib3.lib
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -8054,7 +8050,6 @@ MODULE                        : project.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.compositeapp
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -10080,7 +10075,6 @@ MODULE                        : project.lib
             DisplayName                   : debug
             InstantAppCompatible          : false
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
-            DeprecatedPreMergedApplicationId        : com.test.composite0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN

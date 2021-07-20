@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -61,10 +62,10 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
   companion object {
     val tests =
-      listOf(TestDefinition(agpVersion = AgpVersion.CURRENT))
+      listOf(TestDefinition(agpVersion = AgpVersion.CURRENT), TestDefinition(agpVersion = AgpVersion.CURRENT, modelsV2 = true))
   }
 
-  data class TestDefinition(val agpVersion: AgpVersion)
+  data class TestDefinition(val agpVersion: AgpVersion, val modelsV2: Boolean = false)
 
   enum class AgpVersion(val agpVersion: String? = null, val gradleVersion: String? = null, val kotlinVersion: String? = null) {
     CURRENT,
@@ -165,13 +166,24 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   }
 
   private fun runTestOn(testProjectPath: String, test: (Project) -> Unit) {
-    prepareGradleProject(
-      testProjectPath,
-      "project",
-      gradleVersion = testDefinition!!.agpVersion.gradleVersion,
-      gradlePluginVersion = testDefinition!!.agpVersion.agpVersion,
-      kotlinVersion = testDefinition!!.agpVersion.kotlinVersion
-    )
-    openPreparedProject("project", test)
+    val testDefinition = testDefinition!!
+    if (testDefinition.modelsV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    }
+    try {
+      prepareGradleProject(
+        testProjectPath,
+        "project",
+        gradleVersion = testDefinition.agpVersion.gradleVersion,
+        gradlePluginVersion = testDefinition.agpVersion.agpVersion,
+        kotlinVersion = testDefinition.agpVersion.kotlinVersion
+      )
+      openPreparedProject("project", test)
+    }
+    finally {
+      if (testDefinition.modelsV2) {
+        StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
+      }
+    }
   }
 }

@@ -770,7 +770,7 @@ internal fun modelCacheV2Impl(): ModelCache {
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId = mergedFlavor.applicationId ?: androidProject.namespace
+      deprecatedPreMergedApplicationId = null
     )
   }
 
