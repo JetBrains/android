@@ -1,0 +1,21 @@
+============ DOMINATOR TREE FLAME GRAPH ===========
+A;B;E;G 16
+A;B;E 16
+A;B 24
+A;C 16
+A;D 8
+A;F 8
+A 32
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
+java.lang.Class 116
