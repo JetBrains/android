@@ -342,7 +342,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
   }
 
   private void doFrame() {
-    myListener.animateTo(myFramePositionMs);
+    myListener.animateTo(this, myFramePositionMs);
   }
 
   private void onFrameFwd() {
@@ -417,8 +417,12 @@ public class AnimationToolbar extends JPanel implements Disposable {
   }
 
   public void setMaxtimeMs(long maxTimeMs) {
-    assert isUnlimitedAnimationToolbar() : "Max time can not be set for unlimited animations";
+    assert !isUnlimitedAnimationToolbar() : "Max time can not be set for unlimited animations";
     myMaxTimeMs = maxTimeMs;
+  }
+
+  public void setLoop(boolean enabled) {
+    myLoopEnabled = enabled;
   }
 
   /**
