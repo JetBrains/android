@@ -25,7 +25,9 @@ import com.android.tools.idea.diagnostics.hprof.histogram.Histogram
 import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.util.IntList
+import com.android.tools.idea.diagnostics.hprof.util.ListProvider
 import com.android.tools.idea.diagnostics.hprof.util.UByteList
+import com.android.tools.idea.diagnostics.hprof.util.UShortList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import org.junit.Assert
@@ -112,6 +114,9 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         ),
         metaInfoOptions = AnalysisConfig.MetaInfoOptions(
           include = false
+        ),
+        dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
+          includeDominatorTree = false
         )
       ).let { adjustConfig(it) }
       val analysisContext = AnalysisContext(
@@ -124,7 +129,7 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         histogram
       )
 
-      val analysisReport = AnalyzeGraph(analysisContext).analyze(progress)
+      val analysisReport = AnalyzeGraph(analysisContext, memoryBackedListProvider).analyze(progress).mainReport.toString()
 
       val baselinePath = getBaselinePath(baselineFileName)
       val baseline = getBaselineContents(baselinePath)
@@ -172,6 +177,15 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     }
   }
 
+  class MemoryBackedUShortList(size: Int) : UShortList {
+    private val array = ShortArray(size)
+
+    override fun get(index: Int): Int = array[index].toInt()
+    override fun set(index: Int, value: Int) {
+      array[index] = value.toShort()
+    }
+  }
+
   class MemoryBackedUByteList(size: Int) : UByteList {
     private val array = ShortArray(size)
 
@@ -179,6 +193,12 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     override fun set(index: Int, value: Int) {
       array[index] = value.toShort()
     }
+  }
+
+  object memoryBackedListProvider: ListProvider {
+    override fun createUByteList(name: String, size: Long) = MemoryBackedUByteList(size.toInt())
+    override fun createUShortList(name: String, size: Long) = MemoryBackedUShortList(size.toInt())
+    override fun createIntList(name: String, size: Long) = MemoryBackedIntList(size.toInt())
   }
 
   private fun openTempEmptyFileChannel(): FileChannel {

@@ -168,6 +168,32 @@ class HeapAnalysisTest {
     }.run(scenario, "testDisposerTreeSummarySection.txt", null)
   }
 
+  @Test
+  fun testDominatorTreeFlameGraph() {
+    val scenario: HProfBuilder.() -> Unit = {
+      abstract class N
+      class A(val b: N, val c : N, val d: N): N()
+      class B(val e: N, val f: N): N()
+      class C(val f: N): N()
+      class D(): N()
+      class E(val g: N): N()
+      class F: N()
+      class G(var b: N?): N()
+      val g = G(null)
+      val f = F()
+      val e = E(g)
+      val d = D()
+      val c = C(f)
+      val b = B(e, f)
+      val a = A(b, c, d)
+      g.b = b
+      addRootGlobalJNI(a)
+    }
+    object : HProfScenarioRunner(tmpFolder, remapInMemory) {
+      override fun adjustConfig(config: AnalysisConfig): AnalysisConfig = configWithDominatorTreeOnly()
+    }.run(scenario, "testDominatorTreeFlameGraph.txt", null)
+  }
+
   private fun configWithDisposerTreeSummaryOnly() = AnalysisConfig(
     AnalysisConfig.PerClassOptions(
       classNames = listOf(),
@@ -184,6 +210,32 @@ class HeapAnalysisTest {
       disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
         nodeCutoff = 0
       )
+    ),
+    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
+      includeDominatorTree = false,
+    )
+  )
+
+  private fun configWithDominatorTreeOnly() = AnalysisConfig(
+    AnalysisConfig.PerClassOptions(
+      classNames = listOf(),
+      includeClassList = false,
+    ),
+    AnalysisConfig.HistogramOptions(includeByCount = false,
+                                    includeBySize = false,
+                                    includeSummary = false),
+    AnalysisConfig.DisposerOptions(
+      includeDisposerTree = false,
+      includeDisposerTreeSummary = false,
+      includeDisposedObjectsSummary = false,
+      includeDisposedObjectsDetails = false,
+      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
+        nodeCutoff = 0
+      )
+    ),
+    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
+      includeDominatorTree = true,
+      minNodeSize = 0
     )
   )
 
