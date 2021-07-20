@@ -41,7 +41,7 @@ class ConfigurationsPanel extends JPanel {
   ConfigurationsPanel() {
     super(new BorderLayout());
 
-    List<Configuration> configurations = Lists.newArrayList(MAIN, ANDROID_TEST, UNIT_TEST);
+    List<Configuration> configurations = Lists.newArrayList(MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES);
 
     myConfigurationsList = new PsCheckBoxList<>(configurations);
 
@@ -56,6 +56,7 @@ class ConfigurationsPanel extends JPanel {
         if (configuration == MAIN) {
           if (value) {
             myConfigurationsList.setItemSelected(ANDROID_TEST, true);
+            myConfigurationsList.setItemSelected(TEST_FIXTURES, true);
             myConfigurationsList.setItemSelected(UNIT_TEST, true);
           }
         }
@@ -85,6 +86,9 @@ class ConfigurationsPanel extends JPanel {
     else {
       if (myConfigurationsList.isItemSelected(ANDROID_TEST)) {
         mySelectedConfigurations.add(ANDROID_TEST);
+      }
+      if (myConfigurationsList.isItemSelected(TEST_FIXTURES)) {
+        mySelectedConfigurations.add(TEST_FIXTURES);
       }
       if (myConfigurationsList.isItemSelected(UNIT_TEST)) {
         mySelectedConfigurations.add(UNIT_TEST);

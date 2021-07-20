@@ -27,6 +27,8 @@ class Configuration {
   static final Configuration ANDROID_TEST = new Configuration(AndroidBundle.message("android.test.run.configuration.type.name"),
                                                               IdeArtifactName.ANDROID_TEST);
   static final Configuration UNIT_TEST = new Configuration("Local Unit Tests", IdeArtifactName.UNIT_TEST);
+  static final Configuration TEST_FIXTURES = new Configuration("Android Test Fixtures",
+                                                              IdeArtifactName.TEST_FIXTURES);
 
   @NotNull private final String myName;
   @Nullable private final IdeArtifactName myArtifactName;

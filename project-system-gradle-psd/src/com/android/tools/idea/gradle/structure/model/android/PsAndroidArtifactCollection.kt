@@ -24,7 +24,12 @@ class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCo
 
   override fun getKeys(from: PsVariant): Set<IdeArtifactName> {
     val variant = from.resolvedModel
-    return listOfNotNull(variant?.mainArtifact?.name, variant?.androidTestArtifact?.name, variant?.unitTestArtifact?.name).toSet()
+    return listOfNotNull(
+      variant?.mainArtifact?.name,
+      variant?.androidTestArtifact?.name,
+      variant?.unitTestArtifact?.name,
+      variant?.testFixturesArtifact?.name
+    ).toSet()
   }
 
   override fun create(key: IdeArtifactName): PsAndroidArtifact = PsAndroidArtifact(parent, key)
@@ -33,6 +38,7 @@ class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCo
     val resolved = parent.resolvedModel?.let { variant ->
       variant.mainArtifact.takeIf { it.name == key }
       ?: variant.androidTestArtifact?.takeIf { it.name == key }
+      ?: variant.testFixturesArtifact?.takeIf { it.name == key }
       ?: variant.unitTestArtifact?.takeIf { it.name == key }
     }
     model.init(resolved ?: throw IllegalStateException("Cannot find a resolved artifact named '$key' in variant '${parent.name}'"))

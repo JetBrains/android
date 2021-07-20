@@ -80,4 +80,23 @@ class PsAndroidArtifactTest {
                                                    "androidTestImplementation", "androidTestFlavor1Implementation",
                                                    "androidTestFlavor2Implementation")
   }
+
+  @Test
+  fun getPossibleConfigurationNamesWitTestFixturesArtifact() {
+    var configurationNames = getPossibleConfigurationNames(IdeArtifactName.TEST_FIXTURES, "debug", listOf())
+    assertThat(configurationNames).containsExactly("testFixturesCompile",
+                                                   "testFixturesApi",
+                                                   "testFixturesImplementation")
+
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.TEST_FIXTURES, "debug", listOf("flavor1"))
+    assertThat(configurationNames).containsExactly("testFixturesCompile", "testFixturesFlavor1Compile",
+                                                   "testFixturesApi", "testFixturesFlavor1Api",
+                                                   "testFixturesImplementation", "testFixturesFlavor1Implementation")
+
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.TEST_FIXTURES, "debug", listOf("flavor1", "flavor2"))
+    assertThat(configurationNames).containsExactly("testFixturesCompile", "testFixturesFlavor1Compile", "testFixturesFlavor2Compile",
+                                                   "testFixturesApi", "testFixturesFlavor1Api", "testFixturesFlavor2Api",
+                                                   "testFixturesImplementation", "testFixturesFlavor1Implementation",
+                                                   "testFixturesFlavor2Implementation")
+  }
 }

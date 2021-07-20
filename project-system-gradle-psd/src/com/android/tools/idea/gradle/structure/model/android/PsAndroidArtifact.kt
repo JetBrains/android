@@ -50,6 +50,10 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
     var name = ""
     when (resolvedName) {
       IdeArtifactName.MAIN -> icon = AllIcons.Modules.SourceRoot
+      IdeArtifactName.TEST_FIXTURES -> {
+        name = "TestFixtures"
+        icon = AllIcons.Modules.SourceRoot
+      }
       IdeArtifactName.ANDROID_TEST -> {
         name = "AndroidTest"
         icon = ANDROID_TEST_ROOT
@@ -122,6 +126,11 @@ fun getPossibleConfigurationNames(
       configurationNames.add(ANDROID_TEST_API)
       configurationNames.add(ANDROID_TEST_IMPLEMENTATION)
     }
+    IdeArtifactName.TEST_FIXTURES -> {
+      configurationNames.add(TEST_FIXTURES_COMPILE)
+      configurationNames.add(TEST_FIXTURES_API)
+      configurationNames.add(TEST_FIXTURES_IMPLEMENTATION)
+    }
   }
 
   when (resolvedName) {
@@ -153,6 +162,11 @@ fun getPossibleConfigurationNames(
         configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + API_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
+      }
+      IdeArtifactName.TEST_FIXTURES -> {
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + COMPILE_SUFFIX)
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + API_SUFFIX)
+        configurationNames.add("testFixtures" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
       }
     }
   }
