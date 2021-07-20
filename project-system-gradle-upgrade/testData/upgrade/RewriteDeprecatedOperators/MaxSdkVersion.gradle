@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    maxSdkVersion 29
+  }
+  productFlavors {
+    foo {
+      maxSdkVersion 28
+    }
+  }
+}

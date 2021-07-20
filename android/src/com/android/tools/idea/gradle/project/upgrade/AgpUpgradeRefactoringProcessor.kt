@@ -240,6 +240,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(this),
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
+    REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

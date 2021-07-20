@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    testFunctionalTest true
+  }
+  productFlavors {
+    foo {
+      testFunctionalTest false
+    }
+  }
+}

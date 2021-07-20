@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    minSdkPreview 'S'
+  }
+  productFlavors {
+    foo {
+      minSdkPreview 'R'
+    }
+  }
+}
