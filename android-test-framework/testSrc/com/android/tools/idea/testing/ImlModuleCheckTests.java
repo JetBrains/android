@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.testing;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -168,6 +170,12 @@ public class ImlModuleCheckTests {
     Field[] fields = cls.getFields();
     for (Field field : fields) {
       if (field.getDeclaringClass().equals(AndroidGradleProjectRule.class)) {
+        return true;
+      }
+    }
+    // find usages of @get.Rule used in kotlin
+    for (Method method : cls.getMethods()) {
+      if (method.getAnnotation(Rule.class) != null && method.getReturnType().equals(AndroidGradleProjectRule.class)) {
         return true;
       }
     }
