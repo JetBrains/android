@@ -112,9 +112,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "resolution", nameAttribute = "")
     private @Nullable ResolutionState resolution;
 
+    @XCollection(style = Style.v2)
+    private final @NotNull Collection<@NotNull String> abis;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
       nameOverride = "";
+      abis = Collections.emptyList();
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
@@ -130,6 +134,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       if (resolution != null) {
         this.resolution = new ResolutionState(resolution);
       }
+
+      abis = device.getAbis();
     }
 
     private @Nullable PhysicalDevice asPhysicalDevice() {
@@ -157,7 +163,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         builder.setResolution(resolution.asResolution());
       }
 
-      return builder.build();
+      return builder
+        .addAllAbis(abis)
+        .build();
     }
 
     @Override
@@ -170,6 +178,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
       hashCode = 31 * hashCode + Objects.hashCode(resolution);
+      hashCode = 31 * hashCode + abis.hashCode();
 
       return hashCode;
     }
@@ -188,7 +197,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&
              Objects.equals(api, device.api) &&
-             Objects.equals(resolution, device.resolution);
+             Objects.equals(resolution, device.resolution) &&
+             abis.equals(device.abis);
     }
   }
 

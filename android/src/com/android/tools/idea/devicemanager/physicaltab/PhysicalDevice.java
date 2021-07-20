@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.devicemanager.Device;
 import icons.StudioIcons;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -39,6 +40,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull String myApi;
   private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Resolution myResolution;
+  private final @NotNull Collection<@NotNull String> myAbis;
 
   public static final class Builder extends Device.Builder {
     private @Nullable Key myKey;
@@ -47,6 +49,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Resolution myResolution;
+    private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
 
     public @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
@@ -93,6 +96,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
+    @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
+      myAbis.addAll(abis);
+      return this;
+    }
+
     @Override
     public @NotNull PhysicalDevice build() {
       return new PhysicalDevice(this);
@@ -113,6 +121,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     myConnectionTypes = builder.myConnectionTypes;
     myResolution = builder.myResolution;
+    myAbis = builder.myAbis;
   }
 
   @NotNull Key getKey() {
@@ -149,6 +158,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return myResolution;
   }
 
+  @NotNull Collection<@NotNull String> getAbis() {
+    return myAbis;
+  }
+
   @Override
   public int hashCode() {
     int hashCode = myKey.hashCode();
@@ -160,6 +173,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + myApi.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
+    hashCode = 31 * hashCode + myAbis.hashCode();
 
     return hashCode;
   }
@@ -179,7 +193,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            myTarget.equals(device.myTarget) &&
            myApi.equals(device.myApi) &&
            myConnectionTypes.equals(device.myConnectionTypes) &&
-           Objects.equals(myResolution, device.myResolution);
+           Objects.equals(myResolution, device.myResolution) &&
+           myAbis.equals(device.myAbis);
   }
 
   @Override
