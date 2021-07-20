@@ -33,7 +33,7 @@ class MotionLayoutAssistantPanel(val designSurface: DesignSurface, val component
     val helper = MotionLayoutComponentHelper.create(component)
     val maxTimeMs = helper.maxTimeMs
     toolbar = AnimationToolbar.createAnimationToolbar({}, object : AnimationListener {
-      override fun animateTo(framePositionMs: Long) {
+      override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
         val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
         if (sceneManager != null) {
           sceneManager.setElapsedFrameTimeMs(framePositionMs)

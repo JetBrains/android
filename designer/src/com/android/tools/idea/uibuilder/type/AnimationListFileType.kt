@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor
+package com.android.tools.idea.uibuilder.type
 
-interface AnimationListener {
-  fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long)
-}
+private val rootTags = setOf("animation-list")
+
+/**
+ * File type for <animation-list> xml file.
+ */
+object AnimationListFileType : DrawableFileType(rootTags)

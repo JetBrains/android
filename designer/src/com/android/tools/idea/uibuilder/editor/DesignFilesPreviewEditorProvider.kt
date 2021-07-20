@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
+import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.FontFileType
 import com.android.tools.idea.uibuilder.type.StateListFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
@@ -31,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile
  */
 class DesignFilesPreviewEditorProvider : DesignerEditorProvider(listOf(AdaptiveIconFileType,
                                                                        StateListFileType,
+                                                                       AnimationListFileType,
                                                                        AnimatedStateListFileType,
                                                                        AnimatedStateListTempFile,
                                                                        AnimatedVectorFileType,

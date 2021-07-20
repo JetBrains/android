@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import android.graphics.drawable.AnimationDrawable
+import android.widget.ImageView
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
@@ -34,6 +36,7 @@ import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
+import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -43,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.function.Consumer
@@ -120,6 +124,16 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       // If opening an animated vector, add an unlimited animation bar
       return AnimationToolbar.createUnlimitedAnimationToolbar(this, MyAnimationListener(surface), 16, 0L)
     }
+    else if (StudioFlags.NELE_ANIMATIONS_LIST_PREVIEW.get() && model?.type is AnimationListFileType) {
+      // If opening an animation list, add an animation bar with progress
+      val animationDrawable = (surface.getSceneManager(model) as? LayoutlibSceneManager)?.let { findAnimationDrawable(it) }
+      val maxTimeMs = animationDrawable?.let { drawable ->
+        (0 until drawable.numberOfFrames).sumByLong { index -> drawable.getDuration(index).toLong() }
+      } ?: 0L
+      val oneShotString = animationDrawable?.isOneShot ?: false
+      return AnimationToolbar.createAnimationToolbar(this, MyAnimationListListener(surface), 16, 0, maxTimeMs)
+        .apply { setLoop(!oneShotString) }
+    }
     return null
   }
 
@@ -127,7 +141,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
 }
 
 class MyAnimationListener(val surface: DesignSurface) : AnimationListener {
-  override fun animateTo(framePositionMs: Long) {
+  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
         // This condition happens when animation is reset (stop and set elapsed frame to 0) or the elapsed frame is backed to negative.
@@ -161,6 +175,72 @@ class MyAnimationListener(val surface: DesignSurface) : AnimationListener {
       }
     }
   }
+}
+
+class MyAnimationListListener(val surface: DesignSurface) : AnimationListener {
+  private var currentAnimationDrawable: AnimationDrawable? = null
+  private var modelTimeMap = listOf<Long>()
+
+  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+    (surface.sceneManager as? LayoutlibSceneManager)?.let { sceneManager ->
+      val imageView = sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView? ?: return
+      val animationDrawable = imageView.drawable as? AnimationDrawable ?: return
+      if (currentAnimationDrawable != animationDrawable) {
+        updateAnimationDrawableInformation(toolbar, sceneManager)
+        currentAnimationDrawable = animationDrawable
+      }
+
+      val targetImageIndex = findTargetDuration(animationDrawable, framePositionMs)
+      animationDrawable.currentIndex = targetImageIndex
+      sceneManager.requestRender()
+    }
+  }
+
+  /**
+   * Update the maximum time and repeating to toolbar. Pre-process a time map to find the target Drawable Frame when playing animation.
+   */
+  private fun updateAnimationDrawableInformation(toolbar: AnimationToolbar, manager: LayoutlibSceneManager) {
+    val animationDrawable = findAnimationDrawable(manager)
+    modelTimeMap = if (animationDrawable != null) {
+      val timeMap = mutableListOf<Long>()
+      var durationSum = 0L
+      repeat(animationDrawable.numberOfFrames) { index ->
+        durationSum += animationDrawable.getDuration(index)
+        timeMap.add(durationSum)
+      }
+      toolbar.setLoop(!animationDrawable.isOneShot)
+      toolbar.setMaxtimeMs(durationSum)
+      timeMap
+    }
+    else {
+      emptyList()
+    }
+  }
+
+  private fun findTargetDuration(animationDrawable: AnimationDrawable, framePositionMs: Long): Int {
+    return binarySearch(modelTimeMap, framePositionMs, 0, animationDrawable.numberOfFrames - 1)
+  }
+
+  /**
+   * Binary search to find an index which [modelTimeMap].get(index - 1) <= [target] < [modelTimeMap].get(index)`.
+   * If [target] is larger than [modelTimeMap].get([modelTimeMap].size - 1), then we return [modelTimeMap].size - 1, because
+   * AnimationDrawable stays at last image when animation ends.
+  */
+  private fun binarySearch(map: List<Long>, target: Long, start: Int, end: Int): Int {
+    if (end <= start) {
+      return end
+    }
+    val mid = (start + end) / 2
+    return when {
+      map[mid] < target -> binarySearch(map, target, mid + 1, end)
+      target < map[mid] -> binarySearch(map, target, start, mid)
+      else -> mid + 1 // map[mid] == target
+    }
+  }
+}
+
+private fun findAnimationDrawable(sceneManager: LayoutlibSceneManager): AnimationDrawable? {
+  return (sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView?)?.drawable as? AnimationDrawable
 }
 
 fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() = when(preferredDrawableEditorMode) {
