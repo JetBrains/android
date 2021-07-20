@@ -845,7 +845,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
       manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId = mergedFlavor.applicationId
+      deprecatedPreMergedApplicationId = if (modelVersion?.isAtLeastIncludingPreviews(7, 1, 0) == true) null else mergedFlavor.applicationId
     )
   }
 
