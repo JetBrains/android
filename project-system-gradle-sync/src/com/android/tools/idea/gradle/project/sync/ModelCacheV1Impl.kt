@@ -817,13 +817,14 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
           androidProject.projectType
         )
       },
+      unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
+        javaArtifactFrom(it, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled)
+      }.firstOrNull { it.isTestArtifact },
       androidTestArtifact =
       copy(variant::getExtraAndroidArtifacts) {
         androidArtifactFrom(it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
       }.firstOrNull { it.isTestArtifact },
-      unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
-        javaArtifactFrom(it, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled)
-      }.firstOrNull { it.isTestArtifact },
+      testFixturesArtifact = null,
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
       minSdkVersion = mergedFlavor.minSdkVersion,

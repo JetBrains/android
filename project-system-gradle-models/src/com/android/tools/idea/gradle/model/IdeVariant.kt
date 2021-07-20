@@ -27,6 +27,7 @@ interface IdeVariantHeader {
 interface IdeVariant: IdeVariantHeader {
   val mainArtifact: IdeAndroidArtifact
   val androidTestArtifact: IdeAndroidArtifact?
+  val testFixturesArtifact: IdeAndroidArtifact?
   val unitTestArtifact: IdeJavaArtifact?
 
   val minSdkVersion: IdeApiVersion?
