@@ -16,13 +16,24 @@
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModelEffectDescription {
   @NotNull public final ModelPropertyDescription property;
   @NotNull public final SemanticsDescription semantics;
+  @Nullable public final VersionConstraint versionConstraint;
 
   public ModelEffectDescription(@NotNull ModelPropertyDescription property, @NotNull SemanticsDescription semantics) {
+    this(property, semantics, null);
+  }
+
+  public ModelEffectDescription(
+    @NotNull ModelPropertyDescription property,
+    @NotNull SemanticsDescription semantics,
+    @Nullable VersionConstraint versionConstraint
+  ) {
     this.property = property;
     this.semantics = semantics;
+    this.versionConstraint = versionConstraint;
   }
 }

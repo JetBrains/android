@@ -54,7 +54,8 @@ public final class ModelMapCollector {
       else {
         throw new RuntimeException("Unrecognized model property description designator for " + name + ": " + propertyDescriptionDesignator);
       }
-      return new ModelEffectDescription(mpd, sd);
+      VersionConstraint vc = data.length == 4 ? null : (VersionConstraint)data[4];
+      return new ModelEffectDescription(mpd, sd, vc);
     };
     Function<Object[], VersionConstraint> versionConstraintGetter = data -> data.length == 4 ? null : (VersionConstraint)data[4];
     return Collector.of(
