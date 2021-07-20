@@ -19,10 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class InfoSection {
   private final @NotNull String myHeading;
-  private final @NotNull Map<@NotNull String, @NotNull String> myInfo;
+  private final @NotNull Map<@NotNull String, @Nullable Object> myInfo;
 
   InfoSection(@NotNull String heading) {
     myHeading = heading;
@@ -33,12 +34,12 @@ final class InfoSection {
     return myHeading;
   }
 
-  @NotNull InfoSection putInfo(@NotNull String name, @NotNull String value) {
+  @NotNull InfoSection putInfo(@NotNull String name, @Nullable Object value) {
     myInfo.put(name, value);
     return this;
   }
 
-  void forEachInfo(@NotNull BiConsumer<@NotNull String, @NotNull String> consumer) {
+  void forEachInfo(@NotNull BiConsumer<@NotNull String, @Nullable Object> consumer) {
     myInfo.forEach(consumer);
   }
 }
