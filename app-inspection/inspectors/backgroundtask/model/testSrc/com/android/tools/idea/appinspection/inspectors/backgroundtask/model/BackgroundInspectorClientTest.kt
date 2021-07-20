@@ -251,15 +251,17 @@ class BackgroundInspectorClientTest {
       sendWorkAddedEvent(workInfo)
     }
 
-    val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
-    assertThat(complexWorkChain.size).isEqualTo(7)
-    for ((from, to) in dependencyList) {
-      assertThat(complexWorkChain.indexOf(from)).isLessThan(complexWorkChain.indexOf(to))
-    }
+    scope.launch {
+      val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
+      assertThat(complexWorkChain.size).isEqualTo(7)
+      for ((from, to) in dependencyList) {
+        assertThat(complexWorkChain.indexOf(from)).isLessThan(complexWorkChain.indexOf(to))
+      }
 
-    val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
-    assertThat(singleWorkChain.size).isEqualTo(1)
-    assertThat(singleWorkChain[0]).isEqualTo("work8")
+      val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
+      assertThat(singleWorkChain.size).isEqualTo(1)
+      assertThat(singleWorkChain[0]).isEqualTo("work8")
+    }.join()
   }
 
 
