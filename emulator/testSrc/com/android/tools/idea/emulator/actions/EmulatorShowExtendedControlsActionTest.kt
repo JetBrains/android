@@ -16,16 +16,22 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.ThemingStyle
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.LafManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
+import javax.swing.UIManager
 
 /**
  * Tests for [EmulatorShowExtendedControlsAction].
@@ -43,13 +49,17 @@ class EmulatorShowExtendedControlsActionTest {
 
   @Test
   fun testShowExtendedControls() {
+    val mockLafManager = mock<LafManager>()
+    `when`(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
+
     val view = emulatorViewRule.newEmulatorView()
     emulatorViewRule.executeAction("android.emulator.extended.controls", view)
 
     val emulator = emulatorViewRule.getFakeEmulator(view)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/setUiTheme")
-    assertThat(call.request).isEqualTo(ThemingStyle.getDefaultInstance())
+    assertThat(call.request).isEqualTo(ThemingStyle.newBuilder().setStyle(ThemingStyle.Style.CONTRAST).build())
     call = emulator.getNextGrpcCall(1, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/showExtendedControls")
   }

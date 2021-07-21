@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.ThemingStyle
+import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -29,6 +31,18 @@ import java.awt.Point
 import javax.swing.JPanel
 import kotlin.math.ceil
 import kotlin.math.roundToInt
+
+/**
+ * Returns the emulator UI theme matching the current IDE theme.
+ */
+internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
+  val themeName = lafManager.currentLookAndFeel.name
+  return when {
+    themeName.contains("High contrast", ignoreCase = true) -> ThemingStyle.Style.CONTRAST
+    themeName.contains("Darcula") -> ThemingStyle.Style.DARK
+    else -> ThemingStyle.Style.LIGHT
+  }
+}
 
 /**
  * Invokes given function on the UI thread regardless of the modality state.

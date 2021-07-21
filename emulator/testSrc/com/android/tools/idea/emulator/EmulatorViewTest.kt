@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.FoldedDisplay
+import com.android.emulator.control.ThemingStyle
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -28,6 +29,9 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
@@ -35,6 +39,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -328,9 +333,14 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("x: 829 y: 2098")
 
     // Check EmulatorShowFoldingControlsAction.
+    val mockLafManager = mock<LafManager>()
+    `when`(mockLafManager.currentLookAndFeel).thenReturn(DarculaLookAndFeelInfo())
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
+
     emulatorViewRule.executeAction("android.emulator.folding.controls", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/setUiTheme")
+    assertThat(call.request).isEqualTo(ThemingStyle.newBuilder().setStyle(ThemingStyle.Style.DARK).build())
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/showExtendedControls")
     assertThat(shortDebugString(call.request)).isEqualTo("index: VIRT_SENSORS")
