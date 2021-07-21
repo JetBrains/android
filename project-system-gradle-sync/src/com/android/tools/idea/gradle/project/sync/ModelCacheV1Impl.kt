@@ -71,6 +71,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
@@ -802,6 +803,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     val versionNameSuffix =
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
+
+    val extraAndroidArtifacts = copy(variant::getExtraAndroidArtifacts) {
+      androidArtifactFrom(it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
+    }
+
     return IdeVariantImpl(
       name = variant.name,
       displayName = variant.displayName,
@@ -817,14 +823,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
           androidProject.projectType
         )
       },
+      androidTestArtifact = extraAndroidArtifacts.firstOrNull { it.name == IdeArtifactName.ANDROID_TEST },
       unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
         javaArtifactFrom(it, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled)
       }.firstOrNull { it.isTestArtifact },
-      androidTestArtifact =
-      copy(variant::getExtraAndroidArtifacts) {
-        androidArtifactFrom(it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
-      }.firstOrNull { it.isTestArtifact },
-      testFixturesArtifact = null,
+      testFixturesArtifact = extraAndroidArtifacts.firstOrNull { it.name == IdeArtifactName.TEST_FIXTURES },
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
       minSdkVersion = mergedFlavor.minSdkVersion,

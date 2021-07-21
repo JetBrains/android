@@ -182,7 +182,7 @@ fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
 @UsedInBuildAction
 private fun collectIdentifiers(variants: Collection<IdeVariant>): List<ArtifactIdentifier> {
   return variants.asSequence()
-    .flatMap { sequenceOf(it.mainArtifact, it.androidTestArtifact, it.unitTestArtifact).filterNotNull() }
+    .flatMap { sequenceOf(it.mainArtifact, it.androidTestArtifact, it.unitTestArtifact, it.testFixturesArtifact).filterNotNull() }
     .flatMap { it.level2Dependencies.androidLibraries.asSequence() + it.level2Dependencies.javaLibraries.asSequence() }
     .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
     .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }

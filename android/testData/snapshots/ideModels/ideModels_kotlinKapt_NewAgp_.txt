@@ -107,6 +107,21 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixtures
+                    Manifest                      : <ROOT>/app/src/testFixtures/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testFixtures/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixtures/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixtures/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testFixtures/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testFixtures/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testFixtures/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testFixtures/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testFixtures/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testFixtures/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -160,6 +175,22 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixturesDebug
+                    Manifest                      : <ROOT>/app/src/testFixturesDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testFixturesDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testFixturesDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testFixturesDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testFixturesDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testFixturesDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testFixturesDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -212,6 +243,22 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixturesRelease
+                    Manifest                      : <ROOT>/app/src/testFixturesRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testFixturesRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testFixturesRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testFixturesRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testFixturesRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testFixturesRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testFixturesRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -946,6 +993,21 @@ MODULE                        : MainActivity.lib
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixtures
+                    Manifest                      : <ROOT>/lib/src/testFixtures/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/testFixtures/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixtures/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixtures/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/testFixtures/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/testFixtures/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/testFixtures/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/testFixtures/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/testFixtures/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/testFixtures/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -999,6 +1061,22 @@ MODULE                        : MainActivity.lib
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixturesDebug
+                    Manifest                      : <ROOT>/lib/src/testFixturesDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/testFixturesDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixturesDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixturesDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/testFixturesDebug/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/testFixturesDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/testFixturesDebug/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/testFixturesDebug/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/testFixturesDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/testFixturesDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -1051,6 +1129,22 @@ MODULE                        : MainActivity.lib
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _test_fixtures_
+                SourceProvider
+                    Name                          : testFixturesRelease
+                    Manifest                      : <ROOT>/lib/src/testFixturesRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/testFixturesRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixturesRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testFixturesRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/testFixturesRelease/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/testFixturesRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/testFixturesRelease/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/testFixturesRelease/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/testFixturesRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/testFixturesRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
