@@ -25,13 +25,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +41,12 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull Key myKey;
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull AdbShellCommandExecutor myExecutor;
+  private final @NotNull ListeningExecutorService myAppExecutorService;
 
   private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
   private final @NotNull ListenableFuture<@Nullable Resolution> myResolutionFuture;
+  private final @NotNull ListenableFuture<@NotNull Collection<@NotNull String>> myAbisFuture;
 
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key, @Nullable Instant lastOnlineTime) {
     this(device, key, lastOnlineTime, new AdbShellCommandExecutor());
@@ -58,17 +61,17 @@ final class AsyncPhysicalDeviceBuilder {
     myKey = key;
     myLastOnlineTime = lastOnlineTime;
     myExecutor = executor;
+    myAppExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
-    myResolutionFuture = getResolution(device);
+    myResolutionFuture = getResolution();
+    myAbisFuture = myAppExecutorService.submit(device::getAbis);
   }
 
-  private @NotNull ListenableFuture<@Nullable Resolution> getResolution(@NotNull IDevice device) {
-    ExecutorService service = AppExecutorUtil.getAppExecutorService();
-
+  private @NotNull ListenableFuture<@Nullable Resolution> getResolution() {
     // noinspection UnstableApiUsage
-    return FluentFuture.from(MoreExecutors.listeningDecorator(service).submit(() -> myExecutor.execute(device, "wm size")))
+    return FluentFuture.from(myAppExecutorService.submit(() -> myExecutor.execute(myDevice, "wm size")))
       .transform(AsyncPhysicalDeviceBuilder::newResolution, EdtExecutorService.getInstance());
   }
 
@@ -92,7 +95,7 @@ final class AsyncPhysicalDeviceBuilder {
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture)
+    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture, myAbisFuture)
       .call(this::build, EdtExecutorService.getInstance());
   }
 
@@ -110,8 +113,12 @@ final class AsyncPhysicalDeviceBuilder {
       builder.addConnectionType(myKey.getConnectionType());
     }
 
+    Collection<String> abis = FutureUtils.getDoneOrNull(myAbisFuture);
+    assert abis != null;
+
     return builder
       .setResolution(FutureUtils.getDoneOrNull(myResolutionFuture))
+      .addAllAbis(abis)
       .build();
   }
 }

@@ -78,7 +78,8 @@ final class DetailsPanel extends JBPanel<DetailsPanel> {
   private @NotNull InfoSection newQuickSummarySection() {
     return new InfoSection("Quick summary")
       .putInfo("API level", myDevice.getApi())
-      .putInfo("Resolution", myDevice.getResolution());
+      .putInfo("Resolution", myDevice.getResolution())
+      .putInfo("ABI list", myDevice.getAbis());
   }
 
   private @NotNull InfoSection newDeviceSection() {

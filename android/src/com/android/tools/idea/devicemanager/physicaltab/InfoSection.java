@@ -39,6 +39,10 @@ final class InfoSection {
     return this;
   }
 
+  @NotNull InfoSection putInfo(@NotNull String name, @NotNull Iterable<@NotNull String> values) {
+    return putInfo(name, String.join(", ", values));
+  }
+
   void forEachInfo(@NotNull BiConsumer<@NotNull String, @Nullable Object> consumer) {
     myInfo.forEach(consumer);
   }
