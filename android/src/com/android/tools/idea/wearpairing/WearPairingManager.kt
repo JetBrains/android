@@ -368,7 +368,7 @@ private fun IDevice.isPhysicalPhone(): Boolean = when {
   else -> true
 }
 
-private fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
+internal fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
   SystemImage.WEAR_TAG -> true
   SystemImage.ANDROID_TV_TAG -> false
   SystemImage.GOOGLE_TV_TAG -> false

@@ -563,13 +563,6 @@ public final class StudioFlags {
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
     true);
 
-  public static final Flag<Boolean> WEAR_DEVICE_PAIRING_ENABLED = Flag.create(
-    RUNDEBUG,
-    "wear.device.pairing.enabled",
-    "Enable Wear emulator pairing assistant",
-    "Show the Wear emulator pairing assistant",
-    true);
-
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
     RUNDEBUG,
     "adb.server.management.mode.settings.visible",
@@ -1279,6 +1272,13 @@ public final class StudioFlags {
     "Enables some features that could be unpolished or unready in the new Device Manager",
     false
   );
+
+  public static final Flag<Boolean> WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "wear.os.virtual.device.pairing.assistant.enabled",
+    "Enable the Wear OS virtual device pairing assistant",
+    "Enable the Wear OS virtual device pairing assistant",
+    false);
   // endregion
 
   //region Suggested Import(s)

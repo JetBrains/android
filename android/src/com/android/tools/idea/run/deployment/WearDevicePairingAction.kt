@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
-import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,7 +30,7 @@ class WearDevicePairingAction : AnAction() {
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.apply {
-      isEnabledAndVisible = e.project != null && WEAR_DEVICE_PAIRING_ENABLED.get()
+      isEnabledAndVisible = e.project != null
       if (isEnabled && selectedIcon == null) {
         selectedIcon = generateWhiteIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
       }
@@ -40,9 +39,6 @@ class WearDevicePairingAction : AnAction() {
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
-    if (!WEAR_DEVICE_PAIRING_ENABLED.get()) {
-      return
-    }
     val project = event.project ?: return
     WearDevicePairingWizard().show(project)
   }
