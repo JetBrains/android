@@ -144,7 +144,7 @@ import sun.tools.attach.HotSpotVirtualMachine;
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
  */
-public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
+public class AndroidStudioSystemHealthMonitor {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
 
   // The group should be registered by SystemHealthMonitor
@@ -406,8 +406,7 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
     }
   }
 
-  @Override
-  public void preload(@NotNull ProgressIndicator indicator) {
+  public void start() {
     assert myGroup != null;
     Application application = ApplicationManager.getApplication();
     registerPlatformEventsListener();

@@ -26,6 +26,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
+import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
@@ -91,6 +92,16 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
     }
+
+    // Initialize System Health Monitor after Analytics and ServerFlag.
+    // AndroidStudioSystemHealthMonitor requires ActionManager to be ready, but this code is a part
+    // of its initialization. By pushing initialization to background thread, the thread will
+    // block until ActionManager is ready and use its instance, instead of making another one.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (AndroidStudioSystemHealthMonitor.getInstance() == null) {
+        new AndroidStudioSystemHealthMonitor().start();
+      }
+    });
   }
 
   private static void tweakDefaultColorScheme() {
