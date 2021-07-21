@@ -36,9 +36,9 @@ import javax.swing.tree.TreeSelectionModel
 class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
                                   selectionModel: EntrySelectionModel) {
   val component: JComponent
+  val treeModel = BackgroundTaskTreeModel(client)
 
   init {
-    val treeModel = BackgroundTaskTreeModel(client)
     val tree = JTree(treeModel)
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION

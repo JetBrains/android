@@ -36,6 +36,8 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = work.scheduleRequestedAt
 
+  override val tags get() = work.tagsList.toList()
+
   private var work = WorkInfo.newBuilder()
 
   fun getWorkInfo() = work.build()!!

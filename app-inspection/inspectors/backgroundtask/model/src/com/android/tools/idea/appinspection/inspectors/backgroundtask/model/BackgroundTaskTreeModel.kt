@@ -25,6 +25,25 @@ import javax.swing.tree.DefaultTreeModel
 
 class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient) : DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
+  private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
+
+  var filterTag: String? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        root.children().toList().forEach {
+          (it as DefaultMutableTreeNode).removeAllChildren()
+        }
+        nodeMap.entries
+          .filter { entry -> entry.key.acceptedByFilter() }
+          .forEach { entry ->
+            parentFinder(entry.key).add(entry.value)
+          }
+        root.children().toList().forEach {
+          nodeStructureChanged(it)
+        }
+      }
+    }
 
   init {
     val mutableRoot = root as DefaultMutableTreeNode
@@ -36,36 +55,48 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient)
     mutableRoot.add(jobsNode)
     mutableRoot.add(alarmsNode)
     mutableRoot.add(wakesNode)
+    parentFinder = { entry ->
+      when (entry) {
+        is WorkEntry -> worksNode
+        is JobEntry -> jobsNode
+        is AlarmEntry -> alarmsNode
+        is WakeLockEntry -> wakesNode
+        else -> throw RuntimeException()
+      }
+    }
 
     client.addEntryUpdateEventListener { type, entry ->
       when (type) {
         EntryUpdateEventType.ADD -> {
-          val parent = when (entry) {
-            is WorkEntry -> worksNode
-            is JobEntry -> jobsNode
-            is AlarmEntry -> alarmsNode
-            is WakeLockEntry -> wakesNode
-            else -> throw RuntimeException()
-          }
           DefaultMutableTreeNode(entry).let { newNode ->
             nodeMap[entry] = newNode
-            parent.add(newNode)
+            if (entry.acceptedByFilter()) {
+              val parent = parentFinder(entry)
+              parent.add(newNode)
+              nodeStructureChanged(parent)
+            }
           }
-
-          nodeStructureChanged(parent)
         }
         EntryUpdateEventType.UPDATE -> {
-          nodeChanged(nodeMap[entry])
+          if (entry.acceptedByFilter()) {
+            nodeChanged(nodeMap[entry])
+          }
         }
         EntryUpdateEventType.REMOVE -> {
-          val node = nodeMap[entry]!!
-          val parent = node.parent
-          node.removeFromParent()
-          nodeStructureChanged(parent)
+          val node = nodeMap.remove(entry)!!
+          if (entry.acceptedByFilter()) {
+            val parent = node.parent
+            node.removeFromParent()
+            nodeStructureChanged(parent)
+          }
         }
       }
     }
   }
 
   fun getTreeNode(id: String) = nodeMap[client.getEntry(id)]
+
+  val allTags get() = nodeMap.keys.flatMap { entry -> entry.tags }.toSortedSet().toList()
+
+  private fun BackgroundTaskEntry.acceptedByFilter() = filterTag == null || tags.contains(filterTag)
 }

@@ -31,6 +31,7 @@ interface BackgroundTaskEntry {
   val className: String
   val status: String
   val startTimeMs: Long
+  val tags: List<String>
 
   /**
    * Updates entry information with [event].

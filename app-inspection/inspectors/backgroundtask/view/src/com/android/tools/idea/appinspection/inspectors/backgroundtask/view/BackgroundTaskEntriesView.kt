@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
@@ -26,7 +27,9 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
 import java.awt.BorderLayout
@@ -46,6 +49,56 @@ class BackgroundTaskEntriesView(client: BackgroundTaskInspectorClient,
   enum class Mode {
     TABLE,
     GRAPH
+  }
+
+  /**
+   * DropDownAction that shows tags from available works.
+   */
+  private inner class TagsDropDownAction :
+    DropDownAction(BackgroundTaskInspectorBundle.message("action.tag.all"),
+                   BackgroundTaskInspectorBundle.message("action.tag.tooltip"),
+                   null) {
+    private var selectedTag: String? = null
+
+    override fun update(event: AnActionEvent) {
+      if (selectedTag != tableView.treeModel.filterTag) {
+        selectedTag = tableView.treeModel.filterTag
+        event.presentation.text = selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
+      }
+      val isTableActive = (contentMode == Mode.TABLE)
+      if (event.presentation.isVisible != isTableActive) {
+        event.presentation.isVisible = isTableActive
+      }
+    }
+
+    override fun canBePerformed(context: DataContext): Boolean {
+      return tableView.treeModel.allTags.isNotEmpty()
+    }
+
+    public override fun updateActions(context: DataContext): Boolean {
+      removeAll()
+      add(FilterWithTagToggleAction(null))
+      tableView.treeModel.allTags.forEach { tag ->
+        add(FilterWithTagToggleAction(tag))
+      }
+      return true
+    }
+
+    override fun displayTextInToolbar() = true
+  }
+
+  /**
+   * ToggleAction that filters works with a specific [tag].
+   */
+  private inner class FilterWithTagToggleAction(private val tag: String?)
+    : ToggleAction(tag ?: "All tags") {
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return tag == tableView.treeModel.filterTag
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      tableView.treeModel.filterTag = tag
+    }
   }
 
   private inner class TableViewAction :
@@ -124,6 +177,12 @@ class BackgroundTaskEntriesView(client: BackgroundTaskInspectorClient,
 
   private fun buildActionBar(): JComponent {
     val toolbarPanel = JPanel(BorderLayout())
+    val leftGroup = DefaultActionGroup().apply {
+      add(TagsDropDownAction())
+    }
+    val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
+    toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
     val rightGroup = DefaultActionGroup().apply {
       add(TableViewAction())
