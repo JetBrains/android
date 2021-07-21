@@ -26,7 +26,7 @@ iml_module(
         "block-network",
         "no_test_mac",
     ],
-    test_timeout = "eternal",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
