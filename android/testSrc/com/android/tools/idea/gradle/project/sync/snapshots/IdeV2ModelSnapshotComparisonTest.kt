@@ -72,7 +72,8 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks")
+      TestProject("../projects/lintCustomChecks"),
+      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES),
     )
   }
 

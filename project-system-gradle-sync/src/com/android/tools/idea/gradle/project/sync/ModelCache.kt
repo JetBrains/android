@@ -191,5 +191,6 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {
   AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
   AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
+  AndroidProject.ARTIFACT_TEST_FIXTURES -> IdeArtifactName.TEST_FIXTURES
   else -> error("Invalid android artifact name: $name")
 }

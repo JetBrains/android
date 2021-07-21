@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -104,6 +105,21 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   fun testCompatibilityWithAndroidStudio36NoImlProject() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
     assertIsEqualToSnapshot(text)
+  }
+
+  fun testTestFixtures() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testTestFixturesWithModulePerSourceSetEnabled() {
+    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
+    try {
+      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+      assertIsEqualToSnapshot(text)
+    } finally {
+      StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
+    }
   }
 
   private fun importSyncAndDumpProject(
