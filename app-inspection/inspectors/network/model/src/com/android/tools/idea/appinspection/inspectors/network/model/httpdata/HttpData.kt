@@ -156,4 +156,4 @@ data class HttpData(
  * Thread information fetched from the JVM, as opposed to from native code.
  * See also: https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
  **/
-class JavaThread(val id: Long, val name: String)
+data class JavaThread(val id: Long, val name: String)
