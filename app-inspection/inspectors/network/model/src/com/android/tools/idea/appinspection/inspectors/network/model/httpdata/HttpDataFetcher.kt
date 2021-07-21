@@ -48,7 +48,7 @@ class HttpDataFetcher(private val dataModel: HttpDataModel, private val selectio
 
   private fun handleRangeUpdated() {
     val dataList = if (!selectionRange.isEmpty) dataModel.getData(selectionRange) else dataModel.getData(dataRange)
-    if (prevDataList != null && dataList.size == prevDataList?.size) {
+    if (dataList == prevDataList) {
       return
     }
     prevDataList = dataList.also { fireListeners(it) }
