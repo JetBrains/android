@@ -911,6 +911,54 @@ data class RemovePropertiesInfo(
   }
 }
 
+data class RewriteObsoletePropertiesInfo(
+  val propertyModelListGetter: GradleBuildModel.() -> List<ResolvedPropertyModel>,
+  val tooltipTextSupplier: Supplier<String>,
+  val usageType: UsageType,
+): PropertiesOperationInfo {
+
+  override fun findBuildModelUsages(
+    processor: AgpUpgradeComponentRefactoringProcessor,
+    buildModel: GradleBuildModel
+  ): ArrayList<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    buildModel.(propertyModelListGetter)().forEach property@{ property ->
+      val ok = property.rawElement?.modelEffect?.versionConstraint?.isOkWith(null) ?: return@property
+      if (!ok) {
+        val psiElement = property.psiElement ?: return@property
+        val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
+        val usageInfo = RewritePropertyUsageInfo(wrappedPsiElement, property)
+        usages.add(usageInfo)
+      }
+    }
+    return usages
+  }
+
+  inner class RewritePropertyUsageInfo(
+    element: WrappedPsiElement,
+    val model: ResolvedPropertyModel,
+  ): GradleBuildModelUsageInfo(element) {
+
+    override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+      val valueModel = model.unresolvedModel
+
+      val value: Any = when (valueModel.valueType) {
+        GradlePropertyModel.ValueType.LIST -> valueModel.getValue(LIST_TYPE) ?: return
+        GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+        else -> valueModel.getValue(OBJECT_TYPE) ?: return
+      }
+
+      // TODO(xof): this will I think end up re-ordering properties, because the re-vivification of the property will put it at
+      //  the end of its parent rather than in its previous location.
+      model.delete()
+      model.setValue(value)
+    }
+
+    override fun getTooltipText(): String = tooltipTextSupplier.get()
+
+    override fun getDiscriminatingValues(): List<Any> = listOf(this@RewriteObsoletePropertiesInfo)
+  }
+}
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
  *
