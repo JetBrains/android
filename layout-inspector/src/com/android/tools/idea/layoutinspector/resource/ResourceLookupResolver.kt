@@ -492,7 +492,8 @@ class ResourceLookupResolver(
 
   private fun findLayoutAttribute(property: InspectorPropertyItem, view: ViewNode, layout: ResourceReference): XmlAttribute? {
     val tag = findViewTagInFile(view, layout)
-    return tag?.getAttribute(property.attrName, property.namespace)
+    val attrNamespace = mapNamespace(ResourceNamespace.fromNamespaceUri(property.namespace) ?: ResourceNamespace.ANDROID)
+    return tag?.getAttribute(property.attrName, attrNamespace.xmlNamespaceUri)
   }
 
   private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?): XmlTag? {

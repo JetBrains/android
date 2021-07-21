@@ -67,6 +67,7 @@ class FakeInspectorState(
 
     // property names
     // TODO(b/177231212): Test remaining property types
+    ViewString(100, "android"), // STRING
     ViewString(101, "text"), // STRING
     ViewString(102, "clickable"), // BOOLEAN
     // placeholder for BYTE property
@@ -87,6 +88,7 @@ class FakeInspectorState(
     ViewString(118, "stateListAnimator"), // ANIMATOR
     // placeholder for INTERPOLATOR property
     // placeholder for DIMENSION property
+    ViewString(119, "backgroundTint"), // COLOR
 
     // property values
     ViewString(201, "Next"),
@@ -109,6 +111,8 @@ class FakeInspectorState(
     ViewString(218, "Base.Widget.AppCompat.Button"),
     ViewString(219, "Widget.Material.Button"),
     ViewString(220, "vertical"),
+    ViewString(221, "color"),
+    ViewString(222, "blue"),
   )
 
   private val layoutTrees = listOf(
@@ -175,16 +179,19 @@ class FakeInspectorState(
         viewId = 3
         Property {
           name = 101
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.STRING
           int32Value = 201
         }
         Property {
           name = 102
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.BOOLEAN
           int32Value = 1
         }
         Property {
           name = 106
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.FLOAT
           floatValue = 1.0f
         }
@@ -193,21 +200,25 @@ class FakeInspectorState(
         viewId = 4
         Property {
           name = 108
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.INT32
           int32Value = 200
         }
         Property {
           name = 111
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.COLOR
           int32Value = -13172557
         }
         Property {
           name = 112
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.GRAVITY
           flagValueBuilder.addAllFlag(listOf(202, 203))
         }
         Property {
           name = 113
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.INT_ENUM
           int32Value = 220
         }
@@ -216,11 +227,13 @@ class FakeInspectorState(
         viewId = 5
         Property {
           name = 114
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.INT_FLAG
           flagValueBuilder.addAllFlag(listOf(204, 205))
         }
         Property {
           name = 115
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
           source = ViewResource(207, 206, 212)
           addAllResolutionStack(listOf(
@@ -232,6 +245,7 @@ class FakeInspectorState(
         }
         Property {
           name = 116
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.DRAWABLE
           source = ViewResource(208, 210, 216)
           addAllResolutionStack(listOf(
@@ -245,6 +259,7 @@ class FakeInspectorState(
         }
         Property {
           name = 118
+          namespace = 100
           type = LayoutInspectorViewProtocol.Property.Type.ANIMATOR
           source = ViewResource(208, 210, 216)
           addAllResolutionStack(listOf(
@@ -255,6 +270,24 @@ class FakeInspectorState(
             ViewResource(208, 209, 219),
           ))
           int32Value = 146
+        }
+      },
+      PropertyGroup {
+        viewId = 8
+        Property {
+          name = 119
+          namespace = 100
+          type = LayoutInspectorViewProtocol.Property.Type.COLOR
+          int32Value = 0x8800FF
+        }
+        Property {
+          name = 119
+          namespace = 210
+          type = LayoutInspectorViewProtocol.Property.Type.COLOR
+          int32Value = 0x22FF00
+          addAllResolutionStack(listOf(
+            ViewResource(221, 210, 222),
+          ))
         }
       })
     // As tests don't need them, just skip defining properties for anything in the second layout tree

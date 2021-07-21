@@ -66,7 +66,7 @@ class GotoDeclarationActionTest {
     val stats = SessionStatistics(model, FakeTreeSettings())
     val event = createEvent(model, stats)
     GotoDeclarationAction.actionPerformed(event)
-    fileOpenCaptureRule.checkEditor("demo.xml", 8, "<TextView")
+    fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
     checkStats(stats, clickCount = 1)
   }
 
