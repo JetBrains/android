@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2020.3.01">
+    version="2020.3.22">
   <feature
-      name="What's New in 2020.3.1">
+      name="What's New in Arctic Fox(2020.3.1)">
     <tutorial
         key="whats-new"
-        label=" What's New in 2020.3.1"
-        icon="preview/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/preview/features#2020.3.1"
+        label=" What's New in Arctic Fox(2020.3.1)"
+        icon="stable/whats_new_icon.png"
+        remoteLink="https://developer.android.com/studio/features#2020.3.1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
