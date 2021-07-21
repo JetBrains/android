@@ -1,3 +1,3 @@
 android {
-  flavorDimensions("strawberry")
+  flavorDimensions += listOf("strawberry")
 }

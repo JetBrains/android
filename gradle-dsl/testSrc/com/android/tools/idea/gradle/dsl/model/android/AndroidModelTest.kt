@@ -183,6 +183,25 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAndroidBlockWithNoDimensions400() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    android.flavorDimensions().addListValue().setValue("strawberry")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED_400)
+
+    android = buildModel.android()
+    assertNotNull(android)
+    assertEquals("flavorDimensions", listOf("strawberry"), android.flavorDimensions())
+  }
+
+  @Test
   fun testAndroidBlockWithProductFlavorBlocks() {
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS)
     val android = gradleBuildModel.android()
@@ -1848,6 +1867,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_BUILD_TYPE_BLOCKS("androidBlockWithBuildTypeBlocks"),
     ANDROID_BLOCK_WITH_NO_DIMENSIONS("androidBlockWithNoDimensions"),
     ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED("androidBlockWithNoDimensionsExpected"),
+    ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED_400("androidBlockWithNoDimensionsExpected400"),
     ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS("androidBlockWithProductFlavorBlocks"),
     ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK("androidBlockWithExternalNativeBuildBlock"),
     REMOVE_AND_RESET_ELEMENTS("removeAndResetElements"),

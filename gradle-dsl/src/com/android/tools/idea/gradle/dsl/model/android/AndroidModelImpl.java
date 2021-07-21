@@ -121,7 +121,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls public static final ModelPropertyDescription COMPILE_SDK_VERSION = new ModelPropertyDescription("mCompileSdkVersion");
   @NonNls public static final String DEFAULT_PUBLISH_CONFIG = "mDefaultPublishConfig";
   @NonNls public static final ModelPropertyDescription DYNAMIC_FEATURES = new ModelPropertyDescription("mDynamicFeatures", MUTABLE_SET);
-  @NonNls public static final String FLAVOR_DIMENSIONS = "mFlavorDimensions";
+  @NonNls public static final ModelPropertyDescription FLAVOR_DIMENSIONS = new ModelPropertyDescription("mFlavorDimensions", MUTABLE_LIST);
   @NonNls public static final String GENERATE_PURE_SPLITS = "mGeneratePureSplits";
   @NonNls public static final String NAMESPACE = "mNamespace";
   @NonNls public static final String NDK_VERSION = "mNdkVersion";
