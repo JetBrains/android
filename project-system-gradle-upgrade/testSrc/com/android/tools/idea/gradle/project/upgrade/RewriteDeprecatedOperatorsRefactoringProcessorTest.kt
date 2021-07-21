@@ -128,4 +128,20 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
     processor.run()
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TargetSdkVersionPreviewExpected"))
   }
+
+  @Test
+  fun testAlphabeticalOrder() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/AlphabeticalOrder"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/AlphabeticalOrderExpected"))
+  }
+
+  @Test
+  fun testReverseAlphabeticalOrder() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ReverseAlphabeticalOrder"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ReverseAlphabeticalOrderExpected"))
+  }
 }
