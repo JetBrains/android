@@ -131,6 +131,14 @@ class BackgroundTaskInspectorClient(
     return entryMap[entryId]
   }
 
+  fun cancelWorkById(id: String) {
+    val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
+    val command = WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
+    scope.launch {
+      (wmiMessengerTarget as WmiMessengerTarget.Resolved).messenger.sendRawCommand(command.toByteArray())
+    }
+  }
+
   /**
    * Returns a chain of works with topological ordering containing the selected work.
    *
