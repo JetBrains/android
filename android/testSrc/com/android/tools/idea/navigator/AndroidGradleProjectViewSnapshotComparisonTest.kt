@@ -175,6 +175,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
   }
 
+  fun testTestFixtures() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null,

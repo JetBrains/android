@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -44,6 +43,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROO
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_FIXTURES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
@@ -56,6 +56,7 @@ import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertAbout
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
@@ -69,7 +70,6 @@ import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil.toSystemDependentName
-import junit.framework.Assert.assertTrue
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
@@ -153,6 +153,17 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     fun testSimpleApplication() {
       val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
       assertIsEqualToSnapshot(text)
+    }
+
+    @Test
+    fun testTestFixturesWithModulePerSourceSetEnabled() {
+      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
+      try {
+        val text = importSyncAndDumpProject(TEST_FIXTURES)
+        assertIsEqualToSnapshot(text)
+      } finally {
+        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
+      }
     }
 
     @Test
@@ -536,9 +547,9 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
   protected fun createEmptyGradleSettingsFile(projectRootPath: File) {
     val settingsFilePath = File(projectRootPath, FN_SETTINGS_GRADLE)
-    assertTrue(FileUtil.delete(settingsFilePath))
+    assertThat(FileUtil.delete(settingsFilePath)).isTrue()
     writeToFile(settingsFilePath, " ")
-    assertAbout<FileSubject, File>(file()).that(settingsFilePath).isFile()
+    assertAbout(file()).that(settingsFilePath).isFile()
     refreshProjectFiles()
   }
 
