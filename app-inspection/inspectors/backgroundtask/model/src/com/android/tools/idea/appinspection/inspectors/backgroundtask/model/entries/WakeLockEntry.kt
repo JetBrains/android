@@ -44,6 +44,8 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = _startTime
 
+  override val tags = mutableListOf<String>()
+
   override fun consume(eventWrapper: EventWrapper) {
     val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
@@ -52,6 +54,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
         _className = "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = TimeUnit.NANOSECONDS.toMillis(timestamp)
+        tags.add(backgroundTaskEvent.wakeLockAcquired.tag)
       }
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_RELEASED -> {
         _status = State.RELEASED

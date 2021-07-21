@@ -35,6 +35,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   private var _status = State.UNSPECIFIED
   private var _startTime = -1L
   private var _isValid = true
+  private var _tags = mutableListOf<String>()
 
   override val isValid get() = _isValid
 
@@ -44,6 +45,8 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = _startTime
 
+  override val tags get() = _tags
+
   override fun consume(eventWrapper: EventWrapper) {
     val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
     when (backgroundTaskEvent.metadataCase) {
@@ -52,6 +55,9 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
         _className = "Alarm $id"
         _status = State.SET
         _startTime = alarmSet.triggerMs
+        if (alarmSet.hasListener()) {
+          _tags.add(alarmSet.listener.tag)
+        }
       }
       BackgroundTaskEvent.MetadataCase.ALARM_CANCELLED -> {
         _status = State.CANCELLED
@@ -59,6 +65,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.ALARM_FIRED -> {
         _status = State.FIRED
       }
+      else -> throw RuntimeException()
     }
   }
 }

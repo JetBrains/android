@@ -46,6 +46,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = _startTime
 
+  override val tags = listOf<String>()
+
   override fun consume(eventWrapper: EventWrapper) {
     val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
