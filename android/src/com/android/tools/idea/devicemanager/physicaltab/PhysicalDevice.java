@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.resources.Density;
 import com.android.tools.idea.devicemanager.Device;
 import icons.StudioIcons;
 import java.time.Instant;
@@ -40,6 +41,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull String myApi;
   private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Resolution myResolution;
+  private final int myDensity;
   private final @NotNull Collection<@NotNull String> myAbis;
 
   public static final class Builder extends Device.Builder {
@@ -49,6 +51,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Resolution myResolution;
+    private int myDensity = -1;
     private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
 
     public @NotNull Builder setKey(@NotNull Key key) {
@@ -96,6 +99,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
+    @NotNull Builder setDensity(int density) {
+      myDensity = density;
+      return this;
+    }
+
     @NotNull Builder addAllAbis(@NotNull Collection<@NotNull String> abis) {
       myAbis.addAll(abis);
       return this;
@@ -121,6 +129,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     myConnectionTypes = builder.myConnectionTypes;
     myResolution = builder.myResolution;
+    myDensity = builder.myDensity;
     myAbis = builder.myAbis;
   }
 
@@ -158,6 +167,27 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return myResolution;
   }
 
+  @Nullable Resolution getDp() {
+    if (myDensity == -1) {
+      return null;
+    }
+
+    if (myResolution == null) {
+      return null;
+    }
+
+    double density = myDensity;
+
+    int width = (int)Math.ceil(Density.DEFAULT_DENSITY * myResolution.getWidth() / density);
+    int height = (int)Math.ceil(Density.DEFAULT_DENSITY * myResolution.getHeight() / density);
+
+    return new Resolution(width, height);
+  }
+
+  int getDensity() {
+    return myDensity;
+  }
+
   @NotNull Collection<@NotNull String> getAbis() {
     return myAbis;
   }
@@ -173,6 +203,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + myApi.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
+    hashCode = 31 * hashCode + myDensity;
     hashCode = 31 * hashCode + myAbis.hashCode();
 
     return hashCode;
@@ -194,6 +225,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            myApi.equals(device.myApi) &&
            myConnectionTypes.equals(device.myConnectionTypes) &&
            Objects.equals(myResolution, device.myResolution) &&
+           myDensity == device.myDensity &&
            myAbis.equals(device.myAbis);
   }
 

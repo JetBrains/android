@@ -73,6 +73,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     myState = state;
   }
 
+  // TODO Add final to the state class fields
+
   static final class PhysicalTabState {
     @XCollection(style = Style.v2)
     private @NotNull Collection<@NotNull PhysicalDeviceState> physicalDevices = Collections.emptyList();
@@ -112,12 +114,16 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "resolution", nameAttribute = "")
     private @Nullable ResolutionState resolution;
 
+    @OptionTag(tag = "density", nameAttribute = "")
+    private final int density;
+
     @XCollection(style = Style.v2)
     private final @NotNull Collection<@NotNull String> abis;
 
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
       nameOverride = "";
+      density = -1;
       abis = Collections.emptyList();
     }
 
@@ -135,6 +141,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         this.resolution = new ResolutionState(resolution);
       }
 
+      density = device.getDensity();
       abis = device.getAbis();
     }
 
@@ -164,6 +171,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       }
 
       return builder
+        .setDensity(density)
         .addAllAbis(abis)
         .build();
     }
@@ -178,6 +186,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
       hashCode = 31 * hashCode + Objects.hashCode(resolution);
+      hashCode = 31 * hashCode + density;
       hashCode = 31 * hashCode + abis.hashCode();
 
       return hashCode;
@@ -198,6 +207,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              Objects.equals(target, device.target) &&
              Objects.equals(api, device.api) &&
              Objects.equals(resolution, device.resolution) &&
+             density == device.density &&
              abis.equals(device.abis);
     }
   }

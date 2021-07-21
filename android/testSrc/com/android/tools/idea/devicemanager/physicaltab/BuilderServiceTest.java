@@ -45,6 +45,7 @@ public final class BuilderServiceTest {
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 3"));
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
     Mockito.when(myDevice.getVersion()).thenReturn(new AndroidVersion(30, "S"));
+    Mockito.when(myDevice.getDensity()).thenReturn(-1);
 
     myService = new BuilderService(Clock.fixed(TIME, ZoneId.of("America/Los_Angeles")));
   }
