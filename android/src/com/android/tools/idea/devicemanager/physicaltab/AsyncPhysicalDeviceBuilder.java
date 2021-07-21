@@ -46,6 +46,7 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
   private final @NotNull ListenableFuture<@Nullable Resolution> myResolutionFuture;
+  private final @NotNull ListenableFuture<@NotNull Integer> myDensityFuture;
   private final @NotNull ListenableFuture<@NotNull Collection<@NotNull String>> myAbisFuture;
 
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key, @Nullable Instant lastOnlineTime) {
@@ -66,6 +67,7 @@ final class AsyncPhysicalDeviceBuilder {
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
     myResolutionFuture = getResolution();
+    myDensityFuture = myAppExecutorService.submit(device::getDensity);
     myAbisFuture = myAppExecutorService.submit(device::getAbis);
   }
 
@@ -95,11 +97,12 @@ final class AsyncPhysicalDeviceBuilder {
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture, myAbisFuture)
+    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture, myDensityFuture, myAbisFuture)
       .call(this::build, EdtExecutorService.getInstance());
   }
 
   private @NotNull PhysicalDevice build() {
+    // TODO Use a future
     AndroidVersion version = myDevice.getVersion();
 
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
@@ -113,11 +116,15 @@ final class AsyncPhysicalDeviceBuilder {
       builder.addConnectionType(myKey.getConnectionType());
     }
 
+    Integer density = FutureUtils.getDoneOrNull(myDensityFuture);
+    assert density != null;
+
     Collection<String> abis = FutureUtils.getDoneOrNull(myAbisFuture);
     assert abis != null;
 
     return builder
       .setResolution(FutureUtils.getDoneOrNull(myResolutionFuture))
+      .setDensity(density)
       .addAllAbis(abis)
       .build();
   }

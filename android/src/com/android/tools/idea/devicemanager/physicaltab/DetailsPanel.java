@@ -79,6 +79,7 @@ final class DetailsPanel extends JBPanel<DetailsPanel> {
     return new InfoSection("Quick summary")
       .putInfo("API level", myDevice.getApi())
       .putInfo("Resolution", myDevice.getResolution())
+      .putInfo("dp", myDevice.getDp())
       .putInfo("ABI list", myDevice.getAbis());
   }
 

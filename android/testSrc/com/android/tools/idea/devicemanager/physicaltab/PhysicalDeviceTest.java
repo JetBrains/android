@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -27,7 +28,54 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTest {
   @Test
+  public void getDpDensityEqualsNegativeOne() {
+    // Act
+    Object dp = TestPhysicalDevices.GOOGLE_PIXEL_3.getDp();
+
+    // Assert
+    assertNull(dp);
+  }
+
+  @Test
+  public void getDpResolutionIsNull() {
+    // Arrange
+    PhysicalDevice device = new PhysicalDevice.Builder()
+      .setKey(new SerialNumber("86UX00F4R"))
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .setDensity(440)
+      .build();
+
+    // Act
+    Object dp = device.getDp();
+
+    // Assert
+    assertNull(dp);
+  }
+
+  @Test
+  public void getDp() {
+    // Arrange
+    PhysicalDevice device = new PhysicalDevice.Builder()
+      .setKey(new SerialNumber("86UX00F4R"))
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .setResolution(new Resolution(1080, 2160))
+      .setDensity(440)
+      .build();
+
+    // Act
+    Object dp = device.getDp();
+
+    // Assert
+    assertEquals(new Resolution(393, 786), dp);
+  }
+
+  @Test
   public void sort() {
+    // Arrange
     Instant time1 = Instant.parse("2021-03-24T22:38:05.890571Z");
     Instant time2 = Instant.parse("2021-03-24T22:38:05.890570Z");
 
