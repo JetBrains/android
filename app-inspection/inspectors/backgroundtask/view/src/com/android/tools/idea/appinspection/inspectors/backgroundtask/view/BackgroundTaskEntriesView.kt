@@ -44,11 +44,30 @@ const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 /**
  * View containing a table view and graph view, and offers toggle control between the two.
  */
-class BackgroundTaskEntriesView(client: BackgroundTaskInspectorClient,
+class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClient,
                                 private val selectionModel: EntrySelectionModel) : JPanel() {
   enum class Mode {
     TABLE,
     GRAPH
+  }
+
+  private inner class CancelAction :
+    AnAction(BackgroundTaskInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = selectionModel.selectedWork?.state?.isFinished() == false
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val id = selectionModel.selectedWork?.id ?: return
+      client.cancelWorkById(id)
+      if (contentMode == Mode.TABLE) {
+        tableView.component.requestFocusInWindow()
+      }
+      else {
+        graphView.requestFocusInWindow()
+      }
+    }
   }
 
   /**
@@ -178,6 +197,8 @@ class BackgroundTaskEntriesView(client: BackgroundTaskInspectorClient,
   private fun buildActionBar(): JComponent {
     val toolbarPanel = JPanel(BorderLayout())
     val leftGroup = DefaultActionGroup().apply {
+      add(CancelAction())
+      addSeparator()
       add(TagsDropDownAction())
     }
     val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
