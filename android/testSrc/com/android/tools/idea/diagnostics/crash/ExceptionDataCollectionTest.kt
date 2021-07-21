@@ -76,6 +76,9 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     ApplicationManager.getApplication().replaceService(
       ExceptionDataConfiguration::class.java, ExceptionDataConfigurationMock(),
       fixtureDisposable)
+    ApplicationManager.getApplication().replaceService(
+      ExceptionDataCollection::class.java, ExceptionDataCollection(),
+      fixtureDisposable)
     service = ExceptionDataCollection.getInstance()
   }
 
