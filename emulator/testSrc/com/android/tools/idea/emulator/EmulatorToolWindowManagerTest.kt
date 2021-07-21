@@ -29,6 +29,7 @@ import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -38,6 +39,7 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
@@ -45,6 +47,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
+import javax.swing.UIManager
 
 /**
  * Tests for [EmulatorToolWindowManager] and [EmulatorToolWindowFactory].
@@ -69,6 +72,10 @@ class EmulatorToolWindowManagerTest {
 
   @Before
   fun setUp() {
+    val mockLafManager = mock<LafManager>()
+    `when`(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, projectRule.testRootDisposable)
+
     val windowManager = TestToolWindowManager(project)
     toolWindow = windowManager.toolWindow
     project.registerServiceInstance(ToolWindowManager::class.java, windowManager)

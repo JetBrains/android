@@ -17,15 +17,15 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
-import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.WindowPosition
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.getEmulatorUiTheme
 import com.android.tools.idea.protobuf.Empty
+import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.WindowManager
-import com.intellij.util.ui.StartupUiUtil
 
 /**
  * Shows the emulator extended controls.
@@ -39,8 +39,7 @@ class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
 }
 
 internal fun showExtendedControls(emulatorController: EmulatorController, project: Project, paneIndex: PaneIndex = PaneIndex.KEEP_CURRENT) {
-  val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-  emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
+  emulatorController.setUiTheme(getEmulatorUiTheme(LafManager.getInstance()), object : EmptyStreamObserver<Empty>() {
     override fun onCompleted() {
       val pane = PaneEntry.newBuilder().setIndex(paneIndex)
       val frame = WindowManager.getInstance().getFrame(project)

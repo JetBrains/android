@@ -26,7 +26,6 @@ import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
-import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
@@ -66,7 +65,6 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.containers.ContainerUtil
-import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
@@ -346,10 +344,9 @@ class EmulatorView(
     }
 
     val connection = ApplicationManager.getApplication().messageBus.connect(this)
-    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener { lafManager ->
       if (connected) {
-        val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-        emulator.setUiTheme(style)
+        emulator.setUiTheme(getEmulatorUiTheme(lafManager))
       }
     })
 
