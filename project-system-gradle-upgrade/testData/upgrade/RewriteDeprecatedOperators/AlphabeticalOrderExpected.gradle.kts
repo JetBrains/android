@@ -5,6 +5,7 @@ android {
   defaultConfig {
     maxSdk = 30
     minSdk = 28
+    resourceConfigurations += setOf("en", "fr")
     targetSdk = 29
     testFunctionalTest = true
     testHandleProfiling = false
@@ -14,6 +15,7 @@ android {
       dimension = "paid"
       maxSdk = 29
       minSdk = 27
+      resourceConfigurations += setOf("uk")
       targetSdk = 28
       testFunctionalTest = false
       testHandleProfiling = true

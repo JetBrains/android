@@ -114,6 +114,14 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
   }
 
   @Test
+  fun testResConfigs() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ResConfigs"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ResConfigsExpected"))
+  }
+
+  @Test
   fun testTargetSdkVersion() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TargetSdkVersion"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))

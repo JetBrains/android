@@ -5,6 +5,7 @@ android {
   defaultConfig {
     maxSdkVersion(30)
     minSdkVersion(28)
+    resConfigs("en", "fr")
     targetSdkVersion(29)
     setTestFunctionalTest(true)
     setTestHandleProfiling(false)
@@ -14,6 +15,7 @@ android {
       setDimension("paid")
       maxSdkVersion(29)
       minSdkVersion(27)
+      resConfig("uk")
       targetSdkVersion(28)
       setTestFunctionalTest(false)
       setTestHandleProfiling(true)

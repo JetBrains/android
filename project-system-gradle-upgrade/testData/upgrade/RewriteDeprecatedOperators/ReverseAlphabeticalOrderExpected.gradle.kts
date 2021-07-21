@@ -3,6 +3,7 @@ android {
     testHandleProfiling = true
     testFunctionalTest = false
     targetSdk = 29
+    resourceConfigurations += setOf("en", "fr")
     minSdk = 28
     maxSdk = 30
   }
@@ -11,6 +12,7 @@ android {
       testHandleProfiling = false
       testFunctionalTest = true
       targetSdk = 28
+      resourceConfigurations += setOf("uk")
       minSdk = 27
       maxSdk = 29
       dimension = "paid"
