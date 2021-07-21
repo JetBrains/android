@@ -16,5 +16,5 @@
 package com.android.tools.idea.gradle.model
 
 enum class IdeArtifactName {
-    MAIN, ANDROID_TEST, UNIT_TEST
+    MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES
 }

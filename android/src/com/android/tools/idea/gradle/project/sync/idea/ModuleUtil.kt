@@ -41,6 +41,7 @@ object ModuleUtil {
       IdeArtifactName.MAIN -> "main"
       IdeArtifactName.UNIT_TEST -> "unitTest"
       IdeArtifactName.ANDROID_TEST -> "androidTest"
+      IdeArtifactName.TEST_FIXTURES -> "testFixtures"
     }
   }
 

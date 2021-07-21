@@ -631,6 +631,7 @@ internal fun modelCacheV2Impl(): ModelCache {
     "_main_" -> IdeArtifactName.MAIN
     "_android_test_" -> IdeArtifactName.ANDROID_TEST
     "_unit_test_" -> IdeArtifactName.UNIT_TEST
+    "_test_fixtures_" -> IdeArtifactName.TEST_FIXTURES
     else -> error("Invalid android artifact name: $name")
   }
 
