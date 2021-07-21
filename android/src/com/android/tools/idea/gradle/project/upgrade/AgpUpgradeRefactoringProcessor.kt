@@ -941,18 +941,7 @@ data class RewriteObsoletePropertiesInfo(
   ): GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-      val valueModel = model.unresolvedModel
-
-      val value: Any = when (valueModel.valueType) {
-        GradlePropertyModel.ValueType.LIST -> valueModel.getValue(LIST_TYPE) ?: return
-        GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
-        else -> valueModel.getValue(OBJECT_TYPE) ?: return
-      }
-
-      // TODO(xof): this will I think end up re-ordering properties, because the re-vivification of the property will put it at
-      //  the end of its parent rather than in its previous location.
-      model.delete()
-      model.setValue(value)
+      model.rewrite()
     }
 
     override fun getTooltipText(): String = tooltipTextSupplier.get()
