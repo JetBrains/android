@@ -17,10 +17,8 @@ package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
-import com.android.repository.Revision
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
@@ -41,7 +39,6 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   val srcOut = moduleData.srcDir
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
-  val buildToolsVersion = projectData.buildToolsVersion
   val (buildApi, targetApi, minApi) = moduleData.apis
   val language = projectData.language
 
@@ -56,9 +53,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addIncludeToSettings(moduleData.name)
 
   val bg = buildGradle(
-    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(Revision.parseRevision(buildToolsVersion)),
     buildApiString = buildApi.apiString,
-    buildToolsVersion = buildToolsVersion,
     minApi = minApi.apiString,
     targetApiString = targetApi.apiString,
     language = language,

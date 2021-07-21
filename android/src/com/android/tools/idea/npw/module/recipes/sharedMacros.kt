@@ -25,7 +25,6 @@ import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.wizard.template.Revision
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -104,8 +103,6 @@ fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVer
 fun androidConfig(
   gradlePluginVersion: GradlePluginVersion,
   buildApiString: String,
-  explicitBuildToolsVersion: Boolean,
-  buildToolsVersion: Revision,
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
@@ -119,7 +116,6 @@ fun androidConfig(
   enableCpp: Boolean,
   cppStandard: CppStandardType
 ): String {
-  val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val propertiesBlock = if (isDynamicFeature) {
     toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)
   }
@@ -168,7 +164,6 @@ fun androidConfig(
   return """
     android {
     ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
-    $buildToolsVersionBlock
 
     defaultConfig {
       $propertiesBlock
