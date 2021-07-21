@@ -16,9 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
-import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
@@ -31,7 +29,6 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.runBlocking
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
@@ -44,11 +41,7 @@ import javax.swing.JMenuItem
 import javax.swing.Popup
 import javax.swing.PopupFactory
 
-
 class DeviceListStepTest : LightPlatform4TestCase() {
-  @get:Rule
-  val restoreFlagRule = RestoreFlagRule(WEAR_DEVICE_PAIRING_ENABLED) // reset flag after test
-
   private var defaultPopupFactory: PopupFactory = PopupFactory.getSharedInstance()
   private val invokeStrategy = TestInvokeStrategy()
   private val model = WearDevicePairingModel()
@@ -63,8 +56,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
   override fun setUp() {
     super.setUp()
-
-    WEAR_DEVICE_PAIRING_ENABLED.override(true)
     BatchInvoker.setOverrideStrategy(invokeStrategy)
   }
 
