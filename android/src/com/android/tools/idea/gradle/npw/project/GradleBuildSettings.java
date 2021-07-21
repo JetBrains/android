@@ -19,7 +19,6 @@ import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
@@ -44,16 +43,5 @@ public class GradleBuildSettings {
     boolean isOld = (buildTool == null || buildTool.getRevision().compareTo(minimumBuildToolsRev) < 0);
 
     return isOld ? minimumBuildToolsRev : buildTool.getRevision();
-  }
-
-  public static boolean needsExplicitBuildToolsVersion(@NotNull Revision buildToolRev) {
-    return needsExplicitBuildToolsVersion(buildToolRev, CURRENT_BUILD_TOOLS_VERSION);
-  }
-
-  @VisibleForTesting
-  static boolean needsExplicitBuildToolsVersion(@NotNull Revision buildToolRev, @NotNull String currentBuildToolsVersion) {
-    // We need to explicitly add the Build Tools version if the version to be used is more recent than the current recommended
-    // (this may happen when a new Build Tools is released, but we have an older Studio)
-    return parseRevision(currentBuildToolsVersion).compareTo(buildToolRev) < 0;
   }
 }
