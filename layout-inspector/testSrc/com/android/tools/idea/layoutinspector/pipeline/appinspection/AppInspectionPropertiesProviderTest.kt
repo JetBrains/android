@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.URI_PREFIX
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -62,6 +63,7 @@ private const val TIMEOUT = 3L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val PARAM_NS = parameterNamespaceOf(PropertySection.PARAMETERS)
+private const val APP_NAMESPACE = "${URI_PREFIX}com.example"
 
 class AppInspectionPropertiesProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
@@ -136,6 +138,17 @@ class AppInspectionPropertiesProviderTest {
         assertProperty("src", PropertyType.DRAWABLE, "@drawable/?")
         assertProperty("stateListAnimator", PropertyType.ANIMATOR, "@animator/?")
       }
+    }
+
+    inspectorRule.inspectorModel[8]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("backgroundTint", PropertyType.COLOR, "#22FF00", namespace = APP_NAMESPACE)
+      }
+      // Assert that "android:backgroundTint" is omitted
+      assertThat(result.table.getByNamespace(ANDROID_URI)).isEmpty()
     }
   }
 

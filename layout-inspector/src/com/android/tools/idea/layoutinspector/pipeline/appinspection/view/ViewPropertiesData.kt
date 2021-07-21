@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -69,17 +71,33 @@ class ViewPropertiesDataGenerator(
   private val resolutionStackTable = HashBasedTable.create<String, String, List<ResourceReference>>()
   private val resolutionStackMap = mutableMapOf<List<Resource>, List<ResourceReference>>()
   private val viewId = properties.viewId
+  private val packageNameToNamespaceUri = mutableMapOf<String, String>()
 
   fun generate(): ViewPropertiesData {
     for (property in properties.propertyList) {
       val item = convert(property)
-      propertyTable.put(item.namespace, item.name, item)
-      addResolutionStack(property)
+      addItemToTable(item)
+      addResolutionStack(item, property)
     }
     return ViewPropertiesData(PropertiesTable.create(propertyTable), resolutionStackTable, classNamesTable)
   }
 
+  private fun addItemToTable(item: InspectorPropertyItem) {
+    // Hack: revisit this when/if namespaces are enabled.
+    //
+    // For now:
+    //  - assume that a component with a shadow attribute will set the corresponding framework attribute at runtime.
+    //  - remove the framework attribute that is being shadowed.
+    // We know this is the case for: AppCompatButton.backgroundTint
+    when (item.namespace) {
+      ANDROID_URI -> if (propertyTable.containsColumn(item.name)) return
+      else -> propertyTable.remove(ANDROID_URI, item.name)
+    }
+    propertyTable.put(item.namespace, item.name, item)
+  }
+
   private fun convert(property: Property): InspectorPropertyItem {
+    val namespace = toNamespaceUri(stringTable[property.namespace])
     val name = stringTable[property.name]
     val isDeclared = property.source == properties.layout &&
                      property.source != Resource.getDefaultInstance()
@@ -113,10 +131,13 @@ class ViewPropertiesDataGenerator(
       else -> ""
     }
     val type = property.type.convert()
-
-    // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-    return InspectorPropertyItem(SdkConstants.ANDROID_URI, name, type, value, group, source, viewId, lookup)
+    return InspectorPropertyItem(namespace, name, type, value, group, source, viewId, lookup)
   }
+
+  private fun toNamespaceUri(packageName: String): String =
+    packageNameToNamespaceUri.computeIfAbsent(packageName) {
+      if (packageName.isNotEmpty()) ResourceNamespace.fromPackageName(packageName).xmlNamespaceUri else ""
+    }
 
   private fun fromResource(property: Property, layout: ResourceReference?): String {
     val reference = stringTable[property.resourceValue]
@@ -202,7 +223,7 @@ class ViewPropertiesDataGenerator(
   /**
    * Add the resolutionStack for this property to [resolutionStackTable]
    */
-  private fun addResolutionStack(property: Property) {
+  private fun addResolutionStack(item: InspectorPropertyItem, property: Property) {
     var encodedResolutionStack = property.resolutionStackList
     if (encodedResolutionStack.isEmpty()) {
       if (property.source == Resource.getDefaultInstance()) {
@@ -216,9 +237,6 @@ class ViewPropertiesDataGenerator(
       return
     }
 
-    val name = stringTable[property.name]
-
-    // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-    resolutionStackTable.put(SdkConstants.ANDROID_URI, name, resolutionStack)
+    resolutionStackTable.put(item.namespace, item.name, resolutionStack)
   }
 }
