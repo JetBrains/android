@@ -29,12 +29,14 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Expect
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.usages.impl.rules.UsageType
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -112,6 +114,9 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),
       (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
         .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      // TODO(xof): do something so we don't have to explicitly construct this stuff here
+      RewriteObsoletePropertiesInfo({ listOf(resolvedPropertyModel) }, { "" }, UsageType(""))
+        .RewritePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->
