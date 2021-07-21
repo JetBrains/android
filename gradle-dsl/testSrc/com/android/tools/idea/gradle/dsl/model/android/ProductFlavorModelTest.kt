@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED_400
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400
@@ -34,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_A
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED_400
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS_EXPECTED
@@ -77,11 +80,13 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_R
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED_400
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED_400
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_SET_AND_RESET_MAP_ELEMENTS
@@ -1502,6 +1507,51 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyListElements400() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS)
+
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    var defaultConfig = android.defaultConfig()
+    assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
+    assertMissingProperty("proguardFiles", defaultConfig.proguardFiles())
+    assertMissingProperty("resConfigs", defaultConfig.resConfigs())
+    assertEmpty("resValues", defaultConfig.resValues())
+
+    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue().setValue("proguard-rules.pro")
+    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.addResValue("mnop", "qrst", "uvwx")
+
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("mnop", "qrst", "uvwx")), defaultConfig.resValues())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED_400)
+
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("mnop", "qrst", "uvwx")), defaultConfig.resValues())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    defaultConfig = android.defaultConfig()
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("mnop", "qrst", "uvwx")), defaultConfig.resValues())
+  }
+
+  @Test
   fun testAddAndApplyListElements() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS)
 
@@ -1543,6 +1593,61 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
     assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("mnop", "qrst", "uvwx")), defaultConfig.resValues())
+  }
+
+  @Test
+  fun testAddToAndApplyListElements400() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS)
+
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    var defaultConfig = android.defaultConfig()
+
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
+
+    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.addResValue("mnop", "qrst", "uvwx")
+
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd", "efgh", "xyz"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl"), listOf("mnop", "qrst", "uvwx")),
+                     defaultConfig.resValues())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED_400)
+
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd", "efgh", "xyz"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl"), listOf("mnop", "qrst", "uvwx")),
+                     defaultConfig.resValues())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    defaultConfig = android.defaultConfig()
+    assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.proguardFiles())
+    assertEquals("resConfigs", listOf("abcd", "efgh", "xyz"), defaultConfig.resConfigs())
+    verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl"), listOf("mnop", "qrst", "uvwx")),
+                     defaultConfig.resValues())
   }
 
   @Test
@@ -2418,6 +2523,24 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testResConfigsInListMethodCall400() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL)
+
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    val resConfigs = buildModel.android().defaultConfig().resConfigs()
+    verifyListProperty(resConfigs, listOf("en", "fr"))
+
+    resConfigs.addListValue().setValue("it")
+    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED_400)
+
+    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
+  }
+
+  @Test
   fun testResConfigsInListMethodCall() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL)
 
@@ -2432,6 +2555,24 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED)
 
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
+  }
+
+  @Test
+  fun testRemoveResConfigInListMethodCall400() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL)
+
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    val resConfigs = buildModel.android().defaultConfig().resConfigs()
+    verifyListProperty(resConfigs, listOf("en", "fr"))
+
+    resConfigs.toList()!![0].delete()
+    verifyListProperty(resConfigs, listOf("fr"))
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED_400)
+
+    verifyListProperty(resConfigs, listOf("fr"))
   }
 
   @Test

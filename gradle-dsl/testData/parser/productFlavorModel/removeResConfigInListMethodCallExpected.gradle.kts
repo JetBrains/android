@@ -1,5 +1,5 @@
 android {
   defaultConfig {
-    resConfigs("fr")
+    resourceConfigurations += setOf("fr")
   }
 }

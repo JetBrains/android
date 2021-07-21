@@ -2,7 +2,7 @@ android {
   defaultConfig {
     consumerProguardFiles("proguard-android.txt")
     proguardFiles("proguard-android.txt", "proguard-rules.pro")
-    resourceConfigurations += setOf("abcd")
+    resConfigs("abcd")
     resValue("mnop", "qrst", "uvwx")
   }
 }

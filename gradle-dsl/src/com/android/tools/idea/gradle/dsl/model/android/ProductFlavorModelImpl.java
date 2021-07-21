@@ -50,6 +50,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.Ex
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
 public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
   /**
@@ -65,7 +66,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls public static final String RENDER_SCRIPT_SUPPORT_MODE_ENABLED = "mRenderscriptSupportModeEnabled";
   @NonNls public static final String RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED = "mRenderscriptSupportModeBlasEnabled";
   @NonNls public static final String RENDER_SCRIPT_NDK_MODE_ENABLED = "mRenderscriptNdkModeEnabled";
-  @NonNls public static final String RES_CONFIGS = "mResConfigs";
+  @NonNls public static final ModelPropertyDescription RES_CONFIGS = new ModelPropertyDescription("mResConfigs", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription TARGET_SDK_VERSION = new ModelPropertyDescription("mTargetSdkVersion");
   @NonNls public static final String TEST_APPLICATION_ID = "mTestApplicationId";
   @NonNls public static final String TEST_FUNCTIONAL_TEST = "mTestFunctionalTest";
