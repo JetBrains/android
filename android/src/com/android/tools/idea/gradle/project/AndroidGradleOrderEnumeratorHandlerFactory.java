@@ -123,6 +123,9 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
       if (androidModel.getSelectedVariant().getAndroidTestArtifact() != null) {
         addFoldersFromAndroidArtifact(androidModel.getSelectedVariant().getAndroidTestArtifact(), toAdd);
       }
+      if (androidModel.getSelectedVariant().getTestFixturesArtifact() != null) {
+        addFoldersFromAndroidArtifact(androidModel.getSelectedVariant().getTestFixturesArtifact(), toAdd);
+      }
     }
     if (includeProduction) {
       addFoldersFromAndroidArtifact(androidModel.getSelectedVariant().getMainArtifact(), toAdd);

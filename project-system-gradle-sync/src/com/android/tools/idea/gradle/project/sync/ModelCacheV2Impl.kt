@@ -313,9 +313,13 @@ internal fun modelCacheV2Impl(): ModelCache {
 
   fun sourceProviderContainerFrom(container: SourceProvider): IdeSourceProviderContainerImpl {
     return IdeSourceProviderContainerImpl(
-      // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests and unitTests artifacts.
+      // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests, unitTests and testFixtures artifacts.
 
-      artifactName = if (container.name.startsWith("androidTest")) "_android_test_" else "_unit_test_",
+      artifactName = if (container.name.startsWith("androidTest")) {
+        "_android_test_"
+      } else if (container.name.startsWith("testFixtures")) {
+        "_test_fixtures_"
+      } else "_unit_test_",
       sourceProvider = copyModel(container, ::sourceProviderFrom)
     )
   }
@@ -328,7 +332,8 @@ internal fun modelCacheV2Impl(): ModelCache {
       sourceProvider = copyModel(container.sourceProvider, ::sourceProviderFrom),
       extraSourceProviders = listOfNotNull(
         copyModel(container.androidTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom)
+        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom),
+        copyModel(container.testFixturesSourceProvider, ::sourceProviderContainerFrom)
       )
     )
   }
@@ -365,7 +370,8 @@ internal fun modelCacheV2Impl(): ModelCache {
       sourceProvider = copyModel(container.sourceProvider, ::sourceProviderFrom),
       extraSourceProviders = listOfNotNull(
         copyModel(container.androidTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom)
+        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom),
+        copyModel(container.testFixturesSourceProvider, ::sourceProviderContainerFrom)
       )
     )
   }
