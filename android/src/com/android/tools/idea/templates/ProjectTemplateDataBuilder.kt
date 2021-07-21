@@ -18,10 +18,7 @@ package com.android.tools.idea.templates
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.determineGradlePluginVersion
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -94,29 +91,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(ConfigureAndroidModuleStep::class.java)
 
-    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress))
-
     sdkDir = sdkHandler.location?.toFile()
-  }
-
-  /**
-   * This version is used when the Module is not created yet.
-   *
-   * @param buildVersion Build version information for the new Module being created.
-   * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
-   */
-  fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
-    val info = buildVersion.androidTarget?.buildToolInfo // for preview release
-    if (info != null) {
-      addBuildToolVersion(project, info.revision)
-    }
-
-    setEssentials(project)
-  }
-
-  private fun addBuildToolVersion(project: Project, buildToolRevision: Revision) {
-    buildToolsVersion = buildToolRevision
-    explicitBuildToolsVersion = needsExplicitBuildToolsVersion(buildToolRevision)
   }
 
   /** Find the most appropriated Gradle Plugin version for the specified project. */
@@ -132,7 +107,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,
-    buildToolsVersion!!.toString(),
     topOut!!,
     applicationPackage,
     includedFormFactorNames,

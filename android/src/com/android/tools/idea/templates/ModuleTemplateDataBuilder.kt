@@ -172,7 +172,7 @@ class ModuleTemplateDataBuilder(
    * @param project      Used to find the Gradle Dependencies versions.
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
-    projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
+    projectTemplateDataBuilder.setEssentials(project)
     themesData = ThemesData(appName = getAppNameForTheme(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(

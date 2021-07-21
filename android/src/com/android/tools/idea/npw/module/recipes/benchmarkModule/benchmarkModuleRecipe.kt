@@ -17,8 +17,6 @@ package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
-import com.android.repository.Revision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
@@ -36,7 +34,6 @@ fun RecipeExecutor.generateBenchmarkModule(
   val testOut = moduleData.testDir
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
-  val buildToolsVersion = projectData.buildToolsVersion
   val (buildApi, targetApi,  minApi) = moduleData.apis
   val language = projectData.language
 
@@ -46,9 +43,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
 
   val bg = buildGradle(
-    needsExplicitBuildToolsVersion(Revision.parseRevision(buildToolsVersion)),
     buildApi.apiString,
-    buildToolsVersion,
     minApi.apiString,
     targetApi.apiString,
     language,

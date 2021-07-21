@@ -26,9 +26,7 @@ import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
 fun buildGradle(
-  explicitBuildToolsVersion: Boolean,
   buildApiString: String,
-  buildToolsVersion: String,
   minApi: String,
   targetApiString: String,
   language: Language,
@@ -52,7 +50,6 @@ fun buildGradle(
     else -> "debug.signingConfig"
   }
 
-  val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
    kotlinOptions {
@@ -68,7 +65,6 @@ ${emptyPluginsBlock()}
 
 android {
     ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
-    $buildToolsVersionBlock
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
