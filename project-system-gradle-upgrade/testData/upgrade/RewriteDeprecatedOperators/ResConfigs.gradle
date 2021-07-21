@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    resConfigs('en', 'fr')
+  }
+  productFlavors {
+    foo {
+      resConfig('pt')
+    }
+  }
+}

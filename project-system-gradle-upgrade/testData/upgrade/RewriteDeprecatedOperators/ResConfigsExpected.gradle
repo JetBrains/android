@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    resourceConfigurations += ['en', 'fr']
+  }
+  productFlavors {
+    foo {
+      resourceConfigurations += ['pt']
+    }
+  }
+}

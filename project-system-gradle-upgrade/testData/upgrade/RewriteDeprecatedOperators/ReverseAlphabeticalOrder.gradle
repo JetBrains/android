@@ -3,6 +3,7 @@ android {
     setTestHandleProfiling(false)
     setTestFunctionalTest(true)
     targetSdkVersion(29)
+    resConfigs('en', 'fr')
     minSdkVersion(28)
     maxSdkVersion(30)
   }
@@ -11,6 +12,7 @@ android {
       setTestHandleProfiling(true)
       setTestFunctionalTest(false)
       targetSdkVersion(28)
+      resConfig('uk')
       minSdkVersion(27)
       maxSdkVersion(29)
       setDimension('paid')
