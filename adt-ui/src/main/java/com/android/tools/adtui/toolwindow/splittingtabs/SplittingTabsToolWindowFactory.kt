@@ -16,6 +16,9 @@
 package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
+import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateManager
+import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
+import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -32,26 +35,42 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    val stateManager = SplittingTabsStateManager.getInstance(project)
+    stateManager.registerToolWindow(toolWindow)
+
     val contentManager = toolWindow.contentManager
     (toolWindow as ToolWindowEx).setTabActions(
       NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(contentManager) })
-    createNewTab(contentManager)
+
+    val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
+    if (toolWindowState.tabStates.isEmpty()) {
+      createNewTab(contentManager)
+    }
+    else {
+      restoreTabs(contentManager, toolWindowState)
+    }
   }
 
   abstract fun generateTabName(tabNames: Set<String>): String
 
-  abstract fun generateChildComponent(): JComponent
+  abstract fun generateChildComponent(clientState: String?): JComponent
 
-  private fun createNewTab(contentManager: ContentManager, requestFocus: Boolean = false) {
-    val content = createContent(contentManager)
+  private fun restoreTabs(contentManager: ContentManager, toolwindowState: ToolWindowState) {
+    toolwindowState.run {
+      tabStates.forEachIndexed { index, state -> createNewTab(contentManager, state, index == selectedTabIndex) }
+    }
+  }
+
+  private fun createNewTab(contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false) {
+    val content = createContent(contentManager, tabState)
     contentManager.addContent(content)
     contentManager.setSelectedContent(content, requestFocus)
   }
 
-  private fun createContent(contentManager: ContentManager): Content {
-    val tabName = generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
+  private fun createContent(contentManager: ContentManager, tabState: TabState?): Content {
+    val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
     return contentManager.factory.createContent(null, tabName, false).also {
-      val component = generateChildComponent()
+      val component = generateChildComponent(tabState?.clientState)
       if (component is Disposable) {
         Disposer.register(it, component)
       }
