@@ -239,9 +239,14 @@ public class TransportPipelineDialog extends DialogWrapper {
       event -> {
         // Group ID here is the process ID
         Common.Process process = event.getProcess().getProcessStarted().getProcess();
-        myProcessesMap.get(process.getDeviceId()).add(process);
-        myProcessIdMap.put(event.getGroupId(), process);
-        rebuildDevicesDropdown();
+        // TransportPipelineDialog aims to demo the full capability of the pipeline, of which the
+        // JVMTI agent is an important functionality. As JMVTI agent is supported by debuggable
+        // processes only, we show them only and ignore profileable ones here.
+        if (process.getExposureLevel() == Common.Process.ExposureLevel.DEBUGGABLE) {
+          myProcessesMap.get(process.getDeviceId()).add(process);
+          myProcessIdMap.put(event.getGroupId(), process);
+          rebuildDevicesDropdown();
+        }
         return false;
       });
     myTransportEventPoller.registerListener(processStartedListener);
