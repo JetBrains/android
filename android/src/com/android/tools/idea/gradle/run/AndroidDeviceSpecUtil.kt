@@ -89,6 +89,11 @@ fun createSpec(
 
     // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
     abis = device.abis.map { it.toString() }
+
+    log.info("Creating spec for " + device.name + " with ABIs: " + abis.ifEmpty { "<none specified>" })
+  }
+  else {
+    log.info("Creating spec for multiple devices")
   }
 
   return AndroidDeviceSpecImpl(version, minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
