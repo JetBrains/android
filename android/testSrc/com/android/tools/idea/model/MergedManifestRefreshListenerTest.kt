@@ -43,7 +43,28 @@ class MergedManifestRefreshListenerTest : PlatformTestCase() {
     }
 
     // Check the top-level dependents of module "app2" only contain "myModule".
-    val topLevelDependents = modules[modules.size - 1].getTopLevelResourceDependents().toList()
+    val app2 = modules[modules.size - 1]
+    val topLevelDependents = app2.getTopLevelResourceDependents().toList()
     assertThat(topLevelDependents).containsExactly(myModule)
+  }
+
+  @Test
+  fun testTopLevelDependents_hasCircularDependency() {
+    // Build up modules with dependencies,
+    // myModule -> app0 -> app1 -> app2 -> myModule
+    val modules = mutableListOf(myModule)
+    for (i in 0..2) {
+      val path = createFolderInProjectRoot(myModule.project, "app$i").toNioPath()
+      val dependencyModule = createModuleAt("app$i", myModule.project, JavaModuleType.getModuleType(), path)
+
+      ModuleRootModificationUtil.addDependency(modules.last(), dependencyModule)
+      modules.add(dependencyModule)
+    }
+    ModuleRootModificationUtil.addDependency(modules.last(), myModule)
+
+    // Check module "app2" has no top-level dependents as there's a loop in the dependency graph.
+    val app2 = modules[modules.size - 1]
+    val topLevelDependents = app2.getTopLevelResourceDependents().toList()
+    assertThat(topLevelDependents).isEmpty()
   }
 }
