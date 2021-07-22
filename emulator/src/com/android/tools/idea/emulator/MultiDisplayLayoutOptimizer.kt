@@ -219,7 +219,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
         else {
           storage[offset] = Node.Split(splitType, partition.size, offset)
           var childOffset = childrenOffsetByParentOffset[offset]
-          for (index in partition.indices) {
+          for (index in partition) {
             storage[childOffset] = Node.Leaf(index, childOffset)
             childOffset++
           }
@@ -229,9 +229,8 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
       else {
         storage[offset] = Node.Split(splitType, 2, offset)
         val childOffset = childrenOffsetByParentOffset[offset]
-        val partitionsAsList = partitions.toList()
         for (i in 0 until 2) {
-          childGenerators[i] = LayoutGenerator(partitionsAsList[i], splitType, childOffset + i, storage).apply { next() }
+          childGenerators[i] = LayoutGenerator(partitions[i], splitType, childOffset + i, storage).apply { next() }
         }
       }
       return true
@@ -255,6 +254,14 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
       values.remove(splitTypeToAvoid)
       return values.iterator()
     }
+
+    private operator fun <T> Pair<T, T>.get(i: Int): T {
+      return when (i) {
+        0 -> first
+        1 -> second
+        else -> throw IllegalArgumentException()
+      }
+    }
   }
 
   private sealed class Node(val offset: Int) {
@@ -276,7 +283,7 @@ private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, 
   val indices = IntArray(array.size) { 0 }
 
   override fun hasNext(): Boolean {
-    return size > 1 || (size > 0 && array.size < 2)
+    return size > 1 || (size > 0 && (array.size == 1 || array.size - size > 1))
   }
 
   override fun next(): Pair<IntArray, IntArray> {
