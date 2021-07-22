@@ -16,13 +16,12 @@
 package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.model.trackgroup.StringSelectable
-import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import javax.swing.JComponent
 import javax.swing.JLabel
 
-class StringSelectableTrackRenderer : TrackRenderer<StringSelectable, TestTrackRendererType> {
-  override fun render(trackModel: TrackModel<StringSelectable, TestTrackRendererType>): JComponent {
+class StringSelectableTrackRenderer : TrackRenderer<StringSelectable> {
+  override fun render(trackModel: TrackModel<StringSelectable, *>): JComponent {
     return JLabel(trackModel.dataModel.value)
   }
 }

@@ -33,10 +33,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for CPU cores in CPU capture stage.
  */
-public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, ProfilerTrackRendererType> {
+public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<CpuCoreTrackModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<CpuCoreTrackModel, ?> trackModel) {
     CpuCoreTrackModel dataModel = trackModel.getDataModel();
     StateChart<CpuThreadSliceInfo> stateChart =
       new StateChart<>(dataModel.getStateChartModel(), new CpuCoreColorProvider(), CpuThreadInfo::getName);

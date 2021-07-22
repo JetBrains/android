@@ -22,7 +22,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
-import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -30,8 +29,8 @@ import javax.swing.JPanel
 /**
  * Track renderer for System Trace RSS memory counters.
  */
-class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel, ProfilerTrackRendererType> {
-  override fun render(trackModel: TrackModel<RssMemoryTrackModel, ProfilerTrackRendererType>): JComponent {
+class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel> {
+  override fun render(trackModel: TrackModel<RssMemoryTrackModel, *>): JComponent {
     val lineChart = LineChart(trackModel.dataModel).apply {
       configure(trackModel.dataModel.memoryCounterSeries,
                 LineConfig(DataVisualizationColors.getColor(trackModel.title.hashCode())).setFilled(true))

@@ -29,5 +29,5 @@ public interface TrackRendererFactory<R extends Enum> {
    * @return renderer instance for the given renderer type.
    */
   @NotNull
-  TrackRenderer<?, R> createRenderer(@NotNull R rendererType);
+  TrackRenderer<?> createRenderer(@NotNull R rendererType);
 }

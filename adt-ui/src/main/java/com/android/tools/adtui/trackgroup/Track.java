@@ -134,7 +134,7 @@ public class Track {
    * @return a Track that visualizes the given {@link TrackModel} using the provided {@link TrackRenderer}
    */
   @NotNull
-  public static <M, R extends Enum> Track create(@NotNull TrackModel<M, R> trackModel, @NotNull TrackRenderer<M, R> trackRenderer) {
+  public static <M, R extends Enum> Track create(@NotNull TrackModel<M, R> trackModel, @NotNull TrackRenderer<M> trackRenderer) {
     return new Track(trackModel, trackRenderer.render(trackModel));
   }
 

@@ -19,7 +19,6 @@ import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
  * Track renderer for app lifecycle events, i.e. activities and fragments.
  */
 public class LifecycleTrackRenderer
-  implements TrackRenderer<LifecycleEventModel, ProfilerTrackRendererType> {
+  implements TrackRenderer<LifecycleEventModel> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<LifecycleEventModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<LifecycleEventModel, ?> trackModel) {
     return new ActivityComponent(trackModel.getDataModel());
   }
 }

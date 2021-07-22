@@ -23,12 +23,11 @@ import org.jetbrains.annotations.NotNull;
  * Interface for rendering the content of a track. Implementation should instantiate a UI component to visualize a {@link TrackModel}.
  *
  * @param <M> data model type
- * @param <R> renderer enum type
  */
-public interface TrackRenderer<M, R extends Enum> {
+public interface TrackRenderer<M> {
   /**
    * Renders {@link TrackModel} into a specialized UI component, to be added to a {@link Track}.
    */
   @NotNull
-  JComponent render(@NotNull TrackModel<M, R> trackModel);
+  JComponent render(@NotNull TrackModel<M, ?> trackModel);
 }

@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame;
 import java.awt.Color;
@@ -33,10 +32,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for Atrace frame rendering data.
  */
-public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameState, ProfilerTrackRendererType> {
+public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameState> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ?> trackModel) {
     StateChart<SystemTraceFrame> stateChart = new StateChart<>(
       trackModel.getDataModel().getModel(), new FrameColorProvider(), new FrameTextConverter());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);

@@ -20,7 +20,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTrackModel;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
@@ -30,10 +29,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for Atrace VSYNC signals.
  */
-public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel, ProfilerTrackRendererType> {
+public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<VsyncTrackModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<VsyncTrackModel, ?> trackModel) {
     VsyncTrackModel lineChartModel = trackModel.getDataModel();
     LineChart lineChart = new LineChart(lineChartModel);
     lineChart.configure(lineChartModel.getVsyncCounterSeries(),

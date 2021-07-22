@@ -29,8 +29,8 @@ import javax.swing.JPanel
 /**
  * Track renderer for System Trace BufferQueue counter.
  */
-class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel, ProfilerTrackRendererType> {
-  override fun render(trackModel: TrackModel<BufferQueueTrackModel, ProfilerTrackRendererType>): JComponent {
+class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel> {
+  override fun render(trackModel: TrackModel<BufferQueueTrackModel, *>): JComponent {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel)

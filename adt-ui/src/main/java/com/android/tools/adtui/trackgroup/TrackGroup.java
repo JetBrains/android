@@ -113,7 +113,7 @@ public class TrackGroup extends AspectObserver {
                                                     boolean cellHasFocus) {
         return myTrackMap
           .computeIfAbsent(value.getId(), id -> {
-            TrackRenderer<?, ?> renderer = rendererFactory.createRenderer(value.getRendererType());
+            TrackRenderer<?> renderer = rendererFactory.createRenderer(value.getRendererType());
             // When track's collapse state changes, render the track again.
             value.getAspectModel().addDependency(myObserver).onChange(TrackModel.Aspect.COLLAPSE_CHANGE, () -> {
               myTrackMap.put(id, Track.create(value, renderer));

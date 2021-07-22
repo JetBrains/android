@@ -26,7 +26,6 @@ import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.google.common.collect.ImmutableMap;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for user interaction events, e.g. touch.
  */
-public class UserEventTrackRenderer implements TrackRenderer<EventModel<UserEvent>, ProfilerTrackRendererType> {
+public class UserEventTrackRenderer implements TrackRenderer<EventModel<UserEvent>> {
   private static final ImmutableMap<UserEvent, EventRenderer<UserEvent>> RENDERERS = ImmutableMap.of(
     UserEvent.TOUCH, new TouchEventRenderer<>(),
     UserEvent.ROTATION, new EventIconRenderer<>(ROTATE_EVENT),
@@ -43,7 +42,7 @@ public class UserEventTrackRenderer implements TrackRenderer<EventModel<UserEven
 
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<EventModel<UserEvent>, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<EventModel<UserEvent>, ?> trackModel) {
     return new EventComponent<>(trackModel.getDataModel(), RENDERERS);
   }
 }
