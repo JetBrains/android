@@ -149,7 +149,7 @@ class BuildEventsAnalyzersProxy(
   }
 
   override fun getTotalGarbageCollectionTimeMs(): Long {
-    return getGarbageCollectionData().sumByLong { it.collectionTimeMs }
+    return garbageCollectionAnalyzer.result.totalGarbageCollectionTimeMs
   }
 
   override fun getJavaVersion(): Int? {
