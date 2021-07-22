@@ -17,6 +17,7 @@ package com.android.tools.idea.common.actions;
 
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.StoreDefaultLayoutAction;
+import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -29,7 +30,7 @@ final class StoreDefaultWindowLayoutAction extends AnAction implements DumbAware
   private final StoreDefaultLayoutAction myDelegate;
 
   StoreDefaultWindowLayoutAction() {
-    super("Store Current Layout as Default");
+    super(ActionsBundle.messagePointer("action.StoreDefaultLayout.text"), ActionsBundle.messagePointer("action.StoreDefaultLayout.description"), null);
     myDelegate = new StoreDefaultLayoutAction();
   }
 
