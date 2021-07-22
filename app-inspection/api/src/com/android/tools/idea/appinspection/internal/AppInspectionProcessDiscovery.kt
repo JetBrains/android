@@ -117,7 +117,10 @@ internal class AppInspectionProcessDiscovery(
               ).collect { streamEvent ->
                 if (streamEvent.event.process.hasProcessStarted()) {
                   val process = streamEvent.event.process.processStarted.process
-                  addProcess(streamChannel, process)
+                  if (process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE) {
+                    // App Inspection relies on JVMTI agent, which is supported by debuggable processes only
+                    addProcess(streamChannel, process)
+                  }
                   setStreamLastActiveTime(streamChannel.stream.streamId, streamEvent.event.timestamp)
                 } else {
                   removeProcess(streamChannel.stream.streamId, streamEvent.event.groupId.toInt())

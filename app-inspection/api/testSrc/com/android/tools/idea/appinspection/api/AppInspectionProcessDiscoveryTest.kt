@@ -373,4 +373,35 @@ class AppInspectionProcessDiscoveryTest {
     assertThat(firstProcessTimestamp!!).isLessThan(deviceDisconnectTimestamp)
     assertThat(deviceDisconnectTimestamp).isLessThan(secondProcessTimestamp!!)
   }
+
+  // Test the scenario where discovery encounters a profileable-but-not-debuggable process.
+  @Test
+  fun discoveryIgnoresProfileableProcesses() {
+    val latch = CountDownLatch(1)
+    var reportedProcessCount = 0
+    lateinit var processDescriptor: ProcessDescriptor
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        reportedProcessCount++
+        processDescriptor = process
+        latch.countDown()
+      }
+
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
+      }
+    })
+
+    launchFakeDevice()
+    // FAKE_PROCESS is of Common.Process.ExposureLevel.DEBUGGABLE by default.
+    val debuggableProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(100).build()
+    launchFakeProcess(FakeTransportService.FAKE_DEVICE, debuggableProcess)
+    val profileableProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(200).setExposureLevel(
+      Common.Process.ExposureLevel.PROFILEABLE).build()
+    launchFakeProcess(FakeTransportService.FAKE_DEVICE, profileableProcess)
+
+    // Verify discovery host has only notified about the process that's debuggable.
+    latch.await()
+    assertThat(reportedProcessCount).isEqualTo(1)
+    assertThat(processDescriptor.pid).isEqualTo(100)
+  }
 }
