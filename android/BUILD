@@ -852,6 +852,7 @@ maven_repo(
         "//prebuilts/tools/common/m2:javax.inject.javax.inject.1",
         "//prebuilts/tools/common/m2:javax.xml.bind.jaxb-api.2.2.12-b140109.1041",
         "//prebuilts/tools/common/m2:junit.junit.4.12",
+        "//prebuilts/tools/common/m2:junit.junit.4.13.2",
         "//prebuilts/tools/common/m2:net.bytebuddy.byte-buddy.1.9.10",
         "//prebuilts/tools/common/m2:net.bytebuddy.byte-buddy-agent.1.9.10",
         "//prebuilts/tools/common/m2:net.sf.proguard.proguard-base.6.0.3",
