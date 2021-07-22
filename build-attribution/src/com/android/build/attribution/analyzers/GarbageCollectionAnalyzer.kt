@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.intellij.util.lang.JavaVersion
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 class GarbageCollectionAnalyzer :
   BaseAnalyzer<GarbageCollectionAnalyzer.Result>(), BuildAttributionReportAnalyzer {
@@ -46,5 +47,9 @@ class GarbageCollectionAnalyzer :
     val garbageCollectionData: List<GarbageCollectionData>,
     val javaVersion: Int?,
     val isSettingSet: Boolean?
-  ) : AnalyzerResult
+  ) : AnalyzerResult {
+    val totalGarbageCollectionTimeMs: Long
+      get() = garbageCollectionData.sumByLong { it.collectionTimeMs }
+
+  }
 }
