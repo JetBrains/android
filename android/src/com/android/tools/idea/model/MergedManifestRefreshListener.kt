@@ -31,7 +31,6 @@ import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.containers.JBIterable
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
@@ -99,8 +98,16 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
       // If the merged manifest of this module is stale, then so are the merged manifests
       // of every module that depends on this one. Merged manifest computation and caching
       // is recursive, so we can save ourselves redundant freshness checks by getting the
-      // merged manifests for just the top-level dependents.
-      facet.module.getTopLevelResourceDependents().forEach { MergedManifestManager.getMergedManifest(it) }
+      // merged manifests for just the top-level dependents. However, there might be a
+      // loop in dependency graph, and no valid top-level dependents are found. So for
+      // simplicity, the merged manifest of the given module itself is to be refreshed.
+      var hasTopLevelDependents = false
+      facet.module.getTopLevelResourceDependents().forEach {
+        hasTopLevelDependents = true
+        MergedManifestManager.getMergedManifest(it)
+      }
+
+      if (!hasTopLevelDependents) MergedManifestManager.getMergedManifest(facet.module)
     }
   }
 
@@ -128,10 +135,20 @@ private val FRESHNESS_EXECUTOR = AppExecutorUtil.createBoundedApplicationPoolExe
  * Returns an iterator over the top-level modules that transitively depend on this module for
  * resources, possibly including this module itself (i.e. if nothing depends on this module for
  * resources then the iterator will yield only this module).
+ *
+ * Please note, if there's a loop detected while DFS traversing, empty iterable is returned.
  */
 @VisibleForTesting
-fun Module.getTopLevelResourceDependents(): JBIterable<Module> = TOP_LEVEL_RESOURCE_DEPENDENTS.`fun`(this).unique()
-
-private val TOP_LEVEL_RESOURCE_DEPENDENTS = TreeTraversal.LEAVES_DFS.traversal<Module> {
-  it.getModuleSystem().getDirectResourceModuleDependents()
+fun Module.getTopLevelResourceDependents(): Iterable<Module> {
+  return TreeTraversal.LEAVES_DFS
+    .unique()
+    .traversal<Module> {
+      it.getModuleSystem().getDirectResourceModuleDependents()
+    }
+    .`fun`(this)
+    .filter {
+      // Since we skip already visited nodes during traversal by `unique`, we collect those modules that are not
+      // really top-level (i.e. it has dependents.). Thus an extra filtering is needed here.
+      it.getModuleSystem().getDirectResourceModuleDependents().isEmpty()
+    }
 }
