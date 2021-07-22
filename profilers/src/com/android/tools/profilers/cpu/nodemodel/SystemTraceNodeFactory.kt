@@ -26,7 +26,7 @@ class SystemTraceNodeFactory {
   // We have two possible levels of caching, based on the raw name and based on the computed one from the regex below.
   // regex can get very expensive and become a hotspot, so we use nameMap to avoid it if we can.
   private val canonicalMap = mutableMapOf<String, CanonicalNodeId>()
-  private val nodeMap = mutableMapOf<CanonicalNodeId, SystemTraceNodeModel>()
+  private val nodeMap = mutableMapOf<String, SystemTraceNodeModel>()
 
   companion object {
     // Pattern to match names with the format Letters Number. Eg: Frame 1234, Choreographer#doFrame 1234.
@@ -34,8 +34,8 @@ class SystemTraceNodeFactory {
   }
 
   fun getNode(name: String): SystemTraceNodeModel {
-    val canonicalId = canonicalMap.getOrPut(name) { computeCanonicalId(name) }
-    return nodeMap.getOrPut(canonicalId) { SystemTraceNodeModel(canonicalId.id, canonicalId.name) }
+    val (id, convertedName) = canonicalMap.getOrPut(name) { computeCanonicalId(name) }
+    return nodeMap.getOrPut(id) { SystemTraceNodeModel(id, convertedName) }
   }
 
   private fun computeCanonicalId(name: String): CanonicalNodeId {
