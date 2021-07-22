@@ -18,13 +18,10 @@ package com.android.tools.adtui.trackgroup
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 
 class TestTrackRendererFactory : TrackRendererFactory<TestTrackRendererType> {
-  override fun createRenderer(rendererType: TestTrackRendererType): TrackRenderer<*, TestTrackRendererType> {
-    return when (rendererType) {
-      TestTrackRendererType.BOOLEAN -> BooleanTrackRenderer()
-      TestTrackRendererType.BOOLEAN_SELECTABLE -> BooleanSelectableTrackRenderer()
-      TestTrackRendererType.STRING -> StringTrackRenderer()
-      TestTrackRendererType.STRING_SELECTABLE -> StringSelectableTrackRenderer()
-      else -> DefaultTrackRenderer<Void, TestTrackRendererType>()
-    }
+  override fun createRenderer(rendererType: TestTrackRendererType) = when (rendererType) {
+    TestTrackRendererType.BOOLEAN -> BooleanTrackRenderer()
+    TestTrackRendererType.BOOLEAN_SELECTABLE -> BooleanSelectableTrackRenderer()
+    TestTrackRendererType.STRING -> StringTrackRenderer()
+    TestTrackRendererType.STRING_SELECTABLE -> StringSelectableTrackRenderer()
   }
 }
