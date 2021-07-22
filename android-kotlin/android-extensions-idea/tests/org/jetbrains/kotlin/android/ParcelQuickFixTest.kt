@@ -32,12 +32,12 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
     ConfigLibraryUtil.addLibrary(myFixture.module, "androidJar", androidJarDir.resolve("android.jar"))
 
     val kotlinPaths = ConfigLibraryUtil.kotlinPaths
-    ConfigLibraryUtil.addLibrary(myFixture.module, "parcelizeCompiler", kotlinPaths.basePath.resolve("parcelize-compiler.jar"))
+    ConfigLibraryUtil.addLibrary(myFixture.module, "parcelizeRuntime", kotlinPaths.basePath.resolve("parcelize-runtime.jar"))
   }
 
   override fun tearDown() {
     ConfigLibraryUtil.removeLibrary(myFixture.module, "androidJar")
-    ConfigLibraryUtil.removeLibrary(myFixture.module, "parcelizeCompiler")
+    ConfigLibraryUtil.removeLibrary(myFixture.module, "parcelizeRuntime")
 
     super.tearDown()
   }

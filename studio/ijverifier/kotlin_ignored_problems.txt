@@ -1,4 +1,8 @@
-// Note: see com.jetbrains.pluginverifier.filtering.IgnoreCondition for possible line formats.
+// See com.jetbrains.pluginverifier.filtering.IgnoreCondition for possible line formats.
+// Also see com.jetbrains.pluginverifier.filtering.IgnoredProblemsFilter for how lines are matched.
+// Each regex is matched against the *short* error description, not the long version.
+//   (The short error descriptions can be found in the report.html file.)
+// Note that the regex must match the *entire* error description.
 
 // Referenced by experimental code only (presumably unreachable).
 Package 'io.ktor' is not found
@@ -29,3 +33,6 @@ Package 'org.jetbrains.idea.maven.plugins' is not found
 Package 'org.jetbrains.idea.maven.project' is not found
 
 Package 'org.jetbrains.kotlin.fir.lightTree' is not found
+
+// Known issue, but currently unreachable at runtime.
+Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented

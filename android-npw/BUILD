@@ -129,9 +129,9 @@ maven_repository(
         "@maven_tests//:com.google.android.material.material_1.4.0",
         "@maven_tests//:com.google.guava.guava_19.0",
         "@maven_tests//:junit.junit_4.13.2",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.20",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.20",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-reflect_1.5.20",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.20",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.30",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.30",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-reflect_1.5.30",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.30",
     ],
 )
