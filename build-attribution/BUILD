@@ -34,6 +34,13 @@ iml_module(
 iml_module(
     name = "intellij.android.build-attribution.tests",
     iml_files = ["intellij.android.build-attribution.tests.iml"],
+    split_test_targets = {
+        "analyzers": {
+            "test_filter": "com.android.build.attribution.analyzers",
+        },
+        "other": {
+        },
+    },
     tags = [
         "no_test_mac",  # b/113099009
         "no_test_windows",  # b/135665870
