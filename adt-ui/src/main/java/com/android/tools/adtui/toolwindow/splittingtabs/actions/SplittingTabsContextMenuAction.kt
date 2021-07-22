@@ -41,7 +41,7 @@ internal abstract class SplittingTabsContextMenuAction(val text: String) : ToolW
   final override fun update(e: AnActionEvent, toolWindow: ToolWindow, content: Content?) {
     e.presentation.isEnabledAndVisible = false
 
-    if (content?.isSplittingTab() ?: return) {
+    if (content?.isSplittingTab() == true) {
       e.presentation.isVisible = true
       e.presentation.isEnabled = isEnabled(content)
     }

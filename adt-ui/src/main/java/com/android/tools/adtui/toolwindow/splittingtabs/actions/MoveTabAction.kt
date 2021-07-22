@@ -27,8 +27,9 @@ import com.intellij.ui.content.Content
  * Base class for [Left] & [Right] actions below.
  */
 @Suppress("ComponentNotRegistered")
-internal abstract class MoveTabAction private constructor(private val direction: Direction) : SplittingTabsContextMenuAction(
-  direction.text) {
+internal abstract class MoveTabAction private constructor(private val direction: Direction)
+  : SplittingTabsContextMenuAction(direction.text) {
+
   private enum class Direction(val text: String, val offset: Int) {
     LEFT(SplittingTabsBundle.message("SplittingTabsToolWindow.moveTabLeft"), -1) {
       override fun isAvailable(content: Content) = content.getPosition() > 0
