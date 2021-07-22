@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerEvent;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
 import java.awt.Color;
@@ -31,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for SysTrace Surfaceflinger events.
  */
-public class SurfaceflingerTrackRenderer implements TrackRenderer<SurfaceflingerTrackModel, ProfilerTrackRendererType> {
+public class SurfaceflingerTrackRenderer implements TrackRenderer<SurfaceflingerTrackModel> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<SurfaceflingerTrackModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<SurfaceflingerTrackModel, ?> trackModel) {
     return new StateChart<>(trackModel.getDataModel(), new SurfaceflingerColorProvider());
   }
 

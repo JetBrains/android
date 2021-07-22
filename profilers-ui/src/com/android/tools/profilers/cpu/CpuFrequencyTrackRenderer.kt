@@ -20,7 +20,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
-import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -29,8 +28,8 @@ import javax.swing.JPanel
 /**
  * Track renderer for System Trace CPU frequency counters.
  */
-class CpuFrequencyTrackRenderer : TrackRenderer<CpuFrequencyTrackModel, ProfilerTrackRendererType> {
-  override fun render(trackModel: TrackModel<CpuFrequencyTrackModel, ProfilerTrackRendererType>): JComponent {
+class CpuFrequencyTrackRenderer : TrackRenderer<CpuFrequencyTrackModel> {
+  override fun render(trackModel: TrackModel<CpuFrequencyTrackModel, *>): JComponent {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel).apply {

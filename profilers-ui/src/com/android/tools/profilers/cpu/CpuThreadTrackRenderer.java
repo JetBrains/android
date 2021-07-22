@@ -29,7 +29,6 @@ import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
@@ -50,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Track renderer for CPU threads in CPU capture stage.
  */
-public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel, ProfilerTrackRendererType> {
+public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel> {
   @NotNull private final AspectObserver myObserver = new AspectObserver();
   @NotNull private final StudioProfilersView myProfilersView;
 
@@ -60,7 +59,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
 
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ?> trackModel) {
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange(),
                                                            trackModel.isCollapsed());

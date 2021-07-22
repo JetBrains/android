@@ -30,7 +30,6 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
 import java.awt.BorderLayout;
@@ -44,11 +43,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Track renderer for custom user events.
  */
-public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackModel, ProfilerTrackRendererType> {
+public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackModel> {
 
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<CustomEventTrackModel, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<CustomEventTrackModel, ?> trackModel) {
     JPanel container = new JPanel();
     // Line up Custom Event graph with the start Interaction track group so that timelines are synced
     container.setLayout(new TabularLayout("150px,*", "*"));
