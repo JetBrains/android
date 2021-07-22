@@ -448,6 +448,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
 
     buildModel.android().defaultConfig().vectorDrawables().useSupportLibrary().setValue(true)
+    buildModel.android().packagingOptions().resources().excludes().setValueIfNone("/META-INF/{AL2.0,LGPL2.1}")
   }
 
   /**
