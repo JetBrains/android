@@ -283,7 +283,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = mock(GradleApplicationIdProvider.class);
+    ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenReturn(null);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
@@ -320,7 +320,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = mock(GradleApplicationIdProvider.class);
+    ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenThrow(new ApkProvisionException("unable to determine package name"));
 
     LaunchOptions launchOptions = LaunchOptions.builder()
