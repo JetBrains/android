@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.android.parcel.quickfixes
 
-import kotlinx.parcelize.Parcelize
 import org.jetbrains.kotlin.android.synthetic.diagnostic.ErrorsAndroid
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.util.addAnnotation
@@ -33,6 +32,6 @@ class AnnotateWithParcelizeQuickFix(clazz: KtClassOrObject) : AbstractParcelable
     override fun getText() = "Annotate containing class with ''@Parcelize''"
 
     override fun invoke(ktPsiFactory: KtPsiFactory, element: KtClassOrObject) {
-        element.addAnnotation(FqName(Parcelize::class.java.name))
+        element.addAnnotation(FqName("kotlinx.parcelize.Parcelize"))
     }
 }

@@ -39,7 +39,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
 
         try {
             val kotlinPaths = ConfigLibraryUtil.kotlinPaths
-            ConfigLibraryUtil.addLibrary(myModule, "parcelizeCompiler", kotlinPaths.basePath.resolve("parcelize-compiler.jar"))
+            ConfigLibraryUtil.addLibrary(myModule, "parcelizeRuntime", kotlinPaths.basePath.resolve("parcelize-runtime.jar"))
             ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", kotlinPaths.jar(KotlinPaths.Jar.StdLib))
 
             if (withRuntime) {
@@ -78,7 +78,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
             }
         }
         finally {
-            ConfigLibraryUtil.removeLibrary(myModule, "parcelizeCompiler")
+            ConfigLibraryUtil.removeLibrary(myModule, "parcelizeRuntime")
             ConfigLibraryUtil.removeLibrary(myModule, "kotlinStdlib")
             if (withRuntime) {
                 ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)

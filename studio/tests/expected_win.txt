@@ -903,7 +903,7 @@ android-studio/plugins/Kotlin/kotlinc/lib/kotlin-test-sources.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-test-testng-sources.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-test-testng.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-test.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlinx-coroutines-core.jar
+android-studio/plugins/Kotlin/kotlinc/lib/kotlinx-coroutines-core-jvm.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlinx-serialization-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/lombok-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/mutability-annotations-compat.jar
@@ -1000,7 +1000,6 @@ android-studio/plugins/Kotlin/lib/kotlin-project-wizard-core.jar
 android-studio/plugins/Kotlin/lib/kotlin-project-wizard-idea.jar
 android-studio/plugins/Kotlin/lib/kotlin-reflect.jar
 android-studio/plugins/Kotlin/lib/kotlin-repl.jar
-android-studio/plugins/Kotlin/lib/kotlin-resources-descriptors.jar
 android-studio/plugins/Kotlin/lib/kotlin-script-runtime.jar
 android-studio/plugins/Kotlin/lib/kotlin-script-util.jar
 android-studio/plugins/Kotlin/lib/kotlin-scripting-common.jar
@@ -1011,6 +1010,7 @@ android-studio/plugins/Kotlin/lib/kotlin-scripting.jar
 android-studio/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar
 android-studio/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar
 android-studio/plugins/Kotlin/lib/kotlin-stdlib.jar
+android-studio/plugins/Kotlin/lib/kotlin-uast-kotlin-base.jar
 android-studio/plugins/Kotlin/lib/kotlin-uast-kotlin-idea.jar
 android-studio/plugins/Kotlin/lib/kotlin-uast-kotlin.jar
 android-studio/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm-0.3.1.jar
@@ -1021,6 +1021,7 @@ android-studio/plugins/Kotlin/lib/lombok-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/noarg-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/parcelize-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/sam-with-receiver-compiler-plugin-for-ide.jar
+android-studio/plugins/Kotlin/lib/uast-kotlin-idea-base.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 android-studio/plugins/android-ndk/lib/android-ndk.jar
