@@ -17,6 +17,9 @@ package com.android.tools.idea.startup
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FD_PLATFORMS
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnLinux
 import com.android.utils.PathUtils.toSystemIndependentPath
 import com.google.common.truth.Truth
 import com.intellij.core.CoreApplicationEnvironment
@@ -85,6 +88,10 @@ class AndroidSdkInitializerTest {
     Truth.assertThat(foundSdk).isEqualTo(selectedSdk)
   }
 
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
+
+  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun `getAndroidSdkPathOrDefault() should fallback to default`() {
     val foundSdk = AndroidSdkInitializer.getAndroidSdkOrDefault(emptyMap(), AndroidSdkType())

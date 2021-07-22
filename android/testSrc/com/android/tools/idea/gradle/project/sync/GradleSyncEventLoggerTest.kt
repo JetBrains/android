@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Expect
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -33,6 +36,10 @@ class GradleSyncEventLoggerTest {
 
   private val eventLogger = GradleSyncEventLogger { now }
 
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
+
+  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun whenStarted() {
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
