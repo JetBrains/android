@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.repositories
 
-import org.junit.Assert.assertEquals
-
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.repository.testframework.MockFileOp
 import com.intellij.mock.MockApplication
@@ -24,13 +22,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.FutureResult
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.util.concurrent.Future
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
 
 /**
  * Tests for the local repository utility class
@@ -99,7 +98,20 @@ class RepositoryUrlManagerCachingTest {
   fun setUp() {
     disposable = Disposer.newDisposable()
     mockApplication = TestMockApplication(disposable)
+    val oldApplication = ApplicationManager.getApplication()
     ApplicationManager.setApplication(mockApplication, disposable)
+
+    // If there was no previous application,
+    // ApplicationManager leaves the MockApplication in place, which can break future tests.
+    if (oldApplication == null) {
+      Disposer.register(disposable) {
+        object : ApplicationManager() {
+          init {
+            ourApplication = null
+          }
+        }
+      }
+    }
   }
 
   @After
