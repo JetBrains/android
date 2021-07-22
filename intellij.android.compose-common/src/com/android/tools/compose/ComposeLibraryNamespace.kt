@@ -16,6 +16,7 @@
 package com.android.tools.compose
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
@@ -102,7 +103,7 @@ val PREVIEW_ANNOTATION_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.pre
 val PREVIEW_PARAMETER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewParameterAnnotationName,
                                    ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.previewParameterAnnotationName)
 
-private val UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT = GradleCoordinate.parseCoordinateString("androidx.compose.ui:ui-tooling-preview:+")!!
+private val UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT = GoogleMavenArtifactId.COMPOSE_TOOLING_PREVIEW.getCoordinate("+")
 
 /**
  * Returns if the given [Module] imports the [UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT]. This means that the API and implementation
