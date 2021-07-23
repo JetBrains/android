@@ -33,7 +33,6 @@ import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
-import java.io.IOException
 import java.nio.charset.Charset
 
 
@@ -176,6 +175,10 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val iceboxInfo = testResultProto.outputArtifactList.find {
         it.label.label == "icebox.info" && it.label.namespace == "android"
       }
+      val logcatInfoArtifact = testResultProto.outputArtifactList.find {
+        it.label.label == "logcat" && it.label.namespace == "android"
+      }
+      val logcat = resolveFile(dir, logcatInfoArtifact?.sourcePath?.path)?.readText() ?: ""
       val retentionArtifactFile = resolveFile(dir, iceboxArtifact?.sourcePath?.path)
       val iceboxInfoFile = resolveFile(dir, iceboxInfo?.sourcePath?.path)
       val testCase = AndroidTestCase(id = fullName,
@@ -189,6 +192,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
                                        TestStatusProto.TestStatus.FAILED -> AndroidTestCaseResult.FAILED
                                        else -> AndroidTestCaseResult.SKIPPED
                                      },
+                                     logcat = logcat,
                                      startTimestampMillis = testCaseProto.startTime.millis(),
                                      endTimestampMillis = testCaseProto.endTime.millis()
       )
