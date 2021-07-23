@@ -23,12 +23,14 @@ import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import java.awt.Color
 
 class BasePropertyEditorModelTest {
 
@@ -110,6 +112,18 @@ class BasePropertyEditorModelTest {
 
     model.isUsedInRendererWithSelection = true
     assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!)).isTrue()
+  }
+
+  @Test
+  fun testDisplayedColorIcon() {
+    val icon = ColorIcon(16, Color.GREEN)
+    IconLoader.activate()
+    val model = createModel()
+    assertThat(IconTester.singleColorOrNull(model.displayedIcon(icon)!!)).isEqualTo(Color.GREEN.rgb)
+
+    // A ColorIcon should not be converted to white in a selected table row
+    model.isUsedInRendererWithSelection = true
+    assertThat(IconTester.singleColorOrNull(model.displayedIcon(icon)!!)).isEqualTo(Color.GREEN.rgb)
   }
 
   @Test

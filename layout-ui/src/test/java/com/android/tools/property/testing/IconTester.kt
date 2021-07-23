@@ -35,6 +35,21 @@ object IconTester {
     return combined.and(0xffffff) == 0xffffff
   }
 
+  fun singleColorOrNull(icon: Icon): Int? {
+    var color: Int? = null
+    val image = toImage(icon)
+    for (x in 0 until image.width) {
+      for (y in 0 until image.height) {
+        val dot = image.getRGB(x, y)
+        if (color != null && dot != color) {
+          return null
+        }
+        color = dot
+      }
+    }
+    return color
+  }
+
   private fun toImage(icon: Icon): BufferedImage {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
