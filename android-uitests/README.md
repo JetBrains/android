@@ -1,9 +1,15 @@
 # Running UI tests with Bazel
 
-This is for now only supported on Linux. UI tests are run as any other test, to run it simply do:
+UI tests are supported to run on Linux and Mac. UI tests are run as any other test, to run it simply do:
 
     bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest
 
+On a mac run UI tests with following parameters
+
+    bazel test --spawn_strategy=standalone //tools/adt/idea/android-uitests:GuiTestRuleTest
+
+If running multiple tests on a Mac, add `--test_strategy=exclusive` parameter as running tests in parallel is not supported on Mac.
+ 
 ## Running tests on the current DISPLAY
 
 To connect to another display, first the sandbox needs to be disabled and then passing a `DISPLAY` test envvar will tell the test to use that
