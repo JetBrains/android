@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -299,6 +300,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             ImmutableList.of(
               GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
                 .setCommandLineArguments(projectProperties)
+                .setMode(getBuildModeFromTarget(myTargetType))
                 .build())
           ));
         trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
@@ -313,6 +315,18 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return AndroidGradleSettings.createProjectProperty(name, value);
       }
     });
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static BuildMode getBuildModeFromTarget(@NotNull String targetType) {
+    if (targetType.equals(APK)) {
+      return BuildMode.ASSEMBLE;
+    }
+    if (targetType.equals(BUNDLE)) {
+      return BuildMode.BUNDLE;
+    }
+    return null;
   }
 
   @VisibleForTesting

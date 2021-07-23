@@ -23,6 +23,7 @@ import static java.util.Collections.singletonList;
 import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.getTaskNamesFromSelectedVariant;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import java.util.List;
@@ -154,5 +155,13 @@ public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
 
   public void testReplaceVariantFromTaskMissingPreSuf() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
+  }
+
+  public void testBuildModeFromApkTargetType() {
+    assertEquals(BuildMode.ASSEMBLE, ExportSignedPackageWizard.getBuildModeFromTarget(ExportSignedPackageWizard.APK));
+  }
+
+  public void testBuildModeFromBundleTargetType() {
+    assertEquals(BuildMode.BUNDLE, ExportSignedPackageWizard.getBuildModeFromTarget(ExportSignedPackageWizard.BUNDLE));
   }
 }
