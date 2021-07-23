@@ -1,6 +1,0 @@
-<idea-plugin>
-
-  <!-- for CWMOpenLicenseSettingsAction -->
-  <depends>com.intellij.marketplace</depends>
-
-</idea-plugin>
