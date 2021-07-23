@@ -42,6 +42,7 @@ import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
+import javax.swing.border.Border
 import javax.swing.plaf.ScrollBarUI
 
 /**
@@ -92,20 +93,7 @@ class EmulatorDisplayPanel(
       isFocusable = true
     }
 
-    scrollPane = MyScrollPane().apply {
-      border = null
-      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      viewport.background = background
-      viewport.addChangeListener {
-        val view = viewport.view
-        // Remove the explicitly set preferred view size if it does not exceed the viewport size.
-        if (view != null && view.isPreferredSizeSet &&
-            view.preferredSize.width <= viewport.width && view.preferredSize.height <= viewport.height) {
-          view.preferredSize = null
-        }
-      }
-    }
+    scrollPane = MyScrollPane()
 
     val layeredPane = JLayeredPane().apply {
       layout = LayeredPaneLayoutManager()
@@ -189,14 +177,27 @@ class EmulatorDisplayPanel(
       return MyScrollBar(Adjustable.HORIZONTAL)
     }
 
+    override fun setBorder(border: Border?) {
+      // Don't allow borders to be set by the UI framework.
+    }
+
     init {
       setupCorners()
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      viewport.background = background
+      viewport.addChangeListener {
+        val view = viewport.view
+        // Remove the explicitly set preferred view size if it does not exceed the viewport size.
+        if (view != null && view.isPreferredSizeSet &&
+            view.preferredSize.width <= viewport.width && view.preferredSize.height <= viewport.height) {
+          view.preferredSize = null
+        }
+      }
     }
   }
 
-  private class MyScrollBar(
-    @AdjustableOrientation orientation: Int
-  ) : JBScrollBar(orientation), IdeGlassPane.TopComponent {
+  private class MyScrollBar(@AdjustableOrientation orientation: Int) : JBScrollBar(orientation), IdeGlassPane.TopComponent {
 
     private var persistentUI: ScrollBarUI? = null
 
