@@ -17,15 +17,17 @@ package com.android.tools.idea.instantapp;
 
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_RESOURCE_HOST;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
 
+@OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
 public class InstantAppUrlFinderIntegTest extends AndroidGradleTestCase {
 
   public void testHostIsResolved() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP_RESOURCE_HOST, null, null, "3.5.0");
+    loadProject(INSTANT_APP_RESOURCE_HOST, null, "5.5", "3.5.0");
     Module featureModule = getModule("feature");
     Collection<String> urls = new InstantAppUrlFinder(featureModule).getAllUrls();
     assertSize(1, urls);

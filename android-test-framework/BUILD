@@ -28,5 +28,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module]",
     ],
 )

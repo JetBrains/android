@@ -49,12 +49,12 @@ public class OldAgpSuiteTest {
   public static class OverrideAgpTest {
 
     @Test
-    @OldAgpTest(gradleVersions = {"4.2"})
+    @OldAgpTest(gradleVersions = {"4.2"}, agpVersions = {"4.1", "4.2"})
     public void shouldRunGradleOnly42() {
     }
 
     @Test
-    @OldAgpTest(agpVersions = {"4.2"})
+    @OldAgpTest(gradleVersions = {"4.1", "4.2"}, agpVersions = {"4.2"})
     public void shouldRunAgpOnly42() {
     }
   }
@@ -65,10 +65,6 @@ public class OldAgpSuiteTest {
     @OldAgpTest(gradleVersions = "4.2", agpVersions = "4.2")
     public void shouldRun() {
     }
-
-    @Test
-    public void shouldNotRun() {
-    }
   }
 
   @RunWith(JUnit4.class)
@@ -76,6 +72,21 @@ public class OldAgpSuiteTest {
     @Test
     @OldAgpTest(gradleVersions = "4.2")
     public void missingAgpVersions() {
+    }
+  }
+
+  @RunWith(JUnit4.class)
+  public static class MissingAnnotation {
+    @Test
+    public void missingAnnotation() {
+    }
+  }
+
+  @RunWith(JUnit4.class)
+  @OldAgpTest
+  public static class MissingVersions {
+    @Test
+    public void missingAnnotation() {
     }
   }
 
@@ -129,6 +140,36 @@ public class OldAgpSuiteTest {
 
     hasTest(filteredRunners, "MethodOnly.shouldRun");
     assertThat(runnerTestCount(filteredRunners)).isEqualTo(1);
+  }
+
+  @Test
+  public void filterRunners_missingAnnotation() throws Throwable {
+    List<Runner> runners = createRunners(MissingAnnotation.class);
+    OldAgpFilter filter = new OldAgpFilter("4.2", "4.2");
+
+    try {
+    List<Runner> filteredRunners = OldAgpSuite.filterRunners(filter, runners);
+      fail("Expected 0 runners, got: " + filteredRunners);
+    }
+    catch (IllegalStateException e) {
+      // expected as no runners were left to run
+    }
+
+  }
+
+  @Test
+  public void filterRunners_missingVersions() throws Throwable {
+    List<Runner> runners = createRunners(MissingVersions.class);
+    OldAgpFilter filter = new OldAgpFilter("4.2", "4.2");
+
+    try {
+    List<Runner> filteredRunners = OldAgpSuite.filterRunners(filter, runners);
+      fail("Expected 0 runners, got: " + filteredRunners);
+    }
+    catch (IllegalStateException e) {
+      // expected as no runners were left to run
+    }
+
   }
 
   @Test

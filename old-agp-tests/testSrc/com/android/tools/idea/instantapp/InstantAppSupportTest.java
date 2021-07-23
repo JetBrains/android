@@ -22,6 +22,7 @@ import static com.android.tools.idea.testartifacts.TestConfigurationTesting.crea
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
@@ -33,15 +34,15 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
+@OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
 public class InstantAppSupportTest extends AndroidGradleTestCase {
 
   @NotNull private static final String ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0";
-  @NotNull private static final String GRADLE_VERSION = "6.5";
+  @NotNull private static final String GRADLE_VERSION = "5.5";
 
   public void testLoadInstantAppProject() throws Exception {
     // Use a plugin with instant app support
@@ -87,7 +88,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
   public void testRunConfigurationFailsIfWrongURL() throws Throwable {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
 
     // Create one run configuration
     List<RunConfiguration> configurations =

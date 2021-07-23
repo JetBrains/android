@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.Disposer
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 
+@OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
 class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
 
   private val gradleVersion = "5.5"

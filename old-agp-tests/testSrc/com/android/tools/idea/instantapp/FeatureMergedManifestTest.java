@@ -17,17 +17,19 @@ package com.android.tools.idea.instantapp;
 
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_LIBRARY_DEPENDENCY;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 
+@OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
 public class FeatureMergedManifestTest extends AndroidGradleTestCase {
 
   public void testLibraryManifestMergedOnFeature() throws Exception {
     // Use a plugin version with feature support
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, null, "3.5.0");
+    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
     Module featureModule = getModule("feature");
     MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(featureModule);
     assertSize(1, mergedManifestManager.getActivities());
@@ -35,7 +37,7 @@ public class FeatureMergedManifestTest extends AndroidGradleTestCase {
 
   public void testCanFindURL() throws Exception {
     // Use a plugin version with feature support
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, null, "3.5.0");
+    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
     Module bundleModule = getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(bundleModule);
     assertEquals("https://android.example.com/example", InstantApps.getDefaultInstantAppUrl(facet));

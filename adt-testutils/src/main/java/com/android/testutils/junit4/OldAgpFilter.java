@@ -16,37 +16,28 @@
 package com.android.testutils.junit4;
 
 import com.google.common.collect.ImmutableList;
-
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
-
-import org.junit.runner.Describable;
+import java.util.Set;
 import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.NoTestsRemainException;
 
 /**
  * A Filter for running a subset tests using @OldAgpTest.
  *
  * <p>Testcases may use annotations on a method, or the test class. Annotations on the method
- * take priority over class annotations.
+ * take priority over class annotations. At least one of them is required. Errors are reported on any tests without annotations.
  *
- * <p>Tests not using @OldAgpTest are filtered out. If the Gradle version or AGP version
- * provided to this filter is not found on any @OldAgpTest annotations for the test case,
- * it is filtered out.
+ * <p> Any parameterized tests need to take care of filtering themselves by inspecting the values of {@code OldAgpSuite.AGP_VERSION} and
+ * {@code OldAgpSuite.GRADLE_VERSION}.
+ *
+ * <p>NOTE: If none of the configured shards providers the expected combination of the AGP and Gradle versions the test will silently not run.
  */
 class OldAgpFilter extends Filter {
   private final String allowedGradleVersion;
   private final String allowedAgpVersion;
 
-  /*
-   * Deques are used as stacks to keep track of the last specified value
-   * at any level in the (class/method) test hierarchy.
-   */
-  private final Deque<List<String>> gradleVersionsStack = new ArrayDeque<>();
-  private final Deque<List<String>> agpVersionsStack = new ArrayDeque<>();
+  private final Set<Description> expectedAllowedChildren = new HashSet<>();
 
   OldAgpFilter(String allowedGradleVersion, String allowedAgpVersion) {
     this.allowedGradleVersion = allowedGradleVersion;
@@ -54,47 +45,28 @@ class OldAgpFilter extends Filter {
   }
 
   @Override
-  public void apply(Object child) throws NoTestsRemainException {
-    // applies default gradle and AGP versions.
-    // For example, test classes may apply @OldAgpTest to all child test cases.
-    List<String> appliedGradleVersions = Collections.emptyList();
-    List<String> appliedAgpVersions = Collections.emptyList();
-    if (child instanceof Describable) {
-      Description description = ((Describable)child).getDescription();
-      appliedGradleVersions = getGradleVersions(description);
-      appliedAgpVersions = getAgpVersions(description);
-    }
-    gradleVersionsStack.push(appliedGradleVersions);
-    agpVersionsStack.push(appliedAgpVersions);
-    try {
-      super.apply(child);
-    }
-    finally {
-      gradleVersionsStack.pop();
-      agpVersionsStack.pop();
-    }
-  }
-
-  @Override
   public boolean shouldRun(Description description) {
     List<String> gradleVersions = getGradleVersions(description);
-    if (gradleVersions.isEmpty()) {
-      gradleVersions = gradleVersionsStack.peek();
-    }
     List<String> agpVersions = getAgpVersions(description);
-    if (agpVersions.isEmpty()) {
-      agpVersions = agpVersionsStack.peek();
+
+    boolean result;
+    if ((description.getTestClass() == null && gradleVersions.isEmpty() && agpVersions.isEmpty())
+        || expectedAllowedChildren.remove(description)) {
+      expectedAllowedChildren.addAll(description.getChildren());
+      result = true; // parametrised tests.
+    }
+    else {
+      if (gradleVersions.isEmpty() || agpVersions.isEmpty()) {
+        throw new IllegalStateException(
+          "@OldAgpTest must set both gradleVersions and agpVersions. At least one of these"
+          + " is missing for " + description);
+      }
+
+      result = gradleVersions.contains(allowedGradleVersion)
+               && agpVersions.contains(allowedAgpVersion);
     }
 
-    if ((gradleVersions.isEmpty() && !agpVersions.isEmpty())
-        || (!gradleVersions.isEmpty() && agpVersions.isEmpty())) {
-      throw new IllegalStateException(
-        "@OldAgpTest must set both gradleVersions and agpVersions. One of these"
-        + " is missing for " + description);
-    }
-
-    return gradleVersions.contains(allowedGradleVersion)
-           && agpVersions.contains(allowedAgpVersion);
+    return result;
   }
 
   @Override
@@ -106,7 +78,14 @@ class OldAgpFilter extends Filter {
   private List<String> getGradleVersions(Description description) {
     OldAgpTest annotation = description.getAnnotation(OldAgpTest.class);
     if (annotation == null) {
-      return Collections.emptyList();
+      Class<?> testClass = description.getTestClass();
+      if (testClass == null) {
+        return ImmutableList.of();
+      }
+      annotation = testClass.getAnnotation(OldAgpTest.class);
+      if (annotation == null) {
+        return ImmutableList.of();
+      }
     }
     return ImmutableList.copyOf(annotation.gradleVersions());
   }
@@ -114,7 +93,14 @@ class OldAgpFilter extends Filter {
   private List<String> getAgpVersions(Description description) {
     OldAgpTest annotation = description.getAnnotation(OldAgpTest.class);
     if (annotation == null) {
-      return Collections.emptyList();
+      Class<?> testClass = description.getTestClass();
+      if (testClass == null) {
+        return ImmutableList.of();
+      }
+      annotation = testClass.getAnnotation(OldAgpTest.class);
+      if (annotation == null) {
+        return ImmutableList.of();
+      }
     }
     return ImmutableList.copyOf(annotation.agpVersions());
   }

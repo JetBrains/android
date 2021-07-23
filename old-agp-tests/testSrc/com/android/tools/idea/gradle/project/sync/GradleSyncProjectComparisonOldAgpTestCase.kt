@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.GradleSyncProjectComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -44,6 +45,7 @@ import org.junit.runners.JUnit4
 bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests \
 --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
  */
+@OldAgpTest(agpVersions = ["3.3.2"], gradleVersions = ["5.5"])
 @RunWith(JUnit4::class)
 @RunsInEdt
 class GradleSyncProjectComparisonOldAgpTest: GradleSyncProjectComparisonTest() {

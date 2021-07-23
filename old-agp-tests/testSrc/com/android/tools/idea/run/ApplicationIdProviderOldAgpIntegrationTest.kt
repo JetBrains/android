@@ -22,8 +22,8 @@ import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
 @OldAgpTest
+@RunWith(Parameterized::class)
 class ApplicationIdProviderOldAgpIntegrationTest : ApplicationIdProviderIntegrationTestCase() {
   companion object {
     @Suppress("unused")

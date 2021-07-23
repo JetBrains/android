@@ -17,3 +17,13 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "snapshots",
+    srcs = glob(
+        include = [
+            "snapshots/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
