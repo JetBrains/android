@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argThat
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -33,6 +34,7 @@ import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
+import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,7 +43,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatcher
 import org.mockito.Mock
-import org.mockito.Mockito.argThat
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
@@ -58,7 +59,7 @@ private const val TEST_PACKAGE_NAME = "com.example.application"
  * Using the not-null assertion operator (!!) doesn't work because the result of the method call is recorded internally by Mockito.
  * @see Mockito.argThat
  */
-private fun <T> argThatWrapper(matcher: ArgumentMatcher<T>): T = argThat(matcher)
+private fun <T> argThatWrapper(matcher: ArgumentMatcher<T>): T = org.mockito.Mockito.argThat(matcher)
 
 @RunWith(JUnit4::class)
 class UtpTestResultAdapterTest {
@@ -464,5 +465,55 @@ class UtpTestResultAdapterTest {
     verify(mockListener).onTestSuiteFinished(argThatWrapper(deviceMatcher), argThatWrapper (
       ArgumentMatcher { it!!.result == AndroidTestSuiteResult.PASSED }
     ))
+  }
+
+  @Test
+  fun importBenchmarkTest() {
+    val benchmarkMessageFile = temporaryFolder.newFile("benchmarkMessage.txt").apply {
+      writeText("benchmarkMessage")
+    }
+    val benchmarkTraceFile = temporaryFolder.newFile("benchmarkTraceFile.trace").apply {
+      writeText("benchmarkTrace")
+    }
+
+    TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+      addTestResultBuilder().apply {
+        testCaseBuilder.apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        testStatus = TestStatusProto.TestStatus.PASSED
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = benchmarkMessageFile.absolutePath
+          }.build()
+        })
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = benchmarkTraceFile.absolutePath
+          }.build()
+        })
+      }
+    }.build().writeTo(utpProtoFile.outputStream())
+
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
+
+    verify(mockListener).onTestCaseFinished(any(), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+      && it.benchmark == "benchmarkMessage"
+    })
+
+    assertThat(File(FileUtil.getTempDirectory() + File.separator + "benchmarkTraceFile.trace").exists()).isTrue()
   }
 }

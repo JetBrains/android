@@ -131,6 +131,7 @@ class GradleTestResultAdapter(
         }
       }
     }
+    setBenchmarkContextAndPrepareFiles(testCaseResult, testCase)
 
     if (testCase.result == AndroidTestCaseResult.FAILED) {
       myTestSuite.result = AndroidTestSuiteResult.FAILED
