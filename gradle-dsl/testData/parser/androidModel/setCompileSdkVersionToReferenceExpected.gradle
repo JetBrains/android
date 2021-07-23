@@ -3,5 +3,5 @@ ext {
 }
 
 android {
-  compileSdkVersion sdkVersion
+  compileSdk sdkVersion
 }
