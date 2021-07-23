@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
-import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -90,20 +89,26 @@ public class SdkOrPreviewTransform extends PropertyTransform {
     String operatorName = genericSetter;
     ExternalNameInfo.ExternalNameSyntax syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
     if (versionConstraint == null || versionConstraint.isOkWith(holder.getDslFile().getContext().getAgpVersion())) {
-      if (value instanceof Integer) {
+      Object resolvedValue = value;
+      if (value instanceof ReferenceTo && ((ReferenceTo)value).getReferredElement() instanceof GradleDslSimpleExpression) {
+        GradleDslSimpleExpression valueExpression = (GradleDslSimpleExpression)((ReferenceTo)value).getReferredElement();
+        resolvedValue = valueExpression.getValue();
+      }
+
+      if (resolvedValue instanceof Integer) {
         operatorName = sdkSetter;
         syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (value instanceof String) {
+      else if (resolvedValue instanceof String) {
         operatorName = previewSetter;
         syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (value instanceof ReferenceTo || value instanceof RawText) {
-        // TODO(xof): maybe we need to be cleverer here?  Resolve references?
+      else { // RawText, ReferenceTo things we can't prove are integer/string
+        // TODO(xof): when the genericSetter is removed, we will need to guess at this point.
         operatorName = genericSetter;
         syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
       }
