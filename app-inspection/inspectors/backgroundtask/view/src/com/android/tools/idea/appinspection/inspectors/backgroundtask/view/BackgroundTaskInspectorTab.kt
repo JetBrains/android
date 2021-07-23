@@ -20,16 +20,21 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.intellij.ui.JBSplitter
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * View class for the Background Task Inspector Tab.
  */
-class BackgroundTaskInspectorTab(client: BackgroundTaskInspectorClient, ideServices: AppInspectionIdeServices) {
+class BackgroundTaskInspectorTab(client: BackgroundTaskInspectorClient,
+                                 ideServices: AppInspectionIdeServices,
+                                 scope: CoroutineScope,
+                                 uiDispatcher: CoroutineDispatcher) {
 
   private val selectionModel = EntrySelectionModel()
 
-  private val entriesView = BackgroundTaskEntriesView(client, selectionModel)
-  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel)
+  private val entriesView = BackgroundTaskEntriesView(client, selectionModel, scope, uiDispatcher)
+  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, scope, uiDispatcher)
 
   var isDetailsViewVisible = false
     set(value) {

@@ -20,10 +20,15 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient) : DefaultTreeModel(DefaultMutableTreeNode()) {
+class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient,
+                              scope: CoroutineScope,
+                              uiDispatcher: CoroutineDispatcher) : DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
 
@@ -66,28 +71,30 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient)
     }
 
     client.addEntryUpdateEventListener { type, entry ->
-      when (type) {
-        EntryUpdateEventType.ADD -> {
-          DefaultMutableTreeNode(entry).let { newNode ->
-            nodeMap[entry] = newNode
-            if (entry.acceptedByFilter()) {
-              val parent = parentFinder(entry)
-              parent.add(newNode)
-              nodeStructureChanged(parent)
+      scope.launch(uiDispatcher) {
+        when (type) {
+          EntryUpdateEventType.ADD -> {
+            DefaultMutableTreeNode(entry).let { newNode ->
+              nodeMap[entry] = newNode
+              if (entry.acceptedByFilter()) {
+                val parent = parentFinder(entry)
+                parent.add(newNode)
+                nodeStructureChanged(parent)
+              }
             }
           }
-        }
-        EntryUpdateEventType.UPDATE -> {
-          if (entry.acceptedByFilter()) {
-            nodeChanged(nodeMap[entry])
+          EntryUpdateEventType.UPDATE -> {
+            if (entry.acceptedByFilter()) {
+              nodeChanged(nodeMap[entry])
+            }
           }
-        }
-        EntryUpdateEventType.REMOVE -> {
-          val node = nodeMap.remove(entry)!!
-          if (entry.acceptedByFilter()) {
-            val parent = node.parent
-            node.removeFromParent()
-            nodeStructureChanged(parent)
+          EntryUpdateEventType.REMOVE -> {
+            val node = nodeMap.remove(entry)!!
+            if (entry.acceptedByFilter()) {
+              val parent = node.parent
+              node.removeFromParent()
+              nodeStructureChanged(parent)
+            }
           }
         }
       }

@@ -26,6 +26,9 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -48,7 +51,9 @@ const val MIN_GAP_BETWEEN_LABELS = 50
  * Graph Panel which shows dependencies among selected chaining works.
  */
 class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
-                              private val selectionModel: EntrySelectionModel) : JPanel() {
+                              private val selectionModel: EntrySelectionModel,
+                              private val scope: CoroutineScope,
+                              private val uiDispatcher: CoroutineDispatcher) : JPanel() {
 
   private var works = listOf<WorkInfo>()
   private var labelMap = mapOf<String, JLabel>()
@@ -56,7 +61,7 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
   init {
     border = EmptyBorder(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
 
-    client.addEntryUpdateEventListener { _, _ -> updateWorks() }
+    client.addEntryUpdateEventListener { _, _ -> scope.launch(uiDispatcher) { updateWorks() } }
     selectionModel.registerWorkSelectionListener { updateWorks() }
 
     registerDirectionKeyStroke(KeyEvent.VK_UP, "Up", -1, 0)
@@ -175,7 +180,9 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
 
     label.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent?) {
-        selectionModel.selectedEntry = client.getEntry(work.id)
+        client.getEntry(work.id)?.let { nonNullEntry ->
+          selectionModel.selectedEntry = nonNullEntry
+        }
       }
     })
     return label

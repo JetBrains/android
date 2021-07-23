@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.createBackgroundTaskEntry
-import kotlinx.coroutines.CoroutineDispatcher
+import com.jetbrains.rd.util.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -64,13 +64,12 @@ class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
   private val wmiMessengerTarget: WmiMessengerTarget,
   val scope: CoroutineScope,
-  val uiThread: CoroutineDispatcher
 ) {
   private val listeners = mutableListOf<EntryUpdateEventListener>()
-  private val entryMap = mutableMapOf<String, BackgroundTaskEntry>()
+  private val entryMap = ConcurrentHashMap<String, BackgroundTaskEntry>()
 
   /**
-   * Add a listener which is fired whenever an entry is added updated or removed.
+   * Add a listener which is fired when an entry is added updated or removed.
    */
   fun addEntryUpdateEventListener(listener: EntryUpdateEventListener) = listeners.add(listener)
 
@@ -104,29 +103,31 @@ class BackgroundTaskInspectorClient(
 
   @VisibleForTesting
   fun handleEvent(event: EventWrapper) {
-    scope.launch(uiThread) {
-      val candidate = createBackgroundTaskEntry(event)
+    val candidate = createBackgroundTaskEntry(event)
 
-      entryMap[candidate.id]?.let { oldEntry ->
-        // Update or remove an existing entry.
-        oldEntry.consume(event)
-        if (oldEntry.isValid) {
-          fireEntryUpdateEvent(EntryUpdateEventType.UPDATE, oldEntry)
-        }
-        else {
-          entryMap.remove(candidate.id)?.let {
-            fireEntryUpdateEvent(EntryUpdateEventType.REMOVE, it)
-          }
-        }
-      } ?: candidate.let { newEntry ->
-        // Insert a new entry.
-        newEntry.consume(event)
-        entryMap[newEntry.id] = newEntry
-        fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
+    entryMap[candidate.id]?.let { oldEntry ->
+      // Update or remove an existing entry.
+      oldEntry.consume(event)
+      if (oldEntry.isValid) {
+        fireEntryUpdateEvent(EntryUpdateEventType.UPDATE, oldEntry)
       }
+      else {
+        entryMap.remove(candidate.id)?.let {
+          fireEntryUpdateEvent(EntryUpdateEventType.REMOVE, it)
+        }
+      }
+    } ?: candidate.let { newEntry ->
+      // Insert a new entry.
+      newEntry.consume(event)
+      entryMap[newEntry.id] = newEntry
+      fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
     }
   }
 
+  /**
+   * Returns an entry with [entryId].
+   * Entries are updated from non-UI thread and could be inconsistent with data acquired from UI thread.
+   */
   fun getEntry(entryId: String): BackgroundTaskEntry? {
     return entryMap[entryId]
   }
@@ -141,6 +142,7 @@ class BackgroundTaskInspectorClient(
 
   /**
    * Returns a chain of works with topological ordering containing the selected work.
+   * Entries are updated from non-UI thread and could be inconsistent with data acquired from UI thread.
    *
    * @param id id of the selected work.
    */

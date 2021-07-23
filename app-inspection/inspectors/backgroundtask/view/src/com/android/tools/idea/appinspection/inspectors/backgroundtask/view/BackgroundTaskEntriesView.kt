@@ -32,6 +32,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import java.awt.BorderLayout
 import java.awt.Point
 import javax.swing.JComponent
@@ -45,7 +47,9 @@ const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
  * View containing a table view and graph view, and offers toggle control between the two.
  */
 class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClient,
-                                private val selectionModel: EntrySelectionModel) : JPanel() {
+                                private val selectionModel: EntrySelectionModel,
+                                scope: CoroutineScope,
+                                uiDispatcher: CoroutineDispatcher) : JPanel() {
   enum class Mode {
     TABLE,
     GRAPH
@@ -182,8 +186,8 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     // Remove redundant borders from left, right and bottom.
     contentScrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
     contentScrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
-    tableView = BackgroundTaskTreeTableView(client, selectionModel)
-    graphView = WorkDependencyGraphView(client, selectionModel)
+    tableView = BackgroundTaskTreeTableView(client, selectionModel, scope, uiDispatcher)
+    graphView = WorkDependencyGraphView(client, selectionModel, scope, uiDispatcher)
     contentScrollPane.setViewportView(tableView.component)
     add(contentScrollPane, TabularLayout.Constraint(1, 0))
 

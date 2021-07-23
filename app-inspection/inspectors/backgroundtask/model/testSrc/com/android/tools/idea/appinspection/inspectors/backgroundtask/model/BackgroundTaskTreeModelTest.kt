@@ -19,18 +19,15 @@ import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeModelTest {
@@ -42,7 +39,6 @@ class BackgroundTaskTreeModelTest {
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
-  private lateinit var executor: ExecutorService
   private lateinit var scope: CoroutineScope
   private lateinit var backgroundTaskInspectorMessenger: FakeAppInspectorMessenger
   private lateinit var workManagerInspectorMessenger: FakeAppInspectorMessenger
@@ -51,24 +47,23 @@ class BackgroundTaskTreeModelTest {
 
   @Before
   fun setUp() {
-    executor = Executors.newSingleThreadExecutor()
-    scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
+    val dispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
+    scope = CoroutineScope(dispatcher + SupervisorJob())
     backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
     workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
     client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                            WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope, executor.asCoroutineDispatcher())
-    model = BackgroundTaskTreeModel(client)
+                                           scope)
+    model = BackgroundTaskTreeModel(client, scope, dispatcher)
   }
 
   @After
   fun tearDown() {
     scope.cancel()
-    executor.shutdownNow()
   }
 
   @Test
-  fun addTreeNodes() = runBlocking {
+  fun addTreeNodes() {
     val newWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
       workAddedBuilder.workBuilder.apply {
         id = "test"
@@ -108,30 +103,28 @@ class BackgroundTaskTreeModelTest {
     }
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
 
-    withContext(scope.coroutineContext) {
-      val root = model.root as DefaultMutableTreeNode
-      assertThat(root.childCount).isEqualTo(4)
-      val workChild = root.firstChild as DefaultMutableTreeNode
-      assertThat(workChild.childCount).isEqualTo(1)
-      assertThat(workChild.userObject).isEqualTo("Works")
-      assertThat(workChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("test"))
-      val jobChild = root.getChildAfter(workChild) as DefaultMutableTreeNode
-      assertThat(jobChild.childCount).isEqualTo(1)
-      assertThat(jobChild.userObject).isEqualTo("Jobs")
-      assertThat(jobChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("0"))
-      val alarmChild = root.getChildAfter(jobChild) as DefaultMutableTreeNode
-      assertThat(alarmChild.childCount).isEqualTo(1)
-      assertThat(alarmChild.userObject).isEqualTo("Alarms")
-      assertThat(alarmChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("1"))
-      val wakeLockChild = root.getChildAfter(alarmChild) as DefaultMutableTreeNode
-      assertThat(wakeLockChild.childCount).isEqualTo(1)
-      assertThat(wakeLockChild.userObject).isEqualTo("WakeLocks")
-      assertThat(wakeLockChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("2"))
-    }
+    val root = model.root as DefaultMutableTreeNode
+    assertThat(root.childCount).isEqualTo(4)
+    val workChild = root.firstChild as DefaultMutableTreeNode
+    assertThat(workChild.childCount).isEqualTo(1)
+    assertThat(workChild.userObject).isEqualTo("Works")
+    assertThat(workChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("test"))
+    val jobChild = root.getChildAfter(workChild) as DefaultMutableTreeNode
+    assertThat(jobChild.childCount).isEqualTo(1)
+    assertThat(jobChild.userObject).isEqualTo("Jobs")
+    assertThat(jobChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("0"))
+    val alarmChild = root.getChildAfter(jobChild) as DefaultMutableTreeNode
+    assertThat(alarmChild.childCount).isEqualTo(1)
+    assertThat(alarmChild.userObject).isEqualTo("Alarms")
+    assertThat(alarmChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("1"))
+    val wakeLockChild = root.getChildAfter(alarmChild) as DefaultMutableTreeNode
+    assertThat(wakeLockChild.childCount).isEqualTo(1)
+    assertThat(wakeLockChild.userObject).isEqualTo("WakeLocks")
+    assertThat(wakeLockChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("2"))
   }
 
   @Test
-  fun removeTreeNode(): Unit = runBlocking {
+  fun removeTreeNode() {
     val newWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
       workAddedBuilder.workBuilder.apply {
         id = "test"
@@ -142,15 +135,13 @@ class BackgroundTaskTreeModelTest {
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
 
     var entryNode: DefaultMutableTreeNode? = null
-    withContext(scope.coroutineContext) {
-      val root = model.root as DefaultMutableTreeNode
-      assertThat(root.childCount).isEqualTo(4)
-      val workChild = root.firstChild as DefaultMutableTreeNode
-      assertThat(workChild.childCount).isEqualTo(1)
-      assertThat(workChild.userObject).isEqualTo("Works")
-      entryNode = workChild.firstChild as DefaultMutableTreeNode
-      assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
-    }
+    val root = model.root as DefaultMutableTreeNode
+    assertThat(root.childCount).isEqualTo(4)
+    val workChild = root.firstChild as DefaultMutableTreeNode
+    assertThat(workChild.childCount).isEqualTo(1)
+    assertThat(workChild.userObject).isEqualTo("Works")
+    entryNode = workChild.firstChild as DefaultMutableTreeNode
+    assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
 
     val removeWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
       workRemovedBuilder.apply {
@@ -159,9 +150,7 @@ class BackgroundTaskTreeModelTest {
     }.build()
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, removeWorkEvent.toByteArray()))
 
-    withContext(scope.coroutineContext) {
-      assertThat(entryNode?.parent).isNull()
-      assertThat(model.getTreeNode("test")).isNull()
-    }
+    assertThat(entryNode?.parent).isNull()
+    assertThat(model.getTreeNode("test")).isNull()
   }
 }
