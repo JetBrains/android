@@ -33,6 +33,16 @@ import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.isBoolean
+import org.jetbrains.kotlin.types.typeUtil.isByte
+import org.jetbrains.kotlin.types.typeUtil.isChar
+import org.jetbrains.kotlin.types.typeUtil.isDouble
+import org.jetbrains.kotlin.types.typeUtil.isFloat
+import org.jetbrains.kotlin.types.typeUtil.isInt
+import org.jetbrains.kotlin.types.typeUtil.isLong
+import org.jetbrains.kotlin.types.typeUtil.isShort
+import org.jetbrains.kotlin.types.typeUtil.isUnit
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -126,11 +136,11 @@ class LiveEditService private constructor(private var project: Project, var list
             method = parent.name + "("
             var paramSigs = ArrayList<String>()
             parent.valueParameters.forEach {
-              paramSigs.add(it.type()?.getQualifiedName().toString())
+              paramSigs.add(vmName(it.type()!!))
             }
             method += paramSigs.joinToString{it}
             method += ")"
-            var returnType = parent.type()?.getQualifiedName().toString()
+            var returnType = vmName(parent.type()!!)
             method += returnType;
 
             clazz = KtNamedDeclarationUtil.getParentFqName(parent).toString()
@@ -156,6 +166,37 @@ class LiveEditService private constructor(private var project: Project, var list
             })
           }})
       }
+    }
+
+
+    fun vmName(type : KotlinType) : String {
+      if (type.isChar()) {
+        return "C"
+      } else if (type.isByte()) {
+        return "B"
+      } else if (type.isInt()) {
+        return "I"
+      } else if (type.isLong()) {
+        return "L"
+      } else if (type.isShort()) {
+        return "S"
+      } else if (type.isFloat()) {
+        return "F"
+      } else if (type.isDouble()) {
+        return "D"
+      } else if (type.isBoolean()) {
+        return "Z"
+      } else if (type.isUnit()) {
+        return "V"
+      }
+
+      val fqName = type.getQualifiedName().toString()
+
+      if (fqName.equals("kotlin.String")) {
+        return "Ljava/lang/String;";
+      }
+
+      return "L" + fqName.replace(".", "/") + ";"
     }
 
     override fun beforeChildAddition(event: PsiTreeChangeEvent) {
