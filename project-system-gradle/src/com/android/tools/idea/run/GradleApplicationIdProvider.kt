@@ -60,7 +60,7 @@ class GradleApplicationIdProvider(
       PROJECT_TYPE_TEST -> getTargetApplicationIdProvider()?.packageName
       PROJECT_TYPE_INSTANTAPP -> tryToGetInstantAppApplicationId()
       PROJECT_TYPE_DYNAMIC_FEATURE -> tryToGetDynamicFeatureApplicationId()
-      PROJECT_TYPE_APP -> null
+      PROJECT_TYPE_APP -> AndroidModuleInfo.getInstance(androidFacet).getPackage().nullize()
       PROJECT_TYPE_ATOM -> null
       PROJECT_TYPE_FEATURE -> null
     }
