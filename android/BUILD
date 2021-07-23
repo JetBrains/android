@@ -938,7 +938,6 @@ maven_repo(
         ":__pkg__",
         "//tools/adt/idea/android-uitests:__pkg__",
         "//tools/adt/idea/app-inspection/ide:__pkg__",
-        "//tools/adt/idea/designer:__pkg__",
         "//tools/adt/idea/ide-perf-tests:__pkg__",
         "//tools/adt/idea/old-agp-tests:__pkg__",
         "//tools/adt/idea/project-system-gradle-upgrade:__pkg__",
