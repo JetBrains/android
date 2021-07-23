@@ -35,6 +35,7 @@ import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
@@ -48,6 +49,7 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
+import java.io.File
 
 @RunWith(JUnit4::class)
 class GradleTestResultAdapterTest {
@@ -338,6 +340,60 @@ class GradleTestResultAdapterTest {
       it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
       && it.logcat == ""
     })
+  }
+
+  @Test
+  fun runTestSuiteWithBenchmark() {
+    val benchmarkMessageFile = tempFolder.newFile("benchmarkMessage.txt").apply {
+      writeText("benchmarkMessage")
+    }
+    val benchmarkTraceFile = tempFolder.newFile("benchmarkTraceFile.trace").apply {
+      writeText("benchmarkTrace")
+    }
+    val adapter = createAdapter().apply {
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+        scheduledTestCaseCount = 1
+      }.build())
+      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }.build())
+      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+        testCaseBuilder.apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        testStatus = TestStatusProto.TestStatus.PASSED
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = benchmarkMessageFile.absolutePath
+          }.build()
+        })
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = benchmarkTraceFile.absolutePath
+          }.build()
+        })
+      }.build())
+    }
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+      && it.benchmark == "benchmarkMessage"
+    })
+
+    assertThat(File(FileUtil.getTempDirectory() + File.separator + "benchmarkTraceFile.trace").exists()).isTrue()
   }
 
   @Test

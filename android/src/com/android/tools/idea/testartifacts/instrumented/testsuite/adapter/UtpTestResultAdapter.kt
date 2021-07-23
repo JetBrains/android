@@ -26,8 +26,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto
 import com.google.common.annotations.VisibleForTesting
-import com.google.protobuf.Timestamp
 import com.google.protobuf.TextFormat
+import com.google.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
@@ -199,6 +199,11 @@ class UtpTestResultAdapter(private val protoFile: File) {
       if (testResultProto.testStatus == TestStatusProto.TestStatus.FAILED) {
         testSuite.result = AndroidTestSuiteResult.FAILED
       }
+
+      setBenchmarkContextAndPrepareFiles(testResultProto, testCase) { outputArtifactPath ->
+        resolveFile(dir, outputArtifactPath) ?: File(outputArtifactPath)
+      }
+
       listener.onTestCaseStarted(device, testSuite, testCase)
       listener.onTestCaseFinished(device, testSuite, testCase)
     }
