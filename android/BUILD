@@ -936,7 +936,6 @@ maven_repo(
     # //tools/adt/idea/android:test_deps as a dependency.
     visibility = [
         ":__pkg__",
-        "//tools/adt/idea/android-templates:__pkg__",
         "//tools/adt/idea/android-uitests:__pkg__",
         "//tools/adt/idea/app-inspection/ide:__pkg__",
         "//tools/adt/idea/designer:__pkg__",
