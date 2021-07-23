@@ -29,18 +29,16 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class BackgroundInspectorClientTest {
 
@@ -60,7 +58,7 @@ class BackgroundInspectorClientTest {
   /**
    * A fake class to cache latest background task entry updates.
    */
-  private class Listener(client: BackgroundTaskInspectorClient, private val scope: CoroutineScope) {
+  private class Listener(client: BackgroundTaskInspectorClient) {
     private lateinit var type: EntryUpdateEventType
     private lateinit var entry: BackgroundTaskEntry
 
@@ -74,10 +72,9 @@ class BackgroundInspectorClientTest {
     /**
      * Waits for the single threaded scope to update its listeners and consumes the latest one.
      */
-    suspend fun consume(listener: EntryUpdateEventListener) = withContext(scope.coroutineContext) { listener(type, entry) }
+    fun consume(listener: EntryUpdateEventListener) = listener(type, entry)
   }
 
-  private lateinit var executor: ExecutorService
   private lateinit var scope: CoroutineScope
   private lateinit var backgroundTaskInspectorMessenger: FakeAppInspectorMessenger
   private lateinit var workManagerInspectorMessenger: FakeAppInspectorMessenger
@@ -86,20 +83,18 @@ class BackgroundInspectorClientTest {
 
   @Before
   fun setUp() {
-    executor = Executors.newSingleThreadExecutor()
-    scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
     workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
     client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                            WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope, executor.asCoroutineDispatcher())
-    listener = Listener(client, scope)
+                                           scope)
+    listener = Listener(client)
   }
 
   @After
   fun tearDown() {
     scope.cancel()
-    executor.shutdownNow()
   }
 
   @Test
@@ -113,11 +108,8 @@ class BackgroundInspectorClientTest {
       .build()
     backgroundTaskInspectorMessenger.sendRawCommand(backgroundTaskCommand.toByteArray())
 
-    // This scope is single threaded so the following block should occur after sending commands.
-    withContext(scope.coroutineContext) {
-      assertThat(workManagerInspectorMessenger.rawDataSent).isEqualTo(workCommand.toByteArray())
-      assertThat(backgroundTaskInspectorMessenger.rawDataSent).isEqualTo(backgroundTaskCommand.toByteArray())
-    }
+    assertThat(workManagerInspectorMessenger.rawDataSent).isEqualTo(workCommand.toByteArray())
+    assertThat(backgroundTaskInspectorMessenger.rawDataSent).isEqualTo(backgroundTaskCommand.toByteArray())
   }
 
   @Test
@@ -135,7 +127,7 @@ class BackgroundInspectorClientTest {
   }
 
   @Test
-  fun removeWorks() = runBlocking {
+  fun removeWorks() {
     val id1 = "Test1"
     val id2 = "Test2"
     val workInfo1 = WorkInfo.newBuilder()
@@ -164,7 +156,7 @@ class BackgroundInspectorClientTest {
   }
 
   @Test
-  fun updateWork() = runBlocking {
+  fun updateWork() {
     val id = "Test"
     val workInfo = WorkInfo.newBuilder()
       .setId(id)
@@ -224,7 +216,7 @@ class BackgroundInspectorClientTest {
   }
 
   @Test
-  fun getWorkChain() = runBlocking {
+  fun getWorkChain() {
     /**
      * Constructs a a dependency graph that looks like:
      *      work1  work2
@@ -247,18 +239,15 @@ class BackgroundInspectorClientTest {
       sendWorkAddedEvent(workInfo)
     }
 
-    // This scope is single threaded so the following block should occur after receiving events.
-    withContext(scope.coroutineContext) {
-      val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
-      assertThat(complexWorkChain.size).isEqualTo(7)
-      for ((from, to) in dependencyList) {
-        assertThat(complexWorkChain.indexOf(from)).isLessThan(complexWorkChain.indexOf(to))
-      }
-
-      val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
-      assertThat(singleWorkChain.size).isEqualTo(1)
-      assertThat(singleWorkChain[0]).isEqualTo("work8")
+    val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
+    assertThat(complexWorkChain.size).isEqualTo(7)
+    for ((from, to) in dependencyList) {
+      assertThat(complexWorkChain.indexOf(from)).isLessThan(complexWorkChain.indexOf(to))
     }
+
+    val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
+    assertThat(singleWorkChain.size).isEqualTo(1)
+    assertThat(singleWorkChain[0]).isEqualTo("work8")
   }
 
 

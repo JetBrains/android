@@ -31,6 +31,9 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -46,7 +49,9 @@ private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON
 class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
                        private val client: BackgroundTaskInspectorClient,
                        private val ideServices: AppInspectionIdeServices,
-                       private val selectionModel: EntrySelectionModel) : JPanel() {
+                       private val selectionModel: EntrySelectionModel,
+                       private val scope: CoroutineScope,
+                       private val uiDispatcher: CoroutineDispatcher) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
   private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
@@ -74,9 +79,11 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
       }
     }
     client.addEntryUpdateEventListener { type, _ ->
-      if (tab.isDetailsViewVisible && type == EntryUpdateEventType.UPDATE) {
-        (selectionModel.selectedEntry as? WorkEntry)?.let {
-          updateSelectedWork(it)
+      scope.launch(uiDispatcher) {
+        if (tab.isDetailsViewVisible && type == EntryUpdateEventType.UPDATE) {
+          (selectionModel.selectedEntry as? WorkEntry)?.let {
+            updateSelectedWork(it)
+          }
         }
       }
     }

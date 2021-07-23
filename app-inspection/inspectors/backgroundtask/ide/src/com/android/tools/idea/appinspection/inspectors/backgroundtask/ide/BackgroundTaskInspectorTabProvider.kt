@@ -78,11 +78,11 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
       is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
     }
     val scope = AndroidCoroutineScope(parentDisposable)
-    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope, AndroidDispatchers.uiThread)
+    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope)
 
     return object : AppInspectorTab {
       override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
-      override val component = BackgroundTaskInspectorTab(client, ideServices).component
+      override val component = BackgroundTaskInspectorTab(client, ideServices, scope, AndroidDispatchers.uiThread).component
     }
   }
 
