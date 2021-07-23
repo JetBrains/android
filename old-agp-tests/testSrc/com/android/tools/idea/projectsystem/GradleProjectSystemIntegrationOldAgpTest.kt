@@ -15,50 +15,20 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.tools.idea.testing.applySelectedAgpVersions
 import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class GradleProjectSystemAgp35IntegrationTest : GradleProjectSystemIntegrationTestCase() {
+class GradleProjectSystemOldAgpIntegrationTest : GradleProjectSystemIntegrationTestCase() {
   companion object {
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> {
-      return tests
-        .map { it.copy(agpVersion = AgpVersion.AGP_35) }
-        .map { listOf(it).toTypedArray() }
-    }
-  }
-}
-
-@RunWith(Parameterized::class)
-class GradleProjectSystemAgp40IntegrationTest : GradleProjectSystemIntegrationTestCase() {
-  companion object {
-    @Suppress("unused")
-    @Contract(pure = true)
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> {
-      return tests
-        .map { it.copy(agpVersion = AgpVersion.AGP_40) }
-        .map { listOf(it).toTypedArray() }
-    }
-  }
-}
-
-@RunWith(Parameterized::class)
-class GradleProjectSystemAgp41IntegrationTest : GradleProjectSystemIntegrationTestCase() {
-  companion object {
-    @Suppress("unused")
-    @Contract(pure = true)
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> {
-      return tests
-        .map { it.copy(agpVersion = AgpVersion.AGP_41) }
+      return tests.applySelectedAgpVersions()
         .map { listOf(it).toTypedArray() }
     }
   }

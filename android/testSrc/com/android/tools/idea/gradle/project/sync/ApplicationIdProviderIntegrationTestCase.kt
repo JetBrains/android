@@ -17,19 +17,22 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase.AgpVersion.AGP_35
-import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase.AgpVersion.AGP_40
-import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase.AgpVersion.AGP_41
-import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase.AgpVersion.CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase.TargetRunConfiguration.TestTargetRunConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass
+import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
@@ -70,12 +73,12 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.RUN_CONFIG_ACTIVITY,
           executeMakeBeforeRun = false,
           expectPackageName = mapOf(
-            CURRENT to "com.example.unittest",
+            AGP_CURRENT to "com.example.unittest",
             AGP_35 to "from.gradle.debug",
             AGP_40 to "from.gradle.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "(null)",
+            AGP_CURRENT to "(null)",
           )
         ),
         TestDefinition(
@@ -89,12 +92,12 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
           executeMakeBeforeRun = false,
           expectPackageName = mapOf(
-            CURRENT to "one.name",
+            AGP_CURRENT to "one.name",
             AGP_35 to "one.name.defaultConfig.debug",
             AGP_40 to "one.name.defaultConfig.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "(null)"
+            AGP_CURRENT to "(null)"
           )
         ),
         TestDefinition(
@@ -109,12 +112,12 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
           // TODO(b/190357145): Fix ApplicationId when fixed in AGP or decided how to handle this.
           expectPackageName = mapOf(
-            CURRENT to "one.name",
+            AGP_CURRENT to "one.name",
             AGP_35 to "one.name.defaultConfig.debug",
             AGP_40 to "one.name.defaultConfig.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "(null)"
+            AGP_CURRENT to "(null)"
           )
         ),
         TestDefinition(
@@ -125,7 +128,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           expectTestPackageName = "one.name.test_app"
         ),
         TestDefinition(
-          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
           name = "APPLICATION_ID_VARIANT_API before build",
           testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
           executeMakeBeforeRun = false,
@@ -133,14 +136,14 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           expectTestPackageName = "(null)"
         ),
         TestDefinition(
-          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
           name = "APPLICATION_ID_VARIANT_API after build",
           testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
           expectPackageName = "one.dynamic.name.debug",
           expectTestPackageName = "(null)"
         ),
         TestDefinition(
-          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
           name = "APPLICATION_ID_VARIANT_API run configuration via bundle",
           viaBundle = true,
           testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
@@ -149,7 +152,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           expectTestPackageName = "(null)"
         ),
         TestDefinition(
-          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
           name = "APPLICATION_ID_VARIANT_API test run configuration",
           targetRunConfiguration = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
           testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
@@ -158,7 +161,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
         ),
         TestDefinition(
           IGNORE = {
-            if (agpVersion == CURRENT) {
+            if (agpVersion == AGP_CURRENT) {
               error("Skip for the current AGP to save time in favor of 'APPLICATION_ID_SUFFIX test run configuration'")
             }
           },
@@ -173,13 +176,13 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY,
           targetRunConfiguration = TestTargetRunConfiguration("com.example.projectwithappandlib.lib.ExampleInstrumentedTest"),
           expectPackageName = mapOf(
-            CURRENT to "com.example.projectwithappandlib.lib.test",
+            AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
             AGP_35 to "com.example.projectwithappandlib.lib.test",
             AGP_40 to "com.example.projectwithappandlib.lib.test",
             AGP_41 to "com.example.projectwithappandlib.lib.test"
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "com.example.projectwithappandlib.lib.test",
+            AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
             AGP_35 to "com.example.projectwithappandlib.lib.test",
             AGP_40 to "com.example.projectwithappandlib.lib.test",
             AGP_41 to "com.example.projectwithappandlib.lib.test"
@@ -281,29 +284,20 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
     data class TestTargetRunConfiguration(val testClassFqn: String) : TargetRunConfiguration()
   }
 
-  enum class AgpVersion(val forGradle: String?) {
-    CURRENT(null),
-    AGP_35("3.5.0"),
-    AGP_40("4.0.0"),
-    AGP_41("4.1.0")
-  }
-
   data class TestDefinition(
     val IGNORE: TestDefinition.() -> Unit = { },
-    val name: String = "",
+    override val name: String = "",
     val viaBundle: Boolean = false,
     val device: Int = 30,
     val testProject: String = "",
     val variant: Pair<String, String>? = null,
-    val agpVersion: AgpVersion = CURRENT,
-    val gradleVersion: String? = null,
-    val kotlinVersion: String? = null,
+    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
     val executeMakeBeforeRun: Boolean = true,
     val targetRunConfiguration: TargetRunConfiguration = TargetRunConfiguration.AppTargetRunConfiguration,
 
-    val expectPackageName: Map<AgpVersion, String>,
-    val expectTestPackageName: Map<AgpVersion, String>,
-  ) {
+    val expectPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
+    val expectTestPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
+  ) : AgpIntegrationTestDefinition<TestDefinition> {
     constructor (
       IGNORE: TestDefinition.() -> Unit = { },
       name: String = "",
@@ -311,9 +305,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
       device: Int = 30,
       testProject: String = "",
       variant: Pair<String, String>? = null,
-      agpVersion: AgpVersion = CURRENT,
-      gradleVersion: String? = null,
-      kotlinVersion: String? = null,
+      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
       executeMakeBeforeRun: Boolean = true,
       targetRunConfiguration: TargetRunConfiguration = TargetRunConfiguration.AppTargetRunConfiguration,
       expectPackageName: String,
@@ -326,15 +318,15 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
       testProject = testProject,
       variant = variant,
       agpVersion = agpVersion,
-      gradleVersion = gradleVersion,
-      kotlinVersion = kotlinVersion,
       executeMakeBeforeRun = executeMakeBeforeRun,
       targetRunConfiguration = targetRunConfiguration,
-      expectPackageName = mapOf(CURRENT to expectPackageName),
-      expectTestPackageName = mapOf(CURRENT to expectTestPackageName)
+      expectPackageName = mapOf(AGP_CURRENT to expectPackageName),
+      expectTestPackageName = mapOf(AGP_CURRENT to expectTestPackageName)
     )
 
-    override fun toString(): String = name
+    override fun toString(): String = displayName()
+
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
   }
 
   @JvmField
@@ -345,15 +337,16 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
   fun testApplicationIdProvider() {
     with(testDefinition!!) {
       assumeThat(runCatching { IGNORE() }.exceptionOrNull(), nullValue())
+      outputCurrentlyRunningTest(this)
 
-      fun Map<AgpVersion, String>.forVersion() = (this[agpVersion] ?: this[CURRENT])?.trimIndent().orEmpty()
+      fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion() = (this[agpVersion] ?: this[AGP_CURRENT])?.trimIndent().orEmpty()
 
       prepareGradleProject(
         testProject,
         "project",
-        gradleVersion = gradleVersion,
-        gradlePluginVersion = agpVersion.forGradle,
-        kotlinVersion = kotlinVersion
+        gradleVersion = agpVersion.gradleVersion,
+        gradlePluginVersion = agpVersion.agpVersion,
+        kotlinVersion = agpVersion.kotlinVersion
       )
 
       openPreparedProject("project") { project ->
