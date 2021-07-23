@@ -21,12 +21,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.testing.AgpIntegrationTestDefinition
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
@@ -62,16 +65,16 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
   companion object {
     val tests =
-      listOf(TestDefinition(agpVersion = AgpVersion.CURRENT), TestDefinition(agpVersion = AgpVersion.CURRENT, modelsV2 = true))
+      listOf(TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
   }
 
-  data class TestDefinition(val agpVersion: AgpVersion, val modelsV2: Boolean = false)
-
-  enum class AgpVersion(val agpVersion: String? = null, val gradleVersion: String? = null, val kotlinVersion: String? = null) {
-    CURRENT,
-    AGP_35(agpVersion = "3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32"),
-    AGP_40(agpVersion = "4.0.0", gradleVersion = "6.5"),
-    AGP_41(agpVersion = "4.1.0")
+  data class TestDefinition(
+    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    val modelsV2: Boolean = false
+  ) : AgpIntegrationTestDefinition<TestDefinition> {
+    override val name: String = ""
+    override fun toString(): String = displayName()
+    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
   }
 
   @get:Rule
@@ -112,9 +115,9 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   @Test
   fun testGetDefaultApkFile() {
     // TODO(b/191146142): Remove assumption when fixed.
-    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersion.AGP_40)
+    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
     // TODO(b/191146142): Remove assumption when fixed.
-    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersion.AGP_35)
+    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
       // Invoke assemble task to generate output listing file and apk file.
       project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE) }
@@ -167,6 +170,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
   private fun runTestOn(testProjectPath: String, test: (Project) -> Unit) {
     val testDefinition = testDefinition!!
+    outputCurrentlyRunningTest(testDefinition)
     if (testDefinition.modelsV2) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
     }
