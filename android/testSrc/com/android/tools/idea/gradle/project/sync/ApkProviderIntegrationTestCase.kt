@@ -37,6 +37,7 @@ import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
@@ -49,6 +50,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.runInEdtAndWait
 import org.hamcrest.Matchers.nullValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Contract
@@ -521,9 +523,17 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         ): ApkProvider {
           val module = project.gradleModule(gradlePath)!!
           val androidFacet = AndroidFacet.getInstance(module)!!
-          val assembleResult = GradleBuildInvoker.getInstance(project)
-            .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
-            .get(3, TimeUnit.MINUTES)
+          val assembleResult = try {
+            GradleBuildInvoker.getInstance(project)
+              .assemble(arrayOf(module), if (forTests) TestCompileType.ANDROID_TESTS else TestCompileType.NONE)
+              .get(3, TimeUnit.MINUTES)
+          }
+          finally {
+            runInEdtAndWait {
+              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+            }
+          }
+
           return object : ApkProvider {
             override fun validate(): List<ValidationError> = emptyList()
             override fun getApks(ignored: IDevice): Collection<ApkInfo> =
