@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
-import com.android.tools.idea.wearpairing.isWearOrPhone
 import icons.StudioIcons
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 
-internal class PairDeviceAction(avdInfoProvider: AvdInfoProvider) :
-  AvdUiAction(avdInfoProvider, "Pair device", "Wear OS virtual device pairing assistant",
-              StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN) {
-
+class PairDeviceAction(avdInfoProvider: AvdInfoProvider) : AvdUiAction(avdInfoProvider,
+                                                                       "Pair device",
+                                                                       getDescription(avdInfoProvider.avdInfo),
+                                                                       StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+) {
   override fun actionPerformed(actionEvent: ActionEvent) {
     val project = myAvdInfoProvider.project ?: return
     // TODO: Propagate deviceID and implement single panel changes
@@ -31,6 +34,17 @@ internal class PairDeviceAction(avdInfoProvider: AvdInfoProvider) :
   }
 
   override fun isEnabled(): Boolean {
-    return avdInfo?.isWearOrPhone() ?: false
+    val avd = avdInfo ?: return false
+    return avd.tag == SystemImage.WEAR_TAG || (avd.androidVersion.apiLevel >= 30 && avd.hasPlayStore())
+  }
+}
+
+private fun getDescription(avdInfo: AvdInfo?): String {
+  avdInfo ?: return ""
+  val isWearDevice = avdInfo.tag == SystemImage.WEAR_TAG
+  return when {
+    !isWearDevice && avdInfo.androidVersion.apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
+    !isWearDevice && !avdInfo.hasPlayStore() -> message("wear.assistant.device.list.tooltip.requires.play")
+    else -> message("wear.assistant.device.list.tooltip.ok")
   }
 }
