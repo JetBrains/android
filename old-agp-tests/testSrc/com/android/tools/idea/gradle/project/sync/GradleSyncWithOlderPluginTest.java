@@ -19,6 +19,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
@@ -28,6 +29,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
  */
+@OldAgpTest(agpVersions = "3.3.2", gradleVersions = "5.3.1")
 public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase {
 
   @Override

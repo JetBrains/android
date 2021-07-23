@@ -23,16 +23,18 @@ import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoError
 import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MULTI_FEATURE;
 
+import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
+@OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
 public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
   @NotNull private static final String ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0";
-  @NotNull private static final String GRADLE_VERSION = "6.5";
+  @NotNull private static final String GRADLE_VERSION = "5.5";
 
   public void testLoadMultiAtomProject() throws Exception {
     // Use a plugin with feature support

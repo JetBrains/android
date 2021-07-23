@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.testing.applySelectedAgpVersions
 import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@OldAgpTest
 @RunWith(Parameterized::class)
 class GradleProjectSystemOldAgpIntegrationTest : GradleProjectSystemIntegrationTestCase() {
   companion object {

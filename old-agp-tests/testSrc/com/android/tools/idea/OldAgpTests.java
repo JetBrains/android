@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
  * Runs tests annotated with {@link com.android.testutils.junit4.OldAgpTest}.
  */
 @RunWith(OldAgpSuite.class)
-@JarTestSuiteRunner.ExcludeClasses({OldAgpTests.class, OldAgpTestSuite.class})
+@JarTestSuiteRunner.ExcludeClasses({OldAgpTests.class})
 public class OldAgpTests extends IdeaTestSuiteBase {
 
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();

@@ -1,14 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load(":agp_versions.bzl", "AGP_3_5", "AGP_MAVEN_REPOS")
-load(":gradle_versions.bzl", "GRADLE_DISTRIBUTIONS", "GRADLE_LATEST")
+load(":agp_versions.bzl", "local_old_agp_test", "AGP_3_5", "AGP_3_3_2", "AGP_4_0", "AGP_4_1", "GRADLE_LATEST", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.old-agp-tests",
     iml_files = ["intellij.android.old-agp-tests.iml"],
-    test_class = "com.android.tools.idea.OldAgpTestSuite",
     # keep sorted
+    tags = ["manual"],
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:build.prop",
@@ -52,7 +51,6 @@ iml_module(
         "//tools/external/gradle:gradle-distrib-3.5",
         "//tools/external/gradle:gradle-distrib-4.5",
     ],
-    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -86,42 +84,57 @@ iml_module(
     ],
 )
 
-COMMON_DATA = [
-    "//prebuilts/studio/jdk",
-    "//prebuilts/studio/layoutlib:build.prop",
-    "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    "//prebuilts/studio/layoutlib/data:native_libs",
-    "//prebuilts/studio/layoutlib/data/fonts",
-    "//prebuilts/studio/layoutlib/data/icu",
-    "//prebuilts/studio/sdk:build-tools/latest",
-    "//prebuilts/studio/sdk:cmake",
-    "//prebuilts/studio/sdk:docs",
-    "//prebuilts/studio/sdk:licenses",
-    "//prebuilts/studio/sdk:platform-tools",
-    "//prebuilts/studio/sdk:platforms/latest",
-    "//prebuilts/studio/sdk:sources",
-    "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-gradle-plugin.1.5.10",
-    "//tools/adt/idea/android/annotations",
-    "//tools/adt/idea/android/lib:sampleData",
-    "//tools/adt/idea/android/testData:projects",
-    "//tools/adt/idea/artwork:device-art-resources",
-]
+local_old_agp_test(
+    agp_version = AGP_3_3_2,
+    gradle_version = GRADLE_5_3_1,
+    shard_count = 1,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
 
-COMMON_MAVEN_DEPS = [
-    "//tools/adt/idea/android:test_deps",
-    "//tools/base/build-system:studio_repo",
-    "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-    "//tools/base/third_party/kotlin:kotlin-m2repository",
-    "//tools/data-binding:data_binding_runtime.zip",
-]
+local_old_agp_test(
+    agp_version = AGP_3_3_2,
+    gradle_version = GRADLE_5_5,
+    shard_count = 1,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
 
-old_agp_test(
-    name = "OldAgpTests",
+local_old_agp_test(
     agp_version = AGP_3_5,
-    data = COMMON_DATA + GRADLE_DISTRIBUTIONS[GRADLE_LATEST] + ["//prebuilts/studio/sdk:platforms/android-28"],
+    gradle_version = GRADLE_5_5,
+    shard_count = 4,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
+
+local_old_agp_test(
+    agp_version = AGP_4_0,
+    gradle_version = GRADLE_6_5,
+    shard_count = 2,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
+
+local_old_agp_test(
+    agp_version = AGP_4_1,
     gradle_version = GRADLE_LATEST,
-    iml_module = ":intellij.android.old-agp-tests",
-    maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[AGP_3_5],
-    tags = ["manual"],
-    test_class = "com.android.tools.idea.OldAgpTests",
+    shard_count = 2,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
 )

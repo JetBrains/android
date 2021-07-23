@@ -18,40 +18,22 @@ package com.android.tools.idea.instantapp;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
-import org.junit.Before;
 
+@OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
 public class InstantAppsTest extends AndroidGradleTestCase {
-  @Override
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-  @OldAgpTest(gradleVersions = "LATEST", agpVersions = "3.5.0")
+
   public void testFindBaseFeatureWithInstantApp() throws Exception {
-    // Use a plugin version that supports instant app
-    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
     assertEquals(TestModuleUtil.findModule(getProject(), "feature"), findBaseFeature(myAndroidFacet));
   }
 
-  public void testFindBaseFeatureWithoutInstantApp() throws Exception {
-    loadProject(SIMPLE_APPLICATION, "app");
-    assertNull(findBaseFeature(myAndroidFacet));
-  }
-
-  @OldAgpTest(gradleVersions = "LATEST", agpVersions = "3.5.0")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
-    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
     assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
-  }
-
-  public void testGetDefaultInstantAppUrlWithoutInstantApp() throws Exception {
-    loadProject(SIMPLE_APPLICATION, "app");
-    assertEquals("", getDefaultInstantAppUrl(myAndroidFacet));
   }
 }

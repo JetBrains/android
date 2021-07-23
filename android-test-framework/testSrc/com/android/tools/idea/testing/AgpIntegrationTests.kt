@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.junit4.OldAgpSuite
+
 /**
  * An AGP Version definition to be used in AGP integration tests.
  */
@@ -38,6 +40,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_CURRENT(null, gradleVersion = null),
   AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32"),
   AGP_40("4.0.0", gradleVersion = "6.5"),
+
   // TODO(b/194469137): Use correct Gradle version.
   AGP_41("4.1.0", gradleVersion = null);
 
@@ -59,8 +62,10 @@ interface AgpIntegrationTestDefinition<T> {
 fun <T : AgpIntegrationTestDefinition<T>> List<T>.applySelectedAgpVersions(): List<T> =
   AgpVersionSoftwareEnvironmentDescriptor.values()
     .filter {
-      // TODO(b/145300060): Apply AGP version from the AGP version specific test targets.
-      it != AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+      val pass = (OldAgpSuite.AGP_VERSION == null || (it.agpVersion ?: "LATEST") == OldAgpSuite.AGP_VERSION) &&
+                 (OldAgpSuite.GRADLE_VERSION == null || (it.gradleVersion ?: "LATEST") == OldAgpSuite.GRADLE_VERSION)
+      println("${it.name}($it) : $pass")
+      pass
     }
     .flatMap { version -> map { it.withAgpVersion(version) } }
     .sortedWith(compareBy({ it.agpVersion.gradleVersion }, { it.agpVersion.agpVersion }))
