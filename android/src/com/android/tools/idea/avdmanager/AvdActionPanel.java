@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPhone;
+
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
@@ -146,7 +148,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       actionList.add(new ExploreAvdAction(this));
     }
     actionList.add(new EditAvdAction(this));
-    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
+    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
       actionList.add(new PairDeviceAction(this));
     }
     actionList.add(new DuplicateAvdAction(this));
