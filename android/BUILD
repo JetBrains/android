@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library_legacy")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
@@ -954,7 +954,7 @@ studio_data(
 )
 
 # built for updating "resources/gmavenIndex/classes-offline.json".
-kotlin_library_legacy(
+kotlin_library(
     name = "update_offline_gmaven_index",
     srcs = [
         "src/com/android/tools/idea/imports/GMavenIndexConstants.kt",
