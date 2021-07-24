@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
-import com.android.repository.Revision.parseRevision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
@@ -32,7 +30,6 @@ fun buildGradle(
   isDynamicFeature: Boolean,
   packageName: String,
   buildApiString: String,
-  buildToolsVersion: String,
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
@@ -45,13 +42,9 @@ fun buildGradle(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
-  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(parseRevision(buildToolsVersion))
-
   val androidConfigBlock = androidConfig(
     gradlePluginVersion = gradlePluginVersion,
     buildApiString = buildApiString,
-    explicitBuildToolsVersion = explicitBuildToolsVersion,
-    buildToolsVersion = buildToolsVersion,
     minApi = minApi,
     targetApi = targetApi,
     useAndroidX = useAndroidX,

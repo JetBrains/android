@@ -140,7 +140,6 @@ class StartUpTest(unittest.TestCase):
                   "Layoutlib",
                   "Layoutlib Legacy",
                   "Machine Learning Code Completion",
-                  "Machine Learning Code Completion Models",
                   "Mercurial",
                   "Next File Prediction",
                   "Properties",

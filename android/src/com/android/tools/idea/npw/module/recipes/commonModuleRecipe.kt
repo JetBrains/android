@@ -69,7 +69,6 @@ fun RecipeExecutor.generateCommonModule(
       data.isDynamic,
       packageName,
       apis.buildApi.apiString,
-      projectData.buildToolsVersion,
       minApi.apiString,
       apis.targetApi.apiString,
       useAndroidX,

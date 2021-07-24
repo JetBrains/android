@@ -66,7 +66,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       true,
       packageName,
       buildApi.apiString,
-      projectData.buildToolsVersion,
       minApi.apiString,
       targetApi.apiString,
       useAndroidX,
