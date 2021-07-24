@@ -21,8 +21,6 @@ import com.android.tools.idea.templates.live.LiveTemplateTestCase.Location.EXPRE
 import com.android.tools.idea.templates.live.LiveTemplateTestCase.Location.OBJECT_DECLARATION
 import com.android.tools.idea.templates.live.LiveTemplateTestCase.Location.STATEMENT
 import com.android.tools.idea.templates.live.LiveTemplateTestCase.Location.TOP_LEVEL
-import com.intellij.openapi.util.Clock
-import com.intellij.util.text.DateFormatUtil
 
 class AndroidCommentsKotlinLiveTemplateTest : LiveTemplateTestCase() {
 
@@ -81,8 +79,7 @@ class AndroidCommentsKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("something\n")
 
     // Then:
-    val today = DateFormatUtil.formatDate(Clock.getTime())
-    myFixture.checkResult(insertIntoPsiFileAt(location, content = "// ${templateName.toUpperCase()}: $today something "))
+    myFixture.checkResult(insertIntoPsiFileAt(location, content = "// ${templateName.toUpperCase()}: something "))
   }
 
   private val TEMPLATE_TODO = "todo"
