@@ -926,7 +926,6 @@ maven_repo(
     visibility = [
         ":__pkg__",
         "//tools/adt/idea/android-uitests:__pkg__",
-        "//tools/adt/idea/app-inspection/ide:__pkg__",
         "//tools/adt/idea/ide-perf-tests:__pkg__",
         "//tools/base/bazel/test/gradle:__pkg__",
         "//tools/data-binding/compilationTests:__pkg__",
