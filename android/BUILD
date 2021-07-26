@@ -173,13 +173,6 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
         },
-        "avd": {
-            "test_filter": "com.android.tools.idea.avdmanager",
-        },
-        "jetbrains": {
-            "shard_count": 3,
-            "test_filter": "org.jetbrains.android",
-        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -229,11 +222,8 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
-        "wear.pairing.assistant": {
-            "test_filter": "com.android.tools.idea.wearpairing",
-        },
         "other": {
-            "shard_count": 3,
+            "shard_count": 6,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
