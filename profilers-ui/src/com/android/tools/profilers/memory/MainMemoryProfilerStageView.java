@@ -179,7 +179,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
       panel.add(DismissibleMessage.of(
         getStage().getStudioProfilers(),
         SHOW_PROFILEABLE_MESSAGE,
-        "Heap dump capturing, Java/Kotlin allocations, and GC forcing are disabled for profileable processes",
+        "Some features are disabled for profileable processes",
         () -> Unit.INSTANCE));
     }
     return panel;

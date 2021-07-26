@@ -16,10 +16,12 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.common.linkForeground
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBEmptyBorder
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -31,8 +33,9 @@ object DismissibleMessage {
   /**
    * @param key Key for use in persistent profiler preferences
    */
-  @JvmStatic
-  fun of(profilers: StudioProfilers, key: String, message: String, learnMore: () -> Unit): JPanel =
+  @JvmStatic @JvmOverloads
+  fun of(profilers: StudioProfilers, key: String, message: String, learnMore: () -> Unit,
+         color: Color = secondaryPanelBackground): JPanel =
     profilers.ideServices.persistentProfilerPreferences.let { pref ->
       when {
         pref.getBoolean(key, true) -> JBPanel<Nothing>(BorderLayout()).apply {
@@ -53,7 +56,7 @@ object DismissibleMessage {
           }
 
           border = JBEmptyBorder(4)
-          background = ProfilerColors.NOTIFICATION_BACKGROUND
+          background = color
           add(label, BorderLayout.CENTER)
           add(linkPanel, BorderLayout.EAST)
         }
