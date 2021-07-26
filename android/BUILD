@@ -201,10 +201,6 @@ iml_module(
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
         },
-        "templates": {
-            "shard_count": 3,
-            "test_filter": "com.android.tools.idea.templates",
-        },
         "testartifacts": {
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
@@ -223,7 +219,7 @@ iml_module(
             "shard_count": 2,
         },
         "other": {
-            "shard_count": 6,
+            "shard_count": 7,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
