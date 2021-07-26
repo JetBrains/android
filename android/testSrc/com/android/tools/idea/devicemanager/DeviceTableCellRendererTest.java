@@ -44,7 +44,7 @@ public final class DeviceTableCellRendererTest {
     Device device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .addConnectionType(ConnectionType.USB)
       .build();

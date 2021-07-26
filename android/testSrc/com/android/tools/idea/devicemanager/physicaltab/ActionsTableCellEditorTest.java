@@ -85,7 +85,7 @@ public final class ActionsTableCellEditorTest {
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .addConnectionType(ConnectionType.USB)
       .build();
@@ -153,7 +153,7 @@ public final class ActionsTableCellEditorTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
@@ -241,7 +241,7 @@ public final class ActionsTableCellEditorTest {
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .addConnectionType(ConnectionType.USB)
       .build();

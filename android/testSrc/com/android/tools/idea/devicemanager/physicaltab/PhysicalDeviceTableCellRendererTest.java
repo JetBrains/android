@@ -37,7 +37,7 @@ public final class PhysicalDeviceTableCellRendererTest {
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
