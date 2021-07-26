@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.DrawableFileType
+import com.android.tools.idea.uibuilder.type.getPreviewConfig
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -108,7 +109,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
                              facet: AndroidFacet,
                              componentRegistrar: Consumer<NlComponent>,
                              file: VirtualFile): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
+      val config = ConfigurationManager.getOrCreateInstance(facet).getPreviewConfig()
       animatedSelectorModel = WriteCommandAction.runWriteCommandAction(project, Computable {
         AnimatedSelectorModel(file, parentDisposable, project, facet, componentRegistrar, config)
       })
