@@ -112,7 +112,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDevice googlePixel3WithDomainName = new PhysicalDevice.Builder()
       .setKey(domainName)
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
@@ -134,7 +134,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(serialNumber)
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
@@ -142,7 +142,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(domainName)
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
@@ -158,7 +158,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDevice domainNameGooglePixel3 = new PhysicalDevice.Builder()
       .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
@@ -177,7 +177,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDevice domainNameGooglePixel3 = new PhysicalDevice.Builder()
       .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
       .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
+      .setTarget("Android 12.0")
       .setApi("S")
       .build();
 
