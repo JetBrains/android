@@ -136,6 +136,11 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public void rewrite() {
+    myRealModel.rewrite();
+  }
+
+  @Override
   public void delete() {
     myRealModel.delete();
   }

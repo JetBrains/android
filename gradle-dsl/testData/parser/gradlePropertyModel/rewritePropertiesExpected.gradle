@@ -1,0 +1,6 @@
+ext {
+  varInt = 1
+  varString = 'foo'
+  varList = ['bar', 'baz']
+  varMap = [key: 'value', num: varInt]
+}
