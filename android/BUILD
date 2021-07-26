@@ -905,17 +905,8 @@ maven_repo(
         "//tools/base/third_party/kotlin/for_ide_plugin:org.jetbrains.kotlin_kotlin-reflect",
         "//tools/base/third_party/kotlin/for_ide_plugin:org.jetbrains.kotlin_kotlin-stdlib-jdk8",
     ],
-    # This visibility list is an inclusive list of all packages that depend on this maven_repo.
-    # Please do not add additional packages to this list.
-    # TODO (b/191383051): Create new test_deps targets for all targets in this list (except ":__pkg__") and remove
-    # //tools/adt/idea/android:test_deps as a dependency.
-    visibility = [
-        ":__pkg__",
-        "//tools/base/bazel/test/gradle:__pkg__",
-        "//tools/data-binding/compilationTests:__pkg__",
-        "//tools/vendor/google/android-ndk:__pkg__",
-        "//tools/vendor/google/lldb-integration-tests:__pkg__",
-    ],
+    # Do not change: this target is explicitly marked private to avoid bloat.
+    visibility = ["//visibility:private"],
 )
 
 # Validates no new gradle project tests are added to intellij.android.core.tests
