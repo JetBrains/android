@@ -24,7 +24,7 @@ COMMON_DATA = [
 ]
 
 COMMON_MAVEN_DEPS = [
-    "//tools/adt/idea/android:test_deps",
+    ":test_deps",
     "//tools/base/build-system:studio_repo",
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     "//tools/base/third_party/kotlin:kotlin-m2repository",
