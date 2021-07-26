@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.testing.TemporaryDirectoryRule
-import com.android.utils.TraceUtils.currentTime
 import io.grpc.ManagedChannelBuilder
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.rules.ExternalResource
@@ -66,7 +65,6 @@ class FakeEmulatorRule : TestRule {
     get() = nullableRoot ?: throw IllegalStateException()
 
   override fun apply(base: Statement, description: Description): Statement {
-    println("${currentTime()} FakeEmulatorRule.apply: ${description.methodName}")
     return tempDirectory.apply(emulatorResource.apply(base, description), description)
   }
 
