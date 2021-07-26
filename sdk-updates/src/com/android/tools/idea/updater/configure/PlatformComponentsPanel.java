@@ -96,7 +96,8 @@ public class PlatformComponentsPanel {
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
     for (AndroidVersion version : versions) {
-      if (version.equals(0)) {
+      // When an API level is not parsed correctly, it is given API level 0, which is undefined and we should not show the package.
+      if (version.equals(AndroidVersion.VersionCodes.UNDEFINED)) {
         continue;
       }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
