@@ -52,8 +52,9 @@ class PlatformComponentsPanelTest {
     val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
     panel.setPackages(ImmutableMultimap.of(
       AndroidVersion(30), UpdatablePackage(createLocalPackage("android-30", 1, typeDetails = typeDetails)),
-      AndroidVersion(29), UpdatablePackage(createLocalPackage("android-29", 2,typeDetails = typeDetails)),
-      AndroidVersion(0), UpdatablePackage(createLocalPackage("android-0", 0, typeDetails = typeDetails)) // Invalid AndroidVersion
+      AndroidVersion(29), UpdatablePackage(createLocalPackage("android-29", 2, typeDetails = typeDetails)),
+      AndroidVersion(AndroidVersion.VersionCodes.UNDEFINED),
+      UpdatablePackage(createLocalPackage("android-0", 0, typeDetails = typeDetails)) // Invalid AndroidVersion
     ))
     verifyNodes(
       Node("", listOf("Android 11.0 (R)", "Android 10.0 (Q)").map { Node(it) }), panel.myPlatformSummaryRootNode)
