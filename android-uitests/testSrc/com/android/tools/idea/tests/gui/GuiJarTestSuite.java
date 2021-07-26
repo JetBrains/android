@@ -38,7 +38,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android-uitests/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
 
