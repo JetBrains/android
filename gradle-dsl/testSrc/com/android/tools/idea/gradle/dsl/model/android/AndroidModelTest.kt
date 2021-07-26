@@ -202,6 +202,22 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAndroidBlockDeleteAndRecreateDimensions() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS)
+    val buildModel = gradleBuildModel
+    val flavorDimensionsModel = buildModel.android().flavorDimensions()
+    assertEquals("flavorDimensions", listOf("salt", "sugar"), flavorDimensionsModel)
+    flavorDimensionsModel.delete()
+    flavorDimensionsModel.addListValue().setValue("salt")
+    flavorDimensionsModel.addListValue().setValue("sugar")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS_EXPECTED)
+
+    assertEquals("flavorDimensions", listOf("salt", "sugar"), buildModel.android().flavorDimensions())
+  }
+
+  @Test
   fun testAndroidBlockWithProductFlavorBlocks() {
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS)
     val android = gradleBuildModel.android()
@@ -1868,6 +1884,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_NO_DIMENSIONS("androidBlockWithNoDimensions"),
     ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED("androidBlockWithNoDimensionsExpected"),
     ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED_400("androidBlockWithNoDimensionsExpected400"),
+    ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS("androidBlockDeleteAndRecreateDimensions"),
+    ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS_EXPECTED("androidBlockDeleteAndRecreateDimensionsExpected"),
     ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS("androidBlockWithProductFlavorBlocks"),
     ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK("androidBlockWithExternalNativeBuildBlock"),
     REMOVE_AND_RESET_ELEMENTS("removeAndResetElements"),

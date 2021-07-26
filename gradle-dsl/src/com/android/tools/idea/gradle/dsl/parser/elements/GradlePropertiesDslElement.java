@@ -221,7 +221,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     addParsedElement(element);
   }
 
-  protected void addAsParsedDslExpressionList(@NotNull String property, @NotNull GradleDslSimpleExpression expression) {
+  protected void addAsParsedDslExpressionList(@NotNull ModelEffectDescription effect, @NotNull GradleDslSimpleExpression expression) {
+    String property = effect.property.name;
     PsiElement psiElement = expression.getPsiElement();
     if (psiElement == null) {
       return;
@@ -232,6 +233,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     // only one argument is supported and for this cases we use addToParsedExpressionList method.
     GradleDslExpressionList literalList =
       new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property), true);
+    literalList.setModelEffect(effect);
+    literalList.setElementType(REGULAR);
     if (expression instanceof GradleDslMethodCall) {
       // Make sure the psi is set to the argument list instead of the whole method call.
       literalList.setPsiElement(((GradleDslMethodCall)expression).getArgumentListPsiElement());
