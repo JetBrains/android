@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -229,7 +230,7 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
     val tempDrawableDir = systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER)
                           ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
     val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$nameWithoutSuffix", ".xml", true, true)
-    return physicalChildInTempDrawableFile.toVirtualFile()!!
+    return physicalChildInTempDrawableFile.toVirtualFile(true)!!
   }
 
   private fun getTransitionContent(animatedVectorTag: XmlTag): String {
