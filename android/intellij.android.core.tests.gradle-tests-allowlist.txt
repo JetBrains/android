@@ -151,7 +151,6 @@ com.android.tools.idea.run.editor.SpecificActivityLaunchTest
 com.android.tools.idea.sdk.IdeSdksAndroidTest
 com.android.tools.idea.sdk.wizard.SdkQuickfixUtilsTest
 com.android.tools.idea.startup.GradleSpecificInitializerTest
-com.android.tools.idea.templates.CreateGradleWrapperTest
 com.android.tools.idea.testartifacts.gradle.AndroidGradleConfigurationProducersTest
 com.android.tools.idea.testartifacts.gradle.AndroidGradleTestTasksProviderTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest
