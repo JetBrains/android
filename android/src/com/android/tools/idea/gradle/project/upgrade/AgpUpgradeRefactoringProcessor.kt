@@ -145,6 +145,8 @@ import com.intellij.util.containers.toArray
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.kotlin.util.firstNotNullResult
+import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.*

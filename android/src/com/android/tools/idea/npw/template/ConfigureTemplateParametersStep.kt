@@ -85,7 +85,7 @@ import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.kotlin.util.firstNotNullResult
 import java.awt.FlowLayout
 import java.awt.Font
 import java.util.EnumSet

@@ -135,7 +135,7 @@ fun KtExpression.tryEvaluateConstant(): String? {
   return ConstantExpressionEvaluator.getConstant(this, analyze())
     ?.takeUnless { it.isError }
     ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
-    ?.safeAs()
+    ?.safeAs<String>()
 }
 
 /**
