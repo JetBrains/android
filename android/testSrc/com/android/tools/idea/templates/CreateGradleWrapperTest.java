@@ -15,20 +15,27 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-
-import com.android.tools.idea.testing.AndroidGradleTests;
-import java.io.File;
-
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class CreateGradleWrapperTest extends AndroidGradleTestCase {
-  public void testCreateGradleWrapper() throws Exception {
-    File projectFolderPath = getBaseDirPath(getProject());
+import com.android.tools.idea.testing.AndroidGradleTests;
+import com.intellij.testFramework.LightPlatformTestCase;
+import java.io.File;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+@RunWith(JUnit4.class)
+public class CreateGradleWrapperTest extends LightPlatformTestCase {
+
+  @Test
+  public void createGradleWrapper() throws Exception {
+    File projectFolderPath = new File(getTestDirectoryName());
+    assertThat(projectFolderPath.mkdir()).isTrue();
+
     AndroidGradleTests.createGradleWrapper(projectFolderPath, GRADLE_LATEST_VERSION);
 
     assertAbout(file()).that(new File(projectFolderPath, "gradlew")).isFile();
