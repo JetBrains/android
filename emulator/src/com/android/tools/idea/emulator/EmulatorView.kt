@@ -479,69 +479,6 @@ class EmulatorView(
     }
   }
 
-  private fun sendMouseEvent(x: Int, y: Int, button: Int) {
-    val displayRect = this.displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
-    val physicalX = x * screenScale // Coordinate in physical screen pixels.
-    val physicalY = y * screenScale
-    if (!displayRect.contains(physicalX, physicalY)) {
-      return // Outside of the display rectangle.
-    }
-    val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
-    val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-    val deviceDisplayRegion = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
-    val displayX: Int
-    val displayY: Int
-    when (screenshotShape.rotation) {
-      SkinRotation.PORTRAIT -> {
-        displayX = ((0.5 + normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-        displayY = ((0.5 + normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
-      }
-      SkinRotation.LANDSCAPE -> {
-        displayX = ((0.5 - normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-        displayY = ((0.5 + normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
-      }
-      SkinRotation.REVERSE_PORTRAIT -> {
-        displayX = ((0.5 - normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-        displayY = ((0.5 - normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
-      }
-      SkinRotation.REVERSE_LANDSCAPE -> {
-        displayX = ((0.5 + normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-        displayY = ((0.5 - normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
-      }
-      else -> {
-        return
-      }
-    }
-
-    if (multiTouchMode) {
-      val touchEvent = TouchEvent.newBuilder()
-        .setDisplay(displayId)
-        .addTouches(createTouch(displayX, displayY, 0, button))
-        .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
-        .build()
-      emulator.sendTouch(touchEvent)
-      lastMultiTouchEvent = touchEvent
-    }
-    else {
-      val mouseEvent = MouseEventMessage.newBuilder()
-        .setDisplay(displayId)
-        .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
-        .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
-        .setButtons(button)
-        .build()
-      emulator.sendMouse(mouseEvent)
-    }
-  }
-
-  private fun createTouch(x: Int, y: Int, identifier: Int, pressure: Int): Touch.Builder {
-    return Touch.newBuilder()
-      .setX(x)
-      .setY(y)
-      .setIdentifier(identifier)
-      .setPressure(pressure)
-      .setExpiration(NEVER_EXPIRE)
-  }
-
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     invokeLaterInAnyModalityState {
       updateConnectionState(connectionState)
@@ -1024,6 +961,69 @@ class EmulatorView(
       if (multiTouchMode && oldMultiTouchMode) {
         repaint() // If multitouch mode changed above, the repaint method was already called.
       }
+    }
+
+    private fun sendMouseEvent(x: Int, y: Int, button: Int) {
+      val displayRect = displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
+      val physicalX = x * screenScale // Coordinate in physical screen pixels.
+      val physicalY = y * screenScale
+      if (!displayRect.contains(physicalX, physicalY)) {
+        return // Outside of the display rectangle.
+      }
+      val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
+      val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
+      val deviceDisplayRegion = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
+      val displayX: Int
+      val displayY: Int
+      when (screenshotShape.rotation) {
+        SkinRotation.PORTRAIT -> {
+          displayX = ((0.5 + normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+          displayY = ((0.5 + normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+        }
+        SkinRotation.LANDSCAPE -> {
+          displayX = ((0.5 - normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+          displayY = ((0.5 + normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+        }
+        SkinRotation.REVERSE_PORTRAIT -> {
+          displayX = ((0.5 - normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+          displayY = ((0.5 - normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+        }
+        SkinRotation.REVERSE_LANDSCAPE -> {
+          displayX = ((0.5 + normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+          displayY = ((0.5 - normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+        }
+        else -> {
+          return
+        }
+      }
+
+      if (multiTouchMode) {
+        val touchEvent = TouchEvent.newBuilder()
+          .setDisplay(displayId)
+          .addTouches(createTouch(displayX, displayY, 0, button))
+          .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
+          .build()
+        emulator.sendTouch(touchEvent)
+        lastMultiTouchEvent = touchEvent
+      }
+      else {
+        val mouseEvent = MouseEventMessage.newBuilder()
+          .setDisplay(displayId)
+          .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
+          .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
+          .setButtons(button)
+          .build()
+        emulator.sendMouse(mouseEvent)
+      }
+    }
+
+    private fun createTouch(x: Int, y: Int, identifier: Int, pressure: Int): Touch.Builder {
+      return Touch.newBuilder()
+        .setX(x)
+        .setY(y)
+        .setIdentifier(identifier)
+        .setPressure(pressure)
+        .setExpiration(NEVER_EXPIRE)
     }
   }
 
