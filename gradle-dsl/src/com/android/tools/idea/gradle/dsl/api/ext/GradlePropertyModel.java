@@ -218,6 +218,11 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
   GradlePropertyModel getListValue(@NotNull Object value);
 
   /**
+   * Ensure that this property will be rewritten to whatever syntactic form is best for the build model.
+   */
+  void rewrite();
+
+  /**
    * @return a resolved model representing this property.
    */
   @NotNull

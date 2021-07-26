@@ -3420,6 +3420,30 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyFileContents(myBuildFile, TestFile.REFERENCE_TO_MAP_ELEMENT_EXPECTED)
   }
 
+  @Test
+  fun testRewriteProperties() {
+    writeToBuildFile(TestFile.REWRITE_PROPERTIES)
+
+    val buildModel = gradleBuildModel
+    val varInt = buildModel.ext().findProperty("varInt")
+    val varString = buildModel.ext().findProperty("varString")
+    val varList = buildModel.ext().findProperty("varList")
+    val varMap = buildModel.ext().findProperty("varMap")
+
+    assertEquals("varInt", 1, varInt)
+    assertEquals("varString", "foo", varString)
+    assertEquals("varList", listOf("bar", "baz"), varList)
+    assertEquals("varMap", mapOf("key" to "value", "num" to 1), varMap)
+
+    varInt.rewrite()
+    varString.rewrite()
+    varList.rewrite()
+    varMap.rewrite()
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REWRITE_PROPERTIES_EXPECTED)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -4041,7 +4065,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     REFERENCE_TO_MAP_IN_MAP("referenceToMapInMap"),
     REFERENCE_TO_MAP_IN_MAP_EXPECTED("referenceToMapInMapExpected"),
     REFERENCE_TO_MAP_ELEMENT("referenceToMapElement"),
-    REFERENCE_TO_MAP_ELEMENT_EXPECTED("referenceToMapElementExpected")
+    REFERENCE_TO_MAP_ELEMENT_EXPECTED("referenceToMapElementExpected"),
+    REWRITE_PROPERTIES("rewriteProperties"),
+    REWRITE_PROPERTIES_EXPECTED("rewritePropertiesExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

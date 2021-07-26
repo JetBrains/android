@@ -291,6 +291,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (value instanceof List) {
       setListValue((List<GradlePropertyModel>) value);
     }
+    else if (value instanceof Map) {
+      setMapValue((Map<String,GradlePropertyModel>)value);
+    }
     else {
       GradleDslExpression newElement;
       if (myPropertyDescription == null) {
@@ -303,9 +306,15 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
   }
 
-  private void setMapValue(Map<String,Object> value) {
+  private void setMapValue(Map<String,GradlePropertyModel> value) {
     convertToEmptyMap();
-    // TODO
+    for (Map.Entry<String,GradlePropertyModel> e : value.entrySet()) {
+      GradlePropertyModel newValueModel = getMapValue(e.getKey());
+      Object newValue = e.getValue().getValue(OBJECT_TYPE);
+      if (newValue != null) {
+        newValueModel.setValue(newValue);
+      }
+    }
   }
 
   @Override
@@ -418,6 +427,33 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       Object v = e.getValue(OBJECT_TYPE);
       return v != null && v.equals(value);
     }).findFirst().orElse(null);
+  }
+
+  @Override
+  public void rewrite() {
+    GradleDslElement element = getElement();
+    if (element == null || myElement == null) return;
+    GradleDslExpression newElement;
+    if (!(myElement instanceof GradleDslExpression)) throw new IllegalStateException("Called rewrite on a non-Expression");
+    ValueType valueType = getValueType();
+    if (valueType == ValueType.LIST) {
+      setListValue(getValue(LIST_TYPE));
+    }
+    else if (valueType == ValueType.MAP) {
+      setMapValue(getValue(MAP_TYPE));
+    }
+    else {
+      if (myPropertyDescription == null) {
+        newElement = getTransform().bind(myPropertyHolder, myElement, getValue(OBJECT_TYPE), getName());
+      }
+      else {
+        newElement = getTransform().bind(myPropertyHolder, myElement, getValue(OBJECT_TYPE), myPropertyDescription);
+      }
+      if (newElement == myElement) {
+        newElement = newElement.copy();
+      }
+      bindToNewElement(newElement);
+    }
   }
 
   @Override
