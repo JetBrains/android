@@ -159,7 +159,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     if (effect != null) {
       SemanticsDescription description = effect.semantics;
       if (description == ADD_AS_LIST && element instanceof GradleDslSimpleExpression) {
-        addAsParsedDslExpressionList(effect.property.name, (GradleDslSimpleExpression) element);
+        addAsParsedDslExpressionList(effect, (GradleDslSimpleExpression) element);
         return;
       }
       if (description == AUGMENT_LIST) {

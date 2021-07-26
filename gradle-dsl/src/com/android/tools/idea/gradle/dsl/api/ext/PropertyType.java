@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
  * <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
  * <li>{@code PROPERTIES_FILE} - a Gradle property from a gradle.properties file</li>
  * <li>{@code FAKE} - a fake property is used to represent some "part" of another property to make it easier to work with,
- * some operations (such as making them lists of maps) are disabled for these properties. An example of a FAKE
+ * some operations (such as making them lists or maps) are disabled for these properties. An example of a FAKE
  * property is a component of a Gradle coordinate in compact notation e.g ('com.android.support:appcompat-v7:22.1.1')</li>
  * </ul>
  */
