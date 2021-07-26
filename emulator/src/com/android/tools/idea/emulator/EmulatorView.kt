@@ -135,6 +135,7 @@ import javax.swing.SwingUtilities
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.nextDown
 import kotlin.math.round
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
@@ -170,6 +171,9 @@ class EmulatorView(
     get() = displaySize ?: emulator.emulatorConfig.displaySize
   private val currentDisplaySize
     get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
+  private val deviceDisplayRegion
+    get() = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
+
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -919,6 +923,8 @@ class EmulatorView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
+    private var dragging = false
+
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (event.button == BUTTON1) {
@@ -941,13 +947,16 @@ class EmulatorView(
     }
 
     override fun mouseExited(event: MouseEvent) {
+      if (dragging) {
+        sendMouseEvent(event.x, event.y, 0) // Terminate the ongoing dragging.
+      }
       multiTouchMode = false
     }
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating) {
-        sendMouseEvent(event.x, event.y, 1)
+        sendMouseEvent(event.x, event.y, 1, drag = true)
       }
     }
 
@@ -963,45 +972,68 @@ class EmulatorView(
       }
     }
 
-    private fun sendMouseEvent(x: Int, y: Int, button: Int) {
+    private fun sendMouseEvent(x: Int, y: Int, button: Int, drag: Boolean = false) {
+      val screenScale = screenScale
+      sendMouseEventInPhysicalPixels(x * screenScale, y * screenScale, button, drag)
+    }
+
+    private fun sendMouseEventInPhysicalPixels(physicalX: Double, physicalY: Double, button: Int, drag: Boolean) {
       val displayRect = displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
-      val physicalX = x * screenScale // Coordinate in physical screen pixels.
-      val physicalY = y * screenScale
       if (!displayRect.contains(physicalX, physicalY)) {
-        return // Outside of the display rectangle.
+        // Coordinates are outside the display rectangle.
+        if (drag) {
+          // Terminate dragging.
+          sendMouseEventInPhysicalPixels(physicalX.coerceIn(displayRect.x.toDouble(),
+                                                            (displayRect.x + displayRect.width).toDouble().nextDown()),
+                                         physicalY.coerceIn(displayRect.y.toDouble(),
+                                                            (displayRect.y + displayRect.height).toDouble().nextDown()),
+                                         0, false)
+        }
+        return
       }
+
+      dragging = drag
+
       val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
       val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-      val deviceDisplayRegion = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
+      val deviceDisplayRegion = deviceDisplayRegion
       val displayX: Int
       val displayY: Int
       when (screenshotShape.rotation) {
         SkinRotation.PORTRAIT -> {
-          displayX = ((0.5 + normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-          displayY = ((0.5 + normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+          displayX = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
+          displayY = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
         SkinRotation.LANDSCAPE -> {
-          displayX = ((0.5 - normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-          displayY = ((0.5 + normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+          displayX = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
+          displayY = transformNormalizedCoordinate(normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
         SkinRotation.REVERSE_PORTRAIT -> {
-          displayX = ((0.5 - normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-          displayY = ((0.5 - normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+          displayX = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.x, deviceDisplayRegion.width)
+          displayY = transformNormalizedCoordinate(-normalizedY, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
         SkinRotation.REVERSE_LANDSCAPE -> {
-          displayX = ((0.5 + normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
-          displayY = ((0.5 - normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
+          displayX = transformNormalizedCoordinate(normalizedY, deviceDisplayRegion.x, deviceDisplayRegion.width)
+          displayY = transformNormalizedCoordinate(-normalizedX, deviceDisplayRegion.y, deviceDisplayRegion.height)
         }
         else -> {
           return
         }
       }
 
+      sendMouseOrTouchEvent(displayX, displayY, button, deviceDisplayRegion)
+    }
+
+    private fun transformNormalizedCoordinate(normalizedCoordinate: Double, rangeStart: Int, rangeSize: Int): Int {
+      return ((0.5 + normalizedCoordinate) * rangeSize).roundToInt().coerceIn(0, rangeSize - 1) + rangeStart
+    }
+
+    private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, button: Int, deviceDisplayRegion: Rectangle) {
       if (multiTouchMode) {
         val touchEvent = TouchEvent.newBuilder()
           .setDisplay(displayId)
           .addTouches(createTouch(displayX, displayY, 0, button))
-          .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
+          .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, button))
           .build()
         emulator.sendTouch(touchEvent)
         lastMultiTouchEvent = touchEvent
@@ -1009,8 +1041,8 @@ class EmulatorView(
       else {
         val mouseEvent = MouseEventMessage.newBuilder()
           .setDisplay(displayId)
-          .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
-          .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
+          .setX(displayX)
+          .setY(displayY)
           .setButtons(button)
           .build()
         emulator.sendMouse(mouseEvent)
