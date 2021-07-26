@@ -18,16 +18,19 @@ package com.android.tools.idea.updater.configure
 import com.android.repository.Revision
 import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
-import org.junit.Assert
+import com.intellij.openapi.util.text.StringUtil
 
-internal data class Node(val nodeName: String, val children: List<Node>? = null)
+internal fun UpdaterTreeNode.asString() = printSubTree(this).trim().toString()
 
-internal fun verifyNodes(expected: Node, actual: UpdaterTreeNode) {
+private fun printSubTree(node: UpdaterTreeNode, level: Int = 0, result: StringBuilder = StringBuilder()): StringBuilder{
   val renderer = UpdaterTreeNode.Renderer()
-  actual.customizeRenderer(renderer, null, false, false, false, 0, false)
-  Assert.assertEquals(expected.nodeName, renderer.textRenderer.toString())
-  Assert.assertEquals(expected.children?.size ?: 0, actual.childCount)
-  expected.children?.zip(actual.children().toList())?.forEach { (expected, actual) -> verifyNodes(expected, actual as UpdaterTreeNode) }
+  node.customizeRenderer(renderer, null, false, false, false, 0, false)
+  val nodeDescription = if (node is RootNode) "Root" else renderer.textRenderer.toString()
+  result.append(StringUtil.repeat(" ", level)).append(nodeDescription).append("\n")
+  for (i in 0 until node.childCount) {
+    printSubTree(node.getChildAt(i) as UpdaterTreeNode, level + 1, result)
+  }
+  return result
 }
 
 internal fun createLocalPackage(
