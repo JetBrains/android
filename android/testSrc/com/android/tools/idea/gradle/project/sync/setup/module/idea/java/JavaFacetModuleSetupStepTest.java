@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     mySetupStep = new JavaFacetModuleSetupStep();
   }
 

@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.model.GradleProject;
@@ -49,7 +49,7 @@ public class GradleModuleModelDataServiceTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     myDataService = new GradleModuleModelDataService(myModuleSetup);
   }
 
