@@ -125,7 +125,7 @@ public interface IdeProfilerServices {
   void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback);
 
   /**
-   * Opens a dialog giving the user to select items from the listbox.
+   * Opens a dialog asking the user to select items from the listbox.
    *
    * @param title                      tile to be provided to the dialog box.
    * @param message                    optional message to be provided to the user about contents of listbox.
