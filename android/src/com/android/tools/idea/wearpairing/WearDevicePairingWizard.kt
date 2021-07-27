@@ -32,13 +32,14 @@ import com.intellij.util.ui.JBUI
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 import java.net.URL
 
-class WearDevicePairingWizard {
-  private var wizardDialog: ModelWizardDialog? = null
+// Keep an instance, so if the wizard is already running, just bring it to the front
+private var wizardDialog: ModelWizardDialog? = null
 
+internal class WearDevicePairingWizard {
   @Synchronized
   fun show(project: Project) {
     wizardDialog?.apply {
-      window?.toFront()  // We already have a dialog, just bring it to front and return
+      window?.toFront()  // We already have a dialog, just bring it to the front and return
       return
     }
 

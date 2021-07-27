@@ -27,9 +27,6 @@ import icons.StudioIcons
  * The action to show the [WearDevicePairingWizard] dialog.
  */
 class WearDevicePairingAction : AnAction() {
-  // Keep an instance, so if the wizard is already running, just bring it to front
-  private val pairingWizard: WearDevicePairingWizard = WearDevicePairingWizard()
-
   @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -47,7 +44,7 @@ class WearDevicePairingAction : AnAction() {
       return
     }
     val project = event.project ?: return
-    pairingWizard.show(project)
+    WearDevicePairingWizard().show(project)
   }
 
   companion object {
