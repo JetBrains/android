@@ -73,8 +73,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     myState = state;
   }
 
-  // TODO Add final to the state class fields
-
   static final class PhysicalTabState {
     @XCollection(style = Style.v2)
     private @NotNull Collection<@NotNull PhysicalDeviceState> physicalDevices = Collections.emptyList();
@@ -93,26 +91,25 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
   @Tag("PhysicalDevice")
   private static final class PhysicalDeviceState {
     @OptionTag(tag = "key", nameAttribute = "")
-    private @Nullable KeyState key;
+    private final @Nullable KeyState key;
 
     @OptionTag(tag = "lastOnlineTime", nameAttribute = "", converter = InstantConverter.class)
-    private @Nullable Instant lastOnlineTime;
+    private final @Nullable Instant lastOnlineTime;
 
     @OptionTag(tag = "name", nameAttribute = "")
-    private @Nullable String name;
+    private final @Nullable String name;
 
     @OptionTag(tag = "nameOverride", nameAttribute = "")
-    @SuppressWarnings({"CanBeFinal", "FieldMayBeFinal"})
-    private @NotNull String nameOverride;
+    private final @NotNull String nameOverride;
 
     @OptionTag(tag = "target", nameAttribute = "")
-    private @Nullable String target;
+    private final @Nullable String target;
 
     @OptionTag(tag = "api", nameAttribute = "")
-    private @Nullable String api;
+    private final @Nullable String api;
 
     @OptionTag(tag = "resolution", nameAttribute = "")
-    private @Nullable ResolutionState resolution;
+    private final @Nullable ResolutionState resolution;
 
     @OptionTag(tag = "density", nameAttribute = "")
     private final int density;
@@ -122,7 +119,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
+      key = null;
+      lastOnlineTime = null;
+      name = null;
       nameOverride = "";
+      target = null;
+      api = null;
+      resolution = null;
       density = -1;
       abis = Collections.emptyList();
     }
@@ -136,10 +139,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       api = device.getApi();
 
       Resolution resolution = device.getResolution();
-
-      if (resolution != null) {
-        this.resolution = new ResolutionState(resolution);
-      }
+      this.resolution = resolution == null ? null : new ResolutionState(resolution);
 
       density = device.getDensity();
       abis = device.getAbis();
@@ -215,13 +215,15 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
   @Tag("Key")
   private static final class KeyState {
     @OptionTag(tag = "type", nameAttribute = "")
-    private @Nullable KeyType type;
+    private final @Nullable KeyType type;
 
     @OptionTag(tag = "value", nameAttribute = "")
-    private @Nullable String value;
+    private final @Nullable String value;
 
     @SuppressWarnings("unused")
     private KeyState() {
+      type = null;
+      value = null;
     }
 
     private KeyState(@NotNull Key key) {
@@ -287,13 +289,15 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
   @Tag("Resolution")
   private static final class ResolutionState {
     @OptionTag(tag = "width", nameAttribute = "")
-    private int width;
+    private final int width;
 
     @OptionTag(tag = "height", nameAttribute = "")
-    private int height;
+    private final int height;
 
     @SuppressWarnings("unused")
     private ResolutionState() {
+      width = 0;
+      height = 0;
     }
 
     private ResolutionState(@NotNull Resolution resolution) {
