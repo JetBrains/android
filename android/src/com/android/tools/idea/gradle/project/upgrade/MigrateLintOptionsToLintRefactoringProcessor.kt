@@ -31,7 +31,7 @@ val MIGRATE_LINT_OPTIONS_TO_LINT =
     """.trimIndent()
     },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToLintRefactoringProcessor.usageView.header"),
-    componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND, // TODO(xof): fixme
+    componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_LINT,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(
