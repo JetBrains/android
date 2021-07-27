@@ -74,7 +74,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/grpc-protobuf-1.21.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/grpc-protobuf-lite-1.21.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/grpc-stub-1.21.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/gson-2.7.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/gson-2.8.6.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/guava-30.1-jre.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/hamcrest-core-1.3.jar!/" />
