@@ -80,7 +80,8 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
           value instanceof BigDecimal ||
           value instanceof InterpolatedText)) {
       throw new IllegalArgumentException(
-        "Can't set a property value with: " + value.getClass() + " type must be one of [Boolean, Integer, String, ReferenceTo]");
+        "Can't set a property value with: " + value.getClass() + " - type must be one of:\n" +
+        "    [String, Integer, Boolean, RawText, ReferenceTo, BigDecimal, InterpolatedText].");
     }
   }
 }
