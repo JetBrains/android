@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
 
@@ -31,7 +32,7 @@ class IssuePanelSplitter(
     issuePanel.addEventListener(createIssueEventListener(issuePanel))
     setHonorComponentsMinimumSize(true)
     firstComponent = content
-    secondComponent = issuePanel
+    secondComponent = if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) null else issuePanel
   }
 
   private fun updateSplitter(isExpanded: Boolean, height: Int) {
