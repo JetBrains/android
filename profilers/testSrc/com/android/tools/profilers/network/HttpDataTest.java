@@ -78,6 +78,18 @@ public class HttpDataTest {
     assertThat(builder.build().getResponseHeader().getStatusCode()).isEqualTo(-1);
   }
 
+  @Test
+  public void responseFieldsWithDuplicateKeys() {
+    HttpData.Builder builder = TestHttpData.newBuilder(1);
+    builder.setResponseFields("status line =  HTTP/1.1 302 Found \n" +
+                              "first=1 \n  second  = 2\n equation=x+y=10\nsecond=3");
+    HttpData data = builder.build();
+    HttpData.ResponseHeader header = data.getResponseHeader();
+    assertThat(header.getField("first")).isEqualTo("1");
+    assertThat(header.getField("second")).isEqualTo("2;3");
+    assertThat(header.getField("equation")).isEqualTo("x+y=10");
+  }
+
   @Test(expected = AssertionError.class)
   public void invalidResponseFields() {
     HttpData.Builder builder = TestHttpData.newBuilder(1);

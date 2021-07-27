@@ -56,10 +56,19 @@ sealed class HttpHeader {
 private fun parseHeaderFields(fields: String): Map<String, String> {
   return fields.split('\n')
     .filter { line: String -> line.trim { it <= ' ' }.isNotEmpty() }
-    .associate { line: String ->
+    .map { line ->
       val keyAndValue = line.split('=', limit = 2)
       assert(keyAndValue.size == 2) { "Unexpected http header field ($line)" }
       keyAndValue[0].trim { it <= ' ' }.toLowerCase(Locale.getDefault()) to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
+    }
+    .groupingBy { it.first }
+    .aggregate { _, accumulator: String?, element, first ->
+      if (first) {
+        element.second
+      }
+      else {
+        "$accumulator;${element.second}"
+      }
     }
 }
 
