@@ -2,6 +2,8 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.componenttree.api.BadgeItem
@@ -12,24 +14,30 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AbstractExpandableItemsHandler
+import com.intellij.ui.ScreenUtil
+import com.intellij.ui.popup.MovablePopup
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
 import sun.awt.AWTAccessor
 import java.awt.Component
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.MouseAdapter
 import java.awt.peer.ComponentPeer
 import javax.swing.Icon
@@ -39,6 +47,9 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.plaf.basic.BasicTreeUI
 
 class TreeImplTest {
+  @get:Rule
+  val appRule = ApplicationRule()
+
   @get:Rule
   val edtRule = EdtRule()
 
@@ -71,8 +82,8 @@ class TreeImplTest {
     var lastPopupItem: Any? = null
 
     override fun getIcon(item: Any): Icon? = when (item) {
-      item1 -> StudioIcons.Common.ADD
-      item2 -> StudioIcons.Common.DELETE
+      item1 -> StudioIcons.Common.ERROR
+      item2 -> StudioIcons.Common.FILTER
       else -> null
     }
 
@@ -182,20 +193,29 @@ class TreeImplTest {
     assertThat(doubleClickHandler.clickCount).isEqualTo(1)
   }
 
-  // TODO(b/171255033): With mockito 3.4 is may be possible to override ScreenUtil.getScreenRectangle to avoid HeadlessException
-  @Ignore("HeadlessException")
   @RunsInEdt
   @Test
   fun testExpandFirstRowOnHover() {
+    appRule.testApplication.registerService(WindowManager::class.java, mock<WindowManagerEx>())
+
     val tree = createTree()
-    setScrollPaneSize(tree, 90, 700)
-    setPeer(tree)
-    val alarm = getExpandableItemsHandlerAlarm(tree)
+    val scrollPane = getScrollPane(tree)
+    setPopupView(tree)
     tree.overrideHasApplicationFocus = { true }
-    val ui = FakeUi(tree)
-    ui.mouse.moveTo(10, 10)
-    alarm.drainRequestsInTest()
+
+    setScrollPaneSize(tree, 30, 700)
+    val ui = FakeUi(scrollPane, createFakeWindow = true)
+
+    mockStatic(ScreenUtil::class.java).use { utilities ->
+      utilities.`when`<Rectangle> {
+        ScreenUtil.getScreenRectangle(any(Point::class.java))
+      }.thenReturn(Rectangle(0, 0, 1000, 1000))
+
+      ui.mouse.moveTo(10, 10)
+      getAlarm(tree).drainRequestsInTest()
+    }
     assertThat(tree.expandableTreeItemsHandler.expandedItems).containsExactly(0)
+    assertThat(tree.expandableTreeItemsHandler.isShowing).isTrue()
   }
 
   @RunsInEdt
@@ -204,11 +224,10 @@ class TreeImplTest {
     val tree = createTree()
     setScrollPaneSize(tree, 90, 700)
     setPeer(tree)
-    val alarm = getExpandableItemsHandlerAlarm(tree)
     tree.overrideHasApplicationFocus = { true }
     val ui = FakeUi(tree)
     ui.mouse.moveTo(10, 690)
-    alarm.drainRequestsInTest()
+    getAlarm(tree).drainRequestsInTest()
     assertThat(tree.expandableTreeItemsHandler.expandedItems).isEmpty()
   }
 
@@ -228,7 +247,7 @@ class TreeImplTest {
   }
 
   private fun setScrollPaneSize(tree: TreeImpl, width: Int, height: Int): JScrollPane {
-    val scrollPane = tree.parent.parent as JScrollPane
+    val scrollPane = getScrollPane(tree)
     scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
     scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
     scrollPane.setBounds(0, 0,
@@ -239,6 +258,9 @@ class TreeImplTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     return scrollPane
   }
+
+  private fun getScrollPane(tree: TreeImpl): JScrollPane =
+    tree.parent.parent as JScrollPane
 
   private fun createTree(): TreeImpl {
     val scrollPane = createTreeWithScrollPane()
@@ -272,11 +294,36 @@ class TreeImplTest {
     component.parent?.let { setPeer(it) }
   }
 
-  private fun getExpandableItemsHandlerAlarm(tree: TreeImpl): Alarm {
-    val handler = tree.expandableTreeItemsHandler
-    val handlerClass = AbstractExpandableItemsHandler::class.java
-    val field = handlerClass.getDeclaredField("myUpdateAlarm")
+  private fun getAlarm(tree: TreeImpl): Alarm =
+    getField(tree.expandableTreeItemsHandler, AbstractExpandableItemsHandler::class.java, "myUpdateAlarm")
+
+  private fun setPopupView(tree: TreeImpl) {
+    val popup: MovablePopup = getField(tree.expandableTreeItemsHandler, AbstractExpandableItemsHandler::class.java, "myPopup")
+    val owner: Component = getField(popup, popup.javaClass, "myOwner")
+    val content: Component = getField(popup, popup.javaClass, "myContent")
+    setField(tree.expandableTreeItemsHandler, AbstractExpandableItemsHandler::class.java, "myPopup", FakePopup(owner, content))
+  }
+
+  @Suppress("SameParameterValue")
+  private fun <T> getField(instance: Any, klass: Class<*>, fieldName: String): T {
+    val field = klass.getDeclaredField(fieldName)
     field.isAccessible = true
-    return field.get(handler) as Alarm
+    @Suppress("UNCHECKED_CAST")
+    return field.get(instance) as T
+  }
+
+  @Suppress("SameParameterValue")
+  private fun setField(instance: Any, klass: Class<*>, fieldName: String, newValue: Any) {
+    val field = klass.getDeclaredField(fieldName)
+    field.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    return field.set(instance, newValue)
+  }
+
+  private class FakePopup(owner: Component, content: Component): MovablePopup(owner, content) {
+    private var popupVisible: Boolean = false
+
+    override fun setVisible(visible: Boolean) { popupVisible = visible }
+    override fun isVisible(): Boolean = popupVisible
   }
 }
