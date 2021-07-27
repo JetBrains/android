@@ -69,6 +69,7 @@ class GradleSyncEventLoggerTest {
     expect.that(event.gradleSyncStats.totalTimeMs).named("totalTimeMs").isEqualTo(2)
   }
 
+  @IgnoreWithCondition(reason = "b/194342798", condition = OnLinux::class)
   @Test
   fun whensEnded() {
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
