@@ -530,7 +530,6 @@ android-studio/lib/grpc-netty-shaded-1.21.1.jar
 android-studio/lib/grpc-protobuf-1.21.1.jar
 android-studio/lib/grpc-protobuf-lite-1.21.1.jar
 android-studio/lib/grpc-stub-1.21.1.jar
-android-studio/lib/gson-2.7.jar
 android-studio/lib/gson-2.8.6.jar
 android-studio/lib/guava-30.1-jre.jar
 android-studio/lib/hamcrest-core-1.3.jar
