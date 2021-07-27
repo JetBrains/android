@@ -32,7 +32,11 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +47,7 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull AdbShellCommandExecutor myExecutor;
   private final @NotNull ListeningExecutorService myAppExecutorService;
 
+  private final @NotNull ListenableFuture<@NotNull AndroidVersion> myVersionFuture;
   private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
   private final @NotNull ListenableFuture<@Nullable Resolution> myResolutionFuture;
@@ -64,6 +69,7 @@ final class AsyncPhysicalDeviceBuilder {
     myExecutor = executor;
     myAppExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
+    myVersionFuture = myAppExecutorService.submit(device::getVersion);
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
     myResolutionFuture = getResolution();
@@ -97,13 +103,12 @@ final class AsyncPhysicalDeviceBuilder {
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myModelFuture, myManufacturerFuture, myResolutionFuture, myDensityFuture, myAbisFuture)
+    return Futures.whenAllComplete(myVersionFuture, myModelFuture, myManufacturerFuture, myResolutionFuture, myDensityFuture, myAbisFuture)
       .call(this::build, EdtExecutorService.getInstance());
   }
 
   private @NotNull PhysicalDevice build() {
-    // TODO Use a future
-    AndroidVersion version = myDevice.getVersion();
+    AndroidVersion version = getDoneOrElse(myVersionFuture, AndroidVersion.DEFAULT);
 
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
       .setKey(myKey)
@@ -116,16 +121,25 @@ final class AsyncPhysicalDeviceBuilder {
       builder.addConnectionType(myKey.getConnectionType());
     }
 
-    Integer density = FutureUtils.getDoneOrNull(myDensityFuture);
-    assert density != null;
-
-    Collection<String> abis = FutureUtils.getDoneOrNull(myAbisFuture);
-    assert abis != null;
-
     return builder
       .setResolution(FutureUtils.getDoneOrNull(myResolutionFuture))
-      .setDensity(density)
-      .addAllAbis(abis)
+      .setDensity(getDoneOrElse(myDensityFuture, -1))
+      .addAllAbis(getDoneOrElse(myAbisFuture, Collections.emptyList()))
       .build();
+  }
+
+  private static <V> @NotNull V getDoneOrElse(@NotNull Future<@NotNull V> future, @NotNull V defaultValue) {
+    assert future.isDone();
+
+    try {
+      return future.get();
+    }
+    catch (CancellationException | ExecutionException exception) {
+      return defaultValue;
+    }
+    catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(exception);
+    }
   }
 }
