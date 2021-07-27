@@ -5,6 +5,7 @@
 
   <depends>org.jetbrains.android</depends>
   <depends>com.jetbrains.codeWithMe</depends>
+  <depends optional="true" config-file="androidCwm-androidstudio.xml">com.intellij.modules.androidstudio</depends>
 
   <xi:include href="/META-INF/androidCwm.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
