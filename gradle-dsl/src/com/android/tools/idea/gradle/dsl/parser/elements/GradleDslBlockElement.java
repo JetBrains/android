@@ -163,7 +163,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
         return;
       }
       if (description == AUGMENT_LIST) {
-        addToParsedExpressionList(effect.property, element);
+        addToParsedExpressionList(effect, element);
         return;
       }
       maybeCanonizeElement(element); // NOTYPO

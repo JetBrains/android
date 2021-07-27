@@ -1,6 +1,7 @@
 ext {
   libName = 'newLib'
 }
+
 dependencies {
   compile fileTree(libName)
 }

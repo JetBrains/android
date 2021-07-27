@@ -79,8 +79,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"renderscriptSupportModeEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_ENABLED, VAR},
         {"renderscriptSupportModeBlasEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, VAR},
         {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
-        {"resConfigs", atLeast(0), RES_CONFIGS, OTHER}, // FIXME(xof): actually APPENDN fails to handle resConfigs(listOf(...))
-        {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"resConfigs", atLeast(0), RES_CONFIGS, AUGMENT_LIST},
+        {"resConfig", exactly(1), RES_CONFIGS, AUGMENT_LIST},
         {"targetSdk", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET, VersionConstraint.agpBefore("8.0.0")},
@@ -136,8 +136,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"renderscriptSupportModeBlasEnabled", exactly(1), RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, SET},
         {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
         {"renderscriptNdkModeEnabled", exactly(1), RENDER_SCRIPT_NDK_MODE_ENABLED, SET},
-        {"resConfigs", atLeast(0), RES_CONFIGS, OTHER},
-        {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"resConfigs", atLeast(0), RES_CONFIGS, AUGMENT_LIST},
+        {"resConfig", exactly(1), RES_CONFIGS, AUGMENT_LIST},
         {"targetSdk", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdk", exactly(1), TARGET_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
@@ -186,12 +186,6 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       ModelEffectDescription effect = new ModelEffectDescription(new ModelPropertyDescription(MISSING_DIMENSION_STRATEGY), OTHER);
       argumentList.setModelEffect(effect);
       super.addParsedElement(argumentList);
-      return;
-    }
-
-    // these two methods have the same names in both currently-supported languages (Kotlin and Groovy)
-    if (property.equals("resConfigs") || property.equals("resConfig")) {
-      addToParsedExpressionList(RES_CONFIGS, element);
       return;
     }
 

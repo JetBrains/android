@@ -1,5 +1,5 @@
 android {
   defaultConfig {
-    resConfigs(listOf("fr"))
+    resConfigs("fr")
   }
 }

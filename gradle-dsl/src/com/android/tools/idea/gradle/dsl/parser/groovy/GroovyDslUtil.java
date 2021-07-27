@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -255,10 +256,12 @@ public final class GroovyDslUtil {
         element.delete();
       }
     }
-    else if (element instanceof GrCommandArgumentList) {
-      GrCommandArgumentList commandArgumentList = (GrCommandArgumentList)element;
-      if (commandArgumentList.getAllArguments().length == 0) {
-        commandArgumentList.delete();
+    else if (element instanceof GrArgumentList) {
+      GrArgumentList argumentList = (GrArgumentList)element;
+      if (argumentList.getAllArguments().length == 0) {
+        if (!(parent instanceof GrMethodCallExpression) || !((GrMethodCallExpression)parent).hasClosureArguments()) {
+          argumentList.delete();
+        }
       }
     }
     else if (element instanceof GrNamedArgument) {
@@ -819,6 +822,21 @@ public final class GroovyDslUtil {
       GrNamedArgument addedNameArgument = (GrNamedArgument)added;
       expressionList.setPsiElement(addedNameArgument.getExpression());
       return expressionList.getPsiElement();
+    }
+    return null;
+  }
+
+  @Nullable
+  static PsiElement createMethodCallArgumentList(@NotNull GradleDslExpressionList expressionList) {
+    GradleDslElement parent = expressionList.getParent();
+    assert parent instanceof GradleDslMethodCall;
+
+    PsiElement parentPsiElement = parent.create();
+    if (parentPsiElement == null) {
+      return null;
+    }
+    if (parentPsiElement instanceof GrMethodCallExpression) {
+      return ((GrMethodCallExpression)parentPsiElement).getArgumentList();
     }
     return null;
   }
