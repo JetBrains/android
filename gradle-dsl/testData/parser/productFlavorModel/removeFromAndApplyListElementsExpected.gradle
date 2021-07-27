@@ -2,7 +2,7 @@ android {
   defaultConfig {
     consumerProguardFiles 'proguard-android.txt'
     proguardFiles = ['proguard-android.txt']
-    resConfigs "abcd"
+    resConfigs 'abcd'
     resValue "abcd", "efgh", "ijkl"
   }
 }
