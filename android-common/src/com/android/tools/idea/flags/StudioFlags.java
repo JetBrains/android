@@ -354,6 +354,12 @@ public final class StudioFlags {
     "If the xml layout contains atf results, it will be shown in the common error panel as well as issue panel.",
     false);
 
+  public static final Flag<Boolean> NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS = Flag.create(
+    NELE, "show.issue.panel.in.problems", "Show the Issue Panel in IJ's Problem Panel",
+    "Move the Issue Panel from Design Tools into the Problems Panel as an additional tab.",
+    false
+  );
+
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
     "Enable the new transform panel in the layout editor and motion editor",
