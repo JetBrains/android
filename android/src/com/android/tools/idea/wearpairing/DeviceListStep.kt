@@ -93,12 +93,16 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   private val canGoForward = BoolValueProperty()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    listeners.listenAndFire(model.phoneList) {
-      updateList(phoneListPanel, model.phoneList.get())
+    if (model.selectedPhoneDevice.valueOrNull == null) { // Don't update list if a value is pre-selected
+      listeners.listenAndFire(model.phoneList) {
+        updateList(phoneListPanel, model.phoneList.get())
+      }
     }
 
-    listeners.listenAndFire(model.wearList) {
-      updateList(wearListPanel, model.wearList.get())
+    if (model.selectedWearDevice.valueOrNull == null) { // Don't update list if a value is pre-selected
+      listeners.listenAndFire(model.wearList) {
+        updateList(wearListPanel, model.wearList.get())
+      }
     }
   }
 
@@ -125,14 +129,18 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 
     add(Splitter(false, 0.5f).apply {
       alignmentX = Component.LEFT_ALIGNMENT
-      firstComponent = phoneListPanel
-      secondComponent = wearListPanel
+      firstComponent = phoneListPanel.takeIf { model.selectedPhoneDevice.valueOrNull == null }
+      secondComponent = wearListPanel.takeIf { model.selectedWearDevice.valueOrNull == null }
     })
   }
 
   override fun onProceeding() {
-    model.selectedPhoneDevice.setNullableValue(phoneListPanel.list.selectedValue)
-    model.selectedWearDevice.setNullableValue(wearListPanel.list.selectedValue)
+    if (model.selectedPhoneDevice.valueOrNull == null) {
+      model.selectedPhoneDevice.setNullableValue(phoneListPanel.list.selectedValue)
+    }
+    if (model.selectedWearDevice.valueOrNull == null) {
+      model.selectedWearDevice.setNullableValue(wearListPanel.list.selectedValue)
+    }
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -140,7 +148,10 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   override fun dispose() = listeners.releaseAll()
 
   private fun updateGoForward() {
-    canGoForward.set(phoneListPanel.list.selectedValue != null && wearListPanel.list.selectedValue != null)
+    canGoForward.set(
+      (model.selectedPhoneDevice.valueOrNull != null || phoneListPanel.list.selectedValue != null) &&
+      (model.selectedWearDevice.valueOrNull != null || wearListPanel.list.selectedValue != null)
+    )
   }
 
   private fun createDeviceListPanel(title: String, listName: String, emptyTextTitle: String): DeviceListPanel {

@@ -23,6 +23,7 @@ import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -130,6 +131,33 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(isEmpty).isFalse()
       assertThat(model.size).isEqualTo(1)
       assertThat(model.getElementAt(0).deviceID).isEqualTo("id2")
+    }
+
+    fakeUi.getSplitter().apply {
+      assertThat(firstComponent).isNotNull()
+      assertThat(secondComponent).isNotNull()
+    }
+  }
+
+  @Test
+  fun stepShouldShowOnlyPhoneList() {
+    model.phoneList.set(listOf(phoneDevice))
+    model.wearList.set(listOf(wearDevice))
+    model.selectedWearDevice.setNullableValue(wearDevice)
+
+    createDeviceListStepUi().getSplitter().apply {
+      assertThat(firstComponent).isNotNull()
+      assertThat(secondComponent).isNull()
+    }
+  }
+
+  @Test
+  fun stepShouldShowOnlyWearList() {
+    model.selectedPhoneDevice.setNullableValue(phoneDevice)
+
+    createDeviceListStepUi().getSplitter().apply {
+      assertThat(firstComponent).isNull()
+      assertThat(secondComponent).isNotNull()
     }
   }
 
@@ -257,6 +285,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   private fun FakeUi.getWearEmptyComponent() = getComponent<JEditorPane> { it.name == "wearListEmptyText" }
 
   private fun FakeUi.getLabelWithText(text: String) = getComponent<JBLabel> { it.text == text }
+
+  private fun FakeUi.getSplitter() = getComponent<Splitter> { true }
 
   private class TestPopupFactory : PopupFactory() {
     var popupContents: Component? = null
