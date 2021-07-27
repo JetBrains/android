@@ -69,6 +69,20 @@ class HttpDataTest {
   }
 
   @Test
+  fun responseFieldsWithDuplicateKey() {
+    val data = createFakeHttpData(1, responseFields = """status line =  HTTP/1.1 302 Found
+    first=1
+    second  = 2
+    equation=x+y=10
+    second =5""")
+
+    val header = data.responseHeader
+    assertThat(header.getField("first")).isEqualTo("1")
+    assertThat(header.getField("second")).isEqualTo("2;5")
+    assertThat(header.getField("equation")).isEqualTo("x+y=10")
+  }
+
+  @Test
   fun emptyRequestFields() {
     val data = createFakeHttpData(1, requestFields = "")
     assertThat(data.requestHeader.fields).isEmpty()
