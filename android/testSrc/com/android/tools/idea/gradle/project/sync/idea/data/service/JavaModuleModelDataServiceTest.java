@@ -30,7 +30,7 @@ import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -57,7 +57,7 @@ public class JavaModuleModelDataServiceTest extends PlatformTestCase {
 
     ServiceContainerUtil
       .replaceService(getProject(), GradleSyncState.class, mySyncState, getTestRootDisposable());
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup);
   }
 
@@ -84,7 +84,7 @@ public class JavaModuleModelDataServiceTest extends PlatformTestCase {
   public void testImportDataWithoutModels() {
     Module appModule = ProjectFiles.createModule(getProject(), "app");
     FacetManager.getInstance(appModule).createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
 
     myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
     assertNull(FacetManager.getInstance(appModule).findFacet(JavaFacet.getFacetTypeId(), JavaFacet.getFacetName()));

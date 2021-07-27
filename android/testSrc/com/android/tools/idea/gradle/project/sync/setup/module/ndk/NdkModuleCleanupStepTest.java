@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.ndk;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
@@ -37,7 +37,7 @@ public class NdkModuleCleanupStepTest extends PlatformTestCase {
 
   public void testCleanUpModule() throws Exception {
     createAndAddNdkFacet(myModule);
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     myCleanupStep.cleanUpModule(myModule, modelsProvider);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);

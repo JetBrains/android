@@ -25,10 +25,9 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -55,7 +54,7 @@ public class NdkModuleModelDataServiceTest extends HeavyPlatformTestCase {
 
     ServiceContainerUtil
       .replaceService(getProject(), GradleSyncState.class, mySyncState, getTestRootDisposable());
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
     myService = new NdkModuleModelDataService(myModuleSetupContextFactory, myModuleSetup);
   }
 
