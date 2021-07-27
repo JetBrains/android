@@ -40,7 +40,7 @@ class WearDevicePairingAction : AnAction() {
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    WearDevicePairingWizard().show(project)
+    WearDevicePairingWizard().show(project, null)
   }
 
   companion object {

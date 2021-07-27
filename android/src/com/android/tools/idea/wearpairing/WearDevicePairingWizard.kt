@@ -37,7 +37,7 @@ private var wizardDialog: ModelWizardDialog? = null
 
 internal class WearDevicePairingWizard {
   @Synchronized
-  fun show(project: Project) {
+  fun show(project: Project, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {
       window?.toFront()  // We already have a dialog, just bring it to the front and return
       return
@@ -51,11 +51,15 @@ internal class WearDevicePairingWizard {
 
       override fun restart(project: Project) {
         wizardDialog?.close(CANCEL_EXIT_CODE)
-        show(project)
+        show(project, selectedDevice)
       }
     }
 
     val model = WearDevicePairingModel()
+    when (selectedDevice?.isWearDevice) {
+      true -> model.selectedWearDevice.setNullableValue(selectedDevice)
+      false -> model.selectedPhoneDevice.setNullableValue(selectedDevice)
+    }
     val modelWizard = ModelWizard.Builder()
       .addStep(DeviceListStep(model, project, wizardAction))
       .build()
