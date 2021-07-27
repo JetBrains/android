@@ -22,6 +22,7 @@ import com.android.tools.componenttree.api.DoubleClickHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ex.WindowManagerEx
+import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.tree.ui.Control
@@ -38,6 +39,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import javax.swing.JComponent
+import javax.swing.JTree
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import javax.swing.ToolTipManager
@@ -63,7 +65,7 @@ class TreeImpl(
   private var initialized = false
   private var hasApplicationFocus = { withinApplicationFocus() }
   @VisibleForTesting
-  var expandableTreeItemsHandler: ExpandableItemsHandler<Int> = TreeImplExpandableItemsHandler(this)
+  var expandableTreeItemsHandler: AbstractExpandableItemsHandler<Int, JTree> = TreeImplExpandableItemsHandler(this)
 
   init {
     name = componentName // For UI tests

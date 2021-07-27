@@ -18,7 +18,6 @@ package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
@@ -41,12 +40,9 @@ import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.util.ArrayDeque
-import java.util.Enumeration
 import java.util.function.Predicate
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
-import javax.swing.UIManager
-import javax.swing.plaf.FontUIResource
 
 /**
  * A utility class to interact with Swing components in unit tests.
@@ -66,6 +62,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
       val rootPane = root as? JRootPane ?: JRootPane().apply {
         glassPane = IdeGlassPaneImpl(this, false)
         isFocusCycleRoot = true
+        bounds = root.bounds
         add(root)
       }
       val application = ApplicationManager.getApplication()
@@ -363,6 +360,8 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   `when`(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
   `when`(mockWindow.size).thenReturn(rootPane.size)
   `when`(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
+  `when`(mockWindow.ownedWindows).thenReturn(emptyArray())
+  `when`(mockWindow.isFocused).thenReturn(true)
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()
