@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  * convert them to PhysicalDevices and notify the table model on the event dispatch thread.
  */
 final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeListener {
-  private final @NotNull AndroidDebugBridge myBridge;
+  private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
   private final @NotNull ListeningExecutorService myEdtExecutorService;
   private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
   private final @NotNull FutureCallback<@NotNull PhysicalDevice> myCallback;
@@ -71,12 +71,12 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
 
   @UiThread
   PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
-    this(new AndroidDebugBridge(), BuilderService::getInstance, new AddOrSet(model));
+    this(new DeviceManagerAndroidDebugBridge(), BuilderService::getInstance, new AddOrSet(model));
   }
 
   @UiThread
   @VisibleForTesting
-  PhysicalDeviceChangeListener(@NotNull AndroidDebugBridge bridge,
+  PhysicalDeviceChangeListener(@NotNull DeviceManagerAndroidDebugBridge bridge,
                                @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance,
                                @NotNull FutureCallback<@NotNull PhysicalDevice> callback) {
     myBridge = bridge;

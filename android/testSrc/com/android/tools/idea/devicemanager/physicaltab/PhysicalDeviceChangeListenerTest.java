@@ -32,7 +32,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceChangeListenerTest {
   private final @NotNull PhysicalDeviceTableModel myModel = Mockito.mock(PhysicalDeviceTableModel.class);
-  private final @NotNull AndroidDebugBridge myBridge = Mockito.mock(AndroidDebugBridge.class);
+  private final @NotNull DeviceManagerAndroidDebugBridge myBridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
   private final @NotNull IDevice myDevice = Mockito.mock(IDevice.class);
   private final @NotNull BuilderService myService = Mockito.mock(BuilderService.class);
 
