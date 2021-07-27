@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.AlphaComposite;
@@ -348,12 +349,20 @@ public class InstructionsPanel extends JPanel {
     @Nullable private EaseOutModel myEaseOutModel;
     @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
 
-    @NotNull private final List<RenderInstruction> myInstructions;
+    @NotNull private final List<RenderInstruction> myInstructions = Lists.newArrayList();
 
     @Nullable private BiFunction<Container, Cursor, Container> myCursorSetter;
 
+    public Builder() {
+    }
+
     public Builder(@NotNull RenderInstruction... instructions) {
-      myInstructions = Arrays.asList(instructions);
+      myInstructions.addAll(Arrays.asList(instructions));
+    }
+
+    public Builder addInstruction(@NotNull RenderInstruction instruction) {
+      myInstructions.add(instruction);
+      return this;
     }
 
     @NotNull

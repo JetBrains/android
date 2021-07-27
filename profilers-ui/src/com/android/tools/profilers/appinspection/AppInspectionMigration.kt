@@ -20,6 +20,7 @@ import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
+import com.android.tools.idea.IdeInfo
 import com.intellij.util.ui.UIUtil
 import java.awt.Container
 import java.awt.Cursor
@@ -54,12 +55,19 @@ fun JPanel.addMigrationPanel(
   val textFontMetrics = getFontMetrics(TEXT_FONT)
   val instructionsPanelBuilder = InstructionsPanel.Builder(
     TextInstruction(getFontMetrics(HEADER_FONT), header),
-    NewRowInstruction(12),
-    TextInstruction(textFontMetrics, "To inspect ${migratingFrom}, use the"),
-    HyperlinkInstruction(TEXT_FONT, migratingTo, transitionAction),
-    TextInstruction(textFontMetrics, "."),
-    NewRowInstruction(24),
-    HyperlinkInstruction(TEXT_FONT, "Dismiss", dismissAction))
+    NewRowInstruction(12)
+  )
+  if (IdeInfo.isGameTool()) {
+    instructionsPanelBuilder.addInstruction(
+      TextInstruction(textFontMetrics, "To inspect $migratingFrom, use the $migratingTo in Android Studio."))
+  }
+  else {
+    instructionsPanelBuilder.addInstruction(TextInstruction(textFontMetrics, "To inspect ${migratingFrom}, use the"))
+      .addInstruction(HyperlinkInstruction(TEXT_FONT, migratingTo, transitionAction))
+      .addInstruction(TextInstruction(textFontMetrics, "."))
+  }
+  instructionsPanelBuilder.addInstruction(NewRowInstruction(24))
+    .addInstruction(HyperlinkInstruction(TEXT_FONT, "Dismiss", dismissAction))
     .setMode(InstructionsPanel.Mode.FILL_PANEL)
     .setColors(UIUtil.getInactiveTextColor(), null)
 
