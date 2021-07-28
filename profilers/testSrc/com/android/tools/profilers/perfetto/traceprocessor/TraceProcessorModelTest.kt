@@ -17,12 +17,14 @@ package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
 import com.android.tools.profilers.cpu.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import perfetto.protos.PerfettoTrace
 
 class TraceProcessorModelTest {
 
@@ -248,6 +250,89 @@ class TraceProcessorModelTest {
       addAndroidFrameEvents(frameEventResult)
     }.build()
     assertThat(model.getAndroidFrameLayers()).containsExactly(layer)
+  }
+
+  @Test
+  fun addAndroidFrameTimelineEvents() {
+    val frameTimelineResult = TraceProcessor.AndroidFrameTimelineResult.newBuilder()
+      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+                          .setDisplayFrameToken(1)
+                          .setSurfaceFrameToken(101)
+                          .setTimestampNanoseconds(1000)
+                          .setDurationNanoseconds(1000))
+      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+                          .setDisplayFrameToken(4)
+                          .setSurfaceFrameToken(104)
+                          .setTimestampNanoseconds(7000)
+                          .setDurationNanoseconds(1000))
+      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+                          .setDisplayFrameToken(3)
+                          .setSurfaceFrameToken(103)
+                          .setTimestampNanoseconds(5000)
+                          .setDurationNanoseconds(1000))
+      .addExpectedSlice(TraceProcessor.AndroidFrameTimelineResult.ExpectedSlice.newBuilder()
+                          .setDisplayFrameToken(2)
+                          .setSurfaceFrameToken(102)
+                          .setTimestampNanoseconds(3000)
+                          .setDurationNanoseconds(1000))
+      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+                        .setDisplayFrameToken(2)
+                        .setSurfaceFrameToken(102)
+                        .setTimestampNanoseconds(3000)
+                        .setDurationNanoseconds(2000)
+                        .setLayerName("foo")
+                        .setPresentType("Late Present")
+                        .setJankType("App Deadline Missed, SurfaceFlinger CPU Deadline Missed")
+                        .setOnTimeFinish(false)
+                        .setGpuComposition(true))
+      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+                        .setDisplayFrameToken(3)
+                        .setSurfaceFrameToken(103)
+                        .setTimestampNanoseconds(5000)
+                        .setDurationNanoseconds(1000)
+                        .setLayerName("foo")
+                        .setPresentType("Early Present")
+                        .setJankType("Buffer Stuffing, SurfaceFlinger GPU Deadline Missed")
+                        .setOnTimeFinish(true)
+                        .setGpuComposition(true))
+      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+                        .setDisplayFrameToken(4)
+                        .setSurfaceFrameToken(104)
+                        .setTimestampNanoseconds(7000)
+                        .setDurationNanoseconds(3000)
+                        .setLayerName("foo")
+                        .setPresentType("Dropped Frame")
+                        .setJankType("Unknown Jank")
+                        .setOnTimeFinish(true)
+                        .setGpuComposition(false))
+      .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
+                        .setDisplayFrameToken(1)
+                        .setSurfaceFrameToken(101)
+                        .setTimestampNanoseconds(1000)
+                        .setDurationNanoseconds(1000)
+                        .setLayerName("foo")
+                        .setPresentType("On-time Present")
+                        .setJankType("None")
+                        .setOnTimeFinish(true)
+                        .setGpuComposition(true))
+      .build()
+    val model = TraceProcessorModel.Builder().apply {
+      addAndroidFrameTimelineEvents(frameTimelineResult)
+    }.build()
+    assertThat(model.getAndroidFrameTimelineEvents()).containsExactly(
+      AndroidFrameTimelineEvent(1, 101, 1, 2, 2, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
+                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
+                                onTimeFinish = true, gpuComposition = true),
+      AndroidFrameTimelineEvent(2, 102, 3, 4, 5, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+                                onTimeFinish = false, gpuComposition = true),
+      AndroidFrameTimelineEvent(3, 103, 5, 6, 6, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY,
+                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
+                                onTimeFinish = true, gpuComposition = true),
+      AndroidFrameTimelineEvent(4, 104, 7, 8, 10, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED,
+                                PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
+                                onTimeFinish = true, gpuComposition = false),
+    ).inOrder()
   }
 
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)

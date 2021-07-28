@@ -100,8 +100,8 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       processList.find {
         it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
       }?.let { pidsToQuery.add(it.id) }
-      val selectedProcessName = processList.first { processModel -> processModel.id == userSelectedProcess }.name
-      val model = traceProcessor.loadCpuData(traceId, pidsToQuery, selectedProcessName, ideProfilerServices)
+      val selectedProcess = processList.first { processModel -> processModel.id == userSelectedProcess }
+      val model = traceProcessor.loadCpuData(traceId, pidsToQuery, selectedProcess, ideProfilerServices)
 
       val builder = SystemTraceCpuCaptureBuilder(model)
 

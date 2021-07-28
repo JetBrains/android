@@ -45,11 +45,11 @@ interface TraceProcessorService {
    * Query the Perfetto trace processor for cpu data regarding a set of processes.
    *
    * @param processIds set of processes to get CPU data for, e.g. a main process plus surfaceflinger one.
-   * @param selectedProcessName name of the selected application process, useful for retrieving Android frame events.
+   * @param selectedProcess the selected application process, useful for retrieving Android graphics data.
    */
   fun loadCpuData(traceId: Long,
                   processIds: List<Int>,
-                  selectedProcessName: String,
+                  selectedProcess: ProcessModel,
                   ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter
 
   /**

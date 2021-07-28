@@ -62,7 +62,7 @@ class TraceProcessorServiceImpl(
     }
 
     @VisibleForTesting
-    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>, selectedProcessName: String = ""): QueryBatchRequest {
+    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>, selectedProcess: ProcessModel): QueryBatchRequest {
       val queryBuilder = QueryBatchRequest.newBuilder()
         // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
         .addQuery(QueryParameters.newBuilder()
@@ -80,8 +80,13 @@ class TraceProcessorServiceImpl(
         // Use the selected process name as layer name hint, e.g. com.example.app/MainActivity#0.
         .addQuery(QueryParameters.newBuilder()
                     .setTraceId(traceId)
-                    .setAndroidFrameEventsRequest(QueryParameters.AndroidFrameEventsParameters.newBuilder()
-                                                    .setLayerNameHint(selectedProcessName)))
+                    .setAndroidFrameEventsRequest(
+                      QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint(selectedProcess.name)))
+        // Query Android FrameTimeline events.
+        .addQuery(QueryParameters.newBuilder()
+                    .setTraceId(traceId)
+                    .setAndroidFrameTimelineRequest(
+                      QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(selectedProcess.id.toLong())))
 
       // Now let's add the queries that we limit for the processes we're interested in:
       for (id in processIds) {
@@ -199,10 +204,10 @@ class TraceProcessorServiceImpl(
 
   override fun loadCpuData(traceId: Long,
                            processIds: List<Int>,
-                           selectedProcessName: String,
+                           selectedProcess: ProcessModel,
                            ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     val methodStopwatch = Stopwatch.createStarted(ticker)
-    val queryProto = buildCpuDataRequestProto(traceId, processIds, selectedProcessName)
+    val queryProto = buildCpuDataRequestProto(traceId, processIds, selectedProcess)
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
     val queryStopwatch = Stopwatch.createStarted(ticker)
@@ -237,6 +242,9 @@ class TraceProcessorServiceImpl(
     response.resultList.filter { it.hasProcessCountersResult() }.forEach { modelBuilder.addProcessCounters(it.processCountersResult) }
     response.resultList.filter { it.hasAndroidFrameEventsResult() }.forEach {
       modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult)
+    }
+    response.resultList.filter { it.hasAndroidFrameTimelineResult() }.forEach {
+      modelBuilder.addAndroidFrameTimelineEvents(it.androidFrameTimelineResult)
     }
 
     val model = modelBuilder.build()

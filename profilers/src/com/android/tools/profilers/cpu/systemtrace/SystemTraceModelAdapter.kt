@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
+import perfetto.protos.PerfettoTrace
 import java.io.Serializable
 import java.util.SortedMap
 
@@ -56,6 +57,11 @@ interface SystemTraceModelAdapter {
    * @return Android frame events by layer. Supported since Android R.
    */
   fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer>
+
+  /**
+   * @return Android FrameTimeline events for jank detection. Supported since Android S.
+   */
+  fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent>
 }
 
 data class ProcessModel(
@@ -160,6 +166,24 @@ data class CpuCoreModel(
     val serialVersionUID = 8233672032802842718L
   }
 }
+
+/**
+ * @param appJankType Raw data may contain multiple jank types but we only extract the app jank type, namely "App Deadline Missed",
+ *                    "Buffer Stuffing" and "Unknown Jank". If no jank is present, the value is "None". If no app jank is present, the value
+ *                    is "Unspecified".
+ */
+data class AndroidFrameTimelineEvent(
+  val displayFrameToken: Long,
+  val surfaceFrameToken: Long,
+  val expectedStartUs: Long,
+  val expectedEndUs: Long,
+  val actualEndUs: Long,
+  val layerName: String,
+  val presentType: PerfettoTrace.FrameTimelineEvent.PresentType,
+  val appJankType: PerfettoTrace.FrameTimelineEvent.JankType,
+  val onTimeFinish: Boolean,
+  val gpuComposition: Boolean,
+)
 
 /**
  * Given a list of events X with starts and ends, return a list of padded events SeriesData<Y>,

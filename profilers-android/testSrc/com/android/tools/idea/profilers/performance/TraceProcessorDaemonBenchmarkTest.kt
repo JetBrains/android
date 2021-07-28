@@ -22,6 +22,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.google.common.base.Ticker
 import com.intellij.openapi.util.Disposer
 import org.junit.After
@@ -86,7 +87,8 @@ class TraceProcessorDaemonBenchmarkTest {
     assertTrue(loadResponse.completed)
     assertTrue(loadResponse.response!!.ok)
 
-    val cpuDataRequestProto = TraceProcessorServiceImpl.buildCpuDataRequestProto(case.tradeId, case.processes)
+    val cpuDataRequestProto = TraceProcessorServiceImpl.buildCpuDataRequestProto(case.tradeId, case.processes,
+                                                                                 ProcessModel(123, "", emptyMap(), emptyMap()))
     lateinit var queryBatchResponse: TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse>
     tpdQueryTimeBenchmark.log("${case.name}-CpuData", measureTimeMillis {
       queryBatchResponse = tpdClient.queryBatchRequest(cpuDataRequestProto, fakeTracker)

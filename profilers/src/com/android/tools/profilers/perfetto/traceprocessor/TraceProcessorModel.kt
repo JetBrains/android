@@ -18,6 +18,7 @@ package com.android.tools.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
@@ -25,6 +26,7 @@ import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.android.tools.profilers.cpu.systemtrace.TraceEventModel
+import perfetto.protos.PerfettoTrace
 import java.io.Serializable
 import java.util.Deque
 import java.util.LinkedList
@@ -41,6 +43,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
   private val processMap: Map<Int, ProcessModel>
   private val cpuCores: List<CpuCoreModel>
   private val androidFrameLayers: List<TraceProcessor.AndroidFrameEventsResult.Layer>
+  private val androidFrameTimelineEvents: List<AndroidFrameTimelineEvent>
 
   private val danglingThreads = builder.danglingThreads
 
@@ -73,6 +76,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     }
 
     androidFrameLayers = builder.androidFrameLayers
+    androidFrameTimelineEvents = builder.androidFrameTimelineEvents
   }
 
   override fun getCaptureStartTimestampUs() = startCaptureTimestamp
@@ -89,6 +93,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
   override fun isCapturePossibleCorrupted() = false
   override fun getAndroidFrameLayers() = androidFrameLayers
+  override fun getAndroidFrameTimelineEvents() = androidFrameTimelineEvents
 
   class Builder {
     internal var startCaptureTimestamp = Long.MAX_VALUE
@@ -102,6 +107,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val androidFrameLayers = mutableListOf<TraceProcessor.AndroidFrameEventsResult.Layer>()
+    internal val androidFrameTimelineEvents = mutableListOf<AndroidFrameTimelineEvent>()
 
     fun addProcessMetadata(processMetadataResult: TraceProcessor.ProcessMetadataResult) {
       for (process in processMetadataResult.processList) {
@@ -292,10 +298,60 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
       androidFrameLayers.addAll(frameEventsResult.layerList)
     }
 
+    /**
+     * Process the Frame Timeline query result and turn it into [AndroidFrameTimelineEvent]s, ordered by
+     * [AndroidFrameTimelineEvent.expectedStartUs]
+     */
+    fun addAndroidFrameTimelineEvents(frameTimelineResult: TraceProcessor.AndroidFrameTimelineResult) {
+      // Match actual timeline slices to expected timeline slices by surfaceFrameToken and construct an AndroidFrameTimelineEvent
+      // from two matching slices.
+      val expectedSlicesBySurfaceFrame = frameTimelineResult.expectedSliceList.associateBy { it.surfaceFrameToken }
+      frameTimelineResult.actualSliceList.forEach { actualSlice ->
+        expectedSlicesBySurfaceFrame[actualSlice.surfaceFrameToken]?.let { expectedSlice ->
+          val expectedEndUs = convertToUs(expectedSlice.timestampNanoseconds + expectedSlice.durationNanoseconds)
+          val actualEndUs = convertToUs(actualSlice.timestampNanoseconds + actualSlice.durationNanoseconds)
+          androidFrameTimelineEvents.add(AndroidFrameTimelineEvent(expectedSlice.displayFrameToken,
+                                                                   expectedSlice.surfaceFrameToken,
+                                                                   convertToUs(expectedSlice.timestampNanoseconds),
+                                                                   expectedEndUs,
+                                                                   actualEndUs,
+                                                                   actualSlice.layerName,
+                                                                   parsePresentType(actualSlice.presentType),
+                                                                   parseAppJankType(actualSlice.jankType),
+                                                                   actualSlice.onTimeFinish,
+                                                                   actualSlice.gpuComposition))
+        }
+      }
+      androidFrameTimelineEvents.sortBy { it.expectedStartUs }
+    }
+
     fun build(): TraceProcessorModel {
       return TraceProcessorModel(this)
     }
 
     private fun convertToUs(tsNanos: Long) = TimeUnit.NANOSECONDS.toMicros(tsNanos)
+
+    private fun parsePresentType(presetTypeStr: String) = when (presetTypeStr) {
+      "On-time Present" -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME
+      "Late Present" -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE
+      "Early Present" -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY
+      "Dropped Frame" -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED
+      "Unknown Present" -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_UNKNOWN
+      else -> PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_UNSPECIFIED
+    }
+
+    private fun parseAppJankType(jankTypeStr: String): PerfettoTrace.FrameTimelineEvent.JankType {
+      // jankTypeStr is a comma-separated string of both an app jank type and a surfaceflinger jank type (if exists).
+      // In SystemTrace we only care about the app jank type, so once a match is found we can return early.
+      jankTypeStr.split(", ").forEach {
+        when (it) {
+          "None" -> return PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE
+          "App Deadline Missed" -> return PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED
+          "Buffer Stuffing" -> return PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING
+          "Unknown Jank" -> return PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN
+        }
+      }
+      return PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNSPECIFIED
+    }
   }
 }

@@ -62,6 +62,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
    * Android frame events are not supported in Trebuchet.
    */
   override fun getAndroidFrameLayers() = emptyList<TraceProcessor.AndroidFrameEventsResult.Layer>()
+  override fun getAndroidFrameTimelineEvents() = emptyList<AndroidFrameTimelineEvent>()
 
   init {
     // We check if we have a parent timestamp. If not this could be from an imported trace.
