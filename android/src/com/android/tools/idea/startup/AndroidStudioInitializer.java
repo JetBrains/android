@@ -70,7 +70,7 @@ import java.io.File;
 import java.util.Arrays;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.gradle.kapt.idea.KaptProjectResolverExtension;
+import org.jetbrains.kotlin.gradleJava.kapt.idea.KaptProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
