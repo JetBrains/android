@@ -271,6 +271,16 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
+  fun testGooglePayActivity() {
+    checkCreateTemplate("Google Pay Activity")
+  }
+
+  @TemplateCheck
+  fun testGooglePayActivityWithKotlin() {
+    checkCreateTemplate("Google Pay Activity", withKotlin)
+  }
+
+  @TemplateCheck
   fun testComposeActivity() {
     val withOldKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
