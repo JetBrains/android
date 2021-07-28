@@ -24,7 +24,6 @@ import com.google.common.base.Throwables
 import com.google.common.collect.ImmutableList
 import com.intellij.diagnostic.DebugLogManager
 import com.intellij.diagnostic.DialogAppender
-import com.intellij.execution.filters.CompositeFilter.ApplyFilterException
 import com.intellij.idea.IdeaLogger
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
@@ -50,7 +49,6 @@ class ExceptionDataCollection {
      * [Throwable] classes with messages expected to be useful for debugging and not to contain PII.
      */
     private val THROWABLE_CLASSES_TO_TRACK_MESSAGES = ImmutableList.of(
-      ApplyFilterException::class.java,  // See b/146355865.
       LinkageError::class.java,
       ReflectiveOperationException::class.java,
       ArrayIndexOutOfBoundsException::class.java,
