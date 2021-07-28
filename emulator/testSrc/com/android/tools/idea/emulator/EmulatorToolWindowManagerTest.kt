@@ -21,6 +21,8 @@ import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
@@ -46,7 +48,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
+import java.awt.Dimension
+import java.awt.Point
 import java.util.concurrent.TimeUnit
+import javax.swing.JViewport
 import javax.swing.UIManager
 
 /**
@@ -168,7 +173,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
 
@@ -196,7 +201,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
 
@@ -229,6 +234,57 @@ class EmulatorToolWindowManagerTest {
 
     // Wait for the extended controls to show.
     waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+  }
+
+  @Test
+  fun testZoomStatePreservation() {
+    val factory = EmulatorToolWindowFactory()
+    assertThat(factory.shouldBeAvailable(project)).isTrue()
+    factory.createToolWindowContent(project, toolWindow)
+    val contentManager = toolWindow.contentManager
+    assertThat(contentManager.contents).isEmpty()
+
+    val tempFolder = emulatorRule.root
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+
+    toolWindow.show()
+
+    // Start the emulator.
+    emulator.start()
+
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    assertThat(contentManager.contents).hasLength(1)
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
+    waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
+
+    val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
+    panel.setSize(250, 500)
+    val ui = FakeUi(panel)
+    val emulatorView = ui.getComponent<EmulatorView>()
+    waitForCondition(2, TimeUnit.SECONDS) { emulatorView.frameNumber > 0 }
+
+    // Zoom in.
+    emulatorView.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
+    var viewport = emulatorView.parent as JViewport
+    val viewportSize = viewport.viewSize
+    assertThat(viewportSize).isEqualTo(Dimension(396, 811))
+    // Scroll to the bottom.
+    val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
+    viewport.viewPosition = scrollPosition
+
+    toolWindow.hide()
+    toolWindow.show()
+
+    ui.layoutAndDispatchEvents()
+    assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
+    viewport = emulatorView.parent as JViewport
+    assertThat(viewport.viewSize).isEqualTo(viewportSize)
+    assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
   }
 
   private val FakeEmulator.avdName

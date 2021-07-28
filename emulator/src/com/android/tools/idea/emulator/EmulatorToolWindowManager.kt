@@ -339,8 +339,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val content = contentManager.selectedContent
     val id = content?.getUserData(ID_KEY)
     if (id != selectedPanel?.id) {
-      selectedPanel?.destroyContent()
-      selectedPanel = null
+      selectedPanel?.let { panel ->
+        savedUiState[panel.id] = panel.destroyContent()
+        selectedPanel = null
+      }
 
       if (id != null) {
         selectedPanel = findPanelByGrpcPort(id.grpcPort)
