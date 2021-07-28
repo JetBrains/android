@@ -29,10 +29,15 @@ public enum MethodSemanticsDescription implements SemanticsDescription {
    */
   ADD_AS_LIST,
   /**
-   * The method's varargs argument list is used to augment the current value of the property -- despite its name, this can apply to
-   * (mutable) Sets as well as (mutable) Lists.
+   * The method's single argument (atom or singleton list) or varargs argument list is used to augment the current value of the
+   * property -- despite its name, this can apply to (mutable) Sets as well as (mutable) Lists.
    */
   AUGMENT_LIST,
+  /**
+   * The property is cleared, and then the method's argument list is used to augment the (now-empty) collection property, as with
+   * AUGMENT_LIST.
+   */
+  CLEAR_AND_AUGMENT_LIST,
   /**
    * Resets a collection property to its initial state
    */

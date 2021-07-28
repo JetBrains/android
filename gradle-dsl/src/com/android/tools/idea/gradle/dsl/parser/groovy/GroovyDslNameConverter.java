@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.grad
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.CLEAR_AND_AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
@@ -48,6 +49,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,7 +132,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
       if (e.modelEffectDescription.property.name.equals(modelName)) {
         if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
-        if (semantics == SET || semantics == ADD_AS_LIST || semantics == AUGMENT_LIST || semantics == OTHER) {
+        if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, OTHER).contains(semantics)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
         }
         if (semantics == VAL && (e.modelEffectDescription.property.type == MUTABLE_SET ||
