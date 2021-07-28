@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
@@ -310,7 +311,9 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     firstBuild: Boolean,
     onSuccess: () -> Unit
   ) {
-    val request = originalBuildRequest.copy(commandLineArguments = originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
+    val request = builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, originalBuildRequest.gradleTasks)
+      .setCommandLineArguments(originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
+      .build()
 
     val future = GradleBuildInvoker.getInstance(project).executeTasks(request)
     Futures.addCallback(future, object : FutureCallback<GradleInvocationResult> {
