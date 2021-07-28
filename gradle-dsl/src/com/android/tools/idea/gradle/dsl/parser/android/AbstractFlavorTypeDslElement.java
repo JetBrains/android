@@ -58,7 +58,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
     {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, OTHER}, // CLEAR + PUTALL, which is not quite the same as SET
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAL},
-    {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, OTHER}, // CLEAR + PUTALL, which is not quite the same as SET
+    {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
     {"setMultiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", property, MULTI_DEX_KEEP_FILE, VAR},
@@ -140,14 +140,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       addToParsedExpressionList(CONSUMER_PROGUARD_FILES, element);
       return;
     }
-
-    if (property.equals("setMatchingFallbacks")) {
-      // Clear the property since setMatchingFallbacks overwrites these.
-      removeProperty(MATCHING_FALLBACKS);
-      addToParsedExpressionList(MATCHING_FALLBACKS, element);
-      return;
-    }
-
 
     super.addParsedElement(element);
   }

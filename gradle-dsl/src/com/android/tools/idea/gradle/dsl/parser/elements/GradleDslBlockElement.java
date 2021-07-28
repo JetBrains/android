@@ -34,6 +34,7 @@ import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APP
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.CLEAR_AND_AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -162,7 +163,10 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
         addAsParsedDslExpressionList(effect, (GradleDslSimpleExpression) element);
         return;
       }
-      if (description == AUGMENT_LIST) {
+      if (description == AUGMENT_LIST || description == CLEAR_AND_AUGMENT_LIST) {
+        if (description == CLEAR_AND_AUGMENT_LIST) {
+          removeProperty(effect.property.name);
+        }
         addToParsedExpressionList(effect, element);
         return;
       }
