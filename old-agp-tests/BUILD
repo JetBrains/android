@@ -1,14 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load(":agp_versions.bzl", "local_old_agp_test", "AGP_3_5", "AGP_3_3_2", "AGP_4_0", "AGP_4_1", "GRADLE_LATEST", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5")
+load(":agp_versions.bzl", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5", "GRADLE_LATEST", "local_old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.old-agp-tests",
     iml_files = ["intellij.android.old-agp-tests.iml"],
     # keep sorted
-    tags = ["manual"],
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk",
@@ -53,13 +52,8 @@ iml_module(
         "//tools/external/gradle:gradle-distrib-4.5",
     ],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-    ],
-    test_timeout = "eternal",
+    # Tests are run using explicit, local_old_agp_test targets
+    test_tags = ["manual"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
