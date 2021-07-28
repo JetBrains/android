@@ -1306,6 +1306,11 @@ public final class StudioFlags {
     "Creates a proxy service within DDMLIB to allow shared device client connections.",
     true
   );
+  public static final Flag<Boolean> ENABLE_DDMLIB_COMMAND_SERVICE = Flag.create(
+    DDMLIB, "enable.ddmlib.command.service", "Enable ddmlib command service",
+    "Creates a service within DDMLIB to allow external processes to issue commands to ddmlib.",
+    false
+  );
   // endregion DDMLIB
 
   //region SERVER_FLAGS
