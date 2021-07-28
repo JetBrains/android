@@ -330,6 +330,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
         AdbInitOptions.Builder options = AdbInitOptions.builder();
         options.setClientSupportEnabled(true); // IDE needs client monitoring support.
         options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
+        options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
         options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
         if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()) {
           // Enables Open Screen mDNS implementation in ADB host.
