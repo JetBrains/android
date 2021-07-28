@@ -54,7 +54,7 @@ import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private const val intDefAnnotationName = "androidx.annotation.IntDef"

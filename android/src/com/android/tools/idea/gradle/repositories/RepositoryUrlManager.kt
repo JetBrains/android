@@ -42,7 +42,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.android.util.firstNotNullResult
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
