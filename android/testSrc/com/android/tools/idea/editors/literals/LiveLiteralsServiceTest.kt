@@ -1,5 +1,7 @@
 package com.android.tools.idea.editors.literals
 
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -22,6 +24,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 internal class LiveLiteralsServiceTest {
+  @get:Rule  // http://b/194631917 Tests in this class are flaky
+  val ignoreTestsRule = IgnoreTestRule.allTestsMatching(OnLinux::class.java)
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
