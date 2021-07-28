@@ -107,7 +107,7 @@ class StartUpTest(unittest.TestCase):
                   "CIDR Base",
                   "CIDR Debugger",
                   "ChangeReminder",
-                  "Clangd support",
+                  "Clangd Support",
                   "Code Coverage for Java",
                   "Compose",
                   "Configuration Script",
@@ -128,6 +128,7 @@ class StartUpTest(unittest.TestCase):
                   "Gradle-Java",
                   "Groovy",
                   "IDEA CORE",
+                  "Images",
                   "IntelliLang",
                   "JUnit",
                   "Java",
@@ -141,6 +142,7 @@ class StartUpTest(unittest.TestCase):
                   "Machine Learning Code Completion",
                   "Machine Learning Code Completion Models",
                   "Machine Learning Local Models",
+                  "Markdown",
                   "Mercurial",
                   "Next File Prediction",
                   "Properties",
@@ -156,7 +158,6 @@ class StartUpTest(unittest.TestCase):
                   "TextMate Bundles",
                   "WebP Support",
                   "YAML",
-                  "com.intellij.platform.images"
               ], descs)
               break
           else:
