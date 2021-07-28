@@ -178,5 +178,7 @@ class SystemTraceSurfaceflingerManagerTest {
     override fun getSystemTraceTechnology() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun isCapturePossibleCorrupted() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getAndroidFrameLayers() = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = throw UnsupportedOperationException(
+      "Not Implemented For Test")
   }
 }

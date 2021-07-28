@@ -103,4 +103,9 @@ interface CpuSystemTraceData {
    * @return Android frame events organized in phases (e.g. Display, GPU) by Layer. Supported since Android R.
    */
   fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer>
+
+  /**
+   * @return Android FrameTimeline events for jank detection. Supported since Android S.
+   */
+  fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent>
 }

@@ -57,6 +57,9 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @NotNull
   private final List<TraceProcessor.AndroidFrameEventsResult.Layer> myAndroidFrameLayers;
 
+  @NotNull
+  private final List<AndroidFrameTimelineEvent> myAndroidFrameTimelineEvents;
+
   public SystemTraceCpuCapture(long traceId,
                                @NotNull SystemTraceModelAdapter model,
                                @NotNull Map<CpuThreadInfo, CaptureNode> captureNodes,
@@ -85,6 +88,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
     myFrameManager = frameManager;
     mySurfaceflingerManager = surfaceflingerManager;
     myAndroidFrameLayers = model.getAndroidFrameLayers();
+    myAndroidFrameTimelineEvents = model.getAndroidFrameTimelineEvents();
     // Set the view range of the capture timeline to our initial view range, this is used later by the UI to set the initial view.
     getTimeline().getViewRange().set(initialViewRangeUs.getMin(), initialViewRangeUs.getMax());
   }
@@ -180,5 +184,11 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @Override
   public List<TraceProcessor.AndroidFrameEventsResult.Layer> getAndroidFrameLayers() {
     return myAndroidFrameLayers;
+  }
+
+  @NotNull
+  @Override
+  public List<AndroidFrameTimelineEvent> getAndroidFrameTimelineEvents() {
+    return myAndroidFrameTimelineEvents;
   }
 }

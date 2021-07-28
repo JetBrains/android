@@ -20,6 +20,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
@@ -40,6 +41,8 @@ class TraceProcessorServiceImplTest {
   private val fakeTicker = FakeTicker(10, TimeUnit.MILLISECONDS)
   private val fakeIdeProfilerServices = FakeIdeProfilerServices()
   private val fakeFeatureTracker = fakeIdeProfilerServices.featureTracker as FakeFeatureTracker
+  private val fakeProcess = ProcessModel(1, "", emptyMap(), emptyMap())
+
   @get:Rule
   val tempFolder = TemporaryFolder()
 
@@ -144,7 +147,7 @@ class TraceProcessorServiceImplTest {
       .addResult(TraceProcessor.QueryResult.newBuilder().setOk(true))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), "foo", fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(33, 42), ProcessModel(123, "foo", emptyMap(), emptyMap()), fakeIdeProfilerServices)
 
     val expectedRequest = TraceProcessor.QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
@@ -160,6 +163,10 @@ class TraceProcessorServiceImplTest {
                   .setTraceId(10)
                   .setAndroidFrameEventsRequest(
                     TraceProcessor.QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint("foo")))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setAndroidFrameTimelineRequest(
+                    TraceProcessor.QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(123)))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(33)))
@@ -201,7 +208,7 @@ class TraceProcessorServiceImplTest {
                    .setFailureReason(TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(33, 42), fakeProcess, fakeIdeProfilerServices)
     // Can't do assertThat(...).isNotNull() because of a problem that assertThat(Any?).isNotNull()
     fakeGrpcService.lastLoadTraceRequest ?: fail("Expected lastLoadTraceRequest to not be null")
 
@@ -225,7 +232,7 @@ class TraceProcessorServiceImplTest {
       .build()
 
     try {
-      ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
+      ideService.loadCpuData(10, listOf(33, 42), fakeProcess, fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
       assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")

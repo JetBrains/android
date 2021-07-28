@@ -225,5 +225,6 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
+    override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = emptyList()
   }
 }

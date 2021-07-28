@@ -18,6 +18,7 @@ package com.android.tools.profilers
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -116,7 +117,7 @@ class FakeTraceProcessorService: TraceProcessorService {
 
   override fun loadCpuData(traceId: Long,
                            processIds: List<Int>,
-                           selectedProcessName: String,
+                           selectedProcess: ProcessModel,
                            ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     return if (loadedTraces.containsKey(traceId)) {
       val trace = loadedTraces[traceId]!!
@@ -147,5 +148,6 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.PERFETTO
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
+    override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = emptyList()
   }
 }
