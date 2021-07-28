@@ -23,7 +23,7 @@ import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.android.util.firstNotNullResult
 
 /**
  * Reference that points to an attribute in a layout XML file.

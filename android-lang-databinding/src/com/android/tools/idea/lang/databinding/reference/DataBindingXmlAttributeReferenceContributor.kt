@@ -48,7 +48,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.asJava.elements.KtLightPsiArrayInitializerMemberValue
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.android.util.firstNotNullResult
 
 /**
  * For references found inside XML attributes assigned to data binding expression.

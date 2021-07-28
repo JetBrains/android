@@ -85,7 +85,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.android.util.firstNotNullResult
 import java.awt.FlowLayout
 import java.util.EnumSet
 import java.util.Optional
