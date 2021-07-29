@@ -36,8 +36,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"applicationIdSuffix", property, APPLICATION_ID_SUFFIX, VAR},
     {"setApplicationIdSuffix", exactly(1), APPLICATION_ID_SUFFIX, SET},
     {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, OTHER}, // ADD: add argument list as property to Dsl
-    {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, OTHER}, // APPENDN: append each argument
-    {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, SET},
+    {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
+    {"consumerProguardFile", exactly(1), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
+    {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
     // in AGP 4.0, the manifestPlaceholders property is defined as a Java Map<String, Object>.  It is legal to use
     // assignment to set this property to e.g. mapOf("a" to "b"), but not to mutableMapOf("a" to "b") because the inferred type of the
     // mutableMapOf expression is MutableMap<String,String>, which is not compatible with (Mutable)Map<String!, Any!> (imagine something
@@ -63,8 +64,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"setMultiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", property, MULTI_DEX_KEEP_FILE, VAR},
     {"multiDexKeepProguard", property, MULTI_DEX_KEEP_PROGUARD, VAR},
-    {"proguardFiles", atLeast(0), PROGUARD_FILES, OTHER},
-    {"setProguardFiles", exactly(1), PROGUARD_FILES, SET},
+    {"proguardFiles", atLeast(0), PROGUARD_FILES, AUGMENT_LIST},
+    {"proguardFile", exactly(1), PROGUARD_FILES, AUGMENT_LIST},
+    {"setProguardFiles", exactly(1), PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
     {"resValue", exactly(3), RES_VALUE, OTHER},
     {"signingConfig", property, SIGNING_CONFIG, VAR},
     {"useJack", property, USE_JACK, VAR}, // actually deprecated / nonexistent
@@ -79,8 +81,10 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"applicationIdSuffix", property, APPLICATION_ID_SUFFIX, VAR},
     {"applicationIdSuffix", exactly(1), APPLICATION_ID_SUFFIX, SET},
     {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, OTHER},
-    {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, OTHER},
+    {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
     {"consumerProguardFiles", property, CONSUMER_PROGUARD_FILES, VAR},
+    {"consumerProguardFile", exactly(1), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
+    {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
     {"manifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
@@ -88,8 +92,10 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"multiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", exactly(1), MULTI_DEX_KEEP_FILE, SET},
     {"multiDexKeepProguard", exactly(1), MULTI_DEX_KEEP_PROGUARD, SET},
-    {"proguardFiles", atLeast(0), PROGUARD_FILES, OTHER},
+    {"proguardFiles", atLeast(0), PROGUARD_FILES, AUGMENT_LIST},
     {"proguardFiles", property, PROGUARD_FILES, VAR},
+    {"proguardFile", exactly(1), PROGUARD_FILES, AUGMENT_LIST},
+    {"setProguardFiles", exactly(1), PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
     {"resValue", exactly(3), RES_VALUE, OTHER},
     {"signingConfig", property, SIGNING_CONFIG, VAR},
     {"signingConfig", exactly(1), SIGNING_CONFIG, SET},
@@ -108,39 +114,5 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
     addDefaultProperty(new GradleDslExpressionMap(this, GradleNameElement.fake(MANIFEST_PLACEHOLDERS)));
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-
-    // setProguardFiles has the same name in Groovy and Kotlin
-    if (property.equals("setProguardFiles")) {
-      // Clear the property since setProguardFiles overwrites these.
-      removeProperty(PROGUARD_FILES);
-      addToParsedExpressionList(PROGUARD_FILES, element);
-      return;
-    }
-
-    // setConsumerProguardFiles has the same name in Groovy and Kotlin
-    if (property.equals("setConsumerProguardFiles")) {
-      removeProperty(CONSUMER_PROGUARD_FILES);
-      addToParsedExpressionList(CONSUMER_PROGUARD_FILES, element);
-      return;
-    }
-
-    // proguardFiles and proguardFile have the same name in Groovy and Kotlin
-    if (property.equals("proguardFiles") || property.equals("proguardFile")) {
-      addToParsedExpressionList(PROGUARD_FILES, element);
-      return;
-    }
-
-    // consumerProguardFiles and consumerProguardFile have the same name in Groovy and Kotlin
-    if (property.equals("consumerProguardFiles") || property.equals("consumerProguardFile")) {
-      addToParsedExpressionList(CONSUMER_PROGUARD_FILES, element);
-      return;
-    }
-
-    super.addParsedElement(element);
   }
 }

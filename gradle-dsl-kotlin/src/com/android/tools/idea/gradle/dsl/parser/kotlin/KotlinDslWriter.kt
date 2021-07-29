@@ -482,14 +482,14 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
     val expression = psiFactory.createExpression(statementText)
 
-    val addedElement :PsiElement
+    val addedElement: PsiElement
     if (parentPsiElement is KtValueArgumentList) {
       val valueArgument = psiFactory.createArgument(expression)
       val addedArgument = parentPsiElement.addArgumentAfter(valueArgument, anchor as? KtValueArgument)
       addedElement = requireNotNull(addedArgument.getArgumentExpression())
     }
     else {
-      // If the parent is a KtFile, we should be careful adding the methodCall to it's main block.
+      // If the parent is a KtFile, we should be careful adding the methodCall to its main block.
       if (parentPsiElement is KtFile) {
         parentPsiElement = parentPsiElement.script?.blockExpression ?: parentPsiElement
         addedElement = parentPsiElement.addAfter(expression, anchor)
@@ -539,6 +539,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     else if (argumentList.isEmpty()) {
       methodCall.psiElement = addedElement
       methodCall.argumentsElement.psiElement = addedElement.valueArgumentList
+      methodCall.argumentsElement.applyChanges()
 
       val unsavedClosure = methodCall.unsavedClosure
       if (unsavedClosure != null) {

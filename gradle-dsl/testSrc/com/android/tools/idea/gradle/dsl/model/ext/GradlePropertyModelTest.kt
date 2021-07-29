@@ -2423,13 +2423,13 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
-      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules2.txt"), DERIVED, 0)
+      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules2.txt"), REGULAR, 0)
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
       verifyListProperty(
         proguardFiles,
         listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
-        DERIVED,
+        REGULAR,
         0
       )
     }
@@ -2442,7 +2442,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyListProperty(
         proguardFiles,
         listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
-        DERIVED,
+        REGULAR,
         0
       )
     }
