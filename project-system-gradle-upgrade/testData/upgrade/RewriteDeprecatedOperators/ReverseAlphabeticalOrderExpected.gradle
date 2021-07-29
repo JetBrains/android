@@ -6,6 +6,7 @@ android {
     resourceConfigurations += ['en', 'fr']
     minSdk 28
     maxSdk 30
+    matchingFallbacks = ['demo', 'trial']
   }
   productFlavors {
     foo {
@@ -15,7 +16,13 @@ android {
       resourceConfigurations += ['uk']
       minSdk 27
       maxSdk 29
+      matchingFallbacks = ['trial']
       dimension 'paid'
+    }
+  }
+  buildTypes {
+    mumble {
+      matchingFallbacks = ['demo']
     }
   }
   flavorDimensions 'paid', 'country'

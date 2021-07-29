@@ -6,6 +6,7 @@ android {
     resourceConfigurations += setOf("en", "fr")
     minSdk = 28
     maxSdk = 30
+    matchingFallbacks += listOf("demo", "trial")
   }
   productFlavors {
     create("foo") {
@@ -15,7 +16,13 @@ android {
       resourceConfigurations += setOf("uk")
       minSdk = 27
       maxSdk = 29
+      matchingFallbacks += listOf("trial")
       dimension = "paid"
+    }
+  }
+  buildTypes {
+    create("mumble") {
+      matchingFallbacks += listOf("demo")
     }
   }
   flavorDimensions += listOf("paid", "country")

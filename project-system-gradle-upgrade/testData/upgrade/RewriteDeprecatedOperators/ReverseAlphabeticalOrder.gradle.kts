@@ -6,6 +6,7 @@ android {
     resConfigs("en", "fr")
     minSdkVersion(28)
     maxSdkVersion(30)
+    setMatchingFallbacks(listOf("demo", "trial"))
   }
   productFlavors {
     create("foo") {
@@ -15,7 +16,13 @@ android {
       resConfig("uk")
       minSdkVersion(27)
       maxSdkVersion(29)
+      setMatchingFallbacks("trial")
       setDimension("paid")
+    }
+  }
+  buildTypes {
+    create("mumble") {
+      setMatchingFallbacks(listOf("demo"))
     }
   }
   flavorDimensions("paid", "country")

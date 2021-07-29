@@ -1,0 +1,15 @@
+android {
+  defaultConfig {
+    matchingFallbacks = ['one', 'two']
+  }
+  buildTypes {
+    mumble {
+      matchingFallbacks = ['three']
+    }
+  }
+  productFlavors {
+    foo {
+      matchingFallbacks = ['four']
+    }
+  }
+}
