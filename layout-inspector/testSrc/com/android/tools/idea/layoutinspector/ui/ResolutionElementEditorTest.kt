@@ -24,8 +24,6 @@ import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnLinux
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -96,7 +94,6 @@ class ResolutionElementEditorTest {
   @get:Rule
   val ignoreTests = IgnoreTestRule()
 
-  @IgnoreWithCondition(reason = "b/194323218", condition = OnLinux::class)
   @Test
   fun testPaintOpen() {
     if (SystemInfo.isWindows) {
@@ -108,7 +105,6 @@ class ResolutionElementEditorTest {
     checkImage(editors, "Open")
   }
 
-  @IgnoreWithCondition(reason = "b/194323218", condition = OnLinux::class)
   @Test
   fun testPaintOpenWithDetails() {
     if (SystemInfo.isWindows) {
@@ -122,7 +118,6 @@ class ResolutionElementEditorTest {
     checkImage(editors, "OpenWithDetails")
   }
 
-  @IgnoreWithCondition(reason = "b/194323218", condition = OnLinux::class)
   @Test
   fun testPaintOpenWithTwoDetails() {
     if (SystemInfo.isWindows) {
