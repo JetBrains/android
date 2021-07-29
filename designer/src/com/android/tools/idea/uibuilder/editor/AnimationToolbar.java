@@ -74,6 +74,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
    */
   private final JSlider myFrameControl;
   @Nullable private final DefaultBoundedRangeModel myTimeSliderModel;
+  /**
+   * The progress bar to indicate the current progress of animation. User can also click/drag the indicator to set the progress.
+   */
+  protected final JSlider myTimeSlider;
   private final ChangeListener myTimeSliderChangeModel;
   private long myMaxTimeMs;
   private boolean myLoopEnabled = true;
@@ -136,6 +140,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
 
 
     if (isUnlimitedAnimationToolbar()) {
+      myTimeSlider = null;
       myTimeSliderModel = null;
       myTimeSliderChangeModel = null;
     }
@@ -146,19 +151,19 @@ public class AnimationToolbar extends JPanel implements Disposable {
         long newPositionMs = (long)((myMaxTimeMs - myMinTimeMs) * (myTimeSliderModel.getValue() / 100f));
         seek(newPositionMs);
       };
-      JSlider timeSlider = new JSlider(0, 100, 0) {
+      myTimeSlider = new JSlider(0, 100, 0) {
         @Override
         public void updateUI() {
           setUI(new AnimationToolbarSliderUI(this));
           updateLabelUIs();
         }
       };
-      timeSlider.setOpaque(false);
-      timeSlider.setBorder(JBUI.Borders.empty());
+      myTimeSlider.setOpaque(false);
+      myTimeSlider.setBorder(JBUI.Borders.empty());
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
-      timeSlider.setModel(myTimeSliderModel);
+      myTimeSlider.setModel(myTimeSliderModel);
       buttonsPanel.add(new JSeparator(SwingConstants.VERTICAL));
-      myControlBar.add(timeSlider);
+      myControlBar.add(myTimeSlider);
     }
 
     myFrameControl = new JSlider(-5, 5, 0);
@@ -417,7 +422,6 @@ public class AnimationToolbar extends JPanel implements Disposable {
   }
 
   public void setMaxtimeMs(long maxTimeMs) {
-    assert !isUnlimitedAnimationToolbar() : "Max time can not be set for unlimited animations";
     myMaxTimeMs = maxTimeMs;
   }
 
