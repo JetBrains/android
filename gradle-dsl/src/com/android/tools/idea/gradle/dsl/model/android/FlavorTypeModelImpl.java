@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRI
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
@@ -53,7 +54,8 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     new ModelPropertyDescription("mBuildConfigField", UNSPECIFIED_FOR_NOW);
   @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
   @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
-  @NonNls public static final String MATCHING_FALLBACKS = "mMatchingFallbacks";
+  @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS =
+    new ModelPropertyDescription("mMatchingFallbacks", MUTABLE_LIST);
   @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
   @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
