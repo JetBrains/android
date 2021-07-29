@@ -24,6 +24,7 @@ public interface FeatureConfig {
   boolean isCpuNewRecordingWorkflowEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isEnergyProfilerEnabled();
+  boolean isJankDetectionUiEnabled();
   boolean isJniReferenceTrackingEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();

@@ -394,6 +394,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
+    public boolean isJankDetectionUiEnabled() {
+      return StudioFlags.PROFILER_JANK_DETECTION_UI.get();
+    }
+
+    @Override
     public boolean isJniReferenceTrackingEnabled() {
       return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
     }
