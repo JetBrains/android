@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel
 import org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinAndroidSourceSetData
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinMPPGradleProjectResolver
-import org.jetbrains.kotlin.idea.gradle.configuration.getMppModel
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
 @Order(ExternalSystemConstants.UNORDERED - 1)

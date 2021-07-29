@@ -12,7 +12,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradle.inspections.KotlinGradleModelFacade
-import org.jetbrains.kotlin.idea.gradle.inspections.findModulesByNames
+import org.jetbrains.kotlin.idea.gradleJava.inspections.findModulesByNames
 
 class AndroidGradleModelFacade : KotlinGradleModelFacade {
     override fun getDependencyModules(ideModule: DataNode<ModuleData>, gradleIdeaProject: IdeaProject): Collection<DataNode<ModuleData>> {
