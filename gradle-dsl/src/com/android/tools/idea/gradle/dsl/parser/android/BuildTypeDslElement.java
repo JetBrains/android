@@ -41,7 +41,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   private static final ExternalToModelMap ktsToModelNameMap = Stream.concat(
     AbstractFlavorTypeDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
       data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-      data.modelEffectDescription.property, data.modelEffectDescription.semantics
+      data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+      data.versionConstraint
     }),
     Stream.of(new Object[][]{
       {"isCrunchPngs", property, CRUNCH_PNGS, VAR},
@@ -69,7 +70,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   private static final ExternalToModelMap groovyToModelNameMap = Stream.concat(
     AbstractFlavorTypeDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
       data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-      data.modelEffectDescription.property, data.modelEffectDescription.semantics
+      data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+      data.versionConstraint
     }),
     Stream.of(new Object[][]{
       {"crunchPngs", property, CRUNCH_PNGS, VAR},

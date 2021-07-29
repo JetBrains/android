@@ -36,7 +36,8 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
     Stream.concat(
       BaseCompileOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"encoding", property, ENCODING, VAR},
@@ -47,7 +48,8 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
     Stream.concat(
       BaseCompileOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"encoding", property, ENCODING, VAR},

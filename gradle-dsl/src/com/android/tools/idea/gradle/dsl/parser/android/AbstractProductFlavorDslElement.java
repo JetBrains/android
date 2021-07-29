@@ -60,7 +60,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     Stream.concat(
       AbstractFlavorTypeDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
@@ -108,7 +109,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     Stream.concat(
       AbstractFlavorTypeDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
