@@ -32,6 +32,11 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient,
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
 
+  /**
+   * A Mapping from work id to its related [JobEntry].
+   */
+  private val workIdJobMap = mutableMapOf<String, JobEntry>()
+
   var filterTag: String? = null
     set(value) {
       if (field != value) {
@@ -63,7 +68,15 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient,
     parentFinder = { entry ->
       when (entry) {
         is WorkEntry -> worksNode
-        is JobEntry -> jobsNode
+        is JobEntry -> {
+          // Link the job under its target work entry.
+          entry.targetWorkId?.let {
+            workIdJobMap[it] = entry
+            client.getEntry(it)
+          }?.let {
+            nodeMap[it]
+          } ?: jobsNode
+        }
         is AlarmEntry -> alarmsNode
         is WakeLockEntry -> wakesNode
         else -> throw RuntimeException()
@@ -80,6 +93,16 @@ class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient,
                 val parent = parentFinder(entry)
                 parent.add(newNode)
                 nodeStructureChanged(parent)
+
+                // Find affiliated jobs for the work.
+                if (entry is WorkEntry) {
+                  workIdJobMap[entry.id]?.let { id -> nodeMap[id] }?.let { jobNode ->
+                    jobsNode.remove(jobNode)
+                    nodeStructureChanged(jobsNode)
+                    newNode.add(jobNode)
+                    nodeStructureChanged(newNode)
+                  }
+                }
               }
             }
           }

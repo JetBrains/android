@@ -38,6 +38,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   private var _startTime = -1L
   private var _isValid = true
 
+  var targetWorkId: String? = null
+
   override val isValid get() = _isValid
 
   override val className get() = _className
@@ -56,6 +58,17 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
         _className = "Job $id"
         _status = State.SCHEDULED
         _startTime = TimeUnit.NANOSECONDS.toMillis(timestamp)
+
+        // Find target work id from extras.
+        backgroundTaskEvent.jobScheduled.job.extras.let { extras ->
+          val workIdSuffix = extras.substringAfter("EXTRA_WORK_SPEC_ID=", "")
+          if (workIdSuffix.isNotEmpty()) {
+            val endIndex = workIdSuffix.indexOfFirst { it != '-' && !it.isDigit() && !it.isLetter() }
+            if (endIndex != -1) {
+              targetWorkId = workIdSuffix.substring(0, endIndex)
+            }
+          }
+        }
       }
       BackgroundTaskEvent.MetadataCase.JOB_STARTED -> {
         _status = State.STARTED
