@@ -46,13 +46,19 @@
             toReformat="true"
             toShortenFQNames="true">
     <variable name="DP" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN_EXPRESSION" value="true"/>
+    </context>
   </template>
   <template name="weight"
             value="androidx.compose.ui.Modifier.weight($WEIGHT$)"
             description="Add weight Modifier"
             toReformat="true"
             toShortenFQNames="true">
-    <variable name="$WEIGHT$" expression="" defaultValue="" alwaysStopAt="true"/>
+    <variable name="WEIGHT" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN_EXPRESSION" value="true"/>
+    </context>
   </template>
   <!-- endregion -->
 </templateSet>
