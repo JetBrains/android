@@ -16,8 +16,13 @@
 package com.android.tools.compose.templates
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
+import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.template.impl.InvokeTemplateAction
+import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
+import com.intellij.codeInsight.template.impl.LiveTemplateLookupElement
+import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import java.util.HashSet
@@ -38,6 +43,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
     class Box
     """.trimIndent()
     )
+    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
+    TemplateManagerImpl.setTemplateTesting(myFixture.testRootDisposable)
   }
 
   override fun tearDown() {
@@ -155,6 +162,86 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
               Text("Davenport, California")
               Text("December 2018")
           }
+      }
+      """.trimIndent()
+    )
+  }
+
+  fun testPaddingModifierTemplate() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text(
+            modifier = $caret
+            "A day in Shark Fin Cove")
+          Text("Davenport, California")
+      }
+      """.trimIndent()
+    )
+
+    val template = TemplateSettings.getInstance().getTemplate("paddp", "AndroidCompose")
+    InvokeTemplateAction(template, myFixture.editor, project, HashSet()).perform()
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text(
+            modifier = androidx.compose.ui.Modifier.padding(.dp)
+            "A day in Shark Fin Cove")
+          Text("Davenport, California")
+      }
+      """.trimIndent()
+    )
+  }
+
+  fun testWeightModifierTemplate() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text(
+            modifier = $caret
+            "A day in Shark Fin Cove")
+          Text("Davenport, California")
+      }
+      """.trimIndent()
+    )
+
+    val template = TemplateSettings.getInstance().getTemplate("weight", "AndroidCompose")
+    InvokeTemplateAction(template, myFixture.editor, project, HashSet()).perform()
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun NewsStory() {
+          Text(
+            modifier = androidx.compose.ui.Modifier.weight()
+            "A day in Shark Fin Cove")
+          Text("Davenport, California")
       }
       """.trimIndent()
     )
