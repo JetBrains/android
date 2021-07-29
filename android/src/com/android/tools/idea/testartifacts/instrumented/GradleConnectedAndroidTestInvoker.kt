@@ -225,6 +225,9 @@ class GradleConnectedAndroidTestInvoker(
   }
 
   private fun getTaskNames(androidModuleModel: AndroidModuleModel): List<String> {
-    return listOf("connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
+    var modulePrefix = androidModuleModel.moduleName.replace(".", ":")
+    val index = modulePrefix.indexOf(":")
+    modulePrefix = modulePrefix.substring(index)
+    return listOf("${modulePrefix}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
   }
 }
