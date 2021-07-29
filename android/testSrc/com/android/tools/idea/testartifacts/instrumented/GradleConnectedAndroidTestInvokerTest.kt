@@ -71,6 +71,7 @@ class GradleConnectedAndroidTestInvokerTest {
   fun setup() {
     `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
     `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
+    `when`(mockAndroidModuleModel.moduleName).thenReturn("testProject.app")
   }
 
   private fun createGradleConnectedAndroidTestInvoker(
@@ -347,7 +348,28 @@ class GradleConnectedAndroidTestInvokerTest {
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
-      eq(listOf("connectedNonDefaultBuildVariantAndroidTest")),
+      eq(listOf(":app:connectedNonDefaultBuildVariantAndroidTest")),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun testTaskNamesMatchSelectedModule() {
+    `when`(mockAndroidModuleModel.moduleName).thenReturn("testProject.app.testModule")
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      eq(listOf(":app:testModule:connectedDebugAndroidTest")),
       anyString(),
       any(),
       nullable(String::class.java),
