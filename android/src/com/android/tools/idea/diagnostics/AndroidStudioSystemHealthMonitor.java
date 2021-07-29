@@ -173,13 +173,6 @@ public class AndroidStudioSystemHealthMonitor {
     Integer.getInteger("studio.diagnostic.freeze.maxReports",
                        ApplicationManager.getApplication().isEAP() ? 10 : 1);
 
-  /**
-   * Histogram of write lock wait times, in milliseconds. Must be accessed from the EDT.
-   */
-  private static final SingleWriterRecorder myWriteLockWaitTimesMs = new SingleWriterRecorder(1);
-  /** Maximum freeze duration to record. Longer freeze durations are truncated to keep the size of the histogram bounded. */
-  private static final long MAX_WRITE_LOCK_WAIT_TIME_MS = 30 * 60 * 1000;
-
   private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
   /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_GC_PAUSE_TIME_MS = 30 * 60 * 1000;
@@ -382,10 +375,6 @@ public class AndroidStudioSystemHealthMonitor {
     return sb.toString();
   }
 
-  public void recordWriteLockWaitTime(long durationMs) {
-    myWriteLockWaitTimesMs.recordValue(Math.min(durationMs, MAX_WRITE_LOCK_WAIT_TIME_MS));
-  }
-
   public static void recordGcPauseTime(String gcName, long durationMs) {
     GcPauseInfo.GcType gcType = getGcType(gcName);
     myGcPauseInfo.computeIfAbsent(gcType, (unused) -> new SingleWriterRecorder(1))
@@ -552,11 +541,6 @@ public class AndroidStudioSystemHealthMonitor {
       @Override
       public void countActionInvocation(Class<? extends AnAction> aClass, Presentation presentation, AnActionEvent event) {
         AndroidStudioSystemHealthMonitor.countActionInvocation(aClass, presentation, event);
-      }
-
-      @Override
-      public void recordWriteLockWaitTime(long elapsed) {
-        AndroidStudioSystemHealthMonitor.this.recordWriteLockWaitTime(elapsed);
       }
 
       @Override
@@ -1013,9 +997,7 @@ public class AndroidStudioSystemHealthMonitor {
       }
     }
 
-    StudioPerformanceStats.Builder statsProto =
-        StudioPerformanceStats.newBuilder()
-            .setWriteLockWaitTimeMs(HistogramUtil.toProto(myWriteLockWaitTimesMs.getIntervalHistogram()));
+    StudioPerformanceStats.Builder statsProto = StudioPerformanceStats.newBuilder();
     for (Map.Entry<GcPauseInfo.GcType, SingleWriterRecorder> gcEntry : myGcPauseInfo.entrySet()) {
       statsProto.addGcPauseInfo(GcPauseInfo.newBuilder()
                                   .setCollectorType(gcEntry.getKey())
