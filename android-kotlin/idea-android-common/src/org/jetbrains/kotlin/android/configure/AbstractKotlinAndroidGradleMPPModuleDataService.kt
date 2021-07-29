@@ -24,10 +24,10 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.kotlin.gradle.KotlinCompilation
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.gradle.KotlinSourceSet
+import org.jetbrains.kotlin.idea.gradleJava.addModuleDependencyIfNeeded
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.idea.gradle.addModuleDependencyIfNeeded
-import org.jetbrains.kotlin.idea.gradle.configuration.GradleProjectImportHandler
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetDataService
+import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinSourceSetDataService
 import org.jetbrains.kotlin.idea.gradle.configuration.kotlinAndroidSourceSets
 import org.jetbrains.kotlin.idea.gradle.configuration.kotlinSourceSetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
