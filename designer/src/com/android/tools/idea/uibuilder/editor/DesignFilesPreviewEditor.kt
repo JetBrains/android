@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor
 
 import android.graphics.drawable.AnimationDrawable
 import android.widget.ImageView
+import com.android.SdkConstants
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
@@ -119,11 +120,11 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
 
   private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?): JPanel? {
     if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFile) {
-      return AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, MyAnimationListener(surface), 16, 0L)
+      return AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
     else if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get() && model?.type is AnimatedVectorFileType) {
       // If opening an animated vector, add an unlimited animation bar
-      return AnimationToolbar.createUnlimitedAnimationToolbar(this, MyAnimationListener(surface), 16, 0L)
+      return AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimatedVectorListener(surface), 16, 0L)
     }
     else if (StudioFlags.NELE_ANIMATIONS_LIST_PREVIEW.get() && model?.type is AnimationListFileType) {
       // If opening an animation list, add an animation bar with progress
@@ -132,7 +133,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         (0 until drawable.numberOfFrames).sumByLong { index -> drawable.getDuration(index).toLong() }
       } ?: 0L
       val oneShotString = animationDrawable?.isOneShot ?: false
-      return AnimationToolbar.createAnimationToolbar(this, MyAnimationListListener(surface), 16, 0, maxTimeMs)
+      return AnimationToolbar.createAnimationToolbar(this, AnimationListListener(surface), 16, 0, maxTimeMs)
         .apply { setLoop(!oneShotString) }
     }
     return null
@@ -141,7 +142,10 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun getName() = "Design"
 }
 
-class MyAnimationListener(val surface: DesignSurface) : AnimationListener {
+/**
+ * Animation listener for <animated-vector>.
+ */
+private class AnimatedVectorListener(val surface: DesignSurface) : AnimationListener {
   override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
@@ -178,7 +182,10 @@ class MyAnimationListener(val surface: DesignSurface) : AnimationListener {
   }
 }
 
-class MyAnimationListListener(val surface: DesignSurface) : AnimationListener {
+/**
+ * Animation listener for <animation-list>.
+ */
+private class AnimationListListener(val surface: DesignSurface) : AnimationListener {
   private var currentAnimationDrawable: AnimationDrawable? = null
   private var modelTimeMap = listOf<Long>()
 
@@ -236,6 +243,30 @@ class MyAnimationListListener(val surface: DesignSurface) : AnimationListener {
       map[mid] < target -> binarySearch(map, target, mid + 1, end)
       target < map[mid] -> binarySearch(map, target, start, mid)
       else -> mid + 1 // map[mid] == target
+    }
+  }
+}
+
+/**
+ * Animation listener for <animated-selector> file.
+ * <animated-selector> may have embedded <animated-vector> and/or <animation-list>.
+ */
+private class AnimatedSelectorListener(val surface: DesignSurface) : AnimationListener {
+  private val animatedVectorDelegate = AnimatedVectorListener(surface)
+  private val animationListDelegate = AnimationListListener(surface)
+
+  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+    (surface.sceneManager as? LayoutlibSceneManager)?.let {
+      when (it.model.file.rootTag?.name) {
+        SdkConstants.TAG_ANIMATED_VECTOR -> {
+          animatedVectorDelegate.animateTo(toolbar, framePositionMs)
+        }
+        SdkConstants.TAG_ANIMATION_LIST -> animationListDelegate.animateTo(toolbar, framePositionMs)
+        else -> {
+          it.setElapsedFrameTimeMs(framePositionMs)
+          it.requestRender()
+        }
+      }
     }
   }
 }
