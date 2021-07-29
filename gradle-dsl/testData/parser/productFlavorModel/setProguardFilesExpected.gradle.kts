@@ -1,5 +1,5 @@
 android {
   defaultConfig {
-    setProguardFiles(listOf("proguard-rules.pro", "value"))
+    proguardFiles("proguard-rules.pro", "value")
   }
 }

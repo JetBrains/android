@@ -352,6 +352,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (addedElement instanceof GrMethodCallExpression) {
       methodCall.setPsiElement(addedElement);
       methodCall.getArgumentsElement().setPsiElement(((GrMethodCallExpression)addedElement).getArgumentList());
+      methodCall.getArgumentsElement().applyChanges();
 
       if (methodCall.getUnsavedClosure() != null) {
         createAndAddClosure(methodCall.getUnsavedClosure(), methodCall);
