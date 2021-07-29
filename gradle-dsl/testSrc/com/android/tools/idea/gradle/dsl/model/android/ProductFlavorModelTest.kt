@@ -2311,7 +2311,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testWriteMatchingFallbacks() {
-    //assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel

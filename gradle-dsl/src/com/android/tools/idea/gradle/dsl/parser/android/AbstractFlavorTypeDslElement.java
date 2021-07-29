@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,7 +60,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
     {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, OTHER}, // CLEAR + PUTALL, which is not quite the same as SET
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAL},
-    {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST},
+    {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST, VersionConstraint.agpBefore("8.0.0")},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
     {"setMultiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", property, MULTI_DEX_KEEP_FILE, VAR},
@@ -88,6 +89,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
     {"manifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
+    {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST, VersionConstraint.agpBefore("8.0.0")},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
     {"multiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", exactly(1), MULTI_DEX_KEEP_FILE, SET},
