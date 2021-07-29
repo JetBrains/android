@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
@@ -178,7 +179,9 @@ final class Updater {
 
     RunProfile configuration = myConfigurationAndSettings.getConfiguration();
 
-    if (configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration) {
+        if (configuration instanceof AndroidRunConfiguration
+                || configuration instanceof AndroidTestRunConfiguration
+                || configuration instanceof AndroidWearConfiguration) {
       myPresentation.setEnabled(true);
       myPresentation.setDescription((String)null);
 
