@@ -94,6 +94,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEnergyProfilerEnabled = false;
 
   /**
+   * Whether jank detection UI is enabled
+   */
+  private boolean myIsJankDetectionUiEnabled = false;
+
+  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -247,6 +252,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isEnergyProfilerEnabled() {
         return myEnergyProfilerEnabled;
+      }
+
+      @Override
+      public boolean isJankDetectionUiEnabled() {
+        return myIsJankDetectionUiEnabled;
       }
 
       @Override
@@ -449,6 +459,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableEnergyProfiler(boolean enabled) {
     myEnergyProfilerEnabled = enabled;
+  }
+
+  public void enableJankDetectionUi(boolean enabled) {
+    myIsJankDetectionUiEnabled = enabled;
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
