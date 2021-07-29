@@ -346,10 +346,10 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 val NlComponent.viewHandler: ViewHandler?
-  get() = ViewHandlerManager.get(model.project).getHandler(this)
+  get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).getHandler(this) else null
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() = ViewHandlerManager.get(model.project).findLayoutHandler(this, false)
+  get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).findLayoutHandler(this, false) else null
 
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
