@@ -46,6 +46,7 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
         listOf(android().buildToolsVersion(), android().compileSdkVersion(), android().flavorDimensions()) +
         android().defaultConfig().let {
           listOf(
+            it.matchingFallbacks(),
             it.maxSdkVersion(),
             it.minSdkVersion(),
             it.resConfigs(),
@@ -54,9 +55,15 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
             it.testHandleProfiling(),
           )
         } +
+        android().buildTypes().flatMap {
+          listOf(
+            it.matchingFallbacks(),
+          )
+        } +
         android().productFlavors().flatMap {
           listOf(
             it.dimension(),
+            it.matchingFallbacks(),
             it.maxSdkVersion(),
             it.minSdkVersion(),
             it.resConfigs(),

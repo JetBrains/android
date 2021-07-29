@@ -6,6 +6,7 @@ android {
     resConfigs('en', 'fr')
     minSdkVersion(28)
     maxSdkVersion(30)
+    setMatchingFallbacks(['demo', 'trial'])
   }
   productFlavors {
     foo {
@@ -15,7 +16,13 @@ android {
       resConfig('uk')
       minSdkVersion(27)
       maxSdkVersion(29)
+      setMatchingFallbacks('trial')
       setDimension('paid')
+    }
+  }
+  buildTypes {
+    mumble {
+      setMatchingFallbacks(['demo'])
     }
   }
   flavorDimensions 'paid', 'country'
