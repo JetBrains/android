@@ -38,7 +38,8 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
     Stream.concat(
       BaseSplitOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"isUniversalApk", property, UNIVERSAL_APK, VAR},
@@ -48,7 +49,8 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
     Stream.concat(
       BaseSplitOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"universalApk", property, UNIVERSAL_APK, VAR},

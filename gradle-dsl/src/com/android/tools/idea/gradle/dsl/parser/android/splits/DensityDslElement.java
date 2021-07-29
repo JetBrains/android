@@ -37,7 +37,8 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
     Stream.concat(
       BaseSplitOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"setAuto", exactly(1), AUTO, SET},
@@ -48,7 +49,8 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
     Stream.concat(
       BaseSplitOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
         data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
+        data.versionConstraint
       }),
       Stream.of(new Object[][]{
         {"auto", property, AUTO, VAR},
