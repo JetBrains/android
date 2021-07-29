@@ -21,16 +21,16 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Key;
 import java.lang.ref.WeakReference;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
- * A simple logger which outputs to a process handler. If a process handler is not initially present, stores output until one is set.
- * Repeatedly setting the process handler will update the handler that messages are printed to, but stored messages are printed only once.
+ * A simple logger which outputs to a process handler. If a process handler is not initially
+ * present, stores output until one is set. Repeatedly setting the process handler will update the
+ * handler that messages are printed to, but stored messages are printed only once.
  */
-public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
+public class ProcessHandlerConsolePrinter implements ConsolePrinter {
 
   private static class Message {
     @NotNull final String text;
