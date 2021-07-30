@@ -30,6 +30,7 @@ import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -37,7 +38,6 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
-import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
@@ -219,14 +219,15 @@ class WarningsViewDetailPagesFactory(
       postfix = "</ul>",
       separator = ""
     ) { "<li>${it.displayName}</li>" }
+    val linksHandler = HtmlLinksHandler(actionHandlers)
     val contentHtml = """
         <b>Android Gradle plugin update required to make Configuration cache available</b>
-        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        ${configurationCachingDescriptionHeader(projectConfigurationTime, linksHandler)}
         Android Gradle plugin supports Configuration cache from ${uiData.recommendedVersion}. Current version is ${uiData.currentVersion}.
         
         $appliedAGPPluginsList
       """.trimIndent().insertBRTags()
-    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).alignWithButton())
     add(JButton("Update Android Gradle plugin").apply { addActionListener { actionHandlers.runAgpUpgrade() } })
   }
 
@@ -249,20 +250,22 @@ class WarningsViewDetailPagesFactory(
     }
     val pluginsCountLines = sequenceOf(upgradablePluginsCountLine, incompatiblePluginsCountLine).filterNotNull()
       .joinToString(prefix = "<ul>", postfix = "</ul>", separator = "") { "<li>$it</li>" }
+    val linksHandler = HtmlLinksHandler(actionHandlers)
     val contentHtml = """
         <b>Some plugins are not compatible with Configuration cache</b>
-        ${configurationCachingDescriptionHeader(configurationTime)}
+        ${configurationCachingDescriptionHeader(configurationTime,linksHandler)}
         Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.
         $pluginsCountLines
         You can find details on each plugin on corresponding sub-pages.
       """.trimIndent().insertBRTags()
-    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
   }
 
   private fun JPanel.createNoIncompatiblePluginsPanel(uiData: NoIncompatiblePlugins, configurationTime: TimeWithPercentage) {
+    val linksHandler = HtmlLinksHandler(actionHandlers)
     val contentHtml = """
         <b>Try to turn Configuration cache on</b>
-        ${configurationCachingDescriptionHeader(configurationTime)}
+        ${configurationCachingDescriptionHeader(configurationTime, linksHandler)}
         The known plugins applied in this build are compatible with Configuration cache.
       """.trimIndent().insertBRTags()
     val runTestBuildActionButton = JButton("Try Configuration cache in a build").apply {
@@ -277,34 +280,37 @@ class WarningsViewDetailPagesFactory(
       postfix = "</ul>",
       separator = ""
     ) { "<li>${it.displayName}</li>" }
-    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
-    add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).alignWithButton())
+    add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).alignWithButton())
     add(runTestBuildActionButton)
     if (uiData.unrecognizedPlugins.isNotEmpty())
-      add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
+      add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).alignWithButton())
   }
 
   private fun JPanel.createConfigurationCacheTestFlowPanel() {
+    val linksHandler = HtmlLinksHandler(actionHandlers)
+    val configurationCacheLink = linksHandler.externalLink("Configuration cache", CONFIGURATION_CACHING)
     val contentHtml = """
-        <b>Test builds with Configuration cache finished successfully</b>
-        With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
-        
-        Gradle successfully serialized the task graph and reused it with Configuration cache on.
+      <b>Test builds with Configuration cache finished successfully</b>
+      With $configurationCacheLink, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+      
+      Gradle successfully serialized the task graph and reused it with Configuration cache on.
       """.trimIndent().insertBRTags()
     val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties").apply {
       addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
     }
-    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).alignWithButton())
     add(addToPropertiesActionButton)
   }
 
   private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
                                                     projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
     layout = VerticalLayout(10, SwingConstants.LEFT)
+    val linksHandler = HtmlLinksHandler(actionHandlers)
 
     val contentHtml = if (data.requiredVersion != null) """
         <b>${data.plugin.displayName}: update required</b>
-        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        ${configurationCachingDescriptionHeader(projectConfigurationTime, linksHandler)}
         Update this plugin to ${data.requiredVersion} or higher to make Configuration cache available.
         
         Plugin version: ${data.currentVersion}
@@ -312,65 +318,62 @@ class WarningsViewDetailPagesFactory(
       """.trimIndent().insertBRTags()
     else """
         <b>${data.plugin.displayName}: not compatible</b>
-        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        ${configurationCachingDescriptionHeader(projectConfigurationTime, linksHandler)}
         The version of this plugin used in this build is not compatible with Configuration cache
         and we don’t know the version when it becomes compatible.
         
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
       """.trimIndent().insertBRTags()
-    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).alignWithButton())
     if (data.requiredVersion != null) {
       add(JButton("Go to plugin version declaration").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
     }
   }
 
-  private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
-    "<p>" +
-    "You could save about ${configurationTime.durationStringHtml()} by turning " +
-    "${externalLink("Configuration cache", CONFIGURATION_CACHING)} on.<br/>" +
-    "With Configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
-    "</p>"
+  private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage, linksHandler: HtmlLinksHandler): String {
+    val configurationCacheLink = linksHandler.externalLink("Configuration cache", CONFIGURATION_CACHING)
+    return "<p>" +
+           "You could save about ${configurationTime.durationStringHtml()} by turning $configurationCacheLink on.<br/>" +
+           "With Configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
+           "</p>"
+  }
 
-  private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {
+  private fun JEditorPane.alignWithButton() = apply {
+    // Add left margin to align with button vertically
     border = JBUI.Borders.emptyLeft(3)
-    addHyperlinkListener { e ->
-      //TODO (mlazeba): extract duplicated logic, same in BuldOverview page for example. Time to introduce some link handler.
-      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        BuildAnalyzerBrowserLinks.valueOf(e.description).let {
-          BrowserUtil.browse(it.urlTarget)
-          actionHandlers.helpLinkClicked(it)
-        }
-      }
-    }
   }
 
   private fun createJetifierUsageWarningPage(data: JetifierUsageAnalyzerResult): JPanel = when(data) {
     JetifierUsedCheckRequired -> JPanel().apply {
       layout = VerticalLayout(10, SwingConstants.LEFT)
+      val linksHandler = HtmlLinksHandler(actionHandlers)
+      val learnMoreLink = linksHandler.externalLink("Learn more", JETIIFER_MIGRATE)
       val contentHtml = """
         <b>Confirm need for Jetifier flag in your project</b>
         Your project’s gradle.settings file includes ‘enableJetifier’. This flag is needed
-        to enable AndroidX for libraries that don’t support it natively. ${externalLink("Learn more", JETIIFER_MIGRATE)}.
+        to enable AndroidX for libraries that don’t support it natively. $learnMoreLink.
 
         Your project may no longer need this flag and could save build time by removing it.
         Click the button below to verify if enableJetifier is needed.
       """.trimIndent().insertBRTags()
-      add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+      add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
       add(JButton("Check Jetifier").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
     }
     JetifierCanBeRemoved -> JPanel().apply {
       layout = VerticalLayout(10, SwingConstants.LEFT)
+      val linksHandler = HtmlLinksHandler(actionHandlers)
+      val removeJetifierLink = linksHandler.actionLink("Remove enableJetifier", "remove") {
+        actionHandlers.turnJetifierOffInProperties()
+      }
       val contentHtml = """
       <b>Remove Jetifier flag</b>
       Your project’s gradle.settings includes enableJetifier. This flag is not needed by your project
       and removing it will improve build performance.
       
-      <a href='remove'>Remove enableJetifier</a>
+      $removeJetifierLink
       """.trimIndent().insertBRTags()
-      add(htmlTextLabelWithFixedLines(contentHtml).apply {
-        addHyperlinkListener({ actionHandlers.turnJetifierOffInProperties()})
-      })
+      add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
     }
     is JetifierRequiredForLibraries -> JPanel().apply {
       layout = VerticalLayout(10, SwingConstants.LEFT)
