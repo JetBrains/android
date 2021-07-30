@@ -27,9 +27,12 @@ import java.io.IOException
 
 class LlvmSymbolizerTest {
 
-  val LIB_FILE_NAME = "libnative-lib.so"
   val EXPECTED_SYMBOLS_FILE_NAME = "symbols.txt"
   val architectures = listOf("arm", "arm64", "x86", "x86_64")
+
+  private val libFileName = File("libnative-lib.so")
+  private val modulePath = File("/data/app/com.someapp.name-abcd09876abds==/lib/arm64/",
+                                libFileName.name)
 
   @Test
   fun testLlvmSymbolizerFound() {
@@ -48,11 +51,10 @@ class LlvmSymbolizerTest {
         val name = symParts[1]
         val sourceFile = symParts[2]
         val lineNumber = symParts[3].toInt()
-        val module = "/data/app/com.someapp.name-abcd09876abds==/lib/arm64/" + LIB_FILE_NAME
 
         // +1 to get an address within the function, rather than function start address
         val offsetWithinFunction = offset + 1
-        val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
+        val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
         Assert.assertNotNull(symbol)
         Assert.assertEquals(name, symbol.name)
         Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
@@ -66,21 +68,24 @@ class LlvmSymbolizerTest {
   fun testSymbolizeBinariesBuiltOnWindows() {
     val arch = "arm64"
     val binDir = "win"
-    val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(getTestPath(binDir)))))
+
+    val symbolSource = DynamicSymbolSource().add(arch, getTestPath(binDir))
+    val symLocator = SymbolFilesLocator(symbolSource)
+
     val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
     val expectedSymbolsFile = getTestPath(binDir, EXPECTED_SYMBOLS_FILE_NAME)
     Assert.assertTrue(expectedSymbolsFile.exists())
+
     for (line in expectedSymbolsFile.readLines()) {
       val symParts = line.split('|')
       val offset = symParts[0].toLong(16)
       val name = symParts[1]
       val sourceFile = symParts[2]
       val lineNumber = symParts[3].toInt()
-      val module = "/data/app/com.someapp.name-abcd09876abds==/lib/arm64/" + LIB_FILE_NAME
 
       // +1 to get an address within the function, rather than function start address
       val offsetWithinFunction = offset + 1
-      val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
+      val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
       Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
@@ -95,7 +100,7 @@ class LlvmSymbolizerTest {
     val symbolDir = File(tempDir, "name with a space")
     FileUtil.copyDir(getTestPath("win"), symbolDir)
     val arch = "arm64"
-    val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(symbolDir))))
+    val symLocator = SymbolFilesLocator(DynamicSymbolSource().add(arch, symbolDir))
     val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
     val expectedSymbolsFile = File(symbolDir, EXPECTED_SYMBOLS_FILE_NAME)
     Assert.assertTrue(expectedSymbolsFile.exists())
@@ -105,11 +110,10 @@ class LlvmSymbolizerTest {
       val name = symParts[1]
       val sourceFile = symParts[2]
       val lineNumber = symParts[3].toInt()
-      val module = "/data/app/com.someapp.name-abcd09876abds==/lib/arm64/" + LIB_FILE_NAME
 
       // +1 to get an address within the function, rather than function start address
       val offsetWithinFunction = offset + 1
-      val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
+      val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
       Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
@@ -128,10 +132,9 @@ class LlvmSymbolizerTest {
         val symParts = line.split('|')
         val offset = symParts[0].toLong(16)
         val name = symParts[1]
-        val module = "/path/to/device/modules/" + LIB_FILE_NAME
 
         val offsetWithinFunction = offset + 1
-        val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
+        val symbol = symbolizer.symbolize(arch, modulePath, offsetWithinFunction)!!
         Assert.assertNotNull(symbol)
         Assert.assertEquals(name, symbol.name)
         symbolizer.stop()
@@ -141,44 +144,48 @@ class LlvmSymbolizerTest {
 
   @Test(expected = IOException::class)
   fun testSymbolizerExeMissing() {
-    val symLocator = SymbolFilesLocator(getSymDirMap())
+    val symLocator = SymbolFilesLocator(createSymbolSource())
     val notExistingPapth = getLlvmSymbolizerPath().replace("llvm-symbolizer", "not-llvm-symbolizer")
     val symbolizer = LlvmSymbolizer(notExistingPapth, symLocator)
-    symbolizer.symbolize("x86", LIB_FILE_NAME, 11)
+    symbolizer.symbolize("x86", libFileName, 11)
     Assert.fail("IOException is expected to be thrown by the line above")
   }
 
   @Test
   fun testLlvmSymbolizerProcFreeze() {
     Assume.assumeFalse(SystemInfo.isWindows) // Windows doesn't have 'yes'
-    val symLocator = SymbolFilesLocator(getSymDirMap())
+    val symLocator = SymbolFilesLocator(createSymbolSource())
     val yesPath = "yes" // call 'yes' instead llvm-symbolizer to simulate freezing symbolizer
     val symbolizer = LlvmSymbolizer(yesPath, symLocator, 50)
     for (addr in 0L..6L) {
-      Assert.assertNull(symbolizer.symbolize("x86", LIB_FILE_NAME, addr))
+      Assert.assertNull(symbolizer.symbolize("x86", libFileName, addr))
     }
   }
 
   @Test
   fun testUnknownSymbols() {
+    val missingLibPath = File("/p/libnotexists.so")
+
     val symbolizer = createSymbolizer()
-    var sym = symbolizer.symbolize("arm", "/p/libnotexists.so", 12345)
+    var sym = symbolizer.symbolize("arm", missingLibPath, 12345)
     Assert.assertNull(sym)
 
-    sym = symbolizer.symbolize("arm", LIB_FILE_NAME, 0xffffffffff)
+    sym = symbolizer.symbolize("arm", libFileName, 0xffffffffff)
     Assert.assertNull(sym)
   }
 
-  fun getSymDirMap(): Map<String, Set<File>> {
-    val result: MutableMap<String, Set<File>> = hashMapOf()
+  private fun createSymbolSource(): SymbolSource {
+    var source = DynamicSymbolSource()
+
     for (arch in architectures) {
-      result[arch] = setOf(getTestPath(arch))
+      source.add(arch, getTestPath(arch))
     }
-    return result
+
+    return source
   }
 
-  fun createSymbolizer(): NativeSymbolizer {
-    val symLocator = SymbolFilesLocator(getSymDirMap())
+  private fun createSymbolizer(): NativeSymbolizer {
+    val symLocator = SymbolFilesLocator(createSymbolSource())
     return LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
   }
 

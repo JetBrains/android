@@ -31,7 +31,7 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
-import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
+import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
@@ -67,10 +67,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -88,7 +88,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return Logger.getInstance(IntellijProfilerServices.class);
   }
 
-  private final ProfilerCodeNavigator myCodeNavigator;
+  @NotNull private final SymbolFilesLocator mySymbolLocator;
+  @NotNull private final ProfilerCodeNavigator myCodeNavigator;
+
   @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
 
@@ -97,10 +99,14 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
   @NotNull private final AppInspectionMigrationServices myMigrationServices;
 
-  public IntellijProfilerServices(@NotNull Project project) {
+  public IntellijProfilerServices(@NotNull Project project,
+                                  @NotNull SymbolFilesLocator symbolLocator) {
     myProject = project;
     myFeatureTracker = new StudioFeatureTracker(myProject);
-    NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+
+    mySymbolLocator = symbolLocator;
+
+    NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(mySymbolLocator);
     Disposer.register(this, nativeSymbolizer::stop);
     myNativeSymbolizer = new IntelliJNativeFrameSymbolizer(nativeSymbolizer);
     myCodeNavigator = new ProfilerCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
@@ -279,11 +285,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<String> getNativeSymbolsDirectories() {
     String arch = myCodeNavigator.fetchCpuAbiArch();
-    Map<String, Set<File>> archToDirectories = SymbolFilesLocatorKt.getArchToSymDirsMap(myProject);
-    if (!archToDirectories.containsKey(arch)) {
-      return Collections.emptyList();
-    }
-    return ContainerUtil.map(archToDirectories.get(arch), file -> file.getAbsolutePath());
+    Collection<File> dirs = mySymbolLocator.getDirectories(arch);
+    return ContainerUtil.map(dirs, file -> file.getAbsolutePath());
   }
 
   @Override

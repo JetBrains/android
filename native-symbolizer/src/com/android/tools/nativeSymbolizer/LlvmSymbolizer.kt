@@ -42,10 +42,15 @@ class LlvmSymbolizer(private val symbolizerExe: String,
   private var procHolder : ProcessHolder? = null
   private val executor : ExecutorService = Executors.newSingleThreadExecutor()
 
-  override fun symbolize(abiArch: String, module: String, offset: Long): Symbol? {
-    val symFiles = symLocator.findSymbolFiles(abiArch, module)
+  /**
+   * @param abiArch - The cpu architecture of the symbol.
+   * @param module - The file path to the module.
+   * @param offset - The starting byte address in the module of the symbol.
+   */
+  override fun symbolize(abiArch: String, module: File, offset: Long): Symbol? {
+    val symFiles = symLocator.getFiles(abiArch)
 
-    for (symFile in symFiles) {
+    for (symFile in symFiles.filter { it.nameWithoutExtension == module.nameWithoutExtension }) {
       val request = formatRequest(symFile, offset)
 
       val holder = getProcHolder()
@@ -99,7 +104,7 @@ class LlvmSymbolizer(private val symbolizerExe: String,
     return java.lang.String.format("\"%s\" 0x%x\n", escapedPath, offset)
   }
 
-  private fun parseResponse(response: List<String>, module: String): Symbol? {
+  private fun parseResponse(response: List<String>, module: File): Symbol? {
     if (response.isEmpty())
       return null
 
@@ -108,22 +113,22 @@ class LlvmSymbolizer(private val symbolizerExe: String,
       return null
     }
     if (response.size < 2)
-      return Symbol(name, module)
+      return Symbol(name, module.absolutePath)
 
     // Location line looks like this: <path to source file>:<line number>:<column number>
     val locationLine = response[1].trim()
     val indexBeforeColumn = locationLine.lastIndexOf(':')
     if (indexBeforeColumn < 2)
-      return Symbol(name, module)
+      return Symbol(name, module.absolutePath)
 
     val indexBeforeLine = locationLine.lastIndexOf(':', indexBeforeColumn - 1)
     if (indexBeforeColumn < 1)
-      return Symbol(name, module)
+      return Symbol(name, module.absolutePath)
 
     val sourceFile = locationLine.substring(0, indexBeforeLine)
     val lineNumber = locationLine.substring(indexBeforeLine + 1, indexBeforeColumn).toIntOrNull() ?: 0
 
-    return Symbol(name, module, sourceFile, lineNumber)
+    return Symbol(name, module.absolutePath, sourceFile, lineNumber)
   }
 
   private fun start() {

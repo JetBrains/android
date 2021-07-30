@@ -21,6 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Memory.NativeCallStack;
+import java.io.File;
+import java.util.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
@@ -59,16 +61,26 @@ public class IntelliJNativeFrameSymbolizerTest {
   }
 
   private static class FakeNativeSymbolizer implements NativeSymbolizer {
+    private final HashSet<String> supportedArch = new HashSet<>();
+
+    public FakeNativeSymbolizer() {
+      supportedArch.add("arm");
+      supportedArch.add("x86");
+    }
+
     @Nullable
     @Override
-    public Symbol symbolize(@NotNull String abiArch, @NotNull String module, long offset) {
-      switch (abiArch) {
-        case "arm":
-        case "x86":
-          return new Symbol(abiArch + "_frame", module + "_symbolized", "symbols.java", 1000 + (int)offset);
-        default:
-          return null;
+    public Symbol symbolize(@NotNull String abiArch, @NotNull File module, long offset) {
+      if (!supportedArch.contains(abiArch)) {
+        return null;
       }
+
+      // Just use the module's file name (and not the path) to avoid machine-specific paths
+      // (absolute paths) from breaking the tests.
+      return new Symbol(abiArch + "_frame",
+                        module.getName() + "_symbolized",
+                        "symbols.java",
+                        1000 + (int)offset);
     }
 
     @Override

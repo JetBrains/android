@@ -20,6 +20,7 @@ import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +48,9 @@ public class IntelliJNativeFrameSymbolizer implements NativeFrameSymbolizer {
     Symbol symbol = null;
     long instructionOffset = getOffsetOfPreviousInstruction(unsymbolizedFrame.getModuleOffset());
     try {
-      symbol = mySymbolizer.symbolize(abi, unsymbolizedFrame.getModuleName(), instructionOffset);
+      symbol = mySymbolizer.symbolize(abi,
+                                      new File(unsymbolizedFrame.getModuleName()),
+                                      instructionOffset);
     }
     catch (IOException | RuntimeException e) {
       getLogger().warn(e);
