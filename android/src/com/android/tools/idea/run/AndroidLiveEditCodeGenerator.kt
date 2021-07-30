@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -32,6 +33,7 @@ class AndroidLiveEditCodeGenerator {
   /**
    * Compile a given set of MethodReferences to Java .class files and invoke a callback upon completion.
    */
+  @Trace
   fun compile(project: Project, methods: List<LiveEditService.MethodReference>,
               callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) {
     val compiled = HashSet<PsiFile>()
@@ -42,8 +44,11 @@ class AndroidLiveEditCodeGenerator {
         val kotlinCacheService = KotlinCacheService.getInstance(project)
         var resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
                                                                 JvmPlatforms.unspecifiedJvmPlatform)
-        val analysisResult = resolution.analyzeWithAllCompilerChecks(
-          filesToAnalyze)
+
+        val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
+          resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
+        }
+
         val compilerConfiguration = CompilerConfiguration();
 
         // TODO: How do we find out?
@@ -58,9 +63,10 @@ class AndroidLiveEditCodeGenerator {
 
     ApplicationManager.getApplication().runReadAction {
 
-          KotlinCodegenFacade.compileCorrectFiles(generationState)
-          compiled.add(root);
-
+          com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
+            KotlinCodegenFacade.compileCorrectFiles(generationState)
+            compiled.add(root);
+          }
           val classes = generationState.factory.asList();
           if (classes.isEmpty()) {
             // TODO: Error reporting.

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.Trace;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.AdbClient;
@@ -121,6 +122,7 @@ class AndroidLiveEditDeployMonitor {
     };
   }
 
+  @Trace
   private static void pushEditsToDevice(Project project, String packageName, List<LiveEditService.MethodReference> changes, long timestamp) {
     LOGGER.info("Change detected for project %s targeting app %s", project.getName(), packageName);
 

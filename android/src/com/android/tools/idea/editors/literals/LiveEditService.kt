@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.util.ListenerCollection
+import com.android.tools.tracer.Trace
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -94,6 +95,7 @@ class LiveEditService private constructor(private var project: Project, var list
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
   }
 
+  @com.android.annotations.Trace
   private fun onMethodBodyUpdated(methods: List<MethodReference>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
     onEditListeners.forEach {
       it(methods)
@@ -123,6 +125,7 @@ class LiveEditService private constructor(private var project: Project, var list
       onMethodBodyUpdated(documents, aggregatedEventsLock.withLock { lastUpdatedNanos })
     }
 
+    @com.android.annotations.Trace
     private fun handleChangeEvent(event : PsiTreeChangeEvent) {
       var parent = event.parent;
       var method = ""
