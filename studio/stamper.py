@@ -84,7 +84,7 @@ def _find_file(zip_path, entry, sub_entry):
     if not entry_name:
       print(sub_entry + " not found in " + zip_path)
       sys.exit(1)
-  return entry_name, content
+  return entry_name, content.decode("utf-8")
 
 
 def _read_file(zip_path, entry, sub_entry=None):
@@ -93,7 +93,7 @@ def _read_file(zip_path, entry, sub_entry=None):
     if sub_entry:
       with zipfile.ZipFile(io.BytesIO(data)) as sub:
         data = sub.read(sub_entry)
-  return data
+  return data.decode("utf-8")
 
 
 def _write_file(zip_path, mode, data, entry, sub_entry=None):
