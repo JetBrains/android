@@ -34,28 +34,14 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
   public static final PropertiesElementDescription<AbiDslElement> ABI =
     new PropertiesElementDescription<>("abi", AbiDslElement.class, AbiDslElement::new);
 
-  public static final ExternalToModelMap ktsToModelNameMap =
-    Stream.concat(
-      BaseSplitOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"isUniversalApk", property, UNIVERSAL_APK, VAR},
-      })).collect(toModelMap());
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
+    {"isUniversalApk", property, UNIVERSAL_APK, VAR},
+  }).collect(toModelMap(BaseSplitOptionsDslElement.ktsToModelNameMap));
 
-  public static final ExternalToModelMap groovyToModelNameMap =
-    Stream.concat(
-      BaseSplitOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"universalApk", property, UNIVERSAL_APK, VAR},
-        {"universalApk", exactly(1), UNIVERSAL_APK, SET},
-      })).collect(toModelMap());
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
+    {"universalApk", property, UNIVERSAL_APK, VAR},
+    {"universalApk", exactly(1), UNIVERSAL_APK, SET},
+  }).collect(toModelMap(BaseSplitOptionsDslElement.groovyToModelNameMap));
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {

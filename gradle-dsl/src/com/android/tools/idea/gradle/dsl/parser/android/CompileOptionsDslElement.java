@@ -31,34 +31,20 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
-
-  public static final ExternalToModelMap ktsToModelNameMap =
-    Stream.concat(
-      BaseCompileOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"encoding", property, ENCODING, VAR},
-        {"incremental", property, INCREMENTAL, VAR}
-      })).collect(toModelMap());
-
-  public static final ExternalToModelMap groovyToModelNameMap =
-    Stream.concat(
-      BaseCompileOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"encoding", property, ENCODING, VAR},
-        {"encoding", exactly(1), ENCODING, SET},
-        {"incremental", property, INCREMENTAL, VAR},
-        {"incremental", exactly(1), INCREMENTAL, SET},
-      })).collect(toModelMap());
   public static final PropertiesElementDescription<CompileOptionsDslElement> COMPILE_OPTIONS =
     new PropertiesElementDescription<>("compileOptions", CompileOptionsDslElement.class, CompileOptionsDslElement::new);
+
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
+    {"encoding", property, ENCODING, VAR},
+    {"incremental", property, INCREMENTAL, VAR}
+  }).collect(toModelMap(BaseCompileOptionsDslElement.ktsToModelNameMap));
+
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
+    {"encoding", property, ENCODING, VAR},
+    {"encoding", exactly(1), ENCODING, SET},
+    {"incremental", property, INCREMENTAL, VAR},
+    {"incremental", exactly(1), INCREMENTAL, SET},
+  }).collect(toModelMap(BaseCompileOptionsDslElement.groovyToModelNameMap));
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
