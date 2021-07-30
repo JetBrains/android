@@ -37,6 +37,7 @@ import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -113,6 +114,9 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           executeMakeBeforeRun = false,
           expectApks = mapOf(
             AGP_CURRENT to """
+              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt
+            """,
+            AGP_41 to """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
             """,
             AGP_40 to """
