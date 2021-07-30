@@ -109,9 +109,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         .setTarget(device.getTarget())
         .setApi(device.getApi())
         .addAllConnectionTypes(device.getConnectionTypes())
-        .setResolution(device.getResolution())
-        .setDensity(device.getDensity())
-        .addAllAbis(device.getAbis())
         .build();
 
       myDevices.set(i, newDevice);
@@ -162,7 +159,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myCombinedDevices = combinedDevices;
   }
 
-  private @NotNull Collection<@NotNull PhysicalDevice> filterDevicesBy(@NotNull Class<@NotNull ? extends Key> keyClass) {
+  private @NotNull Collection<@NotNull PhysicalDevice> filterDevicesBy(@NotNull Class<? extends Key> keyClass) {
     return myDevices.stream()
       .filter(device -> keyClass.isInstance(device.getKey()))
       .collect(Collectors.toCollection(() -> new ArrayList<>(myDevices.size())));
@@ -180,9 +177,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .setApi(serialNumberDevice.getApi())
       .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
       .addAllConnectionTypes(serialNumberDevice.getConnectionTypes())
-      .setResolution(serialNumberDevice.getResolution())
-      .setDensity(serialNumberDevice.getDensity())
-      .addAllAbis(serialNumberDevice.getAbis())
       .build();
   }
 
@@ -218,7 +212,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   @Override
-  public @NotNull Class<@NotNull ?> getColumnClass(int modelColumnIndex) {
+  public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;

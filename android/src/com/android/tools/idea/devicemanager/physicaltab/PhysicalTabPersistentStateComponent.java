@@ -108,15 +108,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "api", nameAttribute = "")
     private final @Nullable String api;
 
-    @OptionTag(tag = "resolution", nameAttribute = "")
-    private final @Nullable ResolutionState resolution;
-
-    @OptionTag(tag = "density", nameAttribute = "")
-    private final int density;
-
-    @XCollection(style = Style.v2)
-    private final @NotNull Collection<@NotNull String> abis;
-
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
       key = null;
@@ -125,9 +116,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       nameOverride = "";
       target = null;
       api = null;
-      resolution = null;
-      density = -1;
-      abis = Collections.emptyList();
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
@@ -137,12 +125,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       nameOverride = "";
       target = device.getTarget();
       api = device.getApi();
-
-      Resolution resolution = device.getResolution();
-      this.resolution = resolution == null ? null : new ResolutionState(resolution);
-
-      density = device.getDensity();
-      abis = device.getAbis();
     }
 
     private @Nullable PhysicalDevice asPhysicalDevice() {
@@ -158,21 +140,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         return null;
       }
 
-      PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
+      return new PhysicalDevice.Builder()
         .setKey(key)
         .setLastOnlineTime(lastOnlineTime)
         .setName(name)
         .setNameOverride(nameOverride)
         .setTarget(target)
-        .setApi(api);
-
-      if (resolution != null) {
-        builder.setResolution(resolution.asResolution());
-      }
-
-      return builder
-        .setDensity(density)
-        .addAllAbis(abis)
+        .setApi(api)
         .build();
     }
 
@@ -185,9 +159,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + nameOverride.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
-      hashCode = 31 * hashCode + Objects.hashCode(resolution);
-      hashCode = 31 * hashCode + density;
-      hashCode = 31 * hashCode + abis.hashCode();
 
       return hashCode;
     }
@@ -205,10 +176,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              Objects.equals(name, device.name) &&
              nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&
-             Objects.equals(api, device.api) &&
-             Objects.equals(resolution, device.resolution) &&
-             density == device.density &&
-             abis.equals(device.abis);
+             Objects.equals(api, device.api);
     }
   }
 
@@ -284,44 +252,5 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     }
 
     abstract @NotNull Key newKey(@NotNull String value);
-  }
-
-  @Tag("Resolution")
-  private static final class ResolutionState {
-    @OptionTag(tag = "width", nameAttribute = "")
-    private final int width;
-
-    @OptionTag(tag = "height", nameAttribute = "")
-    private final int height;
-
-    @SuppressWarnings("unused")
-    private ResolutionState() {
-      width = 0;
-      height = 0;
-    }
-
-    private ResolutionState(@NotNull Resolution resolution) {
-      width = resolution.getWidth();
-      height = resolution.getHeight();
-    }
-
-    private @NotNull Resolution asResolution() {
-      return new Resolution(width, height);
-    }
-
-    @Override
-    public int hashCode() {
-      return 31 * width + height;
-    }
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-      if (!(object instanceof ResolutionState)) {
-        return false;
-      }
-
-      ResolutionState resolution = (ResolutionState)object;
-      return width == resolution.width && height == resolution.height;
-    }
   }
 }
