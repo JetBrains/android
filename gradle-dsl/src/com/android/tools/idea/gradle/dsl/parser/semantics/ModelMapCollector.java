@@ -23,7 +23,7 @@ import java.util.stream.Collector;
 import org.jetbrains.annotations.NotNull;
 
 public final class ModelMapCollector {
-  public static @NotNull Collector<Object[], ?, ExternalToModelMap> toModelMap() {
+  public static @NotNull Collector<Object[], ?, ExternalToModelMap> toModelMap(ExternalToModelMap... parentMaps) {
     Function<Object[], SurfaceSyntaxDescription> surfaceSyntaxDescriptionGetter = data -> {
       String name = (String)data[0];
       Integer arity = (Integer)data[1];
@@ -64,7 +64,12 @@ public final class ModelMapCollector {
         surfaceSyntaxDescriptionGetter.apply(o), modelEffectDescriptionGetter.apply(o), versionConstraintGetter.apply(o))
       ),
       (a, b) -> { a.addAll(b); return a; },
-      ExternalToModelMap::new
+      (s) -> {
+        for (ExternalToModelMap parentMap : parentMaps) {
+          s.addAll(parentMap.getEntrySet());
+        }
+        return new ExternalToModelMap(s);
+      }
     );
   }
 }

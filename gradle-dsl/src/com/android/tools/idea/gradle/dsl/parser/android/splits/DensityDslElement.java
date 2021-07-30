@@ -33,31 +33,17 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
   public static final PropertiesElementDescription<DensityDslElement> DENSITY =
     new PropertiesElementDescription<>("density", DensityDslElement.class, DensityDslElement::new);
 
-  public static final ExternalToModelMap ktsToModelNameMap =
-    Stream.concat(
-      BaseSplitOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"setAuto", exactly(1), AUTO, SET},
-        {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER}
-      })).collect(toModelMap());
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
+    {"setAuto", exactly(1), AUTO, SET},
+    {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER}
+  }).collect(toModelMap(BaseSplitOptionsDslElement.ktsToModelNameMap));
 
-  public static final ExternalToModelMap groovyToModelNameMap =
-    Stream.concat(
-      BaseSplitOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
-        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
-        data.modelEffectDescription.property, data.modelEffectDescription.semantics,
-        data.versionConstraint
-      }),
-      Stream.of(new Object[][]{
-        {"auto", property, AUTO, VAR},
-        {"auto", exactly(1), AUTO, SET},
-        {"compatibleScreens", property, COMPATIBLE_SCREENS, VAR},
-        {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER},
-      })).collect(toModelMap());
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
+    {"auto", property, AUTO, VAR},
+    {"auto", exactly(1), AUTO, SET},
+    {"compatibleScreens", property, COMPATIBLE_SCREENS, VAR},
+    {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER},
+  }).collect(toModelMap(BaseSplitOptionsDslElement.groovyToModelNameMap));
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
