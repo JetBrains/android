@@ -208,7 +208,7 @@ class WarningsViewDetailPagesFactory(
       is AGPUpdateRequired -> this.createAGPUpdateRequiredPanel(uiData, projectConfigurationTime)
       is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
       is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
-      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel(uiData, projectConfigurationTime)
+      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel()
       ConfigurationCachingTurnedOn -> Unit
     }
   }
@@ -284,7 +284,7 @@ class WarningsViewDetailPagesFactory(
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
   }
 
-  private fun JPanel.createConfigurationCacheTestFlowPanel(uiData: ConfigurationCacheCompatibilityTestFlow, configurationTime: TimeWithPercentage) {
+  private fun JPanel.createConfigurationCacheTestFlowPanel() {
     val contentHtml = """
         <b>Test builds with Configuration cache finished successfully</b>
         With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
