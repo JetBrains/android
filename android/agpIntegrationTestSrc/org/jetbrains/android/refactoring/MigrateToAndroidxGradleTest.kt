@@ -265,7 +265,7 @@ class MigrateToAndroidxGradleGroovyTest : MigrateToAndroidxGradleTestBase() {
   }
 
   fun testExistingGradlePropertiesGroovy() {
-    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    loadProject(MIGRATE_TO_ANDROID_X)
     doTestExistingGradleProperties()
   }
 
