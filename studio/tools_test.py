@@ -43,7 +43,7 @@ def read_zip_data(data):
       if name.endswith(".jar") or name.endswith(".zip"):
         res[name] = read_zip_data(data)
       else:
-        res[name] = data
+        res[name] = data.decode("utf-8")
   return res
 
 

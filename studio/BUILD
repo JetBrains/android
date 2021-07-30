@@ -568,7 +568,6 @@ py_test(
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
-    python_version = "PY2",
     visibility = ["//visibility:public"],
 )
 
@@ -581,7 +580,6 @@ py_binary(
 py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
-    python_version = "PY2",
     tags = [
         "no_mac",
         "no_windows",
