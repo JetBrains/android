@@ -821,12 +821,8 @@ iml_module(
             "test_filter": "org.jetbrains.android.refactoring.UnusedResourcesGradleTest",
         },
         "MigrateToAndroidxGradleKtsTest": {
-            # These are extra-large tests, so they get run in their own target
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-        },
-        "MigrateToAndroidxGradleGroovyTest": {
-            # These are extra-large tests, so they get run in their own target
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
         },
         "AddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
