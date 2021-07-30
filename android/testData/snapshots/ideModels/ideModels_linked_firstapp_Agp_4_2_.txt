@@ -203,20 +203,20 @@ MODULE                        : My_First_App.app
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
+                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
                 BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/release/output-metadata.json [-]
+                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
                 BundleTaskName                : bundleRelease
-                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -805,11 +805,11 @@ MODULE                        : My_First_App.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
                     BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -1395,7 +1395,7 @@ MODULE                        : My_First_App.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -3307,7 +3307,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
