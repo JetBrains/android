@@ -24,6 +24,9 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.profilers.stacktrace.ProfilerCodeNavigator;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
+import com.android.tools.nativeSymbolizer.ProjectSymbolSource;
+import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
+import com.android.tools.nativeSymbolizer.SymbolSource;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.Notification;
@@ -100,8 +103,11 @@ public class AndroidProfilerToolWindow implements Disposable {
     myWindow = window;
     myProject = project;
 
-    myIdeProfilerServices = new IntellijProfilerServices(myProject);
+    SymbolSource symbolSource = new ProjectSymbolSource(project);
+    SymbolFilesLocator symbolLocator = new SymbolFilesLocator(symbolSource);
+    myIdeProfilerServices = new IntellijProfilerServices(myProject, symbolLocator);
     Disposer.register(this, myIdeProfilerServices);
+
     myPanel = new JPanel(new BorderLayout());
     if (!tryInitializeProfilers()) {
       myIdeProfilerServices.getFeatureTracker().trackProfilerInitializationFailed();

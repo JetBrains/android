@@ -16,120 +16,63 @@
 package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.utils.FileUtils
-import com.google.common.collect.Sets
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
 import java.io.File
-import java.util.Locale
 
 /**
- * Given a map of possible symbols locations finds symbol files
- * for a (device module + CPU arch) pairs.
+ * A wrapper around a SymbolSource that helps with finding all the symbol files and/or directories
+ * for a given cpu architecture. This class does not (and should not) cache any results as the
+ * underlying symbol source may update.
  */
-class SymbolFilesLocator(private val cpuToSymbolDirs: Map<String, Set<File>>) {
+class SymbolFilesLocator(private val source: SymbolSource) {
+  private companion object {
+    // This does not include all the abis in the Abi enum since some ABIs (e.g. MIPS) are not used
+    // and are therefore considered "no supported".
+    val abis = setOf(Abi.X86, Abi.X86_64, Abi.ARM64_V8A, Abi.ARMEABI, Abi.ARMEABI_V7A)
+  }
 
-  fun findSymbolFiles(cpuArch: String, module: String): List<File> {
-    // TODO (ezemetsov): Add a cache
-    // Just look in all dirs from the map and find files with the same
-    // basename as a given device module.
-    val symDirs = cpuToSymbolDirs.getOrDefault(cpuArch, setOf<File>()).toList()
-    val baseModuleName = File(File(module).name).nameWithoutExtension
-    val symNameCandidates = arrayListOf("$baseModuleName.so", "$baseModuleName.dwo")
-    val result = mutableListOf<File>()
-    for (dir in symDirs) {
-      val files = dir.listFiles { _, name -> symNameCandidates.contains(name) }
-      // If dir for some reason doesn't exist any more files will be null
-      if (files != null) {
-        result.addAll(files)
-      }
+  /** Gets all directories that contain symbol files. */
+  fun getDirectories(cpuArch: String): Collection<File> {
+    val dirs = mutableSetOf<File>()
+
+    for (abi in abis.filter { it.cpuArch == cpuArch }) {
+      dirs.addAll(source.getDirsFor(abi))
     }
-    return result
+
+    return dirs.filter { containsSymbolFiles(it) }
   }
-}
 
-private val log: Logger = Logger.getInstance(SymbolFilesLocator::class.java)
+  /** Gets all symbol files. */
+  fun getFiles(cpuArch: String): List<File> {
+    val extensions = setOf("so", "dwo")
 
-/**
- * Builds a map from CPU architectures to possible directories where native symbols
- * can possibly be found for a given project.
- */
-fun getArchToSymDirsMap(project: Project): Map<String, Set<File>> {
-  val result: MutableMap<String, MutableSet<File>> = hashMapOf()
+    val files = mutableSetOf<File>()
 
-  val symbolDirFilter = fun(subdir: File?): Boolean {
-    if (subdir == null || !subdir.isDirectory) return false
-    val files = subdir.listFiles { f ->
-      val extension = f.extension.toLowerCase(Locale.US)
-      extension == "so" || extension == "dwo"
-    } ?: emptyArray<File>().apply {
-      log.warn("Failed to list directory $subdir for native symbols. Will ignore it.")
+    for (dir in getDirectories(cpuArch)) {
+      files.addAll(dir.listFiles() ?: emptyArray())
     }
-    return files.isNotEmpty()
+
+    return files.filter { extensions.contains(it.extension) }
   }
 
-  // Go through all ABI+module combinations and ask getModuleSymbolsDirs to find
-  // symbol directories for each combination. Then check that directories exist and
-  // contain "so/dwo" files.
-  val allSupportedAbis = listOf(Abi.X86, Abi.X86_64, Abi.ARM64_V8A, Abi.ARMEABI, Abi.ARMEABI_V7A)
-  for (abi in allSupportedAbis) {
-    for (module in ModuleManager.getInstance(project).modules) {
-      val symDirs = getModuleSymbolsDirs(module, abi).filter(symbolDirFilter)
-      val existingDirs = result.computeIfAbsent(abi.cpuArch) { mutableSetOf() }
-      existingDirs.addAll(symDirs)
+  /** Checks if a directory actually contains symbol files. */
+  private fun containsSymbolFiles(dir: File): Boolean {
+    assert(dir != null)
+
+    // It could be possible that a file was accidentally provided to a symbol source (e.g. bad JNI
+    // dir definition).
+    if (!dir.isDirectory) {
+      return false
     }
-  }
 
-  return result
-}
+    val extensions = setOf("so", "dwo")
 
-/**
- * Gathers all possible location of native symbols for a given module+abi pair.
- * Symbol files can be found in 3 places
- *  1. If it's APK debugging case ApkFacet just tells us symbol dirs
- *  2. If a given module has parts built with NDK. return all dirs where native artifacts are located.
- *  (Usually such dirs look like app/build/intermediates/cmake/debug/obj/x86/ )
- *  3. Modules can also have random JNI libs inside them as resources.
- *  Return all dirs where they are.
- */
-private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
-  val symDirs = Sets.newLinkedHashSet<File>()
-  val abiName = abi.toString()
+    val files = dir.listFiles()
 
-  // 1. APK debugging symbols dirs
-  val apkFacet = ApkFacet.getInstance(module)
-  if (apkFacet != null) {
-    val dirs = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
-      .map { File(FileUtils.toSystemDependentPath(it)) }
-    symDirs.addAll(dirs)
-  }
-
-  // 2. libs built in studio by NDK and gradle
-  val ndkFacet = NdkFacet.getInstance(module)
-  val ndkModuleModel = NdkModuleModel.get(module)
-  if (ndkModuleModel != null && ndkFacet != null) {
-    ndkModuleModel.symbolFolders.forEach { (variant, abiName), symbolFolders: Set<File> ->
-      val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return@forEach
-      if (abi.toString() == abiName && variant == selectedVariantAbi.variant) {
-        symDirs.addAll(symbolFolders)
-      }
+    if (files == null) {
+      getLogger().warn("Failed to list directory $dir for native symbols. Will ignore it.")
+      return false
     }
-  }
 
-  // 3. JNI libs as resources
-  val androidModel = AndroidModuleModel.get(module)
-  if (androidModel != null) {
-    val jniDirs = androidModel.activeSourceProviders
-      .flatMap { it.jniLibsDirectories }
-      .map { jniDir -> File(jniDir, abiName) }
-    symDirs.addAll(jniDirs)
+    return files.any { extensions.contains(it.extension) }
   }
-
-  return symDirs
 }

@@ -221,7 +221,9 @@ public class IntellijCodeNavigator extends CodeNavigator {
     }
     Symbol symbol;
     try {
-      symbol = myNativeSymbolizer.symbolize(arch, location.getFileName(), location.getNativeVAddress());
+      symbol = myNativeSymbolizer.symbolize(arch,
+                                            new File(location.getFileName()),
+                                            location.getNativeVAddress());
     }
     catch (IOException e) {
       return null;
