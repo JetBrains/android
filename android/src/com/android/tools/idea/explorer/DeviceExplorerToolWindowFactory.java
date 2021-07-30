@@ -103,11 +103,6 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     contentManager.addContent(toolWindowContent);
   }
 
-  @Override
-  public void init(@NotNull ToolWindow toolWindow) {
-    toolWindow.setShowStripeButton(false);
-  }
-
   /**
    * Opens the Device Explorer tool window and selects the device matching the AvdInfo
    */
