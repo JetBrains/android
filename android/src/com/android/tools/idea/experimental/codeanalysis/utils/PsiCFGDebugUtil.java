@@ -88,7 +88,7 @@ public class PsiCFGDebugUtil {
     sb.append("\n");
 
     String qualifiedName = psiClass.getQualifiedName();
-    sb.append("Qualified Name: " + qualifiedName == null ? "null" : qualifiedName + "\n");
+    sb.append("Qualified Name: " + qualifiedName + "\n");
     sb.append("Inner Classes Count: " + psiClass.getInnerClasses().length + "\n");
     sb.append("All Inner Classes Count: " + psiClass.getAllInnerClasses().length + "\n");
 
