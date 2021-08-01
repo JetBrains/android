@@ -38,7 +38,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
@@ -54,7 +53,7 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -198,6 +197,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     @NotNull private final Type type;
 
     NotificationPanel(@NotNull Type type, @NotNull String text) {
+      super(EditorColors.READONLY_BACKGROUND_COLOR);
       this.type = type;
       setText(text);
     }
@@ -267,9 +267,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     @Override
-    public Color getBackground() {
-      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR);
-      return color == null ? UIUtil.getPanelBackground() : color;
+    public @NotNull Color getFallbackBackgroundColor() {
+      return UIUtil.getPanelBackground();
     }
   }
 }
