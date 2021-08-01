@@ -25,7 +25,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import org.jetbrains.annotations.NotNull;
@@ -60,12 +59,13 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
 
   public static class InfoPanel extends EditorNotificationPanel {
     public InfoPanel(@NotNull FileEditor fileEditor) {
-      super(fileEditor);
+      super(fileEditor, EditorColors.READONLY_BACKGROUND_COLOR);
     }
 
+    @NotNull
     @Override
-    public Color getBackground() {
-      return ObjectUtils.notNull(GLOBAL_SCHEME_SUPPLIER.get().getColor(EditorColors.READONLY_BACKGROUND_COLOR), UIUtil.getPanelBackground());
+    public Color getFallbackBackgroundColor() {
+      return UIUtil.getPanelBackground();
     }
   }
 }
