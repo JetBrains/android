@@ -39,6 +39,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
@@ -219,6 +220,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       addToParsedExpressionList(modelEffect, element);
       return;
     }
+    if (type == ModelPropertyType.MUTABLE_MAP) {
+      addToParsedExpressionMap(modelEffect, element);
+      return;
+    }
     addParsedElement(element);
   }
 
@@ -330,6 +335,28 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       gradleDslExpressionList.setPsiElement(psiElement);
     }
     newElements.forEach(gradleDslExpressionList::addParsedElement);
+  }
+
+  public void addToParsedExpressionMap(@NotNull ModelEffectDescription effect, @NotNull GradleDslElement element) {
+    element = followElement(element);
+    if (!(element instanceof GradleDslExpressionMap)) return;
+
+    GradleDslExpressionMap map = getPropertyElement(effect.property, GradleDslExpressionMap.class);
+    if (map == null) {
+      map = new GradleDslExpressionMap(this, element.getPsiElement(), GradleNameElement.create(effect.property.name), true);
+      ModelEffectDescription createEffect = new ModelEffectDescription(effect.property, CREATE_WITH_VALUE, effect.versionConstraint);
+      map.setModelEffect(createEffect);
+      map.setElementType(REGULAR);
+      addPropertyInternal(map, EXISTING);
+    }
+    else {
+      map.setPsiElement(element.getPsiElement());
+    }
+
+    GradleDslExpressionMap newElements = (GradleDslExpressionMap)element;
+    for (Map.Entry<String,GradleDslElement> entry : newElements.getPropertyElements().entrySet()) {
+      map.setParsedElement(entry.getValue());
+    }
   }
 
   @NotNull

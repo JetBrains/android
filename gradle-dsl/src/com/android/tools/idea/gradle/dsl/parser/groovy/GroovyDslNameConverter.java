@@ -31,6 +31,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -136,7 +137,8 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
         }
         if (semantics == VAL && (e.modelEffectDescription.property.type == MUTABLE_SET ||
-                                 e.modelEffectDescription.property.type == MUTABLE_LIST)) {
+                                 e.modelEffectDescription.property.type == MUTABLE_LIST ||
+                                 e.modelEffectDescription.property.type == MUTABLE_MAP)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT);
         }
         if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
