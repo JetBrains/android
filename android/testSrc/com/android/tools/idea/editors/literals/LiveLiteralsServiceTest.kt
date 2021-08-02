@@ -1,17 +1,14 @@
 package com.android.tools.idea.editors.literals
 
-import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
@@ -24,8 +21,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 internal class LiveLiteralsServiceTest {
-  @get:Rule  // http://b/194631917 Tests in this class are flaky
-  val ignoreTestsRule = IgnoreTestRule.allTestsMatching(OnLinux::class.java)
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
@@ -79,12 +74,19 @@ internal class LiveLiteralsServiceTest {
   private fun runAndWaitForDocumentAdded(liveLiteralsService: LiveLiteralsService, runnable: () -> Unit) {
     val documentAdded = CountDownLatch(1)
     val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable, "DocumentAddDiposable")
-    liveLiteralsService.addOnDocumentsUpdatedListener(disposable) {
-      documentAdded.countDown()
+    DumbService.getInstance(project).waitForSmartMode()
+    try {
+      liveLiteralsService.addOnDocumentsUpdatedListener(disposable) {
+        documentAdded.countDown()
+      }
+      runnable()
+      // We wait for a maximum of 20 seconds. Finding literals runs in a non-blocking action. During tests
+      // indexing can be triggered which can delay the test for a few seconds. Reducing this number will cause
+      // the test to become flaky because of some cases where indexing interferes with the test.
+      documentAdded.await(20, TimeUnit.SECONDS)
+    } finally {
+      Disposer.dispose(disposable) // Remove listener
     }
-    runnable()
-    documentAdded.await(5, TimeUnit.SECONDS)
-    Disposer.dispose(disposable) // Remove listener
   }
 
   @Test

@@ -14,7 +14,6 @@ import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.ListenerCollection
 import com.android.utils.reflection.qualifiedName
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service

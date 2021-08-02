@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.highlighting.HighlightManager
@@ -35,6 +36,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.concurrency.await
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -371,7 +373,7 @@ class LiteralsManager(
 
   private val LOG = Logger.getInstance(LiteralsManager::class.java)
 
-  private fun findLiterals(root: PsiElement,
+  private suspend fun findLiterals(root: PsiElement,
                            constantType: Class<*>,
                            constantEvaluator: ConstantEvaluator,
                            elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
@@ -427,7 +429,7 @@ class LiteralsManager(
           super.visitElement(element)
         }
       })
-    }.executeSynchronously()
+    }.submit(AndroidExecutors.getInstance().ioThreadExecutor).await()
 
     return LiteralReferenceSnapshotImpl(savedLiterals)
   }
@@ -435,7 +437,7 @@ class LiteralsManager(
   /**
    * Finds the literals in the given tree root [PsiElement] and returns a [LiteralReferenceSnapshot].
    */
-  fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
+  suspend fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
     if (root.language == KotlinLanguage.INSTANCE) {
       findLiterals(root, KtConstantExpression::class.java, KotlinConstantEvaluator) {
         it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
