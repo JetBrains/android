@@ -161,8 +161,6 @@ object GuiTestLauncher {
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
       "-Ddisable.android.first.run=true",
-      // Ensure UI tests do not block for analytics consent dialog, this will leave analytics at the default (opted-out) state.
-      "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port"
@@ -196,6 +194,13 @@ object GuiTestLauncher {
       options += "-Xdebug"
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
+    /**
+     * Disable analytic consent dialog by default.
+     * For tests that require it, the system property "disable.android.analytics.consent.dialog.for.test"
+     * can be set in the Build file as one of the jvm_flags
+     */
+    val disable = System.getProperty("disable.android.analytics.consent.dialog.for.test") != "false"
+    options += "-Ddisable.android.analytics.consent.dialog.for.test=$disable"
     /* options for tests with native libraries */
     if (!options.contains("-Djava.library.path=")) {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"
