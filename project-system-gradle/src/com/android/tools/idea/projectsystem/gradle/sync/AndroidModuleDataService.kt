@@ -20,15 +20,11 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
@@ -114,28 +110,18 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
 
-      var mainArtifactModule : Module? = null
       val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
-        modelsProvider.findIdeModule(dataNode.data).also { module ->
-          if (dataNode.data.externalName.substringAfterLast(":") == getModuleName(IdeArtifactName.MAIN)) {
-            mainArtifactModule = module
-          }
-        }
+        modelsProvider.findIdeModule(dataNode.data)
       }
 
       modules.forEach { module ->
         nonAndroidModules.remove<Module>(module)
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
-        // If we only have one module then module per source set must be disabled as no GradleSourceSetData was found.
-        if (!project.isModulePerSourceSetEnabled() || module == mainArtifactModule) {
-          val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
-                             ?: createAndroidFacet(module, facetModel)
-          // Configure that Android facet from the information in the AndroidModuleModel.
-          configureFacet(androidFacet, androidModel)
-        } else {
-          removeAllFacets(facetModel, AndroidFacet.ID)
-        }
+        val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
+                           ?: createAndroidFacet(module, facetModel)
+        // Configure that Android facet from the information in the AndroidModuleModel.
+        configureFacet(androidFacet, androidModel)
 
         moduleValidator.validate(module, androidModel)
       }
