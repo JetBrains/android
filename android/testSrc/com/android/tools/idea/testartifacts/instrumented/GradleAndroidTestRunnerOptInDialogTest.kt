@@ -42,7 +42,9 @@ class GradleAndroidTestRunnerOptInDialogTest {
   @Mock private lateinit var mockProject: Project
   @Mock private lateinit var mockLogger: AndroidTestSuiteLogger
 
-  private val config: AndroidTestConfiguration = AndroidTestConfiguration()
+  private val config: AndroidTestConfiguration = AndroidTestConfiguration(
+    RUN_ANDROID_TEST_USING_GRADLE = false
+  )
   private var isDisplayed: Boolean = false
 
   private fun showDialog(acceptSuggestion: Boolean = true) {
