@@ -47,6 +47,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Collections
 import javax.swing.AbstractAction
+import javax.swing.Action
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -74,6 +75,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var filter = ""
   private val modelModifiedListener = ::modelModified
   private val selectionChangedListener = ::selectionChanged
+  private var upAction: Action? = null
+  private var downAction: Action? = null
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -130,6 +133,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     get() = (component as? JScrollPane)?.viewport?.view as? Tree
 
   private fun installKeyboardActions(tree: JComponent) {
+    downAction = tree.actionMap.get(TreeActions.Down.ID)
+    upAction = tree.actionMap.get(TreeActions.Up.ID)
     tree.actionMap.put(TreeActions.Down.ID, TreeAction(::nextMatch))
     tree.actionMap.put(TreeActions.Up.ID, TreeAction(::previousMatch))
   }
@@ -192,7 +197,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     setFilter(filter)
   }
 
-  private fun nextMatch() {
+  private fun nextMatch(event: ActionEvent) {
+    if (filter.isEmpty() && layoutInspector?.treeSettings?.highlightSemantics == false) {
+      downAction?.actionPerformed(event)
+      return
+    }
     val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
     val nodes = getNodes()
     val nodeCount = nodes.size
@@ -205,7 +214,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
   }
 
-  private fun previousMatch() {
+  private fun previousMatch(event: ActionEvent) {
+    if (filter.isEmpty() && layoutInspector?.treeSettings?.highlightSemantics == false) {
+      upAction?.actionPerformed(event)
+      return
+    }
     val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
     val nodes = getNodes()
     val nodeCount = nodes.size
@@ -270,11 +283,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
       when (event.keyCode) {
         KeyEvent.VK_DOWN -> {
-          nextMatch()
+          nextMatch(ActionEvent(event.source, 0, ""))
           event.consume()
         }
         KeyEvent.VK_UP -> {
-          previousMatch()
+          previousMatch(ActionEvent(event.source, 0, ""))
           event.consume()
         }
         KeyEvent.VK_ENTER -> {
@@ -350,8 +363,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
   }
 
-  private class TreeAction(private val action: () -> Unit): AbstractAction() {
-    override fun actionPerformed(event: ActionEvent) = action()
+  private class TreeAction(private val action: (ActionEvent) -> Unit): AbstractAction() {
+    override fun actionPerformed(event: ActionEvent) = action(event)
   }
 
   private inner class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {

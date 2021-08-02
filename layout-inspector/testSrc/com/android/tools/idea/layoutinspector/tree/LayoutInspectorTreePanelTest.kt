@@ -481,6 +481,30 @@ class LayoutInspectorTreePanelTest {
     verify(callbacks).startFiltering("T")
   }
 
+  @Test
+  fun testTreeNavigationWithUpDownKeys() {
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = false
+    setToolContext(tree, inspector)
+    UIUtil.dispatchAllInvocationEvents()
+
+    TreeUtil.promiseExpand(tree.tree!!, 2).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.tree!!.rowCount).isEqualTo(2)
+    tree.tree!!.addSelectionRow(0)
+    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
+    val ui = FakeUi(tree.tree!!)
+    ui.keyboard.setFocus(tree.tree!!)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
+  }
+
   @RunsInEdt
   @Test
   fun testSystemNodeWithMultipleChildren() {
