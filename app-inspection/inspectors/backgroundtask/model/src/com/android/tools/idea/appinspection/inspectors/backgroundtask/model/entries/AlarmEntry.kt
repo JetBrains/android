@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
 
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 
@@ -47,16 +48,20 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags get() = _tags
 
+  var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
+  var latestEvent: BackgroundTaskInspectorProtocol.Event? = null
+
   override fun consume(eventWrapper: EventWrapper) {
-    val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
+    latestEvent = eventWrapper.backgroundTaskEvent
+    val backgroundTaskEvent = latestEvent!!.backgroundTaskEvent
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
-        val alarmSet = backgroundTaskEvent.alarmSet
+        alarmSet = backgroundTaskEvent.alarmSet
         _className = "Alarm $id"
         _status = State.SET
-        _startTime = alarmSet.triggerMs
-        if (alarmSet.hasListener()) {
-          _tags.add(alarmSet.listener.tag)
+        _startTime = alarmSet!!.triggerMs
+        if (alarmSet!!.hasListener()) {
+          _tags.add(alarmSet!!.listener.tag)
         }
       }
       BackgroundTaskEvent.MetadataCase.ALARM_CANCELLED -> {

@@ -19,13 +19,14 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.CallStack
 import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.JobInfo
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
-import com.android.tools.idea.protobuf.ProtocolStringList
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -122,8 +123,8 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
 /**
  * Provides a component that displays a list of string values.
  */
-object StringListProvider : ComponentProvider<ProtocolStringList> {
-  override fun convert(strings: ProtocolStringList): JComponent {
+object StringListProvider : ComponentProvider<List<String>> {
+  override fun convert(strings: List<String>): JComponent {
     return if (strings.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
         strings.forEach { str ->
@@ -182,7 +183,7 @@ class IdListProvider(private val client: BackgroundTaskInspectorClient,
 /**
  * Provides a component that displays a list of constraint descriptions for some target worker.
  */
-object ConstraintProvider : ComponentProvider<Constraints> {
+object WorkConstraintProvider : ComponentProvider<Constraints> {
   override fun convert(constraint: Constraints): JComponent {
     val constraintDescs = mutableListOf<String>()
     when (constraint.requiredNetworkType) {
@@ -205,6 +206,46 @@ object ConstraintProvider : ComponentProvider<Constraints> {
       constraintDescs.add("Requires idle device")
     }
     if (constraint.requiresStorageNotLow) {
+      constraintDescs.add("Requires storage not low")
+    }
+
+    return if (constraintDescs.isNotEmpty()) {
+      JPanel(VerticalFlowLayout(0, 0)).apply {
+        constraintDescs.forEach { desc ->
+          add(JBLabel(desc))
+        }
+      }
+    }
+    else {
+      createEmptyContentLabel()
+    }
+  }
+}
+
+/**
+ * Provides a component that displays a list of constraint descriptions for some target worker.
+ */
+object JobConstraintProvider : ComponentProvider<JobInfo> {
+  override fun convert(job: JobInfo): JComponent {
+    val constraintDescs = mutableListOf<String>()
+    when (job.networkType) {
+      JobInfo.NetworkType.NETWORK_TYPE_METERED -> constraintDescs.add("Network must be metered")
+      JobInfo.NetworkType.NETWORK_TYPE_UNMETERED -> constraintDescs.add("Network must be unmetered")
+      JobInfo.NetworkType.NETWORK_TYPE_NOT_ROAMING -> constraintDescs.add("Network must not be roaming")
+      else -> {
+      }
+    }
+
+    if (job.isRequireCharging) {
+      constraintDescs.add("Requires charging")
+    }
+    if (job.isRequireBatteryNotLow) {
+      constraintDescs.add("Requires battery not low")
+    }
+    if (job.isRequireDeviceIdle) {
+      constraintDescs.add("Requires idle device")
+    }
+    if (job.isRequireStorageNotLow) {
       constraintDescs.add("Requires storage not low")
     }
 

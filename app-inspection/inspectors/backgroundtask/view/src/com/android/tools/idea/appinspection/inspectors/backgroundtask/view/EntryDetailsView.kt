@@ -21,10 +21,14 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntryUpdateEventType
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
@@ -38,6 +42,7 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
+import java.util.concurrent.TimeUnit
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -73,28 +78,120 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
     selectionModel.registerWorkSelectionListener { entry ->
       if (entry != null) {
         tab.isDetailsViewVisible = true
-        if (entry is WorkEntry) {
-          updateSelectedWork(entry)
-        }
+        updateSelectedTask()
       }
     }
     client.addEntryUpdateEventListener { type, _ ->
       scope.launch(uiDispatcher) {
         if (tab.isDetailsViewVisible && type == EntryUpdateEventType.UPDATE) {
-          (selectionModel.selectedEntry as? WorkEntry)?.let {
-            updateSelectedWork(it)
-          }
+          updateSelectedTask()
         }
       }
     }
   }
 
-  private fun updateSelectedWork(workEntry: WorkEntry) {
+  private fun updateSelectedTask() {
     val detailsPanel = object : ScrollablePanel(VerticalLayout(18)) {
       override fun getScrollableTracksViewportWidth() = false
     }
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
+    when (val entry = selectionModel.selectedEntry) {
+      is WorkEntry -> updateSelectedWork(detailsPanel, entry)
+      is JobEntry -> updateSelectedJob(detailsPanel, entry)
+      is AlarmEntry -> updateSelectedAlarm(detailsPanel, entry)
+      is WakeLockEntry -> updateSelectedWakeLock(detailsPanel, entry)
+    }
+
+    scrollPane.setViewportView(detailsPanel)
+    revalidate()
+    repaint()
+  }
+
+  private fun updateSelectedAlarm(detailsPanel: ScrollablePanel, alarm: AlarmEntry) {
+    val alarmSet = alarm.alarmSet ?: return
+
+    val descriptions = mutableListOf(buildKeyValuePair("Type", alarmSet.type))
+    if (alarmSet.intervalMs > 0) {
+      descriptions.add(buildKeyValuePair("Interval Time", StringUtil.formatDuration(alarmSet.intervalMs)))
+    }
+    if (alarmSet.windowMs > 0) {
+      descriptions.add(buildKeyValuePair("Window Time", StringUtil.formatDuration(alarmSet.windowMs)))
+    }
+    if (alarmSet.hasListener()) {
+      descriptions.add(buildKeyValuePair("Listener Tag", alarmSet.listener.tag))
+    }
+    if (alarmSet.hasOperation()) {
+      val operation = alarmSet.operation
+      if (operation.creatorPackage.isNotEmpty()) {
+        descriptions.add(buildKeyValuePair("Creator", "${operation.creatorPackage} (UID: ${operation.creatorUid})"))
+      }
+    }
+    detailsPanel.add(buildCategoryPanel("Description", descriptions))
+
+    val results = mutableListOf(buildKeyValuePair("Time started", alarm.startTimeMs, TimeProvider))
+    alarm.latestEvent?.let { latestEvent ->
+      if (latestEvent.backgroundTaskEvent.hasAlarmFired() || latestEvent.backgroundTaskEvent.hasAlarmCancelled()) {
+        val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(latestEvent.timestamp)
+        results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
+        results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs)))
+      }
+    }
+    detailsPanel.add(buildCategoryPanel("Results", results))
+  }
+
+  private fun updateSelectedWakeLock(detailsPanel: ScrollablePanel, wakeLock: WakeLockEntry) {
+    val acquired = wakeLock.acquired ?: return
+    val wakeLockAcquired = acquired.backgroundTaskEvent.wakeLockAcquired
+    detailsPanel.add(buildCategoryPanel("Description", listOf(
+      buildKeyValuePair("Tag", wakeLockAcquired.tag),
+      buildKeyValuePair("Level", wakeLockAcquired.level),
+    )))
+
+    val results = mutableListOf(buildKeyValuePair("Time started", wakeLock.startTimeMs, TimeProvider))
+    wakeLock.released?.let { released ->
+      val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(released.timestamp)
+      results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
+      results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)))
+    }
+    detailsPanel.add(buildCategoryPanel("Execution", results))
+  }
+
+  private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
+    val job = jobEntry.jobInfo ?: return
+
+    val descriptions = mutableListOf(
+      buildKeyValuePair("Service", job.serviceName, ClassNameProvider(ideServices, client.scope)),
+      buildKeyValuePair("Tags", jobEntry.tags, StringListProvider)
+    )
+    jobEntry.targetWorkId?.let { uuid -> buildKeyValuePair("UUID", uuid) }
+    detailsPanel.add(buildCategoryPanel("Description", descriptions))
+
+    detailsPanel.add(buildCategoryPanel("Execution", listOf(
+      buildKeyValuePair("Constraints", job, JobConstraintProvider),
+      buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "One Time"),
+      buildKeyValuePair("State", jobEntry.status)
+    )))
+
+    val results = mutableListOf(buildKeyValuePair("Time started", jobEntry.startTimeMs, TimeProvider))
+    jobEntry.latestEvent?.let { latestEvent ->
+      if (latestEvent.backgroundTaskEvent.hasJobStopped() || latestEvent.backgroundTaskEvent.hasJobFinished()) {
+        val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(latestEvent.timestamp)
+        results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
+        results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs)))
+        if (latestEvent.backgroundTaskEvent.hasJobFinished()) {
+          results.add(buildKeyValuePair("Needs Reschedule", latestEvent.backgroundTaskEvent.jobFinished.needsReschedule))
+        }
+        if (latestEvent.backgroundTaskEvent.hasJobStopped()) {
+          results.add(buildKeyValuePair("Reschedule", latestEvent.backgroundTaskEvent.jobStopped.reschedule))
+        }
+      }
+    }
+
+    detailsPanel.add(buildCategoryPanel("Results", results))
+  }
+
+  private fun updateSelectedWork(detailsPanel: ScrollablePanel, workEntry: WorkEntry) {
     val work = workEntry.getWorkInfo()
 
     val idListProvider = IdListProvider(client, work) {
@@ -103,13 +200,13 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
 
     detailsPanel.add(buildCategoryPanel("Description", listOf(
       buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, client.scope)),
-      buildKeyValuePair("Tags", work.tagsList, StringListProvider),
+      buildKeyValuePair("Tags", work.tagsList.toList(), StringListProvider),
       buildKeyValuePair("UUID", work.id)
     )))
 
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
       buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope)),
-      buildKeyValuePair("Constraints", work.constraints, ConstraintProvider),
+      buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
       buildKeyValuePair("State", work.state, StateProvider)
     )))
@@ -126,10 +223,6 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
       buildKeyValuePair("Retries", work.runAttemptCount),
       buildKeyValuePair("Output data", work, OutputDataProvider)
     )))
-
-    scrollPane.setViewportView(detailsPanel)
-    revalidate()
-    repaint()
   }
 
   private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
