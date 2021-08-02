@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogger;
+import com.android.tools.idea.tests.gui.framework.fixture.ConsentDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -161,6 +162,7 @@ public class GuiTestRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
           restartIdeIfLostProgressIndicators();
+          dismissConsentDialogIfShowing();
           if (!TestUtils.runningFromBazel()) {
             restartIdeIfWelcomeFrameNotShowing();
           }
@@ -187,6 +189,26 @@ public class GuiTestRule implements TestRule {
         }
       };
     }
+  }
+
+  /*
+  If the data sharing consent dialog is showing on startup, dismiss it
+  by opting in
+  */
+  private void dismissConsentDialogIfShowing() throws Exception {
+    if(Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+      return;
+    }
+
+    ConsentDialogFixture fixture;
+    try {
+      fixture = ConsentDialogFixture.find(robot());
+    }
+    catch (WaitTimedOutError e) {
+      return;
+    }
+
+    fixture.optIn();
   }
 
   private void restartIdeIfWelcomeFrameNotShowing() {
