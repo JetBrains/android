@@ -34,7 +34,7 @@ fun Project.setAndroidxProperties(value: String = "true") {
 
 fun Project.disableJetifier() {
   getProjectProperties(true)?.let {
-    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.setValue("false")
+    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.psiElement?.delete()
   }
 }
 
