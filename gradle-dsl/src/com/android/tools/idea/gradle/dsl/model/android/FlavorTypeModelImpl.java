@@ -18,10 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -53,7 +56,8 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final ModelPropertyDescription BUILD_CONFIG_FIELD =
     new ModelPropertyDescription("mBuildConfigField", UNSPECIFIED_FOR_NOW);
   @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
-  @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
+  @NonNls public static final ModelPropertyDescription MANIFEST_PLACEHOLDERS =
+    new ModelPropertyDescription("mManifestPlaceholders", MUTABLE_MAP);
   @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS =
     new ModelPropertyDescription("mMatchingFallbacks", MUTABLE_LIST);
   @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
@@ -142,7 +146,11 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   public ResolvedPropertyModel manifestPlaceholders() {
     GradleDslExpressionMap manifestPlaceholders = myDslElement.getPropertyElement(GradleDslExpressionMap.MANIFEST_PLACEHOLDERS);
     if (manifestPlaceholders == null) {
-      myDslElement.addDefaultProperty(new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(MANIFEST_PLACEHOLDERS)));
+      manifestPlaceholders = new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(MANIFEST_PLACEHOLDERS.name));
+      ModelEffectDescription effect = new ModelEffectDescription(MANIFEST_PLACEHOLDERS, CREATE_WITH_VALUE);
+      manifestPlaceholders.setModelEffect(effect);
+      manifestPlaceholders.setElementType(REGULAR);
+      myDslElement.addDefaultProperty(manifestPlaceholders);
     }
     return getModelForProperty(MANIFEST_PLACEHOLDERS);
   }

@@ -1748,6 +1748,48 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyMapElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS)
+
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    var defaultConfig = android.defaultConfig()
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+
+    assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "key" to "value"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED_400)
+
+    assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "key" to "value"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    defaultConfig = android.defaultConfig()
+    assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "key" to "value"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+  }
+
+  @Test
   fun testAddAndApplyMapElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS)
 
@@ -2640,6 +2682,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     SET_AND_APPLY_MAP_ELEMENTS_EXPECTED("setAndApplyMapElementsExpected"),
     ADD_AND_APPLY_MAP_ELEMENTS("addAndApplyMapElements"),
     ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED("addAndApplyMapElementsExpected"),
+    ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED_400("addAndApplyMapElementsExpected400"),
     REMOVE_AND_APPLY_MAP_ELEMENTS("removeAndApplyMapElements"),
     REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED("removeAndApplyMapElementsExpected"),
     ADD_NATIVE_ELEMENTS("addNativeElements"),

@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1295,6 +1296,32 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddAndApplyMapElements400() throws Exception {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("4.0.0"));
+    BuildTypeModel buildType = getXyzBuildType(buildModel);
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+
+    buildType.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
+    buildType.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 buildType.manifestPlaceholders());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED_400);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 buildType.manifestPlaceholders());
+
+    buildModel.reparse();
+    buildType = getXyzBuildType(buildModel);
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 buildType.manifestPlaceholders());
+  }
+
+  @Test
   public void testAddAndApplyMapElements() throws Exception {
     writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS);
 
@@ -1624,6 +1651,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     SET_AND_APPLY_MAP_ELEMENTS_EXPECTED("setAndApplyMapElementsExpected"),
     ADD_AND_APPLY_MAP_ELEMENTS("addAndApplyMapElements"),
     ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED("addAndApplyMapElementsExpected"),
+    ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED_400("addAndApplyMapElementsExpected400"),
     REMOVE_AND_APPLY_CREATE_BUILD_TYPE("removeAndApplyCreateBuildType"),
     REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED("removeAndApplyCreateBuildTypeExpected"),
     REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE("removeAndApplyGetByNameBuildType"),
