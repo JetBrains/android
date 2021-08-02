@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
@@ -579,11 +580,13 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val emptyListText = when (expressionList.externalSyntax) {
       AUGMENTED_ASSIGNMENT -> when (expressionList.modelProperty?.type) {
         MUTABLE_LIST -> "listOf()"
+        MUTABLE_MAP -> "mapOf()"
         MUTABLE_SET -> "setOf()"
         else -> "listOf()"
       }
       else -> when (expressionList.modelProperty?.type) {
         MUTABLE_LIST -> "mutableListOf()"
+        MUTABLE_MAP -> "mutableMapOf()"
         MUTABLE_SET -> "mutableSetOf()"
         else -> "listOf()"
       }
