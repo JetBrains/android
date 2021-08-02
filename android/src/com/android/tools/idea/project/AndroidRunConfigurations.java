@@ -21,7 +21,6 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
 
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -64,8 +63,7 @@ public class AndroidRunConfigurations {
     Module module = facet.getModule();
     RunManager runManager = RunManager.getInstance(module.getProject());
     String projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.getProject().getName(), true, false);
-    String moduleName = ModuleUtil.getHolderModule(module).getName();
-    String configurationName = StringsKt.removePrefix(moduleName, projectNameInExternalSystemStyle + ".");
+    String configurationName = StringsKt.removePrefix(module.getName(), projectNameInExternalSystemStyle + ".");
     RunnerAndConfigurationSettings settings = runManager.createConfiguration(configurationName, AndroidRunConfigurationType.class);
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
