@@ -48,8 +48,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
     treeModel.addTreeModelListener(object : TreeModelAdapter() {
-      override fun treeNodesChanged(event: TreeModelEvent) {
-        super.treeNodesChanged(event)
+      override fun treeStructureChanged(event: TreeModelEvent) {
+        super.treeStructureChanged(event)
         tree.expandPath(event.treePath)
       }
     })

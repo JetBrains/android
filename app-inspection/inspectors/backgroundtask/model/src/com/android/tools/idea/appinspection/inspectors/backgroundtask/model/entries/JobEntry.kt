@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
 
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 import java.util.concurrent.TimeUnit
@@ -50,7 +51,13 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags = listOf<String>()
 
+  var jobInfo: BackgroundTaskInspectorProtocol.JobInfo? = null
+    private set
+
+  var latestEvent: BackgroundTaskInspectorProtocol.Event? = null
+
   override fun consume(eventWrapper: EventWrapper) {
+    latestEvent = eventWrapper.backgroundTaskEvent
     val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
     when (backgroundTaskEvent.metadataCase) {
@@ -58,9 +65,9 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
         _className = "Job $id"
         _status = State.SCHEDULED
         _startTime = TimeUnit.NANOSECONDS.toMillis(timestamp)
-
+        jobInfo = backgroundTaskEvent.jobScheduled.job
         // Find target work id from extras.
-        backgroundTaskEvent.jobScheduled.job.extras.let { extras ->
+        jobInfo?.extras?.let { extras ->
           val workIdSuffix = extras.substringAfter("EXTRA_WORK_SPEC_ID=", "")
           if (workIdSuffix.isNotEmpty()) {
             val endIndex = workIdSuffix.indexOfFirst { it != '-' && !it.isDigit() && !it.isLetter() }
