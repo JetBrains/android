@@ -28,6 +28,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.hasErrorElementInRange
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Assert.assertEquals
@@ -101,6 +102,10 @@ class LiteralsTest {
     projectRule.fixture.configureFromExistingVirtualFile(it.virtualFile)
   }
 
+  private fun LiteralsManager.findLiteralsBlocking(root : PsiElement) = runBlocking {
+    findLiterals(root)
+  }
+
   @Test
   fun `Kotlin literals finder`() {
     val literalsManager = LiteralsManager()
@@ -108,7 +113,7 @@ class LiteralsTest {
     ReadAction.run<Throwable> {
       assertFalse(file.hasErrorElementInRange(file.textRange))
     }
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
     assertEquals("""
       text='TOP_LEVEL' location='LiteralsTest.kt (56,65)' value='TOP_LEVEL' usages='test.app.LiteralsTestKt.<init>-56'
       text='S2' location='LiteralsTest.kt (145,147)' value='S2' usages='test.app.LiteralsTest.Inner.<init>-145'
@@ -167,7 +172,7 @@ class LiteralsTest {
     ReadAction.run<Throwable> {
       assertFalse(file.hasErrorElementInRange(file.textRange))
     }
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
     assertEquals("""
       text='TEST' location='LiteralsTest.kt (58,62)' value='TEST' usages='test.app.LiteralsTestKt.<init>-58'
       text='Template ' location='LiteralsTest.kt (119,128)' value='Template ' usages='test.app.LiteralsTestKt.method-119'
@@ -191,7 +196,7 @@ class LiteralsTest {
     ReadAction.run<Throwable> {
       assertFalse(file.hasErrorElementInRange(file.textRange))
     }
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
 
     println(snapshot.all.toDebugString())
 
@@ -213,7 +218,7 @@ class LiteralsTest {
     val method = ReadAction.compute<KtFunction, Throwable> {
       projectRule.fixture.findElementByText("method", KtFunction::class.java)
     }
-    val snapshot = literalsManager.findLiterals(method)
+    val snapshot = literalsManager.findLiteralsBlocking(method)
     assertEquals("""
       text='DEF1' location='LiteralsTest.kt (469,473)' value='DEF1' usages='test.app.LiteralsTest.method-469'
       text='22' location='LiteralsTest.kt (490,492)' value='22' usages='test.app.LiteralsTest.method-490'
@@ -248,7 +253,7 @@ class LiteralsTest {
         }
       """.trimIndent())
     val file = lambdaFile.configureEditor()
-    val snapshot = literalsManager.findLiterals(lambdaFile)
+    val snapshot = literalsManager.findLiteralsBlocking(lambdaFile)
     assertEquals("""
       text='constant' location='LambdaTest.kt (30,38)' value='constant' usages='LambdaTestKt.<init>-30'
     """.trimIndent(), snapshot.all.toDebugString())
@@ -310,7 +315,7 @@ class LiteralsTest {
     ReadAction.run<Throwable> {
       assertFalse(file.hasErrorElementInRange(file.textRange))
     }
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
     assertEquals(
       "text='S1' location='LiteralsTest.kt (66,68)' value='S1' usages='test.app.LiteralsTest.<init>-66'",
       snapshot.all.toDebugString())
@@ -361,7 +366,7 @@ class LiteralsTest {
       }
       """.trimIndent()).configureEditor()
 
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
     assertEquals(
       """
       text='
@@ -410,7 +415,7 @@ class LiteralsTest {
       }
       """.trimIndent()).configureEditor()
 
-    val snapshot = literalsManager.findLiterals(file)
+    val snapshot = literalsManager.findLiteralsBlocking(file)
     val outHighlighters = mutableSetOf<RangeHighlighter>()
     UIUtil.invokeAndWaitIfNeeded(Runnable {
       snapshot.highlightSnapshotInEditor(
