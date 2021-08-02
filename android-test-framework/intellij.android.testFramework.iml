@@ -27,7 +27,5 @@
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="module" module-name="android.sdktools.resource-repository" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="TEST" />
   </component>
 </module>
