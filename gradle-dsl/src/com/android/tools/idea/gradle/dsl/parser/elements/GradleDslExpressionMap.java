@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
   public static final PropertiesElementDescription<GradleDslExpressionMap> MANIFEST_PLACEHOLDERS = new PropertiesElementDescription<>(
-    FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
+    FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
   public static final PropertiesElementDescription<GradleDslExpressionMap> TEST_INSTRUMENTATION_RUNNER_ARGUMENTS =
     new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
 

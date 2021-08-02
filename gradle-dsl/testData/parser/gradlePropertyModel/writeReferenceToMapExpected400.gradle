@@ -1,0 +1,11 @@
+ext {
+  mP = [a: 'b', c: 'd']
+}
+
+android {
+  compileSdkVersion 30
+  defaultConfig {
+    manifestPlaceholders mP
+    targetSdkVersion 30
+  }
+}

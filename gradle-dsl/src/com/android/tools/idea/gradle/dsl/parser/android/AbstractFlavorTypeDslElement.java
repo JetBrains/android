@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -40,25 +44,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
     {"consumerProguardFile", exactly(1), CONSUMER_PROGUARD_FILES, AUGMENT_LIST},
     {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
-    // in AGP 4.0, the manifestPlaceholders property is defined as a Java Map<String, Object>.  It is legal to use
-    // assignment to set this property to e.g. mapOf("a" to "b"), but not to mutableMapOf("a" to "b") because the inferred type of the
-    // mutableMapOf expression is MutableMap<String,String>, which is not compatible with (Mutable)Map<String!, Any!> (imagine something
-    // later on adding an entry to the property with String key and Integer value).
-    //
-    // in AGP 4.1, the manifestPlaceholders property is defined as a Kotlin MutableMap<String,Any>.  It would no longer be legal to assign
-    // a plain map; the assignment must be of a mutableMap.
-    //
-    // The DSL writer does not (as of January 2020) make use of information about which version of AGP is in use for this particular
-    // project.  It is therefore difficult to support writing out an assignment to manifestPlaceholders which will work in both cases:
-    // it would have to emit mutableMapOf<String,Any>(...).  This is perhaps desirable, but we don't have the general support
-    // for this: properties would need to be decorated with their types  TODO(b/148657110) so that we could get both manifestPlaceholders
-    //  and testInstrumentationRunnerArguments correct, and it is further complicated by setting the property through variables or extra
-    // properties.
-    //
-    // Instead, then, we will continue parsing assignments to manifestPlaceholders permissively, but when writing we will use the setter
-    // method rather than assignment.
-    {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
-    {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, OTHER}, // CLEAR + PUTALL, which is not quite the same as SET
+    {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS, VersionConstraint.agpBefore("4.1.0")},
+    {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAL, VersionConstraint.agpFrom("4.1.0")},
+    {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET, VersionConstraint.agpBefore("8.0.0")},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAL},
     {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST, VersionConstraint.agpBefore("8.0.0")},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
@@ -88,6 +76,10 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, CLEAR_AND_AUGMENT_LIST},
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
     {"manifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET},
+    // TODO(xof): if we want to support the method call syntax (as opposed to the application statement syntax) of
+    //  setManifestPlaceholders([a: 'b']) more properly, this SET could become CLEAR_AND_AUGMENT_MAP (and we would need something a bit
+    //  like mungeElementsForAddToParsedElementList() in addToParsedElementMap).
+    {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET, VersionConstraint.agpBefore("8.0.0")},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
     {"setMatchingFallbacks", atLeast(1), MATCHING_FALLBACKS, CLEAR_AND_AUGMENT_LIST, VersionConstraint.agpBefore("8.0.0")},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
@@ -115,6 +107,10 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-    addDefaultProperty(new GradleDslExpressionMap(this, GradleNameElement.fake(MANIFEST_PLACEHOLDERS)));
+    GradleDslExpressionMap manifestPlaceholders = new GradleDslExpressionMap(this, GradleNameElement.fake(MANIFEST_PLACEHOLDERS.name));
+    ModelEffectDescription effect = new ModelEffectDescription(MANIFEST_PLACEHOLDERS, CREATE_WITH_VALUE);
+    manifestPlaceholders.setModelEffect(effect);
+    manifestPlaceholders.setElementType(REGULAR);
+    addDefaultProperty(manifestPlaceholders);
   }
 }

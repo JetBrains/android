@@ -87,7 +87,6 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     {"setTestHandleProfiling", exactly(1), TEST_HANDLE_PROFILING, SET, VersionConstraint.agpBefore("8.0.0")},
     {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
     {"testInstrumentationRunner", exactly(1), TEST_INSTRUMENTATION_RUNNER, SET},
-    // TODO(b/148657110): see the comment above manifestPlaceholders in AbstractFlavorTypeDslElement
     {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
     {"testInstrumentationRunnerArguments", exactly(1), TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, OTHER}, // PUTALL
     {"versionCode", property, VERSION_CODE, VAR},
