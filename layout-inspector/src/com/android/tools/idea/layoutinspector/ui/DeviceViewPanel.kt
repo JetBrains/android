@@ -27,6 +27,7 @@ import com.android.tools.adtui.common.helpText
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -72,6 +73,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.concurrent.Executor
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -97,7 +99,8 @@ class DeviceViewPanel(
   private val processes: ProcessesModel?,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
-  disposableParent: Disposable
+  disposableParent: Disposable,
+  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   override val scale
@@ -339,7 +342,7 @@ class DeviceViewPanel(
         client.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
       }
       if (prevZoom != viewSettings.scalePercent) {
-        ApplicationManager.getApplication().executeOnPooledThread {
+        backgroundExecutor.execute {
           deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
           prevZoom = viewSettings.scalePercent
           model.windows.values.forEach {

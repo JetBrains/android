@@ -447,7 +447,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
+    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
@@ -484,7 +484,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
+    val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable, MoreExecutors.directExecutor())
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().model
@@ -497,13 +497,6 @@ class DeviceViewPanelTest {
     }
 
     model.update(window1, listOf(ROOT), 0)
-    // Wait for the content panel model to be updated
-    for (i in 1..10) {
-      if (contentPanelModel.hitRects.size == 2) {
-        break
-      }
-      Thread.sleep(20)
-    }
     assertThat(contentPanelModel.hitRects.size).isEqualTo(2)
 
     viewSettings.scalePercent = 33
@@ -516,14 +509,6 @@ class DeviceViewPanelTest {
     }
 
     model.update(window2, listOf(ROOT, ROOT2), 1)
-
-    // Wait for the content panel model to be updated again
-    for (i in 1..10) {
-      if (contentPanelModel.hitRects.size == 4) {
-        break
-      }
-      Thread.sleep(20)
-    }
     assertThat(contentPanelModel.hitRects.size).isEqualTo(4)
 
     // we should still have the manually set zoom
