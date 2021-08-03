@@ -63,7 +63,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
