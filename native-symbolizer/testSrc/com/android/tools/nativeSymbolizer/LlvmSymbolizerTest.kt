@@ -23,12 +23,10 @@ import org.junit.Assume
 import org.junit.Test
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 
 
 class LlvmSymbolizerTest {
 
-  val testDataDir = resolveWorkspacePath("tools/adt/idea/native-symbolizer/testData/bin/").toString()
   val LIB_FILE_NAME = "libnative-lib.so"
   val EXPECTED_SYMBOLS_FILE_NAME = "symbols.txt"
   val architectures = listOf("arm", "arm64", "x86", "x86_64")
@@ -42,7 +40,7 @@ class LlvmSymbolizerTest {
   fun testSymbolizeAll() {
     val symbolizer = createSymbolizer()
     for (arch in architectures) {
-      val expectedSymbolsFile = Paths.get(testDataDir, arch, EXPECTED_SYMBOLS_FILE_NAME).toFile()
+      val expectedSymbolsFile = getTestPath(arch, EXPECTED_SYMBOLS_FILE_NAME)
       Assert.assertTrue(expectedSymbolsFile.exists())
       for (line in expectedSymbolsFile.readLines()) {
         val symParts = line.split('|')
@@ -57,7 +55,8 @@ class LlvmSymbolizerTest {
         val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
         Assert.assertNotNull(symbol)
         Assert.assertEquals(name, symbol.name)
-        Assert.assertEquals(sourceFile, symbol.sourceFile)
+        Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
+                            sanitizeFilePathForComparison(symbol.sourceFile))
         Assert.assertTrue(symbol.lineNumber >= lineNumber)
       }
     }
@@ -67,9 +66,9 @@ class LlvmSymbolizerTest {
   fun testSymbolizeBinariesBuiltOnWindows() {
     val arch = "arm64"
     val binDir = "win"
-    val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(Paths.get(testDataDir, binDir).toFile()!!))))
+    val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(getTestPath(binDir)))))
     val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
-    val expectedSymbolsFile = Paths.get(testDataDir, binDir, EXPECTED_SYMBOLS_FILE_NAME).toFile()
+    val expectedSymbolsFile = getTestPath(binDir, EXPECTED_SYMBOLS_FILE_NAME)
     Assert.assertTrue(expectedSymbolsFile.exists())
     for (line in expectedSymbolsFile.readLines()) {
       val symParts = line.split('|')
@@ -84,7 +83,8 @@ class LlvmSymbolizerTest {
       val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
-      Assert.assertEquals(symbol.sourceFile.replace('\\', '/'), sourceFile)
+      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
+                          sanitizeFilePathForComparison(symbol.sourceFile))
       Assert.assertTrue(symbol.lineNumber >= lineNumber)
     }
   }
@@ -93,7 +93,7 @@ class LlvmSymbolizerTest {
   fun testSpaceInPath() {
     val tempDir = FileUtil.createTempDirectory("llvm-symbolizer", "space-test", true)
     val symbolDir = File(tempDir, "name with a space")
-    FileUtil.copyDir(Paths.get(testDataDir, "win").toFile(), symbolDir)
+    FileUtil.copyDir(getTestPath("win"), symbolDir)
     val arch = "arm64"
     val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(symbolDir))))
     val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
@@ -112,7 +112,8 @@ class LlvmSymbolizerTest {
       val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
-      Assert.assertEquals(symbol.sourceFile.replace('\\', '/'), sourceFile)
+      Assert.assertEquals(sanitizeFilePathForComparison(sourceFile),
+                          sanitizeFilePathForComparison(symbol.sourceFile))
       Assert.assertTrue(symbol.lineNumber >= lineNumber)
     }
   }
@@ -121,7 +122,7 @@ class LlvmSymbolizerTest {
   fun testExeRestart() {
     val symbolizer = createSymbolizer()
     for (arch in architectures) {
-      val expectedSymbolsFile = Paths.get(testDataDir, arch, EXPECTED_SYMBOLS_FILE_NAME).toFile()
+      val expectedSymbolsFile = getTestPath(arch, EXPECTED_SYMBOLS_FILE_NAME)
       Assert.assertTrue(expectedSymbolsFile.exists())
       for (line in expectedSymbolsFile.readLines()) {
         val symParts = line.split('|')
@@ -171,7 +172,7 @@ class LlvmSymbolizerTest {
   fun getSymDirMap(): Map<String, Set<File>> {
     val result: MutableMap<String, Set<File>> = hashMapOf()
     for (arch in architectures) {
-      result[arch] = setOf(File(testDataDir, arch))
+      result[arch] = setOf(getTestPath(arch))
     }
     return result
   }
@@ -181,5 +182,23 @@ class LlvmSymbolizerTest {
     return LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
   }
 
+  /** Converts a file path relative to the test directory to an absolute file path. */
+  private fun getTestPath(vararg part:String): File {
+    var testDataDir = resolveWorkspacePath("tools/adt/idea/native-symbolizer/testData/bin/")
 
+    for (p in part) {
+      testDataDir = testDataDir.resolve(p)
+    }
+
+    return testDataDir.toAbsolutePath().toFile()
+  }
+
+  /**
+   * Converts platform-specific path separators to a single common separator, making path
+   * comparisons easier. This function is ONLY for comparing two paths and should be applied to both
+   * values in the comparison.
+   */
+  private fun sanitizeFilePathForComparison(path: String): String {
+    return File(path).normalize().absolutePath.replace('\\', '/')
+  }
 }
