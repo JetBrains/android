@@ -25,10 +25,16 @@ import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.ide.common.attribution.CheckJetifierResult
+import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.ui.treeStructure.Tree
 import javax.swing.JButton
 import javax.swing.JPanel
+import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.tree.DefaultMutableTreeNode
 
 class JetifierWarningDetailsFactory(
   private val actionHandlers: ViewActionHandlers
@@ -81,14 +87,81 @@ class JetifierWarningDetailsFactory(
       Please consider upgrading to more recent versions of those libraries or contact
       the library authors to request native AndroidX support, if it’s not available yet.
       """.trimIndent().insertBRTags()
-    // TODO (b/194299417): replace with a tree component and present in a reversed way
-    val librariesListHtml = data.checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence()
-      .joinToString(separator = "", prefix = "<ul>", postfix = "</ul>") {
-        val reversedPath = it.value.dependencyPath.elements.reversed().run { if (size > 1) drop(1) else this }
-        "<li>${reversedPath.plus(it.value.projectPath).joinToString(" -> ")}</li>"
-      }
+    val root = createLibsTree(data.checkJetifierResult)
+    val tree = Tree(root).apply {
+      isRootVisible = false
+      cellRenderer = LibsTreeCellRenderer()
+    }
     add(htmlTextLabelWithFixedLines(contentHtml))
     add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
-    add(htmlTextLabelWithFixedLines(librariesListHtml))
+    add(tree)
+  }
+
+  private fun createLibsTree(checkJetifierResult: CheckJetifierResult) = DefaultMutableTreeNode().also { root ->
+    val nodes = mutableMapOf<String, DefaultMutableTreeNode>()
+
+    checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence().forEach {
+      nodes.computeIfAbsent(it.key) { dependency -> LibTreeNode(LibDescriptor(dependency)) }.apply {
+        (userObject as LibDescriptor).usedDirectly = true
+      }
+
+      it.value.dependencyPath.elements.drop(1).forEach { dependency ->
+        nodes.computeIfAbsent(dependency) { LibTreeNode(LibDescriptor(dependency)) }.apply {
+          (userObject as LibDescriptor).usedTransitively = true
+        }
+      }
+    }
+
+    fun DefaultMutableTreeNode.addPath(path: List<String>) {
+      if (path.isEmpty()) return
+      nodes[path.first()]?.let {
+        it.addPath(path.drop(1))
+        add(it)
+      }
+    }
+    checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence().forEach {
+      val reversedPath = it.value.dependencyPath.elements.reversed().run { if (size > 1) drop(1) else this }
+      root.addPath(reversedPath)
+    }
+  }
+
+  private class LibsTreeCellRenderer : ColoredTreeCellRenderer() {
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean
+    ) {
+      val node = value as DefaultMutableTreeNode
+      val userObj = node.userObject
+      if (userObj is LibDescriptor) {
+        append(userObj.fullName)
+        append(userObj.usageSuffix, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+      }
+    }
+  }
+
+  private class LibTreeNode(val libDescriptor: LibDescriptor) : DefaultMutableTreeNode(libDescriptor) {
+    override fun toString(): String {
+      return libDescriptor.fullName
+    }
+  }
+
+  class LibDescriptor(
+    /** Full dependency name in 'group:name:version' format. */
+    val fullName: String,
+  ) {
+    var usedDirectly: Boolean = false
+    var usedTransitively: Boolean = false
+    val usageSuffix: String
+      get() = when {
+        usedDirectly && usedTransitively -> " used directly and transitively"
+        usedDirectly -> " used directly"
+        usedTransitively -> " used transitively"
+        else -> ""
+      }
   }
 }
