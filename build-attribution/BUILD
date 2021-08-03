@@ -36,6 +36,8 @@ iml_module(
     iml_files = ["intellij.android.build-attribution.tests.iml"],
     split_test_targets = {
         "analyzers": {
+            # TODO (b/137293175) Remove after flake is resolved.
+            "tags": ["no_test_linux"],
             "test_filter": "com.android.build.attribution.analyzers",
         },
         "other": {
