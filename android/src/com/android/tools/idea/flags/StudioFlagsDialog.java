@@ -35,6 +35,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.ide.IdeCoreBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.ex.util.EditorUtil;
@@ -250,7 +251,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     mySearchTextField.getTextEditor().setBackground(emptySearchResult ? LightColors.RED : UIUtil.getTextFieldBackground());
     if (emptySearchResult) {
       JLabel label = new JLabel();
-      label.setText(UIBundle.message("message.nothingToShow"));
+      label.setText(IdeCoreBundle.message("message.nothingToShow"));
       label.setHorizontalAlignment(SwingConstants.CENTER);
 
       myContentPanel.setLayout(new BorderLayout());
