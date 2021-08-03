@@ -28,8 +28,7 @@ import java.io.InputStreamReader
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes` to include in
  * go/studio-auto-import-packages.
  */
-// TODO: rename to MavenClassRegistry.
-class MavenClassRegistryFromRepository(private val indexRepository: GMavenIndexRepository) : MavenClassRegistryBase() {
+class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : MavenClassRegistryBase() {
   val lookup: LookupData = generateLookup()
 
   /**
@@ -66,7 +65,7 @@ class MavenClassRegistryFromRepository(private val indexRepository: GMavenIndexR
       data.use { readIndicesFromJsonFile(it) }
     }
     catch (e: Exception) {
-      logger<MavenClassRegistryFromRepository>().warn("Problem reading GMaven index file: ${e.message}")
+      logger<MavenClassRegistry>().warn("Problem reading GMaven index file: ${e.message}")
       LookupData.EMPTY
     }
   }

@@ -18,9 +18,7 @@ package com.android.tools.idea.imports
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
@@ -54,7 +52,6 @@ class MavenImportUtilsKtTest {
 
   @Before
   fun setUp() {
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, projectRule.fixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
