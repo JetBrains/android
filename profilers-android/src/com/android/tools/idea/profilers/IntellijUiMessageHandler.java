@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.UiMessageHandler;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
     }
 
     return Messages.OK ==
-           Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {
+           Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DoNotAskOption.Adapter() {
              @Override
              public void rememberChoice(boolean isSelected, int exitCode) {
                doNotShowSettingSaver.consume(isSelected);

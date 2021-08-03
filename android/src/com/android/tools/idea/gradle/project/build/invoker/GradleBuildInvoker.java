@@ -81,7 +81,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
 import com.intellij.serviceContainer.NonInjectable;
@@ -241,7 +241,7 @@ public class GradleBuildInvoker {
                          "and preserves your debug process.";
         MessageDialogBuilder.YesNoCancel dialogBuilder = MessageDialogBuilder.yesNoCancel("Terminate debugging", message);
         int answer = dialogBuilder.yesText("Terminate").noText("Do not terminate").cancelText("Cancel")
-          .doNotAsk(new DialogWrapper.DoNotAskOption.Adapter() {
+          .doNotAsk(new DoNotAskOption.Adapter() {
             @Override
             public void rememberChoice(boolean isSelected, int exitCode) {
               if (isSelected) {
