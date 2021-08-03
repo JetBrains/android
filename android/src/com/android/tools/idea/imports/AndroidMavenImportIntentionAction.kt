@@ -441,7 +441,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
   }
 
-  private fun getMavenClassRegistry(): MavenClassRegistryBase {
+  private fun getMavenClassRegistry(): MavenClassRegistry {
     return mavenClassRegistryManager.getMavenClassRegistry()
   }
 }

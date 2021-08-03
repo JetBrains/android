@@ -1281,17 +1281,6 @@ public final class StudioFlags {
     false);
   // endregion
 
-  //region Suggested Import(s)
-  private static final FlagGroup SUGGESTED_IMPORT = new FlagGroup(FLAGS, "suggested.import", "Suggested import");
-  public static final Flag<Boolean> ENABLE_SUGGESTED_IMPORT = Flag.create(
-    SUGGESTED_IMPORT, "enable", "Enable suggested import",
-    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index/... and generate corresponding " +
-    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in " +
-    "MavenClassRegistryFromHardcodedMap.",
-    true
-  );
-  // endregion
-
   //region DDMLIB
   private static final FlagGroup DDMLIB = new FlagGroup(FLAGS, "ddmlib", "DDMLIB");
   public static final Flag<Boolean> ENABLE_JDWP_PROXY_SERVICE = Flag.create(

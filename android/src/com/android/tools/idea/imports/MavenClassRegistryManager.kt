@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
@@ -37,25 +36,18 @@ private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
  * class registry. [getMavenClassRegistry] returns the the best effort of Maven class registry when asked.
  */
 class MavenClassRegistryManager : Disposable {
-  private var gMavenIndexRepository: GMavenIndexRepository? = null
+  private val gMavenIndexRepository: GMavenIndexRepository
 
   init {
-    if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
-      gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
-      Disposer.register(this, gMavenIndexRepository!!)
-    }
+    gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
+    Disposer.register(this, gMavenIndexRepository)
   }
 
   /**
-   * Switches between local and remote registry by [StudioFlags.ENABLE_SUGGESTED_IMPORT].
+   * Returns [MavenClassRegistry] extracted from [gMavenIndexRepository].
    */
-  fun getMavenClassRegistry(): MavenClassRegistryBase {
-    return if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
-      gMavenIndexRepository!!.getMavenClassRegistry()
-    }
-    else {
-      MavenClassRegistryFromHardcodedMap
-    }
+  fun getMavenClassRegistry(): MavenClassRegistry {
+    return gMavenIndexRepository.getMavenClassRegistry()
   }
 
   private fun getCacheDir(): Path {
@@ -72,7 +64,7 @@ class MavenClassRegistryManager : Disposable {
 
 class AutoRefresherForMavenClassRegistry : StartupActivity.Background {
   override fun runActivity(project: Project) {
-    // Start refresher in GMavenIndexRepository when `auto-import` is on.
+    // Start refresher in GMavenIndexRepository at project start-up.
     MavenClassRegistryManager.getInstance()
   }
 }

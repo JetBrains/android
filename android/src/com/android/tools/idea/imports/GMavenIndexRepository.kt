@@ -63,7 +63,7 @@ private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
  * A repository provides Maven class registry generated from loading local disk cache, which is actively refreshed from
  * network request on GMaven indices on [baseUrl]/[RELATIVE_PATH], on a scheduled basis (daily).
  *
- * [getMavenClassRegistry] returns the last known [MavenClassRegistryFromRepository] if possible.
+ * [getMavenClassRegistry] returns the last known [MavenClassRegistry] if possible.
  *
  * The underlying [lastComputedMavenClassRegistry] is for storing the last known value for instant query. The
  * freshness is guaranteed by the [scheduler].
@@ -76,7 +76,7 @@ class GMavenIndexRepository(
   private class ValueWithETag(val data: ByteArray, val eTag: String)
 
   private val relativeCachePath = if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
-  private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistryFromRepository?>()
+  private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
   private val scheduler = AppExecutorUtil.createBoundedScheduledExecutorService(
     "MavenClassRegistry Refresher",
     1
@@ -95,12 +95,12 @@ class GMavenIndexRepository(
   }
 
   /**
-   * Returns the last known [MavenClassRegistryFromRepository] if possible.
+   * Returns the last known [MavenClassRegistry] if possible.
    *
    * Or new Maven class registry is created in the calling thread.
    */
-  fun getMavenClassRegistry(): MavenClassRegistryFromRepository {
-    return lastComputedMavenClassRegistry.get() ?: MavenClassRegistryFromRepository(this).apply {
+  fun getMavenClassRegistry(): MavenClassRegistry {
+    return lastComputedMavenClassRegistry.get() ?: MavenClassRegistry(this).apply {
       lastComputedMavenClassRegistry.set(this)
     }
   }
@@ -137,7 +137,7 @@ class GMavenIndexRepository(
           null
         }
         else {
-          val mavenClassRegistry = MavenClassRegistryFromRepository(this)
+          val mavenClassRegistry = MavenClassRegistry(this)
           // TODO: make it `debug` instead of `info` once it's stable.
           thisLogger().info("Updated in-memory Maven class registry.")
           mavenClassRegistry

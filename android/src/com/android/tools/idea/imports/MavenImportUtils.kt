@@ -17,7 +17,6 @@ package com.android.tools.idea.imports
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SuggestedImportEvent
 
@@ -27,8 +26,6 @@ import com.google.wireless.android.sdk.stats.SuggestedImportEvent
  * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation of `suggested import`.
  */
 internal fun trackSuggestedImport(artifactId: String) {
-  if (!StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) return
-
   val suggestedImportEvent = SuggestedImportEvent.newBuilder()
     .setArtifactId(artifactId)
 

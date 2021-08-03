@@ -16,10 +16,8 @@
 package com.android.tools.idea.imports
 
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
@@ -40,49 +38,8 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
   private val JavaCodeInsightTestFixture.fileEditor: TextEditor
     get() = TextEditorProvider.getInstance().getTextEditor(this.editor)
 
-  fun testLegacyAddLibraryQuickfix() {
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(false, myFixture.testRootDisposable)
-    ApplicationManager.getApplication().replaceService(
-      MavenClassRegistryManager::class.java,
-      fakeMavenClassRegistryManager,
-      myFixture.testRootDisposable
-    )
-
-    val inspection = AndroidUnresolvableTagInspection()
-    myFixture.enableInspections(inspection)
-
-    loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT) // project not using AndroidX
-    assertBuildGradle(project) { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
-
-    myFixture.loadNewFile(
-      "app/src/main/res/layout/my_layout.xml",
-      """
-    <?xml version="1.0" encoding="utf-8"?>
-    <${
-        "android.support.v7.widget.RecyclerView"
-          .highlightedAs(ERROR, "Cannot resolve class android.support.v7.widget.RecyclerView")
-      } />
-    """.trimIndent()
-    )
-
-    myFixture.checkHighlighting(true, false, false)
-    myFixture.moveCaret("Recycler|View")
-    val action = myFixture.getIntentionAction("Add dependency on com.android.support:recyclerview-v7")!!
-
-    assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
-
-    // Wait for the sync
-    requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state of the first action
-
-    assertBuildGradle(project) { it.contains("implementation 'com.android.support:recyclerview-v7:") }
-  }
-
   fun testSuggestedImport_unresolvedViewTag() {
     // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
@@ -123,7 +80,6 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
   fun testSuggestedImport_unresolvedAttrName() {
     // Unresolved fragment class: <fragment android:name="com.google.android.gms.maps.SupportMapFragment" .../>.
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
@@ -142,14 +98,14 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
         <?xml version="1.0" encoding="utf-8"?>
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
           android:name="com.google.${
-            "android".highlightedAs(ERROR, "Unresolved package 'android'")
-          }.${
-            "gms".highlightedAs(ERROR, "Unresolved package 'gms'")
-          }.${
-            "maps".highlightedAs(ERROR, "Unresolved package 'maps'")
-          }.${
-            "SupportMapFragment".highlightedAs(ERROR, "Unresolved class 'SupportMapFragment'")
-          }" android:layout_width="match_parent" android:layout_height="match_parent" />
+        "android".highlightedAs(ERROR, "Unresolved package 'android'")
+      }.${
+        "gms".highlightedAs(ERROR, "Unresolved package 'gms'")
+      }.${
+        "maps".highlightedAs(ERROR, "Unresolved package 'maps'")
+      }.${
+        "SupportMapFragment".highlightedAs(ERROR, "Unresolved class 'SupportMapFragment'")
+      }" android:layout_width="match_parent" android:layout_height="match_parent" />
       """.trimIndent()
     )
 
@@ -174,7 +130,6 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
   fun testSuggestedImport_undo() {
     // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
@@ -220,7 +175,6 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
   fun testSuggestedImport_redo() {
     // Unresolved view class: <androidx.recyclerview.widget.RecyclerView .../>.
-    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, myFixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
