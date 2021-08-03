@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.ui.UIBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * Implementation of "Do not show this dialog in the future" option. This option is displayed as a checkbox in a {@code Messages} dialog.
  * The state of such checkbox is stored in the IDE's {@code PropertiesComponent} under the name passed in the constructor.
  */
-public class PropertyBasedDoNotAskOption implements DialogWrapper.DoNotAskOption {
+public class PropertyBasedDoNotAskOption implements DoNotAskOption {
   @NotNull private final Project myProject;
   /**
    * The name of the property storing the value of the "Do not show this dialog in the future" option.

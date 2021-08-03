@@ -20,7 +20,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 
@@ -53,7 +53,7 @@ enum class TerminateDebuggerChoice {
               .noText("Do not terminate")
               .cancelText("Cancel")
               .doNotAsk(
-                object : DialogWrapper.DoNotAskOption.Adapter() {
+                object : DoNotAskOption.Adapter() {
                   override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
                     if (isSelected) {
                       PropertiesComponent.getInstance().setValue(propKey, (exitCode == Messages.YES).toString())
