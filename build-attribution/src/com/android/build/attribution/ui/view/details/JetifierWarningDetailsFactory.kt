@@ -26,10 +26,22 @@ import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.attribution.CheckJetifierResult
+import com.intellij.find.FindModel
+import com.intellij.find.findInProject.FindInProjectManager
+import com.intellij.ide.CommonActionsManager
+import com.intellij.ide.DefaultTreeExpander
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JTree
@@ -91,6 +103,14 @@ class JetifierWarningDetailsFactory(
     val tree = Tree(root).apply {
       isRootVisible = false
       cellRenderer = LibsTreeCellRenderer()
+    }
+    DefaultActionGroup().let { group ->
+      val treeExpander = DefaultTreeExpander(tree)
+      group.add(FindSelectedLibUsagesAction(tree))
+      group.addSeparator()
+      group.add(CommonActionsManager.getInstance().createExpandAllAction(treeExpander, this))
+      group.add(CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, this))
+      PopupHandler.installPopupHandler(tree, group, ActionPlaces.POPUP, ActionManager.getInstance())
     }
     add(htmlTextLabelWithFixedLines(contentHtml))
     add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
@@ -163,5 +183,35 @@ class JetifierWarningDetailsFactory(
         usedTransitively -> " used transitively"
         else -> ""
       }
+
+    /**
+     * Returns only 'group:name' part of this dependency.
+     */
+    val groupAndName: String
+      get() = fullName.substringBeforeLast(":")
+  }
+
+  private class FindSelectedLibUsagesAction(val tree: Tree) : AnAction("Find Usages") {
+    override fun update(e: AnActionEvent) {
+      val libPresentation = (TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent as? LibTreeNode)?.libDescriptor
+      if (libPresentation?.usedDirectly == true) {
+        e.presentation.text = "Find Usages of ${libPresentation.groupAndName}"
+      }
+      else {
+        e.presentation.isVisible = false
+      }
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val selectedLib = (TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent as? LibTreeNode)?.libDescriptor ?: return
+      val project = CommonDataKeys.PROJECT.getData(e.dataContext)
+
+      val findModel = FindModel().apply {
+        FindModel.initStringToFind(this, selectedLib.groupAndName)
+        isReplaceState = false
+        searchContext = FindModel.SearchContext.IN_STRING_LITERALS
+      }
+      FindInProjectManager.getInstance(project).findInProject({ null }, findModel)
+    }
   }
 }
