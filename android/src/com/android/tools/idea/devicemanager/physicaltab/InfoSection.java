@@ -15,35 +15,77 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
+import com.google.common.collect.Streams;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class InfoSection {
-  private final @NotNull String myHeading;
-  private final @NotNull Map<@NotNull String, @Nullable Object> myInfo;
+class InfoSection extends JBPanel<InfoSection> {
+  private final @NotNull Component myHeadingLabel;
+  private final @NotNull Collection<@NotNull Component> myNameLabels;
+  private final @NotNull Collection<@NotNull Component> myValueLabels;
 
   InfoSection(@NotNull String heading) {
-    myHeading = heading;
-    myInfo = new LinkedHashMap<>();
+    super(null);
+
+    myHeadingLabel = new JBLabel(heading);
+    myNameLabels = new ArrayList<>();
+    myValueLabels = new ArrayList<>();
   }
 
-  @NotNull String getHeading() {
-    return myHeading;
+  final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
+    myNameLabels.add(new JBLabel(name));
+
+    JLabel label = new JBLabel();
+    myValueLabels.add(label);
+
+    return label;
   }
 
-  @NotNull InfoSection putInfo(@NotNull String name, @Nullable Object value) {
-    myInfo.put(name, value);
-    return this;
+  final void setLayout() {
+    GroupLayout layout = new GroupLayout(this);
+
+    Group horizontalGroup = layout.createParallelGroup().addComponent(myHeadingLabel);
+    Group verticalGroup = layout.createSequentialGroup().addComponent(myHeadingLabel);
+
+    // noinspection UnstableApiUsage
+    Streams.forEachPair(myNameLabels.stream(), myValueLabels.stream(), (nameLabel, valueLabel) -> {
+      horizontalGroup.addGroup(layout.createSequentialGroup()
+                                 .addComponent(nameLabel)
+                                 .addComponent(valueLabel));
+
+      verticalGroup.addGroup(layout.createParallelGroup()
+                               .addComponent(nameLabel)
+                               .addComponent(valueLabel));
+    });
+
+    layout.setAutoCreateGaps(true);
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
   }
 
-  @NotNull InfoSection putInfo(@NotNull String name, @NotNull Iterable<@NotNull String> values) {
-    return putInfo(name, String.join(", ", values));
+  final @NotNull Collection<@NotNull Component> getNameLabels() {
+    return myNameLabels;
   }
 
-  void forEachInfo(@NotNull BiConsumer<@NotNull String, @Nullable Object> consumer) {
-    myInfo.forEach(consumer);
+  static void setText(@NotNull JLabel label, @Nullable Object value) {
+    if (value == null) {
+      return;
+    }
+
+    label.setText(value.toString());
+  }
+
+  static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
+    label.setText(String.join(", ", values));
   }
 }

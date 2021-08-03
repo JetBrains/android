@@ -18,104 +18,105 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.awt.Dimension;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.OptionalInt;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
-import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class DetailsPanel extends JBPanel<DetailsPanel> {
-  private final @NotNull PhysicalDevice myDevice;
-  private final @NotNull Collection<@NotNull Component> myNameLabels;
+  private final @NotNull Component myHeadingLabel;
+  private final @NotNull InfoSection mySummarySection;
+  private final @NotNull InfoSection myDeviceSection;
 
-  private final @NotNull GroupLayout myLayout;
-  private final @NotNull Group myHorizontalGroup;
-  private final @NotNull SequentialGroup myVerticalGroup;
+  private static final class SummarySection extends InfoSection {
+    private SummarySection(@NotNull PhysicalDevice device) {
+      super("Summary");
+
+      JLabel apiLevelLabel = addNameAndValueLabels("API level");
+      setText(apiLevelLabel, device.getApi());
+
+      JLabel resolutionLabel = addNameAndValueLabels("Resolution");
+      setText(resolutionLabel, device.getResolution());
+
+      JLabel dpLabel = addNameAndValueLabels("dp");
+      setText(dpLabel, device.getDp());
+
+      JLabel abiListLabel = addNameAndValueLabels("ABI list");
+      setText(abiListLabel, device.getAbis());
+
+      setLayout();
+    }
+  }
+
+  private static final class DeviceSection extends InfoSection {
+    private DeviceSection(@NotNull PhysicalDevice device) {
+      super("Device");
+
+      JLabel nameLabel = addNameAndValueLabels("Name");
+      setText(nameLabel, device.getName());
+
+      setLayout();
+    }
+  }
 
   DetailsPanel(@NotNull PhysicalDevice device) {
     super(null);
 
-    myDevice = device;
-    myNameLabels = new ArrayList<>();
+    myHeadingLabel = new JBLabel(device.getName());
+    mySummarySection = new SummarySection(device);
+    myDeviceSection = new DeviceSection(device);
 
-    Component headingLabel = new JBLabel(device.getName());
-    myLayout = new GroupLayout(this);
-
-    myHorizontalGroup = myLayout.createParallelGroup()
-      .addComponent(headingLabel);
-
-    myVerticalGroup = myLayout.createSequentialGroup()
-      .addComponent(headingLabel)
-      .addPreferredGap(ComponentPlacement.UNRELATED);
-
-    addSections();
-    myLayout.linkSize(SwingConstants.HORIZONTAL, myNameLabels.toArray(new Component[0]));
-
-    myLayout.setAutoCreateContainerGaps(true);
-    myLayout.setAutoCreateGaps(true);
-    myLayout.setHorizontalGroup(myHorizontalGroup);
-    myLayout.setVerticalGroup(myVerticalGroup);
-
-    setLayout(myLayout);
+    setNameLabelPreferredWidthsToMax();
+    setLayout();
   }
 
-  private void addSections() {
-    Iterator<InfoSection> sections = Arrays.asList(newQuickSummarySection(), newDeviceSection()).iterator();
-    addSection(sections.next());
+  private void setNameLabelPreferredWidthsToMax() {
+    Collection<Component> labels = Stream.of(mySummarySection, myDeviceSection)
+      .map(InfoSection::getNameLabels)
+      .flatMap(Collection::stream)
+      .collect(Collectors.toList());
 
-    while (sections.hasNext()) {
-      myVerticalGroup.addPreferredGap(ComponentPlacement.UNRELATED);
-      addSection(sections.next());
-    }
+    OptionalInt optionalWidth = labels.stream()
+      .map(Component::getPreferredSize)
+      .mapToInt(size -> size.width)
+      .max();
+
+    int width = optionalWidth.orElseThrow(AssertionError::new);
+
+    labels.forEach(component -> {
+      Dimension size = component.getPreferredSize();
+      size.width = width;
+
+      component.setPreferredSize(size);
+      component.setMaximumSize(size);
+    });
   }
 
-  private @NotNull InfoSection newQuickSummarySection() {
-    return new InfoSection("Quick summary")
-      .putInfo("API level", myDevice.getApi())
-      .putInfo("Resolution", myDevice.getResolution())
-      .putInfo("dp", myDevice.getDp())
-      .putInfo("ABI list", myDevice.getAbis());
-  }
+  private void setLayout() {
+    GroupLayout layout = new GroupLayout(this);
 
-  private @NotNull InfoSection newDeviceSection() {
-    return new InfoSection("Device")
-      .putInfo("Name", myDevice.getName());
-  }
+    Group horizontalGroup = layout.createParallelGroup()
+      .addComponent(myHeadingLabel)
+      .addComponent(mySummarySection)
+      .addComponent(myDeviceSection);
 
-  private void addSection(@NotNull InfoSection section) {
-    Component headingLabel = new JBLabel(section.getHeading());
+    Group verticalGroup = layout.createSequentialGroup()
+      .addComponent(myHeadingLabel)
+      .addPreferredGap(ComponentPlacement.UNRELATED)
+      .addComponent(mySummarySection)
+      .addPreferredGap(ComponentPlacement.UNRELATED)
+      .addComponent(myDeviceSection);
 
-    myHorizontalGroup.addComponent(headingLabel);
-    myVerticalGroup.addComponent(headingLabel);
+    layout.setAutoCreateContainerGaps(true);
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
 
-    section.forEachInfo(this::addNameAndValueLabels);
-  }
-
-  private void addNameAndValueLabels(@NotNull String name, @Nullable Object value) {
-    Component nameLabel = new JBLabel(name);
-    myNameLabels.add(nameLabel);
-
-    if (value == null) {
-      myHorizontalGroup.addComponent(nameLabel);
-      myVerticalGroup.addComponent(nameLabel);
-
-      return;
-    }
-
-    Component valueLabel = new JBLabel(value.toString());
-
-    myHorizontalGroup.addGroup(myLayout.createSequentialGroup()
-                                 .addComponent(nameLabel)
-                                 .addComponent(valueLabel));
-
-    myVerticalGroup.addGroup(myLayout.createParallelGroup()
-                               .addComponent(nameLabel)
-                               .addComponent(valueLabel));
+    setLayout(layout);
   }
 }
