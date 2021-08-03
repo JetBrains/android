@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:maven.bzl", "maven_repo")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -79,23 +79,17 @@ iml_module(
     ],
 )
 
-maven_repo(
+maven_repository(
     name = "test_deps",
-    # keep sorted: for buildifier
     artifacts = [
-        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-common.1.0.0_aar",
-        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-fragment.1.0.0_aar",
-        "//prebuilts/tools/common/m2:android.arch.navigation.navigation-runtime.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.fragment.fragment.1.3.4_aar",
-        "//prebuilts/tools/common/m2:androidx.navigation.navigation-common.2.3.5_aar",
-        "//prebuilts/tools/common/m2:androidx.navigation.navigation-fragment.2.3.5_aar",
-        "//prebuilts/tools/common/m2:androidx.navigation.navigation-runtime.2.3.5_aar",
-        "//prebuilts/tools/common/m2:com.android.support.support-fragment.28.0.0_aar",
-        "//prebuilts/tools/common/m2:com.google.jimfs.jimfs.1.1",
-        "//prebuilts/tools/common/m2:com.sun.activation.javax.activation.1.2.0",
-        "//prebuilts/tools/common/m2:javax.inject.javax.inject.1",
-        "//prebuilts/tools/common/m2:junit.junit.4.12",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib-jdk7.1.4.32",
-        "//prebuilts/tools/common/m2:xmlpull.xmlpull.1.1.3.1",
+        "@maven_tests//:android.arch.navigation.navigation-fragment_1.0.0",
+        "@maven_tests//:androidx.fragment.fragment_1.3.4",
+        "@maven_tests//:androidx.navigation.navigation-fragment_2.3.5",
+        "@maven_tests//:com.google.jimfs.jimfs_1.1",
+        "@maven_tests//:com.sun.activation.javax.activation_1.2.0",
+        "@maven_tests//:javax.inject.javax.inject_1",
+        "@maven_tests//:junit.junit_4.12",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
+        "@maven_tests//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
