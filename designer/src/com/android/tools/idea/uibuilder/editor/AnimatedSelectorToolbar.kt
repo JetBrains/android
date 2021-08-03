@@ -82,7 +82,7 @@ private constructor(
 
       box.addActionListener {
         // Stop the animation (if playing) when switching the preview option.
-        myAnalyticsManager.trackAction(myToolbarType, AnimationToolbarAction.SELECT_ANIMATION)
+        myAnalyticsManager.trackAction(toolbarType, AnimationToolbarAction.SELECT_ANIMATION)
         stop()
         val transitionId = box.item
         animatedSelectorModel.setPreviewOption(transitionId)
@@ -122,7 +122,7 @@ private constructor(
   }
 
   private fun setTimeSliderVisibility(visibility: Boolean) {
-    myTimeSlider.isVisible = visibility
+    myTimeSlider?.isVisible = visibility
     if (!visibility) {
       // Set maxtimeMs to -1 to indicate it is infinity animation. The slider is invisible whe animation is infinitely.
       setMaxtimeMs(-1)
