@@ -47,6 +47,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.classloading.ClassConverter;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
+import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -681,17 +682,6 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
-  /**
-   * Adds a build call action to the given {@link HtmlBuilder}.
-   */
-  private void addBuildAction(@NotNull HtmlBuilder builder) {
-    builder.newlineIfNecessary()
-      .newline()
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
-      .addLink(null, "Build", " the project.",
-               myLinkManager.createBuildProjectUrl()).newline();
-  }
-
   private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
     ApplicationManager.getApplication().runReadAction(() -> {
       Project project = logger.getProject();
@@ -791,15 +781,6 @@ public class RenderErrorContributor {
     }
   }
 
-  /**
-   * Returns true if the {@link Throwable} represents a failure to instantiate a Preview Composable. This means that the user probably
-   * added one or more previews and a build is needed.
-   */
-  private static boolean isComposeNotFoundThrowable(@Nullable Throwable throwable) {
-    return throwable instanceof NoSuchMethodException &&
-           "invokeComposableViaReflection".equals(throwable.getStackTrace()[1].getMethodName());
-  }
-
   private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
@@ -841,21 +822,6 @@ public class RenderErrorContributor {
               .build();
             continue;
           }
-          case ILayoutLog.TAG_INFLATE: {
-            Throwable throwable = message.getThrowable();
-            if (isComposeNotFoundThrowable(throwable)) {
-              HtmlBuilder builder = new HtmlBuilder().add("The preview will display after rebuilding the project.");
-              addBuildAction(builder);
-              // This is a Compose not found error. This is not a high severity error so transform to a warning.
-              addIssue()
-                .setSeverity(HighlightSeverity.WARNING)
-                .setSummary("Unable to find @Preview '" + throwable.getMessage() + "'")
-                .setHtmlContent(builder)
-                .build();
-              continue;
-            }
-            break;
-          }
         }
       }
 
@@ -867,7 +833,7 @@ public class RenderErrorContributor {
       String summary = "Render problem";
       if (throwable != null) {
         if (!reportSandboxError(throwable, false, true)) {
-          if (isComposeNotFoundThrowable(throwable)) continue; // This is handled as a warning above.
+          if (ComposeRenderErrorContributor.isHandledByComposeContributor(throwable)) continue; // This is handled as a warning above.
           if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
             // The error was hidden.
             if (!html.isEmpty()) {
@@ -1456,6 +1422,7 @@ public class RenderErrorContributor {
     reportOtherProblems(logger);
     reportUnknownFragments(logger);
     reportRenderingFidelityProblems(logger);
+    myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler));
 
     return getIssues();
   }

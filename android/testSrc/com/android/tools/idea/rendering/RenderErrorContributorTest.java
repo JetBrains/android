@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
+import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -22,10 +25,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.utils.StringHelper;
-import com.android.utils.TraceUtils;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,29 +34,22 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
-
 
 public class RenderErrorContributorTest extends AndroidTestCase {
   public static final String BASE_PATH = "render/";
 
   // Image paths will include full resource urls which depends on the test environment
-  private static String stripImages(@NotNull String html) {
+  public static String stripImages(@NotNull String html) {
     while (true) {
       int index = html.indexOf("<img");
       if (index == -1) {
@@ -71,114 +63,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         html = html.substring(0, index) + html.substring(end + 1);
       }
     }
-  }
-
-  /**
-   * Attempts to create an exception object that matches the given description, which
-   * is in the form of the output of an exception stack dump ({@link Throwable#printStackTrace()})
-   *
-   * @param desc the description of an exception
-   * @return a corresponding exception if possible
-   */
-  private static Throwable createExceptionFromDesc(String desc) {
-    return createExceptionFromDesc(desc, null);
-  }
-
-  @SuppressWarnings("ThrowableInstanceNeverThrown")
-  private static Throwable createExceptionFromDesc(String desc, @Nullable Throwable throwable) {
-    // First line: description and type
-    Iterator<String> iterator = Splitter.on('\n').split(desc).iterator();
-    assertTrue(iterator.hasNext());
-    final String first = iterator.next();
-    assertTrue(iterator.hasNext());
-    String message = null;
-    String exceptionClass;
-    int index = first.indexOf(':');
-    if (index != -1) {
-      exceptionClass = first.substring(0, index).trim();
-      message = first.substring(index + 1).trim();
-    }
-    else {
-      exceptionClass = first.trim();
-    }
-
-    if (throwable == null) {
-      try {
-        @SuppressWarnings("unchecked")
-        Class<Throwable> clz = (Class<Throwable>)Class.forName(exceptionClass);
-        if (message == null) {
-          throwable = clz.newInstance();
-        }
-        else {
-          Constructor<Throwable> constructor = clz.getConstructor(String.class);
-          throwable = constructor.newInstance(message);
-        }
-      }
-      catch (Throwable t) {
-        if (message == null) {
-          throwable = new Throwable() {
-            @Override
-            public String getMessage() {
-              return first;
-            }
-
-            @Override
-            public String toString() {
-              return first;
-            }
-          };
-        }
-        else {
-          throwable = new Throwable(message);
-        }
-      }
-    }
-
-    List<StackTraceElement> frames = Lists.newArrayList();
-    Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
-    Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
-    while (iterator.hasNext()) {
-      String line = iterator.next();
-      if (line.isEmpty()) {
-        break;
-      }
-      Matcher outerMatcher = outerPattern.matcher(line);
-      if (!outerMatcher.matches()) {
-        fail("Line " + line + " does not match expected stactrace pattern");
-      }
-      else {
-        String clz = outerMatcher.group(1);
-        String method = outerMatcher.group(2);
-        String inner = outerMatcher.group(3);
-        switch (inner) {
-          case "Native Method":
-            frames.add(new StackTraceElement(clz, method, null, -2));
-            break;
-          case "Unknown Source":
-            frames.add(new StackTraceElement(clz, method, null, -1));
-            break;
-          default:
-            Matcher innerMatcher = innerPattern.matcher(inner);
-            if (!innerMatcher.matches()) {
-              fail("Trace parameter list " + inner + " does not match expected pattern");
-            }
-            else {
-              String file = innerMatcher.group(1);
-              int lineNum = Integer.parseInt(innerMatcher.group(2));
-              frames.add(new StackTraceElement(clz, method, file, lineNum));
-            }
-            break;
-        }
-      }
-    }
-
-    throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
-
-    // Dump stack back to string to make sure we have the same exception
-    desc = StringHelper.toSystemLineSeparator(desc);
-    assertEquals(desc, TraceUtils.getStackTrace(throwable));
-
-    return throwable;
   }
 
   private static String injectNewlines(String s, int newlineModulo) {

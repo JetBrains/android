@@ -1,0 +1,124 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.rendering.errors
+
+import com.android.ide.common.rendering.api.ILayoutLog
+import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
+import com.android.tools.idea.rendering.HtmlLinkManager
+import com.android.tools.idea.rendering.RenderErrorContributorTest.stripImages
+import com.android.tools.idea.rendering.RenderLogger
+import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.isHandledByComposeContributor
+import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.reportComposeErrors
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.lang.annotation.HighlightSeverity
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import javax.swing.event.HyperlinkListener
+
+class ComposeRenderErrorContributorTest {
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.inMemory()
+
+  private val linkManager = HtmlLinkManager()
+  private val nopLinkHandler = HyperlinkListener { }
+
+  @Test
+  fun `composition local stack trace is found`() {
+    val throwable = createExceptionFromDesc("""
+      java.lang.IllegalStateException: Not provided
+      	at com.google.adux.shrine.ExpandedCartKt${'$'}provider${'$'}1.invoke(ExpandedCart.kt:219)
+      	at com.google.adux.shrine.ExpandedCartKt${'$'}provider${'$'}1.invoke(ExpandedCart.kt:219)
+      	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
+      	at androidx.compose.runtime.LazyValueHolder.getCurrent(ValueHolders.kt:29)
+      	at androidx.compose.runtime.LazyValueHolder.getValue(ValueHolders.kt:31)
+      	at androidx.compose.runtime.ComposerImpl.resolveCompositionLocal(Composer.kt:1780)
+      	at androidx.compose.runtime.ComposerImpl.consume(Composer.kt:1750)
+      	at com.google.adux.shrine.ExpandedCartKt.ShortCardPreview(ExpandedCart.kt:679)
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+      	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:571)
+      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:820)
+      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3490)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
+      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:714)
+      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:870)
+      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}2.run(RenderExecutor.kt:187)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+      	at java.base/java.lang.Thread.run(Thread.java:834)
+
+      """.trimIndent())
+    val logger = RenderLogger("test", androidProjectRule.module).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
+    assertEquals("Failed to instantiate Composition Local", issues[0].summary)
+    assertEquals(
+      "This preview was unable to find a <A HREF=\"https://developer.android.com/jetpack/compose/compositionlocal\">CompositionLocal</A>. " +
+      "You might need to define it so it can render correctly.<BR/>" +
+      "<A HREF=\"runnable:0\">Show Exception</A>", issues[0].htmlContent)
+  }
+
+  @Test
+  fun `preview element not found`() {
+    val throwable = createExceptionFromDesc("""
+      java.lang.NoSuchMethodException: Not provided
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:571)
+      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:820)
+      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3490)
+      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
+      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:714)
+      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:870)
+      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}2.run(RenderExecutor.kt:187)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+      	at java.base/java.lang.Thread.run(Thread.java:834)
+
+      """.trimIndent())
+    val logger = RenderLogger("test", androidProjectRule.module).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.WARNING, issues[0].severity)
+    assertEquals("Unable to find @Preview 'Not provided'", issues[0].summary)
+    assertEquals("The preview will display after rebuilding the project.<BR/><BR/>" +
+                 "<A HREF=\"action:build\">Build</A> the project.<BR/>", stripImages(issues[0].htmlContent))
+  }
+}
