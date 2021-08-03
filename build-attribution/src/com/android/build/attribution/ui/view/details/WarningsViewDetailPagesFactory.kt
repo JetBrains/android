@@ -21,15 +21,9 @@ import com.android.build.attribution.analyzers.ConfigurationCachingCompatibility
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
-import com.android.build.attribution.analyzers.JetifierCanBeRemoved
-import com.android.build.attribution.analyzers.JetifierNotUsed
-import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
-import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
-import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
-import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -57,12 +51,11 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
 import com.android.tools.adtui.TabularLayout
-import com.intellij.ide.BrowserUtil
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
@@ -72,7 +65,6 @@ import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent
 
 /**
  * This class creates task detail pages from the node provided.
@@ -117,7 +109,7 @@ class WarningsViewDetailPagesFactory(
                                                                                            nodeDescriptor.projectConfigurationTime)
     is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
                                                                                           nodeDescriptor.projectConfigurationTime)
-    is JetifierUsageWarningRootNodeDescriptor -> createJetifierUsageWarningPage(nodeDescriptor.data)
+    is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsFactory(actionHandlers).createPage(nodeDescriptor.data)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
@@ -253,7 +245,7 @@ class WarningsViewDetailPagesFactory(
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val contentHtml = """
         <b>Some plugins are not compatible with Configuration cache</b>
-        ${configurationCachingDescriptionHeader(configurationTime,linksHandler)}
+        ${configurationCachingDescriptionHeader(configurationTime, linksHandler)}
         Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.
         $pluginsCountLines
         You can find details on each plugin on corresponding sub-pages.
@@ -342,57 +334,5 @@ class WarningsViewDetailPagesFactory(
   private fun JEditorPane.alignWithButton() = apply {
     // Add left margin to align with button vertically
     border = JBUI.Borders.emptyLeft(3)
-  }
-
-  private fun createJetifierUsageWarningPage(data: JetifierUsageAnalyzerResult): JPanel = when(data) {
-    JetifierUsedCheckRequired -> JPanel().apply {
-      layout = VerticalLayout(10, SwingConstants.LEFT)
-      val linksHandler = HtmlLinksHandler(actionHandlers)
-      val learnMoreLink = linksHandler.externalLink("Learn more", JETIIFER_MIGRATE)
-      val contentHtml = """
-        <b>Confirm need for Jetifier flag in your project</b>
-        Your project’s gradle.settings file includes ‘enableJetifier’. This flag is needed
-        to enable AndroidX for libraries that don’t support it natively. $learnMoreLink.
-
-        Your project may no longer need this flag and could save build time by removing it.
-        Click the button below to verify if enableJetifier is needed.
-      """.trimIndent().insertBRTags()
-      add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
-      add(JButton("Check Jetifier").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
-    }
-    JetifierCanBeRemoved -> JPanel().apply {
-      layout = VerticalLayout(10, SwingConstants.LEFT)
-      val linksHandler = HtmlLinksHandler(actionHandlers)
-      val removeJetifierLink = linksHandler.actionLink("Remove enableJetifier", "remove") {
-        actionHandlers.turnJetifierOffInProperties()
-      }
-      val contentHtml = """
-      <b>Remove Jetifier flag</b>
-      Your project’s gradle.settings includes enableJetifier. This flag is not needed by your project
-      and removing it will improve build performance.
-      
-      $removeJetifierLink
-      """.trimIndent().insertBRTags()
-      add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
-    }
-    is JetifierRequiredForLibraries -> JPanel().apply {
-      layout = VerticalLayout(10, SwingConstants.LEFT)
-      val contentHtml = """
-      <b>Jetifier flag is needed by some libraries in your project</b>
-      The following libraries rely on the ‘enableJetifier’ flag to work with AndroidX.
-      Please consider upgrading to more recent versions of those libraries or contact
-      the library authors to request native AndroidX support, if it’s not available yet.
-      """.trimIndent().insertBRTags()
-      // TODO (b/194299417): replace with a tree component and present in a reversed way
-      val librariesListHtml = data.checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence()
-        .joinToString(separator = "", prefix = "<ul>", postfix = "</ul>") {
-          val reversedPath = it.value.dependencyPath.elements.reversed().run { if (size > 1) drop(1) else this}
-          "<li>${reversedPath.plus(it.value.projectPath).joinToString(" -> ")}</li>"
-        }
-      add(htmlTextLabelWithFixedLines(contentHtml))
-      add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
-      add(htmlTextLabelWithFixedLines(librariesListHtml))
-    }
-    JetifierNotUsed -> JPanel()
   }
 }
