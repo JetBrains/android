@@ -804,7 +804,7 @@ MODULE                        : application.app
                     AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/debug/output-metadata.json [-]
                     BundleTaskName                : bundleDebug
                     BundleTaskOutputListingFile   : <ROOT>/application/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskName         : extractApksFromBundleForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/application/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/resValues/debug [-]

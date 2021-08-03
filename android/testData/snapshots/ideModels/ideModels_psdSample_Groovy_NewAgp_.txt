@@ -1253,7 +1253,7 @@ MODULE                        : project.app
                     AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
                     BundleTaskName                : bundleBasicBarDebug
                     BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarDebug/output-metadata.json [-]
-                    ApkFromBundleTaskName         : extractApksForBasicBarDebug
+                    ApkFromBundleTaskName         : extractApksFromBundleForBasicBarDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarDebug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
