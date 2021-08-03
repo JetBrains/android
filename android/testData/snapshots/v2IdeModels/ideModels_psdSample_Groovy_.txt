@@ -441,9 +441,9 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
         ProductFlavor
             Dimension                     : bar
+            resourceConfigurations        : en
             resourceConfigurations        : hdpi
             resourceConfigurations        : xhdpi
-            resourceConfigurations        : en
             VectorDrawables
         SourceProvider
             Name                          : otherBar
