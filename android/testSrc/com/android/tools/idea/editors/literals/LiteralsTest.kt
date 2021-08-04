@@ -437,6 +437,54 @@ class LiteralsTest {
         198-209
       """.trimIndent(),
       output
-      )
+    )
+  }
+
+  @Test
+  fun `check negative int literals`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val SIMPLE = -120
+
+          fun testCall() {
+            method(SIMPLE)
+          }
+      }
+      """.trimIndent()).configureEditor()
+
+    val snapshot = literalsManager.findLiteralsBlocking(file)
+    assertEquals(
+      "text='-120' location='LiteralsTest.kt (68,72)' value='-120' usages='test.app.LiteralsTest.<init>-68'",
+      snapshot.all.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      // Negative to negative
+      replaceText("E = -12", "E = -15")
+    }
+    assertEquals(
+      "text='-150' location='LiteralsTest.kt (68,72)' value='-150' usages='test.app.LiteralsTest.<init>-68'",
+      snapshot.modified.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      // Change negative to positive (without touching the full node since that would invalidate it)
+      replaceText("E = -15", "E = 10")
+    }
+    assertEquals(
+      "text='100' location='LiteralsTest.kt (68,72)' value='100' usages='test.app.LiteralsTest.<init>-68'",
+      snapshot.modified.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      // And back to a negative
+      replaceText("E = ", "E = -")
+    }
+    assertEquals(
+      "text='-100' location='LiteralsTest.kt (68,72)' value='-100' usages='test.app.LiteralsTest.<init>-68'",
+      snapshot.modified.toDebugString())
   }
 }
