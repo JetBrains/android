@@ -44,7 +44,8 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
       "backgroundtask.inspection",
       FrameworkInspectorLaunchParams(
         AppInspectorJar("backgroundtask-inspection.jar",
-                        developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask"),
+                        developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask",
+                        releaseDirectory = "plugins/android/resources/app-inspection/"),
       ),
     ),
     AppInspectorLaunchConfig(

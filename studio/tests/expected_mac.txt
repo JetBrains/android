@@ -2100,6 +2100,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
 Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
+Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar
