@@ -125,10 +125,12 @@ class InspectorTabJarTargets(
   var targets: Map<String, InspectorJarTarget>,
 )
 
-// TODO(b/187421789): Figure out how to migrate this case in a multi-inspector tab world
 internal fun AppInspectorTabProvider.toIncompatibleVersionMessage() =
   AppInspectionBundle.message("incompatible.version",
-                              launchConfigs.map { it.params as LibraryInspectorLaunchParams }.single().minVersionLibraryCoordinate.toString())
+                              launchConfigs.mapNotNull { it.params as? LibraryInspectorLaunchParams }
+                                .first()
+                                .minVersionLibraryCoordinate
+                                .toString())
 
 private fun ArtifactCoordinate.toUnresolvedInspectorMessage() = AppInspectionBundle.message("unresolved.inspector", this.toString())
 
