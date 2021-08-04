@@ -31,8 +31,8 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
   @UiThread
   fun rotate(event: AnActionEvent, degrees: Float) {
     val emulatorController = getEmulatorController(event) ?: return
-    val emulatorView = getEmulatorView(event)
-    val rotation = emulatorView?.displayRotation ?: return
+    val emulatorView = getEmulatorView(event) ?: return
+    val rotation = emulatorView.displayRotation
     val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + degrees)
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
