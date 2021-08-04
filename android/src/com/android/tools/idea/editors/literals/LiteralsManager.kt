@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtUnaryExpression
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.types.TypeUtils
@@ -370,13 +371,15 @@ private class LiteralReferenceSnapshotImpl(references: Collection<LiteralReferen
 class LiteralsManager(
   private val uniqueIdProvider: PsiElementUniqueIdProvider = SimplePsiElementUniqueIdProvider,
   private val literalUsageReferenceProvider: PsiElementLiteralUsageReferenceProvider = DefaultPsiElementLiteralUsageReferenceProvider) {
+  /** Types that can be considered "literals". */
+  private val literalsTypes = setOf(KtConstantExpression::class.java, KtUnaryExpression::class.java)
 
   private val LOG = Logger.getInstance(LiteralsManager::class.java)
 
   private suspend fun findLiterals(root: PsiElement,
-                           constantType: Class<*>,
-                           constantEvaluator: ConstantEvaluator,
-                           elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
+                                   constantType: Collection<Class<*>>,
+                                   constantEvaluator: ConstantEvaluator,
+                                   elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
     val savedLiterals = mutableListOf<LiteralReferenceImpl>()
     ReadAction.nonBlocking {
       root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
@@ -413,7 +416,7 @@ class LiteralsManager(
             return
           }
 
-          if (constantType.isInstance(element)) {
+          if (constantType.any { it.isInstance(element) }) {
             constantEvaluator.evaluate(element)?.let {
               // This is a regular constant, save it.
               savedLiterals.add(LiteralReferenceImpl(element,
@@ -439,7 +442,7 @@ class LiteralsManager(
    */
   suspend fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
     if (root.language == KotlinLanguage.INSTANCE) {
-      findLiterals(root, KtConstantExpression::class.java, KotlinConstantEvaluator) {
+      findLiterals(root, literalsTypes, KotlinConstantEvaluator) {
         it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
         && it !is KtSimpleNameExpression // Exclude variable constants.
       }
