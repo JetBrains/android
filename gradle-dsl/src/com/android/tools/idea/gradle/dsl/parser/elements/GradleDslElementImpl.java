@@ -612,14 +612,12 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
       return map.getPropertyElement(index);
     }
-    else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-      GradleDslElement value = followElement((GradleDslLiteral)element);
-      if (value == null) {
-        return null;
-      }
-      else {
-        return dereference(value, index);
-      }
+    GradleDslElement value = followElement(element);
+    if (value == null) {
+      return null;
+    }
+    else if (value != element) {
+      return dereference(value, index);
     }
     else {
       return null;
@@ -714,9 +712,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
       element = extractElementFromProperties(properties, nameParts.get(i), converter, i == 0, traceIndex < 0 ? null : trace.get(traceIndex--),
                                              traceIndex >= 0);
-      if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        element = followElement((GradleDslLiteral)element);
-      }
+      if (element == null) return null;
+      element = followElement(element);
 
       // All elements we find must be GradlePropertiesDslElement on all but the last iteration.
       if (!isPropertiesElementOrMap(element)) {

@@ -627,11 +627,9 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @NotNull
   private GradleDslElement resolveElement(@NotNull GradleDslElement element) {
     GradleDslElement resolved = element;
-    if (element instanceof GradleDslLiteral) {
-      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
-      if (foundElement instanceof GradleDslExpression) {
-        resolved = (GradleDslExpression)foundElement;
-      }
+    GradleDslElement foundElement = followElement(element);
+    if (foundElement instanceof GradleDslExpression) {
+      resolved = foundElement;
     }
     return resolved;
   }
