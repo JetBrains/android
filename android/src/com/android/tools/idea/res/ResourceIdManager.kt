@@ -126,7 +126,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   val finalIdsUsed: Boolean
     @JvmName("finalIdsUsed")
     get() {
-      return facet.configuration.isAppProject
+      return facet.configuration.isAppOrFeature
              && ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED
     }
 
