@@ -39,6 +39,10 @@ public enum MethodSemanticsDescription implements SemanticsDescription {
    */
   CLEAR_AND_AUGMENT_LIST,
   /**
+   * The method's single map argument is used to augment the current value of the property.
+   */
+  AUGMENT_MAP,
+  /**
    * Resets a collection property to its initial state
    */
   RESET,

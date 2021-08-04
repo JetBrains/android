@@ -32,7 +32,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
   public static final PropertiesElementDescription<GradleDslExpressionMap> MANIFEST_PLACEHOLDERS = new PropertiesElementDescription<>(
     FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
   public static final PropertiesElementDescription<GradleDslExpressionMap> TEST_INSTRUMENTATION_RUNNER_ARGUMENTS =
-    new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
+    new PropertiesElementDescription<>(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS.name, GradleDslExpressionMap.class, GradleDslExpressionMap::new);
 
   // This boolean controls whether of not the empty map element should be deleted on a call to delete in one of
   // its children. For non-literal maps (e.g func key: 'val', key1: 'val') #shouldBeDeleted() always returns true since we

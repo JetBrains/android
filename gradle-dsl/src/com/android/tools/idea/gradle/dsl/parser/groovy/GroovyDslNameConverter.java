@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.grad
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.CLEAR_AND_AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -133,7 +134,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
       if (e.modelEffectDescription.property.name.equals(modelName)) {
         if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
-        if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, OTHER).contains(semantics)) {
+        if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER).contains(semantics)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
         }
         if (semantics == VAL && (e.modelEffectDescription.property.type == MUTABLE_SET ||

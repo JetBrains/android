@@ -98,7 +98,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.modelEffectDescription.semantics) {
           VAR, VWO -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
-          SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, OTHER ->
+          SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER ->
             if (result == null) result = ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
           VAL -> when (e.modelEffectDescription.property.type) {
             MUTABLE_SET, MUTABLE_LIST, MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
