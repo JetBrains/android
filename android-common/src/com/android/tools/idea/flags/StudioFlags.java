@@ -159,7 +159,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_MIGRATION_TO_APPINSPECTION = Flag.create(
     PROFILER, "profiler.migration.to.appinspection", "Enable migration support for network and system events profiling.",
     "Show migration messaging to guide users to the App Inspection tool window",
-    false);
+    true);
 
   // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
   public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
@@ -1246,7 +1246,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NETWORK_MANAGER_INSPECTOR_TAB = Flag.create(
     NETWORK_INSPECTOR, "enable.network.inspector.tab", "Enable Network Inspector Tab",
     "Enables a Network Inspector Tab in the App Inspection tool window",
-    false
+    true
   );
   // endregion
 
@@ -1256,7 +1256,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_BACKGROUND_TASK_INSPECTOR_TAB = Flag.create(
     BACKGROUND_TASK_INSPECTOR, "enable.backgroundtask.inspector.tab", "Enable BackgroundTask Inspector Tab",
     "Enables a BackgroundTask Inspector Tab in the App Inspection tool window",
-    false
+    true
   );
   // endregion
 
