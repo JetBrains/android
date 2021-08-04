@@ -22,7 +22,6 @@ import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
@@ -271,8 +270,6 @@ class NlAtfIssueTest : LayoutTestCase() {
 
   class TestSource : IssueSource, NlAttributesHolder {
     override val displayText: String = "displayText"
-    override val onIssueSelected: (DesignSurface) -> Unit
-      get() = TODO("Not yet implemented")
 
     var getAttrResult = ""
     override fun getAttribute(namespace: String?, attribute: String): String{

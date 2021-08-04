@@ -20,7 +20,6 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.google.common.collect.ImmutableCollection
 
@@ -34,13 +33,6 @@ class VisualLintIssueProvider(
 
   data class VisualLintIssueSource(val model: NlModel, val components: List<NlComponent>) : IssueSource {
     override val displayText = ""
-    override val onIssueSelected: (DesignSurface) -> Unit = {
-      it.selectionModel.setSelection(components)
-
-      // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
-      it.repaint()
-      it.scrollToVisible(model, false)
-    }
   }
 }
 

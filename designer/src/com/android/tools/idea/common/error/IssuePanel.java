@@ -18,7 +18,6 @@ package com.android.tools.idea.common.error;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -104,11 +103,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final JBLabel myTitleLabel;
   private final IssueModel.IssueModelListener myIssueModelListener;
   private final JBScrollPane myScrollPane;
-  private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
   private final List<EventListener> myEventListeners = new ArrayList<>();
   @Nullable private IssueView mySelectedIssueView;
   @Nullable private Issue mySelectedIssue;
+  @NotNull final private IssueListener myListener;
 
   /**
    * Whether the user has seen the issues or not. We consider the issues "seen" if the panel is not minimized
@@ -122,11 +121,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   private boolean myAutoSize = true;
 
-  public IssuePanel(@NotNull DesignSurface designSurface, @NotNull IssueModel issueModel) {
+  public IssuePanel(@NotNull IssueModel issueModel, @NotNull IssueListener listener) {
     super(new BorderLayout());
     setName(ISSUE_PANEL_NAME);
     myIssueModel = issueModel;
-    mySurface = designSurface;
+    myListener = listener;
 
     myTitleLabel = createTitleLabel();
     JComponent titlePanel = createTitlePanel(myTitleLabel);
@@ -496,7 +495,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         if (issue == null) {
           return;
         }
-        issue.getSource().getOnIssueSelected().invoke(mySurface);
+        myListener.onIssueSelected(issue);
       }
     }
   }

@@ -19,10 +19,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.pom.Navigatable
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
@@ -31,15 +28,6 @@ data class NlComponentIssueSource(val component: NlComponent) : IssueSource, NlA
     component.model.modelDisplayName,
     component.id,
     "<${component.tagName}>").joinToString(" ")
-  override val onIssueSelected: (DesignSurface) -> Unit = {
-    it.selectionModel.setSelection(listOf(component))
-
-    // Navigate to the selected element if possible
-    val element = component.backend.tag?.navigationElement
-    if (element is Navigatable && PsiNavigationSupport.getInstance().canNavigate(element)) {
-      (element as Navigatable).navigate(false)
-    }
-  }
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
     return component.getAttribute(namespace, attribute)
@@ -58,7 +46,6 @@ fun IssueSource.isFromNlComponent(component: NlComponent): Boolean {
 
 private data class NlModelIssueSource(private val model: NlModel) : IssueSource {
   override val displayText: String = model.modelDisplayName.orEmpty()
-  override val onIssueSelected: (DesignSurface) -> Unit = {}
 }
 
 /**
@@ -67,14 +54,11 @@ private data class NlModelIssueSource(private val model: NlModel) : IssueSource 
 interface IssueSource {
   /** The display text to show in the issue panel. */
   val displayText: String
-  /** Handler for the action when an Issue with this source is selected. */
-  val onIssueSelected: (DesignSurface) -> Unit
 
   companion object {
     @JvmField
     val NONE = object : IssueSource {
       override val displayText: String = ""
-      override val onIssueSelected: (DesignSurface) -> Unit = {}
 
       override fun equals(other: Any?): Boolean = other === this
     }
