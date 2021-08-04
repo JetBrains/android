@@ -18,18 +18,26 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
+import com.android.tools.idea.wearpairing.ConnectionState;
+import com.android.tools.idea.wearpairing.PairingDevice;
+import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.plaf.BorderUIResource.EmptyBorderUIResource;
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.GlobalScope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
@@ -57,6 +65,28 @@ public final class DeviceTableCellRendererTest {
     assertEquals(device.getName(), renderer.getNameLabel().getText());
     assertEquals(StudioIcons.Common.CIRCLE_GREEN, renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
+  }
+
+  @Test
+  public void getTableCellRendererComponentDeviceIsPaired() throws InterruptedException {
+    // Arrange
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    PairingDevice wearDevice = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE, false);
+    PairingDevice phoneDevice = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE, false);
+    phoneDevice.launch = project -> Futures.immediateFailedFuture(new RuntimeException());
+    wearDevice.launch = project -> Futures.immediateFailedFuture(new RuntimeException());
+    IDevice device = Mockito.mock(IDevice.class);
+
+    assert renderer.getPairedLabel().getIcon() == null;
+
+    // Act
+    BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(), (coroutineScope, continuation) ->
+      WearPairingManager.INSTANCE.createPairedDeviceBridge(phoneDevice, device, wearDevice, device, false, continuation)
+    );
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
+
+    // Assert
+    assertEquals(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN, renderer.getPairedLabel().getIcon());
   }
 
   @Test

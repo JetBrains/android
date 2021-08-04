@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtil.FontSize;
 import icons.StudioIcons;
@@ -28,6 +31,7 @@ import java.util.function.BiFunction;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -41,6 +45,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myOnlineLabel;
   private final @NotNull JLabel myLine2Label;
+  private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
 
   private final @NotNull Class<@NotNull D> myValueClass;
@@ -57,6 +62,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myNameLabel = new JBLabel();
     myOnlineLabel = new JBLabel();
     myLine2Label = new JBLabel();
+    myPairedLabel = new JBLabel();
 
     myPanel = new JBPanel<>(null);
     GroupLayout layout = new GroupLayout(myPanel);
@@ -69,14 +75,19 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                               .addComponent(myNameLabel)
                               .addPreferredGap(ComponentPlacement.RELATED)
                               .addComponent(myOnlineLabel))
-                  .addComponent(myLine2Label));
+                  .addComponent(myLine2Label))
+      .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(myPairedLabel)
+      .addGap(JBUIScale.scale(8));
 
-    Group verticalGroup = layout.createSequentialGroup()
-      .addGroup(layout.createParallelGroup(Alignment.CENTER)
-                  .addComponent(myIconLabel)
-                  .addComponent(myNameLabel)
-                  .addComponent(myOnlineLabel))
-      .addComponent(myLine2Label);
+    Group verticalGroup = layout.createParallelGroup(Alignment.CENTER)
+      .addGroup(layout.createSequentialGroup()
+                  .addGroup(layout.createParallelGroup(Alignment.CENTER)
+                              .addComponent(myIconLabel)
+                              .addComponent(myNameLabel)
+                              .addComponent(myOnlineLabel))
+                  .addComponent(myLine2Label))
+      .addComponent(myPairedLabel);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
@@ -107,6 +118,14 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
     myLine2Label.setText(getLine2(device));
+
+    if (WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()).getFirst() != null) {
+      Icon icon = StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN;
+      myPairedLabel.setIcon(selected ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
+    }
+    else {
+      myPairedLabel.setIcon(null);
+    }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(myGetBorder.apply(selected, focused));
@@ -156,5 +175,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   @VisibleForTesting
   final @NotNull JLabel getLine2Label() {
     return myLine2Label;
+  }
+
+  @VisibleForTesting
+  final @NotNull JLabel getPairedLabel() {
+    return myPairedLabel;
   }
 }
