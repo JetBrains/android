@@ -50,7 +50,9 @@ import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.Ex
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
   /**
@@ -72,7 +74,8 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls public static final String TEST_FUNCTIONAL_TEST = "mTestFunctionalTest";
   @NonNls public static final String TEST_HANDLE_PROFILING = "mTestHandleProfiling";
   @NonNls public static final String TEST_INSTRUMENTATION_RUNNER = "mTestInstrumentationRunner";
-  @NonNls public static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "mTestInstrumentationRunnerArguments";
+  @NonNls public static final ModelPropertyDescription TEST_INSTRUMENTATION_RUNNER_ARGUMENTS =
+    new ModelPropertyDescription("mTestInstrumentationRunnerArguments", MUTABLE_MAP);
   @NonNls public static final String VERSION_CODE = "mVersionCode";
   @NonNls public static final String VERSION_NAME = "mVersionName";
   @NonNls public static final String WEAR_APP_UNBUNDLED = "mWearAppUnbundled";
@@ -255,7 +258,12 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   public ResolvedPropertyModel testInstrumentationRunnerArguments() {
     GradleDslExpressionMap testInstrumentationRunnerArguments = myDslElement.getPropertyElement(GradleDslExpressionMap.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
     if (testInstrumentationRunnerArguments == null) {
-      myDslElement.addDefaultProperty(new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS)));
+      testInstrumentationRunnerArguments =
+        new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS.name));
+      ModelEffectDescription effect = new ModelEffectDescription(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, CREATE_WITH_VALUE);
+      testInstrumentationRunnerArguments.setModelEffect(effect);
+      testInstrumentationRunnerArguments.setElementType(REGULAR);
+      myDslElement.addDefaultProperty(testInstrumentationRunnerArguments);
     }
     return getModelForProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
   }
