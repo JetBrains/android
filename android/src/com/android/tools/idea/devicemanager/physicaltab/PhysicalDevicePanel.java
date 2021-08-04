@@ -176,7 +176,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   void toggleDetailsPanel(@NotNull PhysicalDevice device) {
     if (myDetailsPanel == null) {
-      myDetailsPanel = new DetailsPanel(device);
+      myDetailsPanel = new DetailsPanel(device, myProject);
     }
     else {
       remove(myDetailsPanel);
