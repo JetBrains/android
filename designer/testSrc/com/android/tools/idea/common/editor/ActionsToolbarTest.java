@@ -19,6 +19,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -69,7 +70,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     NlActionManager actionManager = new NlActionManager(surface);
     IssueModel issueModel = new IssueModel();
-    IssuePanel issuePanel = new IssuePanel(surface, issueModel);
+    IssuePanel issuePanel = new IssuePanel(issueModel, new DesignSurfaceIssueListenerImpl(surface));
     Disposer.register(getTestRootDisposable(), issuePanel);
     doReturn(actionManager).when(surface).getActionManager();
     doReturn(LayoutFileType.INSTANCE).when(surface).getLayoutType();

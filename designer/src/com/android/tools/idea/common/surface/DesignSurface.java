@@ -381,7 +381,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
-    myIssuePanel = new IssuePanel(this, myIssueModel);
+    myIssuePanel = new IssuePanel(myIssueModel, new DesignSurfaceIssueListenerImpl(this));
     Disposer.register(this, myIssuePanel);
 
     add(myLayeredPane);

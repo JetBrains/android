@@ -17,8 +17,6 @@ package com.android.tools.idea.common.error;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
@@ -27,7 +25,7 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testPanel() {
     IssueModel model = new IssueModel();
-    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
+    IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -46,7 +44,7 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testRemoveOldError() {
     IssueModel model = new IssueModel();
-    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
+    IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -75,7 +73,7 @@ public class IssuePanelTest extends AndroidTestCase {
    */
   public void testRemoveIfPsiChangedError() {
     IssueModel model = new IssueModel();
-    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
+    IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     NlComponent source = Mockito.mock(NlComponent.class);
