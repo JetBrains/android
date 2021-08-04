@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
-import java.util.concurrent.TimeUnit
 
 /**
  * An entry with all information of a Job Task.
@@ -64,7 +63,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED -> {
         _className = "Job $id"
         _status = State.SCHEDULED
-        _startTime = TimeUnit.NANOSECONDS.toMillis(timestamp)
+        _startTime = timestamp
         jobInfo = backgroundTaskEvent.jobScheduled.job
         // Find target work id from extras.
         jobInfo?.extras?.let { extras ->
