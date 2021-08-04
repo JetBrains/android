@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -74,63 +75,24 @@ iml_module(
     ],
 )
 
-load("//tools/base/bazel:maven.bzl", "maven_repo")
-
-maven_repo(
+maven_repository(
     # Dependencies needed for on-disk test projects, e.g. Gradle tests
     name = "testdeps_repo",
     # keep sorted
     artifacts = [
-        "//prebuilts/tools/common/m2:androidx.activity.activity.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.annotation.annotation.1.1.0",
-        "//prebuilts/tools/common/m2:androidx.appcompat.appcompat.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.appcompat.appcompat-resources.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.arch.core.core-common.2.0.0",
-        "//prebuilts/tools/common/m2:androidx.arch.core.core-common.2.1.0",
-        "//prebuilts/tools/common/m2:androidx.arch.core.core-runtime.2.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.collection.collection.1.0.0",
-        "//prebuilts/tools/common/m2:androidx.collection.collection.1.1.0",
-        "//prebuilts/tools/common/m2:androidx.core.core.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.cursoradapter.cursoradapter.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.customview.customview.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.drawerlayout.drawerlayout.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.fragment.fragment.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.interpolator.interpolator.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-common.2.0.0",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-common.2.1.0",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-livedata.2.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-livedata-core.2.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-runtime.2.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-runtime.2.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-viewmodel.2.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.lifecycle.lifecycle-viewmodel.2.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.loader.loader.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.navigation.navigation-safe-args-generator.2.3.1",
-        "//prebuilts/tools/common/m2:androidx.navigation.navigation-safe-args-gradle-plugin.2.3.1",
-        "//prebuilts/tools/common/m2:androidx.savedstate.savedstate.1.0.0_aar",
-        "//prebuilts/tools/common/m2:androidx.vectordrawable.vectordrawable.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.vectordrawable.vectordrawable-animated.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.versionedparcelable.versionedparcelable.1.1.0_aar",
-        "//prebuilts/tools/common/m2:androidx.viewpager.viewpager.1.0.0_aar",
-        "//prebuilts/tools/common/m2:com.google.auto.value.auto-value.1.6.2",
-        "//prebuilts/tools/common/m2:com.google.errorprone.error_prone_annotations.2.3.2",
-        "//prebuilts/tools/common/m2:com.google.jimfs.jimfs.1.1",
-        "//prebuilts/tools/common/m2:com.squareup.javapoet.1.12.1",
-        "//prebuilts/tools/common/m2:com.squareup.kotlinpoet.1.6.0",
-        "//prebuilts/tools/common/m2:com.sun.activation.javax.activation.1.2.0",
-        "//prebuilts/tools/common/m2:commons-lang.commons-lang.2.4",
-        "//prebuilts/tools/common/m2:javax.inject.javax.inject.1",
-        "//prebuilts/tools/common/m2:junit.junit.4.12",
-        "//prebuilts/tools/common/m2:org.codehaus.mojo.animal-sniffer-annotations.1.17",
-        "//prebuilts/tools/common/m2:org.hamcrest.hamcrest-core.1.3",
-        "//prebuilts/tools/common/m2:org.hamcrest.hamcrest-library.1.3",
-        "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.trove4j.1.0.20181211",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-reflect.1.4.32",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib.1.4.32",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib-common.1.4.32",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib-jdk7.1.4.32",
-        "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-stdlib-jdk8.1.5.0",
-        "//prebuilts/tools/common/m2:xmlpull.xmlpull.1.1.3.1",
-        "//prebuilts/tools/common/m2:xpp3.xpp3.1.1.4c",
+        "@maven_tests//:androidx.activity.activity_1.0.0",
+        "@maven_tests//:androidx.appcompat.appcompat_1.1.0",
+        "@maven_tests//:androidx.lifecycle.lifecycle-common_2.1.0",
+        "@maven_tests//:androidx.lifecycle.lifecycle-runtime_2.1.0",
+        "@maven_tests//:androidx.lifecycle.lifecycle-viewmodel_2.1.0",
+        "@maven_tests//:androidx.navigation.navigation-safe-args-gradle-plugin_2.3.1",
+        "@maven_tests//:androidx.savedstate.savedstate_1.0.0",
+        "@maven_tests//:com.google.auto.value.auto-value_1.6.2",
+        "@maven_tests//:commons-lang.commons-lang_2.4",
+        "@maven_tests//:junit.junit_4.12",
+        "@maven_tests//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
+        "@maven_tests//:org.hamcrest.hamcrest-library_1.3",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-common_1.4.32",
+        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
     ],
 )
