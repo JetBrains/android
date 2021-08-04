@@ -98,6 +98,14 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
   }
 
   @Test
+  fun testSetManifestPlaceholders() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetManifestPlaceholders"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetManifestPlaceholdersExpected"))
+  }
+
+  @Test
   fun testSetMatchingFallbacks() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetMatchingFallbacks"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))

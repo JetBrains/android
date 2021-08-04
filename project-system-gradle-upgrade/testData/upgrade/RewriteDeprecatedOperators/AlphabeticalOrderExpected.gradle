@@ -3,6 +3,7 @@ android {
   compileSdk 30
   flavorDimensions 'paid', 'country'
   defaultConfig {
+    manifestPlaceholders a: 'b'
     matchingFallbacks = ['demo', 'trial']
     maxSdk 30
     minSdk 28
@@ -13,12 +14,14 @@ android {
   }
   buildTypes {
     mumble {
+      manifestPlaceholders c: 'd'
       matchingFallbacks = ['demo']
     }
   }
   productFlavors {
     foo {
       dimension 'paid'
+      manifestPlaceholders e: 'f', g: 'h'
       matchingFallbacks = ['trial']
       maxSdk 29
       minSdk 27
