@@ -26,7 +26,7 @@ import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +68,7 @@ public class IssueModel {
   }
 
   public IssueModel() {
-    this(command -> ModalityUiUtil.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+    this(command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command));
   }
 
   @Nullable

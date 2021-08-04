@@ -34,14 +34,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ModalityUiUtil;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
-import com.intellij.util.ModalityUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,14 +88,14 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   }
 
   private void saveFile() {
-    ModalityUiUtil.invokeLaterIfNeeded(() -> {
+    ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), () -> {
       try {
         saveFileFromEDT();
       }
       catch (IOException e) {
         LOG.error("Unexpected exception while saving 9-patch file", e);
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   // Saving Files using VFS requires EDT and a write action.

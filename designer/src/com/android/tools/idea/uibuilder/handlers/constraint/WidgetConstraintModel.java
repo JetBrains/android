@@ -61,12 +61,11 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ModalityUiUtil;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.event.ChangeListener;
-
-import com.intellij.util.ModalityUiUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -278,7 +277,7 @@ public class WidgetConstraintModel implements SelectionListener {
 
   private void fireUIUpdate() {
     if (myUpdateCallback != null) {
-      ModalityUiUtil.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myIsInCallback = true;
         try {
           myUpdateCallback.run();
@@ -286,7 +285,7 @@ public class WidgetConstraintModel implements SelectionListener {
         finally {
           myIsInCallback = false;
         }
-      }, ModalityState.any());
+      });
     }
   }
 

@@ -107,8 +107,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
       // Update UI with the loaded formFactors. Switch back to UI thread.
       ModalityUiUtil.invokeLaterIfNeeded(
-        { updateUi(wizard, formFactors) },
-        ModalityState.any())
+        ModalityState.any()
+      ) { updateUi(wizard, formFactors) }
     })
   }
 

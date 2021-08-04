@@ -58,12 +58,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -202,7 +197,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      ModalityUiUtil.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
@@ -217,7 +212,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
           myUninstallRequests.clear();
         }
         myInstallationFinished.set(true);
-      }, ModalityState.any());
+      });
       return null;
     };
 

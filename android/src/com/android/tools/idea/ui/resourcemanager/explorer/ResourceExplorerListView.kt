@@ -72,7 +72,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -512,8 +512,8 @@ class ResourceExplorerListView(
       if (showLoadingFuture == null) {
         showLoadingFuture = JobScheduler.getScheduler().schedule(
           {
-            ModalityUiUtil.invokeLaterIfNeeded(this::displayLoading,
-                                               ModalityState.defaultModalityState())
+            ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(),
+                                               this::displayLoading)
           },
           MS_DELAY_BEFORE_LOADING_STATE,
           UNIT_DELAY_BEFORE_LOADING_STATE)
