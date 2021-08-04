@@ -2105,6 +2105,7 @@ android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
+android-studio/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
 android-studio/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 android-studio/plugins/android/resources/app-inspection/network-inspector.jar
 android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
