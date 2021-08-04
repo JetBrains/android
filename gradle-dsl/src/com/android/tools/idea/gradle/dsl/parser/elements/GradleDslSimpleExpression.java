@@ -202,9 +202,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   @Nullable
   public static GradlePropertiesDslElement dereferencePropertiesElement(@NotNull GradlePropertiesDslElement element, @NotNull String index) {
     GradleDslElement result = dereference(element, index);
-    if (result instanceof GradleDslLiteral && ((GradleDslLiteral)result).isReference()) {
-      result = followElement((GradleDslLiteral)result);
-    }
+    result = followElement(result);
     if (result instanceof GradlePropertiesDslElement) {
       return (GradlePropertiesDslElement)result;
     }

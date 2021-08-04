@@ -181,9 +181,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     if (property.equals("testInstrumentationRunnerArguments")) {
       // This deals with references to maps.
       GradleDslElement oldElement = element;
-      if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        element = followElement((GradleDslLiteral) element);
-      }
+      element = followElement(element);
       if (!(element instanceof GradleDslExpressionMap)) {
         return;
       }
