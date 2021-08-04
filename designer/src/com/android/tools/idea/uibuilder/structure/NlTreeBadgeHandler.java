@@ -20,10 +20,13 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
+import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.SparseIntArray;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.LightweightHint;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -219,6 +222,14 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       if (event.getX() > myBadgeX) {
+        if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+          IssuePanelService service = IssuePanelService.getInstance(component.getModel().getProject());
+          if (service == null) {
+            Logger.getInstance(NlTreeBadgeHandler.class).warn("Cannot find issue panel service");
+            return;
+          }
+          service.showLayoutEditorIssuePanel();
+        }
         myIssuePanel.showIssueForComponent(component, true);
       }
       else {

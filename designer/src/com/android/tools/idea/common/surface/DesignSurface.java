@@ -31,6 +31,7 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
+import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -54,6 +55,7 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -69,6 +71,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -1874,14 +1877,29 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param userInvoked if true, this was the direct consequence of a user action.
    */
   public void setShowIssuePanel(boolean show, boolean userInvoked) {
-    UIUtil.invokeLaterIfNeeded(() -> {
-      myIssuePanel.setMinimized(!show);
-      if (userInvoked) {
-        myIssuePanel.disableAutoSize();
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      IssuePanelService issuePanelService = IssuePanelService.getInstance(myProject);
+      if (issuePanelService == null) {
+        Logger.getInstance(DesignSurface.class).warn("Cannot find the issue panel service when set its visibility");
+        return;
       }
-      revalidate();
-      repaint();
-    });
+      if (show) {
+        issuePanelService.showLayoutEditorIssuePanel();
+      }
+      else {
+        issuePanelService.hideIssuePanel();
+      }
+    }
+    else {
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myIssuePanel.setMinimized(!show);
+        if (userInvoked) {
+          myIssuePanel.disableAutoSize();
+        }
+        revalidate();
+        repaint();
+      });
+    }
   }
 
   @NotNull

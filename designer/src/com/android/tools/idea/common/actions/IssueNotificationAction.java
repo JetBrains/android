@@ -18,13 +18,16 @@ package com.android.tools.idea.common.actions;
 import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import javax.swing.Icon;
@@ -99,16 +102,28 @@ public class IssueNotificationAction extends ToggleAction {
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      if (surface == null) {
+        return false;
+      }
+      IssuePanelService service = IssuePanelService.getInstance(surface.getProject());
+      if (service == null) {
+        Logger.getInstance(IssueNotificationAction.class).warn("Cannot find issue panel service");
+        return false;
+      }
+      return service.isLayoutEditorTabVisible();
+    }
     return surface != null && !surface.getIssuePanel().isMinimized();
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
-    if (surface != null) {
-      surface.getAnalyticsManager().trackShowIssuePanel();
-      surface.setShowIssuePanel(state, true);
+    if (surface == null) {
+      return;
     }
+    surface.getAnalyticsManager().trackShowIssuePanel();
+    surface.setShowIssuePanel(state, true);
   }
 
   @NotNull
