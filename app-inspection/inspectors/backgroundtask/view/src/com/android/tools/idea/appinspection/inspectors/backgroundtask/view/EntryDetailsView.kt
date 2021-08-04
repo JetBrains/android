@@ -42,7 +42,6 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
-import java.util.concurrent.TimeUnit
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -132,7 +131,7 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
     val results = mutableListOf(buildKeyValuePair("Time started", alarm.startTimeMs, TimeProvider))
     alarm.latestEvent?.let { latestEvent ->
       if (latestEvent.backgroundTaskEvent.hasAlarmFired() || latestEvent.backgroundTaskEvent.hasAlarmCancelled()) {
-        val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(latestEvent.timestamp)
+        val completeTimeMs = latestEvent.timestamp
         results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
         results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs)))
       }
@@ -150,7 +149,7 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
 
     val results = mutableListOf(buildKeyValuePair("Time started", wakeLock.startTimeMs, TimeProvider))
     wakeLock.released?.let { released ->
-      val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(released.timestamp)
+      val completeTimeMs = released.timestamp
       results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
       results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)))
     }
@@ -176,7 +175,7 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
     val results = mutableListOf(buildKeyValuePair("Time started", jobEntry.startTimeMs, TimeProvider))
     jobEntry.latestEvent?.let { latestEvent ->
       if (latestEvent.backgroundTaskEvent.hasJobStopped() || latestEvent.backgroundTaskEvent.hasJobFinished()) {
-        val completeTimeMs = TimeUnit.NANOSECONDS.toMillis(latestEvent.timestamp)
+        val completeTimeMs = latestEvent.timestamp
         results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
         results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs)))
         if (latestEvent.backgroundTaskEvent.hasJobFinished()) {
