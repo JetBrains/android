@@ -42,7 +42,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
-import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
@@ -68,6 +67,7 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -125,13 +125,13 @@ import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
-import java.lang.Math.PI
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
+import kotlin.math.PI
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -145,7 +145,7 @@ import com.android.emulator.control.Notification as EmulatorNotification
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
- * @param disposableParent the disposable parent
+ * @param disposableParent the disposable parent controlling the lifetime of this view
  * @param emulator the handle of the Emulator
  * @param displayId the ID of the device display
  * @param displaySize the size of the device display; a null value defaults to `emulator.emulatorConfig.displaySize`
@@ -172,7 +172,7 @@ class EmulatorView(
   private val currentDisplaySize
     get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion
-    get() = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
+    get() = screenshotShape.foldedDisplayRegion ?: Rectangle(deviceDisplaySize)
 
   /** Count of received display frames. */
   @VisibleForTesting
@@ -827,11 +827,11 @@ class EmulatorView(
         }
       }
     }
-  }
 
-  private fun notifyDisplayConfigurationListeners() {
-    for (listener in displayConfigurationListeners) {
-      listener.displayConfigurationChanged()
+    private fun notifyDisplayConfigurationListeners() {
+      for (listener in displayConfigurationListeners) {
+        listener.displayConfigurationChanged()
+      }
     }
   }
 
