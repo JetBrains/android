@@ -153,7 +153,7 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
 
   private fun findDevice(): ListenableFuture<IDevice> {
     val serialNumber = "emulator-${emulatorView.emulator.emulatorId.serialPort}"
-    val adbFile = AndroidSdkUtils.getAdb(project) ?:
+    val adbFile = AndroidSdkUtils.findAdb(project).adbPath ?:
                   return Futures.immediateFailedFuture(RuntimeException("Could not find adb executable"))
     val bridgeFuture: ListenableFuture<AndroidDebugBridge> = AdbService.getInstance().getDebugBridge(adbFile)
     return bridgeFuture.transform(getAppExecutorService()) { debugBridge ->
