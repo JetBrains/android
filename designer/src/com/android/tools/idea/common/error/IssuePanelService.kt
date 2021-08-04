@@ -17,16 +17,19 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.editor.NlEditor
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.content.Content
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -46,6 +49,8 @@ class CreateIssueTabsInProblemsActivity : StartupActivity {
  * A service to help to show the issues of Design Tools in IJ's Problems panel.
  */
 class IssuePanelService(private val project: Project) {
+
+  private lateinit var layoutEditorTab: Content
 
   companion object {
     fun getInstance(project: Project): IssuePanelService? =
@@ -71,20 +76,28 @@ class IssuePanelService(private val project: Project) {
       isCloseable = false
     }
     contentManager.addContent(firstTab)
+
+    // Register editor change event.
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun selectionChanged(event: FileEditorManagerEvent) {
-        layoutEditorIssueTab.removeAll()
-        val surface = ((event.newEditor as? DesignToolsSplitEditor)?.designerEditor as? NlEditor)?.component?.surface
-        if (surface == null) {
-          firstTab.displayName = "Layout Editor"
-          layoutEditorIssueTab.add(JLabel("Cannot find Layout File"))
-        }
-        else {
-          firstTab.displayName = event.newFile.name
-          layoutEditorIssueTab.add(surface.issuePanel)
+        if (isLayoutEditorTabVisible()) {
+          loadLayoutEditorIssuePanel(event.newEditor)
         }
       }
     })
+    // Register tool window tab change event.
+    contentManager.addContentManagerListener(object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        if (isLayoutEditorTabVisible()) {
+          loadLayoutEditorIssuePanel(FileEditorManager.getInstance(project).selectedEditor)
+        }
+      }
+    })
+    // Load issue panel for current selected editor if needed.
+    if (problemsWindow.isActive && contentManager.selectedContent == firstTab) {
+      loadLayoutEditorIssuePanel(FileEditorManager.getInstance(project).selectedEditor)
+    }
+    layoutEditorTab = firstTab
 
     if (StudioFlags.NELE_VISUAL_LINT.get()) {
       // Add tab for visual linting in layout validation tool.
@@ -97,5 +110,29 @@ class IssuePanelService(private val project: Project) {
       }
       contentManager.addContent(secondTab)
     }
+  }
+
+  private fun loadLayoutEditorIssuePanel(editor: FileEditor?) {
+    val file = editor?.file
+    val surface = (editor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+    val issuePanelContainer = layoutEditorTab.component
+    if (editor == null || file == null || surface == null) {
+      layoutEditorTab.displayName = "Layout Editor"
+      issuePanelContainer.removeAll()
+      issuePanelContainer.add(JLabel("Cannot find Layout File"))
+    }
+    else {
+      layoutEditorTab.displayName = file.name
+      issuePanelContainer.removeAll()
+      issuePanelContainer.add(surface.issuePanel)
+    }
+  }
+
+  fun isLayoutEditorTabVisible(): Boolean {
+    val problemsViewPanel = ToolWindowManager.getInstance(project).getToolWindow(PROBLEM_VIEW_ID) ?: return false
+    if (!problemsViewPanel.isVisible) {
+      return false
+    }
+    return layoutEditorTab.isSelected
   }
 }
