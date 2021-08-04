@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -70,6 +71,7 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,7 +121,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    * If set to false, the panel will not minimize/maximaze without user interaction.
    * The default behaviour is to have the panel automatically collapse if no errors are present.
    */
-  private boolean myAutoSize = true;
+  private boolean myAutoSize;
 
   public IssuePanel(@NotNull IssueModel issueModel, @NotNull IssueListener listener) {
     super(new BorderLayout());
@@ -146,7 +148,14 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     setRequestFocusEnabled(true);
     registerKeyboardActions();
     addFocusListener(createFocusListener());
-    setMinimized(true);
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      isMinimized = false;
+      myAutoSize = false;
+    }
+    else {
+      setMinimized(true);
+      myAutoSize = true;
+    }
     setMinimumSize(JBUI.size(200));
     UIManager.addPropertyChangeListener(this);
     myInitialized = true;
@@ -247,7 +256,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   @NotNull
   private ActionToolbar createToolbar() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(new MinimizeAction());
+    if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      // The minimize button is not needed when showing issue panel in IJ's problem panel.
+      actionGroup.add(new MinimizeAction());
+    }
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
     toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
@@ -269,6 +281,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    * Disables the auto-sizing of the panel. This will prevent the panel from automatically collapsing if there are no errors.
    */
   public void disableAutoSize() {
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      Logger.getLogger(IssuePanel.class).warn("The issue panel should never auto resize when showing in IJ's problem panel.");
+    }
     myAutoSize = false;
   }
 
@@ -302,7 +317,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         setSelectedIssue(null);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
-        if (myAutoSize) {
+        if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get() && myAutoSize) {
           setMinimized(true);
         }
         return;
@@ -430,6 +445,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   }
 
   public void setMinimized(boolean minimized) {
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      Logger.getLogger(IssuePanel.class).warn("Issue panel should never be minimized when showing in IJ's problems panel");
+      return;
+    }
     if (minimized == isMinimized) {
       return;
     }
@@ -555,7 +574,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         }
       }
     }
-    setMinimized(false);
+
+    if (!StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      setMinimized(false);
+    }
     if (issueView != null) {
       JViewport viewport = myScrollPane.getViewport();
       viewport.validate();

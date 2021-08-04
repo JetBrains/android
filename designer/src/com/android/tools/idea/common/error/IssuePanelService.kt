@@ -53,6 +53,7 @@ class IssuePanelService(private val project: Project) {
   private lateinit var layoutEditorTab: Content
 
   companion object {
+    @JvmStatic
     fun getInstance(project: Project): IssuePanelService? =
       if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) ServiceManager.getService(project, IssuePanelService::class.java) else null
   }
@@ -134,5 +135,28 @@ class IssuePanelService(private val project: Project) {
       return false
     }
     return layoutEditorTab.isSelected
+  }
+
+  /**
+   * Show the issue panel of Layout Editor in IJ's Problem panel.
+   * This open the Problem panel and switch to Layout Editor tab.
+   * If the Problem panel is opened already, then it just switches to Layout Editor tab.
+   *
+   * If IJ's Problem panel cannot be found, then this function does nothing.
+   */
+  fun showLayoutEditorIssuePanel() {
+    val problemsViewPanel = ToolWindowManager.getInstance(project).getToolWindow(PROBLEM_VIEW_ID) ?: return
+    problemsViewPanel.show {
+      layoutEditorTab.manager?.setSelectedContent(layoutEditorTab) ?: return@show
+    }
+  }
+
+  /**
+   * This hide IJ's Problem Panel as well.
+   * If IJ's Problem panel cannot be found, then this function does nothing.
+   */
+  fun hideIssuePanel() {
+    val problemsViewPanel = ToolWindowManager.getInstance(project).getToolWindow(PROBLEM_VIEW_ID) ?: return
+    problemsViewPanel.hide()
   }
 }
