@@ -1,0 +1,15 @@
+android {
+  defaultConfig {
+    setManifestPlaceholders a: 'b'
+  }
+  buildTypes {
+    mumble {
+      setManifestPlaceholders c: 'd'
+    }
+  }
+  productFlavors {
+    foo {
+      setManifestPlaceholders e: 'f', g: 'h'
+    }
+  }
+}

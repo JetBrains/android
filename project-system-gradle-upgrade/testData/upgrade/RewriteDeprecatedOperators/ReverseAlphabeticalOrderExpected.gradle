@@ -7,6 +7,7 @@ android {
     minSdk 28
     maxSdk 30
     matchingFallbacks = ['demo', 'trial']
+    manifestPlaceholders a: 'b'
   }
   productFlavors {
     foo {
@@ -17,11 +18,13 @@ android {
       minSdk 27
       maxSdk 29
       matchingFallbacks = ['trial']
+      manifestPlaceholders e: 'f', g: 'h'
       dimension 'paid'
     }
   }
   buildTypes {
     mumble {
+      manifestPlaceholders c: 'd'
       matchingFallbacks = ['demo']
     }
   }

@@ -7,6 +7,7 @@ android {
     minSdkVersion(28)
     maxSdkVersion(30)
     setMatchingFallbacks(['demo', 'trial'])
+    setManifestPlaceholders a: 'b'
   }
   productFlavors {
     foo {
@@ -17,11 +18,13 @@ android {
       minSdkVersion(27)
       maxSdkVersion(29)
       setMatchingFallbacks('trial')
+      setManifestPlaceholders e: 'f', g: 'h'
       setDimension('paid')
     }
   }
   buildTypes {
     mumble {
+      setManifestPlaceholders c: 'd'
       setMatchingFallbacks(['demo'])
     }
   }

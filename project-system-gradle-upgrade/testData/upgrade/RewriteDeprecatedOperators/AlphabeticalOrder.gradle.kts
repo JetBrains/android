@@ -3,6 +3,7 @@ android {
   compileSdkVersion(30)
   flavorDimensions("paid", "country")
   defaultConfig {
+    setManifestPlaceholders(mapOf("a" to "b"))
     setMatchingFallbacks(listOf("demo", "trial"))
     maxSdkVersion(30)
     minSdkVersion(28)
@@ -13,12 +14,14 @@ android {
   }
   buildTypes {
     create("mumble") {
+      setManifestPlaceholders(mapOf("c" to "d"))
       setMatchingFallbacks(listOf("demo"))
     }
   }
   productFlavors {
     create("foo") {
       setDimension("paid")
+      setManifestPlaceholders(mapOf("e" to "f", "g" to "h"))
       setMatchingFallbacks("trial")
       maxSdkVersion(29)
       minSdkVersion(27)

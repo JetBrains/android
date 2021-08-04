@@ -3,6 +3,7 @@ android {
   compileSdkVersion(30)
   flavorDimensions 'paid', 'country'
   defaultConfig {
+    setManifestPlaceholders a: 'b'
     setMatchingFallbacks(['demo', 'trial'])
     maxSdkVersion(30)
     minSdkVersion(28)
@@ -13,12 +14,14 @@ android {
   }
   buildTypes {
     mumble {
+      setManifestPlaceholders c: 'd'
       setMatchingFallbacks(['demo'])
     }
   }
   productFlavors {
     foo {
       setDimension('paid')
+      setManifestPlaceholders e: 'f', g: 'h'
       setMatchingFallbacks('trial')
       maxSdkVersion(29)
       minSdkVersion(27)

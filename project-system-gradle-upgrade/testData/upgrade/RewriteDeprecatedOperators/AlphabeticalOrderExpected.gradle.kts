@@ -3,6 +3,7 @@ android {
   compileSdk = 30
   flavorDimensions += listOf("paid", "country")
   defaultConfig {
+    manifestPlaceholders += mapOf("a" to "b")
     matchingFallbacks += listOf("demo", "trial")
     maxSdk = 30
     minSdk = 28
@@ -13,12 +14,14 @@ android {
   }
   buildTypes {
     create("mumble") {
+      manifestPlaceholders += mapOf("c" to "d")
       matchingFallbacks += listOf("demo")
     }
   }
   productFlavors {
     create("foo") {
       dimension = "paid"
+      manifestPlaceholders += mapOf("e" to "f", "g" to "h")
       matchingFallbacks += listOf("trial")
       maxSdk = 29
       minSdk = 27
