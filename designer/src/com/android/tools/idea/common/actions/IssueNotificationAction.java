@@ -111,7 +111,7 @@ public class IssueNotificationAction extends ToggleAction {
         Logger.getInstance(IssueNotificationAction.class).warn("Cannot find issue panel service");
         return false;
       }
-      return service.isLayoutEditorTabVisible();
+      return service.isLayoutEditorIssuePanelVisible();
     }
     return surface != null && !surface.getIssuePanel().isMinimized();
   }
@@ -123,7 +123,22 @@ public class IssueNotificationAction extends ToggleAction {
       return;
     }
     surface.getAnalyticsManager().trackShowIssuePanel();
-    surface.setShowIssuePanel(state, true);
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      IssuePanelService issuePanelService = IssuePanelService.getInstance(surface.getProject());
+      if (issuePanelService == null) {
+        Logger.getInstance(IssueNotificationAction.class).warn("Cannot find the issue panel service when set its visibility");
+        return;
+      }
+      if (state) {
+        issuePanelService.showLayoutEditorIssuePanel();
+      }
+      else {
+        issuePanelService.hideIssuePanel();
+      }
+    }
+    else {
+      surface.setShowIssuePanel(state, true);
+    }
   }
 
   @NotNull

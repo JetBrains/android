@@ -1878,17 +1878,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void setShowIssuePanel(boolean show, boolean userInvoked) {
     if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      IssuePanelService issuePanelService = IssuePanelService.getInstance(myProject);
-      if (issuePanelService == null) {
-        Logger.getInstance(DesignSurface.class).warn("Cannot find the issue panel service when set its visibility");
-        return;
-      }
-      if (show) {
-        issuePanelService.showLayoutEditorIssuePanel();
-      }
-      else {
-        issuePanelService.hideIssuePanel();
-      }
+      Logger.getInstance(DesignSurface.class)
+        .error("DesignSurface.setShowIssuePanel() should not be called when showing issue panel in IJ's problems panel");
     }
     else {
       UIUtil.invokeLaterIfNeeded(() -> {

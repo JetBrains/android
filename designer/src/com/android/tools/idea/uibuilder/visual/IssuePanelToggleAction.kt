@@ -15,18 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
 class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING) {
 
-  override fun isSelected(e: AnActionEvent) = !surface.issuePanel.isMinimized
+  override fun isSelected(e: AnActionEvent): Boolean {
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      val service = IssuePanelService.getInstance(surface.project)
+      if (service == null) {
+        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
+        return false
+      }
+      return service.isLayoutValidationIssuePanelVisible()
+    }
+    else {
+      return !surface.issuePanel.isMinimized
+    }
+  }
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) = surface.setShowIssuePanel(state, false)
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
+      val service = IssuePanelService.getInstance(surface.project)
+      if (service == null) {
+        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
+        return
+      }
+      if (state) {
+        service.showLayoutValidationIssuePanel()
+      }
+      else {
+        service.hideIssuePanel()
+      }
+    }
+    else {
+      surface.setShowIssuePanel(state, false)
+    }
+  }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
