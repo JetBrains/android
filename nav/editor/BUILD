@@ -83,7 +83,6 @@ maven_repository(
     name = "test_deps",
     artifacts = [
         "@maven_tests//:android.arch.navigation.navigation-fragment_1.0.0",
-        "@maven_tests//:androidx.fragment.fragment_1.3.4",
         "@maven_tests//:androidx.navigation.navigation-fragment_2.3.5",
         "@maven_tests//:com.google.jimfs.jimfs_1.1",
         "@maven_tests//:com.sun.activation.javax.activation_1.2.0",
