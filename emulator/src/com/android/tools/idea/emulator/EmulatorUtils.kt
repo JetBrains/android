@@ -26,9 +26,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
-import javax.swing.JPanel
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -126,8 +126,9 @@ internal fun Point.rotated(rotation: SkinRotation): Point {
   }
 }
 
-internal val JPanel.sizeWithoutInsets: Dimension
-  get() = Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
+internal val Container.sizeWithoutInsets: Dimension
+  get() = Dimension(width - insets.left - insets.right.coerceAtLeast(0),
+                    height - insets.top - insets.bottom.coerceAtLeast(0))
 
 val Project.earlyDisposable: Disposable
   get() = (this as? ProjectEx)?.earlyDisposable ?: this

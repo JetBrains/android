@@ -431,9 +431,7 @@ class EmulatorView(
   private fun computeScaleToFitInParent() = computeScaleToFit(computeAvailableSize(), screenshotShape.rotation)
 
   private fun computeAvailableSize(): Dimension {
-    val insets = parent.insets
-    return Dimension((parent.width - insets.left - insets.right).scaled(screenScale),
-                     (parent.height - insets.top - insets.bottom).scaled(screenScale))
+    return parent.sizeWithoutInsets.scaled(screenScale)
   }
 
   private fun computeScaleToFit(availableSize: Dimension, rotation: SkinRotation): Double {
