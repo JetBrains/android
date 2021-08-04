@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -67,6 +68,9 @@ object VisualizationFormProvider : VisualizationContentProvider {
         if (fileEditor != null) {
           return@addDataProvider DataManager.getDataProvider(fileEditor.component)?.getData(dataId!!)
         }
+      }
+      if (DESIGN_SURFACE.`is`(dataId)) {
+        return@addDataProvider visualizationForm.surface
       }
       null
     }
