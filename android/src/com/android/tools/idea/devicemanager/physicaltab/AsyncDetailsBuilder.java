@@ -40,6 +40,10 @@ final class AsyncDetailsBuilder {
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
   private final @NotNull AdbShellCommandExecutor myExecutor;
 
+  AsyncDetailsBuilder(@Nullable Project project, @NotNull PhysicalDevice device) {
+    this(project, device, new DeviceManagerAndroidDebugBridge(), new AdbShellCommandExecutor());
+  }
+
   @VisibleForTesting
   AsyncDetailsBuilder(@Nullable Project project,
                       @NotNull PhysicalDevice device,

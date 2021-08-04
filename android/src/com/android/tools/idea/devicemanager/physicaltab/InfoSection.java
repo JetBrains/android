@@ -25,7 +25,6 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class InfoSection extends JBPanel<InfoSection> {
   private final @NotNull Component myHeadingLabel;
@@ -75,17 +74,5 @@ class InfoSection extends JBPanel<InfoSection> {
 
   final @NotNull Collection<@NotNull Component> getNameLabels() {
     return myNameLabels;
-  }
-
-  static void setText(@NotNull JLabel label, @Nullable Object value) {
-    if (value == null) {
-      return;
-    }
-
-    label.setText(value.toString());
-  }
-
-  static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
-    label.setText(String.join(", ", values));
   }
 }
