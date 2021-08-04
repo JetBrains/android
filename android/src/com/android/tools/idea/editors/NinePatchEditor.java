@@ -85,14 +85,14 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   }
 
   private void saveFile() {
-    ModalityUiUtil.invokeLaterIfNeeded(() -> {
+    ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), () -> {
       try {
         saveFileFromEDT();
       }
       catch (IOException e) {
         LOG.error("Unexpected exception while saving 9-patch file", e);
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   // Saving Files using VFS requires EDT and a write action.

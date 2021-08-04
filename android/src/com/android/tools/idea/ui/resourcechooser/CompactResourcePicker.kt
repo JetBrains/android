@@ -226,12 +226,11 @@ class CompactResourcePicker(
    */
   private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
     {
-      ModalityUiUtil.invokeLaterIfNeeded(
-        {
-          // Schedule the 'loading' state of the list, to avoid flashing in the UI
-          resourcesList.setPaintBusy(true)
-          resourcesList.emptyText.text = "Loading..."
-        }, ModalityState.defaultModalityState())
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
+        // Schedule the 'loading' state of the list, to avoid flashing in the UI
+        resourcesList.setPaintBusy(true)
+        resourcesList.emptyText.text = "Loading..."
+      }
     }, 250L, TimeUnit.MILLISECONDS)
 
   init {

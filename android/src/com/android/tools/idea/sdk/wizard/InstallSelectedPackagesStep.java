@@ -218,7 +218,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      ModalityUiUtil.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
@@ -233,7 +233,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
           myUninstallRequests.clear();
         }
         myInstallationFinished.set(true);
-      }, ModalityState.any());
+      });
       return null;
     };
 

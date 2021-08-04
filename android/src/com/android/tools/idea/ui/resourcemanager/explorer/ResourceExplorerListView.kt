@@ -511,7 +511,7 @@ class ResourceExplorerListView(
     if (populateResourcesFuture?.isDone == false) {
       if (showLoadingFuture == null) {
         showLoadingFuture = JobScheduler.getScheduler().schedule(
-          { ModalityUiUtil.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
+          { ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), this::displayLoading) },
           MS_DELAY_BEFORE_LOADING_STATE,
           UNIT_DELAY_BEFORE_LOADING_STATE)
       }

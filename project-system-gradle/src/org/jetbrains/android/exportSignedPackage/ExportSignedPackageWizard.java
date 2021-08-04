@@ -571,7 +571,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return;
       }
     }
-    ModalityUiUtil.invokeLaterIfNeeded(() -> {
+    ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), () -> {
       String title = AndroidBundle.message("android.export.package.wizard.title");
       Project project = getProject();
       File apkFile = new File(apkPath);
@@ -597,7 +597,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       else {
         Messages.showInfoMessage(project, AndroidBundle.message("android.export.package.success.message", apkFile), title);
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})

@@ -68,7 +68,7 @@ public class IssueModel {
   }
 
   public IssueModel() {
-    this(command -> ModalityUiUtil.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+    this(command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command));
   }
 
   @Nullable
