@@ -14,7 +14,6 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
-import com.android.tools.idea.rendering.classloading.ResourcesCompatTransform;
 import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
@@ -99,7 +98,6 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     ThreadLocalTrackingTransform::new,
     ThreadControllingTransform::new,
     PreviewAnimationClockMethodTransform::new,
-    ResourcesCompatTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
