@@ -328,10 +328,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Tells the profiler to select and profile the device+process combo of the same name next time it is detected.
+   * Tells the profiler to select and profile the device+process combo of the same name next time it
+   * is detected.
    *
-   * @param processFilter Additional filter used for choosing the most desirable preferred process. e.g. Process of a particular pid,
-   *                      or process that starts after a certain time.
+   * @param deviceName    The target device that the app will launch in.
+   * @param processName   The process to profile.
+   * @param processFilter Additional filter used for choosing the most desirable preferred process.
+   *                      e.g. Process of a particular pid, or process that starts after a certain
+   *                      time.
    */
   public void setPreferredProcess(@Nullable String deviceName,
                                   @Nullable String processName,

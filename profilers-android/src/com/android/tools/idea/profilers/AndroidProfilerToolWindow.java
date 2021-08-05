@@ -181,14 +181,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     return myProfilersWrapper != null ? myProfilersWrapper.getProfilers() : null;
   }
 
-  /**
-   * Sets the profiler's auto-profiling process in case it has been unset.
-   *
-   * @param module           The module being profiled.
-   * @param device           The target {@link IDevice} that the app will launch in.
-   * @param processPredicate Additional filter used for choosing the most desirable process. e.g. Process of a particular pid,
-   *                         or process that starts after a certain time.
-   */
+  /** Sets the profiler's auto-profiling process in case it has been unset. */
   public void profile(@NotNull PreferredProcessInfo processInfo) {
     if (tryInitializeProfilers()) {
       StudioProfilers profilers = myProfilersWrapper.getProfilers();
