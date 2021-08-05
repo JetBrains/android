@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * TableView that adjusts column widths automatically to not cut off table cell content
  */
-final class VirtualTableView extends TableView<AvdInfo> {
+public final class VirtualTableView extends TableView<AvdInfo> {
   VirtualTableView(@NotNull ListTableModel<@NotNull AvdInfo> model, @NotNull AvdInfoProvider avdInfoProvider) {
     super(model);
     getTableHeader().setResizingAllowed(false);

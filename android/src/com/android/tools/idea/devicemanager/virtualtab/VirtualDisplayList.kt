@@ -82,7 +82,7 @@ class VirtualDisplayList(private val project: Project?,
                          private val deviceTableCellRenderer: TableCellRenderer) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
 
   constructor(project: Project?) : this(project,
-                                        {AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)},
+                                        { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) },
                                         VirtualDeviceTableCellRenderer())
 
   private val notificationPanel = JPanel().apply {
@@ -91,7 +91,8 @@ class VirtualDisplayList(private val project: Project?,
   private val model = ListTableModel<AvdInfo>().apply {
     isSortable = true
   }
-  private val table: VirtualTableView
+
+  val table: VirtualTableView
   private val listeners: MutableSet<AvdSelectionListener> = Sets.newHashSet()
   private val logger: Logger get() = logger<VirtualDisplayList>()
 
@@ -160,10 +161,7 @@ class VirtualDisplayList(private val project: Project?,
     }
   }
 
-  private val avdInfo: AvdInfo? = table.selectedObject
-  override fun getAvdInfo(): AvdInfo? {
-    return avdInfo
-  }
+  override fun getAvdInfo(): AvdInfo? = table.selectedObject
 
   private val avdProviderComponent: JComponent = this
   override fun getAvdProviderComponent(): JComponent {
