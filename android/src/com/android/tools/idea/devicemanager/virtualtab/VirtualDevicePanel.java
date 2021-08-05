@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import static com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
-
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
+import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -26,16 +27,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.function.Function;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
-import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -52,8 +52,8 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private final @NotNull JButton myHelpButton;
   private @Nullable SearchTextField mySearchTextField;
 
-  private final @NotNull VirtualDisplayList myAvdDisplayList;
-  private final @NotNull PreconfiguredDisplayList myPreconfiguredDisplayList;
+  private @Nullable VirtualDisplayList myAvdDisplayList;
+  private @Nullable Component myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project) {
     this(project, CreateAvdAction::new);
@@ -62,8 +62,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   @VisibleForTesting
   VirtualDevicePanel(@Nullable Project project,
                      @NotNull Function<@NotNull AvdInfoProvider, @NotNull ActionListener> createAvdActionProvider) {
-    myAvdDisplayList = new VirtualDisplayList(project);
-    myPreconfiguredDisplayList = new PreconfiguredDisplayList(project, myAvdDisplayList);
+    initVirtualDisplayList(project);
     DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
 
     myCreateButton = new JButton("Create device");
@@ -76,7 +75,11 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
 
     if (enableHalfBakedFeatures()) {
       myRefreshButton = new CommonButton(AllIcons.Actions.Refresh);
-      myRefreshButton.addActionListener(event -> myAvdDisplayList.refreshAvds());
+
+      myRefreshButton.addActionListener(event -> {
+        assert myAvdDisplayList != null;
+        myAvdDisplayList.refreshAvds();
+      });
     }
 
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
@@ -91,25 +94,66 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
     setLayout(createGroupLayout());
   }
 
+  private void initVirtualDisplayList(@Nullable Project project) {
+    myAvdDisplayList = new VirtualDisplayList(project);
+
+    if (true) {
+      return;
+    }
+
+    myAvdDisplayList.getTable().getSelectionModel().addListSelectionListener(event -> {
+      if (event.getValueIsAdjusting()) {
+        return;
+      }
+
+      AvdInfo device = myAvdDisplayList.getAvdInfo();
+
+      if (device == null) {
+        return;
+      }
+
+      if (myDetailsPanel != null) {
+        remove(myDetailsPanel);
+      }
+
+      myDetailsPanel = createDetailsPanel(device.getDisplayName());
+      setLayout(createGroupLayout());
+    });
+  }
+
+  private @NotNull Component createDetailsPanel(@NotNull String heading) {
+    DetailsPanel panel = new DetailsPanel(heading);
+
+    panel.getCloseButton().addActionListener(event -> {
+      remove(myDetailsPanel);
+      myDetailsPanel = null;
+
+      setLayout(createGroupLayout());
+    });
+
+    return panel;
+  }
+
   private @NotNull GroupLayout createGroupLayout() {
     GroupLayout groupLayout = new GroupLayout(this);
 
     Group toolbarHorizontalGroup = createToolbarHorizontalGroup(groupLayout);
     Group toolbarVerticalGroup = createToolbarVerticalGroup(groupLayout);
 
-    Group horizontalGroup = groupLayout.createParallelGroup(Alignment.LEADING);
-    horizontalGroup.addGroup(toolbarHorizontalGroup);
-    horizontalGroup.addComponent(myAvdDisplayList);
-    if (enableHalfBakedFeatures()) {
-      horizontalGroup.addComponent(myPreconfiguredDisplayList);
+    Group horizontalGroup = groupLayout.createParallelGroup(Alignment.LEADING)
+      .addGroup(toolbarHorizontalGroup)
+      .addComponent(myAvdDisplayList);
+
+    if (myDetailsPanel != null) {
+      horizontalGroup.addComponent(myDetailsPanel);
     }
 
-    SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
-    verticalGroup.addGroup(toolbarVerticalGroup);
-    verticalGroup.addComponent(myAvdDisplayList);
-    if (enableHalfBakedFeatures()) {
-      verticalGroup.addPreferredGap(ComponentPlacement.UNRELATED);
-      verticalGroup.addComponent(myPreconfiguredDisplayList);
+    Group verticalGroup = groupLayout.createSequentialGroup()
+      .addGroup(toolbarVerticalGroup)
+      .addComponent(myAvdDisplayList);
+
+    if (myDetailsPanel != null) {
+      verticalGroup.addComponent(myDetailsPanel);
     }
 
     groupLayout.setHorizontalGroup(horizontalGroup);
