@@ -44,7 +44,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
-import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
@@ -70,7 +69,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
@@ -212,9 +210,9 @@ private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 private const val LAYOUT_KEY = "previewLayout"
 
 /**
- * Frames per second limit for interactive preview
+ * Frames per second limit for interactive preview.
  */
-private const val FPS_LIMIT = 60
+private val FPS_LIMIT = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.

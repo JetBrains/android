@@ -1179,6 +1179,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = Flag.create(
+    COMPOSE, "preview.interactive.fps.limit",
+    "Interactive Preview FPS limit",
+    "Controls the maximum number of frames per second in Compose Interactive Preview",
+    30
+  );
+
   public static final Flag<Boolean> COMPOSE_CLASSLOADERS_PRELOADING = Flag.create(
     COMPOSE, "preview.classloaders.preloading",
     "Enable background classes preloading",
