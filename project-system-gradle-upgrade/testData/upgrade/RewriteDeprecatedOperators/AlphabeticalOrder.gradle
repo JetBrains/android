@@ -11,6 +11,7 @@ android {
     targetSdkVersion(29)
     setTestFunctionalTest(true)
     setTestHandleProfiling(false)
+    setTestInstrumentationRunnerArguments one: 'two'
   }
   buildTypes {
     mumble {
@@ -29,6 +30,7 @@ android {
       targetSdkVersion(28)
       setTestFunctionalTest(false)
       setTestHandleProfiling(true)
+      setTestInstrumentationRunnerArguments three: 'four', five: 'six'
     }
   }
 }

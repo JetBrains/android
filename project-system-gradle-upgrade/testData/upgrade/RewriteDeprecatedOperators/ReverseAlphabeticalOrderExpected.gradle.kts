@@ -1,5 +1,6 @@
 android {
   defaultConfig {
+    testInstrumentationRunnerArguments += mapOf("three" to "four", "five" to "six")
     testHandleProfiling = true
     testFunctionalTest = false
     targetSdk = 29
@@ -11,6 +12,7 @@ android {
   }
   productFlavors {
     create("foo") {
+      testInstrumentationRunnerArguments += mapOf("one" to "two")
       testHandleProfiling = false
       testFunctionalTest = true
       targetSdk = 28

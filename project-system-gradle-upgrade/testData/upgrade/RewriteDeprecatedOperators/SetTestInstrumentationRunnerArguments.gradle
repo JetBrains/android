@@ -1,0 +1,10 @@
+android {
+  defaultConfig {
+    setTestInstrumentationRunnerArguments foo: 'bar', baz: 'quux'
+  }
+  productFlavors {
+    foo {
+      setTestInstrumentationRunnerArguments a: 'b'
+    }
+  }
+}

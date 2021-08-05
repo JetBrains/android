@@ -90,11 +90,35 @@ class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModel
   }
 
   @Test
+  fun testTestInstrumentationRunnerArgument() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TestInstrumentationRunnerArgument"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TestInstrumentationRunnerArgumentExpected"))
+  }
+
+  @Test
+  fun testTestInstrumentationRunnerArguments() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/TestInstrumentationRunnerArguments"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/TestInstrumentationRunnerArgumentsExpected"))
+  }
+
+  @Test
   fun testSetDimension() {
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetDimension"))
     val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetDimensionExpected"))
+  }
+
+  @Test
+  fun testSetTestInstrumentationRunnerArguments() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/SetTestInstrumentationRunnerArguments"))
+    val processor = rewriteDeprecatedOperatorsRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/SetTestInstrumentationRunnerArgumentsExpected"))
   }
 
   @Test

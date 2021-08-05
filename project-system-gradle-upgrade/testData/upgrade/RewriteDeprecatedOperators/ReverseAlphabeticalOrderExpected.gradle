@@ -1,5 +1,6 @@
 android {
   defaultConfig {
+    testInstrumentationRunnerArguments three: 'four', five: 'six'
     testHandleProfiling false
     testFunctionalTest true
     targetSdk 29
@@ -11,6 +12,7 @@ android {
   }
   productFlavors {
     foo {
+      testInstrumentationRunnerArguments one: 'two'
       testHandleProfiling true
       testFunctionalTest false
       targetSdk 28

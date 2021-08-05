@@ -11,6 +11,7 @@ android {
     targetSdk = 29
     testFunctionalTest = true
     testHandleProfiling = false
+    testInstrumentationRunnerArguments += mapOf("one" to "two")
   }
   buildTypes {
     create("mumble") {
@@ -29,6 +30,7 @@ android {
       targetSdk = 28
       testFunctionalTest = false
       testHandleProfiling = true
+      testInstrumentationRunnerArguments += mapOf("three" to "four", "five" to "six")
     }
   }
 }
