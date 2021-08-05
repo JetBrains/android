@@ -72,6 +72,7 @@ public final class EnergyEventStateChart {
 
   @NotNull
   public static StateChart<Common.Event> create(@NotNull StateChartModel<Common.Event> model) {
-    return new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 1, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
+    return new StateChart<>(model, DURATION_STATE_COLOR_PROVIDER, Object::toString,
+                            new StateChartConfig<>(new DefaultStateChartReducer<>(), 1, 1, 0.33f));
   }
 }

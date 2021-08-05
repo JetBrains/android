@@ -35,7 +35,7 @@ import javax.swing.JComponent
 class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel> {
   override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>): JComponent {
     return StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider()).apply {
-      setRenderMode(StateChart.RenderMode.TEXT)
+      renderMode = StateChart.RenderMode.TEXT
     }
   }
 }

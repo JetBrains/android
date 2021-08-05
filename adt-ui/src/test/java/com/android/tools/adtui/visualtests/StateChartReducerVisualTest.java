@@ -74,7 +74,8 @@ public class StateChartReducerVisualTest extends VisualTest {
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
     myColorChartModel = new StateChartModel<>();
-    myColorChart = new StateChart<>(myColorChartModel, new StateChartConfig<>((rectangles, values) -> {}), COLOR_STATE_COLORS);
+    myColorChart = new StateChart<>(myColorChartModel, COLOR_STATE_COLORS, Object::toString,
+                                    new StateChartConfig<>((rectangles, values) -> {}));
     myColorChartModel.addSeries(series);
 
     myOptimizedColorChartModel = new StateChartModel<>();

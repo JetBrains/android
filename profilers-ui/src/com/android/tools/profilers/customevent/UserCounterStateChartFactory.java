@@ -55,7 +55,8 @@ public class UserCounterStateChartFactory {
 
   @NotNull
   public static StateChart<Long> create(@NotNull StateChartModel<Long> model) {
-    return new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 0.33, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
+    return new StateChart<>(model, DURATION_STATE_COLOR_PROVIDER, Object::toString,
+                            new StateChartConfig<>(new DefaultStateChartReducer<>(), 0.33, 1, 0.33f));
   }
 
   @VisibleForTesting
