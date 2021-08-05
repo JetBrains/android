@@ -52,6 +52,7 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.containers.toArray
 import org.hamcrest.Matchers.nullValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Contract
@@ -88,25 +89,53 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "COMPOSITE_BUILD :app run configuration",
           testProject = TestProjectPaths.COMPOSITE_BUILD,
           testConfiguration = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app"),
-          expectApks = """
+          expectApks =
+            """
               ApplicationId: com.test.compositeapp
               File: project/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 project.app -> project/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
-          """
+          """.let {
+              listOf(
+                AGP_35 to it,
+                AGP_40 to it,
+                AGP_41 to it,
+                AGP_CURRENT to """
+                    ApplicationId: com.test.compositeapp
+                    File: project/app/build/intermediates/apk/debug/app-debug.apk
+                    Files:
+                      project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+                    RequiredInstallationOptions: []
+                """,
+              )
+            }.toMap(),
         ),
         TestDefinition(
           name = "COMPOSITE_BUILD TestCompositeLib1:app run configuration",
           testProject = TestProjectPaths.COMPOSITE_BUILD,
           testConfiguration = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app"),
-          expectApks = """
+          expectApks =
+            """
               ApplicationId: com.test.composite1
               File: project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 TestCompositeLib1.app -> project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
-          """
+            """.let {
+                  listOf(
+                    AGP_35 to it,
+                    AGP_40 to it,
+                    AGP_41 to it,
+                    AGP_CURRENT to """
+              ApplicationId: com.test.composite1
+              File: project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
+              Files:
+                TestCompositeLib1.app -> project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
+              RequiredInstallationOptions: []
+            """,
+                  )
+            }.toMap(),
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX before build",
@@ -130,13 +159,27 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX run configuration",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
-          expectApks = """
+          expectApks =
+         """
             ApplicationId: one.name.defaultConfig.debug
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-          """
+          """.let {
+           listOf(
+             AGP_35 to it,
+             AGP_40 to it,
+             AGP_41 to it,
+             AGP_CURRENT to """
+            ApplicationId: one.name.defaultConfig.debug
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+          """,
+           )
+         }.toMap()
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX run configuration via bundle",
@@ -180,13 +223,28 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
+          """.let {
+            listOf(
+              AGP_35 to it,
+              AGP_40 to it,
+              AGP_41 to it,
+              AGP_CURRENT to
           """
+            ApplicationId: one.name.defaultConfig.debug
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+          """
+            )
+          }.toMap()
         ),
         TestDefinition(
           name = "SIMPLE_APPLICATION test run configuration",
           testProject = TestProjectPaths.SIMPLE_APPLICATION,
           testConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
-          expectApks = """
+          expectApks =
+          """
             ApplicationId: google.simpleapplication
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
@@ -198,7 +256,26 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
-          """
+          """.let {
+              listOf(
+                AGP_35 to it,
+                AGP_40 to it,
+                AGP_41 to it,
+                AGP_CURRENT to """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.simpleapplication.test
+            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
+          """,
+              )
+            }.toMap()
         ),
         TestDefinition(
           name = "SIMPLE_APPLICATION assemble for tests",
@@ -216,13 +293,34 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
+          """.let {
+            listOf(
+              AGP_35 to it,
+              AGP_40 to it,
+              AGP_41 to it,
+              AGP_CURRENT to
           """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.simpleapplication.test
+            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
+          """
+            )
+          }.toMap()
         ),
         TestDefinition(
           name = "TEST_ONLY_MODULE test run configuration",
           testProject = TestProjectPaths.TEST_ONLY_MODULE,
           testConfiguration = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
-          expectApks = """
+          expectApks = 
+          """
             ApplicationId: com.example.android.app
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
@@ -234,12 +332,33 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
               project.test -> project/test/build/outputs/apk/debug/test-debug.apk
             RequiredInstallationOptions: []
-          """
+          """.let {
+            listOf(
+              AGP_35 to it,
+              AGP_40 to it,
+              AGP_41 to it,
+              AGP_CURRENT to
+                """
+            ApplicationId: com.example.android.app
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+               -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: com.example.android.app.testmodule
+            File: project/test/build/intermediates/apk/debug/test-debug.apk
+            Files:
+              project.test -> project/test/build/intermediates/apk/debug/test-debug.apk
+            RequiredInstallationOptions: []
+          """,
+            )
+          }.toMap(),
         ),
         TestDefinition(
           name = "DYNAMIC_APP run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
-          expectApks = """
+          expectApks =
+          """
             ApplicationId: google.simpleapplication
             File: *>java.lang.IllegalArgumentException
             Files:
@@ -247,42 +366,52 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
               simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
             RequiredInstallationOptions: []
+          """.let {
+              listOf(
+                AGP_35 to it,
+                AGP_40 to it,
+                AGP_41 to it,
+                AGP_CURRENT to """
+            ApplicationId: google.simpleapplication
+            File: *>java.lang.IllegalArgumentException
+            Files:
+              simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+              simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
+              simpleApplication.feature1 -> project/feature1/build/intermediates/apk/debug/feature1-debug.apk
+            RequiredInstallationOptions: []
           """
+              )
+            }.toMap(),
         ),
         TestDefinition(
           IGNORE = { TODO("b/189190337") },
           name = "DYNAMIC_APP run configuration pre L device",
           device = 19,
           testProject = TestProjectPaths.DYNAMIC_APP,
-          expectApks = """
+          expectApks = mapOf(
+            AGP_CURRENT to """
             ApplicationId: google.simpleapplication
             File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
-          """
+          """,
+            AGP_35 to """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
+            Files:
+              standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
+            RequiredInstallationOptions: []
+          """,
+          )
+
         ),
         TestDefinition(
           name = "DYNAMIC_APP test run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
           testConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
-          expectApks = mapOf(
-            AGP_CURRENT to """
-              ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
-              Files:
-                simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
-                simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
-                simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
-              RequiredInstallationOptions: []
-
-              ApplicationId: google.simpleapplication.test
-              File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-              Files:
-                 -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-              RequiredInstallationOptions: []
-            """,
-            AGP_35 to """
+          expectApks =
+            """
                 ApplicationId: google.simpleapplication
                 File: *>java.lang.IllegalArgumentException
                 Files:
@@ -296,8 +425,28 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
                 Files:
                    -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
                 RequiredInstallationOptions: []
-            """
-          )
+            """.let {
+              listOf(
+                AGP_35 to it,
+                AGP_40 to it,
+                AGP_41 to it,
+                AGP_CURRENT to """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+                simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
+                simpleApplication.feature1 -> project/feature1/build/intermediates/apk/debug/feature1-debug.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: google.simpleapplication.test
+              File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+              Files:
+                 -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """,
+              )
+            }.toMap()
         ),
         TestDefinition(
           IGNORE = { TODO("b/189190337") },
@@ -305,7 +454,8 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           device = 19,
           testProject = TestProjectPaths.DYNAMIC_APP,
           testConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
-          expectApks = """
+          expectApks = mapOf(
+            AGP_CURRENT to """
             ApplicationId: google.simpleapplication
             File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
@@ -317,7 +467,21 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
-          """
+          """,
+            AGP_35 to """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
+            Files:
+              standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.simpleapplication.test
+            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
+          """,
+          )
         ),
         TestDefinition(
           // Do not run with the current version of the AGP.
@@ -386,7 +550,8 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "BUDDY_APKS test run configuration",
           testProject = TestProjectPaths.BUDDY_APKS,
           testConfiguration = TestTargetRunConfiguration("google.testapplication.ApplicationTest"),
-          expectApks = """
+          expectApks =
+          """
             ApplicationId: google.testapplication
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
@@ -404,7 +569,32 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
                -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
+          """.let {
+            listOf(
+              AGP_35 to it,
+              AGP_40 to it,
+              AGP_41 to it,
+              AGP_CURRENT to """
+            ApplicationId: google.testapplication
+            File: project/app/build/intermediates/apk/debug/app-debug.apk
+            Files:
+              project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.testapplication.test
+            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: com.linkedin.android.testbutler
+            File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
+            Files:
+               -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
+            RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
           """
+            )
+          }.toMap()
         ),
         TestDefinition(
           name = "SIMPLE_APPLICATION validate release",
@@ -418,15 +608,27 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             AGP_35 to "The apk for your currently selected variant cannot be signed. " +
               "Please specify a signing configuration for this variant (release)."
           ),
-          expectApks = mapOf(
-            AGP_CURRENT to """
+          expectApks =
+            """
               ApplicationId: google.simpleapplication
               File: project/app/build/outputs/apk/release/app-release-unsigned.apk
               Files:
                 project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
-            """
-          )
+            """.let {
+              listOf(
+                AGP_35 to it,
+                AGP_40 to it,
+                AGP_41 to it,
+                AGP_CURRENT to """
+              ApplicationId: google.simpleapplication
+              File: project/app/build/intermediates/apk/release/app-release-unsigned.apk
+              Files:
+                project.app -> project/app/build/intermediates/apk/release/app-release-unsigned.apk
+              RequiredInstallationOptions: []
+            """,
+              )
+            }.toMap()
         ),
       )
   }
