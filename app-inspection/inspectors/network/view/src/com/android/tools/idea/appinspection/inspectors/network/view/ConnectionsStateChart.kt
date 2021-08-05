@@ -47,7 +47,7 @@ class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
   val component = createChart(dataList, range)
 
   fun setHeightGap(gap: Float) {
-    component.setHeightGap(gap)
+    component.heightGap = gap
   }
 
   private fun createChart(dataList: Collection<HttpData>, range: Range): StateChart<NetworkState> {
@@ -64,7 +64,7 @@ class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
       series.add(data.connectionEndTimeUs, NetworkState.NONE)
     }
     val stateModel = StateChartModel<NetworkState>()
-    val stateChart = StateChart(stateModel, object : StateChartColorProvider<NetworkState?>() {
+    val stateChart = StateChart(stateModel, colorProvider = object : StateChartColorProvider<NetworkState>() {
       override fun getColor(isMouseOver: Boolean, value: NetworkState): Color {
         return colors.getColor(value)
       }
