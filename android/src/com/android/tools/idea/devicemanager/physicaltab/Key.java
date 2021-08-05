@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// TODO Move this to com.android.tools.idea.devicemanager
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import org.jetbrains.annotations.NotNull;
 
-abstract class Key {
-  abstract @NotNull ConnectionType getConnectionType();
+public abstract class Key {
+  protected abstract @NotNull ConnectionType getConnectionType();
 
-  abstract @NotNull SerialNumber getSerialNumber();
+  protected abstract @NotNull SerialNumber getSerialNumber();
 }
