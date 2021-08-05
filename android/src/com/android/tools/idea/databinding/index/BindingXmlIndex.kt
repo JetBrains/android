@@ -76,7 +76,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
      */
     private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope): Collection<Entry> {
       val entries = mutableListOf<Entry>()
-      FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).forEach { file ->
+      FilenameIndex.getVirtualFilesByName(project, "$layoutName.xml", scope).forEach { file ->
         getDataForFile(file, project)?.let { data -> entries.add(Entry(file, data)) }
       }
       return entries
