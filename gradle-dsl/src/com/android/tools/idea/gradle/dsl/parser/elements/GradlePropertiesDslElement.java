@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.annotations.VisibleForTesting;
@@ -351,6 +353,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
     else {
       map.setPsiElement(element.getPsiElement());
+      SemanticsDescription semantics = CREATE_WITH_VALUE;
+      ModelEffectDescription currentEffect = map.getModelEffect();
+      if (currentEffect != null) {
+        semantics = currentEffect.semantics;
+      }
+      ModelEffectDescription newEffect = new ModelEffectDescription(effect.property, semantics, effect.versionConstraint);
+      map.setModelEffect(newEffect);
     }
 
     GradleDslExpressionMap newElements = (GradleDslExpressionMap)element;

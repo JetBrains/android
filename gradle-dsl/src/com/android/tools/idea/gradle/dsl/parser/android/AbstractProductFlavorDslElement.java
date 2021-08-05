@@ -30,11 +30,9 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
@@ -216,6 +214,13 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         setParsedElement(testInstrumentationRunnerArgumentsElement);
       }
       testInstrumentationRunnerArgumentsElement.setParsedElement(value);
+      // This is not theoretically sound, but...
+      ModelEffectDescription effect =
+        new ModelEffectDescription(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, CREATE_WITH_VALUE, VersionConstraint.agpBefore("8.0.0"));
+      testInstrumentationRunnerArgumentsElement.setModelEffect(effect);
+      if (testInstrumentationRunnerArgumentsElement.getPsiElement() == null) {
+        testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
+      }
       return;
     }
 
