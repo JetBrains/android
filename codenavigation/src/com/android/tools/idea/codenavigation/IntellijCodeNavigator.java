@@ -82,26 +82,35 @@ public class IntellijCodeNavigator extends CodeNavigator {
   }
 
   @Override
-  protected void handleNavigate(@NotNull CodeLocation location) {
-    // Gets the navigatable in another thread, so we don't block the UI while potentially performing heavy operations, such as searching for
-    // the java class/method in the PSI tree or using llvm-symbolizer to get a native function name.
-    //
-    // Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need to wrap the action in a ReadAction.
-    // Hence all PSI-reading code inside getNavigatable() will need to wrapped in a ReadAction.
-    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
-    CompletableFuture.supplyAsync(
-        () -> ReadAction.compute(() -> getNavigatable(location)), ApplicationManager.getApplication()::executeOnPooledThread)
-      .thenAcceptAsync(nav -> {
-        if (nav != null) {
-          nav.navigate(true);
-        }
-      }, ApplicationManager.getApplication()::invokeLater);
+  protected CompletableFuture<@NotNull Boolean> handleNavigate(@NotNull CodeLocation location) {
+    return getNavigatableAsync(location).thenApplyAsync(nav -> {
+      if (nav != null) {
+        nav.navigate(true);
+      }
+
+      return nav != null;
+    }, ApplicationManager.getApplication()::invokeLater);
   }
 
   @Override
-  public boolean isNavigatable(@NotNull CodeLocation location) {
-    // TODO(b/119398387): consider caching the call to getNavigatable to reuse it in the following call to handleNavigate
-    return getNavigatable(location) != null;
+  public CompletableFuture<@NotNull Boolean> isNavigatable(@NotNull CodeLocation location) {
+    return getNavigatableAsync(location).thenApply(nav -> nav != null);
+  }
+
+  /**
+   * Gets the navigatable in another thread, so we don't block the UI while potentially performing
+   * heavy operations, such as searching for the java class/method in the PSI tree or using
+   * llvm-symbolizer to get a native function name.
+   *
+   * Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need
+   * to wrap the action in a ReadAction. Hence all PSI-reading code inside getNavigatable() will
+   * need to wrapped in a ReadAction.
+   *
+   * See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
+   */
+  private CompletableFuture<Navigatable> getNavigatableAsync(@NotNull CodeLocation location) {
+    return CompletableFuture.supplyAsync(() -> ReadAction.compute(() -> getNavigatable(location)),
+                                         ApplicationManager.getApplication()::executeOnPooledThread);
   }
 
   @Nullable

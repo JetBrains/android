@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.codenavigation
 
-import java.util.function.Consumer
+import java.util.concurrent.CompletableFuture
 
 /**
  * Base class for a service responsible for handling navigations to target [CodeLocation]s,
@@ -32,14 +32,14 @@ abstract class CodeNavigator {
     myListeners.remove(listener)
   }
 
-  fun navigate(location: CodeLocation) {
-    handleNavigate(location)
-    myListeners.forEach(Consumer { l: Listener -> l.onNavigated(location) })
+  fun navigate(location: CodeLocation): CompletableFuture<Boolean> {
+    myListeners.forEach{ it.onNavigated(location) }
+    return handleNavigate(location)
   }
 
-  abstract fun isNavigatable(location: CodeLocation): Boolean
+  abstract fun isNavigatable(location: CodeLocation): CompletableFuture<Boolean>
 
-  protected abstract fun handleNavigate(location: CodeLocation)
+  protected abstract fun handleNavigate(location: CodeLocation): CompletableFuture<Boolean>
 
   interface Listener {
     fun onNavigated(location: CodeLocation)

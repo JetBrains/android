@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.codenavigation
 
+import java.util.concurrent.CompletableFuture
+
 /**
  * A test-only [CodeNavigator] that says every [CodeLocation] is navigable but does nothing when
  * asked to navigate to a [CodeLocation]. If a test actually cares about acting on navigation
  * requests, it should add a listener via [addListener].
  */
 class FakeCodeNavigator : CodeNavigator() {
-  override fun isNavigatable(location: CodeLocation): Boolean {
-    return true
+  override fun isNavigatable(location: CodeLocation): CompletableFuture<Boolean> {
+    return noop()
   }
 
-  override fun handleNavigate(location: CodeLocation) {
-    // No-op
+  override fun handleNavigate(location: CodeLocation): CompletableFuture<Boolean> {
+    return noop()
+  }
+
+  private fun noop(): CompletableFuture<Boolean> {
+    return CompletableFuture.completedFuture(true)
   }
 }
