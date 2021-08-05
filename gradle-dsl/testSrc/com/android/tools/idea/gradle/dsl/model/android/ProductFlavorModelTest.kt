@@ -1873,6 +1873,48 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testRemoveAndApplyDiscontiguousMapElements() {
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_DISCONTIGUOUS_MAP_ELEMENTS)
+
+    val buildModel = gradleBuildModel
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    var defaultConfig = android.defaultConfig()
+
+    assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+
+    defaultConfig.manifestPlaceholders().getValue(MAP_TYPE)!!["activityLabel1"]!!.delete()
+    defaultConfig.testInstrumentationRunnerArguments().getValue(MAP_TYPE)!!["size"]!!.delete()
+
+    assertEquals("manifestPlaceholders", mapOf("activityLabel2" to "defaultName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("foo" to "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_DISCONTIGUOUS_MAP_ELEMENTS_EXPECTED)
+
+    assertEquals("manifestPlaceholders", mapOf("activityLabel2" to "defaultName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("foo" to "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    defaultConfig = android.defaultConfig()
+    assertEquals("manifestPlaceholders", mapOf("activityLabel2" to "defaultName2"),
+                 defaultConfig.manifestPlaceholders())
+    assertEquals("testInstrumentationRunnerArguments", mapOf("foo" to "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments())
+  }
+
+  @Test
   fun testParseNativeElements() {
     writeToBuildFile(TestFile.NATIVE_ELEMENT_TEXT)
     verifyNativeElements()
@@ -2685,6 +2727,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED_400("addAndApplyMapElementsExpected400"),
     REMOVE_AND_APPLY_MAP_ELEMENTS("removeAndApplyMapElements"),
     REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED("removeAndApplyMapElementsExpected"),
+    REMOVE_AND_APPLY_DISCONTIGUOUS_MAP_ELEMENTS("removeAndApplyDiscontiguousMapElements"),
+    REMOVE_AND_APPLY_DISCONTIGUOUS_MAP_ELEMENTS_EXPECTED("removeAndApplyDiscontiguousMapElementsExpected"),
     ADD_NATIVE_ELEMENTS("addNativeElements"),
     ADD_NATIVE_ELEMENTS_EXPECTED("addNativeElementsExpected"),
     REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST("removeOnlyNativeElementInTheList"),

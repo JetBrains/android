@@ -431,6 +431,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
   override fun deleteDslLiteral(literal: GradleDslLiteral) {
     deletePsiElement(literal, literal.expression)
+    deletePsiElement(literal, literal.nameElement.namedPsiElement)
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? {

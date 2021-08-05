@@ -272,6 +272,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
   @Override
   public void deleteDslLiteral(@NotNull GradleDslLiteral literal) {
     deletePsiElement(literal, literal.getExpression());
+    deletePsiElement(literal, literal.getNameElement().getNamedPsiElement());
   }
 
   @Override
