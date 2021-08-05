@@ -96,8 +96,9 @@ class JetifierWarningDetailsFactory(
     val contentHtml = """
       <b>Jetifier flag is needed by some libraries in your project</b>
       The following libraries rely on the ‘enableJetifier’ flag to work with AndroidX.
-      Please consider upgrading to more recent versions of those libraries or contact
-      the library authors to request native AndroidX support, if it’s not available yet.
+      Please consider upgrading to versions of these libraries that directly depend
+      on AndroidX. Please contact the library authors to request native AndroidX support,
+      if it’s not available yet.
       """.trimIndent().insertBRTags()
     val root = createLibsTree(data.checkJetifierResult)
     val tree = Tree(root).apply {
