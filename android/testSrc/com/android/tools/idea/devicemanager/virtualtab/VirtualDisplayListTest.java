@@ -25,7 +25,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
@@ -40,6 +42,7 @@ import org.mockito.Mockito;
 public final class VirtualDisplayListTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+  private VirtualDeviceModel myVirtualDeviceModel;
   private VirtualDisplayList myVirtualDisplayList;
 
   @Before
@@ -50,19 +53,25 @@ public final class VirtualDisplayListTest {
 
   @Test
   public void emptyAvds() {
+    myVirtualDeviceModel = new VirtualDeviceModel(Collections::emptyList);
     myVirtualDisplayList = new VirtualDisplayList(myRule.getProject(),
-                                                  Collections::emptyList,
+                                                  myVirtualDeviceModel,
+                                                  null,
                                                   Mockito.mock(VirtualDeviceTableCellRenderer.class));
 
     myVirtualDisplayList.refreshAvds();
 
-    assertTrue(myVirtualDisplayList.getAvds().isEmpty());
+    assertTrue(myVirtualDisplayList.getTableItems().isEmpty());
   }
 
   @Test
   public void refreshAvds() throws InterruptedException {
+    List<AvdInfo> avds = new ArrayList<>();
+    CountDownLatch latch = new CountDownLatch(1);
+    myVirtualDeviceModel = new VirtualDeviceModel(() -> avds);
     myVirtualDisplayList = new VirtualDisplayList(myRule.getProject(),
-                                                  Collections::emptyList,
+                                                  myVirtualDeviceModel,
+                                                  latch,
                                                   Mockito.mock(VirtualDeviceTableCellRenderer.class));
     AvdInfo avd = new AvdInfo("Pixel 3",
                               new File("ini/file"),
@@ -70,25 +79,21 @@ public final class VirtualDisplayListTest {
                               Mockito.mock(SystemImage.class),
                               null);
 
-    assertTrue(myVirtualDisplayList.getAvds().isEmpty());
+    assertTrue(myVirtualDisplayList.getTableItems().isEmpty());
 
     // The AVDs should still be empty after more are available because it hasn't yet refreshed
-    myVirtualDisplayList.setGetAvds(() -> Collections.singletonList(avd));
-    assertTrue(myVirtualDisplayList.getAvds().isEmpty());
+    avds.add(avd);
+    assertTrue(myVirtualDisplayList.getTableItems().isEmpty());
 
     // Refresh the AVDs
-    CountDownLatch latch = new CountDownLatch(1);
-    myVirtualDisplayList.refreshAvds(() -> {
-      latch.countDown();
-      return null;
-    });
+    myVirtualDisplayList.refreshAvds();
 
     if (!latch.await(1000, TimeUnit.MILLISECONDS)) {
       Assert.fail();
     }
 
     // There is one AVD
-    assertEquals(1, myVirtualDisplayList.getAvds().size());
-    assertEquals("Pixel 3", myVirtualDisplayList.getAvds().get(0).getName());
+    assertEquals(1, myVirtualDisplayList.getTableItems().size());
+    assertEquals("Pixel 3", myVirtualDisplayList.getTableItems().get(0).getName());
   }
 }
