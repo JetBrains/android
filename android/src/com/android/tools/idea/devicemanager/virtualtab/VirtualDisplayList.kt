@@ -30,8 +30,6 @@ import com.android.tools.idea.avdmanager.DeleteAvdAction
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.EditAvdAction
 import com.android.tools.idea.avdmanager.RunAvdAction
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
@@ -51,9 +49,7 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import icons.StudioIcons
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -61,6 +57,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.AbstractAction
 import javax.swing.BoxLayout
@@ -77,18 +74,21 @@ import javax.swing.table.TableCellRenderer
 /**
  * A UI component which lists the existing AVDs
  */
-class VirtualDisplayList(private val project: Project?,
-                         var getAvds: () -> List<AvdInfo>,
-                         private val deviceTableCellRenderer: TableCellRenderer) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
+class VirtualDisplayList @TestOnly constructor(private val project: Project?,
+                         private val virtualDeviceModel: VirtualDeviceModel,
+                         modelListenerLatch: CountDownLatch?,
+                         private val deviceTableCellRenderer: TableCellRenderer)
+  : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
 
   constructor(project: Project?) : this(project,
-                                        { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) },
+                                        VirtualDeviceModel(),
+                                        null,
                                         VirtualDeviceTableCellRenderer())
 
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
   }
-  private val model = ListTableModel<AvdInfo>().apply {
+  private val tableModel = ListTableModel<AvdInfo>().apply {
     isSortable = true
   }
 
@@ -96,13 +96,12 @@ class VirtualDisplayList(private val project: Project?,
   private val listeners: MutableSet<AvdSelectionListener> = Sets.newHashSet()
   private val logger: Logger get() = logger<VirtualDisplayList>()
 
-  private var avds: List<AvdInfo> = listOf()
-
   private var latestSearchString: String = ""
 
   init {
     layout = BorderLayout()
-    table = VirtualTableView(model, this)
+    table = VirtualTableView(tableModel, this)
+    virtualDeviceModel.addListener(ModelListener(modelListenerLatch))
     add(notificationPanel, BorderLayout.NORTH)
     add(ScrollPaneFactory.createScrollPane(table), BorderLayout.CENTER)
 
@@ -131,7 +130,7 @@ class VirtualDisplayList(private val project: Project?,
     }
     refreshAvds()
 
-    model.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
+    tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
   }
 
   /**
@@ -172,7 +171,7 @@ class VirtualDisplayList(private val project: Project?,
     if (searchString != null) {
       latestSearchString = searchString
     }
-    model.items = avds.filter {
+    tableModel.items = tableModel.items.filter {
       it.displayName.contains(latestSearchString, ignoreCase = true)
     }
   }
@@ -181,21 +180,7 @@ class VirtualDisplayList(private val project: Project?,
    * Reload AVD definitions from disk and repopulate the table
    */
   override fun refreshAvds() {
-    refreshAvds(null)
-  }
-
-  @VisibleForTesting
-  fun refreshAvds(callback: (() -> Unit)?) {
-    GlobalScope.launch(ioThread) {
-      avds = getAvds.invoke()
-      withContext(uiThread) {
-        updateSearchResults(null)
-        refreshErrorCheck()
-        table.setWidths()
-
-        callback?.invoke()
-      }
-    }
+    virtualDeviceModel.refreshAvds()
   }
 
   /**
@@ -216,8 +201,8 @@ class VirtualDisplayList(private val project: Project?,
   override fun getComponent(): JComponent = this
 
   @VisibleForTesting
-  fun getAvds(): List<AvdInfo> {
-    return avds
+  fun getTableItems(): List<AvdInfo> {
+    return tableModel.items
   }
 
   private val editingListener: MouseAdapter = object : MouseAdapter() {
@@ -363,6 +348,16 @@ class VirtualDisplayList(private val project: Project?,
       table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
     ): Component = (defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) as JComponent).apply {
       border = JBUI.Borders.empty(10)
+    }
+  }
+
+  inner class ModelListener(private val latch: CountDownLatch?) : VirtualDeviceModel.VirtualDeviceModelListener {
+
+    override fun avdListChanged(avds: MutableList<AvdInfo>) {
+      tableModel.items = avds
+      updateSearchResults(null)
+      refreshErrorCheck()
+      latch?.countDown()
     }
   }
 
