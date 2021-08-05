@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager.virtualtab.columns;
 
+import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
+import com.android.tools.idea.devicemanager.physicaltab.Key;
+import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SerialNumber extends Key {
+final class VirtualDeviceName extends Key {
   private final @NotNull String myValue;
 
-  public SerialNumber(@NotNull String value) {
+  VirtualDeviceName(@NotNull String value) {
     myValue = value;
   }
 
   @Override
   protected @NotNull ConnectionType getConnectionType() {
-    return ConnectionType.USB;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   protected @NotNull SerialNumber getSerialNumber() {
-    return this;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -42,7 +45,7 @@ public final class SerialNumber extends Key {
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof SerialNumber && myValue.equals(((SerialNumber)object).myValue);
+    return object instanceof VirtualDeviceName && myValue.equals(((VirtualDeviceName)object).myValue);
   }
 
   @Override
