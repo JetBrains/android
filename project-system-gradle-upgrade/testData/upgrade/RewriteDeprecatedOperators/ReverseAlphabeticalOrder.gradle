@@ -1,5 +1,6 @@
 android {
   defaultConfig {
+    setTestInstrumentationRunnerArguments three: 'four', five: 'six'
     setTestHandleProfiling(false)
     setTestFunctionalTest(true)
     targetSdkVersion(29)
@@ -11,6 +12,7 @@ android {
   }
   productFlavors {
     foo {
+      setTestInstrumentationRunnerArguments one: 'two'
       setTestHandleProfiling(true)
       setTestFunctionalTest(false)
       targetSdkVersion(28)

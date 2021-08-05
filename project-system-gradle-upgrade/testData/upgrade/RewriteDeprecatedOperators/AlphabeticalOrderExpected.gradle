@@ -11,6 +11,7 @@ android {
     targetSdk 29
     testFunctionalTest true
     testHandleProfiling false
+    testInstrumentationRunnerArguments one: 'two'
   }
   buildTypes {
     mumble {
@@ -29,6 +30,7 @@ android {
       targetSdk 28
       testFunctionalTest false
       testHandleProfiling true
+      testInstrumentationRunnerArguments three: 'four', five: 'six'
     }
   }
 }

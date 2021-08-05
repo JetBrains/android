@@ -54,6 +54,7 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
             it.targetSdkVersion(),
             it.testFunctionalTest(),
             it.testHandleProfiling(),
+            it.testInstrumentationRunnerArguments(),
           )
         } +
         android().buildTypes().flatMap {
@@ -73,6 +74,7 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
             it.targetSdkVersion(),
             it.testFunctionalTest(),
             it.testHandleProfiling(),
+            it.testInstrumentationRunnerArguments(),
           )
         }
       },
