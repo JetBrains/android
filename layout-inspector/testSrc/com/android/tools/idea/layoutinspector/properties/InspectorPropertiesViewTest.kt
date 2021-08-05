@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DECLARED
@@ -85,7 +86,7 @@ class InspectorPropertiesViewTest {
     val semantic1 = ParameterItem("Text", STRING, "Hello", MERGED, id, context, -1, 0)
     val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
     val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2))
-    assertThat(inspector.lines).hasSize(14)
+    assertThat(inspector.lines).hasSize(13)
     assertThat(inspector.lines[1].title).isEqualTo("Declared Attributes")
     assertTable(inspector.lines[2], text)
     assertThat(inspector.lines[3].title).isEqualTo("Layout")
@@ -94,11 +95,10 @@ class InspectorPropertiesViewTest {
     assertTable(inspector.lines[6], alpha, width, text)
     assertThat(inspector.lines[7].title).isEqualTo("Parameters")
     assertTable(inspector.lines[8], param)
-    assertThat(inspector.lines[9].title).isEqualTo("Semantics")
-    assertThat(inspector.lines[10].title).isEqualTo("Merged semantics")
-    assertTable(inspector.lines[11], semantic1)
-    assertThat(inspector.lines[12].title).isEqualTo("Declared semantics")
-    assertTable(inspector.lines[13], semantic2)
+    assertThat(inspector.lines[9].title).isEqualTo("Merged Semantics")
+    assertTable(inspector.lines[10], semantic1)
+    assertThat(inspector.lines[11].title).isEqualTo("Declared Semantics")
+    assertTable(inspector.lines[12], semantic2)
   }
 
   private fun createInspector(properties: List<InspectorPropertyItem>): FakeInspectorPanel {

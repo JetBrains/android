@@ -72,6 +72,9 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
     tab.builders.add(InspectorTableBuilder("Parameters", { it.section == PropertySection.PARAMETERS },
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
-    tab.builders.add(SemanticsBuilder("Semantics", model, enumSupportProvider, controlTypeProvider))
+    tab.builders.add(InspectorTableBuilder("Merged Semantics", { it.section == PropertySection.MERGED },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Declared Semantics", { it.section == PropertySection.UNMERGED },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
   }
 }
