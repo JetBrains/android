@@ -31,21 +31,10 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
 
     super.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {
-        when (getCause(event)) {
-          "TRAVERSAL_FORWARD" -> transferFocusToFirstEditor()
-          "TRAVERSAL_BACKWARD" -> transferFocusToLastEditor()
-          else -> return  // avoid compilation warning
-        }
-      }
-
-      private fun getCause(event: FocusEvent): String? {
-        try {
-          // TODO: replace this with event.cause when JDK8 is no longer supported
-          val getCause = event.javaClass.getDeclaredMethod("getCause")
-          return getCause.invoke(event)?.toString()
-        }
-        catch (ex: ReflectiveOperationException) {
-          return null
+        when (event.cause) {
+          FocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
+          FocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
+          else -> return  // keep focus on the table
         }
       }
     })
