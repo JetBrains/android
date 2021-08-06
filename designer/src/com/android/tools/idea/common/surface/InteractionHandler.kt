@@ -289,7 +289,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
         // Use WriteCommandAction to wrap deletions so this operation only has one undo stack.
         WriteCommandAction.runWriteCommandAction(surface.project, "Delete Components", null, {
           modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) }
-        }, modelComponentsMap.keys.map { it.file }.toTypedArray())
+        }, *modelComponentsMap.keys.map { it.file }.toTypedArray())
       }
     }
     return null
