@@ -119,7 +119,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   private fun determineJavaVersion(project: Project) = runReadAction {
     ModuleManager.getInstance(project).modules
       .mapNotNull { LanguageLevelUtil.getCustomLanguageLevel(it) }
-      .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
+      .minOrNull() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
   }.toJavaVersion()
 
   private fun addBuildToolVersion(project: Project, buildToolRevision: Revision) {

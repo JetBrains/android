@@ -38,7 +38,7 @@ fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon? 
   }
 
   val width = filteredFormFactors.map { it.largeIcon.iconWidth }.sum()
-  val height = filteredFormFactors.map { it.largeIcon.iconHeight }.max() ?: 0
+  val height = filteredFormFactors.map { it.largeIcon.iconHeight }.maxOrNull() ?: 0
 
   @Suppress("UndesirableClassUsage")
   val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)

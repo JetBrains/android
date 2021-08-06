@@ -62,7 +62,7 @@ object TemplateUtils {
       val targets = sdkData?.targets.orEmpty().filter { it.isPlatform && !it.version.isPreview }
 
       val targetLevels = targets.map { it.version.apiLevel }
-      val maxApi = max(HIGHEST_KNOWN_STABLE_API, targetLevels.max() ?: 0)
+      val maxApi = max(HIGHEST_KNOWN_STABLE_API, targetLevels.maxOrNull() ?: 0)
 
       return (1..maxApi).map { SdkVersionInfo.getAndroidName(it) }
     }

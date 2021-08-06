@@ -85,7 +85,7 @@ class AndroidVersionsInfo {
 
     highestInstalledApiTarget = installedCompilationTargets
       .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION && !it.version.isPreview }
-      .maxBy { it.version.featureLevel }
+      .maxByOrNull { it.version.featureLevel }
   }
 
   /**

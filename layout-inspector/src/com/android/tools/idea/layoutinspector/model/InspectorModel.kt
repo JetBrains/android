@@ -84,8 +84,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     root.children.clear()
     ViewNode.writeDrawChildren { drawChildren ->
       root.drawChildren().clear()
-      val maxWidth = windows.values.map { it.width }.max() ?: 0
-      val maxHeight = windows.values.map { it.height }.max() ?: 0
+      val maxWidth = windows.values.map { it.width }.maxOrNull() ?: 0
+      val maxHeight = windows.values.map { it.height }.maxOrNull() ?: 0
       root.width = maxWidth
       root.height = maxHeight
       for (id in allIds) {

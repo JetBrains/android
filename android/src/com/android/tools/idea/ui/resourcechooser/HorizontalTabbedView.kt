@@ -116,8 +116,8 @@ private class MyTabbedPane : JBTabbedPane() {
       return Dimension()
     }
 
-    val width = components.map { it.preferredSize.width }.max()!!
-    val height = components.map { it.preferredSize.height }.max()!!
+    val width = components.map { it.preferredSize.width }.maxOrNull()!!
+    val height = components.map { it.preferredSize.height }.maxOrNull()!!
     return Dimension(width, height + getTabComponentAt(0).height)
   }
 
@@ -126,7 +126,7 @@ private class MyTabbedPane : JBTabbedPane() {
     if (children.isEmpty()) {
       return 0
     }
-    return children.map { it.preferredSize.width }.max()!! / tabCount
+    return children.map { it.preferredSize.width }.maxOrNull()!! / tabCount
   }
 
   fun addPage(index: Int, title: String, component: JComponent) {

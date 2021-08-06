@@ -263,7 +263,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     val supportFilter = findExistingExplicitVersion(dependencies.values())
                         ?: supportLibVersionFilter
     for (key in dependencies.keySet()) {
-      var highest: GradleCoordinate = dependencies.get(key).maxWith(COMPARE_PLUS_LOWER)!!
+      var highest: GradleCoordinate = dependencies.get(key).maxWithOrNull(COMPARE_PLUS_LOWER)!!
 
       // For test consistency, don't depend on installed SDK state while testing
       if (!forceRepositoryChecksInTests && ApplicationManager.getApplication().isUnitTestMode) {
@@ -347,7 +347,7 @@ const val REVISION_ANY = "+"
 private fun findExistingExplicitVersion(dependencies: Collection<GradleCoordinate>): String? {
   val highest = dependencies
                   .filter { coordinate: GradleCoordinate -> ImportUtil.SUPPORT_GROUP_ID == coordinate.groupId }
-                  .maxWith(COMPARE_PLUS_LOWER) ?: return null
+                  .maxWithOrNull(COMPARE_PLUS_LOWER) ?: return null
   val version = highest.revision
   return if (version.endsWith(REVISION_ANY))
     if (version.length > 1) version.dropLast(1) else null

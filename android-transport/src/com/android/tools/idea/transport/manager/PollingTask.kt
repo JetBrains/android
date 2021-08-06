@@ -56,7 +56,7 @@ internal class StreamEventPollingTask(private val streamId: Long, internal val l
         .sortedWith(query.sortOrder)
         .filter { event -> event.timestamp >= startTimestamp && query.filter(event) }
       filtered.forEach { event -> listener.executor.execute { listener.callback(event) } }
-      val maxTimeEvent = filtered.maxBy { it.timestamp }
+      val maxTimeEvent = filtered.maxByOrNull { it.timestamp }
       maxTimeEvent?.let { lastTimeStamp = max(startTimestamp, it.timestamp + 1) }
       if (filtered.isNotEmpty() && listener.isTransient) {
         return true

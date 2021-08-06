@@ -201,7 +201,7 @@ class DefaultInspectorClient(
 
       val groupLastResponseTimes = lastResponseTimePerWindow.getOrPut(it.groupId, ::mutableMapOf)
       // Get the timestamp of the most recent message we've received in this group.
-      val latestMessageTimestamp = groupLastResponseTimes.values.max() ?: Long.MIN_VALUE
+      val latestMessageTimestamp = groupLastResponseTimes.values.maxOrNull() ?: Long.MIN_VALUE
 
       val layoutInspectorEvent = it.layoutInspectorEvent
       // If this is the newest message in the group, update the map to contain only timestamps for current windows

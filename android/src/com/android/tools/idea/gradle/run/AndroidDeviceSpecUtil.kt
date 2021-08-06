@@ -70,7 +70,7 @@ fun createSpec(
   var abis: List<String> = emptyList()
 
   // Find the minimum value of the build API level for making other decisions
-  val minVersion = versions.minWith(Ordering.natural())!!
+  val minVersion = versions.minWithOrNull(Ordering.natural())!!
 
   // If we are building for only one device, pass the density and the ABI
   if (devices.size == 1) {

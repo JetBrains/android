@@ -510,7 +510,7 @@ private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int,
 }
 
 private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color {
-  return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
+  return colors.maxByOrNull { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
 }
 
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {

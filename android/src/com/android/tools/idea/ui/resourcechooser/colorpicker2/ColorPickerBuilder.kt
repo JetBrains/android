@@ -156,7 +156,7 @@ class ColorPickerBuilder {
       throw IllegalStateException("The Color Picker should have at least one picking component.")
     }
 
-    val width: Int = componentsToBuild.map { it.preferredSize.width }.max()!!
+    val width: Int = componentsToBuild.map { it.preferredSize.width }.maxOrNull()!!
     val height = componentsToBuild.map { it.preferredSize.height }.sum()
 
     val defaultFocusComponent = componentsToBuild.getOrNull(focusedComponentIndex)

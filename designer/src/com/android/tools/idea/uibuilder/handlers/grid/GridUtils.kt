@@ -32,10 +32,10 @@ import java.awt.Rectangle
  * The unit of coordinate is [AndroidDpCoordinate].
  */
 class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int, Int>) {
-  @AndroidDpCoordinate val left = columns.minBy { it.key }?.value ?: -1
-  @AndroidDpCoordinate val top = rows.minBy { it.key }?.value ?: -1
-  @AndroidDpCoordinate val right = columns.maxBy { it.key }?.value ?: -1
-  @AndroidDpCoordinate val bottom = rows.maxBy { it.key }?.value ?: -1
+  @AndroidDpCoordinate val left = columns.minByOrNull { it.key }?.value ?: -1
+  @AndroidDpCoordinate val top = rows.minByOrNull { it.key }?.value ?: -1
+  @AndroidDpCoordinate val right = columns.maxByOrNull { it.key }?.value ?: -1
+  @AndroidDpCoordinate val bottom = rows.maxByOrNull { it.key }?.value ?: -1
 
   val rowIndices = rows.keys
   val columnIndices = columns.keys
@@ -50,11 +50,11 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
     val top = rows[row] ?: return null
     val right = columns.asSequence()
                   .filter { it.key > column }
-                  .minBy { it.key }
+                  .minByOrNull { it.key }
                   ?.value ?: return null
     val bottom = rows.asSequence()
                    .filter { it.key > row }
-                   .minBy { it.key }
+                   .minByOrNull { it.key }
                    ?.value ?: return null
     return Rectangle(left, top, right - left, bottom - top)
   }
@@ -66,14 +66,14 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
    * Return the column index of GridLayout which contains the given x coordinate, or -1 if there is no column contains it.
    */
   fun getColumnAtX(@AndroidDpCoordinate x: Int): Int = columns.filter { it.value > x }
-                                                           .minBy { it.key }
+                                                           .minByOrNull { it.key }
                                                            ?.key ?: -1
 
   /**
    * Return the row index of GridLayout which contains the given y coordinate, or -1 if there is no row contains it.
    */
   fun getRowAtY(@AndroidDpCoordinate y: Int): Int = rows.filter { it.value > y }
-                                                        .minBy { it.key }
+                                                        .minByOrNull { it.key }
                                                         ?.key ?: -1
 }
 
@@ -147,8 +147,8 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
     previousColumn = cellData.column
   }
 
-  val columnCount = columnMap.keys.max()?.plus(1) ?: 1
-  val rowCount = rowMap.keys.max()?.plus(1) ?: 1
+  val columnCount = columnMap.keys.maxOrNull()?.plus(1) ?: 1
+  val rowCount = rowMap.keys.maxOrNull()?.plus(1) ?: 1
 
   columnMap[0] = left
   columnMap[columnCount] = right

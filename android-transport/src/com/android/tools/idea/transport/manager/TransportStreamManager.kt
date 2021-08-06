@@ -71,7 +71,7 @@ class TransportStreamManager private constructor(@VisibleForTesting val poller: 
         // the latest event may signal the stream is alive or dead:
         // 1) alive - if stream is new, add stream and notify listeners. otherwise do nothing
         // 2) dead - if stream is dead and manager knows it from before, then remove it and notify listeners. Otherwise do nothing.
-        val latestEvent = group.eventsList.maxBy { it.timestamp } ?: continue
+        val latestEvent = group.eventsList.maxByOrNull { it.timestamp } ?: continue
         val isConnected = latestEvent.stream.hasStreamConnected()
         synchronized(streamLock) {
           if (isConnected) {
