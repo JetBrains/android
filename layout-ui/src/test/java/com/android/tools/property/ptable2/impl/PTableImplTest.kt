@@ -18,6 +18,7 @@ package com.android.tools.property.ptable2.impl
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
 import com.android.tools.property.ptable2.PTable
@@ -31,8 +32,6 @@ import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.property.testing.ApplicationRule
-import com.android.tools.property.testing.RunWithTestFocusManager
-import com.android.tools.property.testing.SwingFocusRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
@@ -40,7 +39,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
@@ -71,11 +69,9 @@ class PTableImplTest {
   private var model: PTableTestModel? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
-  private val appRule = ApplicationRule()
-  private val focusRule = SwingFocusRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(focusRule).around(appRule)
+  val appRule = ApplicationRule()
 
   @Before
   fun setUp() {
@@ -469,33 +465,38 @@ class PTableImplTest {
     assertThat(table!!.isEditing).isFalse()
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateForwardsIntoTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
+    focusManager.focusOwner = panel
     panel.components[0].transferFocus()
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(focusRule.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateForwardsIntoReadOnlyTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     model!!.readOnly = true
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
+    focusManager.focusOwner = panel
     panel.components[0].transferFocus()
     assertThat(table!!.isEditing).isFalse()
     assertThat(table!!.selectedRow).isEqualTo(0)
-    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
-    focusRule.focusOwner?.transferFocus()
-    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusManager.focusOwner?.transferFocus()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateForwardsThroughTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
     panel.components[0].requestFocusInWindow()
     for (row in 0..5) {
       var column = 1
@@ -508,24 +509,25 @@ class PTableImplTest {
         column = 0
       }
       val name = "value in row $row"
-      focusRule.focusOwner?.transferFocus()
+      focusManager.focusOwner?.transferFocus()
       assertThat(table!!.editingRow).named(name).isEqualTo(row)
       assertThat(table!!.editingColumn).named(name).isEqualTo(column)
-      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
-      focusRule.focusOwner?.transferFocus()
+      assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
+      focusManager.focusOwner?.transferFocus()
       assertThat(table!!.editingRow).named(name).isEqualTo(row)
       assertThat(table!!.editingColumn).named(name).isEqualTo(column)
-      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
+      assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
     }
-    focusRule.focusOwner?.transferFocus()
+    focusManager.focusOwner?.transferFocus()
     assertThat(table!!.isEditing).isFalse()
-    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateBackwardsThroughTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
     panel.components[2].requestFocusInWindow()
     for (row in 5 downTo 0) {
       var column = 1
@@ -538,41 +540,43 @@ class PTableImplTest {
         column = 0
       }
       val name = "value in row $row"
-      focusRule.focusOwner?.transferFocusBackward()
+      focusManager.focusOwner?.transferFocusBackward()
       assertThat(table!!.editingRow).named(name).isEqualTo(row)
       assertThat(table!!.editingColumn).named(name).isEqualTo(column)
-      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
-      focusRule.focusOwner?.transferFocusBackward()
+      assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
+      focusManager.focusOwner?.transferFocusBackward()
       assertThat(table!!.editingRow).named(name).isEqualTo(row)
       assertThat(table!!.editingColumn).named(name).isEqualTo(column)
-      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
+      assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
     }
-    focusRule.focusOwner?.transferFocusBackward()
+    focusManager.focusOwner?.transferFocusBackward()
     assertThat(table!!.isEditing).isFalse()
-    assertThat(focusRule.focusOwner?.name).isEqualTo(FIRST_FIELD_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(FIRST_FIELD_EDITOR)
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateBackwardsIntoTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
     panel.components[2].transferFocusBackward()
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(focusRule.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
   }
 
-  @RunWithTestFocusManager
   @Test
   fun testNavigateBackwardsIntoReadOnlyTable() {
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
     model!!.readOnly = true
     val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
     panel.components[2].transferFocusBackward()
     assertThat(table!!.isEditing).isFalse()
     assertThat(table!!.selectedRow).isEqualTo(5)
-    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
-    focusRule.focusOwner?.transferFocus()
-    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusManager.focusOwner?.transferFocus()
+    assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
   @Test
@@ -683,7 +687,6 @@ class PTableImplTest {
     panel.components[0].name = FIRST_FIELD_EDITOR
     panel.components[1].name = TABLE_NAME
     panel.components[2].name = LAST_FIELD_EDITOR
-    focusRule.setRootPeer(panel)
     return panel
   }
 
@@ -722,7 +725,6 @@ class PTableImplTest {
       textEditor.name = TEXT_CELL_EDITOR
       editorComponent.add(textEditor)
       editorComponent.add(icon)
-      focusRule.setPeer(editorComponent)
     }
 
     override fun toggleValue() {

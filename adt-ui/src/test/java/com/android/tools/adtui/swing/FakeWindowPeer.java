@@ -28,6 +28,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.PaintEvent;
@@ -135,12 +136,18 @@ class FakeWindowPeer implements WindowPeer {
                               boolean focusedWindowChangeAllowed,
                               long time,
                               FocusEvent.Cause cause) {
-    return false;
+    KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    if (!(manager instanceof FakeKeyboardFocusManager)) {
+      return false;
+    }
+    FakeKeyboardFocusManager fakeManager = (FakeKeyboardFocusManager)manager;
+    fakeManager.setFocusOwner(lightweightChild, temporary, cause);
+    return true;
   }
 
   @Override
   public boolean isFocusable() {
-    return false;
+    return true;
   }
 
   @Override
