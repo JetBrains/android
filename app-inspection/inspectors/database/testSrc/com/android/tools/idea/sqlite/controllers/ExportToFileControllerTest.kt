@@ -111,6 +111,7 @@ import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -148,6 +149,7 @@ private const val downloadFolderName = "downloaded$nonAsciiSuffix"
 @Suppress("IncorrectParentDisposable")
 @RunsInEdt
 @RunWith(Parameterized::class)
+@Ignore
 class ExportToFileControllerTest(private val testConfig: TestConfig) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
