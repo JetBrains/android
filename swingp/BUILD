@@ -33,10 +33,10 @@ java_binary(
     ],
     deps = [
         "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.asm-all.8.0.1",
-        "//tools/base/third_party:com.google.code.gson_gson",
-        "//tools/base/third_party:com.google.guava_guava",
-        "//tools/base/third_party:org.apache.httpcomponents_httpclient",
-        "//tools/base/third_party:org.jetbrains_annotations",
+        "@maven//:com.google.code.gson.gson",
+        "@maven//:com.google.guava.guava",
+        "@maven//:org.apache.httpcomponents.httpclient",
+        "@maven//:org.jetbrains.annotations",
     ],
 )
 
