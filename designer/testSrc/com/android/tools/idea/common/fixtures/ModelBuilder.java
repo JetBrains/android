@@ -191,7 +191,7 @@ public class ModelBuilder {
 
       DesignSurface surface = createSurface(project, mySurfaceClass, myInteractionProviderCreator);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, null, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getModels()).thenReturn(ImmutableList.of(model));
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());

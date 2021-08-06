@@ -50,7 +50,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -107,7 +106,9 @@ public class NlModel implements Disposable, ModificationTracker {
   @NotNull private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  private String myModelDisplayName;
+  @Nullable private String myModelDisplayName;
+  /** Text to display when displaying a tooltip related to this model */
+  @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -149,6 +150,7 @@ public class NlModel implements Disposable, ModificationTracker {
   @NotNull
   static NlModel create(@Nullable Disposable parent,
                         @Nullable String modelDisplayName,
+                        @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
                         @NotNull Configuration configuration,
@@ -156,22 +158,24 @@ public class NlModel implements Disposable, ModificationTracker {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelDisplayName,
+                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull DataContext dataContext) {
-    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
+    this(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelDisplayName,
+                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
@@ -182,6 +186,7 @@ public class NlModel implements Disposable, ModificationTracker {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
+    myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -766,14 +771,9 @@ public class NlModel implements Disposable, ModificationTracker {
       return;
     }
 
-    Application application = ApplicationManager.getApplication();
-    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
-      // Since there is no UI in unit test or headless environment, we invoke and wait directly for testing purpose.
-      application.invokeAndWait(() -> NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback));
-    }
-    else {
-      application.invokeLater(() -> NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback));
-    }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback);
+    });
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
@@ -888,6 +888,11 @@ public class NlModel implements Disposable, ModificationTracker {
   @Nullable
   public String getModelDisplayName() {
     return myModelDisplayName;
+  }
+
+  @Nullable
+  public String getModelTooltip() {
+    return myModelTooltip;
   }
 
   @Override

@@ -81,6 +81,7 @@ class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(
 private data class LayoutData private constructor(
   val scale: Double,
   val modelName: String?,
+  val modelTooltip: String?,
   val x: Int,
   val y: Int,
   val scaledSize: Dimension) {
@@ -102,6 +103,7 @@ private data class LayoutData private constructor(
       LayoutData(
         sceneView.scale,
         sceneView.scene.sceneManager.model.modelDisplayName,
+        sceneView.scene.sceneManager.model.modelTooltip,
         sceneView.x,
         sceneView.y,
         sceneView.getContentSize(null).scaleBy(sceneView.scale))
@@ -289,7 +291,8 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
     else {
       modelNameLabel.text = layoutData.modelName
-      modelNameLabel.toolTipText = layoutData.modelName
+      // Use modelName for tooltip if none has been specified.
+      modelNameLabel.toolTipText = layoutData.modelTooltip ?: layoutData.modelName
       // We layout the top panel. We make the width to match the SceneViewPanel width and we let it choose its own
       // height.
       sceneViewTopPanel.setBounds(0, 0,
