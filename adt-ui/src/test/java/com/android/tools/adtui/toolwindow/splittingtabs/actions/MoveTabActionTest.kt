@@ -16,7 +16,7 @@
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
 import com.android.testutils.MockitoKt
-import com.android.tools.adtui.toolwindow.splittingtabs.setIsSplittingTab
+import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
@@ -115,5 +115,5 @@ class MoveTabActionTest {
   }
 
   private fun createContent(toolWindow: ToolWindowHeadlessManagerImpl.MockToolWindow) =
-    toolWindow.contentManager.factory.createContent(JPanel(), "Content", false).also(Content::setIsSplittingTab)
+    toolWindow.contentManager.factory.createContent(null, "Content", false).also { it.component = SplittingPanel(it, ::JPanel) }
 }

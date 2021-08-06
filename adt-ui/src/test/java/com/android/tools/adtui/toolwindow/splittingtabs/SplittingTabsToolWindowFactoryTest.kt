@@ -25,7 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.content.Content
@@ -38,6 +38,9 @@ import javax.swing.JPanel
 import kotlin.test.fail
 
 
+/**
+ * Tests for [SplittingTabsToolWindowFactory]
+ */
 class SplittingTabsToolWindowFactoryTest {
 
   @get:Rule
@@ -70,7 +73,7 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(toolWindow.contentManager.contents).asList().hasSize(1)
     val content = toolWindow.contentManager.contents[0]
     assertThat(content.displayName).isEqualTo("TabName")
-    assertThat(content.component).isSameAs(component)
+    assertThat((content.component as SplittingPanel).component).isSameAs(component)
     assertThat(content.isSplittingTab()).isTrue()
   }
 
@@ -134,7 +137,7 @@ class SplittingTabsToolWindowFactoryTest {
   }
 
   private fun assertContent(content: Content, expectedTabName: String, expectedContent: String) {
-    val component1 = content.component as? JLabel ?: fail("Expected a JLabel object")
+    val component1 = (content.component as? SplittingPanel)?.component as? JLabel ?: fail("Expected a JLabel object")
     assertThat(content.displayName).isEqualTo(expectedTabName)
     assertThat(component1.text).isEqualTo(expectedContent)
   }
@@ -148,7 +151,7 @@ class SplittingTabsToolWindowFactoryTest {
     override fun generateChildComponent(clientState: String?): JComponent = generateChild(clientState)
   }
 
-  private class FakeToolWindow(project: Project, val toolWindowId: String) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+  private class FakeToolWindow(project: Project, val toolWindowId: String) : MockToolWindow(project) {
     var hideOnEmpty: Boolean = false
     var tabActionList: MutableList<AnAction> = mutableListOf()
 
