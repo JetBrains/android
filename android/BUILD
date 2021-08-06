@@ -542,8 +542,8 @@ kotlin_library(
         "src/com/android/tools/idea/imports/UpdateOfflineGMavenIndex.kt",
     ],
     deps = [
-        "//tools/base/third_party:com.google.guava_guava",
-        "//tools/base/third_party:org.apache.commons_commons-compress",
+        "@maven//:com.google.guava.guava",
+        "@maven//:org.apache.commons.commons-compress",
     ],
 )
 
