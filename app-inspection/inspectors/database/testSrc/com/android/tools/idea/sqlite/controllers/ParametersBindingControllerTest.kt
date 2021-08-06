@@ -24,13 +24,13 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
-class ParametersBindingControllerTest : PlatformTestCase() {
+class ParametersBindingControllerTest : LightPlatformTestCase() {
   private lateinit var controller: ParametersBindingController
   private lateinit var view: FakeParametersBindingDialogView
   private lateinit var orderVerifier: InOrder

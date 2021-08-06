@@ -41,7 +41,6 @@ iml_module(
     # b/182573662 tests disabled due to flaky failures
     test_tags = [
         "no_test_windows",
-        "no_test_linux",
     ],
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/.idea/libraries:sqlite"],

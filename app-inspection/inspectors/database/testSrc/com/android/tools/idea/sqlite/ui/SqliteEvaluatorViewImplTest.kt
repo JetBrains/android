@@ -49,6 +49,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.EditorTextField
 import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
+import org.junit.Ignore
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -58,6 +59,7 @@ import java.awt.Dimension
 import javax.swing.JComboBox
 import javax.swing.JTable
 
+@Ignore
 class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
   private lateinit var mockSchemaProvider: SchemaProvider
