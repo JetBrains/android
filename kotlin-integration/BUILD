@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:maven.bzl", "maven_repo")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -52,22 +52,15 @@ iml_module(
     ],
 )
 
-maven_repo(
+maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//prebuilts/tools/common/m2:commons-logging.commons-logging.1.1.1",
-        "//prebuilts/tools/common/m2:junit.junit.4.12",
-        "//prebuilts/tools/common/m2:net.bytebuddy.byte-buddy.1.9.10",
-        "//prebuilts/tools/common/m2:net.bytebuddy.byte-buddy-agent.1.9.10",
-        "//prebuilts/tools/common/m2:org.hamcrest.hamcrest-core.1.3",
-        "//prebuilts/tools/common/m2:org.hamcrest.hamcrest-integration.1.3",
-        "//prebuilts/tools/common/m2:org.hamcrest.hamcrest-library.1.3",
-        "//prebuilts/tools/common/m2:org.jdeferred.jdeferred-android-aar.1.2.3_aar",
-        "//prebuilts/tools/common/m2:org.jdeferred.jdeferred-core.1.2.3",
-        "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.trove4j.1.0.20181211",
-        "//prebuilts/tools/common/m2:org.mockito.mockito-core.3.0.0",
-        "//prebuilts/tools/common/m2:org.objenesis.objenesis.2.6",
-        "//prebuilts/tools/common/m2:org.slf4j.slf4j-api.1.7.2",
+        "@maven_tests//:commons-logging.commons-logging_1.1.1",
+        "@maven_tests//:junit.junit_4.12",
+        "@maven_tests//:org.hamcrest.hamcrest-integration_1.3",
+        "@maven_tests//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven_tests//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
+        "@maven_tests//:org.mockito.mockito-core_3.0.0",
     ],
 )

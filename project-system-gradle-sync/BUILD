@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:maven.bzl", "maven_repo")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -63,10 +63,10 @@ iml_module(
     ],
 )
 
-maven_repo(
+maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//prebuilts/tools/common/m2:junit.junit.4.12",
+        "@maven_tests//:junit.junit_4.12",
     ],
 )
