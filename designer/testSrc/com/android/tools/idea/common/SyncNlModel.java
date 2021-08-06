@@ -41,7 +41,7 @@ public class SyncNlModel extends NlModel {
                                    @Nullable Disposable parent,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
-    return create(surface, parent, null, facet, file);
+    return create(surface, parent, null, null, facet, file);
   }
 
   @NotNull
@@ -49,16 +49,17 @@ public class SyncNlModel extends NlModel {
   public static SyncNlModel create(@NotNull DesignSurface surface,
                                    @Nullable Disposable parent,
                                    @Nullable String displayName,
+                                   @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(surface, parent, displayName, facet, file, configuration);
+    return new SyncNlModel(surface, parent, displayName, tooltip, facet, file, configuration);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @Nullable String displayName, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    super(parent, displayName, facet, file, configuration, surface.getComponentRegistrar(), DataContext.EMPTY_CONTEXT);
+  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @Nullable String displayName, @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    super(parent, displayName, tooltip, facet, file, configuration, surface.getComponentRegistrar(), DataContext.EMPTY_CONTEXT);
     mySurface = surface;
   }
 

@@ -106,7 +106,9 @@ public class NlModel implements Disposable, ModificationTracker {
   @NotNull private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  private String myModelDisplayName;
+  @Nullable private String myModelDisplayName;
+  /** Text to display when displaying a tooltip related to this model */
+  @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -148,6 +150,7 @@ public class NlModel implements Disposable, ModificationTracker {
   @NotNull
   static NlModel create(@Nullable Disposable parent,
                         @Nullable String modelDisplayName,
+                        @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
                         @NotNull Configuration configuration,
@@ -155,22 +158,24 @@ public class NlModel implements Disposable, ModificationTracker {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelDisplayName,
+                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull DataContext dataContext) {
-    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
+    this(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelDisplayName,
+                    @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
@@ -181,6 +186,7 @@ public class NlModel implements Disposable, ModificationTracker {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
+    myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -882,6 +888,11 @@ public class NlModel implements Disposable, ModificationTracker {
   @Nullable
   public String getModelDisplayName() {
     return myModelDisplayName;
+  }
+
+  @Nullable
+  public String getModelTooltip() {
+    return myModelTooltip;
   }
 
   @Override

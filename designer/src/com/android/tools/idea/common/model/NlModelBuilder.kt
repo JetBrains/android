@@ -46,6 +46,7 @@ class NlModelBuilder constructor(val facet: AndroidFacet, val file: VirtualFile,
       NlModel.create(
         parentDisposable,
         modelDisplayName,
+        modelTooltip,
         facet,
         file,
         configuration,
@@ -58,6 +59,7 @@ class NlModelBuilder constructor(val facet: AndroidFacet, val file: VirtualFile,
 
   private var parentDisposable: Disposable? = null
   private var modelDisplayName: String? = null
+  private var modelTooltip: String? = null
   private var componentRegistrar: Consumer<NlComponent> = Consumer {}
   private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> = BiFunction { project, virtualFile ->
     getDefaultFile(project, virtualFile)
@@ -80,6 +82,10 @@ class NlModelBuilder constructor(val facet: AndroidFacet, val file: VirtualFile,
 
   fun withModelDisplayName(modelDisplayName: String): NlModelBuilder = also {
     this.modelDisplayName = modelDisplayName
+  }
+
+  fun withModelTooltip(modelTooltip: String): NlModelBuilder = also {
+    this.modelTooltip = modelTooltip
   }
 
   fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): NlModelBuilder = also {
