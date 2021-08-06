@@ -24,5 +24,5 @@ interface SplittingTabsStateProvider {
    *
    * So, each client needs to encode and decode its own state.
    */
-  fun getState(): String
+  fun getState(): String?
 }

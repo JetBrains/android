@@ -14,6 +14,10 @@
     <option name="reset" path="ActionManager" hit="Reset zoom level to default" />
     <option name="to" path="ActionManager" hit="Reset zoom level to default" />
     <option name="zoom" path="ActionManager" hit="Reset zoom level to default" />
+    <option name="down" path="ActionManager" hit="Split Down" />
+    <option name="split" path="ActionManager" hit="Split Down" />
+    <option name="right" path="ActionManager" hit="Split Right" />
+    <option name="split" path="ActionManager" hit="Split Right" />
     <option name="in" path="ActionManager" hit="Zoom In" />
     <option name="zoom" path="ActionManager" hit="Zoom In" />
     <option name="out" path="ActionManager" hit="Zoom Out" />

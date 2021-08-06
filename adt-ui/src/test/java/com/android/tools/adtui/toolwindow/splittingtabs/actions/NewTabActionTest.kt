@@ -22,6 +22,9 @@ import com.intellij.openapi.project.DumbAware
 import org.junit.Test
 import org.mockito.Mockito.verify
 
+/**
+ * Tests for [NewTabAction]
+ */
 class NewTabActionTest {
   @Test
   fun isDumbAware() {

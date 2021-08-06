@@ -15,20 +15,17 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs
 
-import com.intellij.openapi.util.Key
 import com.intellij.ui.content.Content
-
-private val IS_SPLITTING_TAB_KEY = Key<Boolean>("IsSplittingTab")
-
-/**
- * Mark a content so we can enable context menu actions on it
- */
-internal fun Content.setIsSplittingTab() = putUserData(IS_SPLITTING_TAB_KEY, true)
 
 /**
  * Returns true if this context is in a Splitting Tabs ToolWindow.
  */
-internal fun Content.isSplittingTab() = getUserData(IS_SPLITTING_TAB_KEY) ?: false
+internal fun Content.isSplittingTab() = findFirstSplitter() != null
+
+/**
+ * Returns the "first" [SplittingPanel] child of this content or null if this content is not a Splitting Tabs ToolWindow.
+ */
+internal fun Content.findFirstSplitter(): SplittingPanel? = findFirstSplitter(component)
 
 /**
  * Convenience method that handles unlikely `manager == null` condition.

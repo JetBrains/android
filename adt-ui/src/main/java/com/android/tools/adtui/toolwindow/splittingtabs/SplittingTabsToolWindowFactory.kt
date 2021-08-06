@@ -19,9 +19,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateManager
 import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
@@ -70,13 +68,8 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
   private fun createContent(contentManager: ContentManager, tabState: TabState?): Content {
     val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
     return contentManager.factory.createContent(null, tabName, false).also {
-      val component = generateChildComponent(tabState?.clientState)
-      if (component is Disposable) {
-        Disposer.register(it, component)
-      }
-      it.component = component
+      it.component = SplittingPanel(it) { generateChildComponent(tabState?.clientState) }
       it.isCloseable = true
-      it.setIsSplittingTab()
     }
   }
 }

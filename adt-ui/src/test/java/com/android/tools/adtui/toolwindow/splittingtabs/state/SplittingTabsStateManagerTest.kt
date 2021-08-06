@@ -24,6 +24,9 @@ import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+/**
+ * Tests for [SplittingTabsStateManager]
+ */
 class SplittingTabsStateManagerTest {
   @get:Rule
   val projectRule = ProjectRule()

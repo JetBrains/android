@@ -16,7 +16,7 @@
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
 import com.android.testutils.MockitoKt
-import com.android.tools.adtui.toolwindow.splittingtabs.setIsSplittingTab
+import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
@@ -27,6 +27,9 @@ import org.junit.Rule
 import org.junit.Test
 import javax.swing.JPanel
 
+/**
+ * Tests for [SplittingTabsContextMenuAction]
+ */
 class SplittingTabsContextMenuActionTest {
   @get:Rule
   val appRule = ApplicationRule()
@@ -36,7 +39,10 @@ class SplittingTabsContextMenuActionTest {
   private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
   private val event by lazy { TestActionEvent({ }, splittingTabsContextMenuAction) }
   private val content by lazy {
-    toolWindow.contentManager.factory.createContent(JPanel(), "Content", false).also(toolWindow.contentManager::addContent)
+    toolWindow.contentManager.factory.createContent(null, "Content", false).also {
+      it.component = SplittingPanel(it, ::JPanel)
+      toolWindow.contentManager.addContent(it)
+    }
   }
 
   @Test
@@ -56,6 +62,8 @@ class SplittingTabsContextMenuActionTest {
 
   @Test
   fun update_notSplittingTabContent_invisibleAndDisabled() {
+    content.component = JPanel()
+
     splittingTabsContextMenuAction.update(event, toolWindow, content)
 
     assertThat(event.presentation.isVisible).isFalse()
@@ -65,8 +73,6 @@ class SplittingTabsContextMenuActionTest {
 
   @Test
   fun update_splittingTabContent_visibleAndEnabled() {
-    content.setIsSplittingTab()
-
     splittingTabsContextMenuAction.update(event, toolWindow, content)
 
     assertThat(event.presentation.isVisible).isTrue()
@@ -76,6 +82,8 @@ class SplittingTabsContextMenuActionTest {
 
   @Test
   fun actionPerformed_notSplittingTabContent_doesNotPerformAction() {
+    content.component = JPanel()
+
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)
 
     assertThat(splittingTabsContextMenuAction.actionPerformedCalled).isEqualTo(0)
@@ -91,8 +99,9 @@ class SplittingTabsContextMenuActionTest {
   @Test
   fun actionPerformed_nullContentManager_doesNotPerformAction() {
     // A content that hasn't been added has a null manager.
-    val content = toolWindow.contentManager.factory.createContent(JPanel(), "Content", false)
-    content.setIsSplittingTab()
+    val content = toolWindow.contentManager.factory.createContent(null, "Content", false).also {
+      it.component = SplittingPanel(it, ::JPanel)
+    }
 
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)
 
@@ -101,8 +110,6 @@ class SplittingTabsContextMenuActionTest {
 
   @Test
   fun actionPerformed_splittingTabContent_performsAction() {
-    content.setIsSplittingTab()
-
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)
 
     assertThat(splittingTabsContextMenuAction.actionPerformedCalled).isEqualTo(1)
