@@ -92,6 +92,29 @@ import org.jetbrains.annotations.TestOnly;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+  /**
+   * The collection of data used to select a new process when we don't have a process to profile.
+   */
+  private static final class Preference {
+    public static final Preference NONE = new Preference(null, null, null);
+
+    @Nullable
+    public final String deviceName;
+
+    @Nullable
+    public final String processName;
+
+    @NotNull
+    public final Predicate<Common.Process> processFilter;
+
+    public Preference(@Nullable String deviceName,
+                      @Nullable String processName,
+                      @Nullable Predicate<Common.Process> processFilter) {
+      this.deviceName = deviceName;
+      this.processName = processName;
+      this.processFilter = processFilter == null ? (process -> true) : processFilter;
+    }
+  }
 
   @NotNull
   private static Logger getLogger() {
@@ -138,13 +161,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private AgentData myAgentData;
 
-  @Nullable
-  private String myPreferredDeviceName;
-
-  @Nullable
-  private String myPreferredProcessName;
-
-  private Predicate<Common.Process> myPreferredProcessFilter;
+  @NotNull
+  private Preference myPreference = Preference.NONE;
 
   private Common.Device myDevice;
 
@@ -193,8 +211,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
     myIdeServices = ideServices;
-    myPreferredProcessName = null;
-    myPreferredProcessFilter = null;
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
@@ -321,9 +337,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                   @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
     myIdeServices.getFeatureTracker().trackAutoProfilingRequested();
-    myPreferredDeviceName = deviceName;
-    setPreferredProcessName(processName);
-    myPreferredProcessFilter = processFilter;
+
+    myPreference = new Preference(
+      deviceName,
+      processName,
+      processFilter
+    );
+
     // Checks whether we can switch immediately if the device is already there.
     setAutoProfilingEnabled(true);
 
@@ -331,12 +351,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void setPreferredProcessName(@Nullable String processName) {
-    myPreferredProcessName = processName;
+    myPreference = new Preference(
+      myPreference.deviceName,
+      processName,
+      myPreference.processFilter
+    );
   }
 
   @Nullable
   public String getPreferredProcessName() {
-    return myPreferredProcessName;
+    return myPreference.processName;
   }
 
   /**
@@ -578,9 +602,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     Set<Common.Device> onlineDevices = filterOnlineDevices(devices);
 
     // We have a preferred device, try not to select anything else.
-    if (myAutoProfilingEnabled && myPreferredDeviceName != null) {
+    if (myAutoProfilingEnabled && myPreference.deviceName != null) {
       for (Common.Device device : onlineDevices) {
-        if (myPreferredDeviceName.equals(buildDeviceName(device))) {
+        if (myPreference.deviceName.equals(buildDeviceName(device))) {
           return device;
         }
       }
@@ -615,7 +639,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // 1. User explicitly sets a device from the dropdown.
       // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
       // All of these cases mean that we can unset the preferred device.
-      myPreferredDeviceName = null;
+      myPreference = new Preference(
+        null,
+        myPreference.processName,
+        myPreference.processFilter
+      );
+
       // If the device is unsupported (e.g. pre-Lolipop), switch to the null stage with the unsupported reason.
       if (!device.getUnsupportedReason().isEmpty()) {
         setStage(new NullMonitorStage(this, device.getUnsupportedReason()));
@@ -770,10 +799,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     // Prefer the project's app if available.
-    if (myAutoProfilingEnabled && myPreferredProcessName != null) {
+    if (myAutoProfilingEnabled && myPreference.processName != null) {
       for (Common.Process process : processes) {
-        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
-            (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
+        if (process.getName().equals(myPreference.processName) &&
+            process.getState() == Common.Process.State.ALIVE &&
+            myPreference.processFilter.test(process)) {
           myIdeServices.getFeatureTracker().trackAutoProfilingSucceeded();
           myAutoProfilingEnabled = false;
           return process;
