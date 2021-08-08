@@ -5,6 +5,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
 import com.intellij.database.psi.DbDataSource;
+import com.intellij.database.view.DatabaseContextFun;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,7 +67,7 @@ public class AndroidUploadDatabaseAction extends AnAction {
 
   @NotNull
   private static List<AndroidDataSource> getSelectedAndroidDataSources(AnActionEvent e) {
-    final Set<DbDataSource> dataSourceElements = getSelectedElements(e.getDataContext(), DbDataSource.class);
+    final Set<DbDataSource> dataSourceElements = DatabaseContextFun.getSelectedDbElementsOfClass(e.getDataContext(), DbDataSource.class);
 
     if (dataSourceElements.isEmpty()) {
       return Collections.emptyList();
