@@ -50,6 +50,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     models.add(NlModel.builder(facet, virtualFile, defaultConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Default (100%)")
+                 .withModelTooltip(defaultConfig.toHtmlTooltip())
                  .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                  .build())
 
@@ -63,18 +64,21 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     models.add(NlModel.builder(facet, virtualFile, smallerFontConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Small (85%)")
+                 .withModelTooltip(smallerFontConfig.toHtmlTooltip())
                  .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                  .build())
 
     models.add(NlModel.builder(facet, virtualFile, largerFontConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Large (115%)")
+                 .withModelTooltip(largerFontConfig.toHtmlTooltip())
                  .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                  .build())
 
     models.add(NlModel.builder(facet, virtualFile, largestFontConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Largest (130%)")
+                 .withModelTooltip(largestFontConfig.toHtmlTooltip())
                  .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                  .build())
     return models

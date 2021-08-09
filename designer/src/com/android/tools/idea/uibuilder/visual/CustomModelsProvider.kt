@@ -125,6 +125,7 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
       val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(customConfig.name)
+        .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
         .withDataContext(CustomModelDataContext)
         .build()

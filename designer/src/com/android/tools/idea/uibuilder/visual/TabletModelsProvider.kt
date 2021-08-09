@@ -76,22 +76,12 @@ object TabletModelsProvider: VisualizationModelsProvider {
         val config = defaultConfig.clone()
         config.setDevice(device, false)
         config.deviceState = device.getState(orientation.shortDisplayValue)
-        var label: String? = null
-        val size = device.getScreenSize(orientation)
-        if (orientations.firstOrNull() == orientation) {
-          label = device.displayName
-          if (size != null) {
-            label = label + " (" + size.width + " x " + size.height + ")"
-          }
-        }
         val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
-        val builder = NlModel.builder(facet, betterFile, config).apply {
-          withParentDisposable(parentDisposable)
-          if (label != null) {
-            withModelDisplayName(label)
-          }
-          withComponentRegistrar { NlComponentHelper.registerComponent(it) }
-        }
+        val builder = NlModel.builder(facet, betterFile, config)
+          .withParentDisposable(parentDisposable)
+          .withModelDisplayName(device.displayName)
+          .withModelTooltip(config.toHtmlTooltip())
+          .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
         models.add(builder.build())
       }
     }

@@ -104,16 +104,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
-                                      @JdkConstants.InputEventMask modifiersEx: Int) {
-    val sceneView = surface.getSceneViewAt(mouseX, mouseY)
-    if (sceneView != null) {
-      val name = sceneView.sceneManager.model.configuration.toTooltips()
-      surface.setDesignToolTip(name)
-    }
-    else {
-      surface.setDesignToolTip(null)
-    }
-  }
+                                      @JdkConstants.InputEventMask modifiersEx: Int) { }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     // For now only custom models mode has popup menu.

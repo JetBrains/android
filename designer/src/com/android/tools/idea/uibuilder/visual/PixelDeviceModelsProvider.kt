@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -72,15 +71,11 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
     for (device in pixelDevices) {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
-      var label = device.displayName
-      val size = device.getScreenSize(ScreenOrientation.PORTRAIT)
-      if (size != null) {
-        label = label + " (" + size.width + " x " + size.height + ")"
-      }
       val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       models.add(NlModel.builder(facet, betterFile, config)
                    .withParentDisposable(parentDisposable)
-                   .withModelDisplayName(label)
+                   .withModelDisplayName(device.displayName)
+                   .withModelTooltip(config.toHtmlTooltip())
                    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                    .build())
     }
