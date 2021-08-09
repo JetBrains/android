@@ -51,6 +51,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *    static EditorFragmentArgs fromBundle(Bundle bundle);
  *    static EditorFragmentArgs fromSavedStateHandle(SavedStateHandle handle);
  *    Bundle toBundle();
+ *    SavedStateHandle toSavedStateHandle();
  *    String getMessage();
  *  }
  * ```
@@ -96,6 +97,7 @@ class LightArgsClass(facet: AndroidFacet,
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
     val bundleType = parsePsiType(modulePackage, "android.os.Bundle", null, this)
+    val savedStateHandleType = parsePsiType(modulePackage, "androidx.lifecycle.SavedStateHandle", null, this)
 
     val methods = mutableListOf<PsiMethod>()
 
@@ -111,12 +113,20 @@ class LightArgsClass(facet: AndroidFacet,
                              returnType = annotateNullability(thisType))
                   .addParameter("bundle", bundleType))
 
+    // Add on version specific methods since the navigation library side is keeping introducing new methods.
     if (navigationVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
-      val savedStateHandleType = parsePsiType(modulePackage, "androidx.lifecycle.SavedStateHandle", null, this)
-      methods.add(createMethod(name = "fromSavedStateHandle",
-                               modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                               returnType = annotateNullability(thisType))
-                    .addParameter("savedStateHandle", savedStateHandleType))
+      methods.add(
+        createMethod(
+          name = "fromSavedStateHandle",
+          modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+          returnType = annotateNullability(thisType)
+        ).addParameter("savedStateHandle", savedStateHandleType)
+      )
+    }
+
+    // Add on version specific methods since the navigation library side is keeping introducing new methods.
+    if (navigationVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+      methods.add(createMethod(name = "toSavedStateHandle", returnType = annotateNullability(savedStateHandleType)))
     }
 
     methods.add(createMethod(
