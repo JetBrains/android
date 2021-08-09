@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.Legend
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
+import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
@@ -81,15 +82,9 @@ class ConnectionDetailsViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
-
   @Before
   fun before() {
-    val codeNavigationProvider = object : CodeNavigationProvider {
-      override val codeNavigator = object : CodeNavigator() {
-        override fun isNavigatable(location: CodeLocation) = true
-        override fun handleNavigate(location: CodeLocation) = Unit
-      }
-    }
+    val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), object : HttpDataModel {
       private val dataList = listOf(DEFAULT_DATA)

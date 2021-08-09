@@ -38,12 +38,7 @@ class NetworkInspectorModelTest {
 
   @Before
   fun setUp() {
-    val codeNavigationProvider = object : CodeNavigationProvider {
-      override val codeNavigator = object : CodeNavigator() {
-        override fun isNavigatable(location: CodeLocation) = true
-        override fun handleNavigate(location: CodeLocation) = Unit
-      }
-    }
+    val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(speedEventList = listOf(
       Event.newBuilder().apply {
