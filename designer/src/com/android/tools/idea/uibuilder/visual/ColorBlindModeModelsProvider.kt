@@ -45,6 +45,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
       models.add(NlModel.builder(facet, virtualFile, defaultConfig)
                    .withParentDisposable(parent)
                    .withModelDisplayName(mode.displayName)
+                   .withModelTooltip(defaultConfig.toHtmlTooltip())
                    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                    .build())
     }

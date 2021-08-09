@@ -64,6 +64,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
     models.add(NlModel.builder(facet, defaultFile, defaultLocaleConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Default (no locale)")
+                 .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
                  .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                  .build())
 
@@ -77,6 +78,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
       models.add(NlModel.builder(facet, betterFile, config)
                    .withParentDisposable(parentDisposable)
                    .withModelDisplayName(label)
+                   .withModelTooltip(config.toHtmlTooltip())
                    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
                    .build())
     }

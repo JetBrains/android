@@ -50,20 +50,6 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     `when`(surface.getSceneViewAt(xMatcher, yMatcher)).thenReturn(view)
   }
 
-  fun testHoverToShowToolTips() {
-    val surface = myModel.surface
-    val tooltips = surface.focusedSceneView!!.sceneManager.model.configuration.toTooltips()
-    val interactionHandler = VisualizationInteractionHandler(surface) { PixelDeviceModelsProvider }
-
-    val view = surface.sceneManager!!.sceneView
-
-    interactionHandler.hoverWhenNoInteraction(view.x + view.scaledContentSize.width / 2, view.y + view.scaledContentSize.height / 2, 0)
-    Mockito.verify(surface).setDesignToolTip(tooltips)
-
-    interactionHandler.hoverWhenNoInteraction(view.x - 100, view.y - 100, 0)
-    Mockito.verify(surface).setDesignToolTip(null)
-  }
-
   fun testDoubleClickToNavigateToFileOfPreview() {
     StudioFlags.NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR.override(false)
 

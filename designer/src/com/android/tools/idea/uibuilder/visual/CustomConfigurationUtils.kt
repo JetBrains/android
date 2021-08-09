@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.resources.NightMode
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.LocaleMenuAction
+import com.android.utils.HtmlBuilder
 
 fun Configuration.toTooltips() = StringBuilder()
   .append(device?.let { "${it.displayName}, " } ?: "")
@@ -27,3 +29,29 @@ fun Configuration.toTooltips() = StringBuilder()
   .append("${uiMode.longDisplayValue}, ")
   .append(nightMode.longDisplayValue)
   .toString()
+
+fun Configuration.toHtmlTooltip(): String {
+  val tooltip = HtmlBuilder()
+  val device = device
+  if (device != null) {
+    tooltip.addBold("Hardware").newline()
+      .add("Device: ${device.displayName}").newline()
+    val orientation = deviceState?.orientation ?: device.defaultState.orientation
+    val pxSize = device.getScreenSize(orientation)
+    val dpi = density.dpiValue
+    pxSize?.let { tooltip.add("Dimensions: ${it.width * 160 / dpi} x ${it.height * 160 / dpi} dp").newline() }
+    tooltip.add("Orientation: ${orientation.shortDisplayValue}").newline().newline()
+  }
+  tooltip.addBold("Display").newline()
+  target?.let { tooltip.add("API: ${it.version.apiLevel}").newline() }
+  tooltip.add("Locale: ${LocaleMenuAction.getLocaleLabel(locale, false)}").newline()
+    .add("Theme: $theme").newline()
+    .add("UI Mode: ${uiMode.shortDisplayValue}").newline()
+  if (nightMode == NightMode.NIGHT) {
+    tooltip.add("Night Mode: True")
+  }
+  else {
+    tooltip.add("Night Mode: False")
+  }
+  return tooltip.html
+}

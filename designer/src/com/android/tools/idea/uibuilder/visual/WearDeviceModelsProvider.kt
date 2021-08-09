@@ -72,15 +72,10 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
       // Round and Circle device must be portrait, and Chin device must be landscape
       val screenOrientation = if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
-
-      var label = device.displayName
-      val size = device.getScreenSize(screenOrientation)
-      if (size != null) {
-        label = label + " (" + size.width + " x " + size.height + ")"
-      }
       models.add(NlModel.builder(facet, virtualFile, config)
                    .withParentDisposable(parentDisposable)
-                   .withModelDisplayName(label)
+                   .withModelDisplayName(device.displayName)
+                   .withModelTooltip(config.toHtmlTooltip())
                    .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
                    .build())
     }
