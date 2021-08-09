@@ -132,8 +132,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
   }
 
   @Test
-  fun expectedMethodsAreCreated_inferredType() {
-    // Use a newer version to get the most number of methods generated
+  fun expectedMethodsAreCreated_inferredType_fromSavedStateHandle() {
+    // Use version [SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE] and check the corresponding methods and field.
     safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
@@ -189,6 +189,75 @@ class LightArgsAndBuilderClassInferredTypeTest(
       )
 
       methods[3].checkSignaturesAndReturnType(
+        name = "toBundle",
+        returnType = "Bundle"
+      )
+    }
+  }
+
+  @Test
+  fun expectedMethodsAreCreated_inferredType_toSavedStateHandle() {
+    // Use version [SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE] and check the corresponding methods and field.
+    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
+
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment"
+              android:name="test.safeargs.Fragment"
+              android:label="Fragment">
+            <argument
+                android:name="arg1"
+                android:defaultValue="${defaultValueTypeMapping.defaultValue}" />
+          </fragment>
+        </navigation>
+        """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
+
+    // Classes can be found with context
+    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+
+    argClass.methods.let { methods ->
+      assertThat(methods.size).isEqualTo(5)
+      methods[0].checkSignaturesAndReturnType(
+        name = "getArg1",
+        returnType = defaultValueTypeMapping.inferredTypeStr,
+        isReturnTypeNullable = defaultValueTypeMapping.defaultValue == "@null"
+      )
+
+      methods[1].checkSignaturesAndReturnType(
+        name = "fromBundle",
+        returnType = "FragmentArgs",
+        parameters = listOf(
+          Parameter("bundle", "Bundle")
+        )
+      )
+
+      methods[2].checkSignaturesAndReturnType(
+        name = "fromSavedStateHandle",
+        returnType = "FragmentArgs",
+        parameters = listOf(
+          Parameter("savedStateHandle", "SavedStateHandle")
+        )
+      )
+
+      methods[3].checkSignaturesAndReturnType(
+        name = "toSavedStateHandle",
+        returnType = "SavedStateHandle"
+      )
+
+      methods[4].checkSignaturesAndReturnType(
         name = "toBundle",
         returnType = "Bundle"
       )

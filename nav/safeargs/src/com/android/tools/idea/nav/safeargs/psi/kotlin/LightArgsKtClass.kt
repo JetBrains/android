@@ -71,6 +71,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  *  data class FirstFragmentArgs( val message: String) : NavArgs {
  *       fun toBundle(): Bundle
+ *       fun toSavedStateHandle(): SavedStateHandle
  *
  *       companion object {
  *          fun fromBundle(bundle: Bundle): FirstFragmentArgs
@@ -186,20 +187,35 @@ class LightArgsKtClass(
   private inner class ArgsClassScope : MemberScopeImpl() {
     private val argsClassDescriptor = this@LightArgsKtClass
     private val methods = storageManager.createLazyValue {
+      val methods = mutableListOf<SimpleFunctionDescriptor>()
+
       val bundleType = argsClassDescriptor.builtIns.getKotlinType("android.os.Bundle", null, argsClassDescriptor.module)
-      val toBundle = argsClassDescriptor.createMethod(
-        name = "toBundle",
-        returnType = bundleType,
+      val savedStateHandleType = argsClassDescriptor.builtIns.getKotlinType(
+        "androidx.lifecycle.SavedStateHandle",
+        null,
+        argsClassDescriptor.module
       )
 
-      val copy = argsClassDescriptor.createMethod(
-        name = "copy",
-        returnType = argsClassDescriptor.getDefaultType(),
-        valueParametersProvider = { argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters }
+      // Add toBundle method.
+      methods.add(
+        argsClassDescriptor.createMethod(
+          name = "toBundle",
+          returnType = bundleType,
+        )
       )
 
+      // Add copy method.
+      methods.add(
+        argsClassDescriptor.createMethod(
+          name = "copy",
+          returnType = argsClassDescriptor.getDefaultType(),
+          valueParametersProvider = { argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters }
+        )
+      )
+
+      // Add component functions.
       var index = 1
-      val componentFunctions = destination.arguments
+      destination.arguments
         .asSequence()
         .map { arg ->
           val methodName = "component" + index++
@@ -224,9 +240,20 @@ class LightArgsKtClass(
             sourceElement = resolvedSourceElement
           )
         }
+        .map { methods.add(it) }
         .toList()
 
-      listOf(toBundle, copy) + componentFunctions
+      // Add on version specific methods since the navigation library side is keeping introducing new methods.
+      if (navigationVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+        methods.add(
+          argsClassDescriptor.createMethod(
+            name = "toSavedStateHandle",
+            returnType = savedStateHandleType
+          )
+        )
+      }
+
+      methods
     }
 
     private val properties = storageManager.createLazyValue {

@@ -19,12 +19,12 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import org.jetbrains.android.facet.AndroidFacet
-import kotlin.time.measureTime
 
 internal val GRADLE_VERSION_ZERO = GradleVersion(0, 0)
 
 object SafeArgsFeatureVersions {
   val FROM_SAVED_STATE_HANDLE = GradleVersion.parse("2.4.0-alpha01")
+  val TO_SAVED_STATE_HANDLE = GradleVersion.parse("2.4.0-alpha07")
 }
 
 /**
