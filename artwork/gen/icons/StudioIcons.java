@@ -108,6 +108,9 @@ public class StudioIcons {
     public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.svg"); // 14x20
     public static final Icon PROPERTY_UNBOUND_LARGE = load("/studio/icons/common/property-unbound-large.svg"); // 14x24
     public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.svg"); // 14x20
+
+    /** @deprecated use AllIcons.General.Remove */
+    @Deprecated
     public static final Icon REMOVE = load("/studio/icons/common/remove.svg"); // 16x16
     public static final Icon REORDER = load("/studio/icons/common/reorder.svg"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.svg"); // 16x16
@@ -652,6 +655,12 @@ public class StudioIcons {
       public static final Icon SOURCE = load("/studio/icons/nav-editor/properties/source.svg"); // 16x16
     }
 
+    public static class Surface {
+      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.svg"); // 56x56
+      public static final Icon POP_ACTION = load("/studio/icons/nav-editor/surface/pop-action.svg"); // 56x56
+      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.svg"); // 56x56
+    }
+
     public static class Toolbar {
       public static final Icon ACTION = load("/studio/icons/nav-editor/toolbar/action.svg"); // 16x16
       public static final Icon ADD_DESTINATION = load("/studio/icons/nav-editor/toolbar/add-destination.svg"); // 16x16
@@ -667,12 +676,6 @@ public class StudioIcons {
       public static final Icon INCLUDE_GRAPH = load("/studio/icons/nav-editor/tree/include-graph.svg"); // 16x16
       public static final Icon NESTED_GRAPH = load("/studio/icons/nav-editor/tree/nested-graph.svg"); // 16x16
       public static final Icon PLACEHOLDER = load("/studio/icons/nav-editor/tree/placeholder.svg"); // 16x16
-    }
-
-    public static class Surface {
-      public static final Icon DEEPLINK = load("/studio/icons/nav-editor/surface/deeplink.svg"); // 56x56
-      public static final Icon POP_ACTION = load("/studio/icons/nav-editor/surface/pop-action.svg"); // 56x56
-      public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.svg"); // 56x56
     }
   }
 
