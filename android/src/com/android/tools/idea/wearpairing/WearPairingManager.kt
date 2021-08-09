@@ -387,7 +387,7 @@ private fun IDevice.getDeviceID(): String {
   return when {
     avdName != null -> avdName!!
     isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
-    else -> name
+    else -> this.serialNumber
   }
 }
 

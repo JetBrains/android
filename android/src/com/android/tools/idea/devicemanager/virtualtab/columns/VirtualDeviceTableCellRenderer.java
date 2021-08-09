@@ -39,6 +39,7 @@ public final class VirtualDeviceTableCellRenderer extends DeviceTableCellRendere
     AvdInfo avdInfo = (AvdInfo)value;
 
     Object virtualDevice = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName(avdInfo.getName()))
       .setCpuArchitecture(avdInfo.getCpuArch())
       .setName(avdInfo.getDisplayName())
       .setOnline(AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo))

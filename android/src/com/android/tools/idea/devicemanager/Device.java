@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Device {
+  protected final @NotNull Key myKey;
   protected final @NotNull String myName;
   protected final @NotNull String myTarget;
 
   protected static abstract class Builder {
+    protected @Nullable Key myKey;
     protected @Nullable String myName;
     protected @Nullable String myTarget;
 
@@ -31,11 +34,18 @@ public abstract class Device {
   }
 
   protected Device(@NotNull Builder builder) {
+    assert builder.myKey != null;
+    myKey = builder.myKey;
+
     assert builder.myName != null;
     myName = builder.myName;
 
     assert builder.myTarget != null;
     myTarget = builder.myTarget;
+  }
+
+  public final @NotNull Key getKey() {
+    return myKey;
   }
 
   protected abstract @NotNull Icon getIcon();
