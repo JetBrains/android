@@ -35,7 +35,6 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/.idea/libraries:layoutinspector-proto",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
@@ -46,6 +45,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/android-layout-inspector[module]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
     ],
 )
 
@@ -89,7 +90,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/.idea/libraries:transport-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
-        "//tools/adt/idea/.idea/libraries:layoutinspector-proto[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
@@ -108,6 +108,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
         "//tools/adt/idea/layout-inspector:skiaparser_test_support",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
     ],
 )
 
