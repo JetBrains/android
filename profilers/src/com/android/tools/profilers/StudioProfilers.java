@@ -116,11 +116,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(StudioProfilers.class);
-  }
-
   // Device directory where the transport daemon lives.
   public static final String DAEMON_DEVICE_DIR_PATH = "/data/local/tmp/perfd";
 
