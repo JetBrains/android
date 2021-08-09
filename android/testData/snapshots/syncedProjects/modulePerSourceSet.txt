@@ -4870,17 +4870,5 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testModulePerSourceSet.app
-        Module                        : testModulePerSourceSet.app
-    RUN_CONFIGURATION             : app.androidTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : testModulePerSourceSet.app.androidTest
-        Module                        : testModulePerSourceSet.app.androidTest
-    RUN_CONFIGURATION             : app.main
-        *class*                       : AndroidRunConfiguration
         ModuleName                    : testModulePerSourceSet.app.main
         Module                        : testModulePerSourceSet.app.main
-    RUN_CONFIGURATION             : app.unitTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : testModulePerSourceSet.app.unitTest
-        Module                        : testModulePerSourceSet.app.unitTest

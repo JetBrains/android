@@ -4870,17 +4870,5 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app
-        Module                        : project.app
-    RUN_CONFIGURATION             : app.androidTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.androidTest
-        Module                        : project.app.androidTest
-    RUN_CONFIGURATION             : app.main
-        *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app.main
         Module                        : project.app.main
-    RUN_CONFIGURATION             : app.unitTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.unitTest
-        Module                        : project.app.unitTest
