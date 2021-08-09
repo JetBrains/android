@@ -672,6 +672,7 @@ class AndroidTestSuiteViewTest {
       .filterNotNull()
       .toList()
 
+/* b/201109483
     assertThat(actionButtons).containsExactly(
       "Show passed tests",
       "Show skipped tests",
@@ -683,6 +684,7 @@ class AndroidTestSuiteViewTest {
       "Import Tests from File...",
       "Export Test Results..."
     ).inOrder()
+b/201109483 */
   }
 
   // Regression tests for b/172088812 where the apply-code-changes action causes
