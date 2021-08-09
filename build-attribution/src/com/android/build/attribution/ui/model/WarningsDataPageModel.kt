@@ -16,14 +16,18 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -489,7 +493,12 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
 
 fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0
 
-fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = this != JetifierNotUsed
-
+fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = when (this) {
+  AnalyzerNotRun -> false
+  JetifierNotUsed -> false
+  JetifierUsedCheckRequired -> true
+  JetifierCanBeRemoved -> true
+  is JetifierRequiredForLibraries -> true
+}
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
   if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"

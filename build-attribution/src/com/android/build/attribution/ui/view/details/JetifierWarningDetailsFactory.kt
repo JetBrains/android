@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view.details
 
+import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
@@ -57,6 +58,7 @@ class JetifierWarningDetailsFactory(
     JetifierCanBeRemoved -> createJetifierNotRequiredPage()
     is JetifierRequiredForLibraries -> createJetifierRequiredForLibrariesPage(data)
     JetifierNotUsed -> JPanel()
+    AnalyzerNotRun -> JPanel()
   }
 
   private fun createCheckRequiredPage() = JPanel().apply {

@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -214,10 +216,16 @@ class WarningsDataPageModelImplTest {
     """.trimMargin())
   }
 
-  fun testNoJetifierIssueDetected() {
+  @Test
+  fun testNoJetifierIssueDetected() = testNoJetifierWarningShown(JetifierNotUsed)
+
+  @Test
+  fun testJetifierAnalyzerSwitchedOff() = testNoJetifierWarningShown(AnalyzerNotRun)
+
+  private fun testNoJetifierWarningShown(jetifierData: JetifierUsageAnalyzerResult) {
     // Arrange
     val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
-      jetifierData = JetifierNotUsed
+      this.jetifierData = jetifierData
     })
     assertThat(model.print()).isEqualTo("""
       |ROOT

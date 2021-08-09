@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidProject
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
@@ -44,6 +45,16 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     return listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName("$BUILD_ANALYZER_CHECK_JETIFIER/mavenRepo")))
   }
 
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.clearOverride()
+  }
+
   @Test
   fun testNoAndroidX() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
@@ -54,6 +65,19 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierNotUsed)
+  }
+
+  @Test
+  fun testResultWhenFlagIsOff() {
+    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(false)
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val result = invokeGradleTasks(project, "assembleDebug")
+
+    Truth.assertThat(result.isBuildSuccessful).isTrue()
+
+    val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+    Truth.assertThat(jetifierUsageResult).isEqualTo(AnalyzerNotRun)
   }
 
   private fun doTestInitialBuildResult(propertiesContent: String, expectedResult: JetifierUsageAnalyzerResult) {

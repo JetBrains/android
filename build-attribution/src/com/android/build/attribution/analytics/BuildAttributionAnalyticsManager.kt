@@ -16,6 +16,7 @@
 package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
@@ -254,12 +255,14 @@ class BuildAttributionAnalyticsManager(
 
   private fun transformJetifierUsageData(jetifierUsageResult: JetifierUsageAnalyzerResult) =
     JetifierUsageData.newBuilder().apply {
-      jetifierUsageState = when (jetifierUsageResult) {
+      when (jetifierUsageResult) {
+        AnalyzerNotRun -> null
         JetifierCanBeRemoved -> JetifierUsageData.JetifierUsageState.JETIFIER_CAN_BE_REMOVED
         JetifierNotUsed -> JetifierUsageData.JetifierUsageState.JETIFIER_NOT_USED
         JetifierUsedCheckRequired -> JetifierUsageData.JetifierUsageState.JETIFIER_USED_CHECK_REQUIRED
         is JetifierRequiredForLibraries -> JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
-      }
+      }?.let { jetifierUsageState = it }
+
       if (jetifierUsageResult is JetifierRequiredForLibraries) {
         numberOfLibrariesRequireJetifier = jetifierUsageResult.checkJetifierResult.dependenciesDependingOnSupportLibs.size
       }
