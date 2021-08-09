@@ -2050,17 +2050,5 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
         ORDER_ENTRY                   : testTestFixturesWithModulePerSourceSetEnabled.lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTestFixturesWithModulePerSourceSetEnabled.app
-        Module                        : testTestFixturesWithModulePerSourceSetEnabled.app
-    RUN_CONFIGURATION             : app.androidTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTestFixturesWithModulePerSourceSetEnabled.app.androidTest
-        Module                        : testTestFixturesWithModulePerSourceSetEnabled.app.androidTest
-    RUN_CONFIGURATION             : app.main
-        *class*                       : AndroidRunConfiguration
         ModuleName                    : testTestFixturesWithModulePerSourceSetEnabled.app.main
         Module                        : testTestFixturesWithModulePerSourceSetEnabled.app.main
-    RUN_CONFIGURATION             : app.unitTest
-        *class*                       : AndroidRunConfiguration
-        ModuleName                    : testTestFixturesWithModulePerSourceSetEnabled.app.unitTest
-        Module                        : testTestFixturesWithModulePerSourceSetEnabled.app.unitTest

@@ -92,6 +92,9 @@ object ModuleUtil {
   fun Module.getMainModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.main ?: this
 
   @JvmStatic
+  fun Module.isMainModule() = getMainModule() == this
+
+  @JvmStatic
   fun Module.getUnitTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
 
   @JvmStatic
