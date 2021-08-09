@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab.columns;
 
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.physicaltab.Key;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,11 @@ final class VirtualDevice extends Device {
   static final class Builder extends Device.Builder {
     private boolean myOnline;
     private @Nullable String myCpuArchitecture;
+
+    @NotNull Builder setKey(@NotNull Key key) {
+      myKey = key;
+      return this;
+    }
 
     @NotNull Builder setCpuArchitecture(@NotNull String cpuArchitecture) {
       myCpuArchitecture = cpuArchitecture;

@@ -35,7 +35,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
       .thenComparing(PhysicalDevice::getLastOnlineTime, LAST_ONLINE_TIME_COMPARATOR);
 
-  private final @NotNull Key myKey;
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull String myNameOverride;
   private final @NotNull String myApi;
@@ -45,7 +44,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull Collection<@NotNull String> myAbis;
 
   public static final class Builder extends Device.Builder {
-    private @Nullable Key myKey;
     private @Nullable Instant myLastOnlineTime;
     private @NotNull String myNameOverride = "";
     private @Nullable String myApi;
@@ -118,9 +116,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private PhysicalDevice(@NotNull Builder builder) {
     super(builder);
 
-    assert builder.myKey != null;
-    myKey = builder.myKey;
-
     myLastOnlineTime = builder.myLastOnlineTime;
     myNameOverride = builder.myNameOverride;
 
@@ -131,10 +126,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
     myAbis = builder.myAbis;
-  }
-
-  @NotNull Key getKey() {
-    return myKey;
   }
 
   @Nullable Instant getLastOnlineTime() {
