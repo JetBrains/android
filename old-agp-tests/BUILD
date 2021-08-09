@@ -163,6 +163,7 @@ local_old_agp_test(
     gradle_version = GRADLE_5_5,
     shard_count = 4,
     tags = [
+        "manual",  # b/199740328
         "block-network",
         "no_test_mac",
         "no_test_windows",
