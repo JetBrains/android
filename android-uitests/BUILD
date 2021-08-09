@@ -108,7 +108,6 @@ filegroup(
 # TODO (b/191383051): Trim artifacts down to what is actually used.
 maven_repository(
     name = "test_deps",
-    allow_duplicates = False,
     # keep sorted: for buildifier
     artifacts = [
         "@maven_tests//:android.arch.navigation.navigation-fragment_1.0.0",

@@ -147,6 +147,5 @@ maven_repository(
         "@maven_tests//:com.jakewharton.auto.value.auto-value-annotations_1.2-update1",
         "@maven_tests//:io.opentracing.opentracing-impl_0.13.0",
     ],
-    #  "@maven_tests//:com.google.testing.compile.compile-testing_0.9",
     visibility = ["//visibility:public"],
 )
