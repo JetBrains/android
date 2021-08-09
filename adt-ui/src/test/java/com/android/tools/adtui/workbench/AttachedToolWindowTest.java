@@ -72,6 +72,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+@org.junit.Ignore("b/201102341")
 public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock private SideModel<String> myModel;
