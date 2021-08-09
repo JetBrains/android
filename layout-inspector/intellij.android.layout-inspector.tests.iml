@@ -28,7 +28,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
@@ -56,5 +55,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
   </component>
 </module>
