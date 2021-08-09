@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.CheckJetifierResult
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
@@ -35,6 +36,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   private var checkJetifierResult: CheckJetifierResult? = null
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
+    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return
     enableJetifierFlagState = studioProvidedInfo.enableJetifierPropertyState
     useAndroidXFlagState = studioProvidedInfo.useAndroidXPropertyState
 
@@ -47,6 +49,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {
+    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return AnalyzerNotRun
     if (enableJetifierFlagState == true && useAndroidXFlagState == true) {
       return checkJetifierResult?.let {
         if (it.isEmpty()) JetifierCanBeRemoved
@@ -65,6 +68,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
 
 sealed class JetifierUsageAnalyzerResult : AnalyzerResult
 
+object AnalyzerNotRun : JetifierUsageAnalyzerResult()
 object JetifierNotUsed : JetifierUsageAnalyzerResult()
 object JetifierUsedCheckRequired : JetifierUsageAnalyzerResult()
 object JetifierCanBeRemoved : JetifierUsageAnalyzerResult()
