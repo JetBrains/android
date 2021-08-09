@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
+import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClientImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
@@ -48,12 +49,7 @@ class NetworkInspectorTabTest {
     val timer = FakeTimer()
     timer.start()
     val services = TestNetworkInspectorServices(
-      object : CodeNavigationProvider {
-        override val codeNavigator = object : CodeNavigator() {
-          override fun isNavigatable(location: CodeLocation) = true
-          override fun handleNavigate(location: CodeLocation) = Unit
-        }
-      },
+      FakeCodeNavigationProvider(),
       timer,
       NetworkInspectorClientImpl(
         object : AppInspectorMessenger {

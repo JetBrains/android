@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
+import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
@@ -77,12 +78,7 @@ class NetworkInspectorViewTest {
   fun setUp() {
     disposable = Disposer.newDisposable()
 
-    val codeNavigationProvider = object : CodeNavigationProvider {
-      override val codeNavigator = object : CodeNavigator() {
-        override fun isNavigatable(location: CodeLocation) = true
-        override fun handleNavigate(location: CodeLocation) = Unit
-      }
-    }
+    val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(
       speedEventList = listOf(

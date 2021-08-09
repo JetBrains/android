@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.inspectors.common.api.stacktrace.FakeCodeNavigator;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -31,7 +32,6 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
-import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
@@ -46,7 +46,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +70,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
+  private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator();
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
   private TraceProcessorService myTraceProcessorService = new FakeTraceProcessorService();
   private NativeFrameSymbolizer myFakeSymbolizer = new NativeFrameSymbolizer() {
@@ -181,6 +180,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
     myTemporaryPreferences = new FakeProfilerPreferences();
+
+    myFakeNavigationService.addListener((location -> myFakeFeatureTracker.trackNavigateToCode()));
   }
 
   @NotNull
