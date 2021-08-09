@@ -23,11 +23,11 @@ import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorSe
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
-import com.android.tools.idea.profilers.stacktrace.ProfilerCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.inspectors.common.api.ide.stacktrace.IntellijCodeNavigator;
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -89,8 +89,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @NotNull private final SymbolFilesLocator mySymbolLocator;
-  @NotNull private final ProfilerCodeNavigator myCodeNavigator;
-
+  private final IntellijCodeNavigator myCodeNavigator;
   @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
 
@@ -109,10 +108,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(mySymbolLocator);
     Disposer.register(this, nativeSymbolizer::stop);
     myNativeSymbolizer = new IntelliJNativeFrameSymbolizer(nativeSymbolizer);
-    myCodeNavigator = new ProfilerCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
     myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
+
+    myCodeNavigator = new IntellijCodeNavigator(project, nativeSymbolizer);
+    myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
   }
 
   @Override
