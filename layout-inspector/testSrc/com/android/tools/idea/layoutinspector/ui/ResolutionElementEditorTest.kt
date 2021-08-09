@@ -122,7 +122,9 @@ class ResolutionElementEditorTest {
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
     expandFirstLabel(getEditor(editors, 1), true)
+/* b/201102652
     checkImage(editors, "OpenWithTwoDetails")
+b/201102652 */
   }
 
   @Test
