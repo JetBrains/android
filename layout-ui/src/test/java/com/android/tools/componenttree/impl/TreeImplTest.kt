@@ -253,6 +253,10 @@ class TreeImplTest {
     scrollPane.setBounds(0, 0,
                          width + scrollPane.verticalScrollBar.preferredSize.width,
                          height + scrollPane.horizontalScrollBar.preferredSize.height)
+
+    // This disables the "Show scroll bars when scrolling" option on Mac (for this test).
+    scrollPane.verticalScrollBar.isOpaque = true
+
     scrollPane.doLayout()
     tree.parent.doLayout()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
