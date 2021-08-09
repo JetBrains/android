@@ -1179,7 +1179,7 @@ public final class StudioFlags {
     COMPOSE, "preview.switch.animation.interactive",
     "Enable animation inspection switch from interactive preview (and disable from static preview)",
     "If enabled, a user can switch to animation inspection from interactive preview",
-    true
+    false
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = Flag.create(
