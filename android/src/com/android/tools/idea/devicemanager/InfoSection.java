@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
@@ -26,12 +26,12 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 
-class InfoSection extends JBPanel<InfoSection> {
+public class InfoSection extends JBPanel<InfoSection> {
   private final @NotNull Component myHeadingLabel;
   private final @NotNull Collection<@NotNull Component> myNameLabels;
   private final @NotNull Collection<@NotNull Component> myValueLabels;
 
-  InfoSection(@NotNull String heading) {
+  public InfoSection(@NotNull String heading) {
     super(null);
 
     myHeadingLabel = new JBLabel(heading);
@@ -39,7 +39,7 @@ class InfoSection extends JBPanel<InfoSection> {
     myValueLabels = new ArrayList<>();
   }
 
-  final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
+  public final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
     myNameLabels.add(new JBLabel(name));
 
     JLabel label = new JBLabel();
@@ -48,7 +48,7 @@ class InfoSection extends JBPanel<InfoSection> {
     return label;
   }
 
-  final void setLayout() {
+  public final void setLayout() {
     GroupLayout layout = new GroupLayout(this);
 
     Group horizontalGroup = layout.createParallelGroup().addComponent(myHeadingLabel);
@@ -72,7 +72,7 @@ class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  final @NotNull Collection<@NotNull Component> getNameLabels() {
+  public final @NotNull Collection<@NotNull Component> getNameLabels() {
     return myNameLabels;
   }
 }

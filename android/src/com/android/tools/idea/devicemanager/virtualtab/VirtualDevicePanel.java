@@ -116,13 +116,13 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
         remove(myDetailsPanel);
       }
 
-      myDetailsPanel = createDetailsPanel(device.getDisplayName());
+      myDetailsPanel = createDetailsPanel(device);
       setLayout(createGroupLayout());
     });
   }
 
-  private @NotNull Component createDetailsPanel(@NotNull String heading) {
-    DetailsPanel panel = new DetailsPanel(heading);
+  private @NotNull Component createDetailsPanel(@NotNull AvdInfo device) {
+    DetailsPanel panel = new VirtualDeviceDetailsPanel(device);
 
     panel.getCloseButton().addActionListener(event -> {
       remove(myDetailsPanel);
