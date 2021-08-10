@@ -36,43 +36,40 @@ import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
-import com.intellij.mock.MockPsiManager
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiManager
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.EditorTextField
 import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
-import org.junit.Ignore
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import javax.swing.JComboBox
 import javax.swing.JTable
 
-@Ignore
-class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
+class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
   private lateinit var mockSchemaProvider: SchemaProvider
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
+  private var dropPsiCachesCallCounter = 0
+
   override fun setUp() {
     super.setUp()
     mockSchemaProvider = mock(SchemaProvider::class.java)
     `when`(mockSchemaProvider.getSchema(any(SqliteDatabaseId::class.java))).thenReturn(SqliteSchema(emptyList()))
 
-    view = SqliteEvaluatorViewImpl(project, TableViewImpl(), mockSchemaProvider)
+    dropPsiCachesCallCounter = 0
+    view = SqliteEvaluatorViewImpl(project, TableViewImpl(), mockSchemaProvider) { dropPsiCachesCallCounter += 1 }
     view.component.size = Dimension(600, 200)
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
@@ -142,10 +139,6 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
     // Prepare
-    val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = spy(MockPsiManager(project))
-    ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
-
     val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
 
     val database1 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db1")))
@@ -154,23 +147,19 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     view.setDatabases(listOf(database1, database2), database1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(mockPsiManager).dropPsiCaches()
+    assertEquals(1, dropPsiCachesCallCounter)
 
     view.setDatabases(listOf(database1, database2), database2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(mockPsiManager, times(3)).dropPsiCaches()
+    assertEquals(3, dropPsiCachesCallCounter)
 
     comboBox.selectedIndex = 0
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(mockPsiManager, times(4)).dropPsiCaches()
+    assertEquals(4, dropPsiCachesCallCounter)
   }
 
   fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
     // Prepare
-    val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = spy(MockPsiManager(project))
-    ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
-
     val database = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db1")))
 
     view.setDatabases(listOf(database), database)
@@ -180,7 +169,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockPsiManager, times(2)).dropPsiCaches()
+    assertEquals(2, dropPsiCachesCallCounter)
     verify(mockSchemaProvider, times(2)).getSchema(database)
   }
 
