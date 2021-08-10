@@ -115,5 +115,5 @@ class MoveTabActionTest {
   }
 
   private fun createContent(toolWindow: ToolWindowHeadlessManagerImpl.MockToolWindow) =
-    toolWindow.contentManager.factory.createContent(null, "Content", false).also { it.component = SplittingPanel(it, ::JPanel) }
+    toolWindow.contentManager.factory.createContent(null, "Content", false).also { it.component = SplittingPanel(it, null) { JPanel() } }
 }

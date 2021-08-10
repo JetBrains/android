@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.state
 
+import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.Text
@@ -36,5 +37,30 @@ internal data class ToolWindowState(
 @Tag("tab")
 internal data class TabState(
   @Attribute("name") var tabName: String = "",
-  @Text var clientState: String? = null,
+  @Tag("content") var panelState: PanelState = PanelState(clientState = null)
 )
+
+/**
+ * Recursively encapsulates the contents of a splittable panel.
+ *
+ * The platform XML serialization does not support polymorphism so we can't have different types for a parent and leaf state node. Instead,
+ * we have nullable properties.
+ *
+ * The constructors enforce the validity of the data by accepting non-nullable where required.
+ */
+@Suppress("DataClassPrivateConstructor") // Private ctor is exposed by the generated `copy` method but we don't care.
+@Tag("panel")
+internal data class PanelState private constructor(
+  @Text var clientState: String? = null,
+  @Attribute var orientation: SplitOrientation? = null,
+  @Attribute var proportion: Float? = null,
+  @Tag var first: PanelState? = null,
+  @Tag var second: PanelState? = null
+) {
+  constructor(clientState: String?) : this(clientState, orientation = null, proportion = null, first = null, second = null)
+
+  constructor(orientation: SplitOrientation, proportion: Float, first: PanelState, second: PanelState)
+    : this(clientState = null, orientation, proportion, first, second)
+
+  fun isLeaf() = orientation == null
+}

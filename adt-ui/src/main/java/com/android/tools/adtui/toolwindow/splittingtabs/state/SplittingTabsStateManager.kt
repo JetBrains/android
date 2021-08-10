@@ -15,13 +15,13 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.state
 
+import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
-import javax.swing.JComponent
 
 @State(name = "SplittingTabsState", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE)])
 internal class SplittingTabsStateManager : PersistentStateComponent<SplittingTabsState> {
@@ -34,7 +34,7 @@ internal class SplittingTabsStateManager : PersistentStateComponent<SplittingTab
     for (toolWindow in toolWindows) {
       val contentManager = toolWindow.contentManager
       val states = contentManager.contents.map {
-        TabState(it.tabName, getClientState(it.component))
+        TabState(it.tabName, SplittingPanel.buildStateFromComponent(it.component))
       }
 
       val selectedContent = contentManager.selectedContent
@@ -53,8 +53,6 @@ internal class SplittingTabsStateManager : PersistentStateComponent<SplittingTab
   }
 
   fun getToolWindowState(toolWindowId: String): ToolWindowState = toolWindowStates?.get(toolWindowId) ?: ToolWindowState()
-
-  private fun getClientState(component: JComponent) = (component as? SplittingTabsStateProvider)?.getState()
 
   companion object {
     fun getInstance(project: Project): SplittingTabsStateManager = project.getService(SplittingTabsStateManager::class.java)

@@ -68,8 +68,8 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
   private fun createContent(contentManager: ContentManager, tabState: TabState?): Content {
     val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
     return contentManager.factory.createContent(null, tabName, false).also {
-      it.component = SplittingPanel(it) { generateChildComponent(tabState?.clientState) }
       it.isCloseable = true
+      it.component = SplittingPanel.buildComponentFromState(it, tabState?.panelState, this::generateChildComponent)
     }
   }
 }
