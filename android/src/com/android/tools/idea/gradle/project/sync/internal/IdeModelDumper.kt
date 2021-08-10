@@ -172,7 +172,7 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
           }
       }
       ideVariant.testFixturesArtifact?.let {
-        head("TestFixturesArtifact")
+        head("TestFixtureArtifact")
         nest {
           dump(it)
         }

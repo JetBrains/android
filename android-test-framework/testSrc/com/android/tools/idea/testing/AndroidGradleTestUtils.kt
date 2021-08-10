@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
@@ -237,7 +236,6 @@ interface AndroidProjectStubBuilder {
   fun mainArtifact(variant: String): IdeAndroidArtifactImpl
   fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl
   fun unitTestArtifact(variant: String): IdeJavaArtifactImpl
-  fun testFixturesArtifact(variant: String): IdeAndroidArtifactImpl
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantImpl>
   val ndkModel: V2NdkModel?
@@ -262,7 +260,6 @@ data class AndroidProjectBuilder(
   val mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl = { buildMainSourceProviderStub() },
   val androidTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl? = { buildAndroidTestSourceProviderContainerStub() },
   val unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl? = { buildUnitTestSourceProviderContainerStub() },
-  val testFixturesSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl? = { buildTestFixturesSourceProviderContainerStub() },
   val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildDebugSourceProviderStub() },
   val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildReleaseSourceProviderStub() },
   val debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildDebugBuildTypeStub() },
@@ -276,8 +273,6 @@ data class AndroidProjectBuilder(
     { variant -> buildAndroidTestArtifactStub(variant) },
   val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl =
     { variant -> buildUnitTestArtifactStub(variant) },
-  val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
-    { variant -> buildTestFixturesArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
@@ -390,7 +385,6 @@ data class AndroidProjectBuilder(
       override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
       override fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl = androidTestArtifactStub(variant)
       override fun unitTestArtifact(variant: String): IdeJavaArtifactImpl = unitTestArtifactStub(variant)
-      override fun testFixturesArtifact(variant: String): IdeAndroidArtifactImpl = testFixturesArtifactStub(variant)
       override val variants: List<IdeVariantImpl> = variants()
       override val androidProject: IdeAndroidProjectImpl = androidProject()
       override val ndkModel: V2NdkModel? = ndkModel()
@@ -442,11 +436,6 @@ fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): Ide
   IdeSourceProviderContainerImpl(
     artifactName = ARTIFACT_NAME_ANDROID_TEST,
     sourceProvider = sourceProvider(ARTIFACT_NAME_ANDROID_TEST, basePath.resolve("src/androidTest")))
-
-fun AndroidProjectStubBuilder.buildTestFixturesSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
-  IdeSourceProviderContainerImpl(
-    artifactName = ARTIFACT_NAME_TEST_FIXTURES,
-    sourceProvider = sourceProvider(ARTIFACT_NAME_TEST_FIXTURES, basePath.resolve("src/testFixtures")))
 
 fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
   IdeSourceProviderContainerImpl(
@@ -674,44 +663,6 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   )
 }
 
-fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
-  variant: String,
-  classFolders: Set<File> = setOf()
-): IdeAndroidArtifactImpl {
-  val dependenciesStub = buildDependenciesStub()
-  val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("testFixtures")
-  return IdeAndroidArtifactImpl(
-    name = IdeArtifactName.TEST_FIXTURES,
-    compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("testFixturesSources"),
-    assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}testFixtures/classes"),
-    additionalClassesFolders = classFolders,
-    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}testFixtures/out"),
-    variantSourceProvider = null,
-    multiFlavorSourceProvider = null,
-    ideSetupTaskNames = setOf("ideTestFixturesSetupTask1", "ideTestFixturesSetupTask2"),
-    mutableGeneratedSourceFolders = mutableListOf(),
-    isTestArtifact = false,
-    level2Dependencies = dependenciesStub,
-    applicationId = "applicationId",
-    signingConfigName = "defaultConfig",
-    isSigned = false,
-    generatedResourceFolders = listOf(),
-    additionalRuntimeApks = listOf(),
-    testOptions = null,
-    abiFilters = setOf(),
-    buildInformation = IdeBuildTasksAndOutputInformationImpl(
-      assembleTaskName = assembleTaskName,
-      assembleTaskOutputListingFile = buildPath.resolve("output/apk/$variant/output.json").path,
-      bundleTaskName = "bundle".takeIf { supportsBundleTask && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("testFixtures"),
-      bundleTaskOutputListingFile = buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json").path,
-      apkFromBundleTaskName = "extractApksFor".takeIf { projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("testFixtures"),
-      apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
-    ),
-    codeShrinker = null,
-  )
-}
-
 fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantImpl> {
   return listOfNotNull(debugBuildType, releaseBuildType)
     .map {
@@ -723,7 +674,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantImpl> {
         mainArtifact(variant),
         unitTestArtifact(variant),
         androidTestArtifact(variant),
-        testFixturesArtifact(variant),
+        null,
         variant,
         listOf(),
         minSdkVersion = defaultConfig.productFlavor.minSdkVersion ?: IdeApiVersionImpl(1, null, "1"),
