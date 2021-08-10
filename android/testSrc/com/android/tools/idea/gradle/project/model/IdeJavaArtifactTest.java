@@ -60,8 +60,6 @@ public class IdeJavaArtifactTest {
           return IdeArtifactName.ANDROID_TEST;
         case AndroidProject.ARTIFACT_UNIT_TEST:
           return IdeArtifactName.UNIT_TEST;
-        case AndroidProject.ARTIFACT_TEST_FIXTURES:
-          return IdeArtifactName.TEST_FIXTURES;
       }
       return null;
   }

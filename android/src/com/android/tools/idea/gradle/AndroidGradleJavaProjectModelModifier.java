@@ -353,12 +353,6 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       }
     }
     if (matchedLibrary == null) {
-      testArtifact = selectedVariant.getTestFixturesArtifact();
-      if (testArtifact != null) {
-        matchedLibrary = findMatchedLibrary(library, testArtifact);
-      }
-    }
-    if (matchedLibrary == null) {
       matchedLibrary = findMatchedLibrary(library, selectedVariant.getMainArtifact());
     }
     if (matchedLibrary == null) {

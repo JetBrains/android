@@ -122,21 +122,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/app/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -190,22 +175,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/app/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -258,22 +227,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/app/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesRelease/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -326,22 +279,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesSpecialRelease
-                    Manifest                      : <ROOT>/app/src/testFixturesSpecialRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesSpecialRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesSpecialRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesSpecialRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesSpecialRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesSpecialRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesSpecialRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesSpecialRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesSpecialRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesSpecialRelease/shaders [-]
     ProductFlavors
         ProductFlavor
             Dimension                     : foo
@@ -391,21 +328,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesBasic
-                    Manifest                      : <ROOT>/app/src/testFixturesBasic/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesBasic/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesBasic/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesBasic/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesBasic/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesBasic/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesBasic/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesBasic/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesBasic/shaders [-]
         ProductFlavor
             Dimension                     : foo
             ApplicationId                 : com.example.psd.sample.app.paid
@@ -470,21 +392,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesPaid
-                    Manifest                      : <ROOT>/app/src/testFixturesPaid/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesPaid/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesPaid/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesPaid/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesPaid/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesPaid/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesPaid/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesPaid/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesPaid/shaders [-]
         ProductFlavor
             Dimension                     : bar
             VectorDrawables
@@ -532,21 +439,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesBar
-                    Manifest                      : <ROOT>/app/src/testFixturesBar/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesBar/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesBar/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesBar/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesBar/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesBar/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesBar/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesBar/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesBar/shaders [-]
         ProductFlavor
             Dimension                     : bar
             resourceConfigurations        : en
@@ -597,21 +489,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testOtherBar/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesOtherBar
-                    Manifest                      : <ROOT>/app/src/testFixturesOtherBar/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/testFixturesOtherBar/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesOtherBar/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/testFixturesOtherBar/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/app/src/testFixturesOtherBar/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFixturesOtherBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testFixturesOtherBar/rs [-]
-                    ResDirectories                : <ROOT>/app/src/testFixturesOtherBar/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/testFixturesOtherBar/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/testFixturesOtherBar/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/testFixturesOtherBar/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2796,21 +2673,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/dyn_feature/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/dyn_feature/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/dyn_feature/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/dyn_feature/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/dyn_feature/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/dyn_feature/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/dyn_feature/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -2864,22 +2726,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/dyn_feature/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/dyn_feature/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/dyn_feature/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/dyn_feature/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/dyn_feature/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/dyn_feature/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/dyn_feature/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2932,22 +2778,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/dyn_feature/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/dyn_feature/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/dyn_feature/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/dyn_feature/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/dyn_feature/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/dyn_feature/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/dyn_feature/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/dyn_feature/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/dyn_feature/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3139,21 +2969,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/lib/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/lib/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -3207,22 +3022,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/lib/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/lib/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3275,22 +3074,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/lib/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/lib/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/lib/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/lib/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/lib/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/lib/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/lib/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/lib/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5018,21 +4801,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/nested1/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/nested1/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5086,22 +4854,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/nested1/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/nested1/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5154,22 +4906,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/nested1/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested1/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5353,21 +5089,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/nested1/deep/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/deep/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/deep/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/deep/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/nested1/deep/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/deep/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/deep/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5421,22 +5142,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/nested1/deep/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/deep/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/deep/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/deep/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/nested1/deep/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/deep/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/deep/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5489,22 +5194,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/nested1/deep/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested1/deep/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested1/deep/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested1/deep/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested1/deep/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested1/deep/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested1/deep/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested1/deep/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested1/deep/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5690,21 +5379,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/nested2/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5758,22 +5432,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/nested2/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5826,22 +5484,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/nested2/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testFixturesRelease/shaders [-]
     ProductFlavors
         ProductFlavor
             Dimension                     : foo
@@ -5890,21 +5532,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testBasic/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesBasic
-                    Manifest                      : <ROOT>/nested2/src/testFixturesBasic/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testFixturesBasic/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesBasic/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesBasic/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testFixturesBasic/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/testFixturesBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testFixturesBasic/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/testFixturesBasic/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testFixturesBasic/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testFixturesBasic/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testFixturesBasic/shaders [-]
         ProductFlavor
             Dimension                     : foo
             VectorDrawables
@@ -5952,21 +5579,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testPaid/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesPaid
-                    Manifest                      : <ROOT>/nested2/src/testFixturesPaid/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/src/testFixturesPaid/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesPaid/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/src/testFixturesPaid/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/src/testFixturesPaid/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/src/testFixturesPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testFixturesPaid/rs [-]
-                    ResDirectories                : <ROOT>/nested2/src/testFixturesPaid/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/src/testFixturesPaid/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/src/testFixturesPaid/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/src/testFixturesPaid/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6195,21 +5807,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/nested2/deep/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/deep/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/deep/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/deep/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/nested2/deep/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/deep/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/deep/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -6263,22 +5860,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/nested2/deep/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/deep/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/deep/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/deep/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/nested2/deep/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/deep/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/deep/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6331,22 +5912,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/nested2/deep/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/deep/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/deep/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/deep/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/deep/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/deep/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/deep/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/deep/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/deep/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6528,21 +6093,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/test/shaders [-]
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixtures
-                    Manifest                      : <ROOT>/nested2/trans/deep2/src/testFixtures/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixtures/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixtures/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testFixtures/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testFixtures/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testFixtures/rs [-]
-                    ResDirectories                : <ROOT>/nested2/trans/deep2/src/testFixtures/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testFixtures/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testFixtures/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testFixtures/shaders [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -6596,22 +6146,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesDebug
-                    Manifest                      : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/rs [-]
-                    ResDirectories                : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testFixturesDebug/shaders [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6664,22 +6198,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _test_fixtures_
-                SourceProvider
-                    Name                          : testFixturesRelease
-                    Manifest                      : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/java [-]
-                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/resources [-]
-                    AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/rs [-]
-                    ResDirectories                : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/res [-]
-                    AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testFixturesRelease/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
