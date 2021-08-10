@@ -45,11 +45,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent
 import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent.SnapshotCompatibility.Result
 import com.google.wireless.android.sdk.stats.EmulatorSnapshotFailureReason
-
 import com.intellij.icons.AllIcons
-import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.ide.HelpTooltip
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -95,7 +94,6 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import kotlin.concurrent.withLock
 
-// TODO(yahan@) rework this view when we have the UI mock
 /**
  * Shows the Android Test Retention artifacts
  */
@@ -175,9 +173,14 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     alignmentY = 0.0f
     isEditable = false
     addHyperlinkListener {
-      LOG.warn("opening ${it.url.path}")
+      val uri = it.url.toURI()
+      LOG.info("opening ${uri.path}")
       if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        BrowserUtil.browse(it.url.toURI())
+        if (RevealFileAction.isSupported()) {
+          RevealFileAction.openDirectory(File(uri))
+        } else {
+          LOG.warn("file opening not supported")
+        }
       }
     }
   }
@@ -503,7 +506,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       text += "<br><b>Test snapshot</b><br>"
       text += "${snapshotFile.name.escapeHtml()}<br>"
       text += "size: ${snapshotFile.length() / 1024 / 1024} MB<br>"
-      if (snapshotFile.parent != null) {
+      if (snapshotFile.parent != null && RevealFileAction.isSupported()) {
         text += "<a href=\"file:///${snapshotFile.parent.replace(" ", "%20").escapeHtml()}\">View file</a><br>"
       }
       try {
