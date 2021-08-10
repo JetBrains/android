@@ -59,7 +59,7 @@ class ComposeUnitTest {
 
   @Test
   fun parseDp() {
-    @Suppress("unused") // Used by tests via reflection
+    @Suppress("unused") // Methods are called via reflection by tests.
     class Dp {
       fun getValue() = 1.2345f
     }
@@ -73,9 +73,9 @@ class ComposeUnitTest {
 
   @Test
   fun parseInvalidDp() {
-    @Suppress("unused") // Used by tests via reflection
+    @Suppress("unused") // Methods are called via reflection by tests.
     class Dp {
-      fun getValue() = 1 //Not a float
+      fun getValue() = 1 // Not a float.
     }
 
     val composeUnit = ComposeUnit.Dp.create(Dp())
@@ -83,8 +83,16 @@ class ComposeUnitTest {
   }
 
   @Test
+  fun parseInvalidDpWithoutMethod() {
+    class Dp
+
+    val composeUnit = ComposeUnit.Dp.create(Dp())
+    assertNull(composeUnit)
+  }
+
+  @Test
   fun parseRect() {
-    @Suppress("unused") // Used by tests via reflection
+    @Suppress("unused") // Methods are called via reflection by tests.
     class Rect {
       fun getLeft() = 1.222f
       fun getTop() = 2.222f
@@ -107,9 +115,9 @@ class ComposeUnitTest {
 
   @Test
   fun parseInvalidRect() {
-    @Suppress("unused") // Used by tests via reflection
+    @Suppress("unused") // Methods are called via reflection by tests.
     class Rect {
-      // Not float values
+      // Not float values.
       fun getLeft() = 1
       fun getTop() = 2
       fun getRight() = 3
@@ -119,6 +127,61 @@ class ComposeUnitTest {
     val composeUnit = ComposeUnit.Rect.create(Rect())
     assertNull(composeUnit)
   }
+
+  @Test
+  fun parseInvalidRectWithoutMethods() {
+    @Suppress("unused") // Methods are called via reflection by tests.
+    class Rect {
+      fun getLeft() = 1f
+      fun getTop() = 2f
+      // No getRight() and getBottom() methods.
+    }
+
+    val composeUnit = ComposeUnit.Rect.create(Rect())
+    assertNull(composeUnit)
+  }
+
+  @Test
+  fun parseInvalidIntSize() {
+    class IntSize
+
+    val composeUnit = ComposeUnit.IntSize.create(IntSize())
+    assertNull(composeUnit)
+  }
+
+  @Test
+  fun parseInvalidIntOffset() {
+    class IntOffset
+
+    val composeUnit = ComposeUnit.IntSize.create(IntOffset())
+    assertNull(composeUnit)
+  }
+
+
+  @Test
+  fun parseInvalidSize() {
+    class Size
+
+    val composeUnit = ComposeUnit.Size.create(Size())
+    assertNull(composeUnit)
+  }
+
+  @Test
+  fun parseInvalidOffset() {
+    class Offset
+
+    val composeUnit = ComposeUnit.Offset.create(Offset())
+    assertNull(composeUnit)
+  }
+
+  @Test
+  fun parseInvalidColor() {
+    class Color
+
+    val composeUnit = ComposeUnit.Color.create(Color())
+    assertNull(composeUnit)
+  }
+
 
   @Test
   fun parseInvalid() {
