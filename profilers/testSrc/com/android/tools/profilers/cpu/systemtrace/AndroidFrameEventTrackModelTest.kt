@@ -38,7 +38,7 @@ class AndroidFrameEventTrackModelTest {
 
   @Test
   fun eventsAreGroupedByDepth() {
-    val trackModel = AndroidFrameEventTrackModel(FRAME_EVENTS, Range(0.0, 10.0))
+    val trackModel = AndroidFrameEventTrackModel(FRAME_EVENTS, Range(0.0, 10.0), listOf())
     assertThat(trackModel.series.size).isEqualTo(2)
     assertThat(trackModel.series[0].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
@@ -59,7 +59,7 @@ class AndroidFrameEventTrackModelTest {
       makeFrame(0, 0, 1000, 0),
       makeFrame(1, 5000, -1, 0)
     )
-    val trackModel = AndroidFrameEventTrackModel(frameEvents, Range(0.0, 10.0))
+    val trackModel = AndroidFrameEventTrackModel(frameEvents, Range(0.0, 10.0), listOf())
     assertThat(trackModel.series[0].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
       SeriesData(1L, AndroidFrameEvent.Padding),

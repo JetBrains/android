@@ -78,6 +78,7 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     private final StateChartModel<SystemTraceFrame> myModel;
     private final String myThreadName;
     private final int myThreadId;
+    private final RangedSeries<Long> myVsyncSeries;
 
     public FrameState(String threadName,
                       int threadId,
@@ -90,6 +91,7 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
       myFrameDataSeries = new LazyDataSeries<>(() -> systemTraceData.getFrames(threadType));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(range, myFrameDataSeries));
+      myVsyncSeries = new RangedSeries<>(range, new LazyDataSeries<>(systemTraceData::getVsyncCounterValues));
     }
 
     public String getThreadName() {
@@ -108,6 +110,11 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     @NotNull
     public StateChartModel<SystemTraceFrame> getModel() {
       return myModel;
+    }
+
+    @NotNull
+    public RangedSeries<Long> getVsyncSeries() {
+      return myVsyncSeries;
     }
   }
 }

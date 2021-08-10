@@ -44,6 +44,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.JComponent
 
 class CpuThreadTrackRendererTest {
   private val timer = FakeTimer()
@@ -75,22 +76,24 @@ class CpuThreadTrackRendererTest {
     val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
       Mockito.`when`(getThreadStatesForThread(1)).thenReturn(listOf())
     }
+    val fakeTimeline = DefaultTimeline()
     val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(range).thenReturn(Range())
       Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.ATRACE)
       Mockito.`when`(getCaptureNode(1)).thenReturn(captureNode)
       Mockito.`when`(systemTraceData).thenReturn(sysTraceData)
+      Mockito.`when`(timeline).thenReturn(fakeTimeline)
     }
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
         mockCapture,
         threadInfo,
-        DefaultTimeline(),
+        fakeTimeline,
         multiSelectionModel
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer(profilersView)
-    val component = renderer.render(threadTrackModel)
+    val component = renderer.render(threadTrackModel).getComponent(0) as JComponent
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
     assertThat(component.components[1]).isInstanceOf(HTreeChart::class.java)

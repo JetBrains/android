@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -249,11 +250,13 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     if (myCanvas == null || (ImageUtil.getUserWidth(myCanvas) < dim.width || ImageUtil.getUserHeight(myCanvas) < dim.height)) {
       // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
       // to render their text clearly (ARGB prevents LCD rendering from working).
-      myCanvas = ImageUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
+      myCanvas = ImageUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
     }
     final Graphics2D g = (Graphics2D)myCanvas.getGraphics();
     g.setColor(getBackground());
+    g.setComposite(AlphaComposite.Clear);
     g.fillRect(0, 0, dim.width, dim.height);
+    g.setComposite(AlphaComposite.Src);
 
     UISettings.setupAntialiasing(g);
     g.setFont(getFont());

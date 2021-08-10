@@ -31,13 +31,17 @@ import java.util.concurrent.TimeUnit
  */
 class AndroidFrameEventTrackModel
     @VisibleForTesting
-    constructor(eventSeries: List<RangedSeries<AndroidFrameEvent>>) : StateChartModel<AndroidFrameEvent>() {
+    constructor(eventSeries: List<RangedSeries<AndroidFrameEvent>>, val vsyncSeries: RangedSeries<Long>)
+          : StateChartModel<AndroidFrameEvent>() {
 
-  constructor(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>, viewRange: Range)
+  constructor(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>,
+              viewRange: Range,
+              vsyncSeries: List<SeriesData<Long>>)
     : this(androidFrameEvents.groupBy { it.depth }.toSortedMap().values
              .map { it.padded() }
              .filterNot { it.isEmpty() }
-             .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) })
+             .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) },
+           RangedSeries(viewRange, LazyDataSeries { vsyncSeries }))
 
   var activeSeriesIndex = -1
     set(index) {

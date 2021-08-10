@@ -29,8 +29,8 @@ import javax.swing.JPanel
  * Track renderer for System Trace BufferQueue counter.
  */
 class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel> {
-  override fun render(trackModel: TrackModel<BufferQueueTrackModel, *>): JComponent {
-    return JPanel(BorderLayout()).apply {
+  override fun render(trackModel: TrackModel<BufferQueueTrackModel, *>): JComponent =
+    JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel)
       lineChart.configure(
@@ -39,6 +39,5 @@ class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel> {
           .setStepped(true))
       lineChart.setFillEndGap(true)
       add(lineChart)
-    }
-  }
+    }.let { VsyncPanel.of(it, trackModel.dataModel.viewRange, trackModel.dataModel.systemTraceData.getVsyncCounterValues())}
 }
