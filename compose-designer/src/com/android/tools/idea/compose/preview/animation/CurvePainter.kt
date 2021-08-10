@@ -27,6 +27,7 @@ import java.awt.RenderingHints
 import java.awt.Stroke
 import java.awt.font.TextLayout
 import java.awt.geom.Path2D
+import javax.swing.JSlider
 
 /**
  * Graphics elements corresponding to painting the animation curves in [AnimationInspectorPanel].
@@ -125,6 +126,27 @@ object CurvePainter {
       g.fillRoundRect(x, y, textBoxWidth, textBoxHeight, TEXT_OFFSET_FOR_LABEL, TEXT_OFFSET_FOR_LABEL)
       g.color = UIUtil.getLabelDisabledForeground()
       g.drawString(label, x + TEXT_OFFSET_FOR_LABEL, y - TEXT_OFFSET_FOR_LABEL + textBoxHeight)
+    }
+  }
+
+  object Slider {
+
+    /** Minimum distance between major ticks in the timeline. */
+    private const val MINIMUM_TICK_DISTANCE = 150
+
+    private val TICK_INCREMENTS = arrayOf(
+      1_000_000_000, 100_000_000, 10_000_000, 1_000_000, 100_000, 10_000, 10_000, 1_000, 200, 50, 10, 5, 2)
+
+    /**
+     * Get the dynamic tick increment for horizontal slider:
+     * * its width should be bigger than [MINIMUM_TICK_DISTANCE]
+     * * tick increment is rounded to nearest [TICK_INCREMENTS]x
+     */
+    fun getTickIncrement(slider: JSlider, minimumTickSize: Int = MINIMUM_TICK_DISTANCE): Int {
+      if (slider.maximum == 0 || slider.width == 0) return slider.maximum
+      val increment = (minimumTickSize.toFloat() / slider.width * (slider.maximum - slider.minimum)).toInt()
+      TICK_INCREMENTS.forEach { if (increment >= it) return@getTickIncrement (increment / (it - 1)) * it }
+      return 1
     }
   }
 
