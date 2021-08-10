@@ -85,6 +85,7 @@ import java.awt.event.ComponentEvent
 import java.awt.geom.Path2D
 import javax.swing.JEditorPane
 import javax.swing.text.DefaultCaret
+import kotlin.math.max
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 
@@ -111,9 +112,6 @@ private const val TIMELINE_CURVE_OFFSET = 45
 
 /** Offset from the top of timeline to the first animation curve. */
 private const val TIMELINE_TOP_OFFSET = 20
-
-/** Minimum distance between labels in the timeline. */
-private const val MINIMUM_LABEL_DISTANCE = 100
 
 /** Number of ticks per label in the timeline. */
 private const val TICKS_PER_LABEL = 5
@@ -479,7 +477,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
 
       executeOnRenderThread(longTimeout) {
-        for (clockTimeMs in 0..maxDurationPerIteration step maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER) {
+        val clockTimeMsStep = max(1, maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER)
+        for (clockTimeMs in 0..maxDurationPerIteration step clockTimeMsStep) {
           clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
           try {
             val properties = clock.getAnimatedPropertiesFunction.invoke(clock.clock, animation) as List<ComposeAnimatedProperty>
@@ -890,20 +889,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       return Dimension(width - 50, transition.transitionTimelineHeight)
     }
 
-    /** Get the dynamic size of the tick for horizontal slider. */
-    private fun getTickSizeForHorizSlider(slider: JSlider, minimumTickSize: Int): Int {
-      val increment = if (slider.width == 0) 1 else minimumTickSize * (slider.maximum - slider.minimum) / width
-      return when {
-        increment > 200 -> (increment + 49) / 50 * 50 // Round up to 50x
-        increment > 50 -> (increment + 24) / 25 * 25 // Round up to 25x
-        increment > 20 -> (increment + 9) / 10 * 10 //Round up to 10x
-        increment > 5 -> 5
-        else -> 1
-      }
-    }
 
     private val slider = object : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
       private var cachedSliderWidth = 0
+      private var cachedMax = 0
       override fun updateUI() {
         setUI(TimelineSliderUI())
         updateLabelUIs()
@@ -911,13 +900,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
       override fun setMaximum(maximum: Int) {
         super.setMaximum(maximum)
-        updateMajorTicks(width)
+        updateMajorTicks()
       }
 
-      fun updateMajorTicks(width: Int) {
-        if (width == cachedSliderWidth) return
+      fun updateMajorTicks() {
+        if (width == cachedSliderWidth && maximum == cachedMax) return
         cachedSliderWidth = width
-        val tickIncrement = getTickSizeForHorizSlider(this, minimumTickSize = MINIMUM_LABEL_DISTANCE)
+        cachedMax = maximum
+        val tickIncrement = CurvePainter.Slider.getTickIncrement(this)
         // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
         // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
         setMajorTickSpacing(tickIncrement)
@@ -932,12 +922,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
     }.apply {
-      paintTicks = true
+      paintTicks = false
       paintLabels = true
-      updateMajorTicks(width)
+      updateMajorTicks()
       setUI(TimelineSliderUI())
       addComponentListener(object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) = updateMajorTicks(width)
+        override fun componentResized(e: ComponentEvent?) = updateMajorTicks()
       })
     }
 
@@ -1132,20 +1122,11 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         g.color = trackBackground
         g.fillRect(0, TIMELINE_HEADER_HEIGHT, width, height - TIMELINE_HEADER_HEIGHT)
         g.color = tickColor
-        val tickIncrement = getTickSizeForHorizSlider(slider, minimumTickSize = MINIMUM_LABEL_DISTANCE) / TICKS_PER_LABEL
-        val numberOfTicks = TICKS_PER_LABEL * slider.width / MINIMUM_LABEL_DISTANCE
-        for (i in 0..numberOfTicks) {
-          val xPos = xPositionForValue(i * tickIncrement)
+        val tickIncrement = max(1, slider.majorTickSpacing / TICKS_PER_LABEL)
+        for (tick in 0..slider.majorTickSpacing step tickIncrement) {
+          val xPos = xPositionForValue(tick)
           g.drawLine(xPos, tickRect.y + TIMELINE_HEADER_HEIGHT, xPos, tickRect.height)
         }
-      }
-
-      override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
-        // Major ticks are not painted here, but inside the [paintTrack()] method, so ticks are behind the animation curves.
-      }
-
-      override fun paintMinorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
-        // Minor ticks should not be painted
       }
 
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
