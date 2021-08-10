@@ -70,7 +70,10 @@ import javax.swing.LayoutFocusTraversalPolicy
 class SqliteEvaluatorViewImpl(
   override val project: Project,
   override val tableView: TableView,
-  private val schemaProvider: SchemaProvider
+  private val schemaProvider: SchemaProvider,
+  private val dropPsiCaches: () -> Unit = {
+    ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
+  }
 ) : SqliteEvaluatorView {
 
   private val splitterPanel = OnePixelSplitter(true)
@@ -235,7 +238,7 @@ class SqliteEvaluatorViewImpl(
     fileDocumentManager.getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
-    ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
+    dropPsiCaches()
   }
 
   override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
