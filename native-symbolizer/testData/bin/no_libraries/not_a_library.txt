@@ -1,0 +1,3 @@
+This file is only here so that the directory will appear in source control. The directory is used
+to test that the symbol file locator only returns directories that actually contain libraries. See
+SymbolFilesLocator.kt and SymbolFilesLocatorTest.kt for more details.
