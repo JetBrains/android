@@ -721,13 +721,6 @@
     <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
   </configurable>
-  <configurable id="device.file.explorer" configurable_name="Device File Explorer">
-    <option name="device" hit="Device File Explorer" />
-    <option name="explorer" hit="Device File Explorer" />
-    <option name="file" hit="Device File Explorer" />
-    <option name="download" hit="Download location" />
-    <option name="location" hit="Download location" />
-  </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
     <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
@@ -968,6 +961,13 @@
     <option name="details" path="SDK Platforms" hit="Show Package Details" />
     <option name="package" path="SDK Platforms" hit="Show Package Details" />
     <option name="show" path="SDK Platforms" hit="Show Package Details" />
+  </configurable>
+  <configurable id="device.file.explorer" configurable_name="Device File Explorer">
+    <option name="device" hit="Device File Explorer" />
+    <option name="explorer" hit="Device File Explorer" />
+    <option name="file" hit="Device File Explorer" />
+    <option name="download" hit="Download location" />
+    <option name="location" hit="Download location" />
   </configurable>
   <configurable id="memory.settings" configurable_name="Memory Settings">
     <option name="" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />

@@ -97,6 +97,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
+        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
     ],
 )
 

@@ -48,5 +48,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:intellij.android.app-inspection.inspectors.backgroundtask.ide[module]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/logcat:intellij.android.logcat[module]",
+        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
     ],
 )

@@ -20,12 +20,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
-import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
+import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import java.util.Collections;
-import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.JTable;
 import javax.swing.UIManager;
@@ -55,7 +55,7 @@ public final class ActionsTableCellEditorTest {
   private @NotNull Project myProject;
 
   @Mock
-  private @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
+  private @NotNull Function<@NotNull Project, @NotNull DeviceExplorerViewService> myDeviceExplorerViewServiceGetInstance;
 
   @Mock
   private @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
@@ -77,8 +77,11 @@ public final class ActionsTableCellEditorTest {
     // Arrange
     Mockito.when(myPanel.getProject()).thenReturn(myProject);
 
+    DeviceExplorerViewService service = Mockito.mock(DeviceExplorerViewService.class);
+    Mockito.when(myDeviceExplorerViewServiceGetInstance.apply(myProject)).thenReturn(service);
+
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
-                                                        myOpenAndShowDevice,
+                                                        myDeviceExplorerViewServiceGetInstance,
                                                         EditDeviceNameDialog::new,
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
@@ -98,7 +101,7 @@ public final class ActionsTableCellEditorTest {
     button.doClick();
 
     // Assert
-    Mockito.verify(myOpenAndShowDevice).accept(myProject, "86UX00F4R");
+    Mockito.verify(service).openAndShowDevice("86UX00F4R");
   }
 
   @Test
@@ -108,7 +111,7 @@ public final class ActionsTableCellEditorTest {
     Mockito.when(myNewEditDeviceNameDialog.apply(myProject, "", "Google Pixel 3")).thenReturn(myDialog);
 
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
-                                                        DeviceExplorerToolWindowFactory::openAndShowDevice,
+                                                        DeviceExplorerViewService::getInstance,
                                                         myNewEditDeviceNameDialog,
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
@@ -138,7 +141,7 @@ public final class ActionsTableCellEditorTest {
     Mockito.when(myNewEditDeviceNameDialog.apply(myProject, "", "Google Pixel 3")).thenReturn(myDialog);
 
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
-                                                        DeviceExplorerToolWindowFactory::openAndShowDevice,
+                                                        DeviceExplorerViewService::getInstance,
                                                         myNewEditDeviceNameDialog,
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
@@ -166,7 +169,7 @@ public final class ActionsTableCellEditorTest {
     Mockito.when(myPanel.getProject()).thenReturn(myProject);
 
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
-                                                        DeviceExplorerToolWindowFactory::openAndShowDevice,
+                                                        DeviceExplorerViewService::getInstance,
                                                         EditDeviceNameDialog::new,
                                                         (device, project) -> false);
 
@@ -198,7 +201,7 @@ public final class ActionsTableCellEditorTest {
     Mockito.when(myPanel.getTable()).thenReturn(table);
 
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
-                                                        DeviceExplorerToolWindowFactory::openAndShowDevice,
+                                                        DeviceExplorerViewService::getInstance,
                                                         EditDeviceNameDialog::new,
                                                         (device, project) -> true);
 

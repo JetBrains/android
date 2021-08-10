@@ -118,6 +118,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
+            "//tools/adt/idea/device-explorer:intellij.android.device-explorer",
             "//tools/adt/idea/emulator:intellij.android.emulator",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",

@@ -129,13 +129,6 @@
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
 
-    <group id="Android.DeviceExplorer.ActionsToolbar">
-      <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="StudioIcons.DeviceExplorer.SHARED_PREFS" text="Navigate to shared preferences folder"/>
-      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="StudioIcons.DeviceExplorer.DATABASE_FOLDER" text="Navigate to database folder" />
-      <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="StudioIcons.DeviceExplorer.SD_CARD_FOLDER" text="Navigate to SD card folder" />
-      <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help" text="Open Device Explorer help" />
-    </group>
-
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
@@ -391,10 +384,6 @@
                          provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
-    <applicationConfigurable groupId="tools" id="device.file.explorer"
-                             provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
-    <applicationService serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
-
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
@@ -616,12 +605,6 @@
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
-    <facet.toolWindow id="Device File Explorer"
-                      facetIdList="android,apk"
-                      anchor="right"
-                      secondary="true"
-                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                      factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <facet.toolWindow id="Device Manager"
                       anchor="right"
                       icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
@@ -853,7 +836,6 @@
     <notificationGroup id="UnifiedDeployTask" displayType="TOOL_WINDOW" toolWindowId="Run"/>
     <notificationGroup id="Invalid Sketch file" displayType="BALLOON"/>
     <notificationGroup id="Android" displayType="BALLOON"/>
-    <notificationGroup id="Device File Explorer" displayType="BALLOON"/>
     <notificationGroup id="Compose Project Notification" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Memory Settings Notification" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Render error panel notifications" displayType="BALLOON" isLogByDefault="false"/>
@@ -991,12 +973,6 @@
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
-    <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerFileManager"
-                    serviceImplementation="com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl" />
-  </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>

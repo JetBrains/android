@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.ide" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
+    <orderEntry type="module" module-name="intellij.android.device-explorer" />
   </component>
 </module>

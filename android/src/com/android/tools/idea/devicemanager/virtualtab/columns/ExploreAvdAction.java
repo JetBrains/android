@@ -19,7 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdUiAction;
-import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
+import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import java.awt.event.ActionEvent;
@@ -42,7 +42,7 @@ public final class ExploreAvdAction extends AvdUiAction {
       return;
     }
 
-    DeviceExplorerToolWindowFactory.openAndShowDevice(project, Objects.requireNonNull(myAvdInfoProvider.getAvdInfo()));
+    DeviceExplorerViewService.getInstance(project).openAndShowDevice(Objects.requireNonNull(myAvdInfoProvider.getAvdInfo()));
   }
 
   @Override
