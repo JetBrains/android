@@ -28,7 +28,7 @@ import java.nio.file.Paths
 import kotlin.properties.Delegates
 
 /**
- * This is a a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with
+ * This is a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with
  * a workaround for https://youtrack.jetbrains.com/issue/IDEA-260055.
  *
  * The fileName argument is not used as is for generated file or dir name - sortable UID is added as suffix.
