@@ -17,11 +17,13 @@ package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation.HORIZONTAL
 import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation.VERTICAL
+import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
@@ -45,10 +47,10 @@ import javax.swing.JPopupMenu
  *
  * This code was inspired by `org.jetbrains.plugins.terminal.TerminalContainer`
  */
-internal class SplittingPanel(private val content: Content, private val createChildComponent: () -> JComponent)
+internal class SplittingPanel(private val content: Content, clientState: String?, private val createChildComponent: (String?) -> JComponent)
   : JPanel(), SplittingTabsStateProvider, Disposable {
 
-  val component = createChildComponent()
+  val component = createChildComponent(clientState)
 
   private val menu = JPopupMenu().apply {
     add(SplitMenuItem(VERTICAL))
@@ -86,7 +88,7 @@ internal class SplittingPanel(private val content: Content, private val createCh
 
   fun split(orientation: SplitOrientation) {
     val parent = parent
-    val splitter = createSplitter(orientation, this, SplittingPanel(content, createChildComponent))
+    val splitter = createSplitter(orientation, this, SplittingPanel(content, clientState = null, createChildComponent))
 
     if (parent is OnePixelSplitter) {
       if (parent.firstComponent == this) {
@@ -158,13 +160,50 @@ internal class SplittingPanel(private val content: Content, private val createCh
 
   override fun getState(): String? = (component as? SplittingTabsStateProvider)?.getState()
 
+  companion object {
+    /**
+     * Recursively traverses hierarchy until a [SplittingPanel] is found.
+     */
+    internal fun findFirstSplitter(component: JComponent): SplittingPanel? =
+      when (component) {
+        is SplittingPanel -> component
+        is OnePixelSplitter -> findFirstSplitter(component.firstComponent)
+        else -> null
+      }
+
+    /**
+     * Recursively builds a [PanelState] from a component hierarchy.
+     */
+    internal fun buildStateFromComponent(component: JComponent): PanelState =
+      if (component is Splitter) {
+        PanelState(
+          orientation = SplitOrientation.fromSplitter(component),
+          proportion = component.proportion,
+          first = buildStateFromComponent(component.firstComponent),
+          second = buildStateFromComponent(component.secondComponent))
+      }
+      else {
+        PanelState(clientState = (component as? SplittingTabsStateProvider)?.getState())
+      }
+
+    /**
+     * Recursively builds a component hierarchy from a [PanelState].
+     */
+    internal fun buildComponentFromState(
+      content: Content,
+      panelState: PanelState?,
+      createChildComponent: (String?) -> JComponent
+    ): JComponent =
+      when {
+        panelState == null -> SplittingPanel(content, clientState = null, createChildComponent)
+        panelState.isLeaf() -> SplittingPanel(content, panelState.clientState, createChildComponent)
+        else -> {
+          OnePixelSplitter(panelState.orientation!!.toSplitter(), panelState.proportion!!).also {
+            it.firstComponent = buildComponentFromState(content, panelState.first!!, createChildComponent)
+            it.secondComponent = buildComponentFromState(content, panelState.second!!, createChildComponent)
+          }
+        }
+      }
+  }
 }
 
-/**
- * Recursively traverse hierarchy until a [SplittingPanel] is found.
- */
-internal fun findFirstSplitter(component: JComponent): SplittingPanel? = when (component) {
-  is SplittingPanel -> component
-  is OnePixelSplitter -> findFirstSplitter(component.firstComponent)
-  else -> null
-}

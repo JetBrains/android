@@ -40,7 +40,7 @@ class SplittingTabsContextMenuActionTest {
   private val event by lazy { TestActionEvent({ }, splittingTabsContextMenuAction) }
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, ::JPanel)
+      it.component = SplittingPanel(it, null) { JPanel() }
       toolWindow.contentManager.addContent(it)
     }
   }
@@ -100,7 +100,7 @@ class SplittingTabsContextMenuActionTest {
   fun actionPerformed_nullContentManager_doesNotPerformAction() {
     // A content that hasn't been added has a null manager.
     val content = toolWindow.contentManager.factory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, ::JPanel)
+      it.component = SplittingPanel(it, null) { JPanel() }
     }
 
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)

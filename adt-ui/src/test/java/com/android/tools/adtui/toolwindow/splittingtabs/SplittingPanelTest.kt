@@ -21,6 +21,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation.VERTICA
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanelTest.TreeNode.Leaf
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanelTest.TreeNode.Parent
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.SplitAction
+import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -30,6 +31,7 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
 import org.junit.Rule
 import org.junit.Test
@@ -62,7 +64,7 @@ class SplittingPanelTest {
   fun init_addsComponent() {
     val component = JLabel("Component")
 
-    val splittingPanel = SplittingPanel(contentManager.factory.createContent(null, "Tab", false)) { component }
+    val splittingPanel = SplittingPanel(contentManager.factory.createContent(null, "Tab", false), clientState = null) { component }
 
     assertThat(splittingPanel.component).isSameAs(component)
   }
@@ -70,7 +72,7 @@ class SplittingPanelTest {
   @Test
   fun split_selectsContent() {
     val content1 = contentManager.factory.createContent(null, "Tab1", false)
-    val content2 = createSplittingPanelContent(contentRootPanel, ::JPanel)
+    val content2 = createSplittingPanelContent(contentRootPanel) { JPanel() }
     contentManager.setSelectedContent(content1)
 
     fakeUi.getComponent<SplittingPanel>().split(VERTICAL)
@@ -87,8 +89,9 @@ class SplittingPanelTest {
 
     assertThat(buildTree(contentRootPanel)).isEqualTo(
       Parent(VERTICAL,
-             Parent(HORIZONTAL, Leaf("1"), Leaf("3")),
-             Parent(HORIZONTAL, Leaf("2"), Leaf("4"))))
+             0.5f,
+             Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
+             Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
   }
 
   @Test
@@ -102,8 +105,9 @@ class SplittingPanelTest {
 
     assertThat(buildTree(contentRootPanel)).isEqualTo(
       Parent(VERTICAL,
+             0.5f,
              Leaf("3"),
-             Parent(HORIZONTAL, Leaf("2"), Leaf("4"))))
+             Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
     assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
   }
 
@@ -118,7 +122,8 @@ class SplittingPanelTest {
 
     assertThat(buildTree(contentRootPanel)).isEqualTo(
       Parent(VERTICAL,
-             Parent(HORIZONTAL, Leaf("1"), Leaf("3")),
+             0.5f,
+             Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
              Leaf("4")))
     assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
   }
@@ -134,8 +139,9 @@ class SplittingPanelTest {
 
     assertThat(buildTree(contentRootPanel)).isEqualTo(
       Parent(VERTICAL,
+             0.5f,
              Leaf("1"),
-             Parent(HORIZONTAL, Leaf("2"), Leaf("4"))))
+             Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
     assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
   }
 
@@ -150,7 +156,8 @@ class SplittingPanelTest {
 
     assertThat(buildTree(contentRootPanel)).isEqualTo(
       Parent(VERTICAL,
-             Parent(HORIZONTAL, Leaf("1"), Leaf("3")),
+             0.5f,
+             Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
              Leaf("2")))
     assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
   }
@@ -207,14 +214,14 @@ class SplittingPanelTest {
 
   @Test
   fun getState_stateProvider() {
-    createSplittingPanelContent(contentRootPanel) { StateProvidingComponent("State") }
+    createSplittingPanelContent(contentRootPanel) { JLabelWithState("State") }
 
     assertThat(fakeUi.getComponent<SplittingPanel>().getState()).isEqualTo("State")
   }
 
   @Test
   fun getState_notStateProvider() {
-    createSplittingPanelContent(contentRootPanel, ::JPanel)
+    createSplittingPanelContent(contentRootPanel) { JPanel() }
 
     assertThat(fakeUi.getComponent<SplittingPanel>().getState()).isNull()
   }
@@ -226,7 +233,7 @@ class SplittingPanelTest {
 
     SplitAction.Vertical().actionPerformed(content)
 
-    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, Leaf("1"), Leaf("2")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(VERTICAL, 0.5f, Leaf("1"), Leaf("2")))
   }
 
   @Test
@@ -236,7 +243,7 @@ class SplittingPanelTest {
 
     SplitAction.Horizontal().actionPerformed(content)
 
-    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(HORIZONTAL, Leaf("1"), Leaf("2")))
+    assertThat(buildTree(contentRootPanel)).isEqualTo(Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("2")))
   }
 
   @Test
@@ -248,9 +255,9 @@ class SplittingPanelTest {
 
   private fun SplittingPanel.isNamed(name: String): Boolean = (component as JLabel).text == name
 
-  private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: () -> JComponent): Content {
+  private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: (String?) -> JComponent): Content {
     val content = contentManager.factory.createContent(/* component= */ null, "Tab", /* isLockable= */ false)
-    val splittingPanel = SplittingPanel(content, createChildComponent)
+    val splittingPanel = SplittingPanel(content, null, createChildComponent)
     content.component = splittingPanel
     contentManager.addContent(content)
     contentRootPanel.add(splittingPanel) // The mock ContentManager doesn't assign a parent.
@@ -259,9 +266,49 @@ class SplittingPanelTest {
     return content
   }
 
+  @Test
+  fun buildStateFromComponent() {
+    val count = AtomicInteger(0)
+    createSplittingPanelContent(contentRootPanel) { JLabelWithState("${count.incrementAndGet()}") }
+
+    split(SplitCommand("1", VERTICAL, 0.3f), SplitCommand("1", HORIZONTAL, 0.7f), SplitCommand("2", HORIZONTAL, 0.6f))
+
+    val state = SplittingPanel.buildStateFromComponent(contentRootPanel.getComponent(0) as JComponent)
+
+    assertThat(state).isEqualTo(
+      PanelState(
+        VERTICAL,
+        0.3f,
+        PanelState(HORIZONTAL, 0.7f, PanelState("1"), PanelState("3")),
+        PanelState(HORIZONTAL, 0.6f, PanelState("2"), PanelState("4"))))
+  }
+
+  @Test
+  fun buildComponentFromState() {
+    val state = PanelState(
+      VERTICAL,
+      0.3f,
+      PanelState(HORIZONTAL, 0.7f, PanelState("1"), PanelState("3")),
+      PanelState(HORIZONTAL, 0.6f, PanelState("2"), PanelState("4")))
+    val content = contentManager.factory.createContent(null, "Tab", false)
+
+    val component = SplittingPanel.buildComponentFromState(content, state) { JLabelWithState(it!!) }
+
+    assertThat(buildTree(component)).isEqualTo(
+      Parent(VERTICAL,
+             0.3f,
+             Parent(HORIZONTAL, 0.7f, Leaf("1"), Leaf("3")),
+             Parent(HORIZONTAL, 0.6f, Leaf("2"), Leaf("4")))
+    )
+  }
+
   private fun split(vararg splitCommands: SplitCommand) {
     for (command in splitCommands) {
-      fakeUi.getComponent<SplittingPanel> { it.isNamed(command.name) }.split(command.orientation)
+      val splittingPanel = fakeUi.getComponent<SplittingPanel> { it.isNamed(command.name) }
+      splittingPanel.split(command.orientation)
+      if (command.proportion != null) {
+        (splittingPanel.parent as OnePixelSplitter).proportion = command.proportion
+      }
     }
   }
 
@@ -271,6 +318,7 @@ class SplittingPanelTest {
       is SplittingPanel -> Leaf((component.component as JLabel).text)
       is Splitter -> Parent(
         SplitOrientation.fromSplitter(component),
+        component.proportion,
         buildTree(component.firstComponent),
         buildTree(component.secondComponent))
       else -> throw IllegalStateException("Unexpected component found: ${component::class.qualifiedName}")
@@ -285,14 +333,19 @@ class SplittingPanelTest {
       override fun toString(indent: String): String = "$indent$name"
     }
 
-    data class Parent(val orientation: SplitOrientation, val first: TreeNode, val second: TreeNode) : TreeNode() {
+    data class Parent(val orientation: SplitOrientation, val proportion: Float, val first: TreeNode, val second: TreeNode) : TreeNode() {
       override fun toString(): String = toString("")
       override fun toString(indent: String): String =
-        "$indent${orientation.name}\n${first.toString("$indent ")}\n${second.toString("$indent ")}"
+        "$indent${orientation.name} (${proportion * 100}%)\n${first.toString("$indent ")}\n${second.toString("$indent ")}"
     }
   }
 
-  private data class SplitCommand(val name: String, val orientation: SplitOrientation)
+  /**
+   * Instructions for splitting a [SplittingPanel].
+   *
+   * A null proportion means [#split] will not modify the proportion created by the tested code.
+   */
+  private data class SplitCommand(val name: String, val orientation: SplitOrientation, val proportion: Float? = null)
 
   private class DisposableLabel(text: String) : JLabel(text), Disposable {
     var isDisposed: Boolean = false
@@ -302,7 +355,7 @@ class SplittingPanelTest {
     }
   }
 
-  private class StateProvidingComponent(val componentState: String) : JPanel(), SplittingTabsStateProvider {
+  private class JLabelWithState(val componentState: String) : JLabel(componentState), SplittingTabsStateProvider {
     override fun getState(): String = componentState
   }
 }

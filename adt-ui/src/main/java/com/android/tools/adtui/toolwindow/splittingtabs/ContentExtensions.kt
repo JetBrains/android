@@ -25,7 +25,7 @@ internal fun Content.isSplittingTab() = findFirstSplitter() != null
 /**
  * Returns the "first" [SplittingPanel] child of this content or null if this content is not a Splitting Tabs ToolWindow.
  */
-internal fun Content.findFirstSplitter(): SplittingPanel? = findFirstSplitter(component)
+internal fun Content.findFirstSplitter(): SplittingPanel? = SplittingPanel.findFirstSplitter(component)
 
 /**
  * Convenience method that handles unlikely `manager == null` condition.

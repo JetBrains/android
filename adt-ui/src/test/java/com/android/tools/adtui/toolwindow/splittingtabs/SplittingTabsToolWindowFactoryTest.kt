@@ -17,6 +17,7 @@ package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
+import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateManager
 import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
@@ -77,16 +78,19 @@ class SplittingTabsToolWindowFactoryTest {
     assertThat(content.isSplittingTab()).isTrue()
   }
 
+  /**
+   * A basic restore state test. No split content is used. More comprehensive tests are in SplittingPanelTest
+   */
   @Test
   fun createToolWindowContent_withState_restoresState() {
     val toolWindow = FakeToolWindow(projectRule.project, "toolWindowId")
     stateManager.loadState(SplittingTabsState(listOf(
       ToolWindowState("toolWindowId", listOf(
-        TabState("Tab1", "clientState1"),
-        TabState("Tab2", "clientState2"),
+        TabState("Tab1", PanelState("clientState1")),
+        TabState("Tab2", PanelState("clientState2")),
       )),
       ToolWindowState("anotherToolWindowId", listOf(
-        TabState("Tab3", "clientState3"),
+        TabState("Tab3", PanelState("clientState3")),
       )),
     )))
     val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, ::JLabel)

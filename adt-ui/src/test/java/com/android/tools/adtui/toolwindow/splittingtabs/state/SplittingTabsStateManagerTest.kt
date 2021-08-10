@@ -45,8 +45,10 @@ class SplittingTabsStateManagerTest {
     val state = stateManager.state
 
     assertThat(state.toolWindows).containsExactly(
-      ToolWindowState("toolWindow1", listOf(TabState("tab-1-1", "state-1-1"), TabState("tab-1-2", "state-1-2")), selectedTabIndex = 1),
-      ToolWindowState("toolWindow2", listOf(TabState("tab-2-1", "state-2-1"), TabState("tab-2-2", "state-2-2")), selectedTabIndex = 0),
+      ToolWindowState("toolWindow1", listOf(TabState("tab-1-1", PanelState("state-1-1")), TabState("tab-1-2", PanelState("state-1-2"))),
+                      selectedTabIndex = 1),
+      ToolWindowState("toolWindow2", listOf(TabState("tab-2-1", PanelState("state-2-1")), TabState("tab-2-2", PanelState("state-2-2"))),
+                      selectedTabIndex = 0),
     )
   }
 
@@ -58,17 +60,21 @@ class SplittingTabsStateManagerTest {
     val state = stateManager.state
 
     assertThat(state.toolWindows).containsExactly(
-      ToolWindowState("toolWindow1", listOf(TabState("tab-1-1", null), TabState("tab-1-2", null)), selectedTabIndex = 1),
-      ToolWindowState("toolWindow2", listOf(TabState("tab-2-1", null), TabState("tab-2-2", null)), selectedTabIndex = 0),
+      ToolWindowState("toolWindow1", listOf(TabState("tab-1-1", PanelState(null)), TabState("tab-1-2", PanelState(null))),
+                      selectedTabIndex = 1),
+      ToolWindowState("toolWindow2", listOf(TabState("tab-2-1", PanelState(null)), TabState("tab-2-2", PanelState(null))),
+                      selectedTabIndex = 0),
     )
   }
 
   @Test
   fun loadState() {
     val toolWindow1State = ToolWindowState(
-      "toolWindow1", listOf(TabState("tab-1-1", "state-1-1"), TabState("tab-1-2", "state-1-2")), selectedTabIndex = 1)
+      "toolWindow1", listOf(TabState("tab-1-1", PanelState("state-1-1")), TabState("tab-1-2", PanelState("state-1-2"))),
+      selectedTabIndex = 1)
     val toolWindow2State = ToolWindowState(
-      "toolWindow2", listOf(TabState("tab-2-1", "state-2-1"), TabState("tab-2-2", "state-2-2")), selectedTabIndex = 0)
+      "toolWindow2", listOf(TabState("tab-2-1", PanelState("state-2-1")), TabState("tab-2-2", PanelState("state-2-2"))),
+      selectedTabIndex = 0)
     stateManager.loadState(SplittingTabsState(listOf(toolWindow1State, toolWindow2State)))
 
     assertThat(stateManager.getToolWindowState("toolWindow1")).isEqualTo(toolWindow1State)
