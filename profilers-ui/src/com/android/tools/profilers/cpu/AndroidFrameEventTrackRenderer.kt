@@ -37,7 +37,7 @@ class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel
       addRowIndexChangeListener {
         trackModel.dataModel.activeSeriesIndex = it
       }
-    }
+    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries)}
 }
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {

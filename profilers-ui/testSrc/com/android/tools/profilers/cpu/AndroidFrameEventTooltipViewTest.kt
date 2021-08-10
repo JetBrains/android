@@ -34,7 +34,8 @@ class AndroidFrameEventTooltipViewTest {
       viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
     }
     val model = AndroidFrameEventTrackModel(listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
-                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })))
+                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
+                                            RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }))
     val tooltip = AndroidFrameEventTooltip(timeline, model)
     val tooltipView = AndroidFrameEventTooltipView(JPanel(), tooltip)
 

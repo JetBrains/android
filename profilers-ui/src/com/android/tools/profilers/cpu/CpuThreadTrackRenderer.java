@@ -35,6 +35,7 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
+import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -63,6 +64,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange(),
                                                            trackModel.isCollapsed());
+    traceEventChart.setBackground(ProfilerColors.TRANSPARENT_COLOR);
     traceEventChart.setDrawDebugInfo(
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
@@ -81,6 +83,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
 
     StateChart<ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     if (trackModel.isCollapsed() || threadStateChart == null) {
       // Don't show thread states if we don't have the chart for it or if the track is collapsed.
       panel.setLayout(new TabularLayout("*", "*"));
@@ -138,7 +141,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
         }
       });
     }
-    return panel;
+
+    CpuSystemTraceData data = trackModel.getDataModel().getCapture().getSystemTraceData();
+    return data == null ? panel :
+           VsyncPanel.of(panel,
+                         trackModel.getDataModel().getCapture().getTimeline().getViewRange(),
+                         data.getVsyncCounterValues());
   }
 
   @Nullable

@@ -43,6 +43,6 @@ public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel> {
     lineChart.setFillEndGap(true);
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(lineChart);
-    return panel;
+    return VsyncPanel.of(panel, trackModel.getDataModel().getVsyncCounterSeries());
   }
 }

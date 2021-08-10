@@ -284,5 +284,7 @@ public class ProfilerColors {
 
   public static final Color USER_COUNTER_EVENT_USAGE = new JBColor(0xa6bcc9, 0xa6bcc9);
 
+  public static final Color VSYNC_BACKGROUND = new JBColor(0xEEEEEE, 0x111111);
+
   public static final Color WARNING_BAR_COLOR = new JBColor(new Color(254, 248, 213), new Color(35, 56, 85));
 }

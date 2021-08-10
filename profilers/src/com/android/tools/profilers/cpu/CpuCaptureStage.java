@@ -399,7 +399,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
           myTrackGroupModels.add(
             createFrameLifecycleTrackGroup(capture.getSystemTraceData().getAndroidFrameLayers().get(layerIndex), getTimeline(),
                                            // Collapse all but the first layer.
-                                           layerIndex > 0));
+                                           layerIndex > 0,
+                                           capture.getSystemTraceData()));
         }
       }
       // CPU per-core usage and event etc. Systrace only.
@@ -498,7 +499,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
                                                                 @NotNull Timeline timeline,
-                                                                boolean collapseInitially) {
+                                                                boolean collapseInitially,
+                                                                @NotNull CpuSystemTraceData data) {
     // Layer name takes the form of "app_name/surface_name", shorten it by omitting the app_name.
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
@@ -509,7 +511,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
       phase -> {
-        AndroidFrameEventTrackModel phaseTrack = new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange());
+        AndroidFrameEventTrackModel phaseTrack =
+          new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange(), data.getVsyncCounterValues());
         AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, phaseTrack);
         String trackTitle = AndroidFrameEventTrackModel.getDisplayName(phase.getPhaseName());
         frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle)

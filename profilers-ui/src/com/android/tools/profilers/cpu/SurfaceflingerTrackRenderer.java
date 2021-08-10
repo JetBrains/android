@@ -34,7 +34,9 @@ public class SurfaceflingerTrackRenderer implements TrackRenderer<Surfaceflinger
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<SurfaceflingerTrackModel, ?> trackModel) {
-    return new StateChart<>(trackModel.getDataModel(), new SurfaceflingerColorProvider());
+    return VsyncPanel.of(new StateChart<>(trackModel.getDataModel(), new SurfaceflingerColorProvider()),
+                         trackModel.getDataModel().getViewRange(),
+                         trackModel.getDataModel().getSystemTraceData().getVsyncCounterValues());
   }
 
   private static class SurfaceflingerColorProvider extends StateChartColorProvider<SurfaceflingerEvent> {

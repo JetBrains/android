@@ -24,7 +24,7 @@ import kotlin.math.max
 /**
  * Track model for BufferQueue counter in CPU capture stage
  */
-class BufferQueueTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
+class BufferQueueTrackModel(val systemTraceData: CpuSystemTraceData, val viewRange: Range) : LineChartModel() {
   // In pre-S, Y-axis range is [0, 2].
   // 0: no buffer in queue, app is still drawing to the buffer;
   // 1: buffer waiting to be consumed by SurfaceFlinger;
