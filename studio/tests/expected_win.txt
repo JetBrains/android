@@ -1025,7 +1025,7 @@ android-studio/plugins/android-ndk/resources/lldb/bin/libxml2.dll
 android-studio/plugins/android-ndk/resources/lldb/bin/llvm-symbolizer.exe
 android-studio/plugins/android-ndk/resources/lldb/bin/minidump_stackwalk.exe
 android-studio/plugins/android-ndk/resources/lldb/bin/msvcp140.dll
-android-studio/plugins/android-ndk/resources/lldb/bin/python38.dll
+android-studio/plugins/android-ndk/resources/lldb/bin/python39.dll
 android-studio/plugins/android-ndk/resources/lldb/bin/ucrtbase.dll
 android-studio/plugins/android-ndk/resources/lldb/bin/vcruntime140.dll
 android-studio/plugins/android-ndk/resources/lldb/bin/vcruntime140_1.dll
@@ -1044,6 +1044,8 @@ android-studio/plugins/android-ndk/resources/lldb/dlls/_queue.pyd
 android-studio/plugins/android-ndk/resources/lldb/dlls/_socket.pyd
 android-studio/plugins/android-ndk/resources/lldb/dlls/_sqlite3.pyd
 android-studio/plugins/android-ndk/resources/lldb/dlls/_ssl.pyd
+android-studio/plugins/android-ndk/resources/lldb/dlls/_uuid.pyd
+android-studio/plugins/android-ndk/resources/lldb/dlls/_zoneinfo.pyd
 android-studio/plugins/android-ndk/resources/lldb/dlls/libcrypto-1_1.dll
 android-studio/plugins/android-ndk/resources/lldb/dlls/libffi-7.dll
 android-studio/plugins/android-ndk/resources/lldb/dlls/libssl-1_1.dll
@@ -1054,11 +1056,12 @@ android-studio/plugins/android-ndk/resources/lldb/dlls/unicodedata.pyd
 android-studio/plugins/android-ndk/resources/lldb/dlls/winsound.pyd
 android-studio/plugins/android-ndk/resources/lldb/lib/__future__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/__phello__.foo.py
+android-studio/plugins/android-ndk/resources/lldb/lib/_aix_support.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_bootlocale.py
+android-studio/plugins/android-ndk/resources/lldb/lib/_bootsubprocess.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_collections_abc.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_compat_pickle.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_compression.py
-android-studio/plugins/android-ndk/resources/lldb/lib/_dummy_thread.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_markupbase.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_osx_support.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_py_abc.py
@@ -1098,6 +1101,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/staggered.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/streams.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/subprocess.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/tasks.py
+android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/threads.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/transports.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/trsock.py
 android-studio/plugins/android-ndk/resources/lldb/lib/asyncio/unix_events.py
@@ -1161,7 +1165,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/decimal.py
 android-studio/plugins/android-ndk/resources/lldb/lib/difflib.py
 android-studio/plugins/android-ndk/resources/lldb/lib/dis.py
 android-studio/plugins/android-ndk/resources/lldb/lib/doctest.py
-android-studio/plugins/android-ndk/resources/lldb/lib/dummy_threading.py
 android-studio/plugins/android-ndk/resources/lldb/lib/email/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/email/_encoded_words.py
 android-studio/plugins/android-ndk/resources/lldb/lib/email/_header_value_parser.py
@@ -1280,7 +1283,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/encodings/koi8_u.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/kz1048.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/latin_1.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/mac_arabic.py
-android-studio/plugins/android-ndk/resources/lldb/lib/encodings/mac_centeuro.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/mac_croatian.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/mac_cyrillic.py
 android-studio/plugins/android-ndk/resources/lldb/lib/encodings/mac_farsi.py
@@ -1328,6 +1330,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/getopt.py
 android-studio/plugins/android-ndk/resources/lldb/lib/getpass.py
 android-studio/plugins/android-ndk/resources/lldb/lib/gettext.py
 android-studio/plugins/android-ndk/resources/lldb/lib/glob.py
+android-studio/plugins/android-ndk/resources/lldb/lib/graphlib.py
 android-studio/plugins/android-ndk/resources/lldb/lib/gzip.py
 android-studio/plugins/android-ndk/resources/lldb/lib/hashlib.py
 android-studio/plugins/android-ndk/resources/lldb/lib/heapq.py
@@ -1346,6 +1349,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/imp.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/_bootstrap.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/_bootstrap_external.py
+android-studio/plugins/android-ndk/resources/lldb/lib/importlib/_common.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/abc.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/machinery.py
 android-studio/plugins/android-ndk/resources/lldb/lib/importlib/metadata.py
@@ -1437,6 +1441,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp/libcxx.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/metrics.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/synth.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_process.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/symbolication.py
@@ -1542,6 +1548,10 @@ android-studio/plugins/android-ndk/resources/lldb/lib/xmlrpc/server.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zipapp.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zipfile.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zipimport.py
+android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_common.py
+android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_tzpath.py
+android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_zoneinfo.py
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
 android-studio/plugins/android/lib/adt-ui.jar
