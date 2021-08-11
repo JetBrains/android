@@ -25,7 +25,6 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -147,6 +146,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     addToolsToModel(minimizedWindows);
     myWorkBenchManager.register(this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
+  }
+
+  @Override
+  public void updateUI() {
+    // The following components do not receive "updateUI" when the swing theme is changed.
+    // This will fix color issues in the MinimizePanel such as: b/196026112
+    myLoadingPanel.updateUI();
+    myMainPanel.updateUI();
+    myLeftMinimizePanel.updateUI();
+    myRightMinimizePanel.updateUI();
+    for (AttachedToolWindow<T> tool : myModel.getAllTools()) {
+      tool.getMinimizedButton().updateUI();
+    }
   }
 
   /**
