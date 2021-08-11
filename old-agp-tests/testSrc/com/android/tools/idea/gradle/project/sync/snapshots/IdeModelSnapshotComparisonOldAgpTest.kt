@@ -32,6 +32,6 @@ class IdeModelSnapshotComparisonOldAgpTest : IdeModelSnapshotComparisonTest() {
     @JvmStatic
     @Parameterized.Parameters(name = "{1}\${0}")
     fun testProjects(): Collection<*> = testProjectsFor(
-      AgpVersion.values().filter { OldAgpSuite.AGP_VERSION == null || it.legacyAgpVersion == OldAgpSuite.AGP_VERSION })
+      AgpVersion.values().filter { (OldAgpSuite.AGP_VERSION == null || it.legacyAgpVersion == OldAgpSuite.AGP_VERSION) && it != AgpVersion.CURRENT })
   }
 }
