@@ -62,7 +62,7 @@ class MockDevicePairingView(project: Project,
 
   override fun showMdnsCheckError() {
     showMdnsCheckErrorTracker.produce(Unit)
-    viewImpl.showMdnsCheckSuccess()
+    viewImpl.showMdnsCheckError()
   }
 
   override fun showQrCodePairingStarted() {
