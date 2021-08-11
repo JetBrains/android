@@ -76,7 +76,7 @@ class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
       LOG.warn("Error executing `adb mdns check`", t)
       MdnsSupportState.AdbInvocationError
     }.transform(taskExecutor) { supportState ->
-      // This `tansform` is just for logging purposes
+      // This `transform` is just for logging purposes
       LOG.info("Checking if mDNS is supportState result: ${supportState}")
       supportState
     }

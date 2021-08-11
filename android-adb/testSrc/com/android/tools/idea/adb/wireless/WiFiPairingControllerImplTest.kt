@@ -85,13 +85,14 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   private val testTimeUnit = TimeUnit.SECONDS
-  private val testTimeout = TimeoutRemainder(30, testTimeUnit)
+  private lateinit var testTimeout: TimeoutRemainder
 
   private var lastPairingCodeView: MockPairingCodePairingView? = null
   private var lastPairingCodeController: PairingCodePairingController? = null
 
     override fun setUp() {
       super.setUp()
+      testTimeout = TimeoutRemainder(30, testTimeUnit)
       enableHeadlessDialogs(testRootDisposable)
     }
 
@@ -147,9 +148,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
-      pumpEventsAndWaitForFuture(view.showDialogTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
-      pumpEventsAndWaitForFuture(view.startMdnsCheckTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
-      pumpEventsAndWaitForFuture(view.showMdnsCheckErrorTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
+      pumpAndWait(view.showDialogTracker.consume());
+      pumpAndWait(view.startMdnsCheckTracker.consume());
+      pumpAndWait(view.showMdnsCheckErrorTracker.consume());
     }
   }
 
