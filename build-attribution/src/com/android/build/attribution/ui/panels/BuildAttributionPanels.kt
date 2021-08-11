@@ -61,13 +61,15 @@ private fun taskDetailsPanel(
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit
 ): JPanel {
-  val determinesBuildDurationLine = if (taskData.onLogicalCriticalPath)
-    "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
-  else
-    "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
+  val determinesBuildDurationLine = when {
+    taskData.onLogicalCriticalPath ->
+      "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks.<br/><br/>"
+    taskData.onExtendedCriticalPath ->
+      "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module.<br/><br/>"
+    else -> ""
+  }
   val taskInfo = htmlTextLabelWithLinesWrap("""
-      ${determinesBuildDurationLine}<br/>
-      <br/>
+      $determinesBuildDurationLine
       <b>Duration:</b>  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}<br/>
       Sub-project: ${taskData.module}<br/>
       Plugin: ${pluginNameHtml(taskData)}<br/>
