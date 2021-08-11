@@ -115,11 +115,13 @@ public class IdeLibraryTest {
                     }
                 };
 
-        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(computeCoordinates(javaLibraryA.getResolvedCoordinates()), javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, false);
+        String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
+        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
+        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates, false);
 
-        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(computeCoordinates(javaLibraryB.getResolvedCoordinates()), javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, false);
+        String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
+        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
+        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates, false);
 
         IdeModuleLibraryCore core1 = new IdeModuleLibraryCore(
           identifier1.getProjectPath(),
@@ -153,17 +155,21 @@ public class IdeLibraryTest {
         JavaLibrary javaLibraryC = createJavaLibrary("C");
         JavaLibrary javaLibraryD = createJavaLibrary("D");
 
-        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(computeCoordinates(javaLibraryA.getResolvedCoordinates()), javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, false);
+        String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
+        IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
+        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates, false);
 
-        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(computeCoordinates(javaLibraryB.getResolvedCoordinates()), javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, false);
+        String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
+        IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
+        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates, false);
 
-        IdeJavaLibraryCore coreC = new IdeJavaLibraryCore(computeCoordinates(javaLibraryC.getResolvedCoordinates()), javaLibraryC.getJarFile());
-        IdeJavaLibrary ideJavaLibraryC = new IdeJavaLibraryImpl(coreC, false);
+        String cCoordinates = computeCoordinates(javaLibraryC.getResolvedCoordinates());
+        IdeJavaLibraryCore coreC = new IdeJavaLibraryCore(cCoordinates, javaLibraryC.getJarFile());
+        IdeJavaLibrary ideJavaLibraryC = new IdeJavaLibraryImpl(coreC, cCoordinates, false);
 
-        IdeJavaLibraryCore coreD = new IdeJavaLibraryCore(computeCoordinates(javaLibraryD.getResolvedCoordinates()), javaLibraryD.getJarFile());
-        IdeJavaLibrary ideJavaLibraryD = new IdeJavaLibraryImpl(coreD, false);
+        String dCoordinates = computeCoordinates(javaLibraryD.getResolvedCoordinates());
+        IdeJavaLibraryCore coreD = new IdeJavaLibraryCore(dCoordinates, javaLibraryD.getJarFile());
+        IdeJavaLibrary ideJavaLibraryD = new IdeJavaLibraryImpl(coreD, dCoordinates, false);
 
         assertThat(
           ImmutableList.of(ideJavaLibraryD, ideJavaLibraryB, ideJavaLibraryC, ideJavaLibraryA).stream()

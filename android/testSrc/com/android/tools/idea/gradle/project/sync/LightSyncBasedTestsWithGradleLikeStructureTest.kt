@@ -219,6 +219,7 @@ private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
 private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
   IdeAndroidLibraryImpl(
     artifactAddress = artifactAddress,
+    name = artifactAddress,
     folder = gradleCacheRoot.resolve(File("libraryFolder")),
     manifest = "manifest.xml",
     compileJarFiles = listOf("api.jar"),

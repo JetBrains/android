@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.build.OutputFile
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
+import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
@@ -40,6 +41,9 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSortedSet
+import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.annotations.SystemIndependent
+import java.io.File
 
 interface ModelCache {
 
@@ -74,7 +78,7 @@ interface ModelCache {
     @JvmStatic
     fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache  {
       if (useV2BuilderModels) {
-        return modelCacheV2Impl()
+        return modelCacheV2Impl(buildFolderPaths.buildRootDirectory)
       }
       return modelCacheV1Impl(buildFolderPaths)
     }
@@ -82,7 +86,7 @@ interface ModelCache {
     @JvmStatic
     fun create(useV2BuilderModels: Boolean): ModelCache {
       return if (useV2BuilderModels) {
-        modelCacheV2Impl()
+        modelCacheV2Impl(null)
       }
       else {
         modelCacheV1Impl(BuildFolderPaths())
@@ -192,4 +196,47 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {
   AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
   else -> error("Invalid android artifact name: $name")
+}
+
+/**
+ * Converts the artifact address into a name that will be used by the IDE to represent the library.
+ */
+internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File): String {
+  if (libraryArtifactAddress.startsWith("${ModelCache.LOCAL_AARS}:")) {
+    return adjustLocalLibraryName(
+      File(libraryArtifactAddress.removePrefix("${ModelCache.LOCAL_AARS}:").substringBefore(":")),
+      projectBasePath
+    )
+  }
+
+  return convertMavenCoordinateStringToIdeLibraryName(libraryArtifactAddress)
+}
+
+/**
+ * Converts the name of a maven form dependency from the format that is returned from the Android Gradle plugin [Library]
+ * to the name that will be used to setup the library in the IDE. The Android Gradle plugin uses maven co-ordinates to
+ * represent the library.
+ *
+ * In order to share the libraries between Android and non-Android modules we want to convert the artifact
+ * co-ordinate string that will match the ones that would be set up in the IDE for non-android modules.
+ *
+ * Current this method removes any @jar from the end of the coordinate since IDEA defaults to this and doesn't display
+ * it.
+ */
+private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String): String {
+  return mavenCoordinate.removeSuffix("@jar")
+}
+
+/**
+ * Attempts to shorten the library name by making paths relative and makes paths system independent.
+ * Name shortening is required because the maximum allowed file name length is 256 characters and .jar files located in deep
+ * directories in CI environments may exceed this limit.
+ */
+private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: File): @SystemIndependent String {
+  val maybeRelative = artifactFile.relativeToOrSelf(projectBasePath)
+  if (!FileUtil.filesEqual(maybeRelative, artifactFile)) {
+    return FileUtil.toSystemIndependentName(File(".${File.separator}${maybeRelative}").path)
+  }
+
+  return FileUtil.toSystemIndependentName(artifactFile.path)
 }

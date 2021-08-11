@@ -176,52 +176,6 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   }
 }
 
-// TODO: Should this be moved and shared with the plugin?
-const val LOCAL_LIBRARY_PREFIX = "__local_aars__"
-
-/**
- * Attempts to shorten the library name by making paths relative and makes paths system independent.
- * Name shortening is required because the maximum allowed file name length is 256 characters and .jar files located in deep
- * directories in CI environments may exceed this limit.
- */
-private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String): @SystemIndependent String {
-  val maybeRelative = artifactFile.relativeToOrSelf(File(toSystemDependentName(projectBasePath)))
-  if (!filesEqual(maybeRelative, artifactFile)) {
-    return toSystemIndependentName(File(".${File.separator}${maybeRelative}").path)
-  }
-
-  return toSystemIndependentName(artifactFile.path)
-}
-
-/**
- * Converts the artifact address into a name that will be used by the IDE to represent the library.
- */
-private fun convertToLibraryName(library: IdeArtifactLibrary, projectBasePath: String): String {
-  if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:")) {
-    return adjustLocalLibraryName(
-      File(library.artifactAddress.removePrefix("$LOCAL_LIBRARY_PREFIX:").substringBefore(":")),
-      projectBasePath
-    )
-  }
-
-  return convertMavenCoordinateStringToIdeLibraryName(library.artifactAddress)
-}
-
-/**
- * Converts the name of a maven form dependency from the format that is returned from the Android Gradle plugin [Library]
- * to the name that will be used to setup the library in the IDE. The Android Gradle plugin uses maven co-ordinates to
- * represent the library.
- *
- * In order to share the libraries between Android and non-Android modules we want to convert the artifact
- * co-ordinate string that will match the ones that would be set up in the IDE for non-android modules.
- *
- * Current this method removes any @jar from the end of the coordinate since IDEA defaults to this and doesn't display
- * it.
- */
-private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String): String {
-  return mavenCoordinate.removeSuffix("@jar")
-}
-
 /**
  * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
  * can't be parsed as a [GradleCoordinate] this method returns the [libraryName] un-edited.
@@ -300,7 +254,7 @@ private class AndroidDependenciesSetupContext(
   }
 
   private abstract inner class LibraryWorkItem<T : IdeArtifactLibrary>(protected val library: T) : WorkItem<T>() {
-    protected val libraryName = convertToLibraryName(library, projectDataNode.data.linkedExternalProjectPath)
+    protected val libraryName = library.name
     protected val libraryData: LibraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
 
     final override fun isAlreadyProcessed(): Boolean = processedLibraries.containsKey(libraryName)

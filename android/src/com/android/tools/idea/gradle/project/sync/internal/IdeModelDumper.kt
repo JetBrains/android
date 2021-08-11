@@ -286,7 +286,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
     head("AndroidLibraries")
     nest {
       ideDependencies.androidLibraries.forEach {
-        head("AndroidLibrary")
+        head("AndroidLibrary") { it.name }
         nest {
           dump(it)
         }
@@ -297,7 +297,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
     head("JavaLibraries")
     nest {
       ideDependencies.javaLibraries.forEach {
-        head("JavaLibrary")
+        head("JavaLibrary") { it.name }
         nest {
           dump(it)
         }

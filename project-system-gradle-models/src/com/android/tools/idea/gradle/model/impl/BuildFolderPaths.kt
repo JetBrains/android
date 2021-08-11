@@ -29,6 +29,11 @@ class BuildFolderPaths {
     var rootBuildId: String? = null
 
     /**
+     * The root directory of the Gradle build.
+     */
+    var buildRootDirectory: File? = null
+
+    /**
      * Stores the [buildFolder] path for the module specified by [buildId] and [moduleGradlePath].
      */
     fun addBuildFolderMapping(

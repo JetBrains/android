@@ -25,11 +25,13 @@ import java.io.Serializable
  **/
 data class IdeAndroidLibraryImpl(
   val core: IdeAndroidLibraryCore,
+  override val name: String,
   override val isProvided: Boolean
 ) : IdeAndroidLibrary by core, Serializable {
   @VisibleForTesting
   constructor(
     artifactAddress: String,
+    name: String,
     folder: File,
     manifest: String,
     compileJarFiles: List<String>,
@@ -68,6 +70,7 @@ data class IdeAndroidLibraryImpl(
       symbolFile,
       deduplicate = { this }
     ),
+    name,
     isProvided
   )
 }
@@ -130,6 +133,9 @@ data class IdeAndroidLibraryCore(
   override val publicResources: String get() = _publicResources.translate()
   override val artifact: File get() = File(_artifact.translate())
   override val symbolFile: String get() = _symbolFile.translate()
+
+  override val name: String
+    get() = ""
 
   override val isProvided: Nothing
     get() = error("abstract")

@@ -61,7 +61,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     IdeJavaLibrary javaLibrary = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "guava", jarFile
-      ), false
+      ), "guava", false
     );
 
     Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(
@@ -88,6 +88,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     File localJar = new File(rootDirPath, "local.jar");
 
     IdeAndroidLibrary androidLibrary = new IdeAndroidLibraryImpl(
+      "com.android.support:support-core-ui:25.3.1@aar",
       "com.android.support:support-core-ui:25.3.1@aar",
       new File("libraryFolder"),
       "manifest.xml",
@@ -160,25 +161,32 @@ public class DependenciesExtractorTest extends PlatformTestCase {
       new IdeJavaLibraryCore(
         "com.google.guava:guava:11.0.2@jar", new File("")
       ),
+      "com.google.guava:guava:11.0.2",
       false);
     assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
 
     IdeJavaLibraryImpl library2 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File("")
-      ), false);
+      ),
+      "android.arch.lifecycle:extensions:1.0.0-beta1@aar",
+      false);
     assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
 
     IdeJavaLibraryImpl library3 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File("")
-      ), false);
+      ),
+      "com.android.support.test.espresso:espresso-core:3.0.1@aar",
+      false);
     assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
 
     IdeJavaLibraryImpl library4 = new IdeJavaLibraryImpl(
       new IdeJavaLibraryCore(
         "foo:bar:1.0", new File("")
-      ), false);
+      ),
+      "foo:bar:1.0",
+      false);
     assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
   }
 }

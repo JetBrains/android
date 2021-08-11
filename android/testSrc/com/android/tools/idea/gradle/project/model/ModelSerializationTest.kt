@@ -177,6 +177,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testLevel2AndroidLibrary() = assertSerializable {
     IdeAndroidLibraryImpl(
       "artifactAddress",
+      "name",
       File("folder"),
       "manifest",
       listOf("compileJarFiles"),
