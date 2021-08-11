@@ -19,11 +19,17 @@
   </extensions>
 
   <actions>
-    <action id="SplittingTabsToolWindow.SplitVertical" class="com.android.tools.adtui.toolwindow.splittingtabs.actions.SplitAction$Vertical">
+    <action id="SplittingTabsToolWindow.RenameTab" class="com.android.tools.adtui.toolwindow.splittingtabs.actions.RenameTabAction">
       <add-to-group group-id="ToolWindowContextMenu" anchor="last"/>
     </action>
 
-    <action id="SplittingTabsToolWindow.SplitHorizontal" class="com.android.tools.adtui.toolwindow.splittingtabs.actions.SplitAction$Horizontal">
+    <action id="SplittingTabsToolWindow.SplitVertical"
+            class="com.android.tools.adtui.toolwindow.splittingtabs.actions.SplitAction$Vertical">
+      <add-to-group group-id="ToolWindowContextMenu" anchor="last"/>
+    </action>
+
+    <action id="SplittingTabsToolWindow.SplitHorizontal"
+            class="com.android.tools.adtui.toolwindow.splittingtabs.actions.SplitAction$Horizontal">
       <add-to-group group-id="ToolWindowContextMenu" anchor="last"/>
     </action>
 
