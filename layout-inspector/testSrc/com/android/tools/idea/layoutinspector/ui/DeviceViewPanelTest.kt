@@ -30,11 +30,11 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -50,6 +50,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
@@ -93,8 +94,9 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
+  private val disposableRule = DisposableRule()
   private val launcherExecutor = Executors.newSingleThreadExecutor()
-  private val appInspectorRule = AppInspectionInspectorRule(withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
     clientProvider = appInspectorRule.createInspectorClientProvider(),
     launcherExecutor = launcherExecutor,
@@ -107,7 +109,7 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(EdtRule()).around(disposableRule)!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -627,8 +629,16 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  private val disposableRule = DisposableRule()
+  private val inspectorRule = LayoutInspectorRule(object: InspectorClientProvider {
+    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector) =
+      LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, disposableRule.disposable).apply {
+        launchMonitor = mock()
+      }
+  })
+
   @get:Rule
-  val inspectorRule = LayoutInspectorRule(LegacyClientProvider())
+  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
 
   @Test
   fun testLiveControlDisabledWithProcessFromLegacyDevice() {

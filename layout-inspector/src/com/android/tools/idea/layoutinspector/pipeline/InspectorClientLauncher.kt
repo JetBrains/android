@@ -59,20 +59,19 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
       stats: SessionStatistics,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
-
       return InspectorClientLauncher(
         adb,
         processes,
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.adb, params.process, model, stats)
+              AppInspectionInspectorClient(params.adb, params.process, model, stats, parentDisposable)
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.adb, params.process, model, stats) }
+          { params -> LegacyClient(params.adb, params.process, model, stats, parentDisposable) }
         ),
         parentDisposable)
     }
@@ -116,7 +115,8 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
             }
 
             activeClient = client // client.connect() call internally might throw
-            latch.await(10, TimeUnit.SECONDS)
+            // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
+            latch.await(1, TimeUnit.MINUTES)
             if (validClientConnected) {
               break
             }
@@ -138,6 +138,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
         if (field.isConnected) {
           field.disconnect()
         }
+        Disposer.dispose(field)
         field = value
         clientChangedCallbacks.forEach { callback -> callback(value) }
         value.connect()

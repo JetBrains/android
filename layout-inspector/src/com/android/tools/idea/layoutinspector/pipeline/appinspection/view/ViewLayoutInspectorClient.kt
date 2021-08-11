@@ -23,12 +23,14 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.progress.ProgressManager
@@ -47,6 +49,7 @@ import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.snapshots.Metadata
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
@@ -88,6 +91,7 @@ class ViewLayoutInspectorClient(
   private val composeInspector: ComposeLayoutInspectorClient?,
   private val fireError: (String) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
+  private val launchMonitor: InspectorClientLaunchMonitor
 ) {
 
   private val project = model.project
@@ -111,18 +115,22 @@ class ViewLayoutInspectorClient(
      * @param eventScope Scope which will be used for processing incoming inspector events. It's
      *     expected that this will be a scope associated with a background dispatcher.
      */
-    suspend fun launch(apiServices: AppInspectionApiServices,
-                       process: ProcessDescriptor,
-                       model: InspectorModel,
-                       eventScope: CoroutineScope,
-                       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
-                       fireError: (String) -> Unit,
-                       fireTreeEvent: (Data) -> Unit): ViewLayoutInspectorClient {
+    suspend fun launch(
+      apiServices: AppInspectionApiServices,
+      process: ProcessDescriptor,
+      model: InspectorModel,
+      eventScope: CoroutineScope,
+      composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
+      fireError: (String) -> Unit,
+      fireTreeEvent: (Data) -> Unit,
+      launchMonitor: InspectorClientLaunchMonitor
+    ): ViewLayoutInspectorClient {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent)
+      return ViewLayoutInspectorClient(model, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent,
+                                       launchMonitor)
     }
   }
 
@@ -174,11 +182,15 @@ class ViewLayoutInspectorClient(
               handleLayoutEvent(event.layoutEvent)
             }
             Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
+            Event.SpecializedCase.PROGRESS_EVENT -> handleProgressEvent(event.progressEvent)
             else -> error { "Unhandled event case: ${event.specializedCase}" }
           }
         }
     }
   }
+
+  private fun handleProgressEvent(progressEvent: LayoutInspectorViewProtocol.ProgressEvent) =
+    launchMonitor.updateProgress(progressEvent.checkpoint.toAttachErrorState())
 
   suspend fun startFetching(continuous: Boolean) {
     isFetchingContinuously = continuous
@@ -188,6 +200,7 @@ class ViewLayoutInspectorClient(
         skipSystemViews = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
+    launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
       throw ConnectionFailedException(response.startFetchResponse.error)
     }
@@ -232,6 +245,7 @@ class ViewLayoutInspectorClient(
   }
 
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
+    launchMonitor.updateProgress(AttachErrorState.ROOTS_EVENT_RECEIVED)
     currRoots.clear()
     currRoots.addAll(rootsEvent.idsList)
 
@@ -243,11 +257,17 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
+    launchMonitor.updateProgress(AttachErrorState.LAYOUT_EVENT_RECEIVED)
     generation++
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
+    val composablesResponse = if (composeInspector != null) {
+      launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
+      composeInspector.getComposeables(layoutEvent.rootView.id, generation).also {
+        launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
+      }
+    } else null
 
     val data = Data(
       generation,

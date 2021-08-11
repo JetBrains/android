@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createResponse
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -37,6 +38,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.Disposable
 import kotlinx.coroutines.CoroutineScope
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -49,21 +51,24 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
  *
  * Note that some parameters are provided lazily to allow rules to initialize them first.
  */
-class AppInspectionClientProvider(private val getApiServices: () -> AppInspectionApiServices,
-                                  private val getScope: () -> CoroutineScope)
+class AppInspectionClientProvider(
+  private val getApiServices: () -> AppInspectionApiServices,
+  private val getScope: () -> CoroutineScope,
+  private val parentDisposable: Disposable
+)
   : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
     val apiServices = getApiServices()
-    val scope = getScope()
 
-    return AppInspectionInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, apiServices, scope)
+    return AppInspectionInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, parentDisposable,
+                                        apiServices, getScope())
   }
 }
 
 /**
  * App inspection-pipeline specific setup and teardown for tests.
  */
-class AppInspectionInspectorRule(withDefaultResponse: Boolean = true) : TestRule {
+class AppInspectionInspectorRule(private val parentDisposable: Disposable, withDefaultResponse: Boolean = true) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
@@ -125,7 +130,10 @@ class AppInspectionInspectorRule(withDefaultResponse: Boolean = true) : TestRule
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
   fun createInspectorClientProvider(): AppInspectionClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, { inspectionService.scope })
+    return AppInspectionClientProvider({ inspectionService.apiServices }, {
+      // We might want to shut down the client and create a new one, so it needs its own supervisor scope
+      inspectionService.scope.createChildScope(true)
+    }, parentDisposable)
   }
 
   override fun apply(base: Statement, description: Description): Statement {

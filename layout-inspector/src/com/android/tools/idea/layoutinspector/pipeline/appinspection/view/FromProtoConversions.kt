@@ -103,6 +103,7 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_WATCH
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Polygon
 import java.awt.Shape
@@ -155,6 +156,18 @@ fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
     else -> error { "Unhandled property type $this" }
   }
 }
+
+fun LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.toAttachErrorState() =
+  when(this) {
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED -> AttachErrorState.START_RECEIVED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED -> AttachErrorState.STARTED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK -> AttachErrorState.VIEW_INVALIDATION_CALLBACK
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT -> AttachErrorState.ROOTS_EVENT_SENT
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED -> AttachErrorState.SCREENSHOT_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED -> AttachErrorState.VIEW_HIERARCHY_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT -> AttachErrorState.RESPONSE_SENT
+    else -> AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
+  }
 
 fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)

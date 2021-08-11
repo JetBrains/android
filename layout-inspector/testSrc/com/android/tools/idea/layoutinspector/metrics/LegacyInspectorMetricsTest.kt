@@ -29,25 +29,31 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.testFramework.DisposableRule
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 
 class LegacyInspectorMetricsTest {
+
+  private val disposableRule = DisposableRule()
 
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = object : InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
       val loader = Mockito.mock(LegacyTreeLoader::class.java)
       Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
-      return LegacyClientProvider(loader).create(params, inspector) as LegacyClient
+      return LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
     }
   }
 
+  private val inspectorRule = LayoutInspectorRule(legacyClientProvider)
+
   @get:Rule
-  val inspectorRule = LayoutInspectorRule(legacyClientProvider)
+  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()

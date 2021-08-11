@@ -24,12 +24,12 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
-import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
@@ -114,6 +114,7 @@ class LayoutInspector private constructor(
       val treeLoader = currentClient.treeLoader
       val allIds = treeLoader.getAllWindowIds(event)
       val data = treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup, currentClient.process) ?: return@execute
+      currentClient.updateProgress(AttachErrorState.PARSED_COMPONENT_TREE)
       currentClient.addDynamicCapabilities(data.dynamicCapabilities)
       if (allIds != null) {
         synchronized(latestLoadTime) {
@@ -122,6 +123,7 @@ class LayoutInspector private constructor(
           }
           latestLoadTime.set(time)
           layoutInspectorModel.update(data.window, allIds, data.generation)
+          currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
         }
       }
     }

@@ -70,6 +70,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -99,13 +100,14 @@ private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPEC
 
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
+  private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule()
+  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { it.name == PROCESS.name }
   private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(setFlagRule).around((EdtRule()))!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(setFlagRule).around(EdtRule()).around(disposableRule)!!
 
   private var componentStack: ComponentStack? = null
 
@@ -124,7 +126,7 @@ class LayoutInspectorTreePanelTest {
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
 
-    appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
+    appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
         rootsEventBuilder.apply {
           addIds(1L)

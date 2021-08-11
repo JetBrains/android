@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
@@ -42,9 +43,8 @@ class InspectorClientLauncherTest {
   val disposableRule = DisposableRule()
 
   private open class FakeInspectorClient(
-    val name: String,
-    process: ProcessDescriptor)
-    : AbstractInspectorClient(process) {
+    val name: String, process: ProcessDescriptor, parentDisposable: Disposable
+  ) : AbstractInspectorClient(process, parentDisposable) {
 
     override fun startFetching() = throw NotImplementedError()
     override fun stopFetching() = throw NotImplementedError()
@@ -91,7 +91,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf { params ->
         if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) FakeInspectorClient(
-          "Modern client", params.process)
+          "Modern client", params.process, disposableRule.disposable)
         else null
       },
       disposableRule.disposable,
@@ -116,7 +116,7 @@ class InspectorClientLauncherTest {
       adbRule.bridge,
       processes,
       listOf { params ->
-        val client = FakeInspectorClient("Client", params.process)
+        val client = FakeInspectorClient("Client", params.process, disposableRule.disposable)
         client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
         client
       },
@@ -146,15 +146,19 @@ class InspectorClientLauncherTest {
       listOf(
         { params ->
           creatorCount1++
-          if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) FakeInspectorClient("Modern client", params.process) else null
+          if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
+            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
+          else null
         },
         { params ->
           creatorCount2++
-          if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel) FakeInspectorClient("Legacy client", params.process) else null
+          if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel)
+            FakeInspectorClient("Legacy client", params.process, disposableRule.disposable)
+          else null
         },
         { params ->
           creatorCount3++
-          FakeInspectorClient("Fallback client", params.process)
+          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
         }
       ),
       disposableRule.disposable,
@@ -194,7 +198,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          val client = object : FakeInspectorClient("Exploding client #1", params.process) {
+          val client = object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
           // Verify disconnect not called if connect fails
@@ -202,7 +206,7 @@ class InspectorClientLauncherTest {
           client
         },
         { params ->
-          val client = object : FakeInspectorClient("Exploding client #2", params.process) {
+          val client = object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
           // Verify disconnect not called if connect fails
@@ -210,7 +214,7 @@ class InspectorClientLauncherTest {
           client
         },
         { params ->
-          FakeInspectorClient("Fallback client", params.process)
+          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
         }
       ),
       disposableRule.disposable,
@@ -232,7 +236,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          val client = object : FakeInspectorClient("Exploding client #1", params.process) {
+          val client = object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
           // Verify disconnect not called if connect fails
@@ -240,7 +244,7 @@ class InspectorClientLauncherTest {
           client
         },
         { params ->
-          val client = object : FakeInspectorClient("Exploding client #2", params.process) {
+          val client = object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
           // Verify disconnect not called if connect fails
@@ -249,7 +253,7 @@ class InspectorClientLauncherTest {
         },
         { params ->
           if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
-            FakeInspectorClient("Modern client", params.process)
+            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
           }
           else {
             null
@@ -281,7 +285,7 @@ class InspectorClientLauncherTest {
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
       processes,
-      listOf { params -> FakeInspectorClient("Unused", params.process) },
+      listOf { params -> FakeInspectorClient("Unused", params.process, disposableRule.disposable) },
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 

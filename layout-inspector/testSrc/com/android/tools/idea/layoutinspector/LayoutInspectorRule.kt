@@ -41,6 +41,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -102,9 +103,11 @@ interface InspectorClientProvider {
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
-class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = null) : InspectorClientProvider {
+class LegacyClientProvider(
+  private val parentDisposable: Disposable, private val treeLoaderOverride: LegacyTreeLoader? = null
+) : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    return LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, treeLoaderOverride)
+    return LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, parentDisposable, treeLoaderOverride)
   }
 }
 

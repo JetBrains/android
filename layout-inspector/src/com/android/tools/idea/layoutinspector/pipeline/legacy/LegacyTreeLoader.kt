@@ -21,7 +21,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -29,14 +28,11 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
-import org.apache.log4j.Logger
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import javax.imageio.ImageIO
 
 /**
  * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
@@ -54,6 +50,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
   }
 
   override fun getAllWindowIds(data: Any?): List<String>? {
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
     val result = if (data is LegacyEvent) {
       data.allWindows
@@ -63,19 +60,23 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     }
     client.latestScreenshots.keys.retainAll(result)
     client.latestData.keys.retainAll(result)
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED)
     return result
   }
 
   @Slow
   private fun capture(windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     client.latestData[windowName] = hierarchyData
     val (rootNode, hash) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
     ddmClient.captureView(windowName, hash, imageHandler)
     try {
       imageHandler.getData()?.let {
@@ -85,6 +86,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     catch (e: IOException) {
       // We didn't get an image, but still return the hierarchy and properties
     }
+    client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
 
     return LegacyAndroidWindow(client, rootNode, windowName)
   }

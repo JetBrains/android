@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.app.inspection.AppInspection.CreateInspectorResponse
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -38,21 +39,40 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.testFramework.DisposableRule
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.Mockito.`when`
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionInspectorMetricsTest {
-  private val inspectionRule = AppInspectionInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { it.name == MODERN_PROCESS.name }
+  val disposableRule = DisposableRule()
+
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private var launchSynchronously = true
+  private lateinit var asyncLaunchLatch: CountDownLatch
+
+  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(), launcherExecutor = { runnable ->
+    if (launchSynchronously) {
+      runnable.run()
+    }
+    else {
+      asyncLaunchLatch = CountDownLatch(1)
+      Thread {
+        runnable.run()
+        asyncLaunchLatch.countDown()
+      }.start()
+    }
+  }) { it.name == MODERN_PROCESS.name }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
@@ -90,12 +110,19 @@ class AppInspectionInspectorMetricsTest {
 
   @Test
   fun attachMetricsLoggedAfterProcessFailedToAttach() {
-    inspectionRule.viewInspector.createResponseStatus = CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR
+    inspectionRule.viewInspector.interceptWhen({it.hasStartFetchCommand()}) {
+      LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        startFetchResponseBuilder.apply {
+          error = "failed to start"
+        }
+      }.build()
+    }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    assertThat(usages).hasSize(1)
+    waitForCondition(1, TimeUnit.SECONDS) { usages.size == 3 }
+    assertThat(usages).hasSize(3)
 
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
@@ -109,14 +136,37 @@ class AppInspectionInspectorMetricsTest {
 
       assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     }
+    usages[1].studioEvent.let { studioEvent ->
+      val deviceInfo = studioEvent.deviceInfo
+      assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(MODERN_DEVICE.serial))
+      assertThat(deviceInfo.model).isEqualTo(MODERN_DEVICE.model)
+      assertThat(deviceInfo.manufacturer).isEqualTo(MODERN_DEVICE.manufacturer)
+      assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+
+      val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
+      assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
+    }
+    usages[2].studioEvent.let { studioEvent ->
+      val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
+      assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
+    }
   }
 
   @Test
   fun testInitialRenderLogging() {
+    launchSynchronously = false
+    var latch = CountDownLatch(1)
+    inspectionRule.viewInspector.listenWhen({ true }) {
+      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
+      latch.countDown()
+    }
+
     val getUsages = { usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    latch.await()
+    asyncLaunchLatch.await()
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
       `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
@@ -144,7 +194,11 @@ class AppInspectionInspectorMetricsTest {
 
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
+    asyncLaunchLatch.await()
+    latch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    latch.await()
+    asyncLaunchLatch.await()
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
     val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
                                                                                      ResourceLookup(inspectorRule.project),

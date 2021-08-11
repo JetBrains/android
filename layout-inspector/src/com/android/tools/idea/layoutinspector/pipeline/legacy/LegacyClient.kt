@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import java.nio.file.Path
 
@@ -42,8 +43,9 @@ class LegacyClient(
   process: ProcessDescriptor,
   model: InspectorModel,
   stats: SessionStatistics,
+  parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process) {
+) : AbstractInspectorClient(process, parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
   private val project = model.project

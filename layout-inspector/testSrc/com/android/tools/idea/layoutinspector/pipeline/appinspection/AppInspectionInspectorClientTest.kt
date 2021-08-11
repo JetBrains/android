@@ -18,12 +18,17 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.layoutinspector.InspectorClientProvider
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
@@ -34,11 +39,15 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.intellij.testFramework.DisposableRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.verify
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
@@ -51,11 +60,22 @@ private const val TIMEOUT = 1L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class AppInspectionInspectorClientTest {
-  private val inspectionRule = AppInspectionInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { it.name == MODERN_PROCESS.name }
+  val monitor = mock<InspectorClientLaunchMonitor>()
+
+  private val disposableRule = DisposableRule()
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectorRule = LayoutInspectorRule(object : InspectorClientProvider {
+    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+      return AppInspectionInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats,
+                                          disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                          inspectionRule.inspectionService.scope).apply {
+        launchMonitor = monitor
+      }
+    }
+  }) { it.name == MODERN_PROCESS.name }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun clientCanConnectDisconnectAndReconnect() {
@@ -67,6 +87,25 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+  }
+
+  @Test
+  fun inspectorHandlesProgressEvents() = runBlocking {
+    val progressSent = CompletableDeferred<Unit>()
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) {
+      (inspectorRule.inspectorClient as AppInspectionInspectorClient).launchMonitor = monitor
+
+      inspectionRule.viewInspector.connection.sendEvent {
+        progressEventBuilder.apply {
+          checkpoint = START_RECEIVED
+        }
+      }
+
+      progressSent.complete(Unit)
+    }
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    progressSent.await()
+    verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
   }
 
   @Test
@@ -426,14 +465,15 @@ class AppInspectionInspectorClientTest {
 }
 
 class AppInspectionInspectorClientWithFailingClientTest {
-  private val inspectionRule = AppInspectionInspectorRule()
+  private val disposableRule = DisposableRule()
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(
-    AppInspectionClientProvider({ mock() }, { inspectionRule.inspectionService.scope })) {
+    AppInspectionClientProvider({ mock() }, { inspectionRule.inspectionService.scope }, disposableRule.disposable)) {
     it.name == MODERN_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun errorShownOnNoAgentWithApi29() {
