@@ -32,11 +32,11 @@ java_binary(
         "Can-Retransform-Classes: true",
     ],
     deps = [
-        "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.asm-all.8.0.1",
         "@maven//:com.google.code.gson.gson",
         "@maven//:com.google.guava.guava",
         "@maven//:org.apache.httpcomponents.httpclient",
         "@maven//:org.jetbrains.annotations",
+        "@maven//:org.jetbrains.intellij.deps.asm-all",
     ],
 )
 
