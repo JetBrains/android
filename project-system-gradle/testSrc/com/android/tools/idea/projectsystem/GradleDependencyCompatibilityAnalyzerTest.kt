@@ -492,6 +492,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 private fun ideAndroidLibrary(artifactAddress: String) =
   IdeAndroidLibraryImpl(
     artifactAddress = artifactAddress,
+    name = artifactAddress,
     folder = File("libraryFolder"),
     manifest = "manifest.xml",
     compileJarFiles = listOf("file.jar"),

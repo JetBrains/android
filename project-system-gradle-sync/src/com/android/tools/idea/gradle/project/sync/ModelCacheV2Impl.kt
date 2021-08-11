@@ -130,7 +130,7 @@ import com.google.common.collect.Lists
 import java.io.File
 import java.util.HashMap
 
-internal fun modelCacheV2Impl(): ModelCache {
+internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   val strings: MutableMap<String, String> = HashMap()
   val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, IdeAndroidLibraryCore> = HashMap()
   val javaLibraryCores: MutableMap<IdeJavaLibraryCore, IdeJavaLibraryCore> = HashMap()
@@ -407,7 +407,11 @@ internal fun modelCacheV2Impl(): ModelCache {
       deduplicate = { strings.getOrPut(this) { this } }
     )
     val isProvided = providedLibraries.contains(androidLibrary)
-    return IdeAndroidLibraryImpl(androidLibraryCores.internCore(core), isProvided)
+    return IdeAndroidLibraryImpl(
+      core = androidLibraryCores.internCore(core),
+      name = convertToLibraryName(core.artifactAddress, buildRootDirectory!!).deduplicate(),
+      isProvided = isProvided
+    )
   }
 
   /**
@@ -420,7 +424,11 @@ internal fun modelCacheV2Impl(): ModelCache {
       artifact = javaLibrary.artifact!!
     )
     val isProvided = providedLibraries.contains(javaLibrary)
-    return IdeJavaLibraryImpl(javaLibraryCores.internCore(core), isProvided)
+    return IdeJavaLibraryImpl(
+      core = javaLibraryCores.internCore(core),
+      name = convertToLibraryName(core.artifactAddress, buildRootDirectory!!).deduplicate(),
+      isProvided = isProvided
+    )
   }
 
   fun libraryFrom(projectPath: String, buildId: String?, variant: String?, lintJar: File?): IdeLibrary {

@@ -59,6 +59,7 @@ class GradleModelConverterUtilTest {
   fun testConvertAndroidLibrary() {
     val original = IdeAndroidLibraryImpl(
       artifactAddress = "artifact:address:1.0",
+      name = "artifact:address:1.0",
       folder = File("libraryFolder"),
       manifest = "manifest.xml",
       compileJarFiles = listOf("file.jar"),

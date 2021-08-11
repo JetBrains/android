@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.tooling.BuildController;
@@ -42,8 +43,10 @@ public class ModelConverter {
     for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
-        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
+        File buildRootDirectory = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
+        String rootBuildId = buildRootDirectory.getPath();
         buildFolderPaths.setRootBuildId(rootBuildId);
+        buildFolderPaths.setBuildRootDirectory(buildRootDirectory);
         break;
       }
     }

@@ -323,6 +323,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   private static IdeAndroidLibraryImpl ideAndroidLibrary(File gradleCacheRoot, String artifactAddress, String folder, String libJar) {
     return new IdeAndroidLibraryImpl(
       artifactAddress,
+      artifactAddress,
       gradleCacheRoot.toPath().resolve(folder).toFile(),
       "manifest.xml",
       ImmutableList.of("api.jar"),
