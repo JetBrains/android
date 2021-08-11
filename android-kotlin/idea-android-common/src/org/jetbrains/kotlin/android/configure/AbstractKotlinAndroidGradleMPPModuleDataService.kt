@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.kotlin.android.configure
 
@@ -24,9 +24,12 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.kotlin.gradle.KotlinCompilation
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.gradle.KotlinSourceSet
-import org.jetbrains.kotlin.idea.gradle.addModuleDependencyIfNeeded
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.idea.gradle.configuration.*
+import org.jetbrains.kotlin.idea.gradle.addModuleDependencyIfNeeded
+import org.jetbrains.kotlin.idea.gradle.configuration.GradleProjectImportHandler
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetDataService
+import org.jetbrains.kotlin.idea.gradle.configuration.kotlinAndroidSourceSets
+import org.jetbrains.kotlin.idea.gradle.configuration.kotlinSourceSetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.io.IOException
@@ -93,7 +96,8 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
             }
 
             val variantName = getVariantName(nodeToImport) ?: continue
-            val activeSourceSetInfos = nodeToImport.kotlinAndroidSourceSets?.filter { it.kotlinModule.name.startsWith(variantName) } ?: emptyList()
+            val activeSourceSetInfos = nodeToImport.kotlinAndroidSourceSets?.filter { it.kotlinModule.name.startsWith(variantName) }
+                                       ?: emptyList()
             for (activeSourceSetInfo in activeSourceSetInfos) {
                 val activeCompilation = activeSourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in activeCompilation.sourceSets) {
@@ -108,7 +112,7 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
                             rootModel,
                             sourceSetModule,
                             activeSourceSetInfo.isTestModule,
-                            sourceSetNode.kotlinSourceSet?.isTestModule ?: false
+                            sourceSetNode.kotlinSourceSetData?.sourceSetInfo?.isTestModule ?: false
                         )
                     }
                 }
@@ -154,11 +158,12 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
         val dependencyModuleNodes = getDependencyModuleNodes(moduleNode, indexedModules, modelsProvider, testScope)
         for (dependencyModule in dependencyModuleNodes) {
             val dependencySourceSets = ExternalSystemApiUtil.getChildren(dependencyModule, GradleSourceSetData.KEY)
-                .filter { sourceSet -> sourceSet.kotlinSourceSet?.kotlinModule?.isTestModule == false }
+                .filter { sourceSet -> sourceSet.kotlinSourceSetData?.sourceSetInfo?.kotlinModule?.isTestModule == false }
                 .filter {
-                    it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.COMMON) == true ||
-                    (it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.ANDROID) == true) ||
-                    (it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.JVM) == true && !isAndroidModule(dependencyModule))
+                    it.kotlinSourceSetData?.sourceSetInfo?.actualPlatforms?.platforms?.let { platforms ->
+                        platforms.contains(KotlinPlatform.COMMON) || platforms.contains(KotlinPlatform.ANDROID) ||
+                        platforms.contains(KotlinPlatform.JVM) && !isAndroidModule(dependencyModule)
+                    } ?: false
                 }
 
             for (dependencySourceSet in dependencySourceSets) {
@@ -187,7 +192,8 @@ abstract class AbstractKotlinAndroidGradleMPPModuleDataService : AbstractProject
             ExternalSystemApiUtil.doWriteAction {
                 try {
                     VfsUtil.createDirectoryIfMissing(sourceRoot.path)
-                } catch (e: IOException) {
+                }
+                catch (e: IOException) {
                     LOG.warn(String.format("Unable to create directory for the path: %s", sourceRoot.path), e)
                 }
             }
