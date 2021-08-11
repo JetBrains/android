@@ -78,6 +78,7 @@ import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -680,6 +681,7 @@ class DeviceViewContentPanelTest {
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
+  @Ignore("b/195258169")
   @Suppress("UndesirableClassUsage")
   @Test
   fun testPaintWithImagesBetweenChildren() {
