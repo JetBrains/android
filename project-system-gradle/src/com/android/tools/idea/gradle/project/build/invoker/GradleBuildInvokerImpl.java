@@ -519,7 +519,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   private class MyListener extends ExternalSystemTaskNotificationListenerAdapter {
-    @NotNull private final Request myRequest;
+    @NotNull private Request myRequest;
     @NotNull private final BuildViewManager myBuildViewManager;
     @NotNull private final String myExecutionName;
     @NotNull private BuildEventDispatcher myBuildEventDispatcher;
@@ -668,6 +668,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
+        myRequest = GradleBuildInvoker.Request.copyRequest(myRequest);
         myBuildFailed = false;
         // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
         myBuildEventDispatcher.close();
