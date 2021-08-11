@@ -62,7 +62,6 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     myComponent.getActivateDeviceFileExplorerWindowButton().addActionListener(event -> activateDeviceFileExplorerWindow());
     myComponent.getEditDeviceNameButton().addActionListener(event -> editDeviceName());
     myComponent.getRemoveButton().addActionListener(event -> remove());
-    myComponent.getViewDetailsButton().addActionListener(event -> myPanel.toggleDetailsPanel(myDevice));
   }
 
   @VisibleForTesting

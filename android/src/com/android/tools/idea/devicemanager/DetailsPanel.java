@@ -62,6 +62,10 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
     label.setText(value.toString());
   }
 
+  protected static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
+    label.setText(String.join(", ", values));
+  }
+
   protected final void init() {
     setNameLabelPreferredWidthsToMax();
 

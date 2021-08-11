@@ -17,20 +17,23 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.devicemanager.physicaltab.DetailsPanel.DeviceSectionCallback;
-import com.android.tools.idea.devicemanager.physicaltab.DetailsPanel.SummarySection;
-import com.android.tools.idea.devicemanager.physicaltab.DetailsPanel.SummarySectionCallback;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSection;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSectionCallback;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySection;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySectionCallback;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public final class DetailsPanelTest {
+public final class PhysicalDeviceDetailsPanelTest {
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
@@ -48,10 +51,10 @@ public final class DetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    DetailsPanel panel = new DetailsPanel("Google Pixel 3",
-                                          future,
-                                          section -> new CountDownLatchFutureCallback<>(new SummarySectionCallback(section), latch),
-                                          DeviceSectionCallback::new);
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel("Google Pixel 3",
+                                                                      future,
+                                                                      section -> newSummarySectionCallback(section, latch),
+                                                                      DeviceSectionCallback::new);
 
     // Assert
     CountDownLatchAssert.await(latch, Duration.ofMillis(4));
@@ -64,6 +67,11 @@ public final class DetailsPanelTest {
     assertEquals("arm64-v8a, armeabi-v7a, armeabi", section.myAbiListLabel.getText());
   }
 
+  private static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
+                                                                                            @NotNull CountDownLatch latch) {
+    return new CountDownLatchFutureCallback<>(new SummarySectionCallback(section), latch);
+  }
+
   @Test
   public void deviceSectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
@@ -71,13 +79,18 @@ public final class DetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    DetailsPanel panel = new DetailsPanel("Google Pixel 3",
-                                          future,
-                                          SummarySectionCallback::new,
-                                          section -> new CountDownLatchFutureCallback<>(new DeviceSectionCallback(section), latch));
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel("Google Pixel 3",
+                                                                      future,
+                                                                      SummarySectionCallback::new,
+                                                                      section -> newDeviceSectionCallback(section, latch));
 
     // Assert
     CountDownLatchAssert.await(latch, Duration.ofMillis(4));
     assertEquals("Google Pixel 3", panel.getDeviceSection().myNameLabel.getText());
+  }
+
+  private static @NotNull FutureCallback<@NotNull PhysicalDevice> newDeviceSectionCallback(@NotNull DeviceSection section,
+                                                                                           @NotNull CountDownLatch latch) {
+    return new CountDownLatchFutureCallback<>(new DeviceSectionCallback(section), latch);
   }
 }
