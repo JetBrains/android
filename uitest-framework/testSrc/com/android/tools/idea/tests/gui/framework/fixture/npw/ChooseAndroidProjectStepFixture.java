@@ -27,6 +27,8 @@ import com.intellij.ui.components.JBList;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,9 +40,20 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
   }
 
   public ChooseAndroidProjectStepFixture<W> chooseActivity(@NotNull String activity) {
-    JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), target(), byType(ASGallery.class)));
-    listFixture.replaceCellReader((jList, index) -> String.valueOf(jList.getModel().getElementAt(index)));
-    listFixture.clickItem(activity);
+    ASGallery<Object> list = waitUntilShowingAndEnabled(robot(), target(), byType(ASGallery.class));
+
+    // ListFixture with ASGallery is un-reliable selecting the right activity. Select by value instead.
+    GuiTask.execute(() -> {
+      for (int i = 0; i < list.getModel().getSize(); i++) {
+        Object value = list.getModel().getElementAt(i);
+        if (activity.equals(String.valueOf(value))) {
+          list.setSelectedElement(value);
+          return;
+        }
+      }
+      throw new LocationUnavailableException("Unable to select " + activity);
+    });
+
     return this;
   }
 
