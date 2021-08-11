@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
@@ -90,10 +91,15 @@ class LayoutInspectorToolWindowFactoryTest {
     }
   }
 
-  @get:Rule
-  val inspectorRule = LayoutInspectorRule(LegacyClientProvider(), projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
+  private val disposableRule = DisposableRule()
+
+  private val inspectorRule = LayoutInspectorRule(LegacyClientProvider(disposableRule.disposable), projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
     it.name == LEGACY_PROCESS.name
   }
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
+
 
   @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {

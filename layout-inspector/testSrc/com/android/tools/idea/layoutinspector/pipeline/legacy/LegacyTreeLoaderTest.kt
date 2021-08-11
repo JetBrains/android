@@ -44,7 +44,9 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.testFramework.DisposableRule
 import com.intellij.util.io.readBytes
 import org.junit.Before
 import org.junit.Rule
@@ -70,6 +72,9 @@ class LegacyTreeLoaderTest {
 
   @get:Rule
   val adb = FakeAdbRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Before
   fun init() {
@@ -101,7 +106,10 @@ DONE.
    */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
-    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model, FakeTreeSettings()))
+    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model, FakeTreeSettings()),
+                        disposableRule.disposable).apply {
+      launchMonitor = mock()
+    }
   }
 
   /**
@@ -114,6 +122,7 @@ DONE.
     `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
     `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(adb.bridge, legacyClient))
     `when`(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
+    `when`(legacyClient.launchMonitor).thenReturn(mock())
     return legacyClient
   }
 
@@ -186,6 +195,9 @@ DONE.
     legacyClient.treeLoader.ddmClientOverride = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
     val result = legacyClient.treeLoader.getAllWindowIds(null)
     assertThat(result).containsExactly(window1, window2)
+    val launchMonitor = legacyClient.launchMonitor
+    verify(launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED)
+    verify(launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED)
   }
 
   @Test
@@ -203,6 +215,7 @@ DONE.
       argument?.payload?.int == CHUNK_VURT &&
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, any())).thenAnswer { invocation ->
+      verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
       invocation
         .getArgument(1, DebugViewDumpHandler::class.java)
         .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
@@ -210,6 +223,7 @@ DONE.
     `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+      verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
       invocation
         .getArgument<DebugViewDumpHandler>(2)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageBytes), true, 1234)
@@ -245,6 +259,8 @@ DONE.
     }
     assertDrawTreesEqual(expected, window.root)
     verify(resourceLookup).dpi = 560
+    verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
+    verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
   }
 
   @Suppress("UndesirableClassUsage")

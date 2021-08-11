@@ -27,8 +27,10 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.doAnswer
@@ -38,16 +40,21 @@ import java.util.concurrent.Executors
 
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
+
+  private val disposableRule = DisposableRule()
+
   private val legacyClientProvider = object : InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
       val loader = mock(LegacyTreeLoader::class.java)
       doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
-      return LegacyClientProvider(loader).create(params, inspector) as LegacyClient
+      return LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
     }
   }
 
+  private val inspectorRule = LayoutInspectorRule(legacyClientProvider)
   @get:Rule
-  val inspectorRule = LayoutInspectorRule(legacyClientProvider)
+  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
+
 
   @Test
   fun testReloadAllWindows() {

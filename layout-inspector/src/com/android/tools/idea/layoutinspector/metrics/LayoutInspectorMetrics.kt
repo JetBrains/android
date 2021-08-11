@@ -22,11 +22,12 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 
 class LayoutInspectorMetrics(
-  private val project: Project,
+  private val project: Project?,
   private val process: ProcessDescriptor? = null,
   private val stats: SessionStatistics? = null,
   private val snapshotMetadata: SnapshotMetadata? = null
@@ -34,7 +35,7 @@ class LayoutInspectorMetrics(
 
   private var loggedInitialRender = false
 
-  fun logEvent(eventType: DynamicLayoutInspectorEventType) {
+  fun logEvent(eventType: DynamicLayoutInspectorEventType, errorState: AttachErrorState? = null) {
     when(eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
@@ -49,6 +50,11 @@ class LayoutInspectorMetrics(
           stats.save(sessionBuilder)
         }
         snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
+        if (errorState != null) {
+          errorInfoBuilder.apply {
+            attachErrorState = errorState
+          }
+        }
       }
       if (process != null) {
         deviceInfo = process.device.toDeviceInfo()

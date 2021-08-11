@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.Disposable
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -63,9 +64,10 @@ class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   private val model: InspectorModel,
   private val stats: SessionStatistics,
+  parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
-) : AbstractInspectorClient(process) {
+) : AbstractInspectorClient(process, parentDisposable) {
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
@@ -126,8 +128,9 @@ class AppInspectionInspectorClient(
     scope.launch(exceptionHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
+      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, launchMonitor)
+      viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
+                                                       launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector.propertiesCache, composeInspector?.parametersCache, model)
 
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)

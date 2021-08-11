@@ -22,6 +22,8 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.intellij.openapi.Disposable
 import java.nio.file.Path
 import java.util.EnumSet
 
@@ -31,7 +33,7 @@ import java.util.EnumSet
  * When created, it is expected that [connect] should be called shortly after, and that the client
  * will be in a valid state until [disconnect] is called.
  */
-interface InspectorClient {
+interface InspectorClient: Disposable {
   enum class State {
     INITIALIZED,
     CONNECTING,
@@ -100,6 +102,8 @@ interface InspectorClient {
    * You are only supposed to call this once.
    */
   fun connect()
+
+  fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
 
   /**
    * Disconnect this client.
@@ -192,10 +196,14 @@ interface InspectorClient {
    * process.
    */
   val isConnected: Boolean get() = (state == State.CONNECTED)
+
+  override fun dispose() {}
 }
 
 object DisconnectedClient : InspectorClient {
   override fun connect() {}
+  override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {}
+
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit

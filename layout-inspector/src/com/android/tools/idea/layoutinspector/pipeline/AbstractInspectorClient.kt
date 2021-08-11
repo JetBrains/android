@@ -21,12 +21,20 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Base class for [InspectorClient] implementations with some boilerplate logic provided.
  */
-abstract class AbstractInspectorClient(final override val process: ProcessDescriptor) : InspectorClient {
+abstract class AbstractInspectorClient(final override val process: ProcessDescriptor, parentDisposable: Disposable) : InspectorClient {
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
     private set(value) {
       assert(field != value)
@@ -37,6 +45,13 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   private val stateCallbacks = mutableListOf<(InspectorClient.State) -> Unit>()
   private val errorCallbacks = mutableListOf<(String) -> Unit>()
   private val treeEventCallbacks = mutableListOf<(Any) -> Unit>()
+
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()
+    @TestOnly set
+
+  override fun dispose() {
+    launchMonitor.stop()
+  }
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) {
     stateCallbacks.add(callback)
@@ -72,6 +87,7 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   }
 
   final override fun connect() {
+    launchMonitor.start(this)
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
     doConnect().addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Nothing> {
@@ -88,6 +104,10 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
           "cause:", t)
       }
     })
+  }
+
+  override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
+    launchMonitor.updateProgress(state)
   }
 
   protected abstract fun doConnect(): ListenableFuture<Nothing>
