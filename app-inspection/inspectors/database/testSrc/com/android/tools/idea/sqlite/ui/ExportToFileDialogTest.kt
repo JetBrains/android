@@ -60,7 +60,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.SystemProperties.getUserHome
-import org.junit.Ignore
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
@@ -75,7 +74,6 @@ private val EXPORT_FORMATS_ALL = listOf(DB, SQL, CSV(mock()))
 
 /** Test suite verifying Export-to-File Dialog behaviour */
 @Suppress("NestedLambdaShadowedImplicitParameter", "SameParameterValue")
-@Ignore
 class ExportToFileDialogTest : LightPlatformTestCase() {
   private val inFileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
   private val inMemoryDatabaseId = SqliteDatabaseId.fromLiveDatabase(":memory: database1337", 1337)
