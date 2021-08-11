@@ -19,9 +19,11 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.table.JBTable;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,8 +42,19 @@ final class PhysicalDeviceTable extends JBTable {
     setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
     setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
+  }
+
+  @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
+    int viewRowIndex = getSelectedRow();
+
+    if (viewRowIndex == -1) {
+      return Optional.empty();
+    }
+
+    return Optional.of(getModel().getCombinedDevices().get(convertRowIndexToModel(viewRowIndex)));
   }
 
   @VisibleForTesting

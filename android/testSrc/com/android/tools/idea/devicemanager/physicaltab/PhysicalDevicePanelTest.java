@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
@@ -193,44 +192,5 @@ public final class PhysicalDevicePanelTest {
     // Assert
     assertEquals("Pair using Wi-Fi", button.getText());
     Mockito.verify(controller).showDialog();
-  }
-
-  @Test
-  public void toggleDetailsPanelDetailsPanelIsNull() {
-    // Arrange
-    myPanel = new PhysicalDevicePanel(Mockito.mock(Project.class),
-                                      project -> myService,
-                                      () -> myComponent,
-                                      model -> myListener,
-                                      PhysicalDeviceTable::new,
-                                      mySupplier,
-                                      SetDevices::new);
-
-    // Act
-    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
-
-    // Assert
-    assertEquals(3, myPanel.getComponentCount());
-    assertTrue(myPanel.getComponent(2) instanceof DetailsPanel);
-  }
-
-  @Test
-  public void toggleDetailsPanel() {
-    // Arrange
-    myPanel = new PhysicalDevicePanel(Mockito.mock(Project.class),
-                                      project -> myService,
-                                      () -> myComponent,
-                                      model -> myListener,
-                                      PhysicalDeviceTable::new,
-                                      mySupplier,
-                                      SetDevices::new);
-
-    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
-
-    // Act
-    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
-
-    // Assert
-    assertEquals(2, myPanel.getComponentCount());
   }
 }

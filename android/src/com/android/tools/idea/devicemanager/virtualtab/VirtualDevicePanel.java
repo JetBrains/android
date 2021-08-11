@@ -20,6 +20,8 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DetailsPanelPanel;
+import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -27,9 +29,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
+import java.util.Optional;
 import java.util.function.Function;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -45,7 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
+public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements DetailsPanelPanel<AvdInfo> {
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private @Nullable JButton myRefreshButton;
@@ -53,7 +55,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private @Nullable SearchTextField mySearchTextField;
 
   private @Nullable VirtualDisplayList myAvdDisplayList;
-  private @Nullable Component myDetailsPanel;
+  private @Nullable DetailsPanel myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project) {
     this(project, CreateAvdAction::new);
@@ -101,37 +103,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
       return;
     }
 
-    myAvdDisplayList.getTable().getSelectionModel().addListSelectionListener(event -> {
-      if (event.getValueIsAdjusting()) {
-        return;
-      }
-
-      AvdInfo device = myAvdDisplayList.getAvdInfo();
-
-      if (device == null) {
-        return;
-      }
-
-      if (myDetailsPanel != null) {
-        remove(myDetailsPanel);
-      }
-
-      myDetailsPanel = createDetailsPanel(device);
-      setLayout(createGroupLayout());
-    });
-  }
-
-  private @NotNull Component createDetailsPanel(@NotNull AvdInfo device) {
-    DetailsPanel panel = new VirtualDeviceDetailsPanel(device);
-
-    panel.getCloseButton().addActionListener(event -> {
-      remove(myDetailsPanel);
-      myDetailsPanel = null;
-
-      setLayout(createGroupLayout());
-    });
-
-    return panel;
+    myAvdDisplayList.getTable().getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 
   private @NotNull GroupLayout createGroupLayout() {
@@ -242,5 +214,37 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   @VisibleForTesting
   @NotNull JButton getCreateButton() {
     return myCreateButton;
+  }
+
+  @Override
+  public @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
+    assert myAvdDisplayList != null;
+    return Optional.ofNullable(myAvdDisplayList.getAvdInfo());
+  }
+
+  @Override
+  public boolean containsDetailsPanel() {
+    return myDetailsPanel != null;
+  }
+
+  @Override
+  public void removeDetailsPanel() {
+    remove(myDetailsPanel);
+    myDetailsPanel = null;
+  }
+
+  @Override
+  public void initDetailsPanel(@NotNull AvdInfo device) {
+    myDetailsPanel = new VirtualDeviceDetailsPanel(device);
+
+    myDetailsPanel.getCloseButton().addActionListener(event -> {
+      removeDetailsPanel();
+      layOut();
+    });
+  }
+
+  @Override
+  public void layOut() {
+    setLayout(createGroupLayout());
   }
 }

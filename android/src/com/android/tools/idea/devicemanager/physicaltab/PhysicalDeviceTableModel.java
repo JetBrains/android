@@ -180,8 +180,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .build();
   }
 
-  @VisibleForTesting
-  @NotNull Collection<@NotNull PhysicalDevice> getCombinedDevices() {
+  @NotNull List<@NotNull PhysicalDevice> getCombinedDevices() {
     return myCombinedDevices;
   }
 
