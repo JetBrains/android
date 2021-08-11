@@ -54,7 +54,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
     if (!isComposeRunConfigurationEnabled()) return false
     if (context.module?.isNonLibraryAndroidModule() != true) return false
 
-    configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName)
+    configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
