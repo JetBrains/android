@@ -88,6 +88,10 @@ interface GradleBuildInvoker {
         rootProjectPath: File,
         gradleTasks: List<String>
       ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
+
+      @JvmStatic
+      fun copyRequest(request: Request): Request =
+        request.copy(taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project))
     }
 
     class Builder constructor(
