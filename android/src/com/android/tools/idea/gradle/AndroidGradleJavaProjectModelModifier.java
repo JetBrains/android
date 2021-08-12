@@ -342,14 +342,20 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull IdeVariant selectedVariant) {
     @Nullable ArtifactDependencySpec matchedLibrary = null;
-    IdeBaseArtifact testArtifact = selectedVariant.getUnitTestArtifact();
-    if (testArtifact != null) {
-      matchedLibrary = findMatchedLibrary(library, testArtifact);
+    IdeBaseArtifact artifact = selectedVariant.getUnitTestArtifact();
+    if (artifact != null) {
+      matchedLibrary = findMatchedLibrary(library, artifact);
     }
     if (matchedLibrary == null) {
-      testArtifact = selectedVariant.getAndroidTestArtifact();
-      if (testArtifact != null) {
-        matchedLibrary = findMatchedLibrary(library, testArtifact);
+      artifact = selectedVariant.getAndroidTestArtifact();
+      if (artifact != null) {
+        matchedLibrary = findMatchedLibrary(library, artifact);
+      }
+    }
+    if (matchedLibrary == null) {
+      artifact = selectedVariant.getTestFixturesArtifact();
+      if (artifact != null) {
+        matchedLibrary = findMatchedLibrary(library, artifact);
       }
     }
     if (matchedLibrary == null) {
