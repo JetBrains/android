@@ -69,7 +69,7 @@ class AppInspectionPropertiesProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectionRule = AppInspectionInspectorRule()
   private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(), projectRule) {
-    listOf(MODERN_PROCESS.name)
+    it.name == MODERN_PROCESS.name
   }
 
   @get:Rule

@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.ide.AppInspectionToolWindowService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.model.AndroidModel
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
@@ -30,7 +29,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
@@ -51,14 +49,6 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     fun show(project: Project, callback: Runnable? = null) =
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
-
-  /**
-   * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
-   */
-  private fun getPreferredProcesses(): List<String> = ModuleManager.getInstance(project).modules
-    .mapNotNull { module -> AndroidModel.get(module)?.applicationId }
-    .filter { applicationId -> applicationId != AndroidModel.UNINITIALIZED_APPLICATION_ID }
-    .toList()
 
   private val ideServices = object : AppInspectionIdeServices {
     private val notificationGroup =
@@ -115,7 +105,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     ideServices,
     scope,
     AndroidDispatchers.uiThread,
-    ::getPreferredProcesses
+    isPreferredProcess = { RecentProcess.isRecentProcess(it, project) }
   )
   val component: JComponent = appInspectionView.component
 

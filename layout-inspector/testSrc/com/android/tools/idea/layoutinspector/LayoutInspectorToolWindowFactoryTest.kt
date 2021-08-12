@@ -92,7 +92,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @get:Rule
   val inspectorRule = LayoutInspectorRule(LegacyClientProvider(), projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
-    listOf(LEGACY_PROCESS.name)
+    it.name == LEGACY_PROCESS.name
   }
 
   @Test

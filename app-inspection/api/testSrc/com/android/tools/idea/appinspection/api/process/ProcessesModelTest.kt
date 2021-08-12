@@ -40,7 +40,7 @@ class ProcessesModelTest {
   @Test
   fun processConnectedDisconnected_modelUpdatesProperly() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf(FakeTransportService.FAKE_PROCESS.name) }
+    val model = ProcessesModel(testNotifier) { it.name == FakeTransportService.FAKE_PROCESS.name }
 
     val fakeStream = createFakeStream()
     val fakeProcess = fakeStream.createFakeProcess()
@@ -77,7 +77,7 @@ class ProcessesModelTest {
   @Test
   fun canSetSelectedProcessDirectly() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A") }
+    val model = ProcessesModel(testNotifier) { it.name == "A" }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -94,7 +94,7 @@ class ProcessesModelTest {
   @Test
   fun modelListenerFiredOnProcessChanged() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { it.name in listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -121,7 +121,7 @@ class ProcessesModelTest {
   @Test
   fun modelPrioritizesPreferredProcess() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("preferred") }
+    val model = ProcessesModel(testNotifier) { it.name == "preferred" }
 
     val fakeStream = createFakeStream()
 
@@ -139,7 +139,7 @@ class ProcessesModelTest {
   @Test
   fun newProcessDoesNotCauseSelectionToChange() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { it.name in listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -155,7 +155,7 @@ class ProcessesModelTest {
   @Test
   fun noPreferredProcesses_noSelection() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { emptyList() }
+    val model = ProcessesModel(testNotifier) { false }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A")
@@ -169,7 +169,7 @@ class ProcessesModelTest {
   @Test
   fun stop() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { it.name in listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -204,9 +204,11 @@ class ProcessesModelTest {
     val fakeProcessC = fakeStream.createFakeProcess("C")
     val fakeProcessD = fakeStream.createFakeProcess("D")
 
-    val model = ProcessesModel(testNotifier, { it === fakeProcessB || it === fakeProcessD }) {
-      listOf(FakeTransportService.FAKE_PROCESS.name)
-    }
+    val model = ProcessesModel(
+      processNotifier = testNotifier,
+      acceptProcess = { it === fakeProcessB || it === fakeProcessD },
+      isPreferred = { it.name == FakeTransportService.FAKE_PROCESS.name }
+    )
 
     testNotifier.fireConnected(fakeProcessA)
     testNotifier.fireConnected(fakeProcessB)

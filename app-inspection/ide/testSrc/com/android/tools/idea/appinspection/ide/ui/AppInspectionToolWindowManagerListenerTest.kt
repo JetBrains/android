@@ -98,7 +98,7 @@ class AppInspectionToolWindowManagerListenerTest {
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
         appInspectionServiceRule.scope, uiDispatcher
       ) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
     }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)

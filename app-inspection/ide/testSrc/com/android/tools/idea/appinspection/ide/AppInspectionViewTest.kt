@@ -123,7 +123,7 @@ class AppInspectionViewTest {
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                              appInspectionServiceRule.scope, uiDispatcher) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -150,7 +150,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(TestAppInspectorTabProvider1()) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -174,7 +174,7 @@ class AppInspectionViewTest {
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                              appInspectionServiceRule.scope, uiDispatcher) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -227,7 +227,7 @@ class AppInspectionViewTest {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                          { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
                                          appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -307,7 +307,7 @@ class AppInspectionViewTest {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                              { listOf(tabProvider, offlineTabProvider) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -356,7 +356,7 @@ class AppInspectionViewTest {
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                          appInspectionServiceRule.scope, uiDispatcher) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -450,7 +450,7 @@ class AppInspectionViewTest {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                          { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
                                          appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -499,7 +499,7 @@ class AppInspectionViewTest {
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
         { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow
@@ -542,7 +542,7 @@ class AppInspectionViewTest {
         projectRule.project, appInspectionServiceRule.apiServices, ideServices,
         { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow
@@ -589,7 +589,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(provider) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -631,7 +631,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(provider) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -666,7 +666,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(TestAppInspectorTabProvider1()) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -709,7 +709,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(TestAppInspectorTabProvider2()) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -738,7 +738,7 @@ class AppInspectionViewTest {
                                              ideServices,
                                              { listOf(provider) },
                                              appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -775,7 +775,7 @@ class AppInspectionViewTest {
     val inspectionView = withContext(uiDispatcher) {
       AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                         appInspectionServiceRule.scope, uiDispatcher) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
     }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -859,7 +859,7 @@ class AppInspectionViewTest {
           }
         }
       ) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.first {
@@ -932,7 +932,7 @@ class AppInspectionViewTest {
     val inspectionView = withContext(uiDispatcher) {
       AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                         appInspectionServiceRule.scope, uiDispatcher) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
     }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
@@ -1036,7 +1036,7 @@ class AppInspectionViewTest {
       AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                         { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
                         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
-        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+        it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
     }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
