@@ -519,7 +519,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   private class MyListener extends ExternalSystemTaskNotificationListenerAdapter {
-    @NotNull private Request myRequest;
+    @NotNull private final Request myRequest;
     @NotNull private final BuildViewManager myBuildViewManager;
     @NotNull private final String myExecutionName;
     @NotNull private BuildEventDispatcher myBuildEventDispatcher;
@@ -542,7 +542,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
     @Override
     public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
-      AnAction restartAction = new RestartAction(id);
+      AnAction restartAction = new RestartAction(myRequest);
 
       myBuildFailed = false;
       Presentation presentation = restartAction.getTemplatePresentation();
@@ -655,27 +655,25 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       }
       super.onCancel(id);
     }
+  }
 
-    private class RestartAction extends AnAction {
-      private @NotNull final ExternalSystemTaskId myId;
+  private class RestartAction extends AnAction {
+    private @NotNull final GradleBuildInvoker.Request myRequest;
 
-      public RestartAction(@NotNull ExternalSystemTaskId id) {myId = id;}
+    public RestartAction(@NotNull GradleBuildInvoker.Request request) {myRequest = request;}
 
-      @Override
-      public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setEnabled(!myBuildStopper.contains(myId));
-      }
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(!myBuildStopper.contains(myRequest.getTaskId()));
+    }
 
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        myRequest = GradleBuildInvoker.Request.copyRequest(myRequest);
-        myBuildFailed = false;
-        // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
-        myBuildEventDispatcher.close();
-        myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.getTaskId(), myBuildViewManager);
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      GradleBuildInvoker.Request newRequest = GradleBuildInvoker.Request.copyRequest(myRequest);
 
-        internalExecuteTasks(myRequest, null, MyListener.this);
-      }
+      String executionName = getExecutionName(newRequest);
+      ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(newRequest, executionName, newRequest.getListener());
+      internalExecuteTasks(newRequest, null, buildTaskListener);
     }
   }
 }
