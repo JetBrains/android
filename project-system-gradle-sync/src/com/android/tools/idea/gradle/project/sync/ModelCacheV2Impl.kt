@@ -165,7 +165,6 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     val instances = computeIfAbsent(core) { Instances(core, null, null) }
 
     // If both libraries are present their names are expected to match.
-
     if ((instances.regularLibrary?.name ?: instances.providedLibrary?.name) !=
       (instances.providedLibrary?.name ?: instances.regularLibrary?.name)) {
       error("Regular and provided library names are expected to match. Core: $core")
@@ -439,7 +438,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    * path to build directory for all modules.
    * @return Instance of [IdeLibrary] based on dependency type.
    */
-  fun androidLibraryFrom(androidLibrary: Library, providedLibraries: List<Library>): IdeLibrary {
+  fun androidLibraryFrom(androidLibrary: Library, providedLibraries: Set<LibraryIdentity>): IdeLibrary {
     val core = IdeAndroidLibraryCore.create(
       artifactAddress = androidLibrary.artifactAddress,
       folder = androidLibrary.resFolder?.parentFile ?: File(""), // TODO: verify this always true
@@ -461,7 +460,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       symbolFile = getV2SymbolFilePath(androidLibrary),
       deduplicate = { strings.getOrPut(this) { this } }
     )
-    val isProvided = providedLibraries.contains(androidLibrary)
+    val isProvided = providedLibraries.contains(androidLibrary.toIdentity())
     return androidLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeAndroidLibraryImpl)
   }
 
@@ -469,12 +468,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    * @param javaLibrary Instance of type [LibraryType.JAVA_LIBRARY] returned by android plugin.
    * @return Instance of [Library] based on dependency type.
    */
-  fun javaLibraryFrom(javaLibrary: Library, providedLibraries: List<Library>): IdeLibrary {
+  fun javaLibraryFrom(javaLibrary: Library, providedLibraries: Set<LibraryIdentity>): IdeLibrary {
     val core = IdeJavaLibraryCore(
       artifactAddress = javaLibrary.artifactAddress,
       artifact = javaLibrary.artifact!!
     )
-    val isProvided = providedLibraries.contains(javaLibrary)
+    val isProvided = providedLibraries.contains(javaLibrary.toIdentity())
     return javaLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeJavaLibraryImpl)
   }
 
@@ -518,7 +517,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     fun populateJavaLibraries(
       javaLibraries: Collection<Library>,
-      providedLibraries: List<Library>,
+      providedLibraries: Set<LibraryIdentity>,
       visited: MutableSet<String>
     ) {
       for (javaLibrary in javaLibraries) {
@@ -547,6 +546,22 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         getTypedLibraries(dependency.dependencies, libraryMap, androidLibraries, javaLibraries, projectLibraries)
       }
       return
+    }
+
+    fun List<GraphItem>.toFlatLibraryList(): Sequence<Library> = sequence {
+      val seen = HashSet<String>()
+      val queue = ArrayDeque(this@toFlatLibraryList)
+
+      while (queue.isNotEmpty()) {
+        val item = queue.removeFirst()
+        queue.addAll(item.dependencies)
+        if (seen.add(item.artifactAddress)) {
+          val library = libraryMap.libraries[item.artifactAddress]
+          if (library != null) {
+            yield(library)
+          }
+        }
+      }
     }
 
     fun getRuntimeLibraries(
@@ -578,7 +593,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     fun populateAndroidLibraries(
       androidLibraries: Collection<Library>,
-      providedLibraries: List<Library>,
+      providedLibraries: Set<LibraryIdentity>,
       visited: MutableSet<String>
     ) {
       for (androidLibrary in androidLibraries) {
@@ -592,24 +607,10 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     fun getProvidedLibraries(
       compileDependencies: List<GraphItem>,
-      runtimeDependencies: List<GraphItem>?,
-      libraryMap: GlobalLibraryMap
-    ): List<Library> {
-      val providedDependencies = mutableListOf<Library>()
-      if (runtimeDependencies != null) {
-        for (graphItem in compileDependencies) {
-          if (!runtimeDependencies.contains(graphItem)) {
-            libraryMap.libraries[graphItem.artifactAddress]?.let { providedDependencies.add(it) }
-          }
-        }
-      }
-      else {
-        compileDependencies.forEach { graphItem ->
-          libraryMap.libraries[graphItem.artifactAddress]?.let { providedDependencies.add(it) }
-        }
-      }
-      return providedDependencies
-    }
+      runtimeDependencies: List<GraphItem>?
+    ): Set<LibraryIdentity> =
+      compileDependencies.toFlatLibraryList().mapNotNull { it.toIdentity() }.toSet() -
+      runtimeDependencies.orEmpty().toFlatLibraryList().mapNotNull { it.toIdentity() }.toSet()
 
     fun createIdeDependencies(
       artifactAddresses: Collection<String>,
@@ -639,7 +640,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       val javaLibraries = mutableListOf<Library>()
       val projectLibraries = mutableListOf<Library>()
       getTypedLibraries(dependencies.compileDependencies, libraryMap, androidLibraries, javaLibraries, projectLibraries)
-      val providedLibraries = getProvidedLibraries(dependencies.compileDependencies, dependencies.runtimeDependencies, libraryMap)
+      val providedLibraries = getProvidedLibraries(dependencies.compileDependencies, dependencies.runtimeDependencies)
       populateAndroidLibraries(androidLibraries, providedLibraries, visited)
       populateJavaLibraries(javaLibraries, providedLibraries, visited)
       populateProjectDependencies(projectLibraries, visited)
@@ -1202,3 +1203,16 @@ private fun MutableSet<String>.generateLibraryName(core: IdeArtifactLibrary, pro
   }
   return candidateLibraryName
 }
+
+
+private data class LibraryIdentity(
+  // NOTE: This is going to change and include more details when v2 models support them.
+  val artifactAddress: String
+)
+
+private fun Library.toIdentity() =
+  when (type) {
+    LibraryType.ANDROID_LIBRARY,
+    LibraryType.JAVA_LIBRARY -> LibraryIdentity(artifactAddress)
+    else -> null
+  }
