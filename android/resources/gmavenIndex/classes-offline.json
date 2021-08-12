@@ -325,7 +325,7 @@
     {
       "groupId": "androidx.activity",
       "artifactId": "activity",
-      "version": "1.2.2",
+      "version": "1.3.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.activity.ComponentActivity",
@@ -349,17 +349,19 @@
     {
       "groupId": "androidx.activity",
       "artifactId": "activity-compose",
-      "version": "1.3.0-alpha07",
+      "version": "1.3.1",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.activity.compose.ActivityResultLauncherHolder",
         "androidx.activity.compose.LocalActivityResultRegistryOwner",
-        "androidx.activity.compose.LocalOnBackPressedDispatcherOwner"
+        "androidx.activity.compose.LocalOnBackPressedDispatcherOwner",
+        "androidx.activity.compose.ManagedActivityResultLauncher"
       ]
     },
     {
       "groupId": "androidx.activity",
       "artifactId": "activity-ktx",
-      "version": "1.2.2",
+      "version": "1.3.1",
       "ktxTargets": [
         "androidx.activity:activity"
       ],
@@ -484,7 +486,7 @@
     {
       "groupId": "androidx.appcompat",
       "artifactId": "appcompat",
-      "version": "1.2.0",
+      "version": "1.3.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.appcompat.app.ActionBar",
@@ -528,12 +530,40 @@
     {
       "groupId": "androidx.appcompat",
       "artifactId": "appcompat-resources",
-      "version": "1.2.0",
+      "version": "1.3.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.appcompat.content.res.AppCompatResources",
         "androidx.appcompat.graphics.drawable.AnimatedStateListDrawableCompat"
       ]
+    },
+    {
+      "groupId": "androidx.appsearch",
+      "artifactId": "appsearch",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.appsearch",
+      "artifactId": "appsearch-compiler",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.appsearch",
+      "artifactId": "appsearch-local-storage",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.appsearch",
+      "artifactId": "appsearch-platform-storage",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": []
     },
     {
       "groupId": "androidx.arch.core",
@@ -580,6 +610,13 @@
         "androidx.autofill.inline.common.ViewStyle",
         "androidx.autofill.inline.v1.InlineSuggestionUi"
       ]
+    },
+    {
+      "groupId": "androidx.benchmark",
+      "artifactId": "androidx.benchmark.gradle.plugin",
+      "version": "1.1.0-alpha05",
+      "ktxTargets": [],
+      "fqcns": []
     },
     {
       "groupId": "androidx.benchmark",
@@ -637,6 +674,74 @@
       "fqcns": [
         "androidx.benchmark.junit4.AndroidBenchmarkRunner",
         "androidx.benchmark.junit4.BenchmarkRule"
+      ]
+    },
+    {
+      "groupId": "androidx.benchmark",
+      "artifactId": "benchmark-macro",
+      "version": "1.1.0-alpha05",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.benchmark.macro.CompilationMode",
+        "androidx.benchmark.macro.ConfigurationError",
+        "androidx.benchmark.macro.DeviceInfo",
+        "androidx.benchmark.macro.FrameTimingMetric",
+        "androidx.benchmark.macro.MacrobenchmarkScope",
+        "androidx.benchmark.macro.Metric",
+        "androidx.benchmark.macro.MetricsWithUiState",
+        "androidx.benchmark.macro.StartupMode",
+        "androidx.benchmark.macro.StartupTimingMetric",
+        "androidx.benchmark.macro.UserspaceTracing",
+        "androidx.benchmark.macro.perfetto.AtraceTag",
+        "androidx.benchmark.macro.perfetto.PerfettoCaptureWrapper",
+        "androidx.benchmark.macro.perfetto.PerfettoResultsParser",
+        "androidx.benchmark.macro.perfetto.PerfettoTraceProcessor",
+        "androidx.benchmark.macro.perfetto.ShellOutput",
+        "perfetto.protos.AndroidLogConfig",
+        "perfetto.protos.AndroidLogId",
+        "perfetto.protos.AndroidLogPriority",
+        "perfetto.protos.AndroidPolledStateConfig",
+        "perfetto.protos.AndroidPowerConfig",
+        "perfetto.protos.BuiltinClock",
+        "perfetto.protos.ChromeConfig",
+        "perfetto.protos.ConsoleConfig",
+        "perfetto.protos.DataSourceConfig",
+        "perfetto.protos.DataSourceDescriptor",
+        "perfetto.protos.FtraceConfig",
+        "perfetto.protos.GpuCounterConfig",
+        "perfetto.protos.GpuCounterDescriptor",
+        "perfetto.protos.HeapprofdConfig",
+        "perfetto.protos.InodeFileConfig",
+        "perfetto.protos.InterceptorConfig",
+        "perfetto.protos.JavaHprofConfig",
+        "perfetto.protos.MeminfoCounters",
+        "perfetto.protos.PackagesListConfig",
+        "perfetto.protos.PerfEventConfig",
+        "perfetto.protos.PerfEvents",
+        "perfetto.protos.ProcessStatsConfig",
+        "perfetto.protos.SysStatsConfig",
+        "perfetto.protos.TestConfig",
+        "perfetto.protos.Trace",
+        "perfetto.protos.TraceConfig",
+        "perfetto.protos.TracePacket",
+        "perfetto.protos.TracingServiceState",
+        "perfetto.protos.TrackDescriptor",
+        "perfetto.protos.TrackEvent",
+        "perfetto.protos.TrackEventCategory",
+        "perfetto.protos.TrackEventConfig",
+        "perfetto.protos.TrackEventDescriptor",
+        "perfetto.protos.UiState",
+        "perfetto.protos.VmstatCounters",
+        "perfetto.protos.VulkanMemoryConfig"
+      ]
+    },
+    {
+      "groupId": "androidx.benchmark",
+      "artifactId": "benchmark-macro-junit4",
+      "version": "1.1.0-alpha05",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.benchmark.macro.junit4.MacrobenchmarkRule"
       ]
     },
     {
@@ -704,7 +809,7 @@
     {
       "groupId": "androidx.camera",
       "artifactId": "camera-camera2",
-      "version": "1.1.0-alpha04",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.camera.camera2.Camera2Config",
@@ -719,7 +824,7 @@
     {
       "groupId": "androidx.camera",
       "artifactId": "camera-core",
-      "version": "1.1.0-alpha04",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.camera.core.AspectRatio",
@@ -764,30 +869,17 @@
     {
       "groupId": "androidx.camera",
       "artifactId": "camera-extensions",
-      "version": "1.0.0-alpha24",
+      "version": "1.0.0-alpha27",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.camera.extensions.AutoImageCaptureExtender",
-        "androidx.camera.extensions.AutoPreviewExtender",
-        "androidx.camera.extensions.BeautyImageCaptureExtender",
-        "androidx.camera.extensions.BeautyPreviewExtender",
-        "androidx.camera.extensions.BokehImageCaptureExtender",
-        "androidx.camera.extensions.BokehPreviewExtender",
-        "androidx.camera.extensions.ExtensionCameraFilter",
-        "androidx.camera.extensions.ExtensionsErrorListener",
-        "androidx.camera.extensions.ExtensionsManager",
-        "androidx.camera.extensions.HdrImageCaptureExtender",
-        "androidx.camera.extensions.HdrPreviewExtender",
-        "androidx.camera.extensions.ImageCaptureExtender",
-        "androidx.camera.extensions.NightImageCaptureExtender",
-        "androidx.camera.extensions.NightPreviewExtender",
-        "androidx.camera.extensions.PreviewExtender"
+        "androidx.camera.extensions.ExtensionMode",
+        "androidx.camera.extensions.ExtensionsManager"
       ]
     },
     {
       "groupId": "androidx.camera",
       "artifactId": "camera-lifecycle",
-      "version": "1.1.0-alpha04",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.camera.lifecycle.ExperimentalCameraProviderConfiguration",
@@ -798,12 +890,17 @@
     {
       "groupId": "androidx.camera",
       "artifactId": "camera-view",
-      "version": "1.0.0-alpha24",
+      "version": "1.0.0-alpha27",
       "ktxTargets": [],
       "fqcns": [
         "androidx.camera.view.CameraController",
         "androidx.camera.view.LifecycleCameraController",
         "androidx.camera.view.PreviewView",
+        "androidx.camera.view.RotationReceiver",
+        "androidx.camera.view.transform.CoordinateTransform",
+        "androidx.camera.view.transform.FileTransformFactory",
+        "androidx.camera.view.transform.ImageProxyTransformFactory",
+        "androidx.camera.view.transform.OutputTransform",
         "androidx.camera.view.video.ExperimentalVideo",
         "androidx.camera.view.video.Metadata",
         "androidx.camera.view.video.OnVideoSavedCallback",
@@ -834,8 +931,22 @@
     },
     {
       "groupId": "androidx.car.app",
+      "artifactId": "app-automotive",
+      "version": "1.1.0-alpha02",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.car.app",
+      "artifactId": "app-projected",
+      "version": "1.1.0-alpha02",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.car.app",
       "artifactId": "app-testing",
-      "version": "1.0.0-alpha01",
+      "version": "1.1.0-alpha02",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -881,29 +992,31 @@
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.compose.animation.AndroidFlingCalculator",
         "androidx.compose.animation.AndroidFlingSpline",
         "androidx.compose.animation.AnimStates",
+        "androidx.compose.animation.AnimatedContentScope",
+        "androidx.compose.animation.AnimatedVisibilityScope",
         "androidx.compose.animation.ChangeSize",
+        "androidx.compose.animation.ContentTransform",
+        "androidx.compose.animation.EnterExitState",
         "androidx.compose.animation.EnterTransition",
         "androidx.compose.animation.ExitTransition",
         "androidx.compose.animation.ExperimentalAnimationApi",
         "androidx.compose.animation.Fade",
-        "androidx.compose.animation.SizeAnimation",
+        "androidx.compose.animation.FlingCalculator",
+        "androidx.compose.animation.SizeTransform",
         "androidx.compose.animation.Slide",
         "androidx.compose.animation.SplineBasedFloatDecayAnimationSpec",
-        "androidx.compose.animation.TransitionAnimation",
-        "androidx.compose.animation.TransitionAnimations",
         "androidx.compose.animation.TransitionData"
       ]
     },
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation-core",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.animation.core.Animatable",
@@ -926,18 +1039,17 @@
         "androidx.compose.animation.core.DecayAnimationSpec",
         "androidx.compose.animation.core.DurationBasedAnimationSpec",
         "androidx.compose.animation.core.Easing",
+        "androidx.compose.animation.core.ExperimentalTransitionApi",
         "androidx.compose.animation.core.FiniteAnimationSpec",
         "androidx.compose.animation.core.FloatAnimationSpec",
         "androidx.compose.animation.core.FloatDecayAnimationSpec",
         "androidx.compose.animation.core.FloatExponentialDecaySpec",
         "androidx.compose.animation.core.FloatSpringSpec",
         "androidx.compose.animation.core.FloatTweenSpec",
-        "androidx.compose.animation.core.InfiniteAnimationPolicy",
         "androidx.compose.animation.core.InfiniteRepeatableSpec",
         "androidx.compose.animation.core.InfiniteTransition",
         "androidx.compose.animation.core.InternalAnimationApi",
         "androidx.compose.animation.core.KeyframesSpec",
-        "androidx.compose.animation.core.ManualFrameClock",
         "androidx.compose.animation.core.Motion",
         "androidx.compose.animation.core.MutableTransitionState",
         "androidx.compose.animation.core.MutatePriority",
@@ -966,16 +1078,41 @@
       ]
     },
     {
+      "groupId": "androidx.compose.animation",
+      "artifactId": "animation-graphics",
+      "version": "1.1.0-alpha01",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi",
+        "androidx.compose.animation.graphics.vector.AnimatedImageVector",
+        "androidx.compose.animation.graphics.vector.AnimatedVectorTarget",
+        "androidx.compose.animation.graphics.vector.Animator",
+        "androidx.compose.animation.graphics.vector.AnimatorSet",
+        "androidx.compose.animation.graphics.vector.Keyframe",
+        "androidx.compose.animation.graphics.vector.ObjectAnimator",
+        "androidx.compose.animation.graphics.vector.Ordering",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder1D",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder2D",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderColor",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderFloat",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderInt",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderPath",
+        "androidx.compose.animation.graphics.vector.StateVectorConfig",
+        "androidx.compose.animation.graphics.vector.compat.AndroidVectorResources"
+      ]
+    },
+    {
       "groupId": "androidx.compose.compiler",
       "artifactId": "compiler",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.foundation",
       "artifactId": "foundation",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.foundation.BorderStroke",
@@ -986,7 +1123,6 @@
         "androidx.compose.foundation.MutatePriority",
         "androidx.compose.foundation.MutatorMutex",
         "androidx.compose.foundation.ScrollState",
-        "androidx.compose.foundation.Strings",
         "androidx.compose.foundation.gestures.DragScope",
         "androidx.compose.foundation.gestures.DraggableState",
         "androidx.compose.foundation.gestures.FlingBehavior",
@@ -1010,13 +1146,15 @@
         "androidx.compose.foundation.lazy.IntervalList",
         "androidx.compose.foundation.lazy.LazyGridScope",
         "androidx.compose.foundation.lazy.LazyItemScope",
-        "androidx.compose.foundation.lazy.LazyListHeaders",
         "androidx.compose.foundation.lazy.LazyListItemContentFactory",
         "androidx.compose.foundation.lazy.LazyListItemInfo",
         "androidx.compose.foundation.lazy.LazyListItemsProvider",
         "androidx.compose.foundation.lazy.LazyListLayoutInfo",
         "androidx.compose.foundation.lazy.LazyListMeasureResult",
+        "androidx.compose.foundation.lazy.LazyListOnPostMeasureListener",
+        "androidx.compose.foundation.lazy.LazyListOnScrolledListener",
         "androidx.compose.foundation.lazy.LazyListScope",
+        "androidx.compose.foundation.lazy.LazyListScrollPosition",
         "androidx.compose.foundation.lazy.LazyListState",
         "androidx.compose.foundation.lazy.LazyMeasuredItem",
         "androidx.compose.foundation.lazy.LazyMeasuredItemProvider",
@@ -1037,6 +1175,7 @@
         "androidx.compose.foundation.text.KeyboardActionScope",
         "androidx.compose.foundation.text.KeyboardActions",
         "androidx.compose.foundation.text.KeyboardOptions",
+        "androidx.compose.foundation.text.MappedKeys",
         "androidx.compose.foundation.text.TextController",
         "androidx.compose.foundation.text.TextDelegate",
         "androidx.compose.foundation.text.TextDragObserver",
@@ -1046,6 +1185,7 @@
         "androidx.compose.foundation.text.TextFieldState",
         "androidx.compose.foundation.text.TextLayoutResultProxy",
         "androidx.compose.foundation.text.TextState",
+        "androidx.compose.foundation.text.UndoManager",
         "androidx.compose.foundation.text.selection.BaseTextPreparedSelection",
         "androidx.compose.foundation.text.selection.MouseSelectionObserver",
         "androidx.compose.foundation.text.selection.MultiWidgetSelectionDelegate",
@@ -1066,7 +1206,7 @@
     {
       "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-layout",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.foundation.layout.AlignmentLineProvider",
@@ -1113,7 +1253,7 @@
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material.AppBarDefaults",
@@ -1185,7 +1325,7 @@
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-core",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material.icons.Icons"
@@ -1194,25 +1334,33 @@
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-extended",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-ripple",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.compose.material.ripple.AndroidRippleIndicationInstance",
+        "androidx.compose.material.ripple.CommonRipple",
+        "androidx.compose.material.ripple.CommonRippleIndicationInstance",
+        "androidx.compose.material.ripple.PlatformRipple",
+        "androidx.compose.material.ripple.Ripple",
         "androidx.compose.material.ripple.RippleAlpha",
         "androidx.compose.material.ripple.RippleAnimation",
+        "androidx.compose.material.ripple.RippleContainer",
+        "androidx.compose.material.ripple.RippleHostView",
+        "androidx.compose.material.ripple.RippleIndicationInstance",
         "androidx.compose.material.ripple.RippleTheme"
       ]
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -1226,28 +1374,28 @@
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-livedata",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-rxjava2",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-rxjava3",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-saveable",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -1261,7 +1409,7 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.AbsoluteAlignment",
@@ -1276,6 +1424,7 @@
         "androidx.compose.ui.autofill.Autofill",
         "androidx.compose.ui.autofill.AutofillApi23Helper",
         "androidx.compose.ui.autofill.AutofillApi26Helper",
+        "androidx.compose.ui.autofill.AutofillCallback",
         "androidx.compose.ui.autofill.AutofillNode",
         "androidx.compose.ui.autofill.AutofillTree",
         "androidx.compose.ui.autofill.AutofillType",
@@ -1285,7 +1434,6 @@
         "androidx.compose.ui.draw.DrawModifier",
         "androidx.compose.ui.draw.DrawResult",
         "androidx.compose.ui.focus.FocusDirection",
-        "androidx.compose.ui.focus.FocusDirectionInternal",
         "androidx.compose.ui.focus.FocusEventModifier",
         "androidx.compose.ui.focus.FocusManager",
         "androidx.compose.ui.focus.FocusModifier",
@@ -1297,25 +1445,10 @@
         "androidx.compose.ui.graphics.GraphicsLayerScope",
         "androidx.compose.ui.graphics.ReusableGraphicsLayerScope",
         "androidx.compose.ui.graphics.TransformOrigin",
-        "androidx.compose.ui.graphics.vector.AnimatedImageVector",
-        "androidx.compose.ui.graphics.vector.AnimatedVectorTarget",
-        "androidx.compose.ui.graphics.vector.Animator",
-        "androidx.compose.ui.graphics.vector.AnimatorSet",
         "androidx.compose.ui.graphics.vector.DrawCache",
         "androidx.compose.ui.graphics.vector.GroupComponent",
         "androidx.compose.ui.graphics.vector.ImageVector",
-        "androidx.compose.ui.graphics.vector.Keyframe",
-        "androidx.compose.ui.graphics.vector.ObjectAnimator",
-        "androidx.compose.ui.graphics.vector.Ordering",
         "androidx.compose.ui.graphics.vector.PathComponent",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolder",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolder1D",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolder2D",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolderColor",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolderFloat",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolderInt",
-        "androidx.compose.ui.graphics.vector.PropertyValuesHolderPath",
-        "androidx.compose.ui.graphics.vector.StateVectorOverride",
         "androidx.compose.ui.graphics.vector.VNode",
         "androidx.compose.ui.graphics.vector.VectorApplier",
         "androidx.compose.ui.graphics.vector.VectorComponent",
@@ -1325,9 +1458,10 @@
         "androidx.compose.ui.graphics.vector.VectorPainter",
         "androidx.compose.ui.graphics.vector.VectorPath",
         "androidx.compose.ui.graphics.vector.compat.AndroidVectorResources",
-        "androidx.compose.ui.hapticfeedback.AndroidHapticFeedback",
         "androidx.compose.ui.hapticfeedback.HapticFeedback",
         "androidx.compose.ui.hapticfeedback.HapticFeedbackType",
+        "androidx.compose.ui.hapticfeedback.PlatformHapticFeedback",
+        "androidx.compose.ui.hapticfeedback.PlatformHapticFeedbackType",
         "androidx.compose.ui.input.key.Key",
         "androidx.compose.ui.input.key.KeyEvent",
         "androidx.compose.ui.input.key.KeyEventType",
@@ -1387,10 +1521,13 @@
         "androidx.compose.ui.layout.OnRemeasuredModifier",
         "androidx.compose.ui.layout.ParentDataModifier",
         "androidx.compose.ui.layout.Placeable",
+        "androidx.compose.ui.layout.RelocationRequester",
+        "androidx.compose.ui.layout.RelocationRequesterModifier",
         "androidx.compose.ui.layout.Remeasurement",
         "androidx.compose.ui.layout.RemeasurementModifier",
         "androidx.compose.ui.layout.RootMeasurePolicy",
         "androidx.compose.ui.layout.ScaleFactor",
+        "androidx.compose.ui.layout.SubcomposeLayoutState",
         "androidx.compose.ui.layout.SubcomposeMeasureScope",
         "androidx.compose.ui.layout.VerticalAlignmentLine",
         "androidx.compose.ui.node.ComposeUiNode",
@@ -1398,6 +1535,7 @@
         "androidx.compose.ui.node.DepthSortedSet",
         "androidx.compose.ui.node.InnerPlaceable",
         "androidx.compose.ui.node.InternalCoreApi",
+        "androidx.compose.ui.node.IntrinsicsPolicy",
         "androidx.compose.ui.node.LayoutNode",
         "androidx.compose.ui.node.LayoutNodeAlignmentLines",
         "androidx.compose.ui.node.LayoutNodeDrawScope",
@@ -1413,6 +1551,7 @@
         "androidx.compose.ui.node.ModifiedKeyInputNode",
         "androidx.compose.ui.node.ModifiedLayoutNode",
         "androidx.compose.ui.node.ModifiedParentDataNode",
+        "androidx.compose.ui.node.OnGloballyPositionedModifierWrapper",
         "androidx.compose.ui.node.OnPositionedDispatcher",
         "androidx.compose.ui.node.OuterMeasurablePlaceable",
         "androidx.compose.ui.node.OwnedLayer",
@@ -1429,7 +1568,6 @@
         "androidx.compose.ui.platform.AccessibilityIterators",
         "androidx.compose.ui.platform.AccessibilityManager",
         "androidx.compose.ui.platform.AccessibilityNodeInfoVerificationHelperMethods",
-        "androidx.compose.ui.platform.AccessibilityRoleDescriptions",
         "androidx.compose.ui.platform.AndroidAccessibilityManager",
         "androidx.compose.ui.platform.AndroidClipboardManager",
         "androidx.compose.ui.platform.AndroidComposeView",
@@ -1449,6 +1587,7 @@
         "androidx.compose.ui.platform.DisposableSaveableStateRegistry",
         "androidx.compose.ui.platform.DrawChildContainer",
         "androidx.compose.ui.platform.GlobalSnapshotManager",
+        "androidx.compose.ui.platform.InfiniteAnimationPolicy",
         "androidx.compose.ui.platform.InspectableValue",
         "androidx.compose.ui.platform.InspectorInfo",
         "androidx.compose.ui.platform.InspectorValueInfo",
@@ -1457,6 +1596,7 @@
         "androidx.compose.ui.platform.RenderNodeApi23",
         "androidx.compose.ui.platform.RenderNodeApi29",
         "androidx.compose.ui.platform.RenderNodeLayer",
+        "androidx.compose.ui.platform.ScrollObservationScope",
         "androidx.compose.ui.platform.SemanticsNodeWithAdjustedBounds",
         "androidx.compose.ui.platform.SoftwareKeyboardController",
         "androidx.compose.ui.platform.TextToolbar",
@@ -1469,6 +1609,7 @@
         "androidx.compose.ui.platform.ViewConfiguration",
         "androidx.compose.ui.platform.ViewLayer",
         "androidx.compose.ui.platform.ViewLayerContainer",
+        "androidx.compose.ui.platform.ViewRootForInspector",
         "androidx.compose.ui.platform.ViewRootForTest",
         "androidx.compose.ui.platform.WindowInfo",
         "androidx.compose.ui.platform.WindowRecomposerFactory",
@@ -1479,6 +1620,8 @@
         "androidx.compose.ui.platform.actionmodecallback.PrimaryTextActionModeCallback",
         "androidx.compose.ui.platform.actionmodecallback.TextActionModeCallback",
         "androidx.compose.ui.semantics.AccessibilityAction",
+        "androidx.compose.ui.semantics.CollectionInfo",
+        "androidx.compose.ui.semantics.CollectionItemInfo",
         "androidx.compose.ui.semantics.CustomAccessibilityAction",
         "androidx.compose.ui.semantics.LiveRegionMode",
         "androidx.compose.ui.semantics.NodeLocationHolder",
@@ -1497,6 +1640,7 @@
         "androidx.compose.ui.semantics.SemanticsWrapper",
         "androidx.compose.ui.state.ToggleableState",
         "androidx.compose.ui.text.input.InputEventCallback2",
+        "androidx.compose.ui.text.input.InputMethodManager",
         "androidx.compose.ui.text.input.RecordingInputConnection",
         "androidx.compose.ui.text.input.TextInputServiceAndroid",
         "androidx.compose.ui.viewinterop.AndroidViewHolder",
@@ -1512,7 +1656,7 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-geometry",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.geometry.CornerRadius",
@@ -1526,7 +1670,7 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-graphics",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.graphics.AndroidCanvas",
@@ -1544,6 +1688,7 @@
         "androidx.compose.ui.graphics.Color",
         "androidx.compose.ui.graphics.ColorFilter",
         "androidx.compose.ui.graphics.ColorMatrix",
+        "androidx.compose.ui.graphics.ExperimentalGraphicsApi",
         "androidx.compose.ui.graphics.FilterQuality",
         "androidx.compose.ui.graphics.Float16",
         "androidx.compose.ui.graphics.ImageBitmap",
@@ -1607,7 +1752,7 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-test",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.test.AndroidInputDispatcher",
@@ -1634,15 +1779,19 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-junit4",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.test.junit4.AndroidComposeTestRule",
         "androidx.compose.ui.test.junit4.ComposeContentTestRule",
         "androidx.compose.ui.test.junit4.ComposeTestRule",
         "androidx.compose.ui.test.junit4.IdlingResourceRegistry",
+        "androidx.compose.ui.test.junit4.IdlingStrategy",
+        "androidx.compose.ui.test.junit4.RobolectricDetector",
+        "androidx.compose.ui.test.junit4.RobolectricIdlingStrategy",
         "androidx.compose.ui.test.junit4.StateRestorationTester",
         "androidx.compose.ui.test.junit4.TextInputServiceForTests",
+        "androidx.compose.ui.test.junit4.UncaughtExceptionHandler",
         "androidx.compose.ui.test.junit4.android.ComposeIdlingResource",
         "androidx.compose.ui.test.junit4.android.ComposeNotIdleException",
         "androidx.compose.ui.test.junit4.android.ComposeRootRegistry",
@@ -1652,17 +1801,18 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-manifest",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-text",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.text.AnnotatedString",
+        "androidx.compose.ui.text.ExperimentalTextApi",
         "androidx.compose.ui.text.InternalTextApi",
         "androidx.compose.ui.text.MultiParagraph",
         "androidx.compose.ui.text.MultiParagraphIntrinsics",
@@ -1704,7 +1854,12 @@
         "androidx.compose.ui.text.android.style.PlaceholderSpan",
         "androidx.compose.ui.text.android.style.ShadowSpan",
         "androidx.compose.ui.text.android.style.SkewXSpan",
+        "androidx.compose.ui.text.android.style.TextDecorationSpan",
         "androidx.compose.ui.text.android.style.TypefaceSpan",
+        "androidx.compose.ui.text.font.AndroidAssetFont",
+        "androidx.compose.ui.text.font.AndroidFileDescriptorFont",
+        "androidx.compose.ui.text.font.AndroidFileFont",
+        "androidx.compose.ui.text.font.AndroidFont",
         "androidx.compose.ui.text.font.DefaultFontFamily",
         "androidx.compose.ui.text.font.FileBasedFontFamily",
         "androidx.compose.ui.text.font.Font",
@@ -1811,37 +1966,22 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.compose.ui.tooling.CommonPreviewUtils",
+        "androidx.compose.ui.tooling.ComposeViewAdapter",
         "androidx.compose.ui.tooling.CompositionDataRecord",
-        "androidx.compose.ui.tooling.inspector.InlineClassConverter",
-        "androidx.compose.ui.tooling.inspector.InspectorNode",
-        "androidx.compose.ui.tooling.inspector.LayoutInspectorTree",
-        "androidx.compose.ui.tooling.inspector.MutableInspectorNode",
-        "androidx.compose.ui.tooling.inspector.NodeParameter",
-        "androidx.compose.ui.tooling.inspector.ParameterFactory",
-        "androidx.compose.ui.tooling.inspector.ParameterType",
-        "androidx.compose.ui.tooling.inspector.RawParameter",
-        "androidx.compose.ui.tooling.preview.ComposeViewAdapter",
-        "androidx.compose.ui.tooling.preview.Device",
-        "androidx.compose.ui.tooling.preview.Devices",
-        "androidx.compose.ui.tooling.preview.LayoutlibFontResourceLoader",
-        "androidx.compose.ui.tooling.preview.Preview",
-        "androidx.compose.ui.tooling.preview.PreviewActivity",
-        "androidx.compose.ui.tooling.preview.PreviewParameter",
-        "androidx.compose.ui.tooling.preview.PreviewParameterProvider",
-        "androidx.compose.ui.tooling.preview.UiMode",
-        "androidx.compose.ui.tooling.preview.ViewInfo",
-        "androidx.compose.ui.tooling.preview.animation.PreviewAnimationClock",
-        "androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider",
-        "androidx.compose.ui.tooling.preview.datasource.LoremIpsum"
+        "androidx.compose.ui.tooling.LayoutlibFontResourceLoader",
+        "androidx.compose.ui.tooling.PreviewActivity",
+        "androidx.compose.ui.tooling.ViewInfo",
+        "androidx.compose.ui.tooling.animation.PreviewAnimationClock"
       ]
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-data",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.tooling.data.CallGroup",
@@ -1855,8 +1995,24 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-tooling-preview",
+      "version": "1.0.1",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.tooling.preview.Device",
+        "androidx.compose.ui.tooling.preview.Devices",
+        "androidx.compose.ui.tooling.preview.Preview",
+        "androidx.compose.ui.tooling.preview.PreviewParameter",
+        "androidx.compose.ui.tooling.preview.PreviewParameterProvider",
+        "androidx.compose.ui.tooling.preview.UiMode",
+        "androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider",
+        "androidx.compose.ui.tooling.preview.datasource.LoremIpsum"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-unit",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.unit.Constraints",
@@ -1864,6 +2020,7 @@
         "androidx.compose.ui.unit.Dp",
         "androidx.compose.ui.unit.DpOffset",
         "androidx.compose.ui.unit.DpRect",
+        "androidx.compose.ui.unit.ExperimentalUnitApi",
         "androidx.compose.ui.unit.IntOffset",
         "androidx.compose.ui.unit.IntRect",
         "androidx.compose.ui.unit.IntSize",
@@ -1876,14 +2033,14 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-util",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-viewbinding",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -1925,44 +2082,47 @@
     {
       "groupId": "androidx.constraintlayout",
       "artifactId": "constraintlayout",
-      "version": "2.0.4",
+      "version": "2.1.0",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.constraintlayout.helper.widget.Carousel",
+        "androidx.constraintlayout.helper.widget.CircularFlow",
         "androidx.constraintlayout.helper.widget.Flow",
         "androidx.constraintlayout.helper.widget.Layer",
-        "androidx.constraintlayout.motion.utils.CurveFit",
-        "androidx.constraintlayout.motion.utils.Easing",
-        "androidx.constraintlayout.motion.utils.HyperSpline",
-        "androidx.constraintlayout.motion.utils.LinearCurveFit",
-        "androidx.constraintlayout.motion.utils.MonotonicCurveFit",
-        "androidx.constraintlayout.motion.utils.Oscillator",
+        "androidx.constraintlayout.helper.widget.MotionEffect",
         "androidx.constraintlayout.motion.utils.StopLogic",
-        "androidx.constraintlayout.motion.utils.VelocityMatrix",
+        "androidx.constraintlayout.motion.utils.ViewOscillator",
+        "androidx.constraintlayout.motion.utils.ViewSpline",
+        "androidx.constraintlayout.motion.utils.ViewState",
+        "androidx.constraintlayout.motion.utils.ViewTimeCycle",
         "androidx.constraintlayout.motion.widget.Animatable",
         "androidx.constraintlayout.motion.widget.CustomFloatAttributes",
         "androidx.constraintlayout.motion.widget.Debug",
         "androidx.constraintlayout.motion.widget.DesignTool",
+        "androidx.constraintlayout.motion.widget.FloatLayout",
         "androidx.constraintlayout.motion.widget.Key",
         "androidx.constraintlayout.motion.widget.KeyAttributes",
-        "androidx.constraintlayout.motion.widget.KeyCache",
         "androidx.constraintlayout.motion.widget.KeyCycle",
-        "androidx.constraintlayout.motion.widget.KeyCycleOscillator",
         "androidx.constraintlayout.motion.widget.KeyFrames",
         "androidx.constraintlayout.motion.widget.KeyPosition",
         "androidx.constraintlayout.motion.widget.KeyTimeCycle",
         "androidx.constraintlayout.motion.widget.KeyTrigger",
         "androidx.constraintlayout.motion.widget.MotionController",
         "androidx.constraintlayout.motion.widget.MotionHelper",
+        "androidx.constraintlayout.motion.widget.MotionHelperInterface",
         "androidx.constraintlayout.motion.widget.MotionInterpolator",
         "androidx.constraintlayout.motion.widget.MotionLayout",
         "androidx.constraintlayout.motion.widget.MotionScene",
-        "androidx.constraintlayout.motion.widget.SplineSet",
-        "androidx.constraintlayout.motion.widget.TimeCycleSplineSet",
+        "androidx.constraintlayout.motion.widget.OnSwipe",
         "androidx.constraintlayout.motion.widget.TransitionAdapter",
         "androidx.constraintlayout.motion.widget.TransitionBuilder",
+        "androidx.constraintlayout.motion.widget.ViewTransition",
+        "androidx.constraintlayout.motion.widget.ViewTransitionController",
         "androidx.constraintlayout.utils.widget.ImageFilterButton",
         "androidx.constraintlayout.utils.widget.ImageFilterView",
         "androidx.constraintlayout.utils.widget.MockView",
+        "androidx.constraintlayout.utils.widget.MotionButton",
+        "androidx.constraintlayout.utils.widget.MotionLabel",
         "androidx.constraintlayout.utils.widget.MotionTelltales",
         "androidx.constraintlayout.widget.Barrier",
         "androidx.constraintlayout.widget.ConstraintAttribute",
@@ -1976,6 +2136,8 @@
         "androidx.constraintlayout.widget.Group",
         "androidx.constraintlayout.widget.Guideline",
         "androidx.constraintlayout.widget.Placeholder",
+        "androidx.constraintlayout.widget.ReactiveGuide",
+        "androidx.constraintlayout.widget.SharedValues",
         "androidx.constraintlayout.widget.StateSet",
         "androidx.constraintlayout.widget.VirtualLayout"
       ]
@@ -1983,7 +2145,7 @@
     {
       "groupId": "androidx.constraintlayout",
       "artifactId": "constraintlayout-compose",
-      "version": "1.0.0-alpha05",
+      "version": "1.0.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.constraintlayout.compose.ChainStyle",
@@ -1991,17 +2153,38 @@
         "androidx.constraintlayout.compose.ConstrainedLayoutReference",
         "androidx.constraintlayout.compose.ConstraintLayoutBaseScope",
         "androidx.constraintlayout.compose.ConstraintLayoutScope",
+        "androidx.constraintlayout.compose.ConstraintLayoutTagParentData",
         "androidx.constraintlayout.compose.ConstraintSet",
         "androidx.constraintlayout.compose.ConstraintSetScope",
+        "androidx.constraintlayout.compose.DesignElement",
+        "androidx.constraintlayout.compose.DesignElements",
+        "androidx.constraintlayout.compose.DesignInfoProvider",
         "androidx.constraintlayout.compose.Dimension",
         "androidx.constraintlayout.compose.DimensionDescription",
-        "androidx.constraintlayout.compose.State"
+        "androidx.constraintlayout.compose.EditableJSONLayout",
+        "androidx.constraintlayout.compose.FiniteGenerator",
+        "androidx.constraintlayout.compose.GeneratedValue",
+        "androidx.constraintlayout.compose.Generator",
+        "androidx.constraintlayout.compose.JSONConstraintSet",
+        "androidx.constraintlayout.compose.JSONMotionScene",
+        "androidx.constraintlayout.compose.LayoutInfoFlags",
+        "androidx.constraintlayout.compose.LayoutInformationReceiver",
+        "androidx.constraintlayout.compose.LayoutVariables",
+        "androidx.constraintlayout.compose.Measurer",
+        "androidx.constraintlayout.compose.MotionLayoutDebugFlags",
+        "androidx.constraintlayout.compose.MotionLayoutScope",
+        "androidx.constraintlayout.compose.MotionMeasurer",
+        "androidx.constraintlayout.compose.MotionRenderDebug",
+        "androidx.constraintlayout.compose.MotionScene",
+        "androidx.constraintlayout.compose.OverrideValue",
+        "androidx.constraintlayout.compose.State",
+        "androidx.constraintlayout.compose.Transition"
       ]
     },
     {
       "groupId": "androidx.constraintlayout",
       "artifactId": "constraintlayout-core",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.constraintlayout.core.ArrayLinkedVariables",
@@ -2013,29 +2196,68 @@
         "androidx.constraintlayout.core.PriorityGoalRow",
         "androidx.constraintlayout.core.SolverVariable",
         "androidx.constraintlayout.core.SolverVariableValues",
+        "androidx.constraintlayout.core.motion.CustomAttribute",
+        "androidx.constraintlayout.core.motion.CustomVariable",
+        "androidx.constraintlayout.core.motion.Motion",
+        "androidx.constraintlayout.core.motion.MotionPaths",
+        "androidx.constraintlayout.core.motion.MotionWidget",
+        "androidx.constraintlayout.core.motion.key.MotionConstraintSet",
+        "androidx.constraintlayout.core.motion.key.MotionKey",
+        "androidx.constraintlayout.core.motion.key.MotionKeyAttributes",
+        "androidx.constraintlayout.core.motion.key.MotionKeyCycle",
+        "androidx.constraintlayout.core.motion.key.MotionKeyPosition",
+        "androidx.constraintlayout.core.motion.key.MotionKeyTimeCycle",
+        "androidx.constraintlayout.core.motion.key.MotionKeyTrigger",
+        "androidx.constraintlayout.core.motion.parse.KeyParser",
+        "androidx.constraintlayout.core.motion.utils.ArcCurveFit",
         "androidx.constraintlayout.core.motion.utils.CurveFit",
+        "androidx.constraintlayout.core.motion.utils.DifferentialInterpolator",
         "androidx.constraintlayout.core.motion.utils.Easing",
+        "androidx.constraintlayout.core.motion.utils.FloatRect",
         "androidx.constraintlayout.core.motion.utils.HyperSpline",
         "androidx.constraintlayout.core.motion.utils.KeyCache",
         "androidx.constraintlayout.core.motion.utils.KeyCycleOscillator",
+        "androidx.constraintlayout.core.motion.utils.KeyFrameArray",
         "androidx.constraintlayout.core.motion.utils.LinearCurveFit",
         "androidx.constraintlayout.core.motion.utils.MonotonicCurveFit",
         "androidx.constraintlayout.core.motion.utils.Oscillator",
+        "androidx.constraintlayout.core.motion.utils.Rect",
         "androidx.constraintlayout.core.motion.utils.Schlick",
         "androidx.constraintlayout.core.motion.utils.SplineSet",
+        "androidx.constraintlayout.core.motion.utils.SpringStopEngine",
         "androidx.constraintlayout.core.motion.utils.StepCurve",
+        "androidx.constraintlayout.core.motion.utils.StopEngine",
         "androidx.constraintlayout.core.motion.utils.StopLogicEngine",
         "androidx.constraintlayout.core.motion.utils.TimeCycleSplineSet",
+        "androidx.constraintlayout.core.motion.utils.TypedBundle",
+        "androidx.constraintlayout.core.motion.utils.TypedValues",
+        "androidx.constraintlayout.core.motion.utils.Utils",
         "androidx.constraintlayout.core.motion.utils.VelocityMatrix",
+        "androidx.constraintlayout.core.motion.utils.ViewState",
+        "androidx.constraintlayout.core.parser.CLArray",
+        "androidx.constraintlayout.core.parser.CLContainer",
+        "androidx.constraintlayout.core.parser.CLElement",
+        "androidx.constraintlayout.core.parser.CLKey",
+        "androidx.constraintlayout.core.parser.CLNumber",
+        "androidx.constraintlayout.core.parser.CLObject",
+        "androidx.constraintlayout.core.parser.CLParser",
+        "androidx.constraintlayout.core.parser.CLParsingException",
+        "androidx.constraintlayout.core.parser.CLString",
+        "androidx.constraintlayout.core.parser.CLToken",
         "androidx.constraintlayout.core.state.ConstraintReference",
         "androidx.constraintlayout.core.state.Dimension",
         "androidx.constraintlayout.core.state.HelperReference",
         "androidx.constraintlayout.core.state.Reference",
+        "androidx.constraintlayout.core.state.Registry",
+        "androidx.constraintlayout.core.state.RegistryCallback",
         "androidx.constraintlayout.core.state.State",
+        "androidx.constraintlayout.core.state.Transition",
+        "androidx.constraintlayout.core.state.WidgetFrame",
         "androidx.constraintlayout.core.state.helpers.AlignHorizontallyReference",
         "androidx.constraintlayout.core.state.helpers.AlignVerticallyReference",
         "androidx.constraintlayout.core.state.helpers.BarrierReference",
         "androidx.constraintlayout.core.state.helpers.ChainReference",
+        "androidx.constraintlayout.core.state.helpers.Facade",
         "androidx.constraintlayout.core.state.helpers.GuidelineReference",
         "androidx.constraintlayout.core.state.helpers.HorizontalChainReference",
         "androidx.constraintlayout.core.state.helpers.VerticalChainReference",
@@ -2143,7 +2365,7 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core",
-      "version": "1.3.2",
+      "version": "1.6.0",
       "ktxTargets": [],
       "fqcns": [
         "android.support.v4.app.INotificationSideChannel",
@@ -2159,8 +2381,9 @@
         "androidx.core.app.BundleCompat",
         "androidx.core.app.DialogCompat",
         "androidx.core.app.FrameMetricsAggregator",
-        "androidx.core.app.JobIntentService",
         "androidx.core.app.NavUtils",
+        "androidx.core.app.NotificationChannelCompat",
+        "androidx.core.app.NotificationChannelGroupCompat",
         "androidx.core.app.NotificationCompat",
         "androidx.core.app.NotificationCompatExtras",
         "androidx.core.app.NotificationCompatSideChannelService",
@@ -2177,6 +2400,7 @@
         "androidx.core.content.ContextCompat",
         "androidx.core.content.FileProvider",
         "androidx.core.content.IntentCompat",
+        "androidx.core.content.LocusIdCompat",
         "androidx.core.content.MimeTypeFilter",
         "androidx.core.content.PermissionChecker",
         "androidx.core.content.pm.PackageInfoCompat",
@@ -2202,24 +2426,32 @@
         "androidx.core.graphics.drawable.RoundedBitmapDrawable",
         "androidx.core.graphics.drawable.RoundedBitmapDrawableFactory",
         "androidx.core.hardware.display.DisplayManagerCompat",
+        "androidx.core.location.GnssStatusCompat",
+        "androidx.core.location.LocationCompat",
         "androidx.core.location.LocationManagerCompat",
         "androidx.core.math.MathUtils",
         "androidx.core.net.ConnectivityManagerCompat",
+        "androidx.core.net.MailTo",
+        "androidx.core.net.ParseException",
         "androidx.core.net.TrafficStatsCompat",
         "androidx.core.net.UriCompat",
         "androidx.core.os.BuildCompat",
         "androidx.core.os.CancellationSignal",
         "androidx.core.os.ConfigurationCompat",
         "androidx.core.os.EnvironmentCompat",
+        "androidx.core.os.ExecutorCompat",
         "androidx.core.os.HandlerCompat",
         "androidx.core.os.LocaleListCompat",
         "androidx.core.os.MessageCompat",
         "androidx.core.os.OperationCanceledException",
         "androidx.core.os.ParcelCompat",
-        "androidx.core.os.TraceCompat",
+        "androidx.core.os.ProcessCompat",
+        "androidx.core.os.UserHandleCompat",
         "androidx.core.os.UserManagerCompat",
         "androidx.core.provider.FontRequest",
         "androidx.core.provider.FontsContractCompat",
+        "androidx.core.telephony.SubscriptionManagerCompat",
+        "androidx.core.telephony.TelephonyManagerCompat",
         "androidx.core.telephony.mbms.MbmsHelper",
         "androidx.core.text.BidiFormatter",
         "androidx.core.text.HtmlCompat",
@@ -2239,6 +2471,7 @@
         "androidx.core.util.Supplier",
         "androidx.core.view.AccessibilityDelegateCompat",
         "androidx.core.view.ActionProvider",
+        "androidx.core.view.ContentInfoCompat",
         "androidx.core.view.DisplayCompat",
         "androidx.core.view.DisplayCutoutCompat",
         "androidx.core.view.DragAndDropPermissionsCompat",
@@ -2260,6 +2493,8 @@
         "androidx.core.view.NestedScrollingParent3",
         "androidx.core.view.NestedScrollingParentHelper",
         "androidx.core.view.OnApplyWindowInsetsListener",
+        "androidx.core.view.OnReceiveContentListener",
+        "androidx.core.view.OnReceiveContentViewBehavior",
         "androidx.core.view.OneShotPreDrawListener",
         "androidx.core.view.PointerIconCompat",
         "androidx.core.view.ScaleGestureDetectorCompat",
@@ -2274,7 +2509,11 @@
         "androidx.core.view.ViewPropertyAnimatorListenerAdapter",
         "androidx.core.view.ViewPropertyAnimatorUpdateListener",
         "androidx.core.view.WindowCompat",
+        "androidx.core.view.WindowInsetsAnimationCompat",
+        "androidx.core.view.WindowInsetsAnimationControlListenerCompat",
+        "androidx.core.view.WindowInsetsAnimationControllerCompat",
         "androidx.core.view.WindowInsetsCompat",
+        "androidx.core.view.WindowInsetsControllerCompat",
         "androidx.core.view.accessibility.AccessibilityClickableSpanCompat",
         "androidx.core.view.accessibility.AccessibilityEventCompat",
         "androidx.core.view.accessibility.AccessibilityManagerCompat",
@@ -2288,6 +2527,7 @@
         "androidx.core.view.inputmethod.InputConnectionCompat",
         "androidx.core.view.inputmethod.InputContentInfoCompat",
         "androidx.core.widget.AutoScrollHelper",
+        "androidx.core.widget.CheckedTextViewCompat",
         "androidx.core.widget.CompoundButtonCompat",
         "androidx.core.widget.ContentLoadingProgressBar",
         "androidx.core.widget.EdgeEffectCompat",
@@ -2355,14 +2595,14 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core-google-shortcuts",
-      "version": "1.0.0-alpha02",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.core",
       "artifactId": "core-ktx",
-      "version": "1.3.2",
+      "version": "1.6.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -2373,6 +2613,16 @@
       "ktxTargets": [],
       "fqcns": [
         "androidx.core.role.RoleManagerCompat"
+      ]
+    },
+    {
+      "groupId": "androidx.core",
+      "artifactId": "core-splashscreen",
+      "version": "1.0.0-alpha01",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.core.splashscreen.SplashScreen",
+        "androidx.core.splashscreen.SplashScreenViewProvider"
       ]
     },
     {
@@ -2577,7 +2827,7 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-adapters",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.databinding.adapters.Converters",
@@ -2587,7 +2837,7 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-common",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.databinding.Bindable",
@@ -2611,7 +2861,7 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-compiler",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
         "android.databinding.annotationprocessor.BindableBag",
@@ -2684,6 +2934,8 @@
         "android.databinding.tool.store.SetterStore",
         "android.databinding.tool.util.BrNameUtil",
         "android.databinding.tool.util.GenerationalClassUtil",
+        "android.databinding.tool.util.Resources",
+        "android.databinding.tool.util.SymbolTable",
         "android.databinding.tool.writer.AnnotationJavaFileWriter",
         "android.databinding.tool.writer.BRWriter",
         "android.databinding.tool.writer.BindingMapperWriter",
@@ -2701,7 +2953,7 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-compiler-common",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
         "android.databinding.parser.BindingExpressionBaseListener",
@@ -2747,6 +2999,7 @@
         "android.databinding.tool.store.Location",
         "android.databinding.tool.store.ResourceBundle",
         "android.databinding.tool.store.V1CompatLayoutInfoLoader",
+        "android.databinding.tool.util.FileUtil",
         "android.databinding.tool.util.L",
         "android.databinding.tool.util.LoggedErrorException",
         "android.databinding.tool.util.ParserHelper",
@@ -2766,21 +3019,20 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-ktx",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.databinding",
       "artifactId": "databinding-runtime",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.databinding.BaseObservable",
         "androidx.databinding.DataBindingUtil",
         "androidx.databinding.ListChangeRegistry",
         "androidx.databinding.MapChangeRegistry",
-        "androidx.databinding.MergedDataBinderMapper",
         "androidx.databinding.ObservableArrayList",
         "androidx.databinding.ObservableArrayMap",
         "androidx.databinding.ObservableBoolean",
@@ -2831,16 +3083,17 @@
     {
       "groupId": "androidx.databinding",
       "artifactId": "viewbinding",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.viewbinding.ViewBinding"
+        "androidx.viewbinding.ViewBinding",
+        "androidx.viewbinding.ViewBindings"
       ]
     },
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.DataStoreSingletonDelegate",
@@ -2851,7 +3104,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-core",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.core.CorruptionException",
@@ -2871,7 +3124,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-preferences",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.preferences.PreferenceDataStoreSingletonDelegate"
@@ -2880,7 +3133,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-preferences-core",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.preferences.PreferencesMapCompat",
@@ -2895,7 +3148,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-preferences-rxjava2",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.preferences.rxjava2.DataMigrationFromRxDataMigration",
@@ -2906,7 +3159,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-preferences-rxjava3",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.preferences.rxjava3.DataMigrationFromRxDataMigration",
@@ -2917,7 +3170,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-rxjava2",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.rxjava2.DataMigrationFromRxDataMigration",
@@ -2932,7 +3185,7 @@
     {
       "groupId": "androidx.datastore",
       "artifactId": "datastore-rxjava3",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.datastore.rxjava3.DataMigrationFromRxDataMigration",
@@ -3024,6 +3277,51 @@
       ]
     },
     {
+      "groupId": "androidx.emoji2",
+      "artifactId": "emoji2",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.emoji2.text.DefaultEmojiCompatConfig",
+        "androidx.emoji2.text.EmojiCompat",
+        "androidx.emoji2.text.EmojiCompatInitializer",
+        "androidx.emoji2.text.EmojiSpan",
+        "androidx.emoji2.text.FontRequestEmojiCompatConfig",
+        "androidx.emoji2.text.MetadataRepo"
+      ]
+    },
+    {
+      "groupId": "androidx.emoji2",
+      "artifactId": "emoji2-bundled",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.emoji2.bundled.BundledEmojiCompatConfig"
+      ]
+    },
+    {
+      "groupId": "androidx.emoji2",
+      "artifactId": "emoji2-views",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.emoji2.widget.EmojiButton",
+        "androidx.emoji2.widget.EmojiEditText",
+        "androidx.emoji2.widget.EmojiExtractTextLayout",
+        "androidx.emoji2.widget.EmojiTextView"
+      ]
+    },
+    {
+      "groupId": "androidx.emoji2",
+      "artifactId": "emoji2-views-helper",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.emoji2.viewsintegration.EmojiEditTextHelper",
+        "androidx.emoji2.viewsintegration.EmojiTextViewHelper"
+      ]
+    },
+    {
       "groupId": "androidx.enterprise",
       "artifactId": "enterprise-feedback",
       "version": "1.1.0",
@@ -3048,7 +3346,7 @@
     {
       "groupId": "androidx.exifinterface",
       "artifactId": "exifinterface",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.exifinterface.media.ExifInterface"
@@ -3057,7 +3355,7 @@
     {
       "groupId": "androidx.fragment",
       "artifactId": "fragment",
-      "version": "1.3.3",
+      "version": "1.3.6",
       "ktxTargets": [],
       "fqcns": [
         "androidx.fragment.app.DialogFragment",
@@ -3080,7 +3378,7 @@
     {
       "groupId": "androidx.fragment",
       "artifactId": "fragment-ktx",
-      "version": "1.3.3",
+      "version": "1.3.6",
       "ktxTargets": [
         "androidx.fragment:fragment"
       ],
@@ -3089,7 +3387,7 @@
     {
       "groupId": "androidx.fragment",
       "artifactId": "fragment-testing",
-      "version": "1.3.3",
+      "version": "1.3.6",
       "ktxTargets": [],
       "fqcns": [
         "androidx.fragment.app.testing.FragmentScenario"
@@ -3097,17 +3395,62 @@
     },
     {
       "groupId": "androidx.games",
+      "artifactId": "games-activity",
+      "version": "1.0.0",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.androidgamesdk.ChoreographerCallback",
+        "com.google.androidgamesdk.GameActivity",
+        "com.google.androidgamesdk.GameSdkDeviceInfoJni",
+        "com.google.androidgamesdk.SwappyDisplayManager",
+        "com.google.androidgamesdk.gametextinput.GameTextInput",
+        "com.google.androidgamesdk.gametextinput.InputConnection",
+        "com.google.androidgamesdk.gametextinput.Listener",
+        "com.google.androidgamesdk.gametextinput.Settings",
+        "com.google.androidgamesdk.gametextinput.State"
+      ]
+    },
+    {
+      "groupId": "androidx.games",
+      "artifactId": "games-controller",
+      "version": "1.0.0",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.games.paddleboat.GameControllerInfo",
+        "com.google.android.games.paddleboat.GameControllerManager",
+        "com.google.android.games.paddleboat.GameControllerThread"
+      ]
+    },
+    {
+      "groupId": "androidx.games",
       "artifactId": "games-frame-pacing",
-      "version": "1.7.0-beta02",
+      "version": "1.9.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.games",
       "artifactId": "games-performance-tuner",
-      "version": "1.1.0-beta03",
+      "version": "1.4.3",
       "ktxTargets": [],
       "fqcns": []
+    },
+    {
+      "groupId": "androidx.games",
+      "artifactId": "games-text-input",
+      "version": "1.0.0",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.androidgamesdk.ChoreographerCallback",
+        "com.google.androidgamesdk.GameActivity",
+        "com.google.androidgamesdk.GameSdkDeviceInfoJni",
+        "com.google.androidgamesdk.SwappyDisplayManager",
+        "com.google.androidgamesdk.gametextinput.GameTextInput",
+        "com.google.androidgamesdk.gametextinput.InputConnection",
+        "com.google.androidgamesdk.gametextinput.Listener",
+        "com.google.androidgamesdk.gametextinput.Settings",
+        "com.google.androidgamesdk.gametextinput.State"
+      ]
     },
     {
       "groupId": "androidx.gaming",
@@ -3133,6 +3476,13 @@
       ]
     },
     {
+      "groupId": "androidx.health",
+      "artifactId": "health-services-client",
+      "version": "1.0.0-alpha01",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "androidx.heifwriter",
       "artifactId": "heifwriter",
       "version": "1.0.0",
@@ -3148,7 +3498,7 @@
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-common",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.hilt.work.HiltWorker"
@@ -3157,7 +3507,7 @@
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-compiler",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.hilt.AndroidXHiltProcessor",
@@ -3182,33 +3532,34 @@
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-navigation",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-navigation-compose",
-      "version": "1.0.0-alpha01",
+      "version": "1.0.0-alpha03",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-navigation-fragment",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.hilt",
       "artifactId": "hilt-work",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.hilt.work.HiltWorkerFactory",
         "androidx.hilt.work.HiltWrapper_WorkerFactoryModule",
-        "androidx.hilt.work.WorkerFactoryModule_ProvideFactoryFactory"
+        "androidx.hilt.work.WorkerFactoryModule_ProvideFactoryFactory",
+        "hilt_aggregated_deps._androidx_hilt_work_HiltWrapper_WorkerFactoryModule"
       ]
     },
     {
@@ -3357,7 +3708,7 @@
     {
       "groupId": "androidx.leanback",
       "artifactId": "leanback-paging",
-      "version": "1.1.0-alpha07",
+      "version": "1.1.0-alpha08",
       "ktxTargets": [],
       "fqcns": [
         "androidx.leanback.paging.PagingDataAdapter"
@@ -3600,7 +3951,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-compose",
-      "version": "1.0.0-alpha04",
+      "version": "1.0.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner"
@@ -3651,7 +4002,7 @@
     {
       "groupId": "androidx.media",
       "artifactId": "media",
-      "version": "1.3.0",
+      "version": "1.4.1",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -3779,7 +4130,7 @@
     {
       "groupId": "androidx.mediarouter",
       "artifactId": "mediarouter",
-      "version": "1.2.2",
+      "version": "1.2.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.mediarouter.app.MediaRouteActionProvider",
@@ -3868,11 +4219,12 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-compose",
-      "version": "1.0.0-alpha10",
+      "version": "2.4.0-alpha06",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.compose.BackStackEntryIdViewModel",
         "androidx.navigation.compose.ComposeNavigator",
+        "androidx.navigation.compose.DialogNavigator",
         "androidx.navigation.compose.NamedNavArgument"
       ]
     },
@@ -4052,22 +4404,79 @@
       "fqcns": []
     },
     {
+      "groupId": "androidx.navigation.safeargs",
+      "artifactId": "androidx.navigation.safeargs.gradle.plugin",
+      "version": "2.4.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.navigation.safeargs.kotlin",
+      "artifactId": "androidx.navigation.safeargs.kotlin.gradle.plugin",
+      "version": "2.4.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "androidx.paging",
       "artifactId": "paging-common",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.paging.ActiveFlowTracker",
+        "androidx.paging.CachedPageEventFlow",
+        "androidx.paging.ChannelFlowCollector",
+        "androidx.paging.CombinedLoadStates",
+        "androidx.paging.ConflatedEventBus",
         "androidx.paging.DataSource",
-        "androidx.paging.ItemKeyedDataSource",
-        "androidx.paging.PageKeyedDataSource",
-        "androidx.paging.PagedList",
-        "androidx.paging.PositionalDataSource"
+        "androidx.paging.ExperimentalPagingApi",
+        "androidx.paging.FlattenedPageEventStorage",
+        "androidx.paging.GenerationalViewportHint",
+        "androidx.paging.InitialDataSource",
+        "androidx.paging.InvalidatingPagingSourceFactory",
+        "androidx.paging.ItemSnapshotList",
+        "androidx.paging.LegacyPageFetcher",
+        "androidx.paging.LegacyPagingSource",
+        "androidx.paging.LoadState",
+        "androidx.paging.LoadStates",
+        "androidx.paging.LoadType",
+        "androidx.paging.MutableLoadStateCollection",
+        "androidx.paging.PageEvent",
+        "androidx.paging.PageFetcher",
+        "androidx.paging.PageFetcherSnapshot",
+        "androidx.paging.PageFetcherSnapshotState",
+        "androidx.paging.PagePresenter",
+        "androidx.paging.PagedStorage",
+        "androidx.paging.Pager",
+        "androidx.paging.PagingConfig",
+        "androidx.paging.PagingData",
+        "androidx.paging.PagingSource",
+        "androidx.paging.PagingState",
+        "androidx.paging.RemoteMediator",
+        "androidx.paging.RemoteMediatorAccessor",
+        "androidx.paging.RemoteMediatorConnection",
+        "androidx.paging.SimpleProducerScope",
+        "androidx.paging.SingleRunner",
+        "androidx.paging.SnapshotPagedList",
+        "androidx.paging.SuspendingPagingSourceFactory",
+        "androidx.paging.TerminalSeparatorType",
+        "androidx.paging.TransformablePage",
+        "androidx.paging.UiReceiver",
+        "androidx.paging.ViewportHint",
+        "androidx.paging.WrapperDataSource",
+        "androidx.paging.WrapperItemKeyedDataSource",
+        "androidx.paging.WrapperPageKeyedDataSource",
+        "androidx.paging.WrapperPositionalDataSource",
+        "androidx.paging.multicast.ChannelManager",
+        "androidx.paging.multicast.Multicaster",
+        "androidx.paging.multicast.SharedFlowProducer",
+        "androidx.paging.multicast.StoreRealActor"
       ]
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-ktx",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [
         "androidx.paging:paging-common"
       ],
@@ -4076,7 +4485,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-compose",
-      "version": "1.0.0-alpha08",
+      "version": "1.0.0-alpha12",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.compose.LazyPagingItems"
@@ -4085,7 +4494,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-guava",
-      "version": "3.0.0-rc01",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.AdjacentItems",
@@ -4096,18 +4505,23 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-runtime",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.paging.AsyncPagedListDiffer",
-        "androidx.paging.LivePagedListBuilder",
-        "androidx.paging.PagedListAdapter"
+        "androidx.paging.AsyncPagingDataDiffer",
+        "androidx.paging.DistinctListsDiffDispatcher",
+        "androidx.paging.LivePagedList",
+        "androidx.paging.LoadStateAdapter",
+        "androidx.paging.NullPaddedDiffResult",
+        "androidx.paging.OverlappingListsDiffDispatcher",
+        "androidx.paging.PagingDataAdapter",
+        "androidx.paging.RecordingCallback"
       ]
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-runtime-ktx",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [
         "androidx.paging:paging-runtime"
       ],
@@ -4116,16 +4530,18 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava2",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.paging.RxPagedListBuilder"
+        "androidx.paging.ScheduledExecutor",
+        "androidx.paging.rxjava2.RxPagingSource",
+        "androidx.paging.rxjava2.RxRemoteMediator"
       ]
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava2-ktx",
-      "version": "2.1.2",
+      "version": "3.0.1",
       "ktxTargets": [
         "androidx.paging:paging-rxjava2"
       ],
@@ -4134,7 +4550,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava3",
-      "version": "3.0.0-rc01",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.rxjava3.RxPagingSource",
@@ -4211,6 +4627,13 @@
       ]
     },
     {
+      "groupId": "androidx.profileinstaller",
+      "artifactId": "profileinstaller",
+      "version": "1.0.1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "androidx.recommendation",
       "artifactId": "recommendation",
       "version": "1.0.0",
@@ -4223,7 +4646,7 @@
     {
       "groupId": "androidx.recyclerview",
       "artifactId": "recyclerview",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "ktxTargets": [],
       "fqcns": [
         "androidx.recyclerview.widget.AdapterListUpdateCallback",
@@ -4306,14 +4729,14 @@
     {
       "groupId": "androidx.resourceinspection",
       "artifactId": "resourceinspection-annotation",
-      "version": "1.0.0-alpha01",
+      "version": "1.0.0-alpha03",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.resourceinspection",
       "artifactId": "resourceinspection-processor",
-      "version": "1.0.0-alpha01",
+      "version": "1.0.0-alpha03",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -5310,6 +5733,13 @@
     },
     {
       "groupId": "androidx.room",
+      "artifactId": "room-paging",
+      "version": "2.4.0-alpha04",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.room",
       "artifactId": "room-runtime",
       "version": "2.3.0",
       "ktxTargets": [],
@@ -5396,6 +5826,25 @@
     },
     {
       "groupId": "androidx.security",
+      "artifactId": "security-app-authenticator",
+      "version": "1.0.0-alpha02",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.security.app.authenticator.AppAuthenticator",
+        "androidx.security.app.authenticator.AppAuthenticatorXmlException"
+      ]
+    },
+    {
+      "groupId": "androidx.security",
+      "artifactId": "security-app-authenticator-testing",
+      "version": "1.0.0-alpha01",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.security.app.authenticator.TestAppAuthenticatorBuilder"
+      ]
+    },
+    {
+      "groupId": "androidx.security",
       "artifactId": "security-crypto",
       "version": "1.0.0",
       "ktxTargets": [],
@@ -5408,7 +5857,7 @@
     {
       "groupId": "androidx.security",
       "artifactId": "security-crypto-ktx",
-      "version": "1.1.0-alpha02",
+      "version": "1.1.0-alpha03",
       "ktxTargets": [
         "androidx.security:security-crypto"
       ],
@@ -5550,10 +5999,11 @@
     {
       "groupId": "androidx.startup",
       "artifactId": "startup-runtime",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.startup.AppInitializer",
+        "androidx.startup.InitializationProvider",
         "androidx.startup.Initializer"
       ]
     },
@@ -5570,7 +6020,7 @@
     {
       "groupId": "androidx.test",
       "artifactId": "core",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.core.app.ActivityScenario",
@@ -5586,7 +6036,7 @@
     {
       "groupId": "androidx.test",
       "artifactId": "core-ktx",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [
         "androidx.test:core"
       ],
@@ -5595,7 +6045,7 @@
     {
       "groupId": "androidx.test",
       "artifactId": "monitor",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.annotation.Beta",
@@ -5623,14 +6073,14 @@
     {
       "groupId": "androidx.test",
       "artifactId": "orchestrator",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.test",
       "artifactId": "rules",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.annotation.UiThreadTest",
@@ -5645,7 +6095,7 @@
     {
       "groupId": "androidx.test",
       "artifactId": "runner",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.filters.FlakyTest",
@@ -5656,7 +6106,7 @@
         "androidx.test.filters.SmallTest",
         "androidx.test.filters.Suppress",
         "androidx.test.orchestrator.callback.OrchestratorCallback",
-        "androidx.test.orchestrator.instrumentationlistener.OrchestratedInstrumentationListener",
+        "androidx.test.orchestrator.callback.OrchestratorV1Connection",
         "androidx.test.orchestrator.junit.BundleJUnitUtils",
         "androidx.test.orchestrator.junit.ParcelableDescription",
         "androidx.test.orchestrator.junit.ParcelableFailure",
@@ -5677,13 +6127,47 @@
         "androidx.test.runner.screenshot.ScreenCapture",
         "androidx.test.runner.screenshot.ScreenCaptureProcessor",
         "androidx.test.runner.screenshot.Screenshot",
-        "androidx.test.runner.screenshot.UiAutomationWrapper"
+        "androidx.test.runner.screenshot.UiAutomationWrapper",
+        "androidx.test.services.events.AnnotationInfo",
+        "androidx.test.services.events.AnnotationValue",
+        "androidx.test.services.events.ErrorInfo",
+        "androidx.test.services.events.FailureInfo",
+        "androidx.test.services.events.ParcelableConverter",
+        "androidx.test.services.events.TestCaseInfo",
+        "androidx.test.services.events.TestEventException",
+        "androidx.test.services.events.TestRunInfo",
+        "androidx.test.services.events.TestStatus",
+        "androidx.test.services.events.TimeStamp",
+        "androidx.test.services.events.discovery.ITestDiscoveryEvent",
+        "androidx.test.services.events.discovery.TestDiscoveryEvent",
+        "androidx.test.services.events.discovery.TestDiscoveryFinishedEvent",
+        "androidx.test.services.events.discovery.TestDiscoveryStartedEvent",
+        "androidx.test.services.events.discovery.TestFoundEvent",
+        "androidx.test.services.events.platform.ITestPlatformEvent",
+        "androidx.test.services.events.platform.TestCaseErrorEvent",
+        "androidx.test.services.events.platform.TestCaseFinishedEvent",
+        "androidx.test.services.events.platform.TestCaseStartedEvent",
+        "androidx.test.services.events.platform.TestPlatformEvent",
+        "androidx.test.services.events.platform.TestPlatformEventFactory",
+        "androidx.test.services.events.platform.TestRunErrorEvent",
+        "androidx.test.services.events.platform.TestRunFinishedEvent",
+        "androidx.test.services.events.platform.TestRunStartedEvent",
+        "androidx.test.services.events.run.ITestRunEvent",
+        "androidx.test.services.events.run.TestAssumptionFailureEvent",
+        "androidx.test.services.events.run.TestFailureEvent",
+        "androidx.test.services.events.run.TestFinishedEvent",
+        "androidx.test.services.events.run.TestIgnoredEvent",
+        "androidx.test.services.events.run.TestRunEvent",
+        "androidx.test.services.events.run.TestRunEventWithTestCase",
+        "androidx.test.services.events.run.TestRunFinishedEvent",
+        "androidx.test.services.events.run.TestRunStartedEvent",
+        "androidx.test.services.events.run.TestStartedEvent"
       ]
     },
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-accessibility",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.accessibility.AccessibilityChecks"
@@ -5692,7 +6176,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-contrib",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.contrib.ActivityResultMatchers",
@@ -5707,7 +6191,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-core",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.AmbiguousViewMatcherException",
@@ -5804,6 +6288,7 @@
         "androidx.test.espresso.base.UiControllerModule",
         "androidx.test.espresso.base.UiControllerModule_ProvideUiControllerFactory",
         "androidx.test.espresso.base.ViewFinderImpl_Factory",
+        "androidx.test.espresso.matcher.BoundedDiagnosingMatcher",
         "androidx.test.espresso.matcher.BoundedMatcher",
         "androidx.test.espresso.matcher.CursorMatchers",
         "androidx.test.espresso.matcher.HasBackgroundMatcher",
@@ -5832,7 +6317,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-idling-resource",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.IdlingRegistry",
@@ -5843,7 +6328,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-intents",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.intent.ActivityResultFunction",
@@ -5864,7 +6349,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-remote",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.DataInteractionRemote",
@@ -5903,7 +6388,7 @@
     {
       "groupId": "androidx.test.espresso",
       "artifactId": "espresso-web",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.web.action.AtomAction",
@@ -5912,6 +6397,9 @@
         "androidx.test.espresso.web.assertion.TagSoupDocumentParser",
         "androidx.test.espresso.web.assertion.WebAssertion",
         "androidx.test.espresso.web.assertion.WebViewAssertions",
+        "androidx.test.espresso.web.bridge.Conduit",
+        "androidx.test.espresso.web.bridge.JavaScriptBridge",
+        "androidx.test.espresso.web.bridge.JavaScriptInstallerAppListener",
         "androidx.test.espresso.web.matcher.AmbiguousElementMatcherException",
         "androidx.test.espresso.web.matcher.DomMatchers",
         "androidx.test.espresso.web.model.Atom",
@@ -5931,7 +6419,7 @@
     {
       "groupId": "androidx.test.espresso.idling",
       "artifactId": "idling-concurrent",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.idling.concurrent.IdlingScheduledThreadPoolExecutor",
@@ -5941,7 +6429,7 @@
     {
       "groupId": "androidx.test.espresso.idling",
       "artifactId": "idling-net",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.espresso.idling.net.UriIdlingResource"
@@ -5950,7 +6438,7 @@
     {
       "groupId": "androidx.test.ext",
       "artifactId": "junit",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.ext.junit.rules.ActivityScenarioRule",
@@ -5960,7 +6448,7 @@
     {
       "groupId": "androidx.test.ext",
       "artifactId": "junit-ktx",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "ktxTargets": [
         "androidx.test.ext:junit"
       ],
@@ -5969,7 +6457,7 @@
     {
       "groupId": "androidx.test.ext",
       "artifactId": "truth",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.ext.truth.app.NotificationActionSubject",
@@ -5981,6 +6469,7 @@
         "androidx.test.ext.truth.location.LocationSubject",
         "androidx.test.ext.truth.os.BundleSubject",
         "androidx.test.ext.truth.os.ParcelableSubject",
+        "androidx.test.ext.truth.util.SparseBooleanArraySubject",
         "androidx.test.ext.truth.view.MotionEventSubject",
         "androidx.test.ext.truth.view.PointerCoordsSubject",
         "androidx.test.ext.truth.view.PointerPropertiesSubject"
@@ -6019,7 +6508,7 @@
     {
       "groupId": "androidx.test.services",
       "artifactId": "storage",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.test.services.storage.ExperimentalTestStorage",
@@ -6033,7 +6522,7 @@
     {
       "groupId": "androidx.test.services",
       "artifactId": "test-services",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6275,20 +6764,18 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-complications-data",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
-        "android.support.wearable.complications.ComplicationData",
-        "android.support.wearable.complications.ComplicationProviderInfo",
-        "android.support.wearable.complications.ComplicationText",
         "android.support.wearable.complications.IComplicationManager",
         "android.support.wearable.complications.IComplicationProvider",
         "android.support.wearable.complications.IPreviewComplicationDataCallback",
         "android.support.wearable.complications.IProviderInfoService",
-        "androidx.wear.complications.ComplicationBounds",
-        "androidx.wear.complications.DefaultComplicationProviderPolicy",
-        "androidx.wear.complications.ProviderInfoRetriever",
-        "androidx.wear.complications.SystemProviders",
+        "androidx.wear.complications.ComplicationDataSourceInfo",
+        "androidx.wear.complications.ComplicationDataSourceInfoRetriever",
+        "androidx.wear.complications.ComplicationSlotBounds",
+        "androidx.wear.complications.DefaultComplicationDataSourcePolicy",
+        "androidx.wear.complications.SystemDataSources",
         "androidx.wear.complications.data.ComplicationData",
         "androidx.wear.complications.data.ComplicationText",
         "androidx.wear.complications.data.ComplicationType",
@@ -6317,11 +6804,23 @@
     },
     {
       "groupId": "androidx.wear",
+      "artifactId": "wear-complications-data-source",
+      "version": "1.0.0-alpha19",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.wear.complications.datasource.ComplicationDataSourceService",
+        "androidx.wear.complications.datasource.ComplicationDataSourceUpdateRequester",
+        "androidx.wear.complications.datasource.ComplicationRequest"
+      ]
+    },
+    {
+      "groupId": "androidx.wear",
       "artifactId": "wear-complications-provider",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha17",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.complications.ComplicationProviderService",
+        "androidx.wear.complications.ComplicationRequest",
         "androidx.wear.complications.ProviderUpdateRequester"
       ]
     },
@@ -6348,22 +6847,19 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-ongoing",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-beta01",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.ongoing.OngoingActivity",
-        "androidx.wear.ongoing.OngoingActivityData",
-        "androidx.wear.ongoing.OngoingActivityStatus",
-        "androidx.wear.ongoing.StatusPart",
-        "androidx.wear.ongoing.TextStatusPart",
-        "androidx.wear.ongoing.TimeDependentText",
-        "androidx.wear.ongoing.TimerStatusPart"
+        "androidx.wear.ongoing.SerializationHelper",
+        "androidx.wear.ongoing.Status",
+        "androidx.wear.ongoing.TimeDependentText"
       ]
     },
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-phone-interactions",
-      "version": "1.0.0-alpha04",
+      "version": "1.0.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "android.support.wearable.authentication.IAuthenticationRequestCallback",
@@ -6380,16 +6876,17 @@
         "androidx.wear.phone.interactions.notifications.BridgingConfig",
         "androidx.wear.phone.interactions.notifications.BridgingConfigurationHandler",
         "androidx.wear.phone.interactions.notifications.BridgingManager",
-        "androidx.wear.phone.interactions.notifications.BridgingManagerServiceBinder"
+        "androidx.wear.phone.interactions.notifications.BridgingManagerService"
       ]
     },
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-remote-interactions",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-alpha06",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.wear.remote.interactions.PlayStoreAvailability",
+        "androidx.wear.remote.interactions.RemoteIntentHelper",
+        "androidx.wear.remote.interactions.RemoteInteractionsUtil",
         "androidx.wear.remote.interactions.WatchFaceConfigIntentHelper"
       ]
     },
@@ -6446,21 +6943,22 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.watchface.BackgroundComplicationTapFilter",
-        "androidx.wear.watchface.BroadcastReceivers",
         "androidx.wear.watchface.CancellableUniqueTask",
         "androidx.wear.watchface.CanvasComplication",
+        "androidx.wear.watchface.CanvasComplicationFactory",
         "androidx.wear.watchface.CanvasType",
-        "androidx.wear.watchface.Complication",
+        "androidx.wear.watchface.ComplicationSlot",
+        "androidx.wear.watchface.ComplicationSlotsManager",
         "androidx.wear.watchface.ComplicationTapFilter",
-        "androidx.wear.watchface.ComplicationsManager",
+        "androidx.wear.watchface.ContentDescriptionLabel",
         "androidx.wear.watchface.DrawMode",
         "androidx.wear.watchface.Gles2TexturedTriangleList",
         "androidx.wear.watchface.IndentingPrintWriter",
-        "androidx.wear.watchface.MutableObservableWatchData",
+        "androidx.wear.watchface.MockTime",
         "androidx.wear.watchface.ObservableWatchData",
         "androidx.wear.watchface.Observer",
         "androidx.wear.watchface.RenderBufferTexture",
@@ -6478,10 +6976,12 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-client",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.wear.watchface.client.ComplicationState",
+        "androidx.wear.watchface.client.ComplicationSlotMetadata",
+        "androidx.wear.watchface.client.ComplicationSlotState",
+        "androidx.wear.watchface.client.DefaultComplicationDataSourcePolicyAndType",
         "androidx.wear.watchface.client.DeviceConfig",
         "androidx.wear.watchface.client.EditorListener",
         "androidx.wear.watchface.client.EditorServiceClient",
@@ -6489,24 +6989,27 @@
         "androidx.wear.watchface.client.HeadlessWatchFaceClient",
         "androidx.wear.watchface.client.InteractiveWatchFaceClient",
         "androidx.wear.watchface.client.InterruptionFilter",
+        "androidx.wear.watchface.client.WatchFaceClientExperimental",
         "androidx.wear.watchface.client.WatchFaceControlClient",
         "androidx.wear.watchface.client.WatchFaceId",
+        "androidx.wear.watchface.client.WatchFaceMetadataClient",
         "androidx.wear.watchface.client.WatchUiState"
       ]
     },
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-client-guava",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.wear.watchface.client.ListenableWatchFaceControlClient"
+        "androidx.wear.watchface.client.ListenableWatchFaceControlClient",
+        "androidx.wear.watchface.client.ListenableWatchFaceMetadataClient"
       ]
     },
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-complications-rendering",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.watchface.complications.rendering.CanvasComplicationDrawable",
@@ -6519,7 +7022,7 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-data",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "android.support.wearable.watchface.IWatchFaceService",
@@ -6534,23 +7037,25 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-editor",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.wear.watchface.editor.ComplicationProviderChooserContract",
-        "androidx.wear.watchface.editor.ComplicationProviderChooserRequest",
-        "androidx.wear.watchface.editor.ComplicationProviderChooserResult",
+        "androidx.wear.watchface.editor.ChosenComplicationDataSource",
+        "androidx.wear.watchface.editor.ComplicationDataSourceChooserContract",
+        "androidx.wear.watchface.editor.ComplicationDataSourceChooserRequest",
+        "androidx.wear.watchface.editor.ComplicationDataSourceChooserResult",
+        "androidx.wear.watchface.editor.ComplicationDataSourceInfoRetrieverProvider",
         "androidx.wear.watchface.editor.EditorRequest",
         "androidx.wear.watchface.editor.EditorSession",
         "androidx.wear.watchface.editor.HeadlessEditorSession",
-        "androidx.wear.watchface.editor.ProviderInfoRetrieverProvider",
+        "androidx.wear.watchface.editor.PreviewScreenshotParams",
         "androidx.wear.watchface.editor.WatchFaceEditorContract"
       ]
     },
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-editor-guava",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.watchface.editor.ListenableEditorSession"
@@ -6559,7 +7064,7 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-guava",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.watchface.ListenableWatchFaceService"
@@ -6568,7 +7073,7 @@
     {
       "groupId": "androidx.wear",
       "artifactId": "wear-watchface-style",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha19",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.watchface.style.CurrentUserStyleRepository",
@@ -6580,48 +7085,102 @@
       ]
     },
     {
-      "groupId": "androidx.wear.tiles",
-      "artifactId": "tiles",
+      "groupId": "androidx.wear.compose",
+      "artifactId": "compose-foundation",
       "version": "1.0.0-alpha03",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.wear.compose.foundation.AnchorType",
+        "androidx.wear.compose.foundation.ArcPaddingPx",
+        "androidx.wear.compose.foundation.ArcPaddingValues",
+        "androidx.wear.compose.foundation.CurvedRowParentData",
+        "androidx.wear.compose.foundation.CurvedRowScope",
+        "androidx.wear.compose.foundation.CurvedRowScopeInstance",
+        "androidx.wear.compose.foundation.CurvedTextDelegate",
+        "androidx.wear.compose.foundation.RadialAlignment"
+      ]
+    },
+    {
+      "groupId": "androidx.wear.compose",
+      "artifactId": "compose-material",
+      "version": "1.0.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.wear.compose.material.BrushPainter",
+        "androidx.wear.compose.material.ButtonColors",
+        "androidx.wear.compose.material.ButtonDefaults",
+        "androidx.wear.compose.material.CardDefaults",
+        "androidx.wear.compose.material.ChipColors",
+        "androidx.wear.compose.material.ChipDefaults",
+        "androidx.wear.compose.material.Colors",
+        "androidx.wear.compose.material.ContentAlpha",
+        "androidx.wear.compose.material.DefaultScalingParams",
+        "androidx.wear.compose.material.FortyFiveDegreeLinearGradient",
+        "androidx.wear.compose.material.ImageWithScrimPainter",
+        "androidx.wear.compose.material.MaterialTheme",
+        "androidx.wear.compose.material.ScaleAlphaAndStartPosition",
+        "androidx.wear.compose.material.ScaleAndAlpha",
+        "androidx.wear.compose.material.ScalingLazyColumnDefaults",
+        "androidx.wear.compose.material.ScalingLazyColumnScope",
+        "androidx.wear.compose.material.ScalingLazyColumnState",
+        "androidx.wear.compose.material.ScalingParams",
+        "androidx.wear.compose.material.Shapes",
+        "androidx.wear.compose.material.ToggleButtonColors",
+        "androidx.wear.compose.material.ToggleButtonDefaults",
+        "androidx.wear.compose.material.ToggleChipColors",
+        "androidx.wear.compose.material.ToggleChipDefaults",
+        "androidx.wear.compose.material.Typography"
+      ]
+    },
+    {
+      "groupId": "androidx.wear.tiles",
+      "artifactId": "tiles",
+      "version": "1.0.0-alpha09",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.wear.tiles.ActionBuilders",
+        "androidx.wear.tiles.ColorBuilders",
+        "androidx.wear.tiles.DeviceParametersBuilders",
+        "androidx.wear.tiles.DimensionBuilders",
+        "androidx.wear.tiles.EventBuilders",
+        "androidx.wear.tiles.LayoutElementBuilders",
+        "androidx.wear.tiles.ModifiersBuilders",
+        "androidx.wear.tiles.RequestBuilders",
+        "androidx.wear.tiles.ResourceBuilders",
         "androidx.wear.tiles.ResourcesCallback",
-        "androidx.wear.tiles.SysUiTileUpdateRequester",
+        "androidx.wear.tiles.StateBuilders",
+        "androidx.wear.tiles.TileBuilders",
         "androidx.wear.tiles.TileCallback",
         "androidx.wear.tiles.TileProvider",
         "androidx.wear.tiles.TileProviderService",
         "androidx.wear.tiles.TileUpdateRequester",
         "androidx.wear.tiles.TileUpdateRequesterService",
-        "androidx.wear.tiles.ViewerTileUpdateRequester",
-        "androidx.wear.tiles.builders.ActionBuilders",
-        "androidx.wear.tiles.builders.ColorBuilders",
-        "androidx.wear.tiles.builders.DimensionBuilders",
-        "androidx.wear.tiles.builders.LayoutElementBuilders",
-        "androidx.wear.tiles.builders.ModifiersBuilders",
-        "androidx.wear.tiles.builders.ResourceBuilders",
-        "androidx.wear.tiles.builders.StateBuilders",
-        "androidx.wear.tiles.builders.TileBuilders",
-        "androidx.wear.tiles.builders.TimelineBuilders",
-        "androidx.wear.tiles.readers.DeviceParametersReaders",
-        "androidx.wear.tiles.readers.EventReaders",
-        "androidx.wear.tiles.readers.RequestReaders"
+        "androidx.wear.tiles.TilesExperimental",
+        "androidx.wear.tiles.TimelineBuilders",
+        "androidx.wear.tiles.TypeBuilders"
       ]
     },
     {
       "groupId": "androidx.wear.tiles",
       "artifactId": "tiles-proto",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-alpha09",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.wear.tiles",
       "artifactId": "tiles-renderer",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-alpha09",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.wear.tiles.checkers.CheckAccessibilityAvailable",
+        "androidx.wear.tiles.checkers.CheckerException",
+        "androidx.wear.tiles.checkers.TimelineChecker",
+        "androidx.wear.tiles.checkers.TimelineEntryChecker",
+        "androidx.wear.tiles.client.TileProviderClient",
+        "androidx.wear.tiles.connection.DefaultTileProviderClient",
         "androidx.wear.tiles.connection.TilesConnectionBinder",
-        "androidx.wear.tiles.manager.TileClient",
+        "androidx.wear.tiles.manager.TileUiClient",
         "androidx.wear.tiles.renderer.TileRenderer",
         "androidx.wear.tiles.timeline.TilesTimelineCache",
         "androidx.wear.tiles.timeline.TilesTimelineManager"
@@ -6685,15 +7244,30 @@
     {
       "groupId": "androidx.window",
       "artifactId": "window",
-      "version": "1.0.0-alpha05",
+      "version": "1.0.0-alpha10",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.window.DisplayFeature",
-        "androidx.window.FoldingFeature",
-        "androidx.window.WindowBackend",
-        "androidx.window.WindowLayoutInfo",
-        "androidx.window.WindowManager",
-        "androidx.window.WindowMetrics"
+        "androidx.window.core.Bounds",
+        "androidx.window.core.Version",
+        "androidx.window.layout.ActivityCompatHelperApi24",
+        "androidx.window.layout.ActivityCompatHelperApi30",
+        "androidx.window.layout.DisplayCompatHelperApi17",
+        "androidx.window.layout.DisplayCompatHelperApi28",
+        "androidx.window.layout.DisplayFeature",
+        "androidx.window.layout.ExtensionAdapter",
+        "androidx.window.layout.ExtensionCompat",
+        "androidx.window.layout.ExtensionInterfaceCompat",
+        "androidx.window.layout.ExtensionTranslatingCallback",
+        "androidx.window.layout.ExtensionWindowBackend",
+        "androidx.window.layout.FoldingFeature",
+        "androidx.window.layout.SidecarAdapter",
+        "androidx.window.layout.SidecarCompat",
+        "androidx.window.layout.WindowBackend",
+        "androidx.window.layout.WindowInfoRepository",
+        "androidx.window.layout.WindowLayoutInfo",
+        "androidx.window.layout.WindowMetrics",
+        "androidx.window.layout.WindowMetricsCalculator",
+        "androidx.window.layout.WindowMetricsCalculatorCompat"
       ]
     },
     {
@@ -6707,6 +7281,40 @@
         "androidx.window.extensions.ExtensionInterface",
         "androidx.window.extensions.ExtensionProvider",
         "androidx.window.extensions.ExtensionWindowLayoutInfo"
+      ]
+    },
+    {
+      "groupId": "androidx.window",
+      "artifactId": "window-java",
+      "version": "1.0.0-alpha10",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.window.java.layout.WindowInfoRepositoryCallbackAdapter"
+      ]
+    },
+    {
+      "groupId": "androidx.window",
+      "artifactId": "window-rxjava2",
+      "version": "1.0.0-alpha10",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.window",
+      "artifactId": "window-rxjava3",
+      "version": "1.0.0-alpha10",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.window",
+      "artifactId": "window-testing",
+      "version": "1.0.0-alpha10",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.window.testing.layout.PublishLayoutInfoRepository",
+        "androidx.window.testing.layout.PublishWindowInfoRepositoryDecorator",
+        "androidx.window.testing.layout.WindowLayoutInfoPublisherRule"
       ]
     },
     {
@@ -6807,42 +7415,42 @@
     {
       "groupId": "com.android",
       "artifactId": "signflinger",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android",
       "artifactId": "zipflinger",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.application",
       "artifactId": "com.android.application.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.asset-pack",
       "artifactId": "com.android.asset-pack.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.asset-pack-bundle",
       "artifactId": "com.android.asset-pack-bundle.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.billingclient",
       "artifactId": "billing",
-      "version": "3.0.3",
+      "version": "4.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.android.billingclient.api.AccountIdentifiers",
@@ -6860,6 +7468,7 @@
         "com.android.billingclient.api.Purchase",
         "com.android.billingclient.api.PurchaseHistoryRecord",
         "com.android.billingclient.api.PurchaseHistoryResponseListener",
+        "com.android.billingclient.api.PurchasesResponseListener",
         "com.android.billingclient.api.PurchasesUpdatedListener",
         "com.android.billingclient.api.SkuDetails",
         "com.android.billingclient.api.SkuDetailsParams",
@@ -6869,27 +7478,28 @@
     {
       "groupId": "com.android.billingclient",
       "artifactId": "billing-ktx",
-      "version": "3.0.3",
+      "version": "4.0.0",
       "ktxTargets": [
         "com.android.billingclient:billing"
       ],
       "fqcns": [
         "com.android.billingclient.api.ConsumeResult",
         "com.android.billingclient.api.PurchaseHistoryResult",
+        "com.android.billingclient.api.PurchasesResult",
         "com.android.billingclient.api.SkuDetailsResult"
       ]
     },
     {
       "groupId": "com.android.databinding",
       "artifactId": "adapters",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.databinding",
       "artifactId": "baseLibrary",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6910,14 +7520,14 @@
     {
       "groupId": "com.android.databinding",
       "artifactId": "library",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.databinding",
       "artifactId": "viewbinding",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6931,7 +7541,7 @@
     {
       "groupId": "com.android.dynamic-feature",
       "artifactId": "com.android.dynamic-feature.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6965,14 +7575,14 @@
     {
       "groupId": "com.android.library",
       "artifactId": "com.android.library.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.lint",
       "artifactId": "com.android.lint.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6987,6 +7597,13 @@
       "groupId": "com.android.ndk.thirdparty",
       "artifactId": "jsoncpp",
       "version": "1.8.4-alpha-1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.ndk.thirdparty",
+      "artifactId": "libpng",
+      "version": "1.6.37-alpha-1",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -7777,21 +8394,21 @@
     {
       "groupId": "com.android.test",
       "artifactId": "com.android.test.gradle.plugin",
-      "version": "7.0.0-alpha14",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "annotations",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "common",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -7819,126 +8436,126 @@
     {
       "groupId": "com.android.tools",
       "artifactId": "draw9patch",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "dvlib",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "ninepatch",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "r8",
-      "version": "2.2.60",
+      "version": "2.2.64",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "repository",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "sdk-common",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "sdklib",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools",
       "artifactId": "testutils",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "crash",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "inspector",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "protos",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "publisher",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "shared",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "testing",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.analytics-library",
       "artifactId": "tracker",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.apkparser",
       "artifactId": "apkanalyzer",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.apkparser",
       "artifactId": "binary-resources",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "aapt2",
-      "version": "7.0.0-alpha14-7147631",
+      "version": "7.1.0-alpha07-7569047",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -7952,63 +8569,63 @@
     {
       "groupId": "com.android.tools.build",
       "artifactId": "aaptcompiler",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "apksig",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "apkzlib",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "builder",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "builder-model",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "builder-test-api",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "bundletool",
-      "version": "1.6.0",
+      "version": "1.7.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "gradle",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.build",
       "artifactId": "gradle-api",
-      "version": "4.1.3",
+      "version": "7.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8029,7 +8646,7 @@
     {
       "groupId": "com.android.tools.build",
       "artifactId": "manifest-merger",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8050,35 +8667,35 @@
     {
       "groupId": "com.android.tools.chunkio",
       "artifactId": "chunkio",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.ddms",
       "artifactId": "ddmlib",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.emulator",
       "artifactId": "proto",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.external.com-intellij",
       "artifactId": "intellij-core",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.external.com-intellij",
       "artifactId": "kotlin-compiler",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8092,14 +8709,14 @@
     {
       "groupId": "com.android.tools.external.org-jetbrains",
       "artifactId": "uast",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.fakeadbserver",
       "artifactId": "fakeadbserver",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8113,42 +8730,42 @@
     {
       "groupId": "com.android.tools.layoutlib",
       "artifactId": "layoutlib-api",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-api",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-checks",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-gradle",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-gradle-api",
-      "version": "27.1.3",
+      "version": "27.2.2",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8162,91 +8779,126 @@
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-model",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.lint",
       "artifactId": "lint-tests",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.metalava",
       "artifactId": "metalava",
-      "version": "1.0.0-alpha02",
+      "version": "1.0.0-alpha04",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.pixelprobe",
       "artifactId": "pixelprobe",
-      "version": "27.1.3",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-device-provider-ddmlib",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-device-provider-gradle",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-device-provider-gradle-proto",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.tools.utp",
+      "artifactId": "android-test-plugin-host-additional-test-output",
+      "version": "30.1.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.tools.utp",
+      "artifactId": "android-test-plugin-host-additional-test-output-proto",
+      "version": "30.1.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.tools.utp",
+      "artifactId": "android-test-plugin-host-coverage",
+      "version": "30.1.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.tools.utp",
+      "artifactId": "android-test-plugin-host-coverage-proto",
+      "version": "30.1.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-host-device-info",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-host-device-info-proto",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.android.tools.utp",
+      "artifactId": "android-test-plugin-host-logcat",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-host-retention",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-host-retention-proto",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-result-listener-gradle",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.utp",
       "artifactId": "android-test-plugin-result-listener-gradle-proto",
-      "version": "30.0.0-alpha14",
+      "version": "30.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8363,7 +9015,7 @@
     {
       "groupId": "com.google.ads.interactivemedia.v3",
       "artifactId": "interactivemedia",
-      "version": "3.23.0",
+      "version": "3.24.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.ads.interactivemedia.v3.api.Ad",
@@ -8404,64 +9056,120 @@
     },
     {
       "groupId": "com.google.ads.mediation",
+      "artifactId": "adcolony",
+      "version": "4.5.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "applovin",
+      "version": "10.3.2.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "chartboost",
+      "version": "8.2.1.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "facebook",
+      "version": "6.5.1.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
       "artifactId": "fyber",
-      "version": "7.8.2.0",
+      "version": "7.8.3.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "imobile",
+      "version": "2.0.22.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "inmobi",
-      "version": "9.1.7.0",
+      "version": "9.2.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "ironsource",
-      "version": "7.1.4.0",
+      "version": "7.1.8.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "maio",
-      "version": "1.1.14.0",
+      "version": "1.1.15.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "mopub",
-      "version": "5.16.4.0",
+      "version": "5.17.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "mytarget",
-      "version": "5.12.2.0",
+      "version": "5.13.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "nend",
-      "version": "7.0.3.0",
+      "version": "7.1.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "tapjoy",
+      "version": "12.8.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "unity",
-      "version": "3.6.2.0",
+      "version": "3.7.5.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "verizonmedia",
+      "version": "1.13.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.ads.mediation",
+      "artifactId": "vungle",
+      "version": "6.9.1.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.ads",
       "artifactId": "mediation-test-suite",
-      "version": "1.5.0",
+      "version": "2.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.ads.mediationtestsuite.AdLoadCallback",
@@ -8566,14 +9274,14 @@
     {
       "groupId": "com.google.android.apps.common.testing.accessibility.framework",
       "artifactId": "accessibility-test-framework",
-      "version": "3.1.1",
+      "version": "3.1.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.datatransport",
       "artifactId": "transport-api",
-      "version": "2.2.1",
+      "version": "3.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.datatransport.Encoding",
@@ -8588,7 +9296,7 @@
     {
       "groupId": "com.google.android.datatransport",
       "artifactId": "transport-backend-cct",
-      "version": "2.3.3",
+      "version": "3.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.datatransport.cct.CCTDestination",
@@ -8599,7 +9307,7 @@
     {
       "groupId": "com.google.android.datatransport",
       "artifactId": "transport-runtime",
-      "version": "2.2.6",
+      "version": "3.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.datatransport.runtime.Destination",
@@ -8686,140 +9394,147 @@
     {
       "groupId": "com.google.android.enterprise.connectedapps",
       "artifactId": "connectedapps",
-      "version": "1.0.0-alpha04",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.enterprise.connectedapps",
       "artifactId": "connectedapps-annotations",
-      "version": "1.0.0-alpha04",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.enterprise.connectedapps",
       "artifactId": "connectedapps-processor",
-      "version": "1.0.0-alpha04",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.enterprise.connectedapps",
       "artifactId": "connectedapps-testing",
-      "version": "1.0.0-alpha04",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.enterprise.connectedapps",
       "artifactId": "connectedapps-testing-annotations",
-      "version": "1.0.0-alpha04",
+      "version": "1.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-common",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-core",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-dash",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-extractor",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-hls",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-robolectricutils",
-      "version": "2.13.3",
+      "version": "2.14.2",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.android.exoplayer",
+      "artifactId": "exoplayer-rtsp",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-smoothstreaming",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-testutils",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-transformer",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "exoplayer-ui",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-cast",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-cronet",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-gvr",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-ima",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8833,56 +9548,63 @@
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-leanback",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-media2",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-mediasession",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-okhttp",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-rtmp",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.exoplayer",
       "artifactId": "extension-workmanager",
-      "version": "2.13.3",
+      "version": "2.14.2",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.fhir",
       "artifactId": "data-capture",
-      "version": "0.1.0-alpha02",
+      "version": "0.1.0-alpha03",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.fhir",
       "artifactId": "engine",
-      "version": "0.1.0-alpha01",
+      "version": "0.1.0-alpha03",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.android.flexbox",
+      "artifactId": "flexbox",
+      "version": "3.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8935,7 +9657,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-ads",
-      "version": "20.0.0",
+      "version": "20.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.android.gms.ads.dynamite.ModuleDescriptor"
@@ -8944,14 +9666,14 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-ads-base",
-      "version": "20.0.0",
+      "version": "20.2.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-ads-identifier",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.ads.identifier.AdvertisingIdClient"
@@ -8967,7 +9689,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-ads-lite",
-      "version": "20.0.0",
+      "version": "20.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.ads.mediation.AbstractAdViewAdapter",
@@ -9064,7 +9786,6 @@
         "com.google.android.gms.ads.nativead.NativeAdView",
         "com.google.android.gms.ads.nativead.NativeAdViewHolder",
         "com.google.android.gms.ads.nativead.NativeCustomFormatAd",
-        "com.google.android.gms.ads.query.AdInfo",
         "com.google.android.gms.ads.query.QueryInfo",
         "com.google.android.gms.ads.query.QueryInfoGenerationCallback",
         "com.google.android.gms.ads.query.ReportingInfo",
@@ -9091,13 +9812,11 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-afs-native",
-      "version": "18.1.0",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.ads.afsn.AdListener",
-        "com.google.android.gms.ads.afsn.PurchaseReportingController",
         "com.google.android.gms.ads.afsn.SearchAdController",
-        "com.google.android.gms.ads.afsn.purchases.PurchaseInfo",
         "com.google.android.gms.ads.afsn.search.SearchAdOptions",
         "com.google.android.gms.ads.afsn.search.SearchAdRequest"
       ]
@@ -9214,6 +9933,17 @@
     },
     {
       "groupId": "com.google.android.gms",
+      "artifactId": "play-services-appset",
+      "version": "16.0.0-alpha1",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.gms.appset.AppSet",
+        "com.google.android.gms.appset.AppSetClient",
+        "com.google.android.gms.appset.AppSetInfo"
+      ]
+    },
+    {
+      "groupId": "com.google.android.gms",
       "artifactId": "play-services-appstate",
       "version": "8.4.0",
       "ktxTargets": [],
@@ -9229,7 +9959,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-auth",
-      "version": "19.0.0",
+      "version": "19.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.auth.api.Auth",
@@ -9250,6 +9980,8 @@
         "com.google.android.gms.auth.api.identity.CredentialSavingClient",
         "com.google.android.gms.auth.api.identity.GetSignInIntentRequest",
         "com.google.android.gms.auth.api.identity.Identity",
+        "com.google.android.gms.auth.api.identity.SaveAccountLinkingTokenRequest",
+        "com.google.android.gms.auth.api.identity.SaveAccountLinkingTokenResult",
         "com.google.android.gms.auth.api.identity.SavePasswordRequest",
         "com.google.android.gms.auth.api.identity.SavePasswordResult",
         "com.google.android.gms.auth.api.identity.SignInClient",
@@ -9267,7 +9999,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-auth-api-phone",
-      "version": "17.5.0",
+      "version": "17.5.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.auth.api.phone.SmsCodeAutofillClient",
@@ -9289,7 +10021,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-auth-base",
-      "version": "17.1.2",
+      "version": "17.1.4",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.auth.AccountChangeEvent",
@@ -9320,6 +10052,17 @@
     },
     {
       "groupId": "com.google.android.gms",
+      "artifactId": "play-services-auth-blockstore",
+      "version": "16.0.2",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.gms.auth.blockstore.Blockstore",
+        "com.google.android.gms.auth.blockstore.BlockstoreClient",
+        "com.google.android.gms.auth.blockstore.StoreBytesData"
+      ]
+    },
+    {
+      "groupId": "com.google.android.gms",
       "artifactId": "play-services-auth-license",
       "version": "11.4.2",
       "ktxTargets": [],
@@ -9328,7 +10071,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-awareness",
-      "version": "18.0.1",
+      "version": "18.0.2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.awareness.Awareness",
@@ -9727,7 +10470,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-cronet",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.android.gms.cronet.dynamite.ModuleDescriptor",
@@ -9906,7 +10649,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-flags",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.android.gms.flags.ModuleDescriptor",
@@ -10031,7 +10774,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-identity",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.identity.intents.Address",
@@ -10067,7 +10810,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-instantapps",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.instantapps.ActivityCompat",
@@ -10207,7 +10950,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.measurement.AppMeasurementJobService",
@@ -10218,7 +10961,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement-api",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.analytics.FirebaseAnalytics"
@@ -10227,21 +10970,21 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement-base",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement-impl",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement-sdk",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.android.gms.measurement.dynamite.ModuleDescriptor"
@@ -10250,14 +10993,14 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-measurement-sdk-api",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-mlkit-barcode-scanning",
-      "version": "16.1.4",
+      "version": "16.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.barcode.Barcode",
@@ -10269,7 +11012,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-mlkit-face-detection",
-      "version": "16.1.6",
+      "version": "16.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.face.Face",
@@ -10283,7 +11026,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-mlkit-image-labeling",
-      "version": "16.0.3",
+      "version": "16.0.5",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.label.defaults.thin.ThinLabelRegistrar"
@@ -10292,27 +11035,30 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-mlkit-text-recognition",
-      "version": "16.1.3",
+      "version": "16.3.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.text.Text",
         "com.google.mlkit.vision.text.TextRecognition",
         "com.google.mlkit.vision.text.TextRecognizer",
-        "com.google.mlkit.vision.text.TextRecognizerOptions"
+        "com.google.mlkit.vision.text.TextRecognizerOptions",
+        "com.google.mlkit.vision.text.TextRecognizerOptionsInterface"
       ]
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-nearby",
-      "version": "17.0.0",
+      "version": "18.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.nearby.Nearby",
         "com.google.android.gms.nearby.connection.AdvertisingOptions",
         "com.google.android.gms.nearby.connection.ConnectionInfo",
         "com.google.android.gms.nearby.connection.ConnectionLifecycleCallback",
+        "com.google.android.gms.nearby.connection.ConnectionOptions",
         "com.google.android.gms.nearby.connection.ConnectionResolution",
         "com.google.android.gms.nearby.connection.ConnectionsClient",
+        "com.google.android.gms.nearby.connection.ConnectionsOptions",
         "com.google.android.gms.nearby.connection.ConnectionsStatusCodes",
         "com.google.android.gms.nearby.connection.DiscoveredEndpointInfo",
         "com.google.android.gms.nearby.connection.DiscoveryOptions",
@@ -10385,11 +11131,22 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-password-complexity",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.auth.managed.password.PasswordComplexityCheckResult",
         "com.google.android.gms.auth.managed.password.PasswordComplexityServiceClient"
+      ]
+    },
+    {
+      "groupId": "com.google.android.gms",
+      "artifactId": "play-services-pay",
+      "version": "16.0.0",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.gms.pay.Pay",
+        "com.google.android.gms.pay.PayApiAvailabilityStatus",
+        "com.google.android.gms.pay.PayClient"
       ]
     },
     {
@@ -10445,7 +11202,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-recaptcha",
-      "version": "16.0.0",
+      "version": "16.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.recaptcha.HttpStatusException",
@@ -10465,7 +11222,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-safetynet",
-      "version": "17.0.0",
+      "version": "17.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.safetynet.HarmfulAppsData",
@@ -10488,10 +11245,25 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-stats",
-      "version": "17.0.0",
+      "version": "17.0.1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.android.gms",
+      "artifactId": "play-services-streamprotect",
+      "version": "16.0.0",
       "ktxTargets": [],
       "fqcns": [
-        "com.google.android.gms.stats.CodePackage"
+        "com.google.android.gms.streamprotect.ClockType",
+        "com.google.android.gms.streamprotect.FeatureNotEnabledException",
+        "com.google.android.gms.streamprotect.FeatureNotSupportedException",
+        "com.google.android.gms.streamprotect.FrameInfo",
+        "com.google.android.gms.streamprotect.OnStreamProtectEventListener",
+        "com.google.android.gms.streamprotect.StreamProtect",
+        "com.google.android.gms.streamprotect.StreamProtectClient",
+        "com.google.android.gms.streamprotect.StreamProtectEvent",
+        "com.google.android.gms.streamprotect.StreamProtectOptions"
       ]
     },
     {
@@ -10671,7 +11443,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-wallet",
-      "version": "18.1.2",
+      "version": "18.1.3",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.wallet.AutoResolvableResult",
@@ -10904,6 +11676,20 @@
       ]
     },
     {
+      "groupId": "com.google.android.libraries.mapsplatform.secrets-gradle-plugin",
+      "artifactId": "com.google.android.libraries.mapsplatform.secrets-gradle-plugin.gradle.plugin",
+      "version": "2.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.android.libraries.mapsplatform.secrets-gradle-plugin",
+      "artifactId": "secrets-gradle-plugin",
+      "version": "2.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "com.google.android.libraries.places",
       "artifactId": "places",
       "version": "2.4.0",
@@ -10982,7 +11768,7 @@
     {
       "groupId": "com.google.android.material",
       "artifactId": "compose-theme-adapter",
-      "version": "1.0.0-beta05",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.material.composethemeadapter.FontFamilyWithWeight",
@@ -10992,7 +11778,7 @@
     {
       "groupId": "com.google.android.material",
       "artifactId": "material",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.material.animation.ArgbEvaluatorCompat",
@@ -11015,7 +11801,6 @@
         "com.google.android.material.bottomappbar.BottomAppBar",
         "com.google.android.material.bottomappbar.BottomAppBarTopEdgeTreatment",
         "com.google.android.material.bottomnavigation.BottomNavigationView",
-        "com.google.android.material.bottomnavigation.LabelVisibilityMode",
         "com.google.android.material.bottomsheet.BottomSheetBehavior",
         "com.google.android.material.bottomsheet.BottomSheetDialog",
         "com.google.android.material.bottomsheet.BottomSheetDialogFragment",
@@ -11051,7 +11836,9 @@
         "com.google.android.material.floatingactionbutton.FloatingActionButton",
         "com.google.android.material.imageview.ShapeableImageView",
         "com.google.android.material.math.MathUtils",
+        "com.google.android.material.navigation.NavigationBarView",
         "com.google.android.material.navigation.NavigationView",
+        "com.google.android.material.navigationrail.NavigationRailView",
         "com.google.android.material.progressindicator.BaseProgressIndicator",
         "com.google.android.material.progressindicator.BaseProgressIndicatorSpec",
         "com.google.android.material.progressindicator.CircularProgressIndicator",
@@ -11061,7 +11848,6 @@
         "com.google.android.material.progressindicator.LinearProgressIndicator",
         "com.google.android.material.progressindicator.LinearProgressIndicatorSpec",
         "com.google.android.material.radiobutton.MaterialRadioButton",
-        "com.google.android.material.resources.TextAppearanceConfig",
         "com.google.android.material.shadow.ShadowViewDelegate",
         "com.google.android.material.shape.AbsoluteCornerSize",
         "com.google.android.material.shape.CornerFamily",
@@ -11126,6 +11912,35 @@
         "com.google.android.material.transition.platform.ScaleProvider",
         "com.google.android.material.transition.platform.SlideDistanceProvider",
         "com.google.android.material.transition.platform.VisibilityAnimatorProvider"
+      ]
+    },
+    {
+      "groupId": "com.google.android.mediahome",
+      "artifactId": "video",
+      "version": "1.0.0",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.mediahome.video.PreviewChannel",
+        "com.google.android.mediahome.video.PreviewChannelHelper",
+        "com.google.android.mediahome.video.PreviewProgram",
+        "com.google.android.mediahome.video.VideoContract",
+        "com.google.android.mediahome.video.WatchNextProgram"
+      ]
+    },
+    {
+      "groupId": "com.google.android.odml",
+      "artifactId": "image",
+      "version": "1.0.0-beta1",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.odml.image.BitmapExtractor",
+        "com.google.android.odml.image.BitmapMlImageBuilder",
+        "com.google.android.odml.image.ByteBufferExtractor",
+        "com.google.android.odml.image.ByteBufferMlImageBuilder",
+        "com.google.android.odml.image.ImageProperties",
+        "com.google.android.odml.image.MediaImageExtractor",
+        "com.google.android.odml.image.MediaMlImageBuilder",
+        "com.google.android.odml.image.MlImage"
       ]
     },
     {
@@ -11366,7 +12181,7 @@
     {
       "groupId": "com.google.android.ump",
       "artifactId": "user-messaging-platform",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.ump.ConsentDebugSettings",
@@ -11393,7 +12208,7 @@
     {
       "groupId": "com.google.androidbrowserhelper",
       "artifactId": "androidbrowserhelper",
-      "version": "2.2.0",
+      "version": "2.2.2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.androidbrowserhelper.trusted.ChromeLegacyUtils",
@@ -11421,7 +12236,7 @@
     {
       "groupId": "com.google.androidbrowserhelper",
       "artifactId": "billing",
-      "version": "1.0.0-alpha07",
+      "version": "1.0.0-alpha08",
       "ktxTargets": [],
       "fqcns": [
         "com.google.androidbrowserhelper.playbilling.ICallback",
@@ -11453,7 +12268,7 @@
     {
       "groupId": "com.google.androidbrowserhelper",
       "artifactId": "locationdelegation",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.androidbrowserhelper.locationdelegation.LocationDelegationExtraCommandHandler",
@@ -11466,7 +12281,7 @@
     {
       "groupId": "com.google.ar",
       "artifactId": "core",
-      "version": "1.23.0",
+      "version": "1.25.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.ar.core.Anchor",
@@ -11481,6 +12296,7 @@
         "com.google.ar.core.CameraIntrinsics",
         "com.google.ar.core.Config",
         "com.google.ar.core.Coordinates2d",
+        "com.google.ar.core.DepthPoint",
         "com.google.ar.core.Frame",
         "com.google.ar.core.HitResult",
         "com.google.ar.core.ImageFormat",
@@ -11497,6 +12313,8 @@
         "com.google.ar.core.RecordingStatus",
         "com.google.ar.core.Session",
         "com.google.ar.core.SharedCamera",
+        "com.google.ar.core.Track",
+        "com.google.ar.core.TrackData",
         "com.google.ar.core.Trackable",
         "com.google.ar.core.TrackingFailureReason",
         "com.google.ar.core.TrackingState",
@@ -11931,6 +12749,26 @@
       ]
     },
     {
+      "groupId": "com.google.assistant.appactions",
+      "artifactId": "suggestions",
+      "version": "1.0.0-beta01",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.android.libraries.appactions.service.IAppShortcutsService",
+        "com.google.android.libraries.appactions.service.ILookupShortcutCallback",
+        "com.google.android.libraries.appactions.service.ShortcutLookupRequest",
+        "com.google.assistant.appactions.suggestions.client.AppShortcutIntent",
+        "com.google.assistant.appactions.suggestions.client.AppShortcutSuggestion",
+        "com.google.assistant.appactions.suggestions.client.AssistantShortcutSuggestionsClient",
+        "com.google.assistant.appactions.suggestions.client.ClientException",
+        "com.google.assistant.appactions.suggestions.client.GoogleInstallationUnsupportedException",
+        "com.google.assistant.appactions.suggestions.client.GoogleNotInstalledException",
+        "com.google.assistant.appactions.suggestions.client.RetryableException",
+        "com.google.assistant.appactions.suggestions.client.ServiceException",
+        "com.google.assistant.appactions.suggestions.client.ShortcutLookupResult"
+      ]
+    },
+    {
       "groupId": "com.google.assistant.suggestion",
       "artifactId": "assistant-suggestions",
       "version": "2.1.0",
@@ -11938,30 +12776,37 @@
       "fqcns": []
     },
     {
+      "groupId": "com.google.chromeos",
+      "artifactId": "chromeos-lowlatencystylus",
+      "version": "1.0.1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "com.google.devtools.ksp",
       "artifactId": "com.google.devtools.ksp.gradle.plugin",
-      "version": "1.4.32-1.0.0-alpha08",
+      "version": "1.5.21-1.0.0-beta06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.devtools.ksp",
       "artifactId": "symbol-processing",
-      "version": "1.4.32-1.0.0-alpha08",
+      "version": "1.5.21-1.0.0-beta06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.devtools.ksp",
       "artifactId": "symbol-processing-api",
-      "version": "1.4.32-1.0.0-alpha08",
+      "version": "1.5.21-1.0.0-beta06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.devtools.ksp",
       "artifactId": "symbol-processing-gradle-plugin",
-      "version": "1.4.32-1.0.0-alpha08",
+      "version": "1.5.21-1.0.0-beta06",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -12001,7 +12846,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-abt",
-      "version": "20.0.0",
+      "version": "21.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.abt.AbtException",
@@ -12014,21 +12859,21 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-ads",
-      "version": "20.0.0",
+      "version": "20.2.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-ads-lite",
-      "version": "20.0.0",
+      "version": "20.2.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-analytics",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -12051,7 +12896,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-analytics-ktx",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-analytics"
       ],
@@ -12079,8 +12924,60 @@
     },
     {
       "groupId": "com.google.firebase",
+      "artifactId": "firebase-appcheck",
+      "version": "16.0.0-beta02",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.appcheck.AppCheckProvider",
+        "com.google.firebase.appcheck.AppCheckProviderFactory",
+        "com.google.firebase.appcheck.AppCheckToken",
+        "com.google.firebase.appcheck.FirebaseAppCheck",
+        "com.google.firebase.appcheck.FirebaseAppCheckRegistrar"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
+      "artifactId": "firebase-appcheck-debug",
+      "version": "16.0.0-beta02",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
+      "artifactId": "firebase-appcheck-debug-testing",
+      "version": "16.0.0-beta02",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.appcheck.debug.DebugAppCheckProviderFactoryHelper",
+        "com.google.firebase.appcheck.debug.testing.DebugAppCheckTestHelper"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
+      "artifactId": "firebase-appcheck-interop",
+      "version": "16.0.0-beta02",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.appcheck.AppCheckTokenResult",
+        "com.google.firebase.appcheck.interop.AppCheckTokenListener",
+        "com.google.firebase.appcheck.interop.InternalAppCheckTokenProvider"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
+      "artifactId": "firebase-appcheck-safetynet",
+      "version": "16.0.0-beta02",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.appcheck.safetynet.SafetyNetAppCheckProviderFactory"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
       "artifactId": "firebase-appdistribution-gradle",
-      "version": "2.1.1",
+      "version": "2.1.3",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.appdistribution.ApiEndpoints",
@@ -12127,7 +13024,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-appindexing",
-      "version": "19.2.0",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.search.GoogleNowAuthState",
@@ -12184,7 +13081,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-auth",
-      "version": "20.0.4",
+      "version": "21.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.firebase.auth.ModuleDescriptor",
@@ -12280,7 +13177,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-auth-interop",
-      "version": "19.0.2",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.auth.FirebaseAuthException",
@@ -12290,7 +13187,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-auth-ktx",
-      "version": "20.0.4",
+      "version": "21.0.1",
       "ktxTargets": [
         "com.google.firebase:firebase-auth"
       ],
@@ -12324,14 +13221,14 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-bom",
-      "version": "27.1.0",
+      "version": "28.3.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-common",
-      "version": "19.5.0",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.DataCollectionDefaultChange",
@@ -12362,7 +13259,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-common-ktx",
-      "version": "19.5.0",
+      "version": "20.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-common"
       ],
@@ -12381,7 +13278,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-components",
-      "version": "16.1.0",
+      "version": "17.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.components.Component",
@@ -12409,7 +13306,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-config",
-      "version": "20.0.4",
+      "version": "21.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.remoteconfig.FirebaseRemoteConfig",
@@ -12428,7 +13325,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-config-ktx",
-      "version": "20.0.4",
+      "version": "21.0.1",
       "ktxTargets": [
         "com.google.firebase:firebase-config"
       ],
@@ -12446,7 +13343,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-core",
-      "version": "18.0.3",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -12469,9 +13366,10 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-crashlytics",
-      "version": "17.4.1",
+      "version": "18.2.1",
       "ktxTargets": [],
       "fqcns": [
+        "com.google.firebase.crashlytics.AnalyticsDeferredProxy",
         "com.google.firebase.crashlytics.CrashlyticsRegistrar",
         "com.google.firebase.crashlytics.CustomKeysAndValues",
         "com.google.firebase.crashlytics.FirebaseCrashlytics"
@@ -12480,7 +13378,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-crashlytics-buildtools",
-      "version": "2.5.2",
+      "version": "2.7.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.crashlytics.buildtools.ApiKeyValidator",
@@ -12494,9 +13392,11 @@
         "com.google.firebase.crashlytics.buildtools.android.project.ResourceXmlHelper",
         "com.google.firebase.crashlytics.buildtools.android.project.XmlBuildIdReader",
         "com.google.firebase.crashlytics.buildtools.android.project.XmlBuildIdWriter",
-        "com.google.firebase.crashlytics.buildtools.api.CodeMappingService",
-        "com.google.firebase.crashlytics.buildtools.api.FirebaseCodeMappingService",
+        "com.google.firebase.crashlytics.buildtools.api.FirebaseMappingFileService",
+        "com.google.firebase.crashlytics.buildtools.api.FirebaseSymbolFileService",
+        "com.google.firebase.crashlytics.buildtools.api.MappingFileService",
         "com.google.firebase.crashlytics.buildtools.api.RestfulWebApi",
+        "com.google.firebase.crashlytics.buildtools.api.SymbolFileService",
         "com.google.firebase.crashlytics.buildtools.api.WebApi",
         "com.google.firebase.crashlytics.buildtools.api.net.Constants",
         "com.google.firebase.crashlytics.buildtools.api.net.proxy.Constants",
@@ -12519,13 +13419,14 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-crashlytics-gradle",
-      "version": "2.5.2",
+      "version": "2.7.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension",
         "com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsGradleLogger",
         "com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsPlugin",
         "com.google.firebase.crashlytics.buildtools.gradle.ExternalPluginsState",
+        "com.google.firebase.crashlytics.buildtools.gradle.GoogleAppIdUtils",
         "com.google.firebase.crashlytics.buildtools.gradle.ProjectVariantState",
         "com.google.firebase.crashlytics.buildtools.gradle.tasks.GenerateSymbolFileTask",
         "com.google.firebase.crashlytics.buildtools.gradle.tasks.InjectMappingFileIdTask",
@@ -12536,7 +13437,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-crashlytics-ktx",
-      "version": "17.4.1",
+      "version": "18.2.1",
       "ktxTargets": [
         "com.google.firebase:firebase-crashlytics"
       ],
@@ -12548,17 +13449,18 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-crashlytics-ndk",
-      "version": "17.4.1",
+      "version": "18.2.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.crashlytics.ndk.CrashlyticsNdkRegistrar",
+        "com.google.firebase.crashlytics.ndk.CrashpadController",
         "com.google.firebase.crashlytics.ndk.CrashpadMain"
       ]
     },
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-database",
-      "version": "19.7.0",
+      "version": "20.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.database.ChildEventListener",
@@ -12579,6 +13481,7 @@
         "com.google.firebase.database.ThrowOnExtraProperties",
         "com.google.firebase.database.Transaction",
         "com.google.firebase.database.ValueEventListener",
+        "com.google.firebase.database.android.AndroidAppCheckTokenProvider",
         "com.google.firebase.database.android.AndroidAuthTokenProvider",
         "com.google.firebase.database.android.AndroidEventTarget",
         "com.google.firebase.database.android.AndroidPlatform",
@@ -12586,8 +13489,8 @@
         "com.google.firebase.database.annotations.NotNull",
         "com.google.firebase.database.annotations.Nullable",
         "com.google.firebase.database.connection.CompoundHash",
-        "com.google.firebase.database.connection.ConnectionAuthTokenProvider",
         "com.google.firebase.database.connection.ConnectionContext",
+        "com.google.firebase.database.connection.ConnectionTokenProvider",
         "com.google.firebase.database.connection.ConnectionUtils",
         "com.google.firebase.database.connection.HostInfo",
         "com.google.firebase.database.connection.ListenHashProvider",
@@ -12596,7 +13499,6 @@
         "com.google.firebase.database.connection.RequestResultCallback",
         "com.google.firebase.database.connection.util.RetryHelper",
         "com.google.firebase.database.connection.util.StringListReader",
-        "com.google.firebase.database.core.AuthTokenProvider",
         "com.google.firebase.database.core.ChildEventRegistration",
         "com.google.firebase.database.core.CompoundWrite",
         "com.google.firebase.database.core.Constants",
@@ -12618,6 +13520,7 @@
         "com.google.firebase.database.core.Tag",
         "com.google.firebase.database.core.ThreadBackgroundExecutor",
         "com.google.firebase.database.core.ThreadInitializer",
+        "com.google.firebase.database.core.TokenProvider",
         "com.google.firebase.database.core.UserWriteRecord",
         "com.google.firebase.database.core.ValidationPath",
         "com.google.firebase.database.core.ValueEventRegistration",
@@ -12711,7 +13614,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-database-collection",
-      "version": "17.0.1",
+      "version": "18.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.database.collection.ArraySortedMap",
@@ -12746,7 +13649,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-database-ktx",
-      "version": "19.7.0",
+      "version": "20.0.1",
       "ktxTargets": [
         "com.google.firebase:firebase-database"
       ],
@@ -12764,7 +13667,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-datatransport",
-      "version": "17.0.11",
+      "version": "18.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.datatransport.TransportRegistrar"
@@ -12773,7 +13676,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-dynamic-links",
-      "version": "19.1.1",
+      "version": "20.1.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.dynamiclinks.DynamicLink",
@@ -12785,7 +13688,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-dynamic-links-ktx",
-      "version": "19.1.1",
+      "version": "20.1.1",
       "ktxTargets": [
         "com.google.firebase:firebase-dynamic-links"
       ],
@@ -12802,8 +13705,17 @@
     },
     {
       "groupId": "com.google.firebase",
+      "artifactId": "firebase-dynamic-module-support",
+      "version": "16.0.0-beta01",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.firebase.dynamicloading.DynamicLoadingRegistrar"
+      ]
+    },
+    {
+      "groupId": "com.google.firebase",
       "artifactId": "firebase-encoders",
-      "version": "16.1.0",
+      "version": "17.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.encoders.DataEncoder",
@@ -12822,7 +13734,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-encoders-json",
-      "version": "17.1.0",
+      "version": "18.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.encoders.json.JsonDataEncoderBuilder"
@@ -12831,7 +13743,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-firestore",
-      "version": "22.1.2",
+      "version": "23.0.3",
       "ktxTargets": [],
       "fqcns": [
         "com.google.cloud.datastore.core.number.IndexNumberDecoder",
@@ -12945,7 +13857,6 @@
         "com.google.firebase.firestore.model.BasePath",
         "com.google.firebase.firestore.model.DatabaseId",
         "com.google.firebase.firestore.model.Document",
-        "com.google.firebase.firestore.model.Document$",
         "com.google.firebase.firestore.model.DocumentCollections",
         "com.google.firebase.firestore.model.DocumentKey",
         "com.google.firebase.firestore.model.DocumentSet",
@@ -13104,7 +14015,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-firestore-ktx",
-      "version": "22.1.2",
+      "version": "23.0.3",
       "ktxTargets": [
         "com.google.firebase:firebase-firestore"
       ],
@@ -13115,7 +14026,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-functions",
-      "version": "19.2.0",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.functions.FirebaseFunctions",
@@ -13128,7 +14039,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-functions-ktx",
-      "version": "19.2.0",
+      "version": "20.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-functions"
       ],
@@ -13172,7 +14083,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-inappmessaging",
-      "version": "19.1.5",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.inappmessaging.CampaignAnalytics",
@@ -13236,7 +14147,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-inappmessaging-display",
-      "version": "19.1.5",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.inappmessaging.display.FiamListener",
@@ -13267,7 +14178,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-inappmessaging-display-ktx",
-      "version": "19.1.5",
+      "version": "20.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-inappmessaging-display"
       ],
@@ -13278,7 +14189,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-inappmessaging-ktx",
-      "version": "19.1.5",
+      "version": "20.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-inappmessaging"
       ],
@@ -13289,7 +14200,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-installations",
-      "version": "16.3.5",
+      "version": "17.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.installations.FirebaseInstallations",
@@ -13310,7 +14221,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-installations-interop",
-      "version": "16.0.1",
+      "version": "17.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.installations.FirebaseInstallationsApi",
@@ -13320,7 +14231,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-installations-ktx",
-      "version": "16.3.5",
+      "version": "17.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-installations"
       ],
@@ -13338,7 +14249,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-measurement-connector",
-      "version": "18.0.2",
+      "version": "19.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.analytics.connector.AnalyticsConnector"
@@ -13354,7 +14265,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging",
-      "version": "21.1.0",
+      "version": "22.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.iid.FirebaseInstanceIdReceiver",
@@ -13370,13 +14281,15 @@
         "com.google.firebase.messaging.RemoteMessage",
         "com.google.firebase.messaging.RemoteMessageCreator",
         "com.google.firebase.messaging.SendException",
-        "com.google.firebase.messaging.ServiceStarter"
+        "com.google.firebase.messaging.ServiceStarter",
+        "com.google.firebase.messaging.reporting.MessagingClientEvent",
+        "com.google.firebase.messaging.reporting.MessagingClientEventExtension"
       ]
     },
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging-directboot",
-      "version": "21.1.0",
+      "version": "22.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.messaging.directboot.FirebaseMessagingDirectBootReceiver"
@@ -13385,7 +14298,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging-ktx",
-      "version": "21.0.1",
+      "version": "22.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-messaging"
       ],
@@ -13428,7 +14341,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-ml-modeldownloader",
-      "version": "23.0.1",
+      "version": "24.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.ml.modeldownloader.CustomModel",
@@ -13442,7 +14355,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-ml-modeldownloader-ktx",
-      "version": "23.0.1",
+      "version": "24.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-ml-modeldownloader"
       ],
@@ -13595,22 +14508,40 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-perf",
-      "version": "19.1.1",
+      "version": "20.0.2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.perf.FirebasePerfRegistrar",
         "com.google.firebase.perf.FirebasePerformance",
         "com.google.firebase.perf.FirebasePerformanceAttributable",
+        "com.google.firebase.perf.FirebasePerformanceInitializer",
+        "com.google.firebase.perf.FirebasePerformance_Factory",
+        "com.google.firebase.perf.application.AppStateMonitor",
+        "com.google.firebase.perf.application.AppStateUpdateHandler",
         "com.google.firebase.perf.config.ConfigResolver",
         "com.google.firebase.perf.config.DeviceCacheManager",
-        "com.google.firebase.perf.gauges.CpuGaugeCollector",
-        "com.google.firebase.perf.gauges.MemoryGaugeCollector",
+        "com.google.firebase.perf.config.RemoteConfigManager",
+        "com.google.firebase.perf.injection.components.DaggerFirebasePerformanceComponent",
+        "com.google.firebase.perf.injection.components.FirebasePerformanceComponent",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesConfigResolverFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesFirebaseAppFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesFirebaseInstallationsFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesGaugeManagerFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesRemoteConfigComponentFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesRemoteConfigManagerFactory",
+        "com.google.firebase.perf.injection.modules.FirebasePerformanceModule_ProvidesTransportFactoryProviderFactory",
         "com.google.firebase.perf.logging.AndroidLogger",
+        "com.google.firebase.perf.logging.ConsoleUrlGenerator",
         "com.google.firebase.perf.metrics.AddTrace",
         "com.google.firebase.perf.metrics.AppStartTrace",
         "com.google.firebase.perf.metrics.Counter",
         "com.google.firebase.perf.metrics.HttpMetric",
+        "com.google.firebase.perf.metrics.NetworkRequestMetricBuilder",
         "com.google.firebase.perf.metrics.Trace",
+        "com.google.firebase.perf.metrics.resource.ResourceType",
+        "com.google.firebase.perf.metrics.validator.FirebasePerfApplicationInfoValidator",
+        "com.google.firebase.perf.metrics.validator.PerfMetricValidator",
         "com.google.firebase.perf.network.FirebasePerfHttpClient",
         "com.google.firebase.perf.network.FirebasePerfOkHttpClient",
         "com.google.firebase.perf.network.FirebasePerfUrlConnection",
@@ -13622,11 +14553,18 @@
         "com.google.firebase.perf.network.InstrumentOkHttpEnqueueCallback",
         "com.google.firebase.perf.network.NetworkRequestMetricBuilderUtil",
         "com.google.firebase.perf.provider.FirebasePerfProvider",
+        "com.google.firebase.perf.session.PerfSession",
+        "com.google.firebase.perf.session.SessionAwareObject",
+        "com.google.firebase.perf.session.SessionManager",
+        "com.google.firebase.perf.session.gauges.CpuGaugeCollector",
+        "com.google.firebase.perf.session.gauges.GaugeManager",
+        "com.google.firebase.perf.session.gauges.MemoryGaugeCollector",
         "com.google.firebase.perf.transport.TransportManager",
         "com.google.firebase.perf.util.Clock",
         "com.google.firebase.perf.util.Constants",
         "com.google.firebase.perf.util.ImmutableBundle",
         "com.google.firebase.perf.util.Optional",
+        "com.google.firebase.perf.util.Rate",
         "com.google.firebase.perf.util.StorageUnit",
         "com.google.firebase.perf.util.Timer",
         "com.google.firebase.perf.util.URLAllowlist",
@@ -13664,7 +14602,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-perf-ktx",
-      "version": "19.1.1",
+      "version": "20.0.2",
       "ktxTargets": [
         "com.google.firebase:firebase-perf"
       ],
@@ -13689,7 +14627,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-storage",
-      "version": "19.2.2",
+      "version": "20.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.storage.CancellableTask",
@@ -13735,7 +14673,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-storage-ktx",
-      "version": "19.2.2",
+      "version": "20.0.0",
       "ktxTargets": [
         "com.google.firebase:firebase-storage"
       ],
@@ -13753,17 +14691,19 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "perf-plugin",
-      "version": "1.3.5",
+      "version": "1.4.0",
       "ktxTargets": [],
       "fqcns": [
+        "com.google.firebase.perf.plugin.FirebasePerfClassVisitorFactory",
         "com.google.firebase.perf.plugin.FirebasePerfExtension",
         "com.google.firebase.perf.plugin.FirebasePerfPlugin",
         "com.google.firebase.perf.plugin.FirebasePerfTransform",
         "com.google.firebase.perf.plugin.InstrumentationFlagState",
+        "com.google.firebase.perf.plugin.instrumentation.ClassDataBasedInstrumentationConfig",
+        "com.google.firebase.perf.plugin.instrumentation.ClassLoaderBasedInstrumentationConfig",
         "com.google.firebase.perf.plugin.instrumentation.Instrument",
         "com.google.firebase.perf.plugin.instrumentation.InstrumentationConfig",
         "com.google.firebase.perf.plugin.instrumentation.InstrumentationConfigBase",
-        "com.google.firebase.perf.plugin.instrumentation.InstrumentationConfigBuilder",
         "com.google.firebase.perf.plugin.instrumentation.InstrumentationConfigFactory",
         "com.google.firebase.perf.plugin.instrumentation.InstrumentationContext",
         "com.google.firebase.perf.plugin.instrumentation.InstrumentationVisitor",
@@ -13818,7 +14758,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "protolite-well-known-types",
-      "version": "17.1.1",
+      "version": "18.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.api.Advice",
@@ -14048,7 +14988,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "testlab-instr-lib",
-      "version": "0.1",
+      "version": "0.2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.testlab.screenshot.FirebaseScreenCaptureProcessor"
@@ -14057,7 +14997,7 @@
     {
       "groupId": "com.google.gms",
       "artifactId": "google-services",
-      "version": "4.3.5",
+      "version": "4.3.10",
       "ktxTargets": [],
       "fqcns": [
         "com.google.gms.googleservices.GoogleServicesPlugin",
@@ -14078,14 +15018,36 @@
       ]
     },
     {
+      "groupId": "com.google.jacquard",
+      "artifactId": "jacquard-sdk",
+      "version": "0.1.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.mediapipe",
+      "artifactId": "hands",
+      "version": "0.8.6-alpha-1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.mediapipe",
+      "artifactId": "solution-core",
+      "version": "0.8.6-alpha-1",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
       "groupId": "com.google.mlkit",
       "artifactId": "barcode-scanning",
-      "version": "16.1.1",
+      "version": "16.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.dynamite.descriptors.com.google.mlkit.dynamite.barcode.ModuleDescriptor",
         "com.google.android.libraries.barhopper.Barcode",
         "com.google.android.libraries.barhopper.BarhopperV2",
+        "com.google.android.libraries.barhopper.OnedRecognitionOptions",
         "com.google.android.libraries.barhopper.RecognitionOptions",
         "com.google.barhopper.deeplearning.BarcodeDetectorClientOptions"
       ]
@@ -14104,7 +15066,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "common",
-      "version": "17.1.1",
+      "version": "17.2.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.common.MlKit",
@@ -14152,7 +15114,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "digital-ink-recognition",
-      "version": "16.2.0",
+      "version": "17.0.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.digitalink.DigitalInkRecognition",
@@ -14172,7 +15134,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "entity-extraction",
-      "version": "16.0.0-beta1",
+      "version": "16.0.0-beta2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.knowledge.cerebra.sense.textclassifier.lib3.ActionsSuggestionsModel",
@@ -14202,16 +15164,19 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "face-detection",
-      "version": "16.0.7",
+      "version": "16.1.2",
       "ktxTargets": [],
       "fqcns": [
+        "com.google.android.gms.dynamite.descriptors.com.google.mlkit.dynamite.face.ModuleDescriptor",
+        "com.google.android.gms.vision.face.FaceDetectorV2Jni",
+        "com.google.android.gms.vision.face.mlkit.FaceDetectorCreator",
         "com.google.mlkit.vision.face.Empty"
       ]
     },
     {
       "groupId": "com.google.mlkit",
       "artifactId": "image-labeling",
-      "version": "17.0.3",
+      "version": "17.0.5",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -14229,7 +15194,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "image-labeling-common",
-      "version": "17.0.0",
+      "version": "17.1.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.label.ImageLabel",
@@ -14250,7 +15215,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "image-labeling-default-common",
-      "version": "16.0.0",
+      "version": "16.0.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.label.defaults.ImageLabelerOptions"
@@ -14272,7 +15237,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "linkfirebase",
-      "version": "16.1.0",
+      "version": "16.1.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.linkfirebase.FirebaseModelSource"
@@ -14301,7 +15266,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "object-detection",
-      "version": "16.2.4",
+      "version": "16.2.6",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions",
@@ -14311,7 +15276,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "object-detection-common",
-      "version": "17.0.1",
+      "version": "17.1.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.objects.DetectedObject",
@@ -14323,10 +15288,19 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "object-detection-custom",
-      "version": "16.3.1",
+      "version": "16.3.3",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions"
+      ]
+    },
+    {
+      "groupId": "com.google.mlkit",
+      "artifactId": "playstore-dynamic-feature-support",
+      "version": "16.0.0-beta1",
+      "ktxTargets": [],
+      "fqcns": [
+        "com.google.mlkit.dynamic.DynamicLoadingRegistrar"
       ]
     },
     {
@@ -14363,7 +15337,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "segmentation-selfie",
-      "version": "16.0.0-beta1",
+      "version": "16.0.0-beta2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.segmentation.Segmentation",
@@ -14409,7 +15383,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "vision-common",
-      "version": "16.4.0",
+      "version": "16.5.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.mlkit.vision.common.Detector",
@@ -14420,7 +15394,7 @@
     {
       "groupId": "com.google.mlkit",
       "artifactId": "vision-internal-vkp",
-      "version": "18.1.0",
+      "version": "18.1.1",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.libraries.intelligence.acceleration.Analytics",
@@ -14440,21 +15414,21 @@
     {
       "groupId": "com.google.oboe",
       "artifactId": "oboe",
-      "version": "1.5.0",
+      "version": "1.6.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.prefab",
       "artifactId": "api",
-      "version": "1.1.3",
+      "version": "2.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.prefab",
       "artifactId": "cli",
-      "version": "1.1.3",
+      "version": "2.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
