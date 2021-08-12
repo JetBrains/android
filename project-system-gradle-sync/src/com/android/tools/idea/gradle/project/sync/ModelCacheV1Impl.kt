@@ -1245,3 +1245,6 @@ private inline fun <T : Collection<*>?> copyNewProperty(propertyInvoker: () -> T
 @JvmName("impossibleCopyNewMapProperty")
 @Suppress("unused", "UNUSED_PARAMETER")
 private inline fun <T : Map<*, *>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
+
+private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
+
