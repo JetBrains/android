@@ -63,7 +63,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun initialInspectorLauncherStartsWithDisconnectedClient() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
@@ -71,7 +71,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun emptyInspectorLauncherIgnoresProcessChanges() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
 
     var clientChangedCount = 0
@@ -85,7 +85,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherWithNoMatchReturnsDisconnectedClient() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
       processes,
@@ -108,7 +108,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun disposingLauncherDisconnectsAndDisposesActiveClient() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
 
     val launcherDisposable = Disposer.newDisposable()
     var clientWasDisconnected = false
@@ -134,7 +134,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherUsesFirstMatchingClient() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
 
     var creatorCount1 = 0
     var creatorCount2 = 0
@@ -187,7 +187,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherSkipsOverClientsThatFailToConnect() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
 
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
@@ -225,7 +225,7 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherWithNoSuccessfulConnectionsReturnsDisconnectedClient() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
 
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
@@ -277,7 +277,7 @@ class InspectorClientLauncherTest {
     val deadProcess3 = MODERN_DEVICE.createProcess(pid = 3, isRunning = false)
 
     val notifier = TestProcessNotifier()
-    val processes = ProcessesModel(notifier) { listOf(process1.name) } // Note: This covers all processes as they have the same name
+    val processes = ProcessesModel(notifier) { it.name == process1.name } // Note: This covers all processes as they have the same name
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
       processes,

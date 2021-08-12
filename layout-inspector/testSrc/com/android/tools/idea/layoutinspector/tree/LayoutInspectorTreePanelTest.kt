@@ -101,7 +101,7 @@ private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPEC
 class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { listOf(PROCESS.name) }
+  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { it.name == PROCESS.name }
   private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
 
   @get:Rule

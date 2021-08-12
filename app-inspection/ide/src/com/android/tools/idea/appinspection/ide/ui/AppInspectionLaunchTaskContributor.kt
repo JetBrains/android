@@ -17,25 +17,39 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import org.jetbrains.annotations.VisibleForTesting
+
+@VisibleForTesting
+interface AppInspectionLaunchTask : LaunchTask
 
 /**
  * App Inspection specific logic that runs when the user presses "Run" or "Debug"
  */
 class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions) = object : LaunchTask {
-   val project = module.project
+  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions) = object : AppInspectionLaunchTask {
+    private val project = module.project
+
     override fun getId() = APP_INSPECTION_ID
     override fun getDescription() = AppInspectionBundle.message("launch.app.inspection.tool.window")
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
-    override fun run(launchContext: LaunchContext): LaunchResult? {
+    override fun run(launchContext: LaunchContext): LaunchResult {
+      storeRecentProcess(launchContext)
+      displayStripeButton(launchContext)
+      return LaunchResult.success()
+    }
+
+    private fun displayStripeButton(launchContext: LaunchContext) {
       ApplicationManager.getApplication().invokeLater {
         val window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(id)
         if (window != null && launchContext.device.version.isGreaterOrEqualThan(26)) {
@@ -47,7 +61,24 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
           window.isShowStripeButton = true
         }
       }
-      return LaunchResult.success()
+    }
+
+    private fun storeRecentProcess(launchContext: LaunchContext) {
+      val handler = launchContext.processHandler as? AndroidProcessHandler ?: return
+      val recentProcess = RecentProcess(launchContext.device, handler.targetApplicationId)
+      RecentProcess.set(project, recentProcess)
+      handler.addProcessListener(object : ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          // TODO(b/195152579) Consider creating a proper API on ProcessListener for debugger attachment
+          // This is a workaround:
+          if (event.source != launchContext.launchStatus.processHandler) {
+            launchContext.launchStatus.processHandler.addProcessListener(this)
+          }
+          else if (recentProcess === RecentProcess.get(project)) {
+            RecentProcess.set(project, null)
+          }
+        }
+      })
     }
   }
 }

@@ -52,7 +52,7 @@ private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class AppInspectionInspectorClientTest {
   private val inspectionRule = AppInspectionInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { listOf(MODERN_PROCESS.name) }
+  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { it.name == MODERN_PROCESS.name }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
@@ -429,7 +429,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val inspectionRule = AppInspectionInspectorRule()
   private val inspectorRule = LayoutInspectorRule(
     AppInspectionClientProvider({ mock() }, { inspectionRule.inspectionService.scope })) {
-    listOf(MODERN_PROCESS.name)
+    it.name == MODERN_PROCESS.name
   }
 
   @get:Rule

@@ -95,9 +95,11 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 class DeviceViewPanelWithFullInspectorTest {
   private val launcherExecutor = Executors.newSingleThreadExecutor()
   private val appInspectorRule = AppInspectionInspectorRule(withDefaultResponse = false)
-  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), launcherExecutor = launcherExecutor) {
-    listOf(MODERN_PROCESS.name)
-  }
+  private val inspectorRule = LayoutInspectorRule(
+    clientProvider = appInspectorRule.createInspectorClientProvider(),
+    launcherExecutor = launcherExecutor,
+    isPreferredProcess =  { it.name == MODERN_PROCESS.name }
+  )
 
   @After
   fun tearDown() {
@@ -381,7 +383,7 @@ class DeviceViewPanelTest {
   fun testZoomOnConnect() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
@@ -424,7 +426,7 @@ class DeviceViewPanelTest {
   fun testZoomOnConnectWithFiltering() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
@@ -454,7 +456,7 @@ class DeviceViewPanelTest {
   fun testDrawNewWindow() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
@@ -491,7 +493,7 @@ class DeviceViewPanelTest {
   fun testNewWindowDoesntResetZoom() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
@@ -530,7 +532,7 @@ class DeviceViewPanelTest {
   @Test
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
@@ -568,7 +570,7 @@ class DeviceViewPanelTest {
       }
     }
 
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val processes = ProcessesModel(TestProcessNotifier())
     val launcher: InspectorClientLauncher = mock()
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))

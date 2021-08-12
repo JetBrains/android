@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -34,14 +35,12 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
@@ -135,12 +134,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     executor = executor,
     processNotifier = processNotifier,
     acceptProcess = { it.isInspectableInLayoutInspector() },
-    getPreferredProcessNames = {
-      ModuleManager.getInstance(project).modules
-        .mapNotNull { module -> AndroidModel.get(module)?.applicationId }
-        .filter { applicationId -> applicationId != AndroidModel.UNINITIALIZED_APPLICATION_ID }
-        .toList()
-    }
+    isPreferred = { RecentProcess.isRecentProcess(it, project) }
   )
 }
 

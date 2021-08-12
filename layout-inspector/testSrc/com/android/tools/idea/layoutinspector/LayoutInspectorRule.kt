@@ -120,7 +120,7 @@ class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = n
  * @param projectRule A rule providing access to a test project. This shouldn't be annotated with `@Rule` by the caller,
  *     as this class will handle it.
  *
- * @param getPreferredProcessNames Optionally provide names of processes that, when connected via [TestProcessNotifier],
+ * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessNotifier],
  *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
  *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
  */
@@ -128,7 +128,7 @@ class LayoutInspectorRule(
   private val clientProvider: InspectorClientProvider,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
   val launcherExecutor: Executor = MoreExecutors.directExecutor(),
-  getPreferredProcessNames: () -> List<String> = { listOf() }
+  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
 
   lateinit var launcher: InspectorClientLauncher
@@ -150,7 +150,7 @@ class LayoutInspectorRule(
    * interacted directly with to force a connection via its [ProcessesModel.selectedProcess]
    * property.
    */
-  val processes = ProcessesModel(processNotifier, getPreferredProcessNames)
+  val processes = ProcessesModel(processNotifier, isPreferredProcess)
 
   val adbRule = FakeAdbRule()
   val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {

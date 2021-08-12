@@ -56,7 +56,7 @@ class SelectProcessActionTest {
   @Test
   fun testNoProcesses() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf() }
+    val model = ProcessesModel(testNotifier)
     val selectProcessAction = SelectProcessAction(model)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
@@ -70,7 +70,7 @@ class SelectProcessActionTest {
     val testNotifier = TestProcessNotifier()
     val physicalStream = createFakeStream(isEmulator = false)
     val physicalProcess = physicalStream.createFakeProcess("A", 100)
-    val model = ProcessesModel(testNotifier) { listOf(physicalProcess.name) }
+    val model = ProcessesModel(testNotifier) { it.name == physicalProcess.name }
 
     val selectProcessAction = SelectProcessAction(model, createProcessLabel = { process -> "Test: " + process.name })
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -85,7 +85,7 @@ class SelectProcessActionTest {
   @Test
   fun stopPresentationCanBeOverridden() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf() }
+    val model = ProcessesModel(testNotifier)
     val selectProcessAction = SelectProcessAction(model, stopPresentation = SelectProcessAction.StopPresentation("Test stop label", "Test stop description"))
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
@@ -97,7 +97,7 @@ class SelectProcessActionTest {
   @Test
   fun displayTextForDevicesSetAsExpected() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf() }
+    val model = ProcessesModel(testNotifier)
     val selectProcessAction = SelectProcessAction(model)
 
     val physicalStream = createFakeStream(isEmulator = false)
@@ -123,7 +123,7 @@ class SelectProcessActionTest {
   @Test
   fun addsNonPreferredAndPreferredProcess_orderEnsured() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("B") }
+    val model = ProcessesModel(testNotifier) { it.name == "B" }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
@@ -153,7 +153,7 @@ class SelectProcessActionTest {
   @Test
   fun listsProcessesInSortedOrder() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("X", "Y", "Z") }
+    val model = ProcessesModel(testNotifier) { it.name in listOf("X", "Y", "Z") }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
@@ -182,7 +182,7 @@ class SelectProcessActionTest {
   @Test
   fun deadProcessesShowUpInProcessList() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A") }
+    val model = ProcessesModel(testNotifier) { it.name == "A" }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
@@ -216,7 +216,7 @@ class SelectProcessActionTest {
   @Test
   fun deadProcessesFilteredOutIfOfflineNotSupported() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("A") }
+    val model = ProcessesModel(testNotifier) { it.name == "A" }
     val selectProcessAction = SelectProcessAction(model, supportsOffline = false)
 
     val fakeStream = createFakeStream()
@@ -248,7 +248,7 @@ class SelectProcessActionTest {
   @Test
   fun selectStopInspection_firesCallbackAndRetainsProcess() {
     val testNotifier = TestProcessNotifier()
-    val model = ProcessesModel(testNotifier) { listOf("B") }
+    val model = ProcessesModel(testNotifier) { it.name == "B" }
     val fakeStream = createFakeStream()
     val processB = fakeStream.createFakeProcess("B", 101)
     val callbackFiredLatch = CountDownLatch(1)

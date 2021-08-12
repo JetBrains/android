@@ -96,7 +96,7 @@ class AppInspectionView @VisibleForTesting constructor(
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher,
   private val artifactService: InspectorArtifactService,
-  getPreferredProcesses: () -> List<String>
+  isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : AppInspectionToolWindowControl, Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
 
@@ -171,7 +171,7 @@ class AppInspectionView @VisibleForTesting constructor(
               ideServices: AppInspectionIdeServices,
               scope: CoroutineScope,
               uiDispatcher: CoroutineDispatcher,
-              getPreferredProcesses: () -> List<String>) :
+              isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }) :
     this(project,
          apiServices,
          ideServices,
@@ -179,7 +179,7 @@ class AppInspectionView @VisibleForTesting constructor(
          scope,
          uiDispatcher,
          InspectorArtifactService.instance,
-         getPreferredProcesses)
+         isPreferredProcess)
 
   private fun showCrashNotification(inspectorName: String, process: ProcessDescriptor, tabShell: AppInspectorTabShell) {
     ideServices.showNotification(
@@ -197,7 +197,7 @@ class AppInspectionView @VisibleForTesting constructor(
 
   init {
     val edtExecutor = EdtExecutorService.getInstance()
-    processesModel = ProcessesModel(edtExecutor, apiServices.processNotifier, { it.isInspectable() }, getPreferredProcesses)
+    processesModel = ProcessesModel(edtExecutor, apiServices.processNotifier, { it.isInspectable() }, isPreferredProcess)
     Disposer.register(this, processesModel)
     selectProcessAction = SelectProcessAction(processesModel, onStopAction = { stopInspectors() })
     val group = DefaultActionGroup().apply { add(selectProcessAction) }

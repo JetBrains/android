@@ -40,20 +40,23 @@ import java.util.concurrent.Executor
  * @param acceptProcess A filter which affects which processes are added to the model. If not
  *   specified, all processes are accepted.
  */
-class ProcessesModel(private val executor: Executor,
-                     private val processNotifier: ProcessNotifier,
-                     private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
-                     private val getPreferredProcessNames: () -> List<String>) : Disposable {
+class ProcessesModel(
+  private val executor: Executor,
+  private val processNotifier: ProcessNotifier,
+  private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
+  private val isPreferred: (ProcessDescriptor) -> Boolean = { false }
+) : Disposable {
 
   @TestOnly
-  constructor(processNotifier: ProcessNotifier, getPreferredProcessNames: () -> List<String>) :
-    this(MoreExecutors.directExecutor(), processNotifier, getPreferredProcessNames = getPreferredProcessNames)
+  constructor(processNotifier: ProcessNotifier, isPreferred: (ProcessDescriptor) -> Boolean = { false }) :
+    this(MoreExecutors.directExecutor(), processNotifier, isPreferred = isPreferred)
 
   @TestOnly
-  constructor(processNotifier: ProcessNotifier,
-              acceptProcess: (ProcessDescriptor) -> Boolean,
-              getPreferredProcessNames: () -> List<String>) :
-    this(MoreExecutors.directExecutor(), processNotifier, acceptProcess, getPreferredProcessNames)
+  constructor(
+    processNotifier: ProcessNotifier,
+    acceptProcess: (ProcessDescriptor) -> Boolean,
+    isPreferred: (ProcessDescriptor) -> Boolean = { false }
+  ) : this(MoreExecutors.directExecutor(), processNotifier, acceptProcess, isPreferred)
 
   private val lock = Any()
 
@@ -138,7 +141,7 @@ class ProcessesModel(private val executor: Executor,
   fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
     return processDescriptor != null
            && (processDescriptor.isRunning || includeDead)
-           && getPreferredProcessNames().contains(processDescriptor.name)
+           && isPreferred(processDescriptor)
   }
 
   @GuardedBy("lock")
