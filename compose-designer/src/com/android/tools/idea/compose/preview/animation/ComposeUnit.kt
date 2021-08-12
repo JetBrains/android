@@ -17,8 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import java.lang.reflect.Method
-import java.math.RoundingMode
-import java.text.DecimalFormat
 
 /**
  * Compose units represented as multi-dimensional properties.
@@ -39,36 +37,36 @@ object ComposeUnit {
   abstract class Unit1D<A>(val component1: A) :
     Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1)
-    override fun toString(componentId: Int): String = component1.toString()
+    override fun toString(componentId: Int) = component1.toString()
   }
 
   abstract class Unit2D<A>(val component1: A, val component2: A) :
     Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1, component2)
-    override fun toString(componentId: Int): String = "( " +
-                                                      "${if (componentId == 0) component1 else "_"} , " +
-                                                      "${if (componentId == 1) component2 else "_"} )"
+    override fun toString(componentId: Int) = "( " +
+                                              "${if (componentId == 0) component1 else "_"} , " +
+                                              "${if (componentId == 1) component2 else "_"} )"
 
   }
 
   abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) :
     Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1, component2, component3)
-    override fun toString(componentId: Int): String = "( " +
-                                                      "${if (componentId == 0) component1 else "_"} , " +
-                                                      "${if (componentId == 1) component2 else "_"} , " +
-                                                      "${if (componentId == 2) component3 else "_"} )"
+    override fun toString(componentId: Int) = "( " +
+                                              "${if (componentId == 0) component1 else "_"} , " +
+                                              "${if (componentId == 1) component2 else "_"} , " +
+                                              "${if (componentId == 2) component3 else "_"} )"
 
   }
 
   abstract class Unit4D<A>(val component1: A, val component2: A, val component3: A, val component4: A) :
     Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1, component2, component3, component4)
-    override fun toString(componentId: Int): String = "( " +
-                                                      "${if (componentId == 0) component1 else "_"} , " +
-                                                      "${if (componentId == 1) component2 else "_"} , " +
-                                                      "${if (componentId == 2) component3 else "_"} , " +
-                                                      "${if (componentId == 3) component4 else "_"} )"
+    override fun toString(componentId: Int) = "( " +
+                                              "${if (componentId == 0) component1 else "_"} , " +
+                                              "${if (componentId == 1) component2 else "_"} , " +
+                                              "${if (componentId == 2) component3 else "_"} , " +
+                                              "${if (componentId == 3) component4 else "_"} )"
   }
 
   /**
@@ -93,6 +91,7 @@ object ComposeUnit {
   class IntSize(component1: Int, component2: Int) : Unit2D<Int>(component1, component2) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.unit.IntSize"
+      private val COMPONENT_NAMES = arrayOf("width", "height")
       fun create(property: Any?): IntSize? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -104,11 +103,15 @@ object ComposeUnit {
         return null
       }
     }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
   }
 
   class IntOffset(component1: Int, component2: Int) : Unit2D<Int>(component1, component2) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.unit.IntOffset"
+      private val COMPONENT_NAMES = arrayOf("x", "y")
       fun create(property: Any?): IntOffset? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -120,6 +123,9 @@ object ComposeUnit {
         return null
       }
     }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
   }
 
   class Dp(component1: Float) : Unit1D<Float>(component1) {
@@ -134,12 +140,13 @@ object ComposeUnit {
       }
     }
 
-    override fun toString(componentId: Int): String = "${component1}dp"
+    override fun toString(componentId: Int) = "${component1}dp"
   }
 
   class Size(component1: Float, component2: Float) : Unit2D<Float>(component1, component2) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Size"
+      private val COMPONENT_NAMES = arrayOf("width", "height")
       fun create(property: Any?): Size? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -151,6 +158,9 @@ object ComposeUnit {
         return null
       }
     }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
   }
 
   class Rect(
@@ -161,6 +171,7 @@ object ComposeUnit {
   ) : Unit4D<Float>(component1, component2, component3, component4) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Rect"
+      private val COMPONENT_NAMES = arrayOf("left", "top", "right", "bottom")
       fun create(property: Any?): Rect? {
         property?.also {
           val left = findMethodByName("getLeft", property)?.invoke(property)
@@ -173,11 +184,15 @@ object ComposeUnit {
         return null
       }
     }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
   }
 
   class Offset(component1: Float, component2: Float) : Unit2D<Float>(component1, component2) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Offset"
+      private val COMPONENT_NAMES = arrayOf("x", "y")
       fun create(property: Any?): Offset? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -189,6 +204,9 @@ object ComposeUnit {
         return null
       }
     }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
   }
 
   class Color(
@@ -199,6 +217,7 @@ object ComposeUnit {
   ) : Unit4D<Float>(component1, component2, component3, component4) {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
+      private val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
       fun create(property: Any?): Color? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -213,6 +232,15 @@ object ComposeUnit {
         return null
       }
     }
+
+    val color: java.awt.Color? = try {
+      java.awt.Color(component1, component2, component3, component4)
+    }
+    catch (_: IllegalArgumentException) {
+      null
+    }
+
+    override fun toString(componentId: Int) = "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
   }
 
   private fun findMethodByName(methodName: String, property: Any): Method? {

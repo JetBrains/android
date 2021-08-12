@@ -111,21 +111,63 @@ object CurvePainter {
 
   /** Label displayed below each animation curve. */
   object BoxedLabel {
-    /** Text offset within the background box for a label. */
-    private const val TEXT_OFFSET_FOR_LABEL = 6
+    /** Offset between components. */
+    private const val OFFSET = 6
+
+    /** Size of the color box for [ComposeUnit.Color] property. */
+    private const val COLOR_BOX_SIZE = 10
+    private const val COLOR_BOX_ARC = 4
 
     private val BOX_COLOR = JBColor(Gray._225, UIUtil.getToolTipActionBackground())
+    private val COLOR_OUTLINE = Gray._194
+    private val LABEL_COLOR = UIUtil.getContextHelpForeground()
+    private val VALUE_COLOR = UIUtil.getLabelDisabledForeground()
 
     /** Paint a label with a box on background. */
-    fun paintBoxedLabel(g: Graphics2D, label: String, x: Int, y: Int) {
+    fun paintBoxedLabel(g: Graphics2D, timelineUnit: ComposeUnit.TimelineUnit, componentId: Int, x: Int, y: Int) {
+      //       Property label
+      //       |       (Optional) Colored box for a [ComposeUnit.Color] properties
+      //       |       |    Value of the property
+      //       |       |    |
+      //       ↓       ↓    ↓
+      //    ____________________
+      //   /                    \
+      //   |  Label :️ ⬜️  value |
+      //   \____________________/
+      //
+      //    Example 1                                   Example 2                               Example 3
+      //    ______________________________________      ___________________________________     ___________
+      //   /                                      \    /                                   \   /           \
+      //   |  Rect property : left ( 1, _ , _, _) |    |  Color : 🟦 blue ( _, _ , 0.3, _) |   |  Dp : 1dp |
+      //   \______________________________________/    \___________________________________/   \___________/
+
+      val label = "${timelineUnit.property.label} :  "
+      val value = timelineUnit.unit?.toString(componentId)
+      val color = if (timelineUnit.unit is ComposeUnit.Color) timelineUnit.unit.color else null
       g.font = UIUtil.getFont(UIUtil.FontSize.NORMAL, null)
-      val textLayout = TextLayout(label, g.font, g.fontRenderContext)
-      val textBoxHeight = (textLayout.bounds.height + TEXT_OFFSET_FOR_LABEL * 2).toInt()
-      val textBoxWidth = (textLayout.bounds.width + TEXT_OFFSET_FOR_LABEL * 2).toInt()
+      val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
+      val valueLayout = TextLayout(value, g.font, g.fontRenderContext)
+      val textBoxHeight = (labelLayout.bounds.height + OFFSET * 2).toInt()
+      val extraColorOffset = if (color != null) COLOR_BOX_SIZE + OFFSET else 0
+      val textBoxWidth = (labelLayout.bounds.width + valueLayout.bounds.width + OFFSET * 3 + extraColorOffset).toInt()
+
+      //Background box
       g.color = BOX_COLOR
-      g.fillRoundRect(x, y, textBoxWidth, textBoxHeight, TEXT_OFFSET_FOR_LABEL, TEXT_OFFSET_FOR_LABEL)
-      g.color = UIUtil.getLabelDisabledForeground()
-      g.drawString(label, x + TEXT_OFFSET_FOR_LABEL, y - TEXT_OFFSET_FOR_LABEL + textBoxHeight)
+      g.fillRoundRect(x, y, textBoxWidth, textBoxHeight, OFFSET, OFFSET)
+      // Label
+      g.color = LABEL_COLOR
+      g.drawString(label, x + OFFSET, y - OFFSET + textBoxHeight)
+      // Colored box
+      val xPos = x + 2 * OFFSET + labelLayout.bounds.width.toInt()
+      color?.let {
+        g.color = color
+        g.fillRoundRect(xPos, y + OFFSET, COLOR_BOX_SIZE, COLOR_BOX_SIZE, COLOR_BOX_ARC, COLOR_BOX_ARC)
+        g.color = COLOR_OUTLINE
+        g.drawRoundRect(xPos, y + OFFSET, COLOR_BOX_SIZE, COLOR_BOX_SIZE, COLOR_BOX_ARC, COLOR_BOX_ARC)
+      }
+      // Value
+      g.color = VALUE_COLOR
+      g.drawString(value, xPos + extraColorOffset, y - OFFSET + textBoxHeight)
     }
   }
 

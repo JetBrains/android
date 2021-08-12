@@ -106,10 +106,10 @@ class ComposeUnitTest {
     assertEquals(2.222f, composeUnit.component2);
     assertEquals(3.222f, composeUnit.component3);
     assertEquals(4.222f, composeUnit.component4);
-    assertEquals("( 1.222 , _ , _ , _ )", composeUnit.toString(0))
-    assertEquals("( _ , 2.222 , _ , _ )", composeUnit.toString(1))
-    assertEquals("( _ , _ , 3.222 , _ )", composeUnit.toString(2))
-    assertEquals("( _ , _ , _ , 4.222 )", composeUnit.toString(3))
+    assertEquals("left ( 1.222 , _ , _ , _ )", composeUnit.toString(0))
+    assertEquals("top ( _ , 2.222 , _ , _ )", composeUnit.toString(1))
+    assertEquals("right ( _ , _ , 3.222 , _ )", composeUnit.toString(2))
+    assertEquals("bottom ( _ , _ , _ , 4.222 )", composeUnit.toString(3))
     assertEquals(listOf(1.222f, 2.222f, 3.222f, 4.222f), composeUnit.components);
   }
 
@@ -187,5 +187,19 @@ class ComposeUnitTest {
   fun parseInvalid() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", "Invalid"))
     assertNull(composeUnit)
+  }
+
+  @Test
+  fun createValidColor() {
+    val composeUnit = ComposeUnit.Color(0.1f, 0.1f, 0.1f, 0.1f)
+    assertNotNull(composeUnit)
+    assertNotNull(composeUnit.color)
+  }
+
+  @Test
+  fun createInvalidColor() {
+    val composeUnit = ComposeUnit.Color(10f, 10f, 10f, 10f)
+    assertNotNull(composeUnit)
+    assertNull(composeUnit.color)
   }
 }
