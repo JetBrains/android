@@ -56,7 +56,8 @@ private data class SourceProviderTriplet(
   val name: String,
   val sources: NamedIdeaSourceProvider?,
   val unitTests: NamedIdeaSourceProvider?,
-  val androidTests: NamedIdeaSourceProvider?
+  val androidTests: NamedIdeaSourceProvider?,
+  val testFixtures: NamedIdeaSourceProvider?
 )
 
 private fun String.stripPrefix(scopeType: ScopeType): String {
@@ -65,6 +66,7 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
   return when (scopeType) {
     ScopeType.MAIN -> this
     ScopeType.ANDROID_TEST -> this.stripPrefix("androidTest")
+    ScopeType.TEST_FIXTURES -> this.stripPrefix("testFixtures")
     ScopeType.UNIT_TEST -> this.stripPrefix("test")
     ScopeType.SHARED_TEST -> throw IllegalStateException("Unexpected source provider scope type: $scopeType")
   }
@@ -75,6 +77,7 @@ private val NamedIdeaSourceProvider.coreName: String get() = name.stripPrefix(sc
 private fun SourceProviders.buildTripletsFrom(selectedSourceProviders: Collection<NamedIdeaSourceProvider>): List<SourceProviderTriplet> {
   val unitTestProviders = this.currentUnitTestSourceProviders.associateBy { it.coreName }
   val androidTestProviders = this.currentAndroidTestSourceProviders.associateBy { it.coreName }
+  val testFixturesProviders = this.currentTestFixturesSourceProviders.associateBy { it.coreName }
   return selectedSourceProviders
     .map {
       val coreName = it.coreName
@@ -82,7 +85,8 @@ private fun SourceProviders.buildTripletsFrom(selectedSourceProviders: Collectio
         name = it.name,
         sources = it.takeIf { it.scopeType == ScopeType.MAIN },
         unitTests = unitTestProviders[coreName],
-        androidTests = androidTestProviders[coreName]
+        androidTests = androidTestProviders[coreName],
+        testFixtures = testFixturesProviders[coreName]
       )
     }
 }

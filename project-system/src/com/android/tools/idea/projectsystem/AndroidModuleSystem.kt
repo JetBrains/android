@@ -355,12 +355,13 @@ enum class ScopeType {
   ANDROID_TEST,
   UNIT_TEST,
   SHARED_TEST,
+  TEST_FIXTURES,
   ;
 
   /** Converts this [ScopeType] to a [Boolean], so it can be used with APIs that don't distinguish between test types. */
   val isForTest
     get() = when (this) {
-      MAIN -> false
+      MAIN, TEST_FIXTURES -> false
       ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
     }
 }

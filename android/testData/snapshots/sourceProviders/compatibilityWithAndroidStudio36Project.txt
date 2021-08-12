@@ -261,6 +261,7 @@ MODULE: AS36.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -400,6 +401,9 @@ MODULE: AS36.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -661,6 +665,7 @@ MODULE: AS36.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: AS36.features
 MODULE: AS36.features.dynamicfeature
     by Facet:
@@ -918,6 +923,7 @@ MODULE: AS36.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./features/dynamicfeature/src/main/AndroidManifest.xml
@@ -1039,6 +1045,9 @@ MODULE: AS36.features.dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1276,6 +1285,7 @@ MODULE: AS36.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: AS36.features.dynamicfeature2
     by Facet:
         main (IDEA)
@@ -1532,6 +1542,7 @@ MODULE: AS36.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./features/dynamicfeature2/src/main/AndroidManifest.xml
@@ -1653,6 +1664,9 @@ MODULE: AS36.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1890,6 +1904,7 @@ MODULE: AS36.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: AS36.libs
 MODULE: AS36.libs.android_library
     by Facet:
@@ -2153,6 +2168,7 @@ MODULE: AS36.libs.android_library
                     ./libs/android_library/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./libs/android_library/src/main/AndroidManifest.xml
@@ -2292,6 +2308,9 @@ MODULE: AS36.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
                     file://./libs/android_library/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2553,4 +2572,5 @@ MODULE: AS36.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: AS36.libs.java_lib

@@ -261,6 +261,7 @@ MODULE: testWithBuildSrc.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -400,6 +401,9 @@ MODULE: testWithBuildSrc.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -661,6 +665,7 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testWithBuildSrc.buildSrc
 MODULE: testWithBuildSrc.buildSrc.lib1
 MODULE: testWithBuildSrc.buildSrc.lib2

@@ -679,6 +679,7 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestBasicBarDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -950,6 +951,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBar/shaders
                     file://./app/src/androidTestDebug/shaders
                     file://./app/src/androidTestBasicBarDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1684,6 +1688,7 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.dyn_feature
     by Facet:
         main (IDEA)
@@ -1940,6 +1945,7 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./dyn_feature/src/main/AndroidManifest.xml
@@ -2061,6 +2067,9 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTest/shaders
                     file://./dyn_feature/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2298,6 +2307,7 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.jav
 MODULE: testNestedProjects.lib
     by Facet:
@@ -2561,6 +2571,7 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -2688,6 +2699,9 @@ MODULE: testNestedProjects.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2937,6 +2951,7 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.nested1
     by Facet:
         main (IDEA)
@@ -3193,6 +3208,7 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested1/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/src/main/AndroidManifest.xml
@@ -3314,6 +3330,9 @@ MODULE: testNestedProjects.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTest/shaders
                     file://./nested1/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3551,6 +3570,7 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.nested1.deep
     by Facet:
         main (IDEA)
@@ -3807,6 +3827,7 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/deep/src/main/AndroidManifest.xml
@@ -3928,6 +3949,9 @@ MODULE: testNestedProjects.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTest/shaders
                     file://./nested1/deep/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4165,6 +4189,7 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.nested2
     by Facet:
         main (IDEA)
@@ -4619,6 +4644,7 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/androidTestBasicDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/src/main/AndroidManifest.xml
@@ -4812,6 +4838,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasic/shaders
                     file://./nested2/src/androidTestDebug/shaders
                     file://./nested2/src/androidTestBasicDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5274,6 +5303,7 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.nested2.deep
     by Facet:
         main (IDEA)
@@ -5530,6 +5560,7 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/deep/src/main/AndroidManifest.xml
@@ -5651,6 +5682,9 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTest/shaders
                     file://./nested2/deep/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5888,6 +5922,7 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testNestedProjects.nested2.trans
 MODULE: testNestedProjects.nested2.trans.deep2
     by Facet:
@@ -6145,6 +6180,7 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/trans/deep2/src/main/AndroidManifest.xml
@@ -6266,6 +6302,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/shaders
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6503,3 +6542,4 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:

@@ -170,7 +170,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return Iterables.concat(
       sourceProviderManager.getCurrentSourceProviders(),
       sourceProviderManager.getCurrentUnitTestSourceProviders(),
-      sourceProviderManager.getCurrentAndroidTestSourceProviders());
+      sourceProviderManager.getCurrentAndroidTestSourceProviders(),
+      sourceProviderManager.getCurrentTestFixturesSourceProviders());
   }
 
   @NotNull

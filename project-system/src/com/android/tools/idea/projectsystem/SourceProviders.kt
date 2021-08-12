@@ -58,6 +58,11 @@ interface SourceProviders {
   val androidTestSources: IdeaSourceProvider
 
   /**
+   * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
+   */
+  val testFixturesSources: IdeaSourceProvider
+
+  /**
    * The first in the overlay order [NamedIdeaSourceProvider].
    *
    * Note: This source provider does not necessarily include all the source code required to build the module. Consider using [sources]
@@ -98,6 +103,14 @@ interface SourceProviders {
    * @see currentSourceProviders
    */
   val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+
+  /**
+   * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing
+   * precedence order.
+   *
+   * @see currentSourceProviders
+   */
+  val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * NOTE: (In Gradle) Does not return ALL source providers!
@@ -142,11 +155,15 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val androidTestSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
+        override val testFixturesSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
@@ -175,11 +192,15 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val androidTestSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
+        override val testFixturesSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()

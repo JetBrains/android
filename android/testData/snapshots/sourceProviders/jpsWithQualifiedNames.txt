@@ -62,6 +62,9 @@ MODULE: MyApplication
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
              (IDEA)
                 ScopeType: MAIN
@@ -118,6 +121,7 @@ MODULE: MyApplication
                     file://./res
         CurrentUnitTestSourceProviders:
         CurrentAndroidTestSourceProviders:
+        CurrentTestFixturesSourceProviders:
 MODULE: justLib
 MODULE: justLib.sub1
 MODULE: justLib.sub2

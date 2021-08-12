@@ -119,6 +119,7 @@ class SourceProviderUtilTest {
       currentSourceProviders = listOf(main, debug),
       currentUnitTestSourceProviders = listOf(test, testDebug),
       currentAndroidTestSourceProviders = listOf(androidTest, androidTestDebug),
+      currentTestFixturesSourceProviders = listOf(),
       currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(main, debug, release),
       mainAndFlavorSourceProviders = listOf(main)
     )
