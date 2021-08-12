@@ -123,7 +123,6 @@ class AppInspectionInspectorClientTest {
     composeCommands.take().let { command ->
       assertThat(command.specializedCase).isEqualTo(ComposeProtocol.Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND)
     }
-
   }
 
   @Test
@@ -189,7 +188,7 @@ class AppInspectionInspectorClientTest {
   fun inspectorFiresErrorOnErrorEvent() = runBlocking {
     val startFetchError = "Failed to start fetching or whatever"
 
-    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) {
       inspectionRule.viewInspector.connection.sendEvent {
         errorEventBuilder.apply {
           message = startFetchError

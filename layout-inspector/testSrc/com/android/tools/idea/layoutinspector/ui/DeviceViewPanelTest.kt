@@ -72,6 +72,7 @@ import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -81,6 +82,7 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -91,8 +93,16 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
+  private val launcherExecutor = Executors.newSingleThreadExecutor()
   private val appInspectorRule = AppInspectionInspectorRule(withDefaultResponse = false)
-  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider())  { listOf(MODERN_PROCESS.name) }
+  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), launcherExecutor = launcherExecutor) {
+    listOf(MODERN_PROCESS.name)
+  }
+
+  @After
+  fun tearDown() {
+    launcherExecutor.shutdownNow()
+  }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(EdtRule())!!
@@ -333,11 +343,13 @@ class DeviceViewPanelWithFullInspectorTest {
 
   private fun installCommandHandlers() {
     appInspectorRule.viewInspector.listenWhen({ true }) { command ->
-      latch?.countDown()
       commands.add(command)
+      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
+      latch?.countDown()
     }
   }
 
+  @Suppress("SameParameterValue")
   private fun connect(process: ProcessDescriptor) {
     inspectorRule.processNotifier.fireConnected(process)
   }
