@@ -128,6 +128,14 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
     issue.result.mFix?.let {
       atfResultCountBuilder.addFixes(atfFixDetailBuilder(it))
     }
+    atfResultCountBuilder.setResultType(
+      when (issue.result.mLevel) {
+        ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
+        ValidatorData.Level.WARNING -> AtfAuditResult.AtfResultCount.CheckResultType.WARNING
+        ValidatorData.Level.INFO -> AtfAuditResult.AtfResultCount.CheckResultType.INFO
+        else -> AtfAuditResult.AtfResultCount.CheckResultType.UNKNOWN // Should not be triggered.
+      }
+    )
     return atfResultCountBuilder
   }
 }
