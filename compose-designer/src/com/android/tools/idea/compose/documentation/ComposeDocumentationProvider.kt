@@ -48,6 +48,7 @@ import org.jetbrains.android.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import org.jetbrains.android.compose.ComposeLibraryNamespace
 import org.jetbrains.android.compose.isComposableFunction
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
@@ -146,7 +147,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   }
 
   @WorkerThread
-  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): @Nls String? {
     val future = generateDocAsync(element, originalElement)
 
     if (future.isDone) {
