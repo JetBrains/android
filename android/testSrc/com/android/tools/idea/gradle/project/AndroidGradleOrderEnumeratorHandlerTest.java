@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -37,6 +38,7 @@ import org.junit.Assert;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_FIXTURES;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -75,6 +77,49 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
     assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
+  }
+
+  public void testAndroidProjectWithTestFixtures() throws Exception {
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true);
+    try {
+      loadProject(TEST_FIXTURES);
+      Module module = getModule("lib");
+      Set<String> result = new HashSet<>(getAmendedPaths(module, true));
+
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+
+      Set<String> expected = new HashSet<>();
+      // Unit test
+      expected.add(pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
+
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+
+      // Android Test
+      expected.add(pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+
+      // Test Fixtures
+      expected.add(pathToIdeaUrl(model.getSelectedVariant().getTestFixturesArtifact().getClassesFolder()));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getTestFixturesArtifact().getAdditionalClassesFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getTestFixturesArtifact().getGeneratedResourceFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+
+      // Production
+      expected.add(pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+      expected.addAll(Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
+                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+
+      assertEquals(expected, result);
+    } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride();
+    }
   }
 
   public void testAndroidProjectWithTestOutputCorrect() throws Exception {
