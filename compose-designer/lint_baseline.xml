@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.2.0-dev">
+<issues format="5" by="lint 7.1.0-dev">
 
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `capitalize(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/compose/preview/util/Build.kt"
-            line="35"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
             line="50"/>
     </issue>
 
@@ -21,8 +13,8 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="31"/>
+            file="src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
+            line="53"/>
     </issue>
 
     <issue
@@ -30,7 +22,55 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
-            line="42"/>
+            line="32"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="43"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="60"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="70"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="78"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/compose/preview/PreviewFilters.kt"
+            line="83"/>
     </issue>
 
 </issues>
