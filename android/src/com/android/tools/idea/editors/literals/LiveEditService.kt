@@ -61,7 +61,7 @@ class LiveEditService private constructor(private var project: Project, var list
    * @param className Name of the class. For example: java.lang.String
    * @param methodSignature JVM style signature. For example foo(IILjava/lang/String;)V
    */
-  data class MethodReference(val file: PsiFile, val className: String, val methodSignature: String)
+  data class MethodReference(val file: PsiFile, val function: KtNamedFunction)
 
   val aggregatedEvents = mutableSetOf<MethodReference>()
 
@@ -128,79 +128,36 @@ class LiveEditService private constructor(private var project: Project, var list
     @com.android.annotations.Trace
     private fun handleChangeEvent(event : PsiTreeChangeEvent) {
       var parent = event.parent;
-      var method = ""
-      var clazz = ""
+
 
       // The code might not be valid at this point so we should not be making any
       // assumption based on the Koltin language structure.
       while (parent != null) {
         when (parent) {
           is KtNamedFunction -> {
-            method = parent.name + "("
-            var paramSigs = ArrayList<String>()
-            parent.valueParameters.forEach {
-              paramSigs.add(vmName(it.type()!!))
-            }
-            method += paramSigs.joinToString{it}
-            method += ")"
-            var returnType = vmName(parent.type()!!)
-            method += returnType;
 
-            clazz = KtNamedDeclarationUtil.getParentFqName(parent).toString()
+            val ref = MethodReference(event.file!!, parent)
+            aggregatedEventsLock.withLock {
+              aggregatedEvents.add(ref)
+              lastUpdatedNanos = timeNanosProvider()
+            }
+
+            updateMergingQueue.queue(object: Update(ref) {
+              override fun run() {
+                onDocumentChanged(aggregatedEventsLock.withLock {
+                  val aggregatedEventsCopy = aggregatedEvents.toSet()
+                  aggregatedEvents.clear()
+                  aggregatedEventsCopy
+                })
+              }})
             break;
           }
         }
         parent = parent.parent;
       }
-
-      if (!clazz.isEmpty() && !method.isEmpty()) {
-        val ref = MethodReference(event.file!!, clazz, method)
-        aggregatedEventsLock.withLock {
-          aggregatedEvents.add(ref)
-          lastUpdatedNanos = timeNanosProvider()
-        }
-
-        updateMergingQueue.queue(object: Update(ref) {
-          override fun run() {
-            onDocumentChanged(aggregatedEventsLock.withLock {
-              val aggregatedEventsCopy = aggregatedEvents.toSet()
-              aggregatedEvents.clear()
-              aggregatedEventsCopy
-            })
-          }})
-      }
     }
 
 
-    fun vmName(type : KotlinType) : String {
-      if (type.isChar()) {
-        return "C"
-      } else if (type.isByte()) {
-        return "B"
-      } else if (type.isInt()) {
-        return "I"
-      } else if (type.isLong()) {
-        return "L"
-      } else if (type.isShort()) {
-        return "S"
-      } else if (type.isFloat()) {
-        return "F"
-      } else if (type.isDouble()) {
-        return "D"
-      } else if (type.isBoolean()) {
-        return "Z"
-      } else if (type.isUnit()) {
-        return "V"
-      }
-
-      val fqName = type.getQualifiedName().toString()
-
-      if (fqName.equals("kotlin.String")) {
-        return "Ljava/lang/String;";
-      }
-
-      return "L" + fqName.replace(".", "/") + ";"
-    }
 
     override fun beforeChildAddition(event: PsiTreeChangeEvent) {
       handleChangeEvent(event);
