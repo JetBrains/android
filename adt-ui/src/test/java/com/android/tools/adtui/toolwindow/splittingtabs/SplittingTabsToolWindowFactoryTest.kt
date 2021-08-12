@@ -152,7 +152,7 @@ class SplittingTabsToolWindowFactoryTest {
   ) : SplittingTabsToolWindowFactory() {
     override fun generateTabName(tabNames: Set<String>): String = generateName()
 
-    override fun generateChildComponent(clientState: String?): JComponent = generateChild(clientState)
+    override fun generateChildComponent(project: Project, clientState: String?): JComponent = generateChild(clientState)
   }
 
   private class FakeToolWindow(project: Project, val toolWindowId: String) : MockToolWindow(project) {
