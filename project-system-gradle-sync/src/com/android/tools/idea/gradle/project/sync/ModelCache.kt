@@ -152,8 +152,6 @@ internal inline fun <K, V> copy(original: () -> Set<K>, mapper: (K) -> V): Set<V
 internal inline fun <K, V, R> copy(original: () -> Map<K, V>, mapper: (V) -> R): Map<K, R> =
   ModelCache.safeGet(original, mapOf()).mapValues { (_, v) -> mapper(v) }
 
-internal fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
-
 @VisibleForTesting
 /** For older AGP versions pick a variant name based on a heuristic  */
 fun getDefaultVariant(variantNames: Collection<String>): String? {

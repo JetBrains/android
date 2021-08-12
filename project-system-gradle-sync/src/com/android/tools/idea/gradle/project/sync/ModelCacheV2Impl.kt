@@ -65,6 +65,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
@@ -130,11 +131,59 @@ import com.google.common.collect.Lists
 import java.io.File
 import java.util.HashMap
 
+// NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
+//       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
+//       cannot validate the structure at compile time.
 internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
+
   val strings: MutableMap<String, String> = HashMap()
-  val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, IdeAndroidLibraryCore> = HashMap()
-  val javaLibraryCores: MutableMap<IdeJavaLibraryCore, IdeJavaLibraryCore> = HashMap()
+  // Library names are expected to be unique, and thus we track already allocated library names to be able to uniqualize names when
+  // necessary.
+  val allocatedLibraryNames: MutableSet<String> = HashSet()
+
+  // Different modules (Gradle projects) may (usually do) share the same libraries. We create up to two library instances in this case.
+  // One is when the library is used as a regular dependency and one when it is used as a "provided" dependency. This is going to change
+  // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
+  // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
+  val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, Instances<IdeAndroidLibraryCore, IdeAndroidLibrary>> = HashMap()
+  val javaLibraryCores: MutableMap<IdeJavaLibraryCore, Instances<IdeJavaLibraryCore, IdeJavaLibrary>> = HashMap()
   val moduleLibraryCores: MutableMap<IdeModuleLibraryCore, IdeModuleLibraryCore> = HashMap()
+
+
+  /**
+   * Finds an existing or creates a new library instances that wraps the library [core]. When creating a new library for a core for which
+   * there is neither regular nor provided library yet generates a unique library name based on its artifact address.
+   *
+   * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
+   * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
+   */
+  fun <TCore : IdeArtifactLibrary, TLibrary : IdeArtifactLibrary> MutableMap<TCore, Instances<TCore, TLibrary>>.createOrGetNamedLibrary(
+    core: TCore,
+    isProvided: Boolean,
+    factory: (core: TCore, name: String, isProvided: Boolean) -> TLibrary
+  ): TLibrary {
+    val instances = computeIfAbsent(core) { Instances(core, null, null) }
+
+    // If both libraries are present their names are expected to match.
+
+    if ((instances.regularLibrary?.name ?: instances.providedLibrary?.name) !=
+      (instances.providedLibrary?.name ?: instances.regularLibrary?.name)) {
+      error("Regular and provided library names are expected to match. Core: $core")
+    }
+
+    return instances.getLibrary(isProvided) ?: let {
+      val libraryName =
+        instances.regularLibrary?.name
+        ?: instances.providedLibrary?.name
+        ?: let {
+          allocatedLibraryNames.generateLibraryName(core, projectBasePath = buildRootDirectory!!)
+        }
+
+      val library = factory(core, libraryName, isProvided)
+      instances.setLibrary(isProvided, library)
+      library
+    }
+  }
 
   fun deduplicateString(s: String): String = strings.putIfAbsent(s, s) ?: s
   fun String.deduplicate() = deduplicateString(this)
@@ -413,11 +462,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       deduplicate = { strings.getOrPut(this) { this } }
     )
     val isProvided = providedLibraries.contains(androidLibrary)
-    return IdeAndroidLibraryImpl(
-      core = androidLibraryCores.internCore(core),
-      name = convertToLibraryName(core.artifactAddress, buildRootDirectory!!).deduplicate(),
-      isProvided = isProvided
-    )
+    return androidLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeAndroidLibraryImpl)
   }
 
   /**
@@ -430,11 +475,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       artifact = javaLibrary.artifact!!
     )
     val isProvided = providedLibraries.contains(javaLibrary)
-    return IdeJavaLibraryImpl(
-      core = javaLibraryCores.internCore(core),
-      name = convertToLibraryName(core.artifactAddress, buildRootDirectory!!).deduplicate(),
-      isProvided = isProvided
-    )
+    return javaLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeJavaLibraryImpl)
   }
 
   fun libraryFrom(projectPath: String, buildId: String?, variant: String?, lintJar: File?): IdeLibrary {
@@ -1136,4 +1177,28 @@ private inline fun <K, R, V> copy(o1: () -> Collection<K>, o2: () -> Collection<
   val original1 = ModelCache.safeGet(o1, listOf())
   val original2 = ModelCache.safeGet(o2, listOf())
   return original1.zip(original2).toMap().map { (k, v) -> mapper(k, v) }
+}
+
+private class Instances<TCore, TLibrary>(
+  val core: TCore,
+  var regularLibrary: TLibrary? = null,
+  var providedLibrary: TLibrary? = null,
+) {
+    fun getLibrary(isProvided: Boolean): TLibrary? = if (isProvided) providedLibrary else regularLibrary
+    fun setLibrary(isProvided: Boolean, library: TLibrary) {
+      if (isProvided) providedLibrary = library else regularLibrary = library
+    }
+}
+
+private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
+
+private fun MutableSet<String>.generateLibraryName(core: IdeArtifactLibrary, projectBasePath: File): String {
+  val baseLibraryName = convertToLibraryName(core.artifactAddress, projectBasePath)
+  var candidateLibraryName = baseLibraryName
+  var suffix = 0
+  while (!this.add(candidateLibraryName)) {
+    suffix++
+    candidateLibraryName = "$baseLibraryName ($suffix)"
+  }
+  return candidateLibraryName
 }
