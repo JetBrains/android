@@ -45,6 +45,7 @@ import com.intellij.openapi.util.Disposer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 val MODERN_DEVICE = object : DeviceDescriptor {
@@ -126,6 +127,7 @@ class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = n
 class LayoutInspectorRule(
   private val clientProvider: InspectorClientProvider,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
+  val launcherExecutor: Executor = MoreExecutors.directExecutor(),
   getPreferredProcessNames: () -> List<String> = { listOf() }
 ) : TestRule {
 
@@ -186,7 +188,7 @@ class LayoutInspectorRule(
                                        processes,
                                        listOf { params -> clientProvider.create(params, inspector) },
                                        launcherDisposable,
-                                       MoreExecutors.directExecutor())
+                                       launcherExecutor)
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated

@@ -28,7 +28,6 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -139,13 +138,18 @@ class AppInspectionInspectorClient(
 
       debugViewAttributes.set()
 
+      lateinit var updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
+      updateListener = { _, _, _ ->
+        future.set(null)
+        model.modificationListeners.remove(updateListener)
+      }
+      model.modificationListeners.add(updateListener)
       if (isCapturing) {
         startFetchingInternal()
       }
       else {
         refreshInternal()
       }
-      future.set(null)
     }
     return future
   }

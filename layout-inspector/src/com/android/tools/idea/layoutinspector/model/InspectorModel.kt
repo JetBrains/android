@@ -17,12 +17,10 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.properties.Delegates
@@ -31,11 +29,15 @@ const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.lay
 
 enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 
+/** Callback taking (oldWindow, newWindow, isStructuralChange */
+typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
+
 class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
-  /** Callback taking (oldWindow, newWindow, isStructuralChange */
-  val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
+
+  val modificationListeners = ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
+
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   var lastGeneration = 0
   var updating = false
