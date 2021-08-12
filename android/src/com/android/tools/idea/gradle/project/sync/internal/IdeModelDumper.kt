@@ -285,7 +285,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
   if (ideDependencies.androidLibraries.isNotEmpty()) {
     head("AndroidLibraries")
     nest {
-      ideDependencies.androidLibraries.forEach {
+      ideDependencies.androidLibraries.sortedBy { it.name }.forEach {
         head("AndroidLibrary") { it.name }
         nest {
           dump(it)
@@ -296,7 +296,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
   if (ideDependencies.javaLibraries.isNotEmpty()) {
     head("JavaLibraries")
     nest {
-      ideDependencies.javaLibraries.forEach {
+      ideDependencies.javaLibraries.sortedBy { it.name }.forEach {
         head("JavaLibrary") { it.name }
         nest {
           dump(it)
