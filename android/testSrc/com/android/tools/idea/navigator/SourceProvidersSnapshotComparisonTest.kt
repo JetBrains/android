@@ -108,16 +108,23 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 
   fun testTestFixtures() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-    assertIsEqualToSnapshot(text)
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    try {
+      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+      assertIsEqualToSnapshot(text)
+    } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
+    }
   }
 
   fun testTestFixturesWithModulePerSourceSetEnabled() {
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
     StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
     try {
       val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
       assertIsEqualToSnapshot(text)
     } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
       StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
     }
   }

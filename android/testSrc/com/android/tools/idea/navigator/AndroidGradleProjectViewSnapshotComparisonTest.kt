@@ -17,6 +17,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -176,8 +177,13 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testTestFixtures() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-    assertIsEqualToSnapshot(text)
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    try {
+      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+      assertIsEqualToSnapshot(text)
+    } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
+    }
   }
 
   private fun importSyncAndDumpProject(
