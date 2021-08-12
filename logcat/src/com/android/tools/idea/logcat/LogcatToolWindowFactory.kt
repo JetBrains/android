@@ -35,7 +35,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
   // During development of the base class SplittingTabsToolWindowFactory, having a fake component helps verify things work.
-  override fun generateChildComponent(clientState: String?): JComponent =
+  override fun generateChildComponent(project: Project, clientState: String?): JComponent =
     LogcatPanel(LogcatPanelConfig.fromJson(clientState))
 
   private class LogcatPanel(state: LogcatPanelConfig?) : JLabel(), SplittingTabsStateProvider {

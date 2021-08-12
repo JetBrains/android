@@ -38,38 +38,40 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
 
     val contentManager = toolWindow.contentManager
     (toolWindow as ToolWindowEx).setTabActions(
-      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(contentManager) })
+      NewTabAction(SplittingTabsBundle.lazyMessage("SplittingTabsToolWindow.newTab")) { createNewTab(project, contentManager) })
 
     val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
     if (toolWindowState.tabStates.isEmpty()) {
-      createNewTab(contentManager)
+      createNewTab(project, contentManager)
     }
     else {
-      restoreTabs(contentManager, toolWindowState)
+      restoreTabs(project, contentManager, toolWindowState)
     }
   }
 
   abstract fun generateTabName(tabNames: Set<String>): String
 
-  abstract fun generateChildComponent(clientState: String?): JComponent
+  abstract fun generateChildComponent(project: Project, clientState: String?): JComponent
 
-  private fun restoreTabs(contentManager: ContentManager, toolwindowState: ToolWindowState) {
+  private fun restoreTabs(project: Project, contentManager: ContentManager, toolwindowState: ToolWindowState) {
     toolwindowState.run {
-      tabStates.forEachIndexed { index, state -> createNewTab(contentManager, state, index == selectedTabIndex) }
+      tabStates.forEachIndexed { index, state -> createNewTab(project, contentManager, state, index == selectedTabIndex) }
     }
   }
 
-  private fun createNewTab(contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false) {
-    val content = createContent(contentManager, tabState)
+  private fun createNewTab(project: Project, contentManager: ContentManager, tabState: TabState? = null, requestFocus: Boolean = false) {
+    val content = createContent(project, contentManager, tabState)
     contentManager.addContent(content)
     contentManager.setSelectedContent(content, requestFocus)
   }
 
-  private fun createContent(contentManager: ContentManager, tabState: TabState?): Content {
+  private fun createContent(project: Project, contentManager: ContentManager, tabState: TabState?): Content {
     val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
-    return contentManager.factory.createContent(null, tabName, false).also {
-      it.isCloseable = true
-      it.component = SplittingPanel.buildComponentFromState(it, tabState?.panelState, this::generateChildComponent)
+    return contentManager.factory.createContent(null, tabName, false).also { content ->
+      content.isCloseable = true
+      content.component = SplittingPanel.buildComponentFromState(content, tabState?.panelState) { state ->
+        generateChildComponent(project, state)
+      }
     }
   }
 }
