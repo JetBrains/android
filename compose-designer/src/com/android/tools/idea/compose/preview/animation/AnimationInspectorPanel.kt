@@ -1081,10 +1081,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
             val maxY = minY + TIMELINE_ROW_HEIGHT
             val curveInfo = createCurveInfo(animation, componentId, minY, (maxY - TIMELINE_CURVE_OFFSET))
             if (selectedProperties.size > index) {
-              with(selectedProperties[index]) {
-                val label = "${property.label} ${unit?.toString(componentId)}"
-                CurvePainter.BoxedLabel.paintBoxedLabel(g, label, minX, maxY - TIMELINE_CURVE_OFFSET + 7)
-              }
+              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, minX, maxY - TIMELINE_CURVE_OFFSET + 7)
             }
 
             if (curveInfo != null)
