@@ -20,6 +20,7 @@ class SourceProvidersImpl(
   override val currentSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>,
 
   @Suppress("OverridingDeprecatedMember")
@@ -31,4 +32,6 @@ class SourceProvidersImpl(
     createMergedSourceProvider(ScopeType.UNIT_TEST, currentUnitTestSourceProviders)
   override val androidTestSources: IdeaSourceProvider =
     createMergedSourceProvider(ScopeType.ANDROID_TEST, currentAndroidTestSourceProviders)
+  override val testFixturesSources: IdeaSourceProvider =
+    createMergedSourceProvider(ScopeType.TEST_FIXTURES, currentTestFixturesSourceProviders)
 }

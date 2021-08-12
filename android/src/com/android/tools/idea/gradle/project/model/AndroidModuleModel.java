@@ -223,6 +223,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
+  public List<IdeSourceProvider> getTestFixturesSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectTestFixturesSourceProviders(this, getSelectedVariant());
+  }
+
+  @NotNull
   public List<IdeSourceProvider> getTestSourceProviders(@NotNull IdeArtifactName artifactName) {
     switch (artifactName) {
       case ANDROID_TEST:
@@ -253,6 +258,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public List<IdeSourceProvider> getAllAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAllAndroidTestSourceProviders(this);
+  }
+
+  @NotNull
+  public List<IdeSourceProvider> getAllTestFixturesSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectAllTestFixturesSourceProviders(this);
   }
 
   @Override
@@ -524,6 +534,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST ?
            getSelectedVariant().getMainArtifact() :
            getSelectedVariant().getAndroidTestArtifact();
+  }
+
+  @Nullable
+  public IdeAndroidArtifact getArtifactForTestFixtures() {
+    return getSelectedVariant().getTestFixturesArtifact();
   }
 
   @Nullable

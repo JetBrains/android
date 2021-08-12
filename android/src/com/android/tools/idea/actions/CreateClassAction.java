@@ -154,7 +154,9 @@ public final class CreateClassAction extends AnAction {
                                                                     sourceProviderManager.getUnitTestSources().getJavaDirectories(),
                                                                     sourceProviderManager.getUnitTestSources().getKotlinDirectories(),
                                                                     sourceProviderManager.getAndroidTestSources().getJavaDirectories(),
-                                                                    sourceProviderManager.getAndroidTestSources().getKotlinDirectories()));
+                                                                    sourceProviderManager.getAndroidTestSources().getKotlinDirectories(),
+                                                                    sourceProviderManager.getTestFixturesSources().getJavaDirectories(),
+                                                                    sourceProviderManager.getTestFixturesSources().getKotlinDirectories()));
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();

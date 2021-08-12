@@ -261,6 +261,7 @@ MODULE: testTestFixtures.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -400,6 +401,9 @@ MODULE: testTestFixtures.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -661,6 +665,7 @@ MODULE: testTestFixtures.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testTestFixtures.lib
     by Facet:
         main (IDEA)
@@ -923,6 +928,51 @@ MODULE: testTestFixtures.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
+        TestFixtures:
+            testFixtures
+                Manifest:
+                    ./lib/src/testFixtures/AndroidManifest.xml
+                AidlDirectories:
+                    ./lib/src/testFixtures/aidl
+                AssetsDirectories:
+                    ./lib/src/testFixtures/assets
+                JavaDirectories:
+                    ./lib/src/testFixtures/java
+                KotlinDirectories:
+                    ./lib/src/testFixtures/java
+                    ./lib/src/testFixtures/kotlin
+                JniLibsDirectories:
+                    ./lib/src/testFixtures/jniLibs
+                RenderscriptDirectories:
+                    ./lib/src/testFixtures/rs
+                ResDirectories:
+                    ./lib/src/testFixtures/res
+                ResourcesDirectories:
+                    ./lib/src/testFixtures/resources
+                ShadersDirectories:
+                    ./lib/src/testFixtures/shaders
+            testFixturesDebug
+                Manifest:
+                    ./lib/src/testFixturesDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./lib/src/testFixturesDebug/aidl
+                AssetsDirectories:
+                    ./lib/src/testFixturesDebug/assets
+                JavaDirectories:
+                    ./lib/src/testFixturesDebug/java
+                KotlinDirectories:
+                    ./lib/src/testFixturesDebug/java
+                    ./lib/src/testFixturesDebug/kotlin
+                JniLibsDirectories:
+                    ./lib/src/testFixturesDebug/jniLibs
+                RenderscriptDirectories:
+                    ./lib/src/testFixturesDebug/rs
+                ResDirectories:
+                    ./lib/src/testFixturesDebug/res
+                ResourcesDirectories:
+                    ./lib/src/testFixturesDebug/resources
+                ShadersDirectories:
+                    ./lib/src/testFixturesDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -1056,6 +1106,52 @@ MODULE: testTestFixtures.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+                ManifestFileUrls:
+                    file://./lib/src/testFixtures/AndroidManifest.xml
+                    file://./lib/src/testFixturesDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testFixtures
+                    file://./lib/src/testFixturesDebug
+                ManifestDirectories:
+                    file://./lib/src/testFixtures
+                AidlDirectoryUrls:
+                    file://./lib/src/testFixtures/aidl
+                    file://./lib/src/testFixturesDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/testFixtures/assets
+                    file://./lib/src/testFixturesDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/testFixtures/java
+                    file://./lib/src/testFixturesDebug/java
+                JavaDirectories:
+                    file://./lib/src/testFixtures/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testFixtures/java
+                    file://./lib/src/testFixtures/kotlin
+                    file://./lib/src/testFixturesDebug/java
+                    file://./lib/src/testFixturesDebug/kotlin
+                KotlinDirectories:
+                    file://./lib/src/testFixtures/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/testFixtures/jniLibs
+                    file://./lib/src/testFixturesDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/testFixtures/rs
+                    file://./lib/src/testFixturesDebug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/testFixtures/res
+                    file://./lib/src/testFixturesDebug/res
+                ResDirectories:
+                    file://./lib/src/testFixtures/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/testFixtures/resources
+                    file://./lib/src/testFixturesDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/testFixtures/shaders
+                    file://./lib/src/testFixturesDebug/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1311,3 +1407,62 @@ MODULE: testTestFixtures.lib
                     file://./lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
+            testFixtures (IDEA)
+                ScopeType: TEST_FIXTURES
+                ManifestFileUrls:
+                    file://./lib/src/testFixtures/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testFixtures
+                ManifestDirectories:
+                    file://./lib/src/testFixtures
+                AidlDirectoryUrls:
+                    file://./lib/src/testFixtures/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/testFixtures/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/testFixtures/java
+                JavaDirectories:
+                    file://./lib/src/testFixtures/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testFixtures/java
+                    file://./lib/src/testFixtures/kotlin
+                KotlinDirectories:
+                    file://./lib/src/testFixtures/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/testFixtures/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/testFixtures/rs
+                ResDirectoryUrls:
+                    file://./lib/src/testFixtures/res
+                ResDirectories:
+                    file://./lib/src/testFixtures/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/testFixtures/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/testFixtures/shaders
+            testFixturesDebug (IDEA)
+                ScopeType: TEST_FIXTURES
+                ManifestFileUrls:
+                    file://./lib/src/testFixturesDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testFixturesDebug
+                AidlDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/java
+                    file://./lib/src/testFixturesDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/testFixturesDebug/shaders

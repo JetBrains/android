@@ -261,6 +261,7 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
@@ -400,6 +401,9 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/shaders
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -661,6 +665,7 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib1.lib
     by Facet:
         main (IDEA)
@@ -923,6 +928,7 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
@@ -1062,6 +1068,9 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/shaders
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1323,6 +1332,7 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib3
 MODULE: TestCompositeLib3.app
     by Facet:
@@ -1586,6 +1596,7 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
@@ -1725,6 +1736,9 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/shaders
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1986,6 +2000,7 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: TestCompositeLib3.lib
     by Facet:
         main (IDEA)
@@ -2248,6 +2263,7 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
@@ -2387,6 +2403,9 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/shaders
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2648,6 +2667,7 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: com.test.compositeNest3.compositeNest
 MODULE: composite2
 MODULE: composite4
@@ -2915,6 +2935,7 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -3054,6 +3075,9 @@ MODULE: testCompositeBuild.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3315,6 +3339,7 @@ MODULE: testCompositeBuild.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:
 MODULE: testCompositeBuild.lib
     by Facet:
         main (IDEA)
@@ -3577,6 +3602,7 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -3716,6 +3742,9 @@ MODULE: testCompositeBuild.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3977,3 +4006,4 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
+        CurrentTestFixturesSourceProviders:

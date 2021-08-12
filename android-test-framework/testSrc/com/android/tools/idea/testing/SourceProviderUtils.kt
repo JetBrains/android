@@ -150,6 +150,7 @@ fun Project.dumpSourceProviders(): String {
                 nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
                 nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
                 nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
+                nest("TestFixtures:") { model.testFixturesSourceProviders.forEach { it.dump() } }
               }
             }
             nest("by IdeaSourceProviders:") {
@@ -158,11 +159,13 @@ fun Project.dumpSourceProviders(): String {
               nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
               nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
               nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
+              nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
               nest(
                 "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") { sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
               nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
               nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
               nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
+              nest("CurrentTestFixturesSourceProviders:") { sourceProviderManager.currentTestFixturesSourceProviders.forEach { it.dump() } }
             }
           }
         }

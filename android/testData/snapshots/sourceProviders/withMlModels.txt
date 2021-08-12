@@ -285,6 +285,7 @@ MODULE: testWithMlModels.app
                     ./app/src/androidTestDebug/shaders
                 MlModelsDirectories:
                     ./app/src/androidTestDebug/ml
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -435,6 +436,9 @@ MODULE: testWithMlModels.app
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTest/ml
                     file://./app/src/androidTestDebug/ml
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -718,3 +722,4 @@ MODULE: testWithMlModels.app
                     file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
+        CurrentTestFixturesSourceProviders:

@@ -661,6 +661,7 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbcSecondAbcDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/shaders
+        TestFixtures:
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -962,6 +963,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/shaders
                     file://./app/src/androidTestDebug/shaders
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1721,3 +1725,4 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
+        CurrentTestFixturesSourceProviders:
