@@ -738,7 +738,7 @@ public final class StudioFlags {
     "If enabled, display semantic information found in the agent.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
-    "Enable saving and loading snapshots in the layout inspector.", false);
+    "Enable saving and loading snapshots in the layout inspector.", true);
 
   //endregion
 
