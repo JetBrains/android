@@ -52,7 +52,7 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
       // Disable the action while refreshing.
       isEnabled = !isAnyPreviewRefreshing(e.dataContext)
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible = ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled && getPreviewElement()?.hasAnimations == true
+      isVisible = ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled && getPreviewElement()?.hasAnimations == true
       description =
         if (isEnabled) message("action.animation.inspector.description") else message("action.animation.inspector.unavailable.title")
     }
