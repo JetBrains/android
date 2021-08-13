@@ -566,29 +566,21 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     fun getRuntimeLibraries(
       runtimeDependencies: List<GraphItem>?,
-      compileDependencies: List<GraphItem>?,
-      libraryMap: GlobalLibraryMap
+      compileDependencies: List<GraphItem>
     ): List<File> {
-      // Get runtimeOnly libraries: this means libraries that are not available in the compile graph.
-      fun getRuntimeLibraries(runtimeDependencies: List<GraphItem>?,
-                              compileDependenciesArtifacts: List<String>?,
-                              runtimeLibraries: MutableList<File>) {
-        if (runtimeDependencies == null) return
-        for (dependency in runtimeDependencies) {
-          // Filter out dependencies included in the compile graph.
-          if (compileDependenciesArtifacts?.contains(dependency.artifactAddress) == true) continue
-          val library = libraryMap.libraries[dependency.artifactAddress] ?: continue
-          // TODO(b/189109819) : We need artifact address for runtime libraries as well.
-          if (library.type != LibraryType.PROJECT && library.artifact != null) runtimeLibraries.add(library.artifact!!)
-          // Get transitive dependencies.
-          getRuntimeLibraries(dependency.dependencies, compileDependenciesArtifacts, runtimeLibraries)
-        }
-      }
 
-      val runtimeLibraries = mutableListOf<File>()
-      getRuntimeLibraries(runtimeDependencies, compileDependencies?.map { it.artifactAddress }, runtimeLibraries)
+      val compileLibraries = compileDependencies.toFlatLibraryList()
+      val runtimeLibraries = runtimeDependencies.orEmpty().toFlatLibraryList()
+
+      val compileLibraryIdentities = compileLibraries.mapNotNull { it.toIdentity() }.toSet()
 
       return runtimeLibraries
+        .filter {
+          val id = it.toIdentity() ?: return@filter false
+          id !in compileLibraryIdentities
+        }
+        .flatMap { it.getJarFilesForRuntimeClasspath() }
+        .toList()
     }
 
     fun populateAndroidLibraries(
@@ -644,7 +636,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       populateAndroidLibraries(androidLibraries, providedLibraries, visited)
       populateJavaLibraries(javaLibraries, providedLibraries, visited)
       populateProjectDependencies(projectLibraries, visited)
-      val runtimeLibraries = getRuntimeLibraries(dependencies.runtimeDependencies, dependencies.compileDependencies, libraryMap)
+      val runtimeLibraries = getRuntimeLibraries(dependencies.runtimeDependencies, dependencies.compileDependencies)
       return createIdeDependencies(visited, runtimeLibraries)
     }
     return createIdeDependenciesInstance()
@@ -1215,4 +1207,11 @@ private fun Library.toIdentity() =
     LibraryType.ANDROID_LIBRARY,
     LibraryType.JAVA_LIBRARY -> LibraryIdentity(artifactAddress)
     else -> null
+  }
+
+private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
+  when (type) {
+    LibraryType.ANDROID_LIBRARY -> runtimeJarFiles.orEmpty()
+    LibraryType.JAVA_LIBRARY -> listOfNotNull(artifact)
+    else -> emptyList()
   }
