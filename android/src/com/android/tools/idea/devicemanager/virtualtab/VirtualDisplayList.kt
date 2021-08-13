@@ -356,6 +356,8 @@ class VirtualDisplayList @TestOnly constructor(private val project: Project?,
     override fun avdListChanged(avds: MutableList<AvdInfo>) {
       tableModel.items = avds
       updateSearchResults(null)
+      table.setWidths()
+
       refreshErrorCheck()
       latch?.countDown()
     }
