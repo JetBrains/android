@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -48,7 +49,7 @@ import javax.swing.JPopupMenu
  * This code was inspired by `org.jetbrains.plugins.terminal.TerminalContainer`
  */
 internal class SplittingPanel(private val content: Content, clientState: String?, private val createChildComponent: (String?) -> JComponent)
-  : JPanel(), SplittingTabsStateProvider, Disposable {
+  : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
   val component = createChildComponent(clientState)
 
@@ -60,7 +61,7 @@ internal class SplittingPanel(private val content: Content, clientState: String?
   }
 
   init {
-    add(component)
+    addToCenter(component)
     Disposer.register(content, this)
 
     addMouseListener(object : MouseAdapter() {
