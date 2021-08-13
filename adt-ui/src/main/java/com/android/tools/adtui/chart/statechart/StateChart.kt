@@ -59,8 +59,15 @@ class StateChart<T: Any>
 
   var renderMode = RenderMode.BAR
   private var needsTransformToViewSpace = true
-  private val rectangles = mutableListOf<Rectangle2D.Float>()
-  private val rectangleValues = mutableListOf<T>()
+
+  /**
+   * For each series, cache a pair of:
+   * - List of rectangles for the events in the current range, and
+   * - List of values for the events in the current range
+   * The lists are parallel and should always have the same size. We maintain 2 lists just for
+   * compatibility with the code from other places.
+   */
+  private var rectangleCache = listOf<Pair<List<Rectangle2D.Float>, List<T>>>()
   private var rowPoint: Point? = null
 
   init {
@@ -87,11 +94,6 @@ class StateChart<T: Any>
       }
     })
 
-  private fun clearRectangles() {
-    rectangles.clear()
-    rectangleValues.clear()
-  }
-
   private fun transformToViewSpace() {
     if (!needsTransformToViewSpace) {
       return
@@ -107,15 +109,16 @@ class StateChart<T: Any>
     val rectHeight = 1.0f / seriesSize
     val gap = rectHeight * heightGap
     val barHeight = rectHeight - gap
-    clearRectangles()
-    for (seriesIndex in 0 until seriesSize) {
-      val data = series[seriesIndex]
+
+    rectangleCache = series.mapIndexed { seriesIndex, data ->
       val min = data.xRange.min.toFloat()
       val max = data.xRange.max.toFloat()
       val invRange = 1.0f / (max - min)
       val startHeight = 1.0f - rectHeight * (seriesIndex + 1)
       val barY = startHeight + gap * 0.5f
       val seriesDataList = data.series
+      val rectangles = mutableListOf<Rectangle2D.Float>()
+      val rectangleValues = mutableListOf<T>()
 
       fun addRectangleDelta(value: T, previousX: Float, currentX: Float) {
         // Because we start our activity line from the bottom and grow up we offset the height from the bottom of the component
@@ -148,75 +151,89 @@ class StateChart<T: Any>
           addRectangleDelta(previousValue, max(min, previousX), max)
         }
       }
+
+      rectangles to rectangleValues
     }
   }
 
   override fun draw(g2d: Graphics2D, dim: Dimension) {
     val stopwatch = Stopwatch().start()
+    var scalingTime = 0L
+    var reducerTime = 0L
+    var transformedShapesCount = 0
+
     transformToViewSpace()
     val transformTime = stopwatch.elapsedSinceLastDeltaNs
     g2d.font = font
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
-    assert(rectangles.size == rectangleValues.size)
     val scaleX = width.toFloat()
     val scaleY = height.toFloat()
     val clipRect = g2d.clipBounds
+    val hoveredSeriesIndex =
+      rowPoint?.y?.let { ((1.0f - it / scaleY) * rectangleCache.size).toInt().takeIf { it in rectangleCache.indices } }
+      ?: INVALID_INDEX
 
-    fun List<Rectangle2D.Float>.searchByX(x: Float, w: Float) = binarySearch { when {
-      it.x + it.width < x -> -1
-      it.x > x + w -> 1
-      else -> 0
-    } }
+    rectangleCache.forEachIndexed { seriesIndex, (rectangles, rectangleValues) ->
+      fun List<Rectangle2D.Float>.searchByX(x: Float, w: Float) = binarySearch { when {
+        it.x + it.width < x -> -1
+        it.x > x + w -> 1
+        else -> 0
+      } }
 
-    val startIndexInclusive = when {
-      clipRect != null && clipRect.x != 0 -> rectangles.searchByX(clipRect.x / scaleX, 0f).let {
-        if (it < 0) -(it+1) else it
+      val startIndexInclusive = when {
+        clipRect != null && clipRect.x != 0 -> rectangles.searchByX(clipRect.x / scaleX, 0f).let {
+          if (it < 0) -(it+1) else it
+        }
+        else -> 0
       }
-      else -> 0
-    }
-    val endIndexExclusive = when {
-      clipRect != null && clipRect.width != width -> rectangles.searchByX((clipRect.x + clipRect.width) / scaleX, 0f).let {
-        if (it < 0) -(it+1) else (it+1) // add 1 because exclusive
+      val endIndexExclusive = when {
+        clipRect != null && clipRect.width != width -> rectangles.searchByX((clipRect.x + clipRect.width) / scaleX, 0f).let {
+          if (it < 0) -(it+1) else (it+1) // add 1 because exclusive
+        }
+        else -> rectangles.size
       }
-      else -> rectangles.size
-    }
-    val transformedValues = rectangleValues.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) { it }
-    val transformedShapes = rectangles.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) {
-      // Manually scaling the rectangle results in ~6x performance improvement over calling
-      // AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double.
-      // This shape has to support all types of points as such cannot be transformed as efficiently as a
-      // rectangle. Furthermore, AffineTransform uses doubles, which is about half as fast for LS
-      // when compared to floats (doubles memory bandwidth).
-      Rectangle2D.Float(it.x * scaleX, it.y * scaleY, it.width * scaleX, it.height * scaleY)
-    }
-    val scalingTime = stopwatch.elapsedSinceLastDeltaNs
-    config.reducer.reduce(transformedShapes, transformedValues)
-    assert(transformedShapes.size == transformedValues.size)
-    val reducerTime = stopwatch.elapsedSinceLastDeltaNs
-    val hoverIndex = rowPoint?.x?.toFloat()?.let { transformedShapes.searchByX(it, 1f) }
-                     ?: INVALID_INDEX
-    for (i in transformedShapes.indices) {
-      val value = transformedValues[i]
-      val rect = transformedShapes[i]
-      val isMouseOver = i == hoverIndex
-      g2d.color = colorProvider.getColor(isMouseOver, value)
-      g2d.fill(rect)
-      if (renderMode == RenderMode.TEXT) {
-        val text = shrinkToFit(textConverter.convertToString(value), mDefaultFontMetrics, rect.width - TEXT_PADDING * 2)
-        if (text.isNotEmpty()) {
-          g2d.color = colorProvider.getFontColor(isMouseOver, value)
-          val textOffset = rect.y + (rect.height - mDefaultFontMetrics.height) * 0.5f + mDefaultFontMetrics.ascent.toFloat()
-          g2d.drawString(text, rect.x + TEXT_PADDING, textOffset)
+      val transformedValues = rectangleValues.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) { it }
+      val transformedShapes = rectangles.subList(startIndexInclusive, endIndexExclusive).mapTo(mutableListOf()) {
+        // Manually scaling the rectangle results in ~6x performance improvement over calling
+        // AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double.
+        // This shape has to support all types of points as such cannot be transformed as efficiently as a
+        // rectangle. Furthermore, AffineTransform uses doubles, which is about half as fast for LS
+        // when compared to floats (doubles memory bandwidth).
+        Rectangle2D.Float(it.x * scaleX, it.y * scaleY, it.width * scaleX, it.height * scaleY)
+      }
+      transformedShapesCount += transformedShapes.size
+      scalingTime += stopwatch.elapsedSinceLastDeltaNs
+      config.reducer.reduce(transformedShapes, transformedValues)
+      assert(transformedShapes.size == transformedValues.size)
+      reducerTime += stopwatch.elapsedSinceLastDeltaNs
+      val hoverIndex = when {
+        seriesIndex != hoveredSeriesIndex || rowPoint == null -> INVALID_INDEX
+        else -> rowPoint!!.x.toFloat().let { transformedShapes.searchByX(it, 1f) }
+      }
+      for (i in transformedShapes.indices) {
+        val value = transformedValues[i]
+        val rect = transformedShapes[i]
+        val isMouseOver = i == hoverIndex
+        g2d.color = colorProvider.getColor(isMouseOver, value)
+        g2d.fill(rect)
+        if (renderMode == RenderMode.TEXT) {
+          val text = shrinkToFit(textConverter.convertToString(value), mDefaultFontMetrics, rect.width - TEXT_PADDING * 2)
+          if (text.isNotEmpty()) {
+            g2d.color = colorProvider.getFontColor(isMouseOver, value)
+            val textOffset = rect.y + (rect.height - mDefaultFontMetrics.height) * 0.5f + mDefaultFontMetrics.ascent.toFloat()
+            g2d.drawString(text, rect.x + TEXT_PADDING, textOffset)
+          }
         }
       }
     }
+
     val drawTime = stopwatch.elapsedSinceLastDeltaNs
     addDebugInfo("XS ms: %.2fms, %.2fms", transformTime / 1000000f, scalingTime / 1000000f)
     addDebugInfo(
       "RDT ms: %.2f, %.2f, %.2f", reducerTime / 1000000f, drawTime / 1000000f,
       (scalingTime + reducerTime + drawTime) / 1000000f
     )
-    addDebugInfo("# of drawn rects: %d", transformedShapes.size)
+    addDebugInfo("# of drawn rects: %d", transformedShapesCount)
   }
 
   private fun registerMouseEvents() {
@@ -333,17 +350,17 @@ class StateChart<T: Any>
     if (seriesDataList.isEmpty()) return null
 
     val (leftIndex, rightIndex) = seriesDataList.binarySearch(comparison = ::compareWithMouseRange).let { when (it) {
-      in seriesDataList.indices -> max(0, it - 1) to min(it + 1, seriesDataList.size - 1)
-      else -> (-it - 1).let { max(0, it - 1) to min(it, seriesDataList.size - 1) }
+      in seriesDataList.indices -> max(0, it - 2) to min(it + 2, seriesDataList.size - 1)
+      else -> (-it - 1).let { max(0, it - 2) to min(it + 2, seriesDataList.size - 1) }
     } }
 
     // Now transform the union of the left and right (or range max) index x values back into view space.
     val modelXLeft = max(min, seriesDataList[leftIndex].x.toFloat())
     val modelXRight = min(max, seriesDataList[rightIndex].x.toFloat())
     val screenXLeft = floor((modelXLeft - min) * scaleX / range)
-    val screenYTop = ceil(seriesIndex * scaleY / seriesSize)
+    val screenYTop = floor(scaleY - (seriesIndex + 1) * scaleY / seriesSize)
     val screenXRight = ceil((modelXRight - min) * scaleX / range)
-    val screenYBottom = floor((seriesIndex + 1) * scaleY / seriesSize)
+    val screenYBottom = ceil(scaleY - seriesIndex * scaleY / seriesSize)
     val screenWidth = screenXRight - screenXLeft
     val screenHeight = screenYBottom - screenYTop
     return Rectangle2D.Float(screenXLeft, screenYTop, screenWidth, screenHeight)
