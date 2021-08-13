@@ -33,7 +33,7 @@ class PerformanceThreadDumpReport
 constructor(val threadDumpPath: Path?,
             val description: String?,
             baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport("PerformanceThreadDump", baseProperties) {
+  : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
@@ -51,6 +51,8 @@ constructor(val threadDumpPath: Path?,
   }
 
   companion object {
+    const val REPORT_TYPE = "PerformanceThreadDump"
+
     fun deserialize(baseProperties: DiagnosticReportProperties,
                     properties: Map<String, String>,
                     format: Long): PerformanceThreadDumpReport {
