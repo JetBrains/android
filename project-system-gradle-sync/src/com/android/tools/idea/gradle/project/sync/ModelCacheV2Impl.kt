@@ -124,6 +124,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.utils.FileUtils
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
@@ -239,12 +240,15 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   // TODO(b/188413335): we shouldn't be looking for patterns in the path. Rework classesFolder on IDE side.
   fun classFolderFrom(classesFolders: Set<File>): File {
-    return classesFolders.first { it.absolutePath.contains("/javac/") }
+    return classesFolders.first { FileUtils.toSystemIndependentPath(it.absolutePath).contains("/javac/") }
   }
 
   // TODO(b/188413335): we shouldn't be looking for patterns in the path. Rework classesFolder on IDE side.
   fun additionalClassesFoldersFrom(classesFolders: Set<File>): List<File> {
-    return classesFolders.filter { !it.absolutePath.contains("/javac/") && !it.absolutePath.contains("/java_res/") }.distinct()
+    return classesFolders.filter {
+      val path = FileUtils.toSystemIndependentPath(it.absolutePath)
+      !path.contains("/javac/") && !path.contains("/java_res/")
+    }.distinct()
   }
 
   fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
