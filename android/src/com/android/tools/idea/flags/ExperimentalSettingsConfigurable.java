@@ -64,6 +64,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
+  private JCheckBox myAnimationPreviewCheckBox;
   private JCheckBox myPreviewDeployToCheckBox;
   private JCheckBox myInteractiveAndAnimationsComboBox;
   private JCheckBox myPreviewPickerCheckBox;
@@ -131,6 +132,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
+           myAnimationPreviewCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled() ||
            myPreviewDeployToCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled() ||
            myInteractiveAndAnimationsComboBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled();
@@ -149,6 +151,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
     applyTraceSettings();
+    ComposeExperimentalConfiguration.getInstance().setAnimationPreviewEnabled(myAnimationPreviewCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setInteractiveEnabled(myInteractiveAndAnimationsComboBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setDeployToDeviceEnabled(myPreviewDeployToCheckBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
@@ -305,6 +308,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     updateTraceComponents();
+    myAnimationPreviewCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isAnimationPreviewEnabled());
     myPreviewDeployToCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled());
     myInteractiveAndAnimationsComboBox.setSelected(ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled());
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
