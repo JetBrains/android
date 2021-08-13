@@ -40,7 +40,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
 
   var targetWorkId: String? = null
 
-  override val isValid get() = _isValid
+  override val isValid: Boolean
+    get() = _isValid
 
   override val className get() = _className
 
@@ -49,6 +50,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   override val startTimeMs get() = _startTime
 
   override val tags = listOf<String>()
+  override val callstacks = mutableListOf<String>()
 
   var jobInfo: BackgroundTaskInspectorProtocol.JobInfo? = null
     private set
@@ -75,6 +77,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
             }
           }
         }
+        callstacks.clear()
+        callstacks.add(backgroundTaskEvent.stacktrace)
       }
       BackgroundTaskEvent.MetadataCase.JOB_STARTED -> {
         _status = State.STARTED
@@ -84,6 +88,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
       }
       BackgroundTaskEvent.MetadataCase.JOB_FINISHED -> {
         _status = State.FINISHED
+        callstacks.add(backgroundTaskEvent.stacktrace)
       }
     }
   }

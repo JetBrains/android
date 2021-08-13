@@ -26,15 +26,18 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * View class for the Background Task Inspector Tab.
  */
-class BackgroundTaskInspectorTab(client: BackgroundTaskInspectorClient,
-                                 ideServices: AppInspectionIdeServices,
-                                 scope: CoroutineScope,
-                                 uiDispatcher: CoroutineDispatcher) {
+class BackgroundTaskInspectorTab(
+  client: BackgroundTaskInspectorClient,
+  ideServices: AppInspectionIdeServices,
+  uiComponentsProvider: UiComponentsProvider,
+  scope: CoroutineScope,
+  uiDispatcher: CoroutineDispatcher
+) {
 
   private val selectionModel = EntrySelectionModel()
 
   private val entriesView = BackgroundTaskEntriesView(client, selectionModel, scope, uiDispatcher)
-  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, scope, uiDispatcher)
+  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, uiComponentsProvider, scope, uiDispatcher)
 
   var isDetailsViewVisible = false
     set(value) {

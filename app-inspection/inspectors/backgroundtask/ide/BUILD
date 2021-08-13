@@ -16,5 +16,9 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:intellij.android.app-inspection.inspectors.backgroundtask.model[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
+        "//tools/adt/idea/native-symbolizer[module]",
+        "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",
     ],
 )
