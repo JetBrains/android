@@ -117,18 +117,6 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     }
   }
 
-  fun testTestFixturesWithModulePerSourceSetEnabled() {
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
-    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-    try {
-      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-      assertIsEqualToSnapshot(text)
-    } finally {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
-    }
-  }
-
   private fun importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null
