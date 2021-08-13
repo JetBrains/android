@@ -16,21 +16,30 @@
 package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.ddms.DeviceContext
 import com.intellij.openapi.project.Project
-import javax.swing.JLabel
+import com.intellij.util.ui.components.BorderLayoutPanel
 
 /**
  * The top level Logcat panel.
  */
-internal class LogcatMainPanel(val project: Project, state: LogcatPanelConfig?) : JLabel(), SplittingTabsStateProvider {
+internal class LogcatMainPanel(project: Project, state: LogcatPanelConfig?)
+  : BorderLayoutPanel(), SplittingTabsStateProvider {
+
+  private val deviceContext = DeviceContext()
+
+  private val headerPanel = LogcatHeaderPanel(project, deviceContext)
 
   init {
-    text = state?.text ?: "Child ${++count}"
+    // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
+    //  might be challenging both technically and from a UX perspective. Since, when restoring the state, the device/client might not be
+    //  available.
+    //  From a UX perspective, it's not clear what we should do in this case.
+    //  From a technical standpoint, the current implementation that uses DevicePanel doesn't seem to be well suited for preselecting a
+    //  device/client.
+    addToTop(headerPanel)
   }
 
-  override fun getState(): String = LogcatPanelConfig.toJson(LogcatPanelConfig(text))
-
-  companion object {
-    var count: Int = 0
-  }
+  override fun getState(): String = LogcatPanelConfig.toJson(
+    LogcatPanelConfig(deviceContext.selectedDevice?.serialNumber, deviceContext.selectedClient?.clientData?.packageName))
 }

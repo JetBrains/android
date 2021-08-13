@@ -25,8 +25,11 @@ import com.intellij.openapi.diagnostic.Logger
  * Configuration for a logcat panel.
  *
  * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
+ *
+ * @param deviceSerial the serial number of the device monitored by this panel
+ * @param packageName the package name of the app monitored by this panel
  */
-internal data class LogcatPanelConfig(var text: String = "") {
+internal data class LogcatPanelConfig(var deviceSerial: String?, var packageName: String?) {
   companion object {
     private val gson = Gson()
 
