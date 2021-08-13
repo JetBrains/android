@@ -41,11 +41,9 @@ public final class VirtualTableView extends TableView<AvdInfo> {
       .appendLine("No virtual devices added. Create a virtual device to test")
       .appendLine("applications without owning a physical device.")
       .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, new CreateAvdAction(avdInfoProvider));
-
-    model.addTableModelListener(event -> setWidths());
   }
 
-  private void setWidths() {
+  void setWidths() {
     IntStream.range(1, columnModel.getColumnCount())
       .forEach(viewColumnIndex -> {
         int preferredWidth = getPreferredColumnWidth(viewColumnIndex);
