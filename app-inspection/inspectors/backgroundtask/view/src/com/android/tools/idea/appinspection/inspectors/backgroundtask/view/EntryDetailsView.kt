@@ -50,16 +50,22 @@ private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding,
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
 
 
-class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
-                       private val client: BackgroundTaskInspectorClient,
-                       private val ideServices: AppInspectionIdeServices,
-                       private val selectionModel: EntrySelectionModel,
-                       private val scope: CoroutineScope,
-                       private val uiDispatcher: CoroutineDispatcher) : JPanel() {
+class EntryDetailsView(
+  private val tab: BackgroundTaskInspectorTab,
+  private val client: BackgroundTaskInspectorClient,
+  private val ideServices: AppInspectionIdeServices,
+  private val selectionModel: EntrySelectionModel,
+  uiComponentsProvider: UiComponentsProvider,
+  private val scope: CoroutineScope,
+  private val uiDispatcher: CoroutineDispatcher
+) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
   private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
   private val scrollPane = JBScrollPane()
+
+  private val stackTraceView1 = EntryDetailsStackTraceView(uiComponentsProvider)
+  private val stackTraceView2 = EntryDetailsStackTraceView(uiComponentsProvider)
 
   init {
     layout = TabularLayout("*", "28px,*")
@@ -137,6 +143,8 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
       }
     }
     detailsPanel.add(buildCategoryPanel("Results", results))
+
+    detailsPanel.addStackTraceViews(alarm.callstacks, listOf("Alarm set", "Alarm cancelled"))
   }
 
   private fun updateSelectedWakeLock(detailsPanel: ScrollablePanel, wakeLock: WakeLockEntry) {
@@ -154,6 +162,8 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
       results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)))
     }
     detailsPanel.add(buildCategoryPanel("Execution", results))
+
+    detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Wake lock acquired", "Wake lock released"))
   }
 
   private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
@@ -188,6 +198,8 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
     }
 
     detailsPanel.add(buildCategoryPanel("Results", results))
+
+    detailsPanel.addStackTraceViews(jobEntry.callstacks, listOf("Job scheduled", "Job finished"))
   }
 
   private fun updateSelectedWork(detailsPanel: ScrollablePanel, workEntry: WorkEntry) {
@@ -254,6 +266,21 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
     panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
     return panel
+  }
+
+  private fun ScrollablePanel.addStackTraceViews(traces: List<String>, labels: List<String>) {
+    (labels zip traces).forEachIndexed { i, pair ->
+      when (i) {
+        0 -> {
+          stackTraceView1.updateTrace(pair.second)
+          add(buildCategoryPanel(pair.first, listOf(stackTraceView1.component)))
+        }
+        1 -> {
+          stackTraceView2.updateTrace(pair.second)
+          add(buildCategoryPanel(pair.first, listOf(stackTraceView2.component)))
+        }
+      }
+    }
   }
 }
 

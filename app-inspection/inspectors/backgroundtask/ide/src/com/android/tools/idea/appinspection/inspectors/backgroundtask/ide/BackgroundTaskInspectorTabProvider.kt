@@ -83,7 +83,8 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
 
     return object : AppInspectorTab {
       override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
-      override val component = BackgroundTaskInspectorTab(client, ideServices, scope, AndroidDispatchers.uiThread).component
+      override val component = BackgroundTaskInspectorTab(client, ideServices, IntellijUiComponentsProvider(project), scope,
+                                                          AndroidDispatchers.uiThread).component
     }
   }
 

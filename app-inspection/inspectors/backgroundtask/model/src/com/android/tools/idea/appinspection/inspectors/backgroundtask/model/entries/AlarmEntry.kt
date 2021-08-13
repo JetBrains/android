@@ -47,6 +47,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   override val startTimeMs get() = _startTime
 
   override val tags get() = _tags
+  override val callstacks = mutableListOf<String>()
 
   var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
   var latestEvent: BackgroundTaskInspectorProtocol.Event? = null
@@ -63,9 +64,12 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
         if (alarmSet!!.hasListener()) {
           _tags.add(alarmSet!!.listener.tag)
         }
+        callstacks.clear()
+        callstacks.add(backgroundTaskEvent.stacktrace)
       }
       BackgroundTaskEvent.MetadataCase.ALARM_CANCELLED -> {
         _status = State.CANCELLED
+        callstacks.add(backgroundTaskEvent.stacktrace)
       }
       BackgroundTaskEvent.MetadataCase.ALARM_FIRED -> {
         _status = State.FIRED

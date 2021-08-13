@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
     ],
 )
 

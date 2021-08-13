@@ -35,5 +35,8 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.model" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
   </component>
 </module>
