@@ -34,7 +34,7 @@ constructor(val threadDumpPath: Path?,
             val reason: MemoryReportReason?,
             val description: String?,
             baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport("Histogram", baseProperties) {
+  : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
@@ -76,6 +76,8 @@ constructor(val threadDumpPath: Path?,
   }
 
   companion object {
+    const val REPORT_TYPE = "Histogram"
+
     fun deserialize(baseProperties: DiagnosticReportProperties,
                     properties: Map<String, String>,
                     format: Long): HistogramReport {

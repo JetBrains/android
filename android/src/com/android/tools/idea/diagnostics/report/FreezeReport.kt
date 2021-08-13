@@ -36,7 +36,7 @@ constructor(val threadDumpPath: Path?,
             val totalDuration: Long?,
             val description: String?,
             baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport("Freeze", baseProperties) {
+  : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
     if (threadDumpPath != null) writer.name("threadDumpPath").value(threadDumpPath.toString())
@@ -72,6 +72,7 @@ constructor(val threadDumpPath: Path?,
   }
 
   companion object {
+    const val REPORT_TYPE = "Freeze"
     private const val EXCEPTION_TYPE = "com.android.ApplicationNotResponding"
     private val EMPTY_ANR_STACKTRACE = EXCEPTION_TYPE + ": \n" +
                                        "\tat " + FreezeReport::class.java.name + ".missingEdtStack(Unknown source)"
