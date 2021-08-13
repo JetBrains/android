@@ -19,13 +19,12 @@ import com.android.ide.gradle.model.GradlePluginModel
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : ProjectImportModelProvider {
-  private var remainingIncludedBuildModels: Int? = null
-  private val buildModels: MutableList<GradleBuild> = mutableListOf()
+  private var buildModels: Set<GradleBuild>? = null
+  private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()
 
   override fun populateBuildModels(
     controller: BuildController,
@@ -35,16 +34,24 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     // Flatten the platform's handling of included builds. We need all models together to resolve cross `includeBuild` dependencies
     // correctly. This, unfortunately, makes assumptions about the order in which these methods are invoked. If broken it will be caught
     // by any test attempting to sync a composite build.
-    if (remainingIncludedBuildModels == null) {
-      remainingIncludedBuildModels = 1 /* this one */ + (runCatching { buildModel.includedBuilds.size }.getOrNull() ?: 0)
+    if (buildModels == null) {
+      buildModels =
+        flattenDag(buildModel, getId = { it.buildIdentifier.rootDir }) {
+          runCatching { it.includedBuilds.all }.getOrDefault(/* old Gradle? */ emptyList())
+        }
+          .toSet()
     }
-    buildModels.add(buildModel)
-    remainingIncludedBuildModels = remainingIncludedBuildModels!! - 1
-    if (remainingIncludedBuildModels == 0) {
+    if (!seenBuildModels.add(buildModel)) {
+      error("Included build ${buildModel.buildIdentifier.rootDir} appears for the second time")
+    }
+    if (!buildModels.orEmpty().contains(buildModel)) {
+      error("Unknown included build ${buildModel.buildIdentifier.rootDir} encountered")
+    }
+    if (buildModels.orEmpty().size == seenBuildModels.size) {
       AndroidExtraModelProviderWorker(
         controller,
         syncOptions,
-        buildModels,
+        buildModels!!.toList(),
         // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
         // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
         // reported against the last included build.
@@ -62,3 +69,18 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
   }
 }
+
+private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
+  val seen = HashSet<Any>()
+  val queue = ArrayDeque(listOf(root))
+
+  while (queue.isNotEmpty()) {
+    val item = queue.removeFirst()
+    if (seen.add(getId(item))) {
+      queue.addAll(getChildren(item))
+      yield(item)
+    }
+  }
+}
+  .toList()
+
