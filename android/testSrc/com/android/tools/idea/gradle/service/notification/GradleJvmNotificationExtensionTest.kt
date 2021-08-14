@@ -23,9 +23,11 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -124,5 +126,26 @@ class GradleJvmNotificationExtensionTest {
     verify(spyData, never()).setListener(Mockito.any(), Mockito.any())
     assertThat(notificationData.message).isEqualTo(originalMessage)
     assertThat(notificationData.registeredListenerIds).hasSize(0)
+  }
+
+  @Test
+  fun `customize with invalid JDK reason`() {
+    val originalMessage = "Invalid Gradle JDK configuration found."
+    val invalidReason = "Generating invalid JDK reason for Test."
+    val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
+    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath!!.toAbsolutePath().toString()
+    val expectedMessage = "$originalMessage $invalidReason\n" +
+                          "<a href=\"${baseId()}.embedded\">Use Embedded JDK ($embeddedPath)</a>\n" +
+                          "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
+    assertThat(notificationData.registeredListenerIds).isEmpty()
+
+    val spyIdeSdks = spy(IdeSdks.getInstance())
+    Mockito.doReturn(invalidReason).`when`(spyIdeSdks).generateInvalidJdkReason(Mockito.any())
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, gradleProjectRule.fixture.projectDisposable)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    assertThat(notificationData.message).isEqualTo(expectedMessage)
+    val newListeners = notificationData.registeredListenerIds
+    assertThat(newListeners).contains("${baseId()}.embedded")
+    assertThat(newListeners).contains(OpenProjectJdkLocationListener.ID)
   }
 }
