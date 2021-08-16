@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -127,10 +126,7 @@ class AppInspectionInspectorClient(
     scope.launch(exceptionHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
-        composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
-      }
-
+      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector.propertiesCache, composeInspector?.parametersCache, model)
 
