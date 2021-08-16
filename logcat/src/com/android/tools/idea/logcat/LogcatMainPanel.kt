@@ -15,19 +15,37 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.ddms.DeviceContext
+import com.intellij.execution.impl.ConsoleBuffer
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.command.undo.UndoUtil
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.impl.EditorFactoryImpl
+import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.components.BorderLayoutPanel
+import org.jetbrains.annotations.VisibleForTesting
+import java.time.ZoneId
 
 /**
  * The top level Logcat panel.
  */
-internal class LogcatMainPanel(project: Project, state: LogcatPanelConfig?)
-  : BorderLayoutPanel(), SplittingTabsStateProvider {
+internal class LogcatMainPanel(
+  project: Project,
+  logcatColors: LogcatColors,
+  state: LogcatPanelConfig?,
+  zoneId: ZoneId = ZoneId.systemDefault()
+) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
+  @VisibleForTesting
+  internal val editor: EditorEx = createEditor(project)
   private val deviceContext = DeviceContext()
-
+  private val documentPrinter = LogcatDocumentPrinter(project, editor.document, logcatColors, zoneId)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
 
   init {
@@ -38,8 +56,49 @@ internal class LogcatMainPanel(project: Project, state: LogcatPanelConfig?)
     //  From a technical standpoint, the current implementation that uses DevicePanel doesn't seem to be well suited for preselecting a
     //  device/client.
     addToTop(headerPanel)
+    addToCenter(editor.component)
   }
 
   override fun getState(): String = LogcatPanelConfig.toJson(
     LogcatPanelConfig(deviceContext.selectedDevice?.serialNumber, deviceContext.selectedClient?.clientData?.packageName))
+
+  /**
+   * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
+   */
+  private fun createEditor(project: Project): EditorEx {
+    val editorFactory = EditorFactory.getInstance()
+    val document = (editorFactory as EditorFactoryImpl).createDocument(true)
+    UndoUtil.disableUndoFor(document)
+    val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
+
+    // TODO(aalbert): Install popup handler with: EditorEx#.installPopupHandler()
+
+    editor.document.setCyclicBufferSize(if (ConsoleBuffer.useCycleBuffer()) ConsoleBuffer.getCycleBufferSize() else 0)
+
+    val editorSettings = editor.settings
+    editorSettings.isAllowSingleLogicalLineFolding = true
+    editorSettings.isLineMarkerAreaShown = false
+    editorSettings.isIndentGuidesShown = false
+    editorSettings.isLineNumbersShown = false
+    editorSettings.isFoldingOutlineShown = true
+    editorSettings.isAdditionalPageAtBottom = false
+    editorSettings.additionalColumnsCount = 0
+    editorSettings.additionalLinesCount = 0
+    editorSettings.isRightMarginShown = false
+    editorSettings.isCaretRowShown = false
+    editorSettings.isShowingSpecialChars = false
+    editor.gutterComponentEx.isPaintBackground = false
+
+    (editor as EditorImpl).isDisposed
+    return editor
+  }
+
+  @UiThread
+  internal fun print(message: LogCatMessage) {
+    documentPrinter.print(message)
+  }
+
+  override fun dispose() {
+    EditorFactory.getInstance().releaseEditor(editor)
+  }
 }
