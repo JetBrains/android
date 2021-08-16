@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
-interface AnimationListener {
-  fun animateTo(controller: AnimationController, framePositionMs: Long)
+/**
+ * Interface to control how to preview the animation.
+ */
+interface AnimationController {
+  fun play()
+  fun pause()
+  fun stop()
+  fun setFrameMs(frameMs: Long)
+  /**
+   * Note: Set max time as -1 means it is an unlimited animation.
+   */
+  fun setMaxTimeMs(maxTimeMs: Long)
+  fun setLoop(enabled: Boolean)
 }

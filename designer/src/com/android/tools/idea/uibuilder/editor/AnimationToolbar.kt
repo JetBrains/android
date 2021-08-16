@@ -63,7 +63,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
                                                   minTimeMs: Long,
                                                   initialMaxTimeMs: Long,
                                                   toolbarType: AnimationToolbarType)
-  : JPanel(), Disposable {
+  : JPanel(), AnimationController, Disposable {
   private val myListener: AnimationListener
   private val myPlayButton: JButton
   private val myPauseButton: JButton
@@ -166,7 +166,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myFrameBckButton.toolTipText = frameback
   }
 
-  private fun onPlay() {
+  final override fun play() {
     stopFrameTicker()
     setEnabledState(false, true, true, false)
     setVisibilityState(false, true, true, true)
@@ -179,7 +179,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         onTick(elapsed) }, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
   }
 
-  private fun onPause() {
+  final override fun pause() {
     setEnabledState(true, false, true, true)
     setVisibilityState(true, false, true, true)
     stopFrameTicker()
@@ -192,7 +192,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     }
   }
 
-  private fun onStop() {
+  final override fun stop() {
     stopFrameTicker()
     setEnabledState(true, false, false, false)
     setVisibilityState(true, false, true, true)
@@ -221,7 +221,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     if (myFramePositionMs >= myMaxTimeMs) {
       if (!setByUser && !myLoopEnabled) {
         // We've reached the end. Stop.
-        onPause()
+        pause()
       }
     }
     myStopButton.isEnabled = myFramePositionMs - myTickStepMs >= myMinTimeMs
@@ -234,6 +234,10 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       timeSliderModel.value = ((myFramePositionMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
       timeSliderModel.addChangeListener(myTimeSliderChangeModel)
     }
+  }
+
+  final override fun setFrameMs(frameMs: Long) {
+    setFramePosition(frameMs, false)
   }
 
   /**
@@ -271,19 +275,12 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     setFramePosition(myFramePositionMs + elapsed, false)
   }
 
-  fun setMaxtimeMs(maxTimeMs: Long) {
+  final override fun setMaxTimeMs(maxTimeMs: Long) {
     myMaxTimeMs = maxTimeMs
   }
 
-  fun setLoop(enabled: Boolean) {
+  final override fun setLoop(enabled: Boolean) {
     myLoopEnabled = enabled
-  }
-
-  /**
-   * Stop any running animations
-   */
-  fun stop() {
-    onStop()
   }
 
   /**
@@ -343,18 +340,18 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myPlayButton = newControlButton(
       StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP,
       AnimationToolbarAction.PLAY
-    ) { onPlay() }
+    ) { play() }
     myPlayButton.isEnabled = true
     myPauseButton = newControlButton(
       StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP,
       AnimationToolbarAction.PAUSE
-    ) { onPause() }
+    ) { pause() }
     myPauseButton.isEnabled = true
     // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
     myStopButton = newControlButton(
       StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
       AnimationToolbarAction.STOP
-    ) { onStop() }
+    ) { stop() }
     myFrameFwdButton = newControlButton(
       StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", DEFAULT_FRAME_FORWARD_TOOLTIP,
       AnimationToolbarAction.FRAME_FORWARD
@@ -424,6 +421,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         myFrameControl.value = 0
       }
     })
-    onStop()
+    stop()
   }
 }
