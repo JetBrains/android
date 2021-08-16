@@ -16,20 +16,26 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
-import com.android.tools.idea.npw.invokeLater
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -65,23 +71,37 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
   override val id = "add.google.maven.repo"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    invokeLater {
-      if (project.isInitialized) {
-        val pluginInfo = findFromBuildFiles(project)
-        val buildFile =
-          if (pluginInfo != null) pluginInfo.pluginBuildFile else getGradleBuildFile(getBaseDirPath(project)) ?: return@invokeLater
-        // Only add the google Maven repository if it doesn't already exist.
-        // TODO(karimai): Could there be a case when this condition is not always true ?
-        val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return@invokeLater
-        val gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile!!)
-        if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-          val processor = AddRepoProcessor(project, listOf(buildFile), AddRepoProcessor.Repository.GOOGLE, true)
-          processor.setPreviewUsages(true)
-          processor.run()
-        }
+    val future = CompletableFuture<Any>()
+    if (!project.isInitialized) {
+      invokeLater {
+        Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
+        future.complete(null)
       }
-      else Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
     }
-    return CompletableFuture.completedFuture<Any>(null)
+    else {
+      ReadAction.nonBlocking<AndroidPluginInfo?> { findFromBuildFiles(project) }
+        .inSmartMode(project)
+        .coalesceBy(project, this)
+        .finishOnUiThread(ModalityState.defaultModalityState()) { pluginInfo ->
+          pluginInfo?.let { addGoogleMavenRepoPreview(it, project) }
+          future.complete(null)
+        }.submit(AppExecutorUtil.getAppExecutorService())
+    }
+
+    return future
+  }
+
+  private fun addGoogleMavenRepoPreview(pluginInfo: AndroidPluginInfo, project: Project) {
+    val projectBuildModel: ProjectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
+    val buildFile: VirtualFile = pluginInfo.pluginBuildFile ?: getGradleBuildFile(getBaseDirPath(project)) ?: return
+
+    val gradleBuildModel: GradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile)
+    // Only add the google Maven repository if it doesn't already exist.
+    // TODO(b/197125864): Could there be a case when this condition is not always true ?
+    if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
+      val processor = AddRepoProcessor(project, listOf(buildFile), AddRepoProcessor.Repository.GOOGLE, true)
+      processor.setPreviewUsages(true)
+      processor.run()
+    }
   }
 }
