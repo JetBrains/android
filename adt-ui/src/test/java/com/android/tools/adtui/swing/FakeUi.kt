@@ -168,9 +168,18 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * Simulates pressing and releasing the left mouse button over the given component.
    */
   fun clickOn(component: Component) {
-    val location = getPosition(component)
-    mouse.click(location.x + component.width / 2, location.y + component.height / 2)
+    clickRelativeTo(component, component.width / 2, component.height / 2)
   }
+
+
+  /**
+   * Simulates pressing and releasing the left mouse button over the given component.
+   */
+  fun clickRelativeTo(component: Component, x: Int, y: Int) {
+    val location = getPosition(component)
+    mouse.click(location.x + x, location.y + y)
+  }
+
 
   /**
    * Returns the first component of the given type satisfying the given predicate by doing breadth-first

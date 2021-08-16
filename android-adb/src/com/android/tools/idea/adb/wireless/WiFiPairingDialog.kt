@@ -24,9 +24,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
+import javax.swing.event.HyperlinkListener
 
 @UiThread
-class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
+class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType, hyperlinkListener: HyperlinkListener) {
   private val dialog: SimpleDialog
   private val pairingPanel: WiFiPairingPanel
 
@@ -40,7 +41,7 @@ class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType:
                                       cancelButtonText = "Close",
                                       centerPanelProvider = { createCenterPanel() })
     dialog = SimpleDialog(options)
-    pairingPanel = WiFiPairingPanel(dialog.disposable)
+    pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener)
     dialog.init()
   }
 

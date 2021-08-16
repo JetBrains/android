@@ -26,10 +26,11 @@ import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.HyperlinkListener
 
 @UiThread
-internal class WiFiPairingPanel(private val parentDisposable: Disposable) {
-  private val centerPanel by lazy { WiFiPairingCenterPanel() }
+internal class WiFiPairingPanel(private val parentDisposable: Disposable, private val hyperlinkListener: HyperlinkListener) {
+  private val centerPanel by lazy { WiFiPairingCenterPanel(hyperlinkListener) }
 
   private val loadingPanel: JBLoadingPanel by lazy {
     JBLoadingPanel(BorderLayout(), parentDisposable).apply {
@@ -79,6 +80,7 @@ internal class WiFiPairingPanel(private val parentDisposable: Disposable) {
     }
 
     val editorPane = createHtmlEditorPane()
+    editorPane.addHyperlinkListener(hyperlinkListener)
     val htmlBuilder = HtmlBuilder().apply {
       add("Pair devices to enable wireless debugging.")
       add(" ")
