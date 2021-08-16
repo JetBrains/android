@@ -15,21 +15,57 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.Log
+import com.android.ddmlib.logcat.LogCatHeader
+import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.codeInsight.template.emmet.generators.LoremGenerator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.util.text.UniqueNameGenerator
+import java.time.Instant
+import java.util.Locale.ROOT
 import javax.swing.JComponent
+import kotlin.random.Random
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
+
+  private val logcatColors: LogcatColors = LogcatColors()
+
   override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
 
-  // During development of the base class SplittingTabsToolWindowFactory, having a fake tab name helps verify things work.
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
-  // During development of the base class SplittingTabsToolWindowFactory, having a fake component helps verify things work.
   override fun generateChildComponent(project: Project, clientState: String?): JComponent =
-    LogcatMainPanel(project, LogcatPanelConfig.fromJson(clientState))
+    LogcatMainPanel(project, logcatColors, LogcatPanelConfig.fromJson(clientState)).also(::printFakeLogs)
 }
+
+// Use a LoremGenerator to generate random tags, app names and messages to be used in fake LogCatMessage's to demonstrate the behavior.
+// TODO(aalbert): Remove when we start reading real logs from ADB.
+private fun printFakeLogs(it: LogcatMainPanel) {
+  val loremGenerator = LoremGenerator()
+  for (logLevel in Log.LogLevel.values()) {
+    for (t in 1..10) {
+      val tag = loremGenerator.generateTag(Random.nextInt(1, 3))
+      val appName = loremGenerator.generateAppName(Random.nextInt(2, 3))
+      for (line in 1..Random.nextInt(5)) {
+        val message = loremGenerator.generate(Random.nextInt(5, 12), false)
+        it.print(LogCatMessage(LogCatHeader(logLevel, 1324, 5454, appName.take(appName.length - 1), tag, Instant.now()), message))
+      }
+    }
+  }
+}
+
+/**
+ * Generate a logcat tag of a certain length.
+ */
+private fun LoremGenerator.generateTag(wordCount: Int): String =
+  generate(wordCount, false).replace(",", "").dropLast(1).split(" ").joinToString(transform = String::capitalize, separator = "")
+
+/**
+ * Generate an app name of a certain length.
+ */
+private fun LoremGenerator.generateAppName(wordCount: Int): String =
+  "com." + generate(wordCount, false).toLowerCase(ROOT).replace(",", "").replace(" ", ".").dropLast(1)
