@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.assistant
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.editor.AnimationController
 import com.android.tools.idea.uibuilder.editor.AnimationListener
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper
@@ -33,7 +34,7 @@ class MotionLayoutAssistantPanel(val designSurface: DesignSurface, val component
     val helper = MotionLayoutComponentHelper.create(component)
     val maxTimeMs = helper.maxTimeMs
     toolbar = AnimationToolbar.createAnimationToolbar({}, object : AnimationListener {
-      override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+      override fun animateTo(controller: AnimationController, framePositionMs: Long) {
         val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
         if (sceneManager != null) {
           sceneManager.setElapsedFrameTimeMs(framePositionMs)

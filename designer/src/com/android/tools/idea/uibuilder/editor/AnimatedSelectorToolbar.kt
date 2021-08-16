@@ -125,7 +125,7 @@ private constructor(
     myTimeSlider?.isVisible = visibility
     if (!visibility) {
       // Set maxtimeMs to -1 to indicate it is infinity animation. The slider is invisible whe animation is infinitely.
-      setMaxtimeMs(-1)
+      setMaxTimeMs(-1)
     }
   }
 

@@ -146,7 +146,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
  * Animation listener for <animated-vector>.
  */
 private class AnimatedVectorListener(val surface: DesignSurface) : AnimationListener {
-  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+  override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       if (framePositionMs <= 0L) {
         // This condition happens when animation is reset (stop and set elapsed frame to 0) or the elapsed frame is backed to negative.
@@ -189,12 +189,12 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
   private var currentAnimationDrawable: AnimationDrawable? = null
   private var modelTimeMap = listOf<Long>()
 
-  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+  override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let { sceneManager ->
       val imageView = sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView? ?: return
       val animationDrawable = imageView.drawable as? AnimationDrawable ?: return
       if (currentAnimationDrawable != animationDrawable) {
-        updateAnimationDrawableInformation(toolbar, sceneManager)
+        updateAnimationDrawableInformation(controller, sceneManager)
         currentAnimationDrawable = animationDrawable
       }
 
@@ -207,7 +207,7 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
   /**
    * Update the maximum time and repeating to toolbar. Pre-process a time map to find the target Drawable Frame when playing animation.
    */
-  private fun updateAnimationDrawableInformation(toolbar: AnimationToolbar, manager: LayoutlibSceneManager) {
+  private fun updateAnimationDrawableInformation(controller: AnimationController, manager: LayoutlibSceneManager) {
     val animationDrawable = findAnimationDrawable(manager)
     modelTimeMap = if (animationDrawable != null) {
       val timeMap = mutableListOf<Long>()
@@ -216,8 +216,8 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
         durationSum += animationDrawable.getDuration(index)
         timeMap.add(durationSum)
       }
-      toolbar.setLoop(!animationDrawable.isOneShot)
-      toolbar.setMaxtimeMs(durationSum)
+      controller.setLoop(!animationDrawable.isOneShot)
+      controller.setMaxTimeMs(durationSum)
       timeMap
     }
     else {
@@ -255,13 +255,13 @@ private class AnimatedSelectorListener(val surface: DesignSurface) : AnimationLi
   private val animatedVectorDelegate = AnimatedVectorListener(surface)
   private val animationListDelegate = AnimationListListener(surface)
 
-  override fun animateTo(toolbar: AnimationToolbar, framePositionMs: Long) {
+  override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.sceneManager as? LayoutlibSceneManager)?.let {
       when (it.model.file.rootTag?.name) {
         SdkConstants.TAG_ANIMATED_VECTOR -> {
-          animatedVectorDelegate.animateTo(toolbar, framePositionMs)
+          animatedVectorDelegate.animateTo(controller, framePositionMs)
         }
-        SdkConstants.TAG_ANIMATION_LIST -> animationListDelegate.animateTo(toolbar, framePositionMs)
+        SdkConstants.TAG_ANIMATION_LIST -> animationListDelegate.animateTo(controller, framePositionMs)
         else -> {
           it.setElapsedFrameTimeMs(framePositionMs)
           it.requestRender()
