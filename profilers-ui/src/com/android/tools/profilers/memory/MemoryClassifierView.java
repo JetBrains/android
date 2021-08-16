@@ -28,7 +28,7 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;

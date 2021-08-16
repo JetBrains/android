@@ -31,9 +31,9 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData

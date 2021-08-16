@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
+    <orderEntry type="module" module-name="codenavigation" />
   </component>
 </module>

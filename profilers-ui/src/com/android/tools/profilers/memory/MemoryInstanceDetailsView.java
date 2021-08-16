@@ -32,7 +32,7 @@ import com.android.tools.adtui.stdui.CloseButton;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;

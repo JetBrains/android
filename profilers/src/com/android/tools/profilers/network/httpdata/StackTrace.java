@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network.httpdata;
 
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

@@ -35,9 +35,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ja
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule

@@ -27,8 +27,8 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;

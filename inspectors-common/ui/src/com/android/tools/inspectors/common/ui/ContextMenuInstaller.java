@@ -16,8 +16,8 @@
 package com.android.tools.inspectors.common.ui;
 
 import com.android.tools.adtui.stdui.ContextMenuItem;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;

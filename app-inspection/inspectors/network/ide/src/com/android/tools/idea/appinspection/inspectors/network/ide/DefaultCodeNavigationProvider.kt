@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
-import com.android.tools.inspectors.common.api.ide.stacktrace.IntellijCodeNavigator
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
+import com.android.tools.idea.codenavigation.CodeNavigator
+import com.android.tools.idea.codenavigation.IntellijCodeNavigator
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
 import com.android.tools.nativeSymbolizer.createNativeSymbolizer

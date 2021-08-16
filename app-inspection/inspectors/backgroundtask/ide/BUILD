@@ -20,5 +20,6 @@ iml_module(
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",
+        "//tools/adt/idea/codenavigation[module]",
     ],
 )

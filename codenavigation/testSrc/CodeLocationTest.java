@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api.stacktrace;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.codenavigation.CodeLocation;
 import org.junit.Test;
 
 public class CodeLocationTest {

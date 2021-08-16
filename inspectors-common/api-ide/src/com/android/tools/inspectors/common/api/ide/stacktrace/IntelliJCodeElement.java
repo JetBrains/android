@@ -16,8 +16,8 @@
 package com.android.tools.inspectors.common.api.ide.stacktrace;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;

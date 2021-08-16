@@ -15,6 +15,7 @@
  */
 package com.android.tools.inspectors.common.api.stacktrace;
 
+import com.android.tools.idea.codenavigation.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 /**

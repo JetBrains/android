@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
-import com.android.tools.inspectors.common.api.ide.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.codenavigation.IntellijCodeNavigator;
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
 import com.android.tools.nativeSymbolizer.SymbolSource;

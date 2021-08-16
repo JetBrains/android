@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
+        "//tools/adt/idea/codenavigation[module]",
     ],
 )
 
@@ -47,5 +48,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/codenavigation[module, test]",
     ],
 )

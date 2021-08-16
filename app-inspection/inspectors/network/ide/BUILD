@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/codenavigation[module]",
     ],
 )
 
@@ -49,5 +50,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view[module, test]",
         "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model[module, test]",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module, test]",
+        "//tools/adt/idea/codenavigation[module]",
     ],
 )
