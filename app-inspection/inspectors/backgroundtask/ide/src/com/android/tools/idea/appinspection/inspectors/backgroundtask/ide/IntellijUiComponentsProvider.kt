@@ -16,9 +16,9 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.ide
 
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.UiComponentsProvider
+import com.android.tools.idea.codenavigation.CodeNavigator
+import com.android.tools.idea.codenavigation.IntellijCodeNavigator
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup
-import com.android.tools.inspectors.common.api.ide.stacktrace.IntellijCodeNavigator
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource

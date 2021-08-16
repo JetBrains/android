@@ -16,8 +16,8 @@
 package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
-import com.android.tools.inspectors.common.api.stacktrace.FakeCodeNavigator;
+import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.idea.codenavigation.FakeCodeNavigator;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;

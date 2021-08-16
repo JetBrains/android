@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profiler.proto.Memory.NativeBacktrace;
 import com.android.tools.profiler.proto.Memory.NativeCallStack;

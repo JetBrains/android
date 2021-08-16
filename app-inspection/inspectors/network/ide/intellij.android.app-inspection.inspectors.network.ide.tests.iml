@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.view" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" scope="TEST" />
+    <orderEntry type="module" module-name="codenavigation" />
   </component>
 </module>

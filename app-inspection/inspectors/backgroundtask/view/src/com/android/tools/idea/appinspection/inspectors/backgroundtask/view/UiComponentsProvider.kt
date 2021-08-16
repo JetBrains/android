@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
+import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 

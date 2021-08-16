@@ -32,5 +32,6 @@ iml_module(
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/codenavigation[module]",
     ],
 )

@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.codenavigation.CodeNavigator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ThreeComponentsSplitter

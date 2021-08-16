@@ -16,6 +16,8 @@
 package com.android.tools.inspectors.common.api.stacktrace;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.Collections;

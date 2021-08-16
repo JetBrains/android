@@ -27,7 +27,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;

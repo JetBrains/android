@@ -155,6 +155,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model",
             "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view",
             "//tools/adt/idea/server-flags:intellij.android.server-flags",
+            "//tools/adt/idea/codenavigation:codenavigation",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

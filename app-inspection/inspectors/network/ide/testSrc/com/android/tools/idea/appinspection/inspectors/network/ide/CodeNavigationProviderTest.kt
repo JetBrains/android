@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.inspectors.common.api.ide.stacktrace.IntellijCodeNavigator
+import com.android.tools.idea.codenavigation.IntellijCodeNavigator
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test

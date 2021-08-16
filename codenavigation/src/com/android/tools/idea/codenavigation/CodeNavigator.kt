@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api.stacktrace
+package com.android.tools.idea.codenavigation
 
 import java.util.function.Consumer
 

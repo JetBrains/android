@@ -15,8 +15,8 @@
  */
 package com.android.tools.inspectors.common.api.actions;
 
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

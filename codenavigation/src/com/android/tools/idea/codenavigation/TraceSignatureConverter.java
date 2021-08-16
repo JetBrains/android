@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api;
+package com.android.tools.idea.codenavigation;
 
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiArrayType;
@@ -27,7 +27,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TraceSignatureConverter {
+final class TraceSignatureConverter {
   /**
    * Mapping from java primitive type encoding to PsiPrimitiveType
    * More about java primitive type encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()

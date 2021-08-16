@@ -24,9 +24,9 @@ import static org.junit.Assert.assertNotNull;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;

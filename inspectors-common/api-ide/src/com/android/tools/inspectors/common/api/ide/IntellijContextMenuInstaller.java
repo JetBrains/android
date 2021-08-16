@@ -16,9 +16,9 @@
 package com.android.tools.inspectors.common.api.ide;
 
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.intellij.ide.actions.CopyAction;
 import com.intellij.openapi.actionSystem.ActionManager;

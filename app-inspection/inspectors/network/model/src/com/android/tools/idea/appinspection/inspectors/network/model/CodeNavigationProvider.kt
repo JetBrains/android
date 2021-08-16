@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model
 
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
+import com.android.tools.idea.codenavigation.CodeNavigator
 
 /**
  * An interface that returns an implementation dependent [CodeNavigator].

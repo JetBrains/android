@@ -15,8 +15,9 @@
  */
 package com.android.tools.inspectors.common.api.stacktrace;
 
-import static com.android.tools.inspectors.common.api.stacktrace.CodeLocation.INVALID_LINE_NUMBER;
+import static com.android.tools.idea.codenavigation.CodeLocation.INVALID_LINE_NUMBER;
 
+import com.android.tools.idea.codenavigation.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
+import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.StudioProfilersView

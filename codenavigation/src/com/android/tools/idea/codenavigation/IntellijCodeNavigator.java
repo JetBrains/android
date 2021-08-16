@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.inspectors.common.api.ide.stacktrace;
+package com.android.tools.idea.codenavigation;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.inspectors.common.api.TraceSignatureConverter;
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
 import com.google.common.base.Strings;
@@ -93,7 +90,7 @@ public class IntellijCodeNavigator extends CodeNavigator {
     // Hence all PSI-reading code inside getNavigatable() will need to wrapped in a ReadAction.
     // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
     CompletableFuture.supplyAsync(
-      () -> ReadAction.compute(() -> getNavigatable(location)), ApplicationManager.getApplication()::executeOnPooledThread)
+        () -> ReadAction.compute(() -> getNavigatable(location)), ApplicationManager.getApplication()::executeOnPooledThread)
       .thenAcceptAsync(nav -> {
         if (nav != null) {
           nav.navigate(true);

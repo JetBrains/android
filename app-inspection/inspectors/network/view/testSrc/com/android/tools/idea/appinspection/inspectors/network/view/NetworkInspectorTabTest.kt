@@ -25,9 +25,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNav
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClientImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
+import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
-import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
