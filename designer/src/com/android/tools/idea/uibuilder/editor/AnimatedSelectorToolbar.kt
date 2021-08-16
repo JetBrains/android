@@ -110,14 +110,12 @@ private constructor(
       setVisibilityState(/*play*/ true, /*pause*/ false, /*stop*/ true, /*frame*/ true)
       setTooltips(DEFAULT_PLAY_TOOLTIP,
                   DEFAULT_PAUSE_TOOLTIP,
-                  DEFAULT_STOP_TOOLTIP,
-                  DEFAULT_FRAME_FORWARD_TOOLTIP,
-                  DEFAULT_FRAME_BACK_TOOLTIP)
+                  DEFAULT_STOP_TOOLTIP)
     }
     else {
       setEnabledState(/*play*/ false, /*pause*/ false, /*stop*/ false, /*frame*/ false)
       setVisibilityState(/*play*/ true, /*pause*/ false, /*stop*/ true, /*frame*/ true)
-      setTooltips(NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP)
+      setTooltips(NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP)
     }
   }
 
