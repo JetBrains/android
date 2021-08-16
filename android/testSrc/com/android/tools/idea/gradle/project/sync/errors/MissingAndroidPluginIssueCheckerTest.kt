@@ -15,15 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.mockito.MockedStatic
+import java.util.concurrent.TimeUnit
 
 class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
   private val missingAndroidPluginIssueChecker = MissingAndroidPluginIssueChecker()
+  private lateinit var mockAppExecutorUtil: MockedStatic<AppExecutorUtil>
+  private lateinit var executor: BoundedTaskExecutor
+
+  override fun setUp() {
+    super.setUp()
+
+    executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("TestService", 1) as BoundedTaskExecutor
+    mockAppExecutorUtil = MockitoKt.mockStatic()
+    mockAppExecutorUtil.`when`<Any> {
+      AppExecutorUtil.getAppExecutorService()
+    }.thenReturn(executor)
+  }
+
+  override fun tearDown() {
+    try {
+      mockAppExecutorUtil.close()
+    }
+    finally {
+      super.tearDown()
+    }
+  }
 
   fun testCheckIssue() {
     val issueData = GradleIssueData(projectFolderPath.path, Throwable("Could not find com.android.tools.build:gradle:"), null, null)
@@ -37,7 +64,12 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(AddGoogleMavenRepositoryQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
 
-    buildIssue.quickFixes[0].runQuickFix(project, SimpleDataContext.getProjectContext(project))
+
+    val future = buildIssue.quickFixes[0].runQuickFix(project, SimpleDataContext.getProjectContext(project))
+    executor.waitAllTasksExecuted(1, TimeUnit.SECONDS)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(future.get(1, TimeUnit.SECONDS)).isNull()
   }
 
   fun testCheckIssueHandled() {

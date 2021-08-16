@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.events
 
-import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
