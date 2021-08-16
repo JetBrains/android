@@ -17,18 +17,37 @@ package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.android.tools.idea.wearpairing.toPairingDevice
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 
-class PairDeviceAction(avdInfoProvider: AvdInfoProvider) : AvdUiAction(avdInfoProvider,
-                                                                       "Pair device",
-                                                                       getDescription(avdInfoProvider.avdInfo),
-                                                                       StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+internal class PairDeviceAction(
+  avdInfoProvider: AvdInfoProvider,
+  private val logDeviceManagerEvents: Boolean = false
+) : AvdUiAction(
+  avdInfoProvider,
+  "Pair device",
+  getDescription(avdInfoProvider.avdInfo),
+  StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
 ) {
   override fun actionPerformed(actionEvent: ActionEvent) {
+    if (logDeviceManagerEvents) {
+      val deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_PAIR_DEVICE_ACTION)
+        .build()
+
+      val builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(deviceManagerEvent)
+
+      UsageTracker.log(builder)
+    }
+
     val project = myAvdInfoProvider.project ?: return
     val avdInfo = avdInfo ?: return
     WearDevicePairingWizard().show(project, avdInfo.toPairingDevice(avdInfo.name, false))

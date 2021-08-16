@@ -16,13 +16,15 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
-
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.event.ActionEvent;
 import java.util.concurrent.Executor;
@@ -34,18 +36,32 @@ import org.jetbrains.annotations.Nullable;
  * Delete an AVD with confirmation.
  */
 public class DeleteAvdAction extends AvdUiAction {
+  private final boolean myLogDeviceManagerEvents;
   private final @NotNull Function<@NotNull AvdInfoProvider, @NotNull ListenableFuture<@NotNull Boolean>> myIsAvdRunning;
-
   private final @NotNull Executor myExecutor;
 
-  public DeleteAvdAction(@NotNull AvdInfoProvider provider) {
+  public DeleteAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
     super(provider, "Delete", "Delete this AVD", AllIcons.Actions.Cancel);
-    myExecutor = EdtExecutorService.getInstance();
+
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
     myIsAvdRunning = AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning;
+    myExecutor = EdtExecutorService.getInstance();
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(event);
+
+      UsageTracker.log(builder);
+    }
+
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     AvdInfo info = getAvdInfo();
     if (info == null) {

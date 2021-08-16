@@ -36,7 +36,7 @@ public final class StopAvdActionTest {
   public void addPropertyChangeListener() {
     // Arrange
     AvdInfoProvider provider = Mockito.mock(AvdInfoProvider.class);
-    Action action = new StopAvdAction(provider, p -> Futures.immediateFuture(false), MoreExecutors.directExecutor());
+    Action action = new StopAvdAction(provider, false, p -> Futures.immediateFuture(false), MoreExecutors.directExecutor());
 
     PropertyChangeListener listener = Mockito.mock(PropertyChangeListener.class);
 

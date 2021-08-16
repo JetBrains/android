@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.EdtExecutorService
@@ -28,10 +31,24 @@ import java.awt.event.ActionEvent
  * Launch the emulator now, forcing a cold boot.
  * This does not change the general Cold/Fast selection.
  */
-class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
-    AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.Menu_open) {
-
+internal class ColdBootNowAction(avdInfoProvider: AvdInfoProvider,
+                                 private val logDeviceManagerEvents: Boolean) : AvdUiAction(avdInfoProvider,
+                                                                                            "Cold Boot Now",
+                                                                                            "Force one cold boot",
+                                                                                            AllIcons.Actions.Menu_open) {
   override fun actionPerformed(actionEvent: ActionEvent) {
+    if (logDeviceManagerEvents) {
+      val deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_COLD_BOOT_NOW_ACTION)
+        .build()
+
+      val builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(deviceManagerEvent)
+
+      UsageTracker.log(builder)
+    }
+
     val project = myAvdInfoProvider.project
     val avd = avdInfo ?: return
     val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, avd)
@@ -40,8 +57,8 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
 
   override fun isEnabled(): Boolean {
     return avdInfo != null
-        && EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
-                                                        StudioLoggerProgressIndicator(ColdBootNowAction::class.java),
-                                                        LogWrapper(Logger.getInstance(AvdManagerConnection::class.java)))
+           && EmulatorAdvFeatures.emulatorSupportsFastBoot(AndroidSdks.getInstance().tryToChooseSdkHandler(),
+                                                           StudioLoggerProgressIndicator(ColdBootNowAction::class.java),
+                                                           LogWrapper(Logger.getInstance(AvdManagerConnection::class.java)))
   }
 }

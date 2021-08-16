@@ -16,18 +16,36 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Messages;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class WipeAvdDataAction extends AvdUiAction {
-  public WipeAvdDataAction(AvdInfoProvider avdInfoProvider) {
+  private final boolean myLogDeviceManagerEvents;
+
+  WipeAvdDataAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
     super(avdInfoProvider, "Wipe Data", "Wipe the user data of this AVD", AllIcons.Actions.Edit);
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_WIPE_DATA_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(event);
+
+      UsageTracker.log(builder);
+    }
+
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     AvdInfo avdInfo = getAvdInfo();
     if (avdInfo == null) {

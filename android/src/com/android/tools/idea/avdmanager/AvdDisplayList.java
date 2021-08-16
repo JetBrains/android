@@ -207,7 +207,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     ActionMap am = myTable.getActionMap();
     am.put("selectPreviousColumnCell", new CycleAction(true));
     am.put("selectNextColumnCell", new CycleAction(false));
-    am.put("deleteAvd", new DeleteAvdAction(this));
+    am.put("deleteAvd", new DeleteAvdAction(this, false));
     myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
     myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter");
     myTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd");
@@ -598,7 +598,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     private final AvdActionPanel myComponent;
 
     ActionRenderer(int numVisibleActions, AvdInfo info) {
-      myComponent = new AvdActionPanel(info, numVisibleActions, myProject != null, AvdDisplayList.this);
+      myComponent = new AvdActionPanel(AvdDisplayList.this, info, false, myProject != null, numVisibleActions);
     }
 
     private @NotNull Component getComponent(@NotNull JTable table, int row, int column) {
@@ -709,9 +709,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     AvdInfo info = getAvdInfo();
     if (info != null) {
       if (info.getStatus() == AvdInfo.AvdStatus.OK) {
-        new RunAvdAction(this).actionPerformed(null);
+        new RunAvdAction(this, false).actionPerformed(null);
       } else {
-        new EditAvdAction(this).actionPerformed(null);
+        new EditAvdAction(this, false).actionPerformed(null);
       }
     }
   }

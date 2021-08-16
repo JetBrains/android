@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -33,10 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class StopAvdAction extends AvdUiAction {
-  private boolean myEnabled;
-
-  @NotNull
-  private final PropertyChangeSupport myPropertyChangeSupport;
+  private final boolean myLogDeviceManagerEvents;
 
   @NotNull
   private final Function<AvdInfoProvider, ListenableFuture<Boolean>> myIsAvdRunning;
@@ -44,24 +44,31 @@ final class StopAvdAction extends AvdUiAction {
   @NotNull
   private final Executor myExecutor;
 
-  StopAvdAction(@NotNull AvdInfoProvider provider) {
-    this(
-      provider,
-      AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning,
-      EdtExecutorService.getInstance()
-    );
+  private boolean myEnabled;
+
+  @NotNull
+  private final PropertyChangeSupport myPropertyChangeSupport;
+
+  StopAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
+    this(provider,
+         logDeviceManagerEvents,
+         AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning,
+         EdtExecutorService.getInstance());
   }
 
   @VisibleForTesting
   StopAvdAction(@NotNull AvdInfoProvider provider,
+                boolean logDeviceManagerEvents,
                 @NotNull Function<AvdInfoProvider, ListenableFuture<Boolean>> isAvdRunning,
                 @NotNull Executor executor) {
     super(provider, "Stop", "Stop the emulator running this AVD", AllIcons.Actions.Suspend);
 
-    myEnabled = true;
-    myPropertyChangeSupport = new SwingPropertyChangeSupport(this);
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
     myIsAvdRunning = isAvdRunning;
     myExecutor = executor;
+
+    myEnabled = true;
+    myPropertyChangeSupport = new SwingPropertyChangeSupport(this);
   }
 
   @Override
@@ -102,6 +109,18 @@ final class StopAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(deviceManagerEvent);
+
+      UsageTracker.log(builder);
+    }
+
     AvdManagerConnection.getDefaultAvdManagerConnection().stopAvd(Objects.requireNonNull(getAvdInfo()));
   }
 }
