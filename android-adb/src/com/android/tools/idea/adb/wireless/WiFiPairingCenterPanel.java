@@ -28,6 +28,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,11 +46,12 @@ public class WiFiPairingCenterPanel {
   @NotNull private JPanel myErrorBottomPanel;
   @NotNull private JPanel myErrorTextPanel;
 
-  public WiFiPairingCenterPanel() {
+  public WiFiPairingCenterPanel(HyperlinkListener hyperlinkListener) {
     myContentPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myErrorTextPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     myErrorText.setForeground(UIColors.ERROR_TEXT);
+    myErrorText.addHyperlinkListener(hyperlinkListener);
 
     Border line = new CustomLineBorder(UIColors.ONE_PIXEL_DIVIDER, 1, 0, 0, 0);
     Border c = new CompoundBorder(line, JBUI.Borders.empty(5, 0));

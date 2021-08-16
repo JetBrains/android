@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.adb.wireless
 
-object Urls {
-  const val learnMore: String = "https://d.android.com/r/studio-ui/wifi-pairing"
-  const val troubleshootConnection: String = "https://d.android.com/r/studio-ui/troubleshoot-wifi-connection"
-  /** Not a URL, but this value used as a hyperlink target directs the EditorPaneUtils.createHtmlEditorPane to open the SDK manager. */
-  const val openSdkManager: String = "open-sdk-manager"
+import com.android.tools.idea.FutureValuesTracker
+import com.intellij.ui.HyperlinkAdapter
+import javax.swing.event.HyperlinkEvent
+
+class MockWiFiPairingHyperlinkListener : HyperlinkAdapter() {
+  val hyperlinkClickTracker = FutureValuesTracker<Unit>()
+  override fun hyperlinkActivated(e: HyperlinkEvent?) {
+    hyperlinkClickTracker.produce(Unit)
+  }
 }

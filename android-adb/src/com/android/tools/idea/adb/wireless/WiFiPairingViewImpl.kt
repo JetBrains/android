@@ -21,11 +21,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import javax.swing.event.HyperlinkListener
 
 @UiThread
 class WiFiPairingViewImpl(project: Project,
                           private val notificationService: WiFiPairingNotificationService,
-                          override val model: WiFiPairingModel
+                          override val model: WiFiPairingModel,
+                          hyperlinkListener: HyperlinkListener
 ) : WiFiPairingView {
   private val dlg: WiFiPairingDialog
   private val listeners = ArrayList<WiFiPairingView.Listener>()
@@ -33,7 +35,7 @@ class WiFiPairingViewImpl(project: Project,
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
-    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT, hyperlinkListener)
     dlg.pairingCodePairInvoked = { service ->
       listeners.forEach { it.onPairingCodePairAction(service) }
     }
@@ -61,32 +63,35 @@ class WiFiPairingViewImpl(project: Project,
   }
 
   override fun showMdnsNotSupportedError() {
-    dlg.showLoadingError(buildErrorHtml(arrayOf(
-      "This system does not meet the requirements to support Wi-Fi pairing.",
-      "Please update to the latest version of \"platform-tools\" using the SDK manager."
-    )))
+    showMdnsNotSupportedError("This system does not meet the requirements to support Wi-Fi pairing.")
+  }
+
+  private fun showMdnsNotSupportedError(message: String) {
+    dlg.showLoadingError(buildErrorHtml {
+      add(message)
+      newline()
+      add("Please update to the latest version of \"platform-tools\" using the SDK manager.")
+      newline()
+      newline()
+      addLink("Open SDK manager", Urls.openSdkManager)
+    })
   }
 
   override fun showMdnsNotSupportedByAdbError() {
-    dlg.showLoadingError(buildErrorHtml(arrayOf(
-      "The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing.",
-      "Please update to the latest version of \"platform-tools\" using the SDK manager."
-    )))
+    showMdnsNotSupportedError("The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing.")
   }
 
   override fun showMdnsCheckError() {
-    dlg.showLoadingError(buildErrorHtml(arrayOf(
-      "There was an unexpected error during Wi-Fi pairing initialization."
-    )))
+    dlg.showLoadingError(buildErrorHtml {
+      add("There was an unexpected error during Wi-Fi pairing initialization.");
+    })
   }
 
-  private fun buildErrorHtml(lines: Array<String>): HtmlBuilder {
+  private fun buildErrorHtml(build: HtmlBuilder.() -> Unit): HtmlBuilder {
     return HtmlBuilder().apply {
       beginDiv("text-align: center;")
-      lines.forEach { line ->
-        add(line)
-        newline()
-      }
+      build()
+      newline()
       newline()
       addLink("Learn more", Urls.learnMore)
       endDiv()

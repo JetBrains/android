@@ -43,7 +43,10 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.swing.JButton
+import javax.swing.JEditorPane
 import javax.swing.JTextField
+import javax.swing.text.html.HTML
+import javax.swing.text.html.HTMLDocument
 
 class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
@@ -134,6 +137,31 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
       pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
+    }
+  }
+
+  @Test
+  fun viewShouldShowSdkManagerLinkIfOutOfDate() {
+    createModalDialogAndInteractWithIt({ view.showDialog() }) {
+      view.showMdnsNotSupportedByAdbError();
+
+      val fakeUi = FakeUi(it.rootPane)
+      val pane = fakeUi.getComponent<JEditorPane> {comp -> comp.name == "errorText"}
+      val anchor = (pane.document as HTMLDocument).getIterator(HTML.Tag.A)
+      while (anchor.isValid) {
+        if (anchor.attributes.getAttribute(HTML.Attribute.HREF) == Urls.openSdkManager) {
+          break
+        }
+        anchor.next()
+      }
+      if (!anchor.isValid) {
+        fail("Did not find SDK manager link")
+      }
+
+      val rect = pane.modelToView2D(anchor.startOffset)
+      fakeUi.clickRelativeTo(pane, rect.centerX.toInt(), rect.centerY.toInt())
+
+      pumpAndWait(view.hyperlinkListener.hyperlinkClickTracker.consume())
     }
   }
 

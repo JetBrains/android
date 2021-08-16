@@ -60,7 +60,7 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
 
   fun createPairingDialogController(): WiFiPairingController {
     val model = WiFiPairingModel()
-    val view = WiFiPairingViewImpl(project, notificationService, model)
+    val view = WiFiPairingViewImpl(project, notificationService, model, WiFiPairingHyperlinkListener)
     return WiFiPairingControllerImpl(project, this, edtExecutor, devicePairingService, notificationService, view)
   }
 
