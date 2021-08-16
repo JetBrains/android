@@ -16,22 +16,40 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.RevealFileAction;
-
 import java.awt.event.ActionEvent;
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Show the contents of the AVD on disk
  */
 public class ShowAvdOnDiskAction extends AvdUiAction {
-  public ShowAvdOnDiskAction(AvdInfoProvider avdInfoProvider) {
+  private final boolean myLogDeviceManagerEvents;
+
+  ShowAvdOnDiskAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
     super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_SHOW_ON_DISK_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(event);
+
+      UsageTracker.log(builder);
+    }
+
     AvdInfo info = getAvdInfo();
     if (info == null) {
       return;

@@ -15,23 +15,36 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class EditAvdAction extends AvdUiAction {
-  public EditAvdAction(AvdInfoProvider avdInfoProvider) {
-    this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Actions.Edit);
-  }
+  private final boolean myLogDeviceManagerEvents;
 
-  protected EditAvdAction(AvdInfoProvider avdInfoProvider, String text, String description, Icon icon) {
-    super(avdInfoProvider, text, description, icon);
+  public EditAvdAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
+    super(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Actions.Edit);
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(event);
+
+      UsageTracker.log(builder);
+    }
+
     ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getAvdProviderComponent(), getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
       refreshAvds();

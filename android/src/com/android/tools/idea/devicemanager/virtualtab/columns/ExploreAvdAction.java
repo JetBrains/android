@@ -17,9 +17,12 @@ package com.android.tools.idea.devicemanager.virtualtab.columns;
 
 import com.android.annotations.Nullable;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import java.awt.event.ActionEvent;
@@ -28,15 +31,30 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ExploreAvdAction extends AvdUiAction {
   private final @NotNull AvdInfoProvider myAvdInfoProvider;
+  private final boolean myLogDeviceManagerEvents;
 
-  public ExploreAvdAction(@NotNull AvdInfoProvider provider) {
+  public ExploreAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
     super(provider, "Explore device filesystem...",
           "Open Device File Explorer for this device", AllIcons.General.OpenDiskHover);
+
     myAvdInfoProvider = provider;
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
   @Override
   public void actionPerformed(@Nullable ActionEvent event) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(deviceManagerEvent);
+
+      UsageTracker.log(builder);
+    }
+
     Project project = myAvdInfoProvider.getProject();
     if (project == null) {
       return;

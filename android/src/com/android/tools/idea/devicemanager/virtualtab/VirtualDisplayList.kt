@@ -74,11 +74,12 @@ import javax.swing.table.TableCellRenderer
 /**
  * A UI component which lists the existing AVDs
  */
-class VirtualDisplayList @TestOnly constructor(private val project: Project?,
-                         private val virtualDeviceModel: VirtualDeviceModel,
-                         modelListenerLatch: CountDownLatch?,
-                         private val deviceTableCellRenderer: TableCellRenderer)
-  : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
+class VirtualDisplayList @TestOnly constructor(
+  private val project: Project?,
+  private val virtualDeviceModel: VirtualDeviceModel,
+  modelListenerLatch: CountDownLatch?,
+  private val deviceTableCellRenderer: TableCellRenderer
+) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
 
   constructor(project: Project?) : this(project,
                                         VirtualDeviceModel(),
@@ -121,7 +122,7 @@ class VirtualDisplayList @TestOnly constructor(private val project: Project?,
     table.actionMap.apply {
       // put("selectPreviousColumnCell", CycleAction(true))
       // put("selectNextColumnCell", CycleAction(false))
-      put("deleteAvd", DeleteAvdAction(this@VirtualDisplayList))
+      put("deleteAvd", DeleteAvdAction(this@VirtualDisplayList, false))
       put("enter", object : AbstractAction() {
         override fun actionPerformed(e: ActionEvent) {
           doAction()
@@ -333,10 +334,10 @@ class VirtualDisplayList @TestOnly constructor(private val project: Project?,
     val info = avdInfo ?: return
 
     if (info.status == AvdInfo.AvdStatus.OK) {
-      RunAvdAction(this).actionPerformed(null)
+      RunAvdAction(this, false).actionPerformed(null)
     }
     else {
-      EditAvdAction(this).actionPerformed(null)
+      EditAvdAction(this, false).actionPerformed(null)
     }
   }
 

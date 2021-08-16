@@ -72,7 +72,7 @@ class AvdActionsColumnInfo(
                        info: AvdInfo?,
                        projectOpen: Boolean,
                        refreshProvider: AvdRefreshProvider) : AbstractTableCellEditor(), TableCellRenderer {
-    val component: AvdActionPanel = AvdActionPanel((info)!!, this.numVisibleActions, projectOpen, refreshProvider)
+    private val component = AvdActionPanel(refreshProvider, info!!, true, projectOpen, this.numVisibleActions)
 
     private fun getComponent(table: JTable, row: Int, column: Int) = component.apply {
       if (table.selectedRow == row) {

@@ -16,9 +16,25 @@
 package com.android.tools.idea.avdmanager;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.DialogWrapper;
+import java.awt.event.ActionEvent;
 
-public class RepairAvdAction extends EditAvdAction {
+final class RepairAvdAction extends AvdUiAction {
   public RepairAvdAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Repair Device", "Repair Device", AllIcons.General.BalloonWarning);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return getAvdInfo() != null;
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent event) {
+    DialogWrapper dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getAvdProviderComponent(), getProject(), getAvdInfo());
+
+    if (dialog.showAndGet()) {
+      refreshAvds();
+    }
   }
 }

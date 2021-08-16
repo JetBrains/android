@@ -15,18 +15,36 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class DuplicateAvdAction extends AvdUiAction {
-  public DuplicateAvdAction(AvdInfoProvider avdInfoProvider) {
+  private final boolean myLogDeviceManagerEvents;
+
+  DuplicateAvdAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
     super(avdInfoProvider, "Duplicate", "Duplicate this AVD", AllIcons.Actions.Edit);
+    myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myLogDeviceManagerEvents) {
+      DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION)
+        .build();
+
+      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
+        .setDeviceManagerEvent(event);
+
+      UsageTracker.log(builder);
+    }
+
     ModelWizardDialog dialog = AvdWizardUtils.createAvdWizardForDuplication(myAvdInfoProvider.getAvdProviderComponent(),
                                                                             getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
