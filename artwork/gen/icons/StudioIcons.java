@@ -17,6 +17,8 @@ public class StudioIcons {
   }
 
   public static class Avd {
+    public static final Icon CONNECTION_USB = load("/studio/icons/avd/connection-usb.svg"); // 16x16
+    public static final Icon CONNECTION_WIFI = load("/studio/icons/avd/connection-wifi.svg"); // 16x16
     public static final Icon DEVICE_AUTOMOTIVE_LARGE = load("/studio/icons/avd/device-automotive-large.svg"); // 32x32
     public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/avd/device-automotive.svg"); // 16x16
     public static final Icon DEVICE_CAR_LARGE = load("/studio/icons/avd/device-car-large.svg"); // 32x32
@@ -810,6 +812,7 @@ public class StudioIcons {
       public static final Icon DATABASE_INSPECTOR = load("/studio/icons/shell/tool-windows/database-inspector.svg"); // 13x13
       public static final Icon DEBUG = load("/studio/icons/shell/tool-windows/debug.svg"); // 13x13
       public static final Icon DEVICE_EXPLORER = load("/studio/icons/shell/tool-windows/device-explorer.svg"); // 13x13
+      public static final Icon DEVICE_MANAGER = load("/studio/icons/shell/tool-windows/device-manager.svg"); // 13x13
       public static final Icon EMULATOR = load("/studio/icons/shell/tool-windows/emulator.svg"); // 13x13
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.svg"); // 13x13
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.svg"); // 13x13
@@ -853,8 +856,10 @@ public class StudioIcons {
   }
 
   public static class Test {
-    public static final Icon FAILED_TEST_RETENTION = load("/studio/icons/test/failed-test-retention.svg"); // 16x16
     public static final Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg"); // 16x16
+    public static final Icon RICH_TEST_RESULT_ERROR = load("/studio/icons/test/rich-test-result-error.svg"); // 16x16
+    public static final Icon RICH_TEST_RESULT_FAILED = load("/studio/icons/test/rich-test-result-failed.svg"); // 16x16
+    public static final Icon RICH_TEST_RESULT_PASSED = load("/studio/icons/test/rich-test-result-passed.svg"); // 16x16
   }
 
   public static class Wizards {
