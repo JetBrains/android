@@ -78,7 +78,7 @@ class LocalApkProjTest {
   fun createProjectFromLocallyBuiltApk() {
     val projectRoot = buildApkLocally("ApkDebug")
 
-    profileOrDebugApk(guiTest.welcomeFrame(), File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"))
+    profileOrDebugApk(guiTest.welcomeFrame(), File(projectRoot, "app/build/intermediates/apk/debug/app-x86-debug.apk"))
 
     // Handle the APK Import dialog pop up if running in the IDE etc.
     val downloadDialog = try {
