@@ -45,8 +45,6 @@ import javax.swing.event.ChangeListener
 internal const val DEFAULT_PLAY_TOOLTIP = "Play"
 internal const val DEFAULT_PAUSE_TOOLTIP = "Pause"
 internal const val DEFAULT_STOP_TOOLTIP = "Reset"
-internal const val DEFAULT_FRAME_FORWARD_TOOLTIP = "Step forward"
-internal const val DEFAULT_FRAME_BACK_TOOLTIP = "Step backward"
 
 /**
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
@@ -68,8 +66,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private val myPlayButton: JButton
   private val myPauseButton: JButton
   private val myStopButton: JButton
-  private val myFrameFwdButton: JButton
-  private val myFrameBckButton: JButton
 
   // TODO: Add speed selector button.
   private val myTickStepMs: Long
@@ -134,8 +130,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myPlayButton.isEnabled = play
     myPauseButton.isEnabled = pause
     myStopButton.isEnabled = stop
-    myFrameFwdButton.isEnabled = frame
-    myFrameBckButton.isEnabled = frame
     myFrameControl.isEnabled = frame
   }
 
@@ -146,8 +140,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myPlayButton.isVisible = play
     myPauseButton.isVisible = pause
     myStopButton.isVisible = stop
-    myFrameFwdButton.isVisible = frame
-    myFrameBckButton.isVisible = frame
     myFrameControl.isVisible = frame
   }
 
@@ -156,14 +148,10 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    */
   protected fun setTooltips(play: String?,
                             pause: String?,
-                            stop: String?,
-                            frameForward: String?,
-                            frameback: String?) {
+                            stop: String?) {
     myPlayButton.toolTipText = play
     myPauseButton.toolTipText = pause
     myStopButton.toolTipText = stop
-    myFrameFwdButton.toolTipText = frameForward
-    myFrameBckButton.toolTipText = frameback
   }
 
   final override fun play() {
@@ -203,14 +191,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myListener.animateTo(this, myFramePositionMs)
   }
 
-  private fun onFrameFwd() {
-    onTick(myTickStepMs)
-  }
-
-  private fun onFrameBck() {
-    onTick(-myTickStepMs)
-  }
-
   /**
    * Called after a new frame position has been set
    */
@@ -225,8 +205,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       }
     }
     myStopButton.isEnabled = myFramePositionMs - myTickStepMs >= myMinTimeMs
-    myFrameFwdButton.isEnabled = myFramePositionMs + myTickStepMs <= myMaxTimeMs
-    myFrameBckButton.isEnabled = myFramePositionMs - myTickStepMs >= myMinTimeMs
 
     val timeSliderModel = myTimeSliderModel
     if (timeSliderModel != null) {
@@ -352,14 +330,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
       AnimationToolbarAction.STOP
     ) { stop() }
-    myFrameFwdButton = newControlButton(
-      StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", DEFAULT_FRAME_FORWARD_TOOLTIP,
-      AnimationToolbarAction.FRAME_FORWARD
-    ) { onFrameFwd() }
-    myFrameBckButton = newControlButton(
-      StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward", DEFAULT_FRAME_BACK_TOOLTIP,
-      AnimationToolbarAction.FRAME_BACKWARD
-    ) { onFrameBck() }
     controlBar = object : JPanel(FlowLayout()) {
       override fun updateUI() {
         setUI(DesignSurfaceToolbarUI())
@@ -367,10 +337,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     }
     val buttonsPanel = Box.createHorizontalBox()
     buttonsPanel.add(myStopButton)
-    buttonsPanel.add(myFrameBckButton)
     buttonsPanel.add(myPlayButton)
     buttonsPanel.add(myPauseButton)
-    buttonsPanel.add(myFrameFwdButton)
     controlBar.add(buttonsPanel)
     if (isUnlimitedAnimationToolbar) {
       myTimeSlider = null
