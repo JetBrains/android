@@ -22,6 +22,8 @@ import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import java.awt.EventQueue
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -29,7 +31,7 @@ import java.awt.datatransfer.StringSelection
 /**
  * Synchronizes the AVD and the host clipboards.
  */
-internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController) {
+internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, parentDisposable: Disposable) : Disposable {
 
   @GuardedBy("lock")
   private var clipboardFeed: Cancelable? = null
@@ -41,6 +43,10 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController) {
 
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   @UiThread
   fun setDeviceClipboardAndKeepHostClipboardInSync() {
@@ -115,5 +121,9 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController) {
       }
       responseCount++
     }
+  }
+
+  override fun dispose() {
+    cancelClipboardFeed()
   }
 }
