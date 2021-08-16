@@ -97,7 +97,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
    *   2. Enable split by adding the following to app/build.gradle: android.splits.abi.enable true.
    *   3. Start a native debugging session in Android Studio (deploy in emulator using x86 architecture).
    *   4. Now hit the stop button.
-   *   4. Go the folder ~<project folder="">/app/build/outputs/apk and check
+   *   4. Go the folder ~<project folder="">/app/build/intermediates/apk and check
    *      the apk generated (Verify 1, 2).
    *   Verify:
    *   1. APK generated should not be universal (You can verify this by trying to install the apk
@@ -137,7 +137,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     // Currently, cannot reproduce this issue locally to get the screenshot with the "Application Installation Failed" dialog shows up.
 
     File projectRoot = ideFrame.getProjectPath();
-    File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
+    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/apk/debug/" + expectedApkName);
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
   }

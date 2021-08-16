@@ -132,7 +132,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     assertTrue("Build failed", ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X")).isBuildSuccessful());
 
     File projectRoot = ideFrame.getProjectPath();
-    File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
+    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/apk/debug/" + expectedApkName);
 
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
