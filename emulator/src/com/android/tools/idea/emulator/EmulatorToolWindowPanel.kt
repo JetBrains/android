@@ -177,7 +177,7 @@ class EmulatorToolWindowPanel(
       val disposable = Disposer.newDisposable()
       contentDisposable = disposable
 
-      clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator)
+      clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)
 
       val primaryDisplayPanel =
           EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
