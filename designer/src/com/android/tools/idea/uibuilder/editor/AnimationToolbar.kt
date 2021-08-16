@@ -28,12 +28,14 @@ import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
 import java.awt.FlowLayout
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.Box
 import javax.swing.Icon
@@ -164,7 +166,13 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         val now = System.currentTimeMillis()
         val elapsed = now - myLastTickMs
         myLastTickMs = now
-        onTick(elapsed) }, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
+        onTick(elapsed)
+        if (myMaxTimeMs != -1L && myFramePositionMs >= myMaxTimeMs) {
+          myTicker?.cancel(false)
+          myTicker = null
+          setVisibilityState(play = false, pause = true, stop = true, frame = true)
+          setEnabledState(play = false, pause = false, stop = true, frame = true)
+        }}, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
   }
 
   final override fun pause() {
@@ -380,6 +388,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS
       )
     }
+
     myFrameControl.addMouseListener(object : MouseAdapter() {
       override fun mouseReleased(e: MouseEvent) {
         if (!myFrameControl.isEnabled) {
