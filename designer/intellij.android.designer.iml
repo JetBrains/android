@@ -46,7 +46,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
