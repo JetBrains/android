@@ -22,6 +22,7 @@ com.android.tools.idea.gradle.project.importing.TopLevelModuleFactoryTest
 com.android.tools.idea.gradle.project.model.AndroidModuleModelTest
 com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
+com.android.tools.idea.gradle.project.sync.AllVariantsSyncWithGradleSyncExecutorTest
 com.android.tools.idea.gradle.project.sync.DependencySetupTest
 com.android.tools.idea.gradle.project.sync.GradleFilesTest
 com.android.tools.idea.gradle.project.sync.GradleSyncExecutorTest
