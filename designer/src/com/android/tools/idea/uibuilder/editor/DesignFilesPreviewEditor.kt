@@ -134,7 +134,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       } ?: 0L
       val oneShotString = animationDrawable?.isOneShot ?: false
       return AnimationToolbar.createAnimationToolbar(this, AnimationListListener(surface), 16, 0, maxTimeMs)
-        .apply { setLoop(!oneShotString) }
+        .apply { setLooping(!oneShotString) }
     }
     return null
   }
@@ -216,7 +216,7 @@ private class AnimationListListener(val surface: DesignSurface) : AnimationListe
         durationSum += animationDrawable.getDuration(index)
         timeMap.add(durationSum)
       }
-      controller.setLoop(!animationDrawable.isOneShot)
+      controller.setLooping(!animationDrawable.isOneShot)
       controller.setMaxTimeMs(durationSum)
       timeMap
     }
