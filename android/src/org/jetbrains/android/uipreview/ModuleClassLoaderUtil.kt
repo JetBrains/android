@@ -18,7 +18,6 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.rendering.classloading.ClassTransform
-import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -29,7 +28,6 @@ import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
-import com.google.common.collect.Lists
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -76,7 +74,7 @@ private val additionalLibraries: List<Path>
     val layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath()
                                     ?: return emptyList() // Error is already logged by getEmbeddedLayoutLibPath
     val relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar")
-    return Lists.newArrayList(File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath())
+    return arrayListOf(File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath())
   }
 
 val Module.externalLibraries: List<Path>
