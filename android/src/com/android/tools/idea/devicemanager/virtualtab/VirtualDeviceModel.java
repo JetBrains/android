@@ -16,11 +16,11 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -55,15 +55,11 @@ public final class VirtualDeviceModel {
 
   private void logVirtualDeviceCount() {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_COUNT)
+      .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
       .setVirtualDeviceCount(myAvds.size())
       .build();
 
-    AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-      .setDeviceManagerEvent(event);
-
-    UsageTracker.log(builder);
+    DeviceManagerUsageTracker.log(event);
   }
 
   void addListener(@NotNull VirtualDeviceModelListener listener) {

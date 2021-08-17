@@ -17,12 +17,12 @@ package com.android.tools.idea.devicemanager.virtualtab.columns;
 
 import com.android.annotations.Nullable;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import java.awt.event.ActionEvent;
@@ -45,14 +45,10 @@ public final class ExploreAvdAction extends AvdUiAction {
   public void actionPerformed(@Nullable ActionEvent event) {
     if (myLogDeviceManagerEvents) {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION)
+        .setKind(EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION)
         .build();
 
-      AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-        .setDeviceManagerEvent(deviceManagerEvent);
-
-      UsageTracker.log(builder);
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
     }
 
     Project project = myAvdInfoProvider.getProject();
