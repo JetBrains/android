@@ -24,7 +24,7 @@ interface ConfigurationSet {
   val id: String
 
   /**
-   * The name of this this models provider. The name can be duplicated and it shows on the dropdown menu of configuration set action.
+   * The name of this models provider. The name can be duplicated, and it shows on the dropdown menu of configuration set action.
    */
   val name: String
   val visible: Boolean
@@ -35,6 +35,7 @@ interface ConfigurationSet {
     override val id = "pixelDevices"
     override val name = "Pixel Devices"
     override fun createModelsProvider(listener: ConfigurationSetListener) = PixelDeviceModelsProvider
+    override val visible = !StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()
   }
 
   object WearDevices : ConfigurationSet {
@@ -74,27 +75,44 @@ interface ConfigurationSet {
     override fun createModelsProvider(listener: ConfigurationSetListener) = TabletModelsProvider
     override val visible = StudioFlags.NELE_VISUAL_LINT.get()
   }
+
+  object WindowSizeDevices : ConfigurationSet {
+    override val id = "windowSizeDevices"
+    override val name = "Window Sizes"
+    override fun createModelsProvider(listener: ConfigurationSetListener) = WindowSizeModelsProvider
+    override val visible = StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()
+  }
 }
 
 object ConfigurationSetProvider {
   @JvmField
-  val defaultSet = ConfigurationSet.PixelDevices
+  val defaultSet =
+    if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices
 
   @JvmStatic
   fun getConfigurationSets(): List<ConfigurationSet> =
-    listOf(ConfigurationSet.PixelDevices,
-           ConfigurationSet.WearDevices,
-           ConfigurationSet.Tablets,
-           ConfigurationSet.ProjectLocal,
-           ConfigurationSet.Custom,
-           ConfigurationSet.ColorBlindMode,
-           ConfigurationSet.LargeFont)
+    listOf(
+      if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices,
+      ConfigurationSet.WearDevices,
+      ConfigurationSet.Tablets,
+      ConfigurationSet.ProjectLocal,
+      ConfigurationSet.Custom,
+      ConfigurationSet.ColorBlindMode,
+      ConfigurationSet.LargeFont)
 
   @JvmStatic
-  fun getGroupedConfigurationSets(): List<List<ConfigurationSet>> =
-    listOf(listOf(ConfigurationSet.PixelDevices, ConfigurationSet.WearDevices, ConfigurationSet.Tablets, ConfigurationSet.ProjectLocal),
-           listOf(ConfigurationSet.Custom),
-           listOf(ConfigurationSet.ColorBlindMode, ConfigurationSet.LargeFont))
+  fun getGroupedConfigurationSets(): List<List<ConfigurationSet>>  {
+    val firstGroup = listOfNotNull(
+      if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices,
+      ConfigurationSet.WearDevices,
+      ConfigurationSet.Tablets,
+      ConfigurationSet.ProjectLocal
+    )
+
+    return listOf(firstGroup,
+                  listOf(ConfigurationSet.Custom),
+                  listOf(ConfigurationSet.ColorBlindMode, ConfigurationSet.LargeFont))
+  }
 
   @JvmStatic
   fun getConfigurationById(id: String): ConfigurationSet? = getConfigurationSets().firstOrNull { it.id == id }
