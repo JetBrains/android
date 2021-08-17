@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.Stopwatch
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ColorUtil
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.MouseEventHandler
 import java.awt.Color
 import java.awt.Component
@@ -72,6 +73,7 @@ class StateChart<T: Any>
     model.addDependency(myAspectObserver).onChange(StateChartModel.Aspect.MODEL_CHANGED, ::modelChanged)
     modelChanged()
     registerMouseEvents()
+    preferredSize = Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
   }
 
   /**
@@ -350,6 +352,7 @@ class StateChart<T: Any>
   private companion object {
     const val INVALID_INDEX = -1
     const val TEXT_PADDING = 3
+    const val PREFERRED_ROW_HEIGHT = 27
     fun<T> defaultConfig() = StateChartConfig<T>(DefaultStateChartReducer<T>())
     fun<T: Any> defaultTextConverter() = StateChartTextConverter<T> { it.toString() }
   }
