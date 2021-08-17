@@ -84,7 +84,7 @@ class V1NdkModelTest {
   private val mockDebugArm64Artifact =
     IdeNativeArtifactImpl("artifact2", "toolchain2", "debug", emptyList(), emptyList(), arm64V8aSoFile, "arm64-v8a", "target2")
 
-  private val fullSyncV1NdkModel = V1NdkModel(
+  private val allVariantsSyncV1NdkModel = V1NdkModel(
     IdeNativeAndroidProjectImpl(
       "4.2.0-alpha02",
       "moduleName",
@@ -151,29 +151,29 @@ class V1NdkModelTest {
   @Test
   fun `full sync - test accessors`() {
     // Accessors declared in INdkModel
-    Truth.assertThat(fullSyncV1NdkModel.features.isGroupNameSupported).isTrue()
-    Truth.assertThat(fullSyncV1NdkModel.allVariantAbis).containsExactly(
+    Truth.assertThat(allVariantsSyncV1NdkModel.features.isGroupNameSupported).isTrue()
+    Truth.assertThat(allVariantsSyncV1NdkModel.allVariantAbis).containsExactly(
       VariantAbi("debug", "arm64-v8a"),
       VariantAbi("debug", "x86"),
       VariantAbi("release", "arm64-v8a"),
       VariantAbi("release", "x86")
     ).inOrder()
-    Truth.assertThat(fullSyncV1NdkModel.syncedVariantAbis).containsExactly(
+    Truth.assertThat(allVariantsSyncV1NdkModel.syncedVariantAbis).containsExactly(
       VariantAbi("debug", "arm64-v8a"),
       VariantAbi("debug", "x86")
     )
-    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
+    Truth.assertThat(allVariantsSyncV1NdkModel.symbolFolders).containsExactly(
       VariantAbi("debug", "x86"), setOf(x86SoFolder),
       VariantAbi("debug", "arm64-v8a"), setOf(arm64V8aSoFolder)
     )
-    Truth.assertThat(fullSyncV1NdkModel.buildFiles).containsExactly(File("buildFile1"), File("buildFile2"))
-    Truth.assertThat(fullSyncV1NdkModel.buildSystems).containsExactly("cmake")
-    Truth.assertThat(fullSyncV1NdkModel.defaultNdkVersion).isEqualTo("21.1.12345")
+    Truth.assertThat(allVariantsSyncV1NdkModel.buildFiles).containsExactly(File("buildFile1"), File("buildFile2"))
+    Truth.assertThat(allVariantsSyncV1NdkModel.buildSystems).containsExactly("cmake")
+    Truth.assertThat(allVariantsSyncV1NdkModel.defaultNdkVersion).isEqualTo("21.1.12345")
 
     // Accessors only available from V1NdkModel
-    Truth.assertThat(fullSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "x86"))!!.artifacts)
+    Truth.assertThat(allVariantsSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "x86"))!!.artifacts)
       .containsExactly(mockDebugX86Artifact)
-    Truth.assertThat(fullSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "arm64-v8a"))!!.artifacts)
+    Truth.assertThat(allVariantsSyncV1NdkModel.getNdkVariant(VariantAbi("debug", "arm64-v8a"))!!.artifacts)
       .containsExactly(mockDebugArm64Artifact)
   }
 
@@ -204,12 +204,12 @@ class V1NdkModelTest {
 
   @Test
   fun `symbolFolders should reflect changes in filesystem`() {
-    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
+    Truth.assertThat(allVariantsSyncV1NdkModel.symbolFolders).containsExactly(
       VariantAbi("debug", "x86"), setOf(x86SoFolder),
       VariantAbi("debug", "arm64-v8a"), setOf(arm64V8aSoFolder)
     )
     arm64V8aSoFolder.deleteRecursively()
-    Truth.assertThat(fullSyncV1NdkModel.symbolFolders).containsExactly(
+    Truth.assertThat(allVariantsSyncV1NdkModel.symbolFolders).containsExactly(
       VariantAbi("debug", "x86"), setOf(x86SoFolder),
       VariantAbi("debug", "arm64-v8a"), emptySet<File>()
     )
@@ -217,7 +217,7 @@ class V1NdkModelTest {
 
   @Test
   fun `test serialization`() {
-    assertSerializable(fullSyncV1NdkModel)
+    assertSerializable(allVariantsSyncV1NdkModel)
     assertSerializable(singleVariantSyncV1NdkModel)
   }
 

@@ -273,13 +273,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   enum SyncNeeded {
     NOT_NEEDED(false),
     SINGLE_VARIANT_SYNC_NEEDED(false),
-    FULL_SYNC_NEEDED(true),
+    ALL_VARIANTS_SYNC_NEEDED(true),
     NATIVE_VARIANTS_SYNC_NEEDED(false);
 
-    public final boolean isFullSync;
+    public final boolean isAllVariantsSync;
 
-    SyncNeeded(boolean isFullSync) {
-      this.isFullSync = isFullSync;
+    SyncNeeded(boolean isAllVariantsSync) {
+      this.isAllVariantsSync = isAllVariantsSync;
     }
   }
 
@@ -315,7 +315,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       String result;
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
       request.runInBackground = false;
-      request.forceFullVariantsSync = syncNeeded.isFullSync;
+      request.forceAllVariantsSync = syncNeeded.isAllVariantsSync;
 
       AtomicReference<String> errorMsgRef = new AtomicReference<>();
       GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {

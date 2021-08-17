@@ -72,7 +72,7 @@ import kotlin.concurrent.withLock
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
-data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger, val fullSync: Boolean)
+data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger, val allVariantsSync: Boolean)
 
 @JvmField
 val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST")
@@ -157,7 +157,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Triggered at the start of a sync.
    */
-  private fun syncStarted(trigger: GradleSyncStats.Trigger, fullSync: Boolean): Boolean {
+  private fun syncStarted(trigger: GradleSyncStats.Trigger, allVariantsSync: Boolean): Boolean {
     lock.withLock {
       if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
@@ -167,10 +167,10 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       state = LastSyncState.IN_PROGRESS
     }
 
-    val syncType = if (fullSync) "full-variants" else "single-variant"
+    val syncType = if (allVariantsSync) "all-variants" else "single-variant"
     LOG.info("Started $syncType ($trigger) sync with Gradle for project '${project.name}'.")
 
-    eventLogger.syncStarted(getSyncType(fullSync), trigger)
+    eventLogger.syncStarted(getSyncType(allVariantsSync), trigger)
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
@@ -278,7 +278,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       externalSystemTaskId = null
     }
 
-    project.putUserData(GradleSyncExecutor.FULL_SYNC_KEY, null)
+    project.putUserData(GradleSyncExecutor.ALL_VARIANTS_SYNC_KEY, null)
     PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
@@ -360,7 +360,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
-  private fun getSyncType(fullSync: Boolean): GradleSyncStats.GradleSyncType = when(fullSync) {
+  private fun getSyncType(allVariantsSync: Boolean): GradleSyncStats.GradleSyncType = when(allVariantsSync) {
     true -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
     else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
   }
@@ -447,7 +447,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         project.putUserData(PROJECT_SYNC_REQUEST, null)
       }
       if (!GradleSyncState.getInstance(project)
-          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.fullSync ?: false)
+          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.allVariantsSync ?: false)
       ) {
         stopTrackingTask(project, id)
         return
