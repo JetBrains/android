@@ -14,7 +14,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
-        "//tools/adt/idea/.idea/libraries:assertJ[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",

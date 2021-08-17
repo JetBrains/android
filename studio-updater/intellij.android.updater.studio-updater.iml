@@ -10,7 +10,6 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="intellij-updater" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
