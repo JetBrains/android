@@ -311,7 +311,7 @@ internal class AndroidExtraModelProviderWorker(
         }
         if (model != null) return model
       }
-      catch (e: UnsupportedVersionException) {  // TODO: We can now remove this.
+      catch (e: UnsupportedVersionException) {
         // Using old version of Gradle. Fall back to full variants sync for this module.
       }
     }
