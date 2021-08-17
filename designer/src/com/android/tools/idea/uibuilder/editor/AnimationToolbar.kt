@@ -28,14 +28,12 @@ import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
 import java.awt.FlowLayout
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.Box
 import javax.swing.Icon
@@ -64,7 +62,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
                                                   initialMaxTimeMs: Long,
                                                   toolbarType: AnimationToolbarType)
   : JPanel(), AnimationController, Disposable {
-  private val myListener: AnimationListener
+  private val myAnimationListener: AnimationListener
   private val myPlayButton: JButton
   private val myPauseButton: JButton
   private val myStopButton: JButton
@@ -96,6 +94,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private var myLastTickMs = 0L
   val toolbarType: AnimationToolbarType
   protected val myAnalyticsManager = AnimationToolbarAnalyticsManager()
+
+  private val controllerListeners = mutableListOf<AnimationControllerListener>()
 
   /**
    * Creates a new toolbar control button
@@ -158,8 +158,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
 
   final override fun play() {
     stopFrameTicker()
-    setEnabledState(false, true, true, false)
-    setVisibilityState(false, true, true, true)
     myLastTickMs = System.currentTimeMillis()
     myTicker = EdtExecutorService.getScheduledExecutorInstance()
       .scheduleWithFixedDelay({
@@ -170,15 +168,14 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         if (myMaxTimeMs != -1L && myFramePositionMs >= myMaxTimeMs) {
           myTicker?.cancel(false)
           myTicker = null
-          setVisibilityState(play = false, pause = true, stop = true, frame = true)
-          setEnabledState(play = false, pause = false, stop = true, frame = true)
+          controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.COMPLETE) }
         }}, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
+    controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.PLAY) }
   }
 
   final override fun pause() {
-    setEnabledState(true, false, true, true)
-    setVisibilityState(true, false, true, true)
     stopFrameTicker()
+    controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.PAUSE) }
   }
 
   private fun stopFrameTicker() {
@@ -190,57 +187,28 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
 
   final override fun stop() {
     stopFrameTicker()
-    setEnabledState(true, false, false, false)
-    setVisibilityState(true, false, true, true)
-    setFramePosition(myMinTimeMs, false)
+    setFrameMs(myMinTimeMs)
+    controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.STOP) }
   }
 
-  private fun doFrame() {
-    myListener.animateTo(this, myFramePositionMs)
-  }
-
-  /**
-   * Called after a new frame position has been set
-   */
-  private fun onNewFramePosition(setByUser: Boolean) {
-    if (isUnlimitedAnimationToolbar) {
-      return
-    }
-    if (myFramePositionMs >= myMaxTimeMs) {
-      if (!setByUser && !myLoopEnabled) {
-        // We've reached the end. Stop.
-        pause()
-      }
-    }
-    myStopButton.isEnabled = myFramePositionMs - myTickStepMs >= myMinTimeMs
-
-    val timeSliderModel = myTimeSliderModel
-    if (timeSliderModel != null) {
-      timeSliderModel.removeChangeListener(myTimeSliderChangeModel)
-      timeSliderModel.value = ((myFramePositionMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
-      timeSliderModel.addChangeListener(myTimeSliderChangeModel)
+  final override fun getPlayStatus(): PlayStatus {
+    return when {
+      myTicker != null -> PlayStatus.PLAY
+      myFramePositionMs == myMaxTimeMs -> PlayStatus.COMPLETE
+      myFramePositionMs == myMinTimeMs -> PlayStatus.STOP
+      else -> PlayStatus.PAUSE
     }
   }
 
   final override fun setFrameMs(frameMs: Long) {
-    setFramePosition(frameMs, false)
-  }
-
-  /**
-   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
-   *
-   * @param newPositionMs new position in ms
-   * @param setByUser     true if this new position was set by the user. In those cases we might want to automatically loop
-   */
-  private fun setFramePosition(newPositionMs: Long, setByUser: Boolean) {
-    myFramePositionMs = newPositionMs
-    if (myFramePositionMs < myMinTimeMs) {
-      myFramePositionMs = if (myLoopEnabled) myMaxTimeMs else myMinTimeMs
-    } else if (!isUnlimitedAnimationToolbar && myFramePositionMs > myMaxTimeMs) {
-      myFramePositionMs = if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
+    val calibratedFramePosition = when {
+      frameMs < myMinTimeMs -> if (myLoopEnabled) myMaxTimeMs else myMinTimeMs
+      !isUnlimitedAnimationToolbar && frameMs > myMaxTimeMs -> if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
+      else -> frameMs
     }
-    onNewFramePosition(setByUser)
-    doFrame()
+    myFramePositionMs = calibratedFramePosition
+    controllerListeners.forEach { it.onCurrentFrameMsChanged(calibratedFramePosition) }
+    myAnimationListener.animateTo(this, myFramePositionMs)
   }
 
   /**
@@ -249,7 +217,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    * @param newPositionMs
    */
   private fun seek(newPositionMs: Long) {
-    setFramePosition(myMinTimeMs + newPositionMs, true)
+    setFrameMs(myMinTimeMs + newPositionMs)
   }
 
   /**
@@ -258,15 +226,27 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    * @param elapsed
    */
   private fun onTick(elapsed: Long) {
-    setFramePosition(myFramePositionMs + elapsed, false)
+    setFrameMs(myFramePositionMs + elapsed)
   }
+
+  final override fun getFrameMs(): Long = myFramePositionMs
 
   final override fun setMaxTimeMs(maxTimeMs: Long) {
     myMaxTimeMs = maxTimeMs
+    controllerListeners.forEach { it.onMaxTimeMsChanged(myMaxTimeMs) }
   }
 
-  final override fun setLoop(enabled: Boolean) {
+  final override fun getMaxTimeMs(): Long = myMaxTimeMs
+
+  final override fun setLooping(enabled: Boolean) {
     myLoopEnabled = enabled
+    controllerListeners.forEach { it.onLoopingChanged(enabled) }
+  }
+
+  final override fun isLooping(): Boolean = myLoopEnabled
+
+  final override fun registerAnimationControllerListener(listener: AnimationControllerListener) {
+    controllerListeners.add(listener)
   }
 
   /**
@@ -276,6 +256,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     get() = myMaxTimeMs == -1L
 
   override fun dispose() {
+    controllerListeners.clear()
     stopFrameTicker()
   }
 
@@ -318,7 +299,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
 
   init {
     Disposer.register(parentDisposable, this)
-    myListener = listener
+    myAnimationListener = listener
     myTickStepMs = tickStepMs
     myMinTimeMs = minTimeMs
     myMaxTimeMs = initialMaxTimeMs
@@ -399,5 +380,40 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       }
     })
     stop()
+    registerAnimationControllerListener(MyControllerListener())
+  }
+
+  private inner class MyControllerListener: AnimationControllerListener {
+    override fun onPlayStatusChanged(newStatus: PlayStatus) {
+      when (newStatus) {
+        PlayStatus.PLAY -> {
+          setEnabledState(play = false, pause = true, stop = true, frame = false)
+          setVisibilityState(play = false, pause = true, stop = true, frame = true)
+        }
+        PlayStatus.PAUSE -> {
+          setEnabledState(play = true, pause = false, stop = true, frame = true)
+          setVisibilityState(play = true, pause = false, stop = true, frame = true)
+        }
+        PlayStatus.STOP -> {
+          setEnabledState(play = true, pause = false, stop = false, frame = false)
+          setVisibilityState(play = true, pause = false, stop = true, frame = true)
+        }
+        PlayStatus.COMPLETE -> {
+          setVisibilityState(play = false, pause = true, stop = true, frame = true)
+          setEnabledState(play = false, pause = false, stop = true, frame = true)
+        }
+      }
+    }
+
+    override fun onCurrentFrameMsChanged(newFrameMs: Long) {
+      if (!isUnlimitedAnimationToolbar) {
+        val timeSliderModel = myTimeSliderModel
+        if (timeSliderModel != null) {
+          timeSliderModel.removeChangeListener(myTimeSliderChangeModel)
+          timeSliderModel.value = ((newFrameMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
+          timeSliderModel.addChangeListener(myTimeSliderChangeModel)
+        }
+      }
+    }
   }
 }

@@ -22,10 +22,48 @@ interface AnimationController {
   fun play()
   fun pause()
   fun stop()
+  fun getPlayStatus(): PlayStatus
+
+  /**
+   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
+   */
   fun setFrameMs(frameMs: Long)
+  fun getFrameMs(): Long
+
   /**
    * Note: Set max time as -1 means it is an unlimited animation.
    */
   fun setMaxTimeMs(maxTimeMs: Long)
-  fun setLoop(enabled: Boolean)
+  fun getMaxTimeMs(): Long
+
+  fun setLooping(enabled: Boolean)
+  fun isLooping(): Boolean
+
+  fun registerAnimationControllerListener(listener: AnimationControllerListener)
+}
+
+enum class PlayStatus {
+  /**
+   * The animation is playing.
+   */
+  PLAY,
+  /**
+   * The animation is paused. The animation frame is same as the last shown frame.
+   */
+  PAUSE,
+  /**
+   * The animation is reset. The animation frame is same as its initial value.
+   */
+  STOP,
+  /**
+   * The played animation reaches the end itself. The animation frame is same as its max time.
+   */
+  COMPLETE
+}
+
+interface AnimationControllerListener {
+  fun onPlayStatusChanged(newStatus: PlayStatus) = Unit
+  fun onCurrentFrameMsChanged(newFrameMs: Long) = Unit
+  fun onMaxTimeMsChanged(newMaxTimeMs: Long) = Unit
+  fun onLoopingChanged(enabled: Boolean) = Unit
 }
