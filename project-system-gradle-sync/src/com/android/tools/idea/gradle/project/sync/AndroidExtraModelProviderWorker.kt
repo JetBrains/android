@@ -151,7 +151,11 @@ internal class AndroidExtraModelProviderWorker(
               val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
               if (androidProject != null && androidDsl != null)  {
-                if (canFetchV2Models == null) canFetchV2Models = true
+                if (canFetchV2Models == null) {
+                  canFetchV2Models = true
+                } else if (canFetchV2Models == false) {
+                  error("Cannot initiate V2 models for Sync.")
+                }
                 androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                 val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
@@ -178,7 +182,11 @@ internal class AndroidExtraModelProviderWorker(
               shouldBuildVariant = isFullSync
             )
             if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion)) {
-              if (canFetchV2Models == null) canFetchV2Models = false
+              if (canFetchV2Models == null) {
+                canFetchV2Models = false
+              } else if (canFetchV2Models == true) {
+                error("Cannot initiate V1 models for Sync.")
+              }
               androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
 
               val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
