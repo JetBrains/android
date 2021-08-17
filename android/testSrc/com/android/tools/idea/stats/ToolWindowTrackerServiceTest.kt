@@ -16,13 +16,12 @@
 package com.android.tools.idea.stats
 
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.testing.IdeComponents
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Ignore
@@ -57,8 +56,12 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     // registered a tool window in closed state
     val testId = "test"
     myService.toolWindowRegistered(testId)
+
     val mockToolWindow = Mockito.mock(ToolWindow::class.java)
+
+    `when`(mockToolWindow.type).thenReturn(ToolWindowType.DOCKED)
     `when`(mockToolWindow.isActive).thenReturn(false)
+
     `when`(myMockToolWindowManager.getToolWindow(testId)).thenReturn(mockToolWindow)
     myService.stateChanged()
 
