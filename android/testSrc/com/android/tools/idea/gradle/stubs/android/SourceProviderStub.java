@@ -23,12 +23,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myAidlDirectories = new HashSet<File>();
   @NotNull private final Set<File> myAssetsDirectories = new HashSet<File>();
   @NotNull private final Set<File> myJavaDirectories = new HashSet<File>();
+  @NotNull private final Set<File> myKotlinDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myCppDirectories = new HashSet<File>();
   @NotNull private final Set<File> myCDirectories = new HashSet<File>();
   @NotNull private final Set<File> myRenderscriptDirectories = new HashSet<File>();
@@ -88,6 +88,12 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull
   public Set<File> getJavaDirectories() {
     return myJavaDirectories;
+  }
+
+  @NotNull
+  @Override
+  public Collection<File> getKotlinDirectories() {
+    return myKotlinDirectories;
   }
 
   /**

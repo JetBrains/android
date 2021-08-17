@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search
+package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.Url
+import com.intellij.util.Urls
 import java.io.File
 import java.nio.file.FileVisitResult
 import java.nio.file.Files.walkFileTree
@@ -72,12 +74,29 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
   }
 
   private data class Match internal constructor(internal val artifactName: String, internal val groupId: String)
+
+  companion object {
+    fun maybeCreateLocalMavenRepository(mavenRepositoryUrl: String, mavenRepositoryName: String): LocalMavenRepository? {
+      val parsedRepositoryUrl = parseToLocalFile(mavenRepositoryUrl, false) ?: parseToLocalFile(mavenRepositoryUrl, true) ?: return null
+      val repositoryPath = parsedRepositoryUrl.path
+      val repositoryRootFile = File(repositoryPath)
+      if (repositoryRootFile.isAbsolute) {
+        return LocalMavenRepository(repositoryRootFile, mavenRepositoryName)
+      }
+      return null
+    }
+  }
 }
 
-private fun String.toWildcardMatchingPredicate() : (String) -> Boolean =
+private fun String.toWildcardMatchingPredicate(): (String) -> Boolean =
   if (isBlank()) {
     { true }
   }
   else {
     Regex(replace("*", ".*")).let { { probe: String -> it.matches(probe) } }
   }
+
+private fun parseToLocalFile(url: String, asLocalIfNoScheme: Boolean): Url? {
+  val parsedRepositoryUrl = Urls.parse(url, asLocalIfNoScheme) ?: return null
+  return if (parsedRepositoryUrl.isInLocalFileSystem) parsedRepositoryUrl else null
+}

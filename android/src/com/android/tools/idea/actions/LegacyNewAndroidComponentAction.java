@@ -13,7 +13,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -23,7 +23,7 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 public class LegacyNewAndroidComponentAction extends AnAction {
   protected LegacyNewAndroidComponentAction() {
     super(AndroidBundle.messagePointer("android.new.component.action.title.non.gradle"),
-          AndroidBundle.messagePointer("android.new.component.action.description"), AndroidIcons.Android);
+          AndroidBundle.messagePointer("android.new.component.action.description"), StudioIcons.Common.ANDROID_HEAD);
   }
 
   @Override

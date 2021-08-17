@@ -16,36 +16,12 @@
 @file:JvmName("AndroidStudioKotlinPluginUtils")
 package com.android.tools.idea
 
-import com.intellij.facet.Facet
-import com.intellij.facet.FacetManager
-import com.intellij.facet.FacetType
-import com.intellij.facet.FacetTypeRegistry
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.idea.facet.KotlinFacetType
 
-val kotlinFacetType: FacetType<out Facet<*>, *>? get() = FacetTypeRegistry.getInstance().findFacetType("kotlin-language")
+fun Project.hasAnyKotlinModules(): Boolean = ProjectFacetManager.getInstance(this).hasFacets(KotlinFacetType.TYPE_ID)
 
-fun Project.hasAnyKotlinModules(): Boolean {
-  val kotlinFacetId = kotlinFacetType?.id ?: return false
-  return ModuleManager.getInstance(this).modules.any {
-    FacetManager.getInstance(it).getFacetByType(kotlinFacetId) != null
-  }
-}
-
-fun Module.hasKotlinFacet(): Boolean {
-  return FacetManager.getInstance(this).getFacetByType((kotlinFacetType ?: return false).id) != null
-}
-
-fun isKotlinPluginAvailable(): Boolean {
-  return try {
-    Class.forName("org.jetbrains.kotlin.idea.facet.KotlinFacet")
-    true
-  }
-  catch (e: ClassNotFoundException) {
-    false
-  }
-  catch (e: LinkageError) {
-    false
-  }
-}
+fun Module.hasKotlinFacet(): Boolean = KotlinFacet.get(this) != null

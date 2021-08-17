@@ -14,13 +14,11 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <id>com.android.layoutlib.legacy</id>
+  <name>Layoutlib Legacy</name>
+  <version>1.0</version>
+  <vendor>Google</vendor>
 
-  <actions>
-    <!-- Workaround for IDEA-249422: empty plugin descriptor prevents optional dependency from being unloaded
-    (com.intellij.ide.plugins.cl.PluginClassLoader.detachParent never invoked). Make descriptor non-empty. -->
-  </actions>
-
-  <!-- Required config file for optional plugin
-       It is empty as layoutlib does not need any particular configuration -->
+  <description>Provides a library for rendering Android resources</description>
 
 </idea-plugin>

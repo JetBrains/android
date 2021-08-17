@@ -25,6 +25,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.Range;
@@ -32,7 +33,6 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
@@ -107,7 +107,7 @@ public class CpuCaptureMinimapView {
 
   private static RangeSelectionComponent createRangeSelectionComponent(@NotNull RangeSelectionModel model) {
     RangeSelectionComponent rangeSelectionComponent = new RangeSelectionComponent(model, true);
-    rangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    rangeSelectionComponent.setCursorSetter(AdtUiUtils::setTooltipCursor);
     rangeSelectionComponent.setDragBarHeight(RANGE_SELECTION_DRAG_BAR_HEIGHT);
     return rangeSelectionComponent;
   }

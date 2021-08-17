@@ -33,6 +33,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -223,7 +224,7 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
       val module = surface.model?.module
       if (module != null) {
         val newReferences = findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
-        newReferences.forEach { listModel.addElement(it) }
+        listModel.addAll(newReferences)
       }
       val name = if (list.model.size == 0) {
         "EMPTY"

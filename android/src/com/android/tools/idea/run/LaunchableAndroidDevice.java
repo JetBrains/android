@@ -28,13 +28,8 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.Function;
-import com.intellij.util.ThreeState;
-import icons.StudioIcons;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -42,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
@@ -116,7 +110,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       case WATCH:
         return SystemImage.WEAR_TAG.equals(myAvdInfo.getTag());
       case TV:
-        return SystemImage.TV_TAG.equals(myAvdInfo.getTag());
+        return SystemImage.ANDROID_TV_TAG.equals(myAvdInfo.getTag()) || SystemImage.GOOGLE_TV_TAG.equals(myAvdInfo.getTag());
       case AUTOMOTIVE:
         return SystemImage.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
       default:
@@ -130,30 +124,36 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
     return myAvdInfo.getDisplayName();
   }
 
-  @Override
-  public boolean renderLabel(@NotNull SimpleColoredComponent component, boolean isCompatible, @Nullable String searchPrefix) {
-    component.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
-    SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), component);
-    return true;
+  public void coldBoot(@NotNull Project project) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().coldBoot(project, myAvdInfo);
+      }
+    }
   }
 
-  @Override
-  public void prepareToRenderLabel() {
+  public void quickBoot(@NotNull Project project) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().quickBoot(project, myAvdInfo);
+      }
+    }
+  }
+
+  public void bootWithSnapshot(@NotNull Project project, @NotNull String snapshot) {
+    synchronized (myLock) {
+      if (myLaunchedEmulator == null) {
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().bootWithSnapshot(project, myAvdInfo, snapshot);
+      }
+    }
   }
 
   @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    return launch(project, Collections.emptyList());
-  }
-
-  @Override
-  @NotNull
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, arguments);
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
       }
       return myLaunchedEmulator;
     }
@@ -184,10 +184,10 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       if (AvdManagerConnection.isSystemImageDownloadProblem(myAvdInfo.getStatus())) {
         // The original error message includes the name of the AVD which is already shown in the UI.
         // Make the error message simpler here:
-        compatibility = new LaunchCompatibility(ThreeState.UNSURE, "Missing system image");
+        compatibility = new LaunchCompatibility(LaunchCompatibility.State.ERROR, "Missing system image");
       }
       else {
-        compatibility = new LaunchCompatibility(ThreeState.NO, myAvdInfo.getErrorMessage());
+        compatibility = new LaunchCompatibility(LaunchCompatibility.State.ERROR, myAvdInfo.getErrorMessage());
       }
     }
     return compatibility

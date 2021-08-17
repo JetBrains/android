@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -26,6 +25,7 @@ import java.awt.GridBagLayout;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -65,27 +65,51 @@ public class ErrorPanel extends JPanel {
     myErrorLabel.setVerticalAlignment(JLabel.TOP);
     myErrorLabel.setText(null);
     add(myErrorLabel, gbc);
-
     myErrorLabel.setForeground(MEUI.ourErrorColor);
-
   }
-  HashSet<String> validTop = new HashSet<String>(Arrays.asList(MotionSceneAttrs.Tags.TRANSITION, MotionSceneAttrs.Tags.CONSTRAINTSET));
-  HashMap<String, String> containedIn = new HashMap<String, String>();
+
+  HashSet<String> validTop = new HashSet<String>(Arrays.asList(MotionSceneAttrs.Tags.TRANSITION,
+                                                               MotionSceneAttrs.Tags.CONSTRAINTSET,
+                                                               MotionSceneAttrs.Tags.INCLUDE,
+                                                               upperCaseFirst(MotionSceneAttrs.Tags.INCLUDE),
+                                                               MotionSceneAttrs.Tags.VIEW_TRANSITION));
+  HashMap<String, HashSet<String>> containedIn = new HashMap<>();
+
+  private static String upperCaseFirst(String str) {
+    return str.substring(0, 1).toUpperCase(Locale.US) + str.substring(1);
+  }
+
+  private void put(String tag, String canBeIn) {
+    HashSet<String> set = containedIn.get(tag);
+    if (set == null) {
+      set = new HashSet<>();
+      containedIn.put(tag, set);
+    }
+    set.add(canBeIn);
+  }
   {
-    containedIn.put(MotionSceneAttrs.Tags.CONSTRAINT, MotionSceneAttrs.Tags.CONSTRAINTSET);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_FRAME_SET, MotionSceneAttrs.Tags.TRANSITION);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_CYCLE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_POSITION, MotionSceneAttrs.Tags.KEY_FRAME_SET);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_TRIGGER, MotionSceneAttrs.Tags.KEY_FRAME_SET);
-    containedIn.put(MotionSceneAttrs.Tags.KEY_TIME_CYCLE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
-    containedIn.put(MotionSceneAttrs.Tags.ON_CLICK, MotionSceneAttrs.Tags.TRANSITION);
-    containedIn.put(MotionSceneAttrs.Tags.ON_SWIPE, MotionSceneAttrs.Tags.TRANSITION);
-    containedIn.put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT);
-    containedIn.put(MotionSceneAttrs.Tags.MOTION, MotionSceneAttrs.Tags.CONSTRAINT);
-    containedIn.put(MotionSceneAttrs.Tags.LAYOUT, MotionSceneAttrs.Tags.CONSTRAINT);
-    containedIn.put(MotionSceneAttrs.Tags.PROPERTY_SET, MotionSceneAttrs.Tags.CONSTRAINT);
-    containedIn.put(MotionSceneAttrs.Tags.TRANSFORM, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.CONSTRAINT, MotionSceneAttrs.Tags.CONSTRAINTSET);
+    put(MotionSceneAttrs.Tags.CONSTRAINT_OVERRIDE, MotionSceneAttrs.Tags.CONSTRAINTSET);
+    put(MotionSceneAttrs.Tags.KEY_FRAME_SET, MotionSceneAttrs.Tags.VIEW_TRANSITION);
+    put(MotionSceneAttrs.Tags.CONSTRAINT_OVERRIDE, MotionSceneAttrs.Tags.VIEW_TRANSITION);
+    put(MotionSceneAttrs.Tags.KEY_FRAME_SET, MotionSceneAttrs.Tags.TRANSITION);
+    put(MotionSceneAttrs.Tags.KEY_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
+    put(MotionSceneAttrs.Tags.KEY_CYCLE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
+    put(MotionSceneAttrs.Tags.KEY_POSITION, MotionSceneAttrs.Tags.KEY_FRAME_SET);
+    put(MotionSceneAttrs.Tags.KEY_TRIGGER, MotionSceneAttrs.Tags.KEY_FRAME_SET);
+    put(MotionSceneAttrs.Tags.KEY_TIME_CYCLE, MotionSceneAttrs.Tags.KEY_FRAME_SET);
+    put(MotionSceneAttrs.Tags.ON_CLICK, MotionSceneAttrs.Tags.TRANSITION);
+    put(MotionSceneAttrs.Tags.ON_SWIPE, MotionSceneAttrs.Tags.TRANSITION);
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT_OVERRIDE);
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_TRIGGER );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_ATTRIBUTE );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_TIME_CYCLE );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_CYCLE );
+    put(MotionSceneAttrs.Tags.MOTION, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.LAYOUT, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.PROPERTY_SET, MotionSceneAttrs.Tags.CONSTRAINT);
+    put(MotionSceneAttrs.Tags.TRANSFORM, MotionSceneAttrs.Tags.CONSTRAINT);
   }
 
   @Override
@@ -128,19 +152,32 @@ public class ErrorPanel extends JPanel {
       // Special case custom attribute which can be in CONSTRAINT,KEY_CYCLE, KEY_ATTRIBUTE, or KEY_TIME_CYCLE
       if (MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE.equals(childName) &&
           (parent.equals(MotionSceneAttrs.Tags.CONSTRAINT)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_CYCLE)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
-        )) {
-          continue;
+           || parent.equals(MotionSceneAttrs.Tags.KEY_CYCLE)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_TRIGGER)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
+          )) {
+        continue;
         }
 
-      String shouldBeIn = containedIn.get(childName);
+      HashSet<String> shouldBeIn = containedIn.get(childName);
       if (shouldBeIn == null) {
         ret = ((ret != null)?ret+"\n":"" ) + "<li> &lt;" + childName +"&gt; of parent &lt;"+parent+"&gt; unknown</li>";
       }
-      if (!parent.equals(shouldBeIn)) {
-        ret = ((ret != null)?ret+"\n":"" ) + "<li> &lt;" + childName +"&gt; of parent &lt;"+parent+"&gt; should be in &lt;"+shouldBeIn +"&gt;</li>";
+      if (!shouldBeIn.contains(parent)) {
+        String[] in = shouldBeIn.toArray(new String[0]);
+        String tags =  in[0];
+        for (int j = 1; j < in.length; j++) {
+          tags += " or " + in[j];
+        }
+        ret = ((ret != null) ? ret + "\n" : "") +
+              "<li> &lt;" +
+              childName +
+              "&gt; of parent &lt;" +
+              parent +
+              "&gt; should be in &lt;" +
+              tags +
+              "&gt;</li>";
       }
       ret = validateChildren(child[i], ret);
     }

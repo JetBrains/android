@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ResourceFolder
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.resources.aar.AarProtoResourceRepository
@@ -29,12 +29,13 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.Executor
 
 /**
  * Cache of AAR resource repositories.
@@ -52,7 +53,7 @@ class AarResourceRepositoryCache private constructor() {
    * @throws IllegalArgumentException if `library` doesn't contain resources or its resource folder doesn't point
    *     to a local file system directory
    */
-  fun getSourceRepository(library: ExternalLibrary): AarSourceResourceRepository {
+  fun getSourceRepository(library: ExternalAndroidLibrary): AarSourceResourceRepository {
     val libraryName = library.location?.fileName ?: library.address
     val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for $libraryName")
 
@@ -60,7 +61,7 @@ class AarResourceRepositoryCache private constructor() {
       throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for $libraryName")
     }
     return getRepository(resFolder, libraryName, mySourceRepositories) {
-        AarSourceResourceRepository.create(resFolder, libraryName, createCachingData(library))
+        AarSourceResourceRepository.create(resFolder.root, resFolder.resources, libraryName, createCachingData(library))
     }
   }
 
@@ -71,7 +72,7 @@ class AarResourceRepositoryCache private constructor() {
    * @return the resource repository
    * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a file on the local file system
    */
-  fun getProtoRepository(library: ExternalLibrary): AarProtoResourceRepository {
+  fun getProtoRepository(library: ExternalAndroidLibrary): AarProtoResourceRepository {
     val libraryName = library.location?.fileName ?: library.address
     val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for $libraryName")
 
@@ -93,7 +94,7 @@ class AarResourceRepositoryCache private constructor() {
     mySourceRepositories.invalidateAll()
   }
 
-  private fun createCachingData(library: ExternalLibrary): CachingData? {
+  private fun createCachingData(library: ExternalAndroidLibrary): CachingData? {
     val resFolder = library.resFolder
     if (resFolder == null || resFolder.resources != null) {
       return null // No caching if the library contains no resources or the list of resource files is specified explicitly.
@@ -120,8 +121,10 @@ class AarResourceRepositoryCache private constructor() {
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(path.portablePath).toString()
     val filename = String.format("%s_%s.dat", library.location?.fileName ?: "", pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
-
-    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
+                   else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+    return CachingData(cacheFile, contentVersion, codeVersion, executor)
   }
 
   companion object {
@@ -136,9 +139,7 @@ class AarResourceRepositoryCache private constructor() {
       val aarRepository = cache.getAndUnwrap(key, { factory() })
 
       if (libraryName != aarRepository.libraryName) {
-        assert(false) { "Library name mismatch: $libraryName vs ${aarRepository.libraryName}" }
-        val logger = Logger.getInstance(AarResourceRepositoryCache::class.java)
-        logger.error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
+        thisLogger().error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
       }
 
       return aarRepository

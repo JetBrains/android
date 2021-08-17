@@ -15,17 +15,29 @@
  */
 package com.android.build.attribution.ui.view.details
 
+import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
+import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
+import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.PluginGroupingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.TaskUnderPluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
@@ -38,16 +50,22 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
 import com.android.tools.adtui.TabularLayout
+import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkEvent
 
 /**
  * This class creates task detail pages from the node provided.
@@ -80,6 +98,7 @@ class WarningsViewDetailPagesFactory(
     } ?: JPanel()
   }
 
+  @VisibleForTesting
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningType, nodeDescriptor.presentedWarnings)
     is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData.task)
@@ -87,6 +106,10 @@ class WarningsViewDetailPagesFactory(
     is TaskUnderPluginDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.taskData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
+    is ConfigurationCachingRootNodeDescriptor -> createConfigurationCachingRootDetailsPage(nodeDescriptor.data,
+                                                                                           nodeDescriptor.projectConfigurationTime)
+    is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
+                                                                                          nodeDescriptor.projectConfigurationTime)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
@@ -126,7 +149,6 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
   }
 
-
   private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(
     taskData,
     helpLinkListener = actionHandlers::helpLinkClicked,
@@ -153,15 +175,12 @@ class WarningsViewDetailPagesFactory(
       <br/>
       This annotation processor is non-incremental and causes the JavaCompile task to always run non-incrementally.<br/>
       Consider switching to using an incremental annotation processor.<br/>
-    """.trimIndent()
-    val recommendationText = """
       <br/>
       <b>Recommendation</b><br/>
-      Ensure that you are using the most recent version of this annotation processor.<br/>
     """.trimIndent()
     val linkPanel = JPanel().apply {
       layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-      add(HyperlinkLabel("Learn more").apply {
+      add(HyperlinkLabel("Make sure that you are using an incremental version of this annotation processor.").apply {
         val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
         addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
         setHyperlinkTarget(target.urlTarget)
@@ -172,6 +191,149 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(headerText).with2pxShift(), TabularLayout.Constraint(0, 2))
     add(htmlTextLabelWithFixedLines(descriptionText).with2pxShift(), TabularLayout.Constraint(1, 2))
     add(linkPanel, TabularLayout.Constraint(2, 2))
-    add(htmlTextLabelWithFixedLines(recommendationText).with2pxShift(), TabularLayout.Constraint(3, 2))
+  }
+
+  private fun createConfigurationCachingRootDetailsPage(uiData: ConfigurationCachingCompatibilityProjectResult,
+                                                        projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
+    layout = VerticalLayout(10, SwingConstants.LEFT)
+    when (uiData) {
+      is AGPUpdateRequired -> this.createAGPUpdateRequiredPanel(uiData, projectConfigurationTime)
+      is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
+      is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
+      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel(uiData, projectConfigurationTime)
+      ConfigurationCachingTurnedOn -> Unit
+    }
+  }
+
+  private fun JPanel.createAGPUpdateRequiredPanel(uiData: AGPUpdateRequired, projectConfigurationTime: TimeWithPercentage) {
+    val appliedAGPPluginsList = uiData.appliedPlugins.joinToString(
+      prefix = "Android Gradle plugins applied in this build:<ul>",
+      postfix = "</ul>",
+      separator = ""
+    ) { "<li>${it.displayName}</li>" }
+    val contentHtml = """
+        <b>Android Gradle plugin update required to make Configuration cache available</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        Android Gradle plugin supports Configuration cache from ${uiData.recommendedVersion}. Current version is ${uiData.currentVersion}.
+        
+        $appliedAGPPluginsList
+      """.trimIndent().insertBRTags()
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(JButton("Update Android Gradle plugin").apply { addActionListener { actionHandlers.runAgpUpgrade() } })
+  }
+
+  private fun JPanel.createIncompatiblePluginsDetectedPanel(uiData: IncompatiblePluginsDetected, configurationTime: TimeWithPercentage) {
+
+    val incompatiblePluginsCountLine = uiData.incompatiblePluginWarnings.size.let {
+      when (it) {
+        0 -> null
+        1 -> "1 plugin is not known to have a compatible version yet, please contact plugin providers for details."
+        else -> "$it plugins are not known to have a compatible version yet, please contact plugin providers for details."
+      }
+    }
+
+    val upgradablePluginsCountLine = uiData.upgradePluginWarnings.size.let {
+      when (it) {
+        0 -> null
+        1 -> "1 plugin can be updated to the compatible version."
+        else -> "$it plugins can be updated to the compatible version."
+      }
+    }
+    val pluginsCountLines = sequenceOf(upgradablePluginsCountLine, incompatiblePluginsCountLine).filterNotNull()
+      .joinToString(prefix = "<ul>", postfix = "</ul>", separator = "") { "<li>$it</li>" }
+    val contentHtml = """
+        <b>Some plugins are not compatible with Configuration cache</b>
+        ${configurationCachingDescriptionHeader(configurationTime)}
+        Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.
+        $pluginsCountLines
+        You can find details on each plugin on corresponding sub-pages.
+      """.trimIndent().insertBRTags()
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+  }
+
+  private fun JPanel.createNoIncompatiblePluginsPanel(uiData: NoIncompatiblePlugins, configurationTime: TimeWithPercentage) {
+    val contentHtml = """
+        <b>Try to turn Configuration cache on</b>
+        ${configurationCachingDescriptionHeader(configurationTime)}
+        The known plugins applied in this build are compatible with Configuration cache.
+      """.trimIndent().insertBRTags()
+    val runTestBuildActionButton = JButton("Try Configuration cache in a build").apply {
+      addActionListener { actionHandlers.runTestConfigurationCachingBuild() }
+    }
+    val unknownPluginsNoteHtml = """
+        Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after
+        you build with Configuration cache turned on.
+        """.trimIndent().insertBRTags()
+    val unknownPluginsListHtml = uiData.unrecognizedPlugins.joinToString(
+      prefix = "<b>List of applied plugins we were not able to recognise:</b><ul>",
+      postfix = "</ul>",
+      separator = ""
+    ) { "<li>${it.displayName}</li>" }
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
+    add(runTestBuildActionButton)
+    if (uiData.unrecognizedPlugins.isNotEmpty())
+      add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
+  }
+
+  private fun JPanel.createConfigurationCacheTestFlowPanel(uiData: ConfigurationCacheCompatibilityTestFlow, configurationTime: TimeWithPercentage) {
+    val contentHtml = """
+        <b>Test builds with Configuration cache finished successfully</b>
+        With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+        
+        Gradle successfully serialized the task graph and reused it with Configuration cache on.
+      """.trimIndent().insertBRTags()
+    val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties").apply {
+      addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
+    }
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(addToPropertiesActionButton)
+  }
+
+  private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
+                                                    projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
+    layout = VerticalLayout(10, SwingConstants.LEFT)
+
+    val contentHtml = if (data.requiredVersion != null) """
+        <b>${data.plugin.displayName}: update required</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        Update this plugin to ${data.requiredVersion} or higher to make Configuration cache available.
+        
+        Plugin version: ${data.currentVersion}
+        Plugin dependency: ${data.pluginInfo.pluginArtifact}
+      """.trimIndent().insertBRTags()
+    else """
+        <b>${data.plugin.displayName}: not compatible</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
+        The version of this plugin used in this build is not compatible with Configuration cache
+        and we don’t know the version when it becomes compatible.
+        
+        Plugin version: ${data.currentVersion}
+        Plugin dependency: ${data.pluginInfo.pluginArtifact}
+      """.trimIndent().insertBRTags()
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    if (data.requiredVersion != null) {
+      add(JButton("Go to plugin version declaration").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
+    }
+  }
+
+  private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
+    "<p>" +
+    "You could save about ${configurationTime.durationStringHtml()} by turning " +
+    "${externalLink("Configuration cache", CONFIGURATION_CACHING)} on.<br/>" +
+    "With Configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
+    "</p>"
+
+  private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {
+    border = JBUI.Borders.emptyLeft(3)
+    addHyperlinkListener { e ->
+      //TODO (mlazeba): extract duplicated logic, same in BuldOverview page for example. Time to introduce some link handler.
+      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+        BuildAnalyzerBrowserLinks.valueOf(e.description).let {
+          BrowserUtil.browse(it.urlTarget)
+          actionHandlers.helpLinkClicked(it)
+        }
+      }
+    }
   }
 }

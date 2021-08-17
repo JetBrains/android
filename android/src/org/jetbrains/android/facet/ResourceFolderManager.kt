@@ -18,7 +18,6 @@ package org.jetbrains.android.facet
 import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
@@ -102,7 +101,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
    * This returns the primary resource directory; the default location to place newly created resources etc.
    *
    * This method is marked deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among
-   * the available flavors (see [AndroidModuleModel.getFlavorSourceProviders] etc).
+   * the available build variants (see [com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders] etc).
    *
    * @return the primary resource dir, if any.
    */

@@ -64,9 +64,9 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.io.FilePaths;
@@ -95,6 +95,7 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -114,12 +115,10 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
-import com.intellij.testFramework.LeakHunter;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,21 +152,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     String externalProjectPath = toCanonicalPath(project.getBasePath());
     projectSettings.setExternalProjectPath(externalProjectPath);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
-      Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
-      if (model != null) {
-        LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
-                o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
@@ -583,11 +567,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     when(taskId.findProject()).thenReturn(project);
 
     // Verify that the task "help" can be found and executed.
-/* b/154962759
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
-b/154962759 */
   }
 
   public void testWithPreSyncCheckFailure() throws Exception {

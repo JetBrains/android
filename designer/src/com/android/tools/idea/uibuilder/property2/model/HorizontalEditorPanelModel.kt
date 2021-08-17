@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.model
+package com.android.tools.idea.uibuilder.property.model
 
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem

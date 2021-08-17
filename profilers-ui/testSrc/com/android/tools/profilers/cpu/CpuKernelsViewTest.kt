@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
@@ -113,7 +113,7 @@ class CpuKernelsViewTest {
       stage,
       cpuService,
       transportService,
-      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
+      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile()))
     stage.timeline.viewRange.set(stage.capture!!.range)
 
     val hideablePanel = TreeWalker(kernelsView.component).ancestors().filterIsInstance<HideablePanel>().first()
@@ -127,7 +127,7 @@ class CpuKernelsViewTest {
     val kernelsView = CpuKernelsView(stage)
     val hideablePanel = TreeWalker(kernelsView.component).descendants().filterIsInstance<HideablePanel>().first()
 
-    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)
+    val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile()
     val capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(traceFile, 0)
 
     assertThat(kernelsView.component.isVisible).isFalse()

@@ -1,11 +1,15 @@
 package org.jetbrains.android.dom.inspections
 
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_CLASS
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.VIEW_FRAGMENT
 import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
-import com.android.tools.idea.imports.MavenClassRegistry
+import com.android.tools.idea.imports.MavenClassRegistryManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -14,6 +18,10 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.XmlRecursiveElementVisitor
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlToken
@@ -46,6 +54,8 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
+    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported()) return ProblemDescriptor.EMPTY_ARRAY
+
     if (isRelevantFile(facet, file)) {
       val visitor = MyVisitor(manager, isOnTheFly)
       file.accept(visitor)
@@ -64,7 +74,8 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
   private class MyVisitor(private val myInspectionManager: InspectionManager,
                           private val myOnTheFly: Boolean) : XmlRecursiveElementVisitor() {
-    internal val myResult: MutableList<ProblemDescriptor> = ArrayList()
+    val myResult: MutableList<ProblemDescriptor> = ArrayList()
+    val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
     override fun visitXmlTag(tag: XmlTag) {
       super.visitXmlTag(tag)
@@ -72,47 +83,89 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       if (tag.namespace.isNotEmpty()) {
         return
       }
-      var className = tag.name
-      if (className.indexOf('.') == -1) {
-        if (className == VIEW_TAG) {
-          className = tag.getAttributeValue(ATTR_CLASS) ?: return
-        } else {
-          // Not a custom view and not <view class="fqn"/>
-          return
+
+      val resolvedXmlElement: XmlElement?
+      val className: String?
+      when (val tagName = tag.name) {
+        VIEW_TAG -> {
+          // E.g. <view class="fqn"/>.
+          resolvedXmlElement = tag.getAttribute(ATTR_CLASS)?.valueElement
+          className = resolvedXmlElement?.value ?: return
+        }
+        VIEW_FRAGMENT -> {
+          // E.g. <fragment android:name="fqn"/> or <fragment class="fqn"/>.
+          val attribute: XmlAttribute? = tag.getAttribute(ATTR_NAME, ANDROID_URI) ?: tag.getAttribute(ATTR_CLASS)
+          resolvedXmlElement = attribute?.valueElement
+          className = resolvedXmlElement?.value ?: return
+        }
+        else -> {
+          resolvedXmlElement = tag
+          className = tagName
         }
       }
 
-      // Make sure the class exists; check only the last reference; that's the class name tag (the rest are for the package segments)
-      val reference = tag.references.lastOrNull() ?: return
+      // Make sure the class exists; Check only the last reference; That's the class name tag (the rest are for the package segments).
+      val reference = resolvedXmlElement?.references?.lastOrNull() ?: return
+
       if (reference.resolve() == null) {
-        var fixes = LocalQuickFix.EMPTY_ARRAY
-        // normal position of the tag name, but unusual spaces can mess with this...
-        var range: PsiElement = tag.firstChild.nextSibling
-        // ...so search properly:
-        var curr = tag.firstChild
-        while (curr != null) {
-          if (curr is XmlToken && curr.tokenType == XmlTokenType.XML_NAME) {
-            range = curr
-            break
+        val fixes = mutableListOf<LocalQuickFix>()
+        val useAndroidX = tag.project.isAndroidx()
+        mavenClassRegistryManager.getMavenClassRegistry()
+          .findLibraryData(className, useAndroidX)
+          .asSequence()
+          .map {
+            val resolvedArtifact = if (useAndroidX) {
+              AndroidxNameUtils.getCoordinateMapping(it.artifact)
+            }
+            else {
+              it.artifact
+            }
+
+            fixes.add(AndroidMavenImportFix(className, resolvedArtifact, it.version))
           }
-          else {
-            curr = curr.nextSibling
-          }
+          .toList()
+
+        for (range in resolveRanges(tag, resolvedXmlElement)) {
+          myResult.add(
+            myInspectionManager.createProblemDescriptor(
+              range,
+              AndroidBundle.message("element.cannot.resolve", className),
+              myOnTheFly,
+              fixes.toTypedArray(),
+              ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
+            )
+          )
         }
-        val name = className.substring(className.lastIndexOf('.') + 1)
-        val imported = MavenClassRegistry.findImport(name)
-        if (imported != null && (className == imported || className == AndroidxNameUtils.getNewName(className))) {
-          // Have fix
-          var artifact = MavenClassRegistry.findArtifact(name) ?: "library"
-          if (tag.project.isAndroidx()) {
-            artifact = AndroidxNameUtils.getCoordinateMapping(artifact)
-          }
-          fixes = arrayOf<LocalQuickFix>(AndroidMavenImportFix(className, artifact))
-        }
-        myResult.add(myInspectionManager.createProblemDescriptor(range, AndroidBundle.message(
-          "element.cannot.resolve", className), myOnTheFly, fixes,
-                                                                 ProblemHighlightType.LIKE_UNKNOWN_SYMBOL))
       }
+    }
+
+    private fun resolveRanges(tag: XmlTag, resolvedXmlElement: XmlElement): List<PsiElement> {
+      return listOfNotNull(
+        getTagNameRange(tag),
+        // If the class is declared via `class` or `android:name`(fragment only) attributes, we also highlight this
+        // attribute value and provide a fix suggestion, in addition to the unresolved tag name.
+        if (resolvedXmlElement is XmlAttributeValue) getAttributeValueRange(resolvedXmlElement) else null
+      )
+    }
+
+    private fun getAttributeValueRange(attributeValue: XmlAttributeValue): PsiElement {
+      return attributeValue.findChildToken(XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) ?: attributeValue
+    }
+
+    private fun getTagNameRange(tag: XmlTag): PsiElement? {
+      // Normal position of the tag name, but unusual spaces can mess with this...
+      val range: PsiElement = tag.firstChild?.nextSibling ?: return null
+      // ...so search properly:
+      return range.findChildToken(XmlTokenType.XML_NAME) ?: range
+    }
+
+    private fun PsiElement.findChildToken(targetType: IElementType): PsiElement? {
+      var curr: PsiElement? = firstChild
+      while (curr != null && !(curr is XmlToken && curr.tokenType == targetType)) {
+        curr = curr.nextSibling
+      }
+
+      return curr
     }
   }
 }

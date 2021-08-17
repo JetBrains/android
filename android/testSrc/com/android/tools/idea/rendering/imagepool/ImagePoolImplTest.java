@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.imagepool;
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

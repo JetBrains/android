@@ -16,10 +16,12 @@
 package com.android.tools.idea.res.psi
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
-import com.android.tools.idea.flags.StudioFlags
+import com.android.resources.ResourceType
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -35,7 +37,6 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -43,7 +44,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.resources.ResourceValue
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 
 /**
  * Class to test aspects of [AndroidResourceToPsiResolver].
@@ -97,6 +97,24 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     val elementAtCaret = myFixture.elementAtCaret
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
     checkFileDeclarations(fakePsiElement, arrayOf("layout/layout.xml"))
+  }
+
+  fun testFrameworkFileResourceJava() {
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",  //language=JAVA
+      """
+        package p1.p2;
+        public class MyTest {
+            public MyTest() {
+                int attribute = android.R.drawable.btn_${caret}default;
+            }
+        }""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
+    assertThat(fakePsiElement.resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, "btn_default"))
+    checkFileDeclarations(fakePsiElement, arrayOf("drawable/btn_default.xml"))
   }
 
   fun testAppFileResource() {
@@ -203,56 +221,6 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
   }
 }
 
-class ResourceManagerToPsiResolverTest : AndroidResourceToPsiResolverTest() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.RESOLVE_USING_REPOS.override(false)
-  }
-
-  override fun tearDown() {
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-    super.tearDown()
-  }
-
-  fun testDynamicFeatureModuleResource() {
-    setupDynamicFeatureProject()
-    val elementAtCaret = myFixture.elementAtCaret
-    assertThat(elementAtCaret).isInstanceOf(XmlElement::class.java)
-    val appNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
-      ResourceValue.referenceTo('@', null, "string", "app_name"),
-      elementAtCaret as XmlElement,
-      elementAtCaret.androidFacet!!)
-    assertThat(appNameReference).isNotEmpty()
-    with(LazyValueResourceElementWrapper.computeLazyElement(appNameReference[0].element)) {
-      assertThat(this).isInstanceOf(XmlAttributeValue::class.java)
-      assertThat(this!!.text).isEqualTo("\"app_name\"")
-    }
-    val dynamicNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
-      ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
-      elementAtCaret,
-      elementAtCaret.androidFacet!!)
-    assertThat(dynamicNameReference).isEmpty()
-    val appNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
-      .resolveReferenceWithDynamicFeatureModules(
-        ResourceValue.referenceTo('@', null, "string", "app_name"),
-        elementAtCaret,
-        elementAtCaret.androidFacet!!)
-    assertThat(appNameReferenceIncluded).isNotEmpty()
-    with(LazyValueResourceElementWrapper.computeLazyElement(appNameReferenceIncluded[0].element)) {
-      assertThat(this!!.text).isEqualTo("\"app_name\"")
-    }
-    val dynamicNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
-      .resolveReferenceWithDynamicFeatureModules(
-        ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
-        elementAtCaret,
-        elementAtCaret.androidFacet!!)
-    assertThat(dynamicNameReferenceIncluded).isNotEmpty()
-    with(LazyValueResourceElementWrapper.computeLazyElement(dynamicNameReferenceIncluded[0].element)) {
-      assertThat(this!!.text).isEqualTo("\"dynamic_name\"")
-    }
-  }
-}
-
 class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
   private val MODULE_WITH_DEPENDENCY = "MODULE_WITH_DEPENDENCY"
@@ -264,7 +232,6 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
 
     MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
     MAIN_MODULE_USAGE_COLOR_FILE = myFixture.addFileToProject(
@@ -284,11 +251,6 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
       COLORS_XML
     ).virtualFile
-  }
-
-  override fun tearDown() {
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-    super.tearDown()
   }
 
   private val COLORS_XML =
@@ -435,7 +397,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     checkLocaleConfiguration(fakePsiElement, context, Locale.create("fr"), "values/strings.xml")
   }
 
-  private fun checkLocaleConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, locale: Locale, expectedFileName: String) {
+  private fun checkLocaleConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement,
+                                       context: PsiElement,
+                                       locale: Locale,
+                                       expectedFileName: String) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.localeQualifier = locale.qualifier
     val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
@@ -446,7 +411,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
   }
 
-  private fun checkDensityConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, density: Density, expectedFileName: String) {
+  private fun checkDensityConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement,
+                                        context: PsiElement,
+                                        density: Density,
+                                        expectedFileName: String) {
     val folderConfiguration = FolderConfiguration()
     folderConfiguration.densityQualifier = DensityQualifier(density)
     val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(

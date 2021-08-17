@@ -21,7 +21,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Utilities for {@link ComponentsSplitter} and {@link com.intellij.openapi.ui.ThreeComponentsSplitter}.
+ * Utilities for {@link com.intellij.openapi.ui.ThreeComponentsSplitter}.
  */
 public class SplitterUtil {
 

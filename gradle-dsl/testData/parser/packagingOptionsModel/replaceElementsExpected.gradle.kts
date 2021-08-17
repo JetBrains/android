@@ -1,5 +1,8 @@
 android {
   packagingOptions {
+    doNotStrip("doNotStrip1")
+    doNotStrip("doNotStrip2")
+    doNotStrip("doNotStripX")
     exclude("excludeX")
     exclude("exclude2")
     exclude("exclude3")

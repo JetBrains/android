@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.statistics
+package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorMemory
 
@@ -22,7 +24,10 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorMemory
 @VisibleForTesting
 const val ONE_MB = 1000000
 
-class MemoryStatistics {
+class MemoryStatistics(model: InspectorModel) {
+  @Suppress("unused")
+  private val memoryProbe = InspectorMemoryProbe(model, this)
+
   /**
    * True if the initial display used skia images.
    */

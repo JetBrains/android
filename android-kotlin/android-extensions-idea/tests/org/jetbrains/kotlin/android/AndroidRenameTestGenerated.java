@@ -5,12 +5,14 @@
 
 package org.jetbrains.kotlin.android;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.testFramework.TestDataPath;
+import org.jetbrains.kotlin.android.KotlinTestUtils;
+import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
 public class AndroidRenameTestGenerated extends AbstractAndroidRenameTest {
+
     public void testCommonElementId() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/rename/commonElementId/");
         doTest(fileName);
@@ -23,20 +25,6 @@ public class AndroidRenameTestGenerated extends AbstractAndroidRenameTest {
 
     public void testFqNameInAttrFragment() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/rename/fqNameInAttrFragment/");
-        doTest(fileName);
-    }
-
-    public void testFqNameInTag() throws Exception {
-        // Renaming synthetic elements is no longer supported when renaming resources.
-        if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
-        String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/rename/fqNameInTag/");
-        doTest(fileName);
-    }
-
-    public void testFqNameInTagFragment() throws Exception {
-        // Renaming synthetic elements is no longer supported when renaming resources.
-        if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
-        String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/rename/fqNameInTagFragment/");
         doTest(fileName);
     }
 

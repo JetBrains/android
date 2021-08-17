@@ -1,4 +1,6 @@
 #include <fstream>
+#include <jni.h>
+#include <SkData.h>
 #include <SkPictureRecorder.h>
 #include <SkRRect.h>
 #include <SkCanvas.h>
@@ -7,10 +9,12 @@
 
 /**
  * Tool to generate boxes.skp used in testing the layout inspector.
- * Build and run through CLion--it's just for generating test data, and so needn't be built by bazel.
  */
- //TODO: Make this file build the boxes.skp during the run of the test.
-int main() {
+extern "C" {
+
+JNIEXPORT jbyteArray JNICALL
+Java_com_android_tools_idea_tests_gui_layoutinspector_BasicLayoutInspectorUITest_generateBoxes(
+        JNIEnv *env, jobject instance) {
     SkPictureRecorder recorder;
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
@@ -55,7 +59,8 @@ int main() {
 
     sk_sp<SkPicture> picture = recorder.finishRecordingAsPicture();
     sk_sp<SkData> data = picture->serialize();
-    std::ofstream f("boxes.skp", std::ofstream::out);
-    f.write(static_cast<const char *>(data->data()), data->size());
-    f.close();
+    jbyteArray array = env->NewByteArray(data->size());
+    env->SetByteArrayRegion (array, 0, data->size(), (const jbyte *)data->data());
+    return array;
+}
 }

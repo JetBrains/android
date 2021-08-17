@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_APK_SELECT_CONFIG;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_ABI;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API_CODENAME;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_DENSITY;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
+import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API_CODENAME;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
+import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
+import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
+import static com.android.builder.model.AndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.run.GradleApkProvider.POST_BUILD_MODEL;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
@@ -61,7 +61,7 @@ import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -82,7 +82,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ThreeState;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -142,13 +142,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Nullable
   @Override
   public Icon getTaskIcon(MakeBeforeRunTask task) {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Override
@@ -190,6 +190,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
     if (!(ProjectSystemUtil.getProjectSystem(runConfiguration.getProject()) instanceof GradleProjectSystem)) {
+      return false;
+    }
+    // Disable "Gradle-aware Make" task for instrumentation tests run via UTP so that APK handling is delegated to AGP
+    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE() &&
+        runConfiguration instanceof AndroidTestRunConfiguration) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
@@ -540,7 +545,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   private static List<String> getProfilingOptions(@NotNull AndroidRunConfigurationBase configuration,
                                                   @Nullable AndroidDeviceSpec targetDeviceSpec)
     throws IOException {
-    if (targetDeviceSpec == null) {
+    if (targetDeviceSpec == null || targetDeviceSpec.getMinVersion() == null) {
       return emptyList();
     }
 
@@ -628,11 +633,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private Module[] getModules(@Nullable DataContext context, @Nullable RunConfiguration configuration) {
     if (configuration instanceof ModuleRunProfile) {
-      // If running JUnit tests for "whole project", all the modules should be compiled, but getModules() return an empty array.
-      // See http://b.android.com/230678
-      if (configuration instanceof AndroidJUnitConfiguration) {
-        return ((AndroidJUnitConfiguration)configuration).getModulesToCompile();
-      }
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       return ((ModuleRunProfile)configuration).getModules();

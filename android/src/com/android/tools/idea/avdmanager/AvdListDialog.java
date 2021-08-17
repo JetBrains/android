@@ -20,8 +20,9 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.WizardStepHeaderPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,10 +40,9 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
   public AvdListDialog(@Nullable Project project) {
     super(project, DIMENSION_KEY, false, "Android Virtual Device Manager");
     myProject = project;
-    myAvdDisplayList = new AvdDisplayList(this, project);
+    myAvdDisplayList = new AvdDisplayList(project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     closeOnEsc();
-    getFrame().setSize(1000, 600);
   }
 
   @Override
@@ -56,11 +56,12 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
     JPanel root = new JPanel(new BorderLayout());
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
-      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.StudioProduct,
+      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, StudioIllustrations.Common.PRODUCT_ICON,
               null, "Your Virtual Devices", "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
-    getFrame().setSize(1000, 600);
+    getFrame().setSize(JBUI.size(1000, 600));
+    getFrame().setMinimumSize(JBUI.size(600, 350));
   }
 
   @Override

@@ -183,6 +183,7 @@ public class motion_scene_16_xml {
    "        </KeyFrameSet>\n" +
    "\n" +
    "    </Transition>\n" +
+   "    <include motion:constraintSet=\"@xml/test\"/>\n" +
    "\n" +
    "    <ConstraintSet android:id=\"@+id/base_state\">\n" +
    "\n" +
@@ -303,7 +304,40 @@ public class motion_scene_16_xml {
    "\n" +
    "\n" +
    "</MotionScene>";
+
+  static String includeString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                        "<ConstraintSet " +
+                        //"    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        //"    xmlns:motion=\"http://schemas.android.com/apk/res-auto\"" +
+                        "    android:id=\"@+id/include_state\" >"+
+                        "\n" +
+                        "    <Constraint android:id=\"@+id/dial_pad\">\n" +
+                        "         <Layout\n" +
+                        "            android:layout_width=\"fill_parent\"\n" +
+                        "            android:layout_height=\"300dp\"\n" +
+                        "\n" +
+                        "            motion:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                        "            motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+                        "            motion:layout_constraintTop_toBottomOf=\"parent\"/>\n" +
+                        "\n" +
+                        "        </Constraint>\n" +
+                        "\n" +
+                        "        <Constraint android:id=\"@+id/people_pad\">\n" +
+                        "            <Layout\n" +
+                        "                    android:layout_width=\"300dp\"\n" +
+                        "                    android:layout_height=\"500dp\"\n" +
+                        "                    android:layout_marginStart=\"4dp\"\n" +
+                        "                    motion:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                        "                    motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                        "                    motion:layout_constraintTop_toTopOf=\"parent\"/>\n" +
+                        "\n" +
+                        "        </Constraint>\n" +
+                        "\n" +
+                        "    </ConstraintSet>\n";
   public static InputStream asStream() {
      return new ByteArrayInputStream(value.getBytes(Charset.forName( "UTF-8" )));
    }
+  public static InputStream asIncludeStream() {
+    return new ByteArrayInputStream(includeString.getBytes(Charset.forName( "UTF-8" )));
+  }
 }

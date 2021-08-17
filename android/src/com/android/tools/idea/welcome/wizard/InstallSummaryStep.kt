@@ -81,7 +81,7 @@ class InstallSummaryStep(
     }
   private val sdkFolderSection: Section
     get() {
-      val suffix = " (read-only)".takeUnless { (isWritable(FileOpUtils.create(), sdkDirectory)) } ?: ""
+      val suffix = " (read-only)".takeUnless { (isWritable(sdkDirectory.toPath())) } ?: ""
       return Section("SDK Folder", sdkDirectory.absolutePath + suffix)
     }
 

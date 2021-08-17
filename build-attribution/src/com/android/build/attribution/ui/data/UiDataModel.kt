@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.data
 
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 
 /*
@@ -37,8 +38,7 @@ interface BuildAttributionReportUiData {
   val issues: List<TaskIssuesGroup>
   val configurationTime: ConfigurationUiData
   val annotationProcessors: AnnotationProcessorsReport
-  val totalIssuesCount: Int
-    get() = issues.sumBy { it.warningCount } + annotationProcessors.issueCount
+  val confCachingData: ConfigurationCachingCompatibilityProjectResult
 }
 
 interface BuildSummary {
@@ -88,6 +88,8 @@ interface TaskUiData {
   val onExtendedCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
+  val pluginUnknownBecauseOfCC: Boolean
+    get() = false
   val reasonsToRun: List<String>
   val issues: List<TaskIssueUiData>
   val hasWarning: Boolean

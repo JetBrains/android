@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
+
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 
 public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
 

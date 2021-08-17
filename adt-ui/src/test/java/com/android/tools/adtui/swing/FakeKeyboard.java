@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class FakeKeyboard {
   public static final int MENU_KEY_CODE = SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL;
-  public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
   private final IntArrayList myPressedKeys = new IntArrayList();
   @Nullable private Component myFocus;
@@ -132,12 +131,10 @@ public final class FakeKeyboard {
       throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(keyCode)));
     }
 
-    // Dispatch BEFORE adding the key to our list of pressed keys. If it is a modifier key, we
-    // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(event, keyCode);
     if (event == KeyEvent.KEY_PRESSED) {
       myPressedKeys.add(keyCode);
     }
+    dispatchKeyEvent(event, keyCode);
   }
 
   public int toModifiersCode() {
@@ -148,7 +145,7 @@ public final class FakeKeyboard {
     if (myPressedKeys.contains(KeyEvent.VK_CONTROL)) {
       modifiers |= InputEvent.CTRL_DOWN_MASK;
     }
-    if (myPressedKeys.contains(KeyEvent.VK_ESCAPE) || myPressedKeys.contains(KeyEvent.VK_SHIFT)) {
+    if (myPressedKeys.contains(KeyEvent.VK_SHIFT)) {
       modifiers |= InputEvent.SHIFT_DOWN_MASK;
     }
     if (myPressedKeys.contains(KeyEvent.VK_META)) {
@@ -158,18 +155,23 @@ public final class FakeKeyboard {
   }
 
   private void dispatchKeyEvent(int eventType, int keyCode) {
-    if (myFocus == null) {
-      return;
+    KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+    Component component = myFocus;
+    if (component == null) {
+      component = focusManager.getFocusOwner();
+      if (component == null) {
+        return;
+      }
     }
 
     //noinspection MagicConstant toModifiersCode returns correct magic number type
-    KeyEvent event = new KeyEvent(myFocus, eventType, System.nanoTime(), toModifiersCode(),
+    KeyEvent event = new KeyEvent(component, eventType, System.nanoTime(), toModifiersCode(),
                                   eventType == KeyEvent.KEY_TYPED ? KeyEvent.VK_UNDEFINED : keyCode, (char)keyCode);
 
     // If you use myFocus.dispatchEvent(), the event goes through a flow which gives other systems
     // a chance to handle it first. The following approach bypasses the event queue and sends the
     // event to listeners, directly.
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(myFocus, event);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(component, event);
   }
 
   public enum Key {

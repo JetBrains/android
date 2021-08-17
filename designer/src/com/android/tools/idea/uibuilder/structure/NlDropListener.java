@@ -141,7 +141,7 @@ public class NlDropListener extends DropTargetAdapter {
       try {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
-        if (insertType.isMove()) {
+        if (insertType == InsertType.MOVE) {
           myDragged.addAll(NlTreeUtil.keepOnlyAncestors(scene.getDesignSurface().getSelectionModel().getSelection()));
         }
         else {
@@ -161,7 +161,7 @@ public class NlDropListener extends DropTargetAdapter {
   private InsertType determineInsertType(@NotNull NlDropEvent event, boolean isPreview) {
     NlModel model = myTree.getDesignerModel();
     if (model == null || myTransferItem == null) {
-      return InsertType.MOVE_INTO;
+      return InsertType.MOVE;
     }
     DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
     return model.determineInsertType(dragType, myTransferItem, isPreview);

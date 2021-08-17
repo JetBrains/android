@@ -19,11 +19,11 @@ import com.android.tools.idea.ui.MaterialColors
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestCase
 import java.awt.Color
 
-class MaterialColorMatcherTest : AndroidTestCase() {
+class MaterialColorMatcherTest : JavaCodeInsightFixtureTestCase() {
 
   fun testCreatePickerWithColorMatcher() {
     val picker = ColorPickerBuilder().addCustomComponent(object : ColorPickerComponentProvider {

@@ -20,7 +20,6 @@ import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.lang.JavaVersion;
 import java.util.Collection;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
@@ -45,18 +44,40 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 public class ClassConverter {
   private static final int ourCurrentJdkClassVersion = jdkToClassVersion(SystemInfo.JAVA_VERSION);
 
-  /**
+   /**
    * Rewrites the given class applying the given transformations.
+   *
+   * @param classData the input class binary contents.
+   * @param transformations a {@link ClassTransform} that provides the transformations to be applied by this rewrite.
+   * @param flags optional {@link ClassWriter} flags to use. (0 for none)
+   * @param classLocator {@link PseudoClassLocator} to use when the class writing process needs to load additional types.
    */
   @NotNull
-  static byte[] rewriteClass(@NotNull byte[] classData, @NotNull Function<ClassVisitor, ClassVisitor> getTransformations) {
-    final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-    ClassVisitor classVisitor = getTransformations.apply(classWriter);
+  static byte[] rewriteClass(@NotNull byte[] classData,
+                             @NotNull ClassTransform transformations,
+                             int flags,
+                             @NotNull PseudoClassLocator classLocator) {
     ClassReader reader = new ClassReader(classData);
-
-    reader.accept(classVisitor, 0);
+    String className = reader.getClassName();
+    final ClassWriter classWriter = new ClassWriterWithPseudoClassLocator(flags, classLocator);
+    ClassVisitor classVisitor = transformations.invoke(classWriter);
+    reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
     return classWriter.toByteArray();
+  }
+
+  /**
+   * Rewrites the given class applying the given transformations.
+   *
+   * @param classData the input class binary contents.
+   * @param transformations a {@link ClassTransform} that provides the transformations to be applied by this rewrite.
+   * @param classLocator {@link PseudoClassLocator} to use when the class writing process needs to load additional types.
+   */
+  @NotNull
+  static byte[] rewriteClass(@NotNull byte[] classData,
+                             @NotNull ClassTransform transformations,
+                             @NotNull PseudoClassLocator classLocator) {
+    return rewriteClass(classData, transformations, ClassWriter.COMPUTE_FRAMES, classLocator);
   }
 
   /** Converts a JDK string like 1.6.0_65 to the corresponding class file version number, e.g. 50 */

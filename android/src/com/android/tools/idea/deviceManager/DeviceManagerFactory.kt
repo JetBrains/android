@@ -13,21 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.deviceManager
+package com.android.tools.idea.devicemanager
 
+import com.android.tools.idea.devicemanager.groupstab.DeviceGroupsTabPanel
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabContent
+import com.android.tools.idea.devicemanager.virtualtab.VirtualTab
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.ui.content.ContentFactory;
+import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
+import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
+import javax.swing.JComponent
+
+// It should match id in a corresponding .xml
+const val DEVICE_MANAGER_ID = "Device Manager"
+const val virtualTabName = "Virtual"
+const val deviceGroupsTabName = "Device Groups"
 
 class DeviceManagerFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val deviceManagerToolWindow = DeviceManagerToolWindow(toolWindow)
-    val contentFactory = ContentFactory.SERVICE.getInstance();
-    val content = contentFactory.createContent(deviceManagerToolWindow.content, "", false);
-    toolWindow.contentManager.addContent(content)
+    val virtualTab = VirtualTab(project, toolWindow)
+    val contentFactory = ContentFactory.SERVICE.getInstance()
+
+    fun createTab(content: JComponent, name: String) {
+      toolWindow.contentManager.addContent(contentFactory.createContent(content, name, false))
+    }
+
+    createTab(virtualTab.content, virtualTabName)
+    toolWindow.contentManager.addContent(PhysicalTabContent.create(contentFactory, project))
+
+    if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {
+      createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
+    }
 
     // FIXME(qumeric): create and use custom icon
     toolWindow.apply {
@@ -36,7 +59,26 @@ class DeviceManagerFactory : ToolWindowFactory {
       isShowStripeButton = false
       stripeTitle = "Device Manager"
     }
+
+    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
   override fun isApplicable(project: Project): Boolean = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()
+}
+
+private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
+
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
+    val contentManager = window.contentManager
+    val dialogPanels = contentManager.contents.filter { it.component is DialogPanel }
+    if (!window.isVisible) {
+      contentManager.removeAllContents(true)
+      ResourceManagerTracking.logPanelCloses()
+    } else {
+      dialogPanels.forEach {
+        // TODO(qumeric):
+      }
+    }
+  }
 }

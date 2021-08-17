@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT
@@ -26,12 +26,9 @@ import com.android.SdkConstants.CHECK_BOX
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice
-import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -43,7 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class NeleIdRenamingTest {
+class NlIdRenamingTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.withSdk()
 
@@ -54,16 +51,13 @@ class NeleIdRenamingTest {
 
   @Before
   fun setUp() {
-    NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
     componentStack = ComponentStack(projectRule.project)
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
   }
 
   @After
   fun tearDown() {
     componentStack!!.restore()
     componentStack = null
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
   }
 
   @Test

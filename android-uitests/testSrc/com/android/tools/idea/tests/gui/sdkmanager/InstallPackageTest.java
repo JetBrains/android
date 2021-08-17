@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.sdkmanager;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.reflect.core.Reflection.method;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -34,9 +42,12 @@ import com.intellij.ui.dualView.TreeTableView;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
+import javax.swing.tree.DefaultMutableTreeNode;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
@@ -46,24 +57,11 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class InstallPackageTest {
@@ -82,7 +80,7 @@ public class InstallPackageTest {
    */
   @Before
   public void createSdkCopy() throws IOException {
-    File origSdk = TestUtils.getSdk();
+    File origSdk = TestUtils.getSdk().toFile();
     File tmpSdk = tmpFolder.newFolder();
 
     FileUtil.copyDir(origSdk, tmpSdk);

@@ -192,7 +192,7 @@ public class VmWizard extends DynamicWizard {
       }
 
       try {
-        opChain.execute(sdkHandler.getLocation());
+        opChain.execute(sdkHandler.getLocation().toFile());
       }
       catch (InstallationCancelledException e) {
         installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);

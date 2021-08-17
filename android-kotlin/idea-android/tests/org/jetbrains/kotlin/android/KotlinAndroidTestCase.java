@@ -69,8 +69,9 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
 
+  // TODO: Change this method to return Path.
   protected String getTestDataPath() {
-    return TestUtils.getWorkspaceFile("tools/adt/idea/android-kotlin").getPath();
+    return TestUtils.resolveWorkspacePath("tools/adt/idea/android-kotlin").toString();
   }
 
   @Override

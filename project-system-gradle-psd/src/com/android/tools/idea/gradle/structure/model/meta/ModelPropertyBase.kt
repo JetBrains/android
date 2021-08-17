@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 

@@ -21,15 +21,14 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilersTestData;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,7 +66,7 @@ public class CpuProfilerTestUtils {
   }
 
   public static File getTraceFile(@NotNull String filename) {
-    return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
+    return TestUtils.resolveWorkspacePath(CPU_TRACES_DIR + filename).toFile();
   }
 
   public static CpuCapture getValidCapture() throws ExecutionException, InterruptedException {
@@ -76,7 +75,7 @@ public class CpuProfilerTestUtils {
 
   public static CpuCapture getCapture(@NotNull String fullFileName) {
     try {
-      File file = TestUtils.getWorkspaceFile(fullFileName);
+      File file = TestUtils.resolveWorkspacePath(fullFileName).toFile();
       return getCapture(file, CpuTraceType.ART);
     }
     catch (Exception e) {
@@ -155,15 +154,16 @@ public class CpuProfilerTestUtils {
    * Note that a CpuTraceInfo will be auto-generated and added to the cpu service id'd by the current timer's timestamp. If this method
    * is called repeatedly in a single test, it is up to the caller to make sure to update the timestamp to not override the previously added
    * trace info.
+   *
+   * @return the capture's trace ID.
    */
-  static void captureSuccessfully(CpuProfilerStage stage,
+  static long captureSuccessfully(CpuProfilerStage stage,
                                   FakeCpuService cpuService,
                                   FakeTransportService transportService,
                                   ByteString traceContent) throws InterruptedException {
     // Start a successful capture
     startCapturing(stage, cpuService, transportService, true);
-    stopCapturing(stage, cpuService, transportService, true, traceContent);
-    assertThat(stage.getCapture()).isNotNull();
+    return stopCapturing(stage, cpuService, transportService, true, traceContent);
   }
 
   /**
@@ -215,8 +215,10 @@ public class CpuProfilerTestUtils {
    * for the caller to NOT update the timer's timestamp between a start/stop capture to allow this method to replace the existing
    * in-progress trace info. However, if this method is called repeatedly in a single test, it is up to the caller to make sure to update
    * the timestamp to not override the previously added trace info.
+   *
+   * @return the capture's trace ID.
    */
-  static void stopCapturing(CpuProfilerStage stage,
+  static long stopCapturing(CpuProfilerStage stage,
                             FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
@@ -267,18 +269,21 @@ public class CpuProfilerTestUtils {
     stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     stopLatch.await();
     parsingLatch.await();
+    return traceId;
   }
 
   /**
    * Identical to {@link #stopCapturing(CpuProfilerStage, FakeCpuService, FakeTransportService, boolean, ByteString, long)} but defaults
    * to a 1-nanosecond capture for convenience.
+   *
+   * @return the capture's trace ID.
    */
-  static void stopCapturing(CpuProfilerStage stage,
+  static long stopCapturing(CpuProfilerStage stage,
                             FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
                             ByteString traceContent) throws InterruptedException {
     // Defaults to a 1-second capture.
-    stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
+    return stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
   }
 }

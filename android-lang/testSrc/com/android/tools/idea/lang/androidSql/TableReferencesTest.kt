@@ -874,4 +874,71 @@ class TableReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
       .containsExactly("User" to myFixture.findClass("com.example.User"))
   }
+
+  fun test_duplicatedTableNames() {
+    myFixture.addClass("package com.example; public class NotAnEntity {}")
+    myFixture.addRoomEntity("com.example.first.User")
+    myFixture.addRoomEntity("com.example.second.User")
+
+    myFixture.addClass("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Database;
+        import androidx.room.Query;
+
+        @Database(entities = {com.example.first.User.class}, version = 1)
+        public abstract class AppDatabaseWithFirstUser extends RoomDatabase {
+            public abstract UserDaoWithFirstUser userDao();
+        }
+    """.trimIndent())
+
+    myFixture.addClass( """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Database;
+        import androidx.room.Query;
+
+        @Database(entities = {com.example.second.User.class}, version = 1)
+        public abstract class AppDatabaseWithSecondUser extends RoomDatabase {
+            public abstract UserDaoWithSecondUser userDao();
+        }
+    """.trimIndent())
+
+
+    var dao = myFixture.addClass( """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDaoWithFirstUser {
+          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.first.User"))
+
+    dao = myFixture.addClass( """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDaoWithSecondUser {
+          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.second.User"))
+
+
+  }
 }

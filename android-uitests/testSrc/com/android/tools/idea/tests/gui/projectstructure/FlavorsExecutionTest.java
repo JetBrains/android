@@ -140,7 +140,7 @@ public class FlavorsExecutionTest {
 
     ideFrameFixture
       .getAndroidLogcatToolWindow()
-      .selectDevicesTab()
+      .show()
       .selectProcess(PROCESS_NAME);
 
     BuildVariantsToolWindowFixture buildVariantsWindow = ideFrameFixture.getBuildVariantsWindow();
@@ -156,7 +156,7 @@ public class FlavorsExecutionTest {
 
     ideFrameFixture
       .getAndroidLogcatToolWindow()
-      .selectDevicesTab()
+      .show()
       .selectProcess(PROCESS_NAME);
   }
 

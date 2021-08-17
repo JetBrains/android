@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
@@ -25,8 +25,8 @@ import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.HelpSupport
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
 import com.intellij.codeInsight.documentation.DocumentationManager
@@ -42,7 +42,7 @@ object HelpActions {
 
   val help = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
       val tag = property.components.first().backend.tag ?: return
       val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
       DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation, true)
@@ -51,7 +51,7 @@ object HelpActions {
 
   val secondaryHelp = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem?
+      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem?
       val componentName = property?.componentName ?: return
       val url = toHelpUrl(componentName, property) ?: return
       BrowserUtil.browse(url)
@@ -59,12 +59,12 @@ object HelpActions {
   }
 
   @VisibleForTesting
-  fun toHelpUrl(componentName: String, property: NelePropertyItem): String? {
+  fun toHelpUrl(componentName: String, property: NlPropertyItem): String? {
     val anchor = getAttributeAnchor(componentName, property) ?: return null
     return getHelpUrl(componentName, property) + anchor
   }
 
-  private fun getHelpUrl(componentName: String, property: NelePropertyItem): String? {
+  private fun getHelpUrl(componentName: String, property: NlPropertyItem): String? {
     val dotLayoutParams = when {
       componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
       property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS
@@ -73,7 +73,7 @@ object HelpActions {
     return "$DEFAULT_ANDROID_REFERENCE_PREFIX${componentName.replace('.', '/')}$dotLayoutParams.html"
   }
 
-  private fun getAttributeAnchor(componentName: String, property: NelePropertyItem): String? =
+  private fun getAttributeAnchor(componentName: String, property: NlPropertyItem): String? =
     when {
       componentName.startsWith(ANDROID_VIEW_PKG) ||
       componentName.startsWith(ANDROID_WIDGET_PREFIX) -> "#attr_android:${property.name}"
@@ -94,7 +94,7 @@ object HelpActions {
    * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
    */
   @NlsSafe
-  fun createHelpText(property: NelePropertyItem, allowEmptyDescription: Boolean): String {
+  fun createHelpText(property: NlPropertyItem, allowEmptyDescription: Boolean): String {
     val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
     if (description.isEmpty() && !allowEmptyDescription) {
       return ""  // No help text available
@@ -114,7 +114,7 @@ object HelpActions {
     return sb.toString()
   }
 
-  private fun findNamespacePrefix(property: NelePropertyItem): String {
+  private fun findNamespacePrefix(property: NlPropertyItem): String {
     val resolver = property.namespaceResolver
     // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
     if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && property.namespace == SdkConstants.ANDROID_URI) {

@@ -31,7 +31,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
    * these names are used within the implementation below, and also in the construction of Dsl elements
    * representing the state of {@link BuildTypeDslElement}s.
    */
+  @NonNls public static final String CRUNCH_PNGS = "mCrunchPngs";
   @NonNls public static final String DEBUGGABLE = "mDebuggable";
+  @NonNls public static final String DEFAULT = "mDefault";
   @NonNls public static final String EMBED_MICRO_APP = "mEmbedMicroApp";
   @NonNls public static final String JNI_DEBUGGABLE = "mJniDebuggable";
   @NonNls public static final String MINIFY_ENABLED = "mMinifyEnabled";
@@ -40,10 +42,17 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls public static final String RENDERSCRIPT_OPTIM_LEVEL = "mRenderscriptOptimLevel";
   @NonNls public static final String SHRINK_RESOURCES = "mShrinkResources";
   @NonNls public static final String TEST_COVERAGE_ENABLED = "mTestCoverageEnabled";
+  @NonNls public static final String USE_PROGUARD = "mUseProguard";
   @NonNls public static final String ZIP_ALIGN_ENABLED = "mZipAlignEnabled";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
     super(dslElement);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel crunchPngs() {
+    return getModelForProperty(CRUNCH_PNGS);
   }
 
   @Override
@@ -56,6 +65,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel embedMicroApp() {
     return getModelForProperty(EMBED_MICRO_APP);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel isDefault() {
+    return getModelForProperty(DEFAULT);
   }
 
   @Override
@@ -98,6 +113,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel testCoverageEnabled() {
     return getModelForProperty(TEST_COVERAGE_ENABLED);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel useProguard() {
+    return getModelForProperty(USE_PROGUARD);
   }
 
   @Override

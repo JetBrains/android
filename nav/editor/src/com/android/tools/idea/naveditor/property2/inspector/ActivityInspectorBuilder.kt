@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.inspector
+package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.naveditor.model.isActivity
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
@@ -28,8 +28,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA_PATTERN
 
 private val propertyNames = arrayOf(ATTR_ACTION, ATTR_DATA, ATTR_DATA_PATTERN)
 
-class ActivityInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+class ActivityInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.first?.components?.singleOrNull()?.isActivity != true) {
       return
     }

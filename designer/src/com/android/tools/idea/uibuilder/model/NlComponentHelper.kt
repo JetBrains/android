@@ -514,29 +514,19 @@ class NlComponentMixin(component: NlComponent)
   }
 
   override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
-    var realInsertType = insertType
-    if (insertType.isMove) {
-      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
-    }
-
     // AssignId
-    if (component.needsDefaultId() && !realInsertType.isMove) {
+    if (component.needsDefaultId() && insertType != InsertType.MOVE) {
       component.incrementId(ids)
     }
   }
 
   override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent, surface: DesignSurface?) {
-    var realInsertType = insertType
-    if (insertType.isMove) {
-      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
-    }
-
     val editor by lazy { ViewEditorImpl(component.model, surface?.scene) }
     if (previousParent != receiver) {
-      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, realInsertType)
+      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, insertType)
     }
 
-    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, realInsertType)
+    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, insertType)
   }
 
   override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {
@@ -571,7 +561,7 @@ class NlComponentMixin(component: NlComponent)
     if (childHandler != null) {
       var ok = childHandler.onCreate(editor, component.parent, component, insertType)
       if (component.parent != null) {
-        ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet).dependenciesPresent
+        ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet, true)
       }
       if (!ok) {
         component.parent?.removeChild(component)

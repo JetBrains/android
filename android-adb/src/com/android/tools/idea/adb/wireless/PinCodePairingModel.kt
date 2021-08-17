@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.adb.wireless
 
-class PinCodePairingModel(val service: MdnsService) {
-  var pinCode: String = ""
+class PairingCodePairingModel(val service: MdnsService) {
+  var pairingCode: String = ""
 
   interface Listener {
-    fun pinCodeEntered()
+    fun pairingCodeEntered()
   }
 }

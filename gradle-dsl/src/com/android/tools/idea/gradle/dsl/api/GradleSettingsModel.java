@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Set;
@@ -71,4 +72,7 @@ public interface GradleSettingsModel extends GradleFileModel {
 
   @Nullable
   File buildFile(@NotNull String modulePath);
+
+  @NotNull
+  DependencyResolutionManagementModel dependencyResolutionManagement();
 }

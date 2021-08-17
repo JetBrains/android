@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
@@ -34,8 +33,10 @@ import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
@@ -261,7 +262,7 @@ public class GradleBuildInvoker {
 
   @NotNull
   private static String createGenerateSourcesOnlyProperty() {
-    return createProjectProperty(PROPERTY_GENERATE_SOURCES_ONLY, true);
+    return createProjectProperty(AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY, true);
   }
 
   /**
@@ -357,7 +358,7 @@ public class GradleBuildInvoker {
     executeTasks(path, gradleTasks, myOneTimeGradleOptions);
   }
 
-  public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
+  private void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
     executeTasks(buildFilePath, gradleTasks, myOneTimeGradleOptions);
   }
 
@@ -371,6 +372,7 @@ public class GradleBuildInvoker {
     tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
   }
 
+  @VisibleForTesting
   public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
     executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
   }
@@ -450,8 +452,11 @@ public class GradleBuildInvoker {
           presentation.setIcon(AllIcons.Actions.Compile);
 
           long eventTime = System.currentTimeMillis();
-          StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
-                                                              "running...");
+          DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, executionName, workingDir, eventTime);
+          if (request.myDoNotShowBuildOutputOnFailure) {
+            buildDescriptor.setActivateToolWindowWhenFailed(false);
+          }
+          StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
           if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
             event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
@@ -509,8 +514,11 @@ public class GradleBuildInvoker {
 
         private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
           if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-            String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
-            onTaskOutput(id, "\n" + buildAttributionTabLinkLine, true);
+            BuildAttributionManager manager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+            if (manager != null && manager.shouldShowBuildOutputLink()) {
+              String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
+              onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", true);
+            }
           }
         }
 
@@ -616,6 +624,8 @@ public class GradleBuildInvoker {
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
     @Nullable private BuildAction myBuildAction;
     private boolean myWaitForCompletion;
+    /** If true, the build output window will not automatically be shown on failure. */
+    private boolean myDoNotShowBuildOutputOnFailure = false;
 
     public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull String... gradleTasks) {
       this(project, buildFilePath, Arrays.asList(gradleTasks));
@@ -732,6 +742,15 @@ public class GradleBuildInvoker {
       return this;
     }
 
+    /**
+     * If called, do not show automatically the build output window when errors are found.
+     */
+    @NotNull
+    public Request doNotShowBuildOutputOnFailure() {
+      myDoNotShowBuildOutputOnFailure = true;
+      return this;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -745,7 +764,8 @@ public class GradleBuildInvoker {
       return Objects.equals(myBuildFilePath, that.myBuildFilePath) &&
              Objects.equals(myGradleTasks, that.myGradleTasks) &&
              Objects.equals(myJvmArguments, that.myJvmArguments) &&
-             Objects.equals(myCommandLineArguments, that.myCommandLineArguments);
+             Objects.equals(myCommandLineArguments, that.myCommandLineArguments) &&
+             myDoNotShowBuildOutputOnFailure == that.myDoNotShowBuildOutputOnFailure;
     }
 
     @Override
@@ -761,6 +781,7 @@ public class GradleBuildInvoker {
              ", myJvmArguments=" + myJvmArguments +
              ", myCommandLineArguments=" + myCommandLineArguments +
              ", myBuildAction=" + myBuildAction +
+             ", myDoNotShowBuildOutputOnFailure=" + myDoNotShowBuildOutputOnFailure +
              '}';
     }
   }

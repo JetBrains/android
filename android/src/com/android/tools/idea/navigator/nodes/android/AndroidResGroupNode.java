@@ -46,6 +46,7 @@ import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
 /**
  * {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource.
  */
+@SuppressWarnings("ComparableType")  // b/180537631
 public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements FolderGroupNode, FileGroupNode, Comparable {
   @NotNull private final String myResName;
   @NotNull private final AndroidFacet myFacet;

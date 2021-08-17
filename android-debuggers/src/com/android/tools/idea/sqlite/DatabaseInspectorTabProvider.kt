@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnect
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -60,7 +61,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
   ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -80,7 +82,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       private val dbClient = DatabaseInspectorClient(
         messenger,
-        project,
+        parentDisposable,
         handleError,
         openDatabase,
         onDatabasePossiblyChanged,
@@ -92,13 +94,9 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
-      val databaseInspectorClientCommands = object : DatabaseInspectorClientCommandsChannel {
-        override fun keepConnectionsOpen(keepOpen: Boolean) = dbClient.keepConnectionsOpen(keepOpen)
-      }
-
       init {
         databaseInspectorProjectService.projectScope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices, processDescriptor)
+          databaseInspectorProjectService.startAppInspectionSession(dbClient, ideServices, processDescriptor)
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
@@ -119,4 +117,6 @@ fun createErrorSideChannel(project: Project): ErrorsSideChannel = { command, err
  */
 interface DatabaseInspectorClientCommandsChannel {
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?>
+  fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?>
+  fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit>
 }

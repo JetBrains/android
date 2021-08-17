@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.testutils
+package com.android.tools.idea.uibuilder.property.testutils
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
-import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.LinkPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ColorFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
+import com.android.tools.property.panel.impl.model.LinkPropertyEditorModel
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakeComponentLineModel
@@ -53,19 +56,23 @@ import javax.swing.JPanel
 class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = "layout.xml")
   : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
 
-  private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
+  private val _properties: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
-  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+  val properties: PropertiesTable<NlPropertyItem> = PropertiesTableImpl(_properties)
 
   val editorProvider = FakeEditorProviderImpl(model)
 
   val inspector = FakeInspectorPanel()
 
   init {
+    // Make sure the initial property load by model is done before replacing the properties in the model:
+    model.lastSelectionUpdate.get()
+    NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
+
     model.setPropertiesInTest(properties)
   }
 
-  fun addProperty(namespace: String, name: String, type: NelePropertyType) {
+  fun addProperty(namespace: String, name: String, type: NlPropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
   }
 
@@ -78,7 +85,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   }
 
   fun loadProperties() {
-    val provider = NelePropertiesProvider(model.facet)
+    val provider = NlPropertiesProvider(model.facet)
     for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
@@ -131,34 +138,23 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   }
 }
 
-class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePropertyItem> {
-  private val enumSupportProvider = NeleEnumSupportProvider(model)
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+class FakeEditorProviderImpl(model: NlPropertiesModel): EditorProvider<NlPropertyItem> {
+  private val enumSupportProvider = NlEnumSupportProvider(model)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
 
-  override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: NlPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
-    when (controlTypeProvider(property)) {
-      ControlType.COMBO_BOX ->
-        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, true), JPanel())
-
-      ControlType.DROPDOWN ->
-        return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, false), JPanel())
-
-      ControlType.TEXT_EDITOR ->
-        return Pair(TextFieldPropertyEditorModel(property, true), JPanel())
-
-      ControlType.THREE_STATE_BOOLEAN ->
-        return Pair(ThreeStateBooleanPropertyEditorModel(property), JPanel())
-
-      ControlType.FLAG_EDITOR ->
-        return Pair(FlagPropertyEditorModel(property as FlagsPropertyItem<*>), JPanel())
-
-      ControlType.BOOLEAN ->
-        return Pair(BooleanPropertyEditorModel(property), JPanel())
-
-      ControlType.COLOR_EDITOR ->
-        return Pair(ColorFieldPropertyEditorModel(property), JPanel())
-    }
+    return when (val type = controlTypeProvider(property)) {
+      ControlType.COMBO_BOX -> ComboBoxPropertyEditorModel(property, enumSupport!!, true)
+      ControlType.DROPDOWN -> ComboBoxPropertyEditorModel(property, enumSupport!!, false)
+      ControlType.TEXT_EDITOR -> TextFieldPropertyEditorModel(property, true)
+      ControlType.THREE_STATE_BOOLEAN -> ThreeStateBooleanPropertyEditorModel(property)
+      ControlType.FLAG_EDITOR -> FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
+      ControlType.BOOLEAN -> BooleanPropertyEditorModel(property)
+      ControlType.COLOR_EDITOR -> ColorFieldPropertyEditorModel(property)
+      ControlType.LINK_EDITOR -> LinkPropertyEditorModel(property as LinkPropertyItem)
+      else -> error("Unknown control type: $type")
+    } to JPanel()
   }
 }

@@ -3,6 +3,7 @@ package org.jetbrains.android.inspections.lint;
 import com.android.resources.Density;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
@@ -24,6 +25,11 @@ public class ConvertToDpQuickFix implements LintIdeQuickFix {
   private static final Pattern PX_ATTR_VALUE_PATTERN = Pattern.compile("(\\d+)px");
 
   private static int ourPrevDpi = Density.DEFAULT_DENSITY;
+
+  @Override
+  public boolean startInWriteAction() {
+    return false; // Cannot start the write action until after the modal dialog is shown.
+  }
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
@@ -66,7 +72,8 @@ public class ConvertToDpQuickFix implements LintIdeQuickFix {
 
     final int dpi;
 
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
       dpi = Density.DEFAULT_DENSITY;
     }
     else {
@@ -82,26 +89,28 @@ public class ConvertToDpQuickFix implements LintIdeQuickFix {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourPrevDpi = dpi;
 
-    for (XmlAttribute attribute : tag.getAttributes()) {
-      final String value = attribute.getValue();
+    application.runWriteAction(() -> {
+      for (XmlAttribute attribute : tag.getAttributes()) {
+        final String value = attribute.getValue();
 
-      if (value != null && value.endsWith("px")) {
-        final String newValue = convertToDp(value, dpi);
-        if (newValue != null) {
-          attribute.setValue(newValue);
+        if (value != null && value.endsWith("px")) {
+          final String newValue = convertToDp(value, dpi);
+          if (newValue != null) {
+            attribute.setValue(newValue);
+          }
         }
       }
-    }
-    final XmlTagValue tagValueElement = tag.getValue();
-    final String tagValue = tagValueElement.getText();
+      final XmlTagValue tagValueElement = tag.getValue();
+      final String tagValue = tagValueElement.getText();
 
-    if (tagValue.endsWith("px")) {
-      final String newValue = convertToDp(tagValue, dpi);
+      if (tagValue.endsWith("px")) {
+        final String newValue = convertToDp(tagValue, dpi);
 
-      if (newValue != null) {
-        tagValueElement.setText(newValue);
+        if (newValue != null) {
+          tagValueElement.setText(newValue);
+        }
       }
-    }
+    });
   }
 
   private static String convertToDp(String value, int dpi) {

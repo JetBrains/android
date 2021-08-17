@@ -27,7 +27,6 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
@@ -67,6 +66,58 @@ import org.xmlpull.v1.XmlPullParserException;
  * single summary at the end
  */
 public class RenderLogger implements IRenderLogger {
+  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger(null, null, null) {
+    @Override
+    public void addMessage(@NotNull RenderProblem message) {}
+
+    @Override
+    public void error(@Nullable String tag,
+                      @Nullable String message,
+                      @Nullable Object viewCookie,
+                      @Nullable Object data) {}
+
+    @Override
+    public void error(@Nullable String tag,
+                      @Nullable String message,
+                      @Nullable Throwable throwable,
+                      @Nullable Object viewCookie,
+                      @Nullable Object data) {}
+
+    @Override
+    public void warning(@Nullable String tag,
+                        @NotNull String message,
+                        @Nullable Object viewCookie,
+                        @Nullable Object data) {}
+
+    @Override
+    public void fidelityWarning(@Nullable String tag,
+                                @Nullable String message,
+                                @Nullable Throwable throwable,
+                                @Nullable Object viewCookie,
+                                @Nullable Object data) {}
+
+    @Override
+    public void setHasLoadedClasses() {}
+
+    @Override
+    public void setMissingResourceClass() {}
+
+    @Override
+    public void setResourceClass(@NotNull String resourceClass) {}
+
+    @Override
+    public void addMissingClass(@NotNull String className) {}
+
+    @Override
+    public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {}
+
+    @Override
+    public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {}
+
+    @Override
+    public void logAndroidFramework(int priority, String tag, @NotNull String message) {}
+  };
+
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -148,7 +199,7 @@ public class RenderLogger implements IRenderLogger {
    * @see #ignoreFidelityWarning(Object)
    */
   @VisibleForTesting
-  static void resetFidelityErrorsFilters() {
+  public static void resetFidelityErrorsFilters() {
     ourIgnoreAllFidelityWarnings = false;
     if (ourIgnoredFidelityWarnings != null) {
       ourIgnoredFidelityWarnings.clear();
@@ -384,25 +435,6 @@ public class RenderLogger implements IRenderLogger {
       else if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       }
-      else if (message != null && message.equals("onMeasure error") &&
-               throwable.toString()
-                 .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
-        RenderProblem.Html problem = RenderProblem.create(WARNING);
-        String issue = "214853";
-        problem.tag(issue);
-        problem.throwable(throwable);
-        HtmlBuilder builder = problem.getHtmlBuilder();
-        builder.add("You appear to be using constraint layout version alpha3 or earlier; you must use version alpha4 or later " +
-                    "with this version of the layout editor (because the API for guidelines changed incompatibly as of alpha4.)");
-        builder.add(" (");
-        builder.addLink("Update Library", getLinkManager().createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
-        builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(getProject(), throwable);
-        builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
-        builder.add(")");
-        addMessage(problem);
-        return;
-      }
       else if (message != null && message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
         StackTraceElement[] frames = throwable.getStackTrace();
@@ -582,6 +614,15 @@ public class RenderLogger implements IRenderLogger {
         String name = data instanceof String ? (String)data : null;
         myMissingFragments.add(name);
       }
+      return;
+    }
+    else if (TAG_THREAD_CREATION.equals(tag)) {
+      addTag(tag);
+      RenderProblem problem = RenderProblem.createPlain(WARNING, description).tag(tag);
+      if (data instanceof Throwable) {
+        problem.throwable((Throwable)data);
+      }
+      addMessage(problem);
       return;
     }
 

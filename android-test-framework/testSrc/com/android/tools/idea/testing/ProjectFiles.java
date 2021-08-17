@@ -58,8 +58,10 @@ public final class ProjectFiles {
     return folder;
   }
 
-  public static @NotNull VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
-    return createFile(PlatformTestUtil.getOrCreateProjectBaseDir(project), fileName);
+  @NotNull
+  public static VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
+    VirtualFile parent = PlatformTestUtil.getOrCreateProjectBaseDir(project);
+    return createFile(parent, fileName);
   }
 
   @NotNull

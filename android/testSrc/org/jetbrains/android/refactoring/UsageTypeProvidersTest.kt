@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.ex.EditorEx
@@ -56,6 +55,15 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   /**
+   * Test for [AndroidPropertiesUsageType]
+   */
+  fun testGradlePropertiesFile() {
+    val psiFile = myFixture.addFileToProject("gradle.properties", "")
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    assertThat(getUsageType(psiFile).toString()).isEqualTo("Gradle properties file")
+  }
+
+  /**
    * Tests for [AndroidResourceReferenceInCodeUsageTypeProvider]
    */
   fun testAndroidLightFieldResource() {
@@ -75,13 +83,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
          }
        }
        """.trimIndent())
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      checkUsageTypeText(file.virtualFile,
-                         "Resource declaration in Android resources XML",
-                         "Resource reference in code")
-    } else {
-      checkUsageTypeText(file.virtualFile, "Resource reference in code")
-    }
+    checkUsageTypeText(file.virtualFile, "Resource declaration in Android resources XML", "Resource reference in code")
   }
 
   fun testClsFieldImplManifest() {
@@ -133,7 +135,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     val elementAtCaret = file.findElementAt(myFixture.caretOffset)
     val usageType = getUsageType(elementAtCaret!!)
     assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo("{0} in Gradle build script")
+    assertThat(usageType.toString()).isEqualTo("In Gradle build script")
   }
 
   // whatever is returned on a normal Kotlin file, it should not be related to Gradle (a null result is OK)
@@ -177,13 +179,10 @@ class UsageTypeProvidersTest : AndroidTestCase() {
       "res/values/colors.xml",
       //language=XML
       """<resources><color name="color${caret}Primary">#008577</color></resources>""")
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      checkUsageTypeText(colorsFile.virtualFile,
-                         "Resource declaration in Android resources XML",
-                         "Resource reference Android resources XML")
-    } else {
-      checkUsageTypeText(colorsFile.virtualFile, "In Android resources XML")
-    }
+      checkUsageTypeText(
+        colorsFile.virtualFile,
+        "Resource declaration in Android resources XML",
+        "Resource reference Android resources XML")
   }
 
   fun testManifestDomElement() {
@@ -221,12 +220,12 @@ class UsageTypeProvidersTest : AndroidTestCase() {
 
   private fun getUsageType(element: PsiElement) : UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
-      if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) }
-        return provider.getUsageType(element, targets) ?: continue
+      return if (provider is UsageTypeProviderEx) {
+        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
+        provider.getUsageType(element, targets) ?: continue
       }
       else {
-        return provider.getUsageType(element) ?: continue
+        provider.getUsageType(element) ?: continue
       }
     }
     return null

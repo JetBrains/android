@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fileTypes.profiler;
+package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.io.ByteSequence;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 /**
  * Represents a heap dump file that can be imported into memory profiler.

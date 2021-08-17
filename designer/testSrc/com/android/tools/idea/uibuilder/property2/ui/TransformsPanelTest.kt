@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.ui
+package com.android.tools.idea.uibuilder.property.ui
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -33,9 +34,11 @@ class TransformsPanelTest {
   }
 
   private fun checkValueOf(value: String?, expected: Double?) {
-    val property: NelePropertyItem = mock()
+    val panel: TransformsPanel = mock()
+    `when`(panel.valueOf(any())).thenCallRealMethod()
+    val property: NlPropertyItem = mock()
     `when`(property.value).thenReturn(value)
 
-    assertThat(TransformsPanel.valueOf(property)).isEqualTo(expected)
+    assertThat(panel.valueOf(property)).isEqualTo(expected)
   }
 }

@@ -108,9 +108,9 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
     myListener = myManager.getFileEditorManagerListener();
 
-    when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
-    when(myEditorManager.getAllEditors()).thenReturn(new FileEditor[0]);
+    when(myEditorManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(myEditorManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     registerProjectComponent(FileEditorManager.class, myEditorManager);
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());

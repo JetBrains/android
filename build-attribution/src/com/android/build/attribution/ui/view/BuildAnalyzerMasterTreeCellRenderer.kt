@@ -34,7 +34,7 @@ import java.awt.Graphics
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
+class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer() {
 
   private val rightAlignedFont = JBUI.Fonts.create(Font.MONOSPACED, 11)
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null

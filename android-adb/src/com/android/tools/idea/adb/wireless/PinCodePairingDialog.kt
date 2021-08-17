@@ -16,6 +16,8 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.ui.JSingleDigitTextField
+import com.android.tools.idea.ui.OneTimeOverrideFocusTraversalPolicy
 import com.android.tools.idea.ui.SimpleDialog
 import com.android.tools.idea.ui.SimpleDialogOptions
 import com.intellij.openapi.Disposable
@@ -26,24 +28,35 @@ import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 
 @UiThread
-class PinCodePairingDialog(project: Project) {
+class PairingCodePairingDialog(project: Project) {
   private val dialog: SimpleDialog
-  private val pairingPanel by lazy { PinCodeInputPanel() }
+  private val pairingPanel by lazy { PairingCodeInputPanel(disposable) }
 
   init {
     val options = SimpleDialogOptions(project,
                                       true,
                                       DialogWrapper.IdeModalityType.PROJECT,
-                                      title = "Enter PIN code",
+                                      title = "Enter pairing code",
                                       isModal = true,
                                       okButtonText = "Pair",
                                       centerPanelProvider = { createCenterPanel() },
                                       okActionHandler = { okButtonHandler() },
-                                      preferredFocusProvider = { pairingPanel.pinCodeComponent },
+                                      preferredFocusProvider = { pairingPanel.firstPairingCodeDigitComponent },
                                       validationHandler = { validationHandler() }
     )
     dialog = SimpleDialog(options)
     dialog.init()
+
+    // Install a custom focus traversal policy that ensures focus is set to the "Pair" button
+    // when the last digit of the pairing code is entered
+    val focusPolicy = OneTimeOverrideFocusTraversalPolicy.install(dialog.rootPane)
+    pairingPanel.lastPairingCodeDigitComponent.addListener(object: JSingleDigitTextField.Listener {
+      override fun onDigitEntered(event: JSingleDigitTextField.Event) {
+        focusPolicy.oneTimeComponentAfter.set(dialog.okButton)
+        event.component.transferFocus()
+        event.consumed = true
+      }
+    })
   }
 
   var validationHandler: () -> ValidationInfo? = { null }
@@ -53,14 +66,14 @@ class PinCodePairingDialog(project: Project) {
   val disposable: Disposable
     get() = dialog.disposable
 
-  val pinCodeComponent: JComponent
-    get() = pairingPanel.pinCodeComponent
+  val pairingCodeComponent: JComponent
+    get() = pairingPanel.firstPairingCodeDigitComponent
 
-  val currentPinCode: String
-    get() = pairingPanel.pinCode
+  val currentPairingCode: String
+    get() = pairingPanel.pairingCode
 
-  val isPinCodeValid: Boolean
-    get() = currentPinCode.length == PinCodeInputPanel.PIN_CODE_DIGIT_COUNT
+  val isPairingCodeValid: Boolean
+    get() = currentPairingCode.length == PairingCodeInputPanel.PAIRING_CODE_DIGIT_COUNT
 
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough

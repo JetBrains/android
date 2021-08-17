@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

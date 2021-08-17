@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_SCANNER_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
@@ -35,7 +33,6 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.ScaleKt;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -44,16 +41,18 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
+import com.android.tools.idea.common.surface.LayoutScannerControl;
+import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -64,12 +63,11 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -80,15 +78,16 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.*;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,7 +120,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
-    @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
     /**
      * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
      * with this surface.
@@ -140,6 +138,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
     private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
+    private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
+    @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -266,16 +266,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Set zoom type to apply to surface on configuration changes.
-     * @param onChangeZoom {@link ZoomType} to be applied on configuration change
-     * @return this {@link Builder}
-     */
-    public Builder setOnConfigurationChangedZoom(@NotNull ZoomType onChangeZoom) {
-      myOnChangeZoom = onChangeZoom;
-      return this;
-    }
-
-    /**
      * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
      */
     @NotNull
@@ -303,6 +293,29 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * The surface will autohide the zoom controls when the mouse is not over it.
+     */
+    @NotNull
+    public Builder setZoomControlsPolicy(@NotNull ZoomControlsPolicy policy) {
+      myZoomControlsPolicy = policy;
+      return this;
+    }
+
+    /**
+     * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
+     * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
+     * By default, the builder assumes there is no supported {@link NlSupportedActions}.
+     *
+     * Be award the {@link com.intellij.openapi.actionSystem.AnAction}s registered by code are not effected.
+     * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
+     */
+    @NotNull
+    public Builder setSupportedActions(@NotNull Set<NlSupportedActions> supportedActions) {
+      mySupportedActions = supportedActions;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -321,10 +334,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myNavigationHandler,
                                  myMinScale,
                                  myMaxScale,
-                                 myOnChangeZoom,
                                  myActionHandlerProvider,
                                  myDelegateDataProvider,
-                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel());
+                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
+                                 myZoomControlsPolicy,
+                                 mySupportedActions);
     }
   }
 
@@ -356,7 +370,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private final boolean myIsInPreview;
-  private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
@@ -373,11 +386,26 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SurfaceScale private final double myMinScale;
   @SurfaceScale private final double myMaxScale;
 
+  // properties to calculate the correct viewport position when its size is changed.
+  @Nullable private Dimension myCurrentViewportSize = null;
+  @SwingCoordinate
+  @NotNull
+  private final Point myZoomCenterInViewport = new Point();
+  @SwingCoordinate
+  @NotNull
+  private final Point myZoomCenter = new Point();
+  /**
+   * Flag to indicate the view port should have same center when viewport changed.
+   */
+  private boolean myNeedsKeepSameViewportCenter = false;
+
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private LayoutScannerControl myValidatorControl;
+  @Nullable private LayoutScannerControl myScannerControl;
+
+  @NotNull private final Set<NlSupportedActions> mySupportedActions;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -391,14 +419,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @Nullable NavigationHandler navigationHandler,
                           @SurfaceScale double minScale,
                           @SurfaceScale double maxScale,
-                          @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
-                          @NotNull SelectionModel selectionModel) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
+                          @NotNull SelectionModel selectionModel,
+                          ZoomControlsPolicy zoomControlsPolicy,
+                          @NotNull Set<NlSupportedActions> supportedActions) {
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
-          selectionModel);
+          selectionModel,
+          zoomControlsPolicy);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -406,6 +436,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
+    mySupportedActions = supportedActions;
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
@@ -414,8 +445,65 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
+    getViewport().addChangeListener(e -> {
+      if (!myNeedsKeepSameViewportCenter) {
+        // We only change the viewport position when viewport is changed by scaling.
+        // For example, we don't want to change the position when user resize the window.
+        return;
+      }
+      // Reset the flag so it won't update the center point if the following change is caused by window resizing.
+      myNeedsKeepSameViewportCenter = false;
+      // Calculate the viewport position of scroll view when its size is changed.
+      // When the view size is changed, the new center position should have same weight in both x and y axis as before.
+      // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
+      // y-axis.
+      // When view size changes to 500 * 1000, the new center should be (400, 750) because we want to keep same weights
+      // We calculate the new viewport position to achieve above behavior.
+      if (myLayoutManager instanceof GridSurfaceLayoutManager) {
+        // Grid surface layout manager layouts the preview depending on the screen size. There is no particular trace point for zooming.
+        return;
+      }
+      DesignSurfaceViewport port = getViewport();
+      Dimension newViewportSize = port.getViewSize();
+      if (newViewportSize == null ||
+          newViewportSize.width == 0 ||
+          newViewportSize.height == 0 ||
+          newViewportSize.equals(myCurrentViewportSize)) {
+        return;
+      }
+      if (myCurrentViewportSize == null) {
+        // Do nothing. The view position should be default value (usually it is (0, 0))
+        myCurrentViewportSize = newViewportSize;
+        return;
+      }
+
+      int zoomCenterX = myZoomCenter.x;
+      int zoomCenterY = myZoomCenter.y;
+      int zoomCenterInViewportX = myZoomCenterInViewport.x;
+      int zoomCenterInViewportY = myZoomCenterInViewport.y;
+
+      double weightInPaneX = zoomCenterInViewportX / (double)myCurrentViewportSize.width;
+      double weightInPaneY = zoomCenterInViewportY / (double)myCurrentViewportSize.height;
+
+      int newViewWidth = newViewportSize.width;
+      int newViewHeight = newViewportSize.height;
+      double newZoomCenterInViewportX = newViewWidth * weightInPaneX;
+      double newZoomCenterInViewportY = newViewHeight * weightInPaneY;
+
+      int newViewPositionX = (int)(newZoomCenterInViewportX - zoomCenterX);
+      int newViewPositionY = (int)(newZoomCenterInViewportY - zoomCenterY);
+
+      // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
+      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getViewportComponent().getWidth()));
+      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getViewportComponent().getHeight()));
+
+      myCurrentViewportSize = newViewportSize;
+
+      port.setViewPosition(new Point(newViewPositionX, newViewPositionY));
+    });
+
     if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myValidatorControl = new NlLayoutScannerControl(this, this);
+      myScannerControl = new NlLayoutScanner(this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
@@ -484,6 +572,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return myAnalyticsManager;
   }
 
+  @Override
+  public @Nullable LayoutScannerControl getLayoutScannerControl() {
+    return myScannerControl;
+  }
+
   public boolean isPreviewSurface() {
     return myIsInPreview;
   }
@@ -497,7 +590,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setResizeMode(boolean isResizing) {
     myIsCanvasResizing = isResizing;
     // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
-    myScrollPane.setAutoscrolls(isResizing);
+    setSurfaceAutoscrolls(isResizing);
   }
 
   /**
@@ -529,6 +622,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     if (screenViewProvider != myScreenViewProvider) {
+      myScreenViewProvider.onViewProviderReplaced();
       myScreenViewProvider = screenViewProvider;
 
       for (SceneManager manager : getSceneManagers()) {
@@ -569,69 +663,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       view.setForceLayersRepaint(value);
     }
     repaint();
-  }
-
-  @Override
-  @Nullable
-  public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getHoverSceneView(x, y);
-    if (view == null) {
-      // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView when there is no hovered SceneView.
-      SceneManager manager = getSceneManager();
-      if (manager != null) {
-        view = manager.getSceneView();
-      }
-    }
-    return view;
-  }
-
-  /**
-   * Return the ScreenView under the given position
-   *
-   * @return the ScreenView, or null if we are not above one.
-   */
-  @Nullable
-  @Override
-  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Collection<SceneView> sceneViews = getSceneViews();
-    Dimension scaledSize = new Dimension();
-    for (SceneView view : sceneViews) {
-      ScaleKt.scaleBy(view.getContentSize(scaledSize), view.getScale());
-      if (view.getX() <= x &&
-          x <= (view.getX() + scaledSize.width) &&
-          view.getY() <= y &&
-          y <= (view.getY() + scaledSize.height)) {
-        return view;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  @NotNull
-  protected ImmutableCollection<SceneView> getSceneViews() {
-    ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
-
-    // Add all primary SceneViews
-    builder.addAll(super.getSceneViews());
-
-    // Add secondary SceneViews
-    for (SceneManager manager : getSceneManagers()) {
-      SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
-      if (secondarySceneView != null) {
-        builder.add(secondarySceneView);
-      }
-    }
-    return builder.build();
-  }
-
-  public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
-    myAdaptiveIconShape = adaptiveIconShape;
-  }
-
-  @NotNull
-  public ShapeMenuAction.AdaptiveIconShape getAdaptiveIconShape() {
-    return myAdaptiveIconShape;
   }
 
   @NotNull
@@ -756,6 +787,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     getErrorQueue().queue(new Update("errors") {
       @Override
       public void run() {
+        // Whenever error queue is active, make sure to resume any paused scanner control.
+        myScannerControl.resume();
         // Look up *current* result; a newer one could be available
         Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
           .filter(LayoutlibSceneManager.class::isInstance)
@@ -765,9 +798,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myValidatorControl != null) {
+        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myScannerControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            myValidatorControl.getScanner().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+            myScannerControl.validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
           }
         }
 
@@ -841,7 +874,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @SurfaceScale
   protected double getMinScale() {
-    return Math.max(getFitScale(true), myMinScale);
+    return myMinScale;
   }
 
   @Override
@@ -863,6 +896,33 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SurfaceScale double currentScale = getScale();
     @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
     return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
+  }
+
+  @Override
+  public boolean setScale(double scale, int x, int y) {
+    if (x < 0 || y < 0) {
+      // This happens when zooming is triggered by shortcut or zoom buttons.
+      // We use the center point of scroll pane as scaling center.
+      myZoomCenter.x = getViewport().getViewportComponent().getWidth() / 2;
+      myZoomCenter.y = getViewport().getViewportComponent().getHeight() / 2;
+
+      // Convert the center point in scroll pane to view port coordinate system.
+      Point scrollPosition = getScrollPosition();
+      myZoomCenterInViewport.x = scrollPosition.x + myZoomCenter.x;
+      myZoomCenterInViewport.y = scrollPosition.y + myZoomCenter.y;
+    }
+    else {
+      // This happens when zooming is triggered by mouse wheel or magnify (e.g. the gesture of track pad)
+      myZoomCenterInViewport.x = x;
+      myZoomCenterInViewport.y = y;
+
+      // The given zoom center is in Viewport coordinate, we need to calculate the point in scroll pane.
+      Point center = SwingUtilities.convertPoint(getViewport().getViewComponent(), x, y, getViewport().getViewportComponent());
+      myZoomCenter.x = center.x;
+      myZoomCenter.y = center.y;
+    }
+    myNeedsKeepSameViewportCenter = super.setScale(scale, x, y);
+    return myNeedsKeepSameViewportCenter;
   }
 
   @Override
@@ -941,6 +1001,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   public void setRenderSynchronously(boolean enabled) {
     myIsRenderingSynchronously = enabled;
+    // If animation is enabled, scanner must be paused.
+    if (enabled) {
+      myScannerControl.pause();
+    } else {
+      myScannerControl.resume();
+    }
   }
 
   public boolean isRenderingSynchronously() { return myIsRenderingSynchronously; }
@@ -960,7 +1026,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public final Object getData(@NotNull String dataId) {
+  public Object getData(@NotNull String dataId) {
     Object data = myDelegateDataProvider != null ? myDelegateDataProvider.getData(dataId) : null;
     if (data != null) {
       return data;
@@ -969,11 +1035,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
     }
-    else if(LAYOUT_SCANNER_KEY.is(dataId)) {
-      return myValidatorControl;
-    }
 
     return super.getData(dataId);
+  }
+
+  @NotNull
+  public Set<NlSupportedActions> getSupportedActions() {
+    return mySupportedActions;
   }
 
   @Override

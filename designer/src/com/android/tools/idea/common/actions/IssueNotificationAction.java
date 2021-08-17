@@ -19,6 +19,8 @@ import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -26,6 +28,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import javax.swing.Icon;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -34,9 +37,16 @@ import org.jetbrains.annotations.NotNull;
 public class IssueNotificationAction extends ToggleAction {
   public static final String NO_ISSUE = "No Issue";
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
+  private static final String DEFAULT_TOOLTIP = "Toggle visibility of issue panel";
   private static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR);
 
-  private IssueNotificationAction() {
+  /**
+   * Returns the icon and description to be used when the surface is active but there are no errors.
+   * Both can be null to allow using the {@link IssueNotificationAction} defaults.
+   */
+  @NotNull
+  protected Pair<Icon, String> getNoErrorsIconAndDescription(@NotNull AnActionEvent event) {
+    return new Pair<>(null, null);
   }
 
   @NotNull
@@ -53,17 +63,36 @@ public class IssueNotificationAction extends ToggleAction {
     super.update(event);
     DesignSurface surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
     Presentation presentation = event.getPresentation();
-    if (surface == null) {
+
+    if (surface == null || !NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.TOGGLE_ISSUE_PANEL)) {
       event.getPresentation().setEnabled(false);
-      presentation.setDescription("Toggle visibility of issue panel");
+      presentation.setText(SHOW_ISSUE);
+      presentation.setDescription(DEFAULT_TOOLTIP);
       presentation.setIcon(DISABLED_ICON);
     }
     else {
       event.getPresentation().setEnabled(true);
       IssueModel issueModel = surface.getIssueModel();
       int markerCount = issueModel.getIssueCount();
+
       presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      presentation.setIcon(getIssueTypeIcon(issueModel));
+      if (markerCount == 0) {
+        Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
+        if (iconAndDescription.getSecond() != null) {
+          presentation.setText(iconAndDescription.getSecond());
+        }
+
+        if (iconAndDescription.getFirst() == null) {
+          presentation.setIcon(getIssueTypeIcon(issueModel));
+        }
+        else {
+          presentation.setIcon(iconAndDescription.getFirst());
+        }
+      }
+      else {
+        presentation.setIcon(getIssueTypeIcon(issueModel));
+        presentation.setText(DEFAULT_TOOLTIP);
+      }
     }
   }
 

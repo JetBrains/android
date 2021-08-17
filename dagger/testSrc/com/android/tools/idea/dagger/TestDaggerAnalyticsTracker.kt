@@ -26,8 +26,14 @@ class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
     calledMethods.add("trackNavigation $context $fromElement $toElement")
   }
 
-  override fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType) {
-    calledMethods.add("trackFindUsagesNodeWasDisplayed $ownerElement")
+  override fun shouldLog(percentage: Int): Boolean = true
+
+  override fun trackGutterWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
+    calledMethods.add("trackGutterWasDisplayed owner: $ownerElement time: $time")
+  }
+
+  override fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
+    calledMethods.add("trackFindUsagesNodeWasDisplayed owner: $ownerElement time: $time")
   }
 
   override fun trackClickOnGutter(ownerElement: DaggerEditorEvent.ElementType) {

@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_WARN_NEW_THREADS;
+import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.DefaultLogger;
@@ -35,13 +39,20 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.uipreview.ClassBinaryCache;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +95,7 @@ public class RenderClassLoaderTest {
     if (myOriginalFactory != null) {
       Logger.setFactory(myOriginalFactory.getClass());
     }
+    NELE_WARN_NEW_THREADS.clearOverride();
   }
 
   @Test
@@ -92,12 +104,9 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/lib.jar");
     File testJarFile = File.createTempFile("RenderClassLoader", ".jar");
     FileUtil.copy(jarSource, testJarFile);
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
-      @Override
-      protected List<Path> getExternalJars() {
-        return List.of(testJarFile.toPath());
-      }
-    };
+
+    RenderClassLoader loader =
+      new TestableRenderClassLoader(this.getClass().getClassLoader(), ClassTransform.getIdentity(), ImmutableList.of(testJarFile.toURI().toURL()));
 
     loader.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
     assertTrue(testJarFile.delete());
@@ -113,11 +122,7 @@ public class RenderClassLoaderTest {
     File classSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/MyJarClass.class");
     byte[] classBytes = Files.readAllBytes(classSource.toPath());
 
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
-      @Override
-      protected List<Path> getExternalJars() {
-        return Collections.emptyList();
-      }
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(), ClassTransform.getIdentity(), ImmutableList.of()) {
 
       @NotNull
       @Override
@@ -137,12 +142,10 @@ public class RenderClassLoaderTest {
   @Test
   public void testThreadLocalsRemapper_threadLocalAncestor() throws Exception {
     Path testJarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
-      @Override
-      protected List<Path> getExternalJars() {
-        return ImmutableList.of(testJarPath);
-      }
-    };
+
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.CustomThreadLocal");
     Constructor<?> constructor = customThreadLocalClass.getConstructor();
@@ -157,12 +160,10 @@ public class RenderClassLoaderTest {
   @Test
   public void testThreadLocalsRemapper_threadLocalContainer() throws Exception {
     Path testJarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
-      @Override
-      protected List<Path> getExternalJars() {
-        return ImmutableList.of(testJarPath);
-      }
-    };
+
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.ThreadLocalContainer");
     Field threadLocalField = customThreadLocalClass.getField("threadLocal");
@@ -174,6 +175,131 @@ public class RenderClassLoaderTest {
     trackedThreadLocals.forEach(tl -> tl.remove());
   }
 
+  @Test
+  public void testBinaryCache_loadWithoutLibrary() throws IOException, ClassNotFoundException {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/lib.jar");
+    File testJarFile = File.createTempFile("RenderClassLoader", ".jar");
+    FileUtil.copy(jarSource, testJarFile);
+
+    ClassBinaryCache cache = new ClassBinaryCache() {
+      private final Map<String, byte[]> mCache = new HashMap<>();
+
+      @Nullable
+      @Override
+      public byte[] get(@NotNull String fqcn, @NotNull String transformationId) {
+        return mCache.get(fqcn + ":" + transformationId);
+      }
+
+      @Override
+      public void put(@NotNull String fqcn, @NotNull String transformationId, @NotNull String libraryPath, @NotNull byte[] data) {
+        mCache.put(fqcn + ":" + transformationId, data);
+      }
+
+      @Override
+      public void put(@NotNull String fqcn, @NotNull String libraryPath, @NotNull byte[] data) {
+        put(fqcn, "", libraryPath, data);
+      }
+
+      @Nullable
+      @Override
+      public byte[] get(@NotNull String fqcn) {
+        return get(fqcn, "");
+      }
+
+      @Override
+      public void setDependencies(@NotNull Collection<String> paths) { }
+    };
+
+    RenderClassLoader loader =
+      new TestableRenderClassLoader(this.getClass().getClassLoader(), ImmutableList.of(testJarFile.toURI().toURL()), cache);
+
+    loader.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
+    assertTrue(testJarFile.delete());
+
+    // This time it should load from cache
+    RenderClassLoader loader2 =
+      new TestableRenderClassLoader(this.getClass().getClassLoader(), ImmutableList.of(), cache);
+    loader2.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
+  }
+
+  /**
+   * Regression test for b/173773976
+   */
+  @Test
+  public void testFailedClassLoadingResetsInsideClassLoader() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
+
+    TestableRenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    assertFalse(loader.isInsiderJarClassLoader());
+    try {
+      loader.loadClassFromNonProjectDependency("com.does.not.exist.Test");
+      fail("Class does not exist, the class loader must throw ClassNotFoundException");
+    } catch (ClassNotFoundException ignored) {
+    }
+    assertFalse(loader.isInsiderJarClassLoader());
+  }
+
+  @Test
+  public void testThreadControllingTransform_failIfIllegalThread() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/threadControllingTransform/mythreadcontrolling.jar");
+
+    RenderClassLoader plainLoader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                                  ClassTransform.getIdentity(),
+                                                                  ImmutableList.of(jarSource.toURI().toURL()));
+
+    Class<?> threadCreationClass = plainLoader.loadClassFromNonProjectDependency("com.mythreadcontrollingjar.ThreadCreator");
+    Method threadFactory = threadCreationClass.getMethod("createIllegalThread");
+    assertThat(threadFactory.invoke(null)).isInstanceOf(Thread.class);
+    assertThat(threadFactory.invoke(null)).isNotInstanceOf(TrackingThread.class);
+
+    RenderClassLoader intrumentingLoader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadControllingTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    threadCreationClass = intrumentingLoader.loadClassFromNonProjectDependency("com.mythreadcontrollingjar.ThreadCreator");
+    threadFactory = threadCreationClass.getMethod("createIllegalThread");
+
+    NELE_WARN_NEW_THREADS.override(true);
+    try {
+      threadFactory.invoke(null);
+      fail();
+    } catch (InvocationTargetException ex) {
+      assertThat(ex.getCause()).isInstanceOf(IllegalStateException.class);
+    }
+
+    Method customThreadFactory = threadCreationClass.getMethod("createCustomIllegalThread");
+
+    try {
+      customThreadFactory.invoke(null);
+      fail();
+    } catch (InvocationTargetException ex) {
+      assertThat(ex.getCause()).isInstanceOf(IllegalStateException.class);
+    }
+    Method coroutineThreadFactory = threadCreationClass.getMethod("createCoroutineThread");
+    assertThat(coroutineThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+
+    NELE_WARN_NEW_THREADS.override(false);
+
+    assertThat(threadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+    assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+  }
+
+  @Test
+  public void testLoadOrder() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/loadingOrder/myloadingorder.jar");
+
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             ClassTransform.getIdentity(),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    loader.loadClass("com.loading.B");
+
+    assertThat(loader.getNonProjectLoadedClasses()).containsExactly("com.loading.A", "com.loading.B").inOrder();
+  }
+
   public static class MyLoggerFactory implements Logger.Factory {
     public MyLoggerFactory() {
     }
@@ -182,6 +308,31 @@ public class RenderClassLoaderTest {
     @Override
     public Logger getLoggerInstance(@NotNull String category) {
       return ourLoggerInstance;
+    }
+  }
+
+  static class TestableRenderClassLoader extends RenderClassLoader {
+    @NotNull
+    private final List<URL> mDependencies;
+    TestableRenderClassLoader(@NotNull ClassLoader parent,
+                              @NotNull ClassTransform transformations,
+                              @NotNull List<URL> dependencies) {
+      super(parent, transformations, transformations, Function.identity(), ClassBinaryCache.NO_CACHE, false);
+      mDependencies = dependencies;
+    }
+
+    TestableRenderClassLoader(@NotNull ClassLoader parent,
+                              @NotNull List<URL> dependencies,
+                              @NotNull ClassBinaryCache cache) {
+      super(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), cache, false);
+      mDependencies = dependencies;
+    }
+
+    @Override
+    protected List<URL> getExternalJars() { return mDependencies; }
+
+    public boolean isInsiderJarClassLoader() {
+      return myInsideJarClassLoader;
     }
   }
 }

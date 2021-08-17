@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressView
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import javax.swing.JComponent
 
@@ -30,9 +36,11 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val tableView: FakeTableView = spy(FakeTableView())
   val parametersBindingDialogView: FakeParametersBindingDialogView = spy(FakeParametersBindingDialogView())
   val databaseInspectorView: FakeDatabaseInspectorView = spy(FakeDatabaseInspectorView())
+  private val exportToFileDialogView: ExportToFileDialogView = mock()
+  private val exportInProgressView: ExportInProgressView = mock()
 
   init {
-    `when`(tableView.component).thenReturn(mock(JComponent::class.java))
+    `when`(tableView.component).thenReturn(mock<JComponent>())
     `when`(sqliteEvaluatorView.tableView).thenReturn(tableView)
   }
 
@@ -47,4 +55,12 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   override fun createParametersBindingView(project: Project, sqliteStatementText: String) = parametersBindingDialogView
 
   override fun createDatabaseInspectorView(project: Project) = databaseInspectorView
+
+  override fun createExportToFileView(
+    project: Project,
+    params: ExportDialogParams,
+    analyticsTracker: DatabaseInspectorAnalyticsTracker
+  ): ExportToFileDialogView = exportToFileDialogView
+
+  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher) = exportInProgressView
 }

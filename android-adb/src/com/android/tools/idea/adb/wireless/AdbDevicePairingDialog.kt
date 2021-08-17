@@ -26,9 +26,9 @@ import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 
 @UiThread
-class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
+class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
   private val dialog: SimpleDialog
-  private val pairingPanel: AdbDevicePairingPanel
+  private val pairingPanel: WiFiPairingPanel
 
   init {
     val options = SimpleDialogOptions(project,
@@ -40,11 +40,11 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
                                       cancelButtonText = "Close",
                                       centerPanelProvider = { createCenterPanel() })
     dialog = SimpleDialog(options)
-    pairingPanel = AdbDevicePairingPanel(dialog.disposable)
+    pairingPanel = WiFiPairingPanel(dialog.disposable)
     dialog.init()
   }
 
-  var pinCodePairInvoked: (MdnsService) -> Unit = {}
+  var pairingCodePairInvoked: (MdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
@@ -54,7 +54,7 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough
     pairingPanel.rootComponent.preferredSize = panelPreferredSize
-    pairingPanel.pinCodePairInvoked = { service -> this.pinCodePairInvoked(service) }
+    pairingPanel.pairingCodePairInvoked = { service -> this.pairingCodePairInvoked(service) }
     pairingPanel.qrCodeScanAgainInvoked = { this.qrCodeScanAgainInvoked() }
     return pairingPanel.rootComponent
   }
@@ -77,8 +77,8 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
     pairingPanel.isLoading = false
   }
 
-  fun showPinCodeServices(services: List<MdnsService>) {
-    pairingPanel.pinCodePanel.showAvailableServices(services)
+  fun showPairingCodeServices(services: List<MdnsService>) {
+    pairingPanel.pairingCodePanel.showAvailableServices(services)
   }
 
   fun setQrCodeImage(qrCodeImage: QrCodeImage) {

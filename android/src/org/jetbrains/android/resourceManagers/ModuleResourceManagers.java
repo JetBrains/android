@@ -102,21 +102,9 @@ public final class ModuleResourceManagers {
 
   @Nullable
   public FrameworkResourceManager getFrameworkResourceManager() {
-    return getFrameworkResourceManager(true);
-  }
-
-  @Nullable
-  public FrameworkResourceManager getFrameworkResourceManager(boolean publicOnly) {
-    if (publicOnly) {
-      if (myPublicFrameworkResourceManager == null) {
-        myPublicFrameworkResourceManager = new FrameworkResourceManager(myModule, true);
-      }
-      return myPublicFrameworkResourceManager;
+    if (myPublicFrameworkResourceManager == null) {
+      myPublicFrameworkResourceManager = new FrameworkResourceManager(myModule);
     }
-
-    if (myFullFrameworkResourceManager == null) {
-      myFullFrameworkResourceManager = new FrameworkResourceManager(myModule, false);
-    }
-    return myFullFrameworkResourceManager;
+    return myPublicFrameworkResourceManager;
   }
 }

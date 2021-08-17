@@ -44,21 +44,20 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = Mock
   val remotePackages = mutableListOf<RemotePackage>()
 
   fun withLocalPackage(localPackage: LocalPackage) = apply { localPackages.add(localPackage) }
-  fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path)) }
+  fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path, fileOp)) }
   fun withRemotePackage(remotePackage: RemotePackage) = apply { remotePackages.add(remotePackage) }
 
   fun addLocalPackage(path: String) {
-    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path)))
+    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path, fileOp)))
   }
 
   override fun before(description: Description) {
     packages = RepositoryPackages(localPackages, remotePackages)
-    val sdkFile = File(sdkPath)
-    val repoManager = FakeRepoManager(sdkFile, packages)
-    val sdkHandler = AndroidSdkHandler(sdkFile, null, fileOp, repoManager)
+    val repoManager = FakeRepoManager(fileOp.toPath(sdkPath), packages)
+    val sdkHandler = AndroidSdkHandler(fileOp.toPath(sdkPath), null, fileOp, repoManager)
 
     val ideSdks = spy(IdeSdks.getInstance())
-    `when`(ideSdks.androidSdkPath).thenReturn(sdkFile)
+    `when`(ideSdks.androidSdkPath).thenReturn(File(sdkPath))
     IdeComponents(projectRule.fixture).replaceApplicationService(IdeSdks::class.java, ideSdks)
 
     val androidSdks = spy(AndroidSdks.getInstance())

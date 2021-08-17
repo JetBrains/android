@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -71,12 +72,12 @@ class CpuCaptureStageTest {
   }
 
   @Test
-  fun parsingFailureReturnsToProfilerStage() {
+  fun parsingFailureGoesToNullStage() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(services.notification).isNotNull()
-    assertThat(profilers.stage).isInstanceOf(CpuProfilerStage::class.java)
+    assertThat(profilers.stage).isInstanceOf(NullMonitorStage::class.java)
   }
 
   @Test
@@ -116,6 +117,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForAtrace() {
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), SESSION_ID)
     profilers.stage = stage
@@ -146,6 +148,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForPerfetto() {
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto.trace"), SESSION_ID)
     profilers.stage = stage
@@ -170,8 +173,8 @@ class CpuCaptureStageTest {
     assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
 
     val threadsTrackGroup = stage.trackGroupModels[3]
-    assertThat(threadsTrackGroup.title).isEqualTo("Threads (41)")
-    assertThat(threadsTrackGroup.size).isEqualTo(41)
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (17)")
+    assertThat(threadsTrackGroup.size).isEqualTo(17)
   }
 
   @Test
@@ -248,7 +251,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun nullCaptureHintSelectsCaptureFromDialog() {
-    services.setListBoxOptionsIndex(1)
+    services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 SESSION_ID, null, 0)
     profilers.stage = stage

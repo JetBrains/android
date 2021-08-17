@@ -41,6 +41,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -206,7 +208,28 @@ public final class ImageAsset extends BaseAsset {
   @Override
   public void loadState(@NotNull PersistentState state) {
     super.loadState(state);
-    File file = state.getDecoded(IMAGE_PATH_PROPERTY, path -> path == null ? myDefaultImagePath : new File(path));
+    File file = state.getDecoded(IMAGE_PATH_PROPERTY, imagePath -> {
+      if (imagePath == null) {
+        return null;
+      }
+
+      Path path = Paths.get(imagePath);
+      while (Files.notExists(path)) {
+        path = path.getParent();
+        if (path == null) {
+          String userHomePath = System.getProperty("user.home");
+          if (userHomePath != null) {
+            path = Paths.get(userHomePath);
+          }
+          break;
+        }
+      }
+      return path == null ? null : path.toFile();
+    });
+
+    if (file == null) {
+      file = myDefaultImagePath;
+    }
     if (file != null) {
       myImagePath.setValue(file);
     }

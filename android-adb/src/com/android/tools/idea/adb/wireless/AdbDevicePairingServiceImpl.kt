@@ -29,10 +29,10 @@ import java.net.InetAddress
 import java.util.concurrent.Executor
 
 @UiThread
-class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
-                                  private val adbService: AdbServiceWrapper,
-                                  taskExecutor: Executor) : AdbDevicePairingService {
-  private val LOG = logger<AdbDevicePairingServiceImpl>()
+class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
+                             private val adbService: AdbServiceWrapper,
+                             taskExecutor: Executor) : WiFiPairingService {
+  private val LOG = logger<WiFiPairingServiceImpl>()
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   private val studioServiceNamePrefix = "studio-"
 
@@ -118,7 +118,7 @@ class AdbDevicePairingServiceImpl(private val randomProvider: RandomProvider,
               val serviceName = it.groupValues[1]
               val ipAddress = InetAddress.getByName(it.groupValues[2])
               val port = it.groupValues[3].toInt()
-              val serviceType = if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode else ServiceType.PinCode
+              val serviceType = if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode else ServiceType.PairingCode
               MdnsService(serviceName, serviceType, ipAddress, port)
             }
             catch (ignored: Exception) {

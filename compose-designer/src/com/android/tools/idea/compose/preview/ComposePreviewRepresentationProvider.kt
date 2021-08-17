@@ -15,26 +15,28 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.actions.SetScreenViewProviderAction
-import com.android.tools.idea.common.actions.IssueNotificationAction
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.actions.*
-import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -49,9 +51,11 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
@@ -62,42 +66,73 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
     listOfNotNull(
       StopInteractivePreviewAction(),
-      StopAnimationInspectorAction(),
+      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled { StopAnimationInspectorAction() },
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
-        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS).visibleOnlyInComposeStaticPreview(),
+        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
+      ) { !isAnyPreviewRefreshing(it.dataContext) }.visibleOnlyInComposeStaticPreview(),
       StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-      StudioFlags.COMPOSE_BLUEPRINT_MODE.ifEnabled {
-        if (surface is NlDesignSurface) {
-          DropDownAction(message("action.scene.mode.title"), message(
-            "action.scene.mode.description"),
-            // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
-                         StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
-            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
-            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
-            StudioFlags.COMPOSE_COLORBLIND_MODE.ifEnabled {
-              addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
-                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
-              })
-            }
-          }.visibleOnlyInComposeStaticPreview()
-        }
-        else null
-      },
-      StudioFlags.COMPOSE_LIVE_LITERALS.ifEnabled { LiveLiteralsAction() }?.visibleOnlyInComposeStaticPreview()
+      if (surface is NlDesignSurface) ViewModesDropDownAction(surface).visibleOnlyInComposeStaticPreview() else null
     )
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
     StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
-    IssueNotificationAction.getInstance()
+    StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
+    ComposeIssueNotificationAction.getInstance()
   ))
+
+  /**
+   * [DropDownAction] to toggle through the available viewing modes for the Compose preview.
+   */
+  private class ViewModesDropDownAction(
+    private val surface: NlDesignSurface
+  ) : DropDownAction(
+    message("action.scene.mode.title"),
+    message("action.scene.mode.description"),
+    // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
+    StudioIcons.LayoutEditor.Toolbar.VIEW_MODE
+  ) {
+    private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
+
+    init {
+      val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
+      val colorBlindEnabled = StudioFlags.COMPOSE_COLORBLIND_MODE.get()
+      if (blueprintEnabled || colorBlindEnabled) {
+        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+      }
+      if (blueprintEnabled) {
+        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+      }
+      if (colorBlindEnabled) {
+        addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
+          addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
+        })
+      }
+    }
+
+    override fun hideIfNoVisibleChildren() = true
+
+    override fun createCustomComponent(presentation: Presentation, place: String) =
+      ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      val shouldEnableAction = !isAnyPreviewRefreshing(e.dataContext)
+      e.presentation.isEnabled = shouldEnableAction
+      // Since this is an ActionGroup, IntelliJ will set the button icon to enabled even though it is disabled. Only when clicking on the
+      // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
+      // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
+      // action is disabled.
+      e.presentation.icon = if (shouldEnableAction) StudioIcons.LayoutEditor.Toolbar.VIEW_MODE else disabledIcon
+    }
+  }
 }
 
 /**
@@ -128,38 +163,40 @@ class ComposePreviewRepresentationProvider(
   }
 
   /**
-   * Checks if the input [virtualFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
+   * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW.get() || !virtualFile.isKotlinFileType()) {
-      return false
-    }
-
-    val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(project, virtualFile)
-    if (LOG.isDebugEnabled) {
-      LOG.debug("${virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
-    }
-
-    return hasPreviewMethods
-  }
+  override fun accept(project: Project, psiFile: PsiFile): Boolean =
+    StudioFlags.COMPOSE_PREVIEW.get() && psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val previewProvider = object : PreviewElementProvider {
+    val previewProvider = object : PreviewElementProvider<PreviewElement> {
       override val previewElements: Sequence<PreviewElement>
         get() = if (DumbService.isDumb(psiFile.project))
           emptySequence()
         else
           try {
-            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile)
+            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
           }
           catch (_: IndexNotReadyException) {
-            emptySequence<PreviewElement>()
+            emptySequence()
           }
     }
-    return ComposePreviewRepresentation(psiFile, previewProvider)
+    val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
+    if (LOG.isDebugEnabled) {
+      LOG.debug("${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
+    }
+
+    val isComposableEditor = hasPreviewMethods || filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
+    val globalState = AndroidEditorSettings.getInstance().globalState
+
+    return ComposePreviewRepresentation(
+      psiFile,
+      previewProvider,
+      if (isComposableEditor) globalState.preferredComposableEditorVisibility() else globalState.preferredKotlinEditorVisibility(),
+      ::ComposePreviewViewImpl)
   }
 
   override val displayName = message("representation.name")
@@ -187,6 +224,27 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
 
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
+}
+
+/**
+ * Returns whether any preview manager is currently refreshing.
+ */
+internal fun isAnyPreviewRefreshing(context: DataContext) = findComposePreviewManagersForContext(context).any { it.status().isRefreshing }
+
+// We will default to split mode if there are @Preview annotations in the file or if the file contains @Composable.
+private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() = when (preferredComposableEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
+  AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
+  else -> PreferredVisibility.SPLIT // default
+}
+
+// We will default to code mode for kotlin files not containing any @Composable functions.
+private fun AndroidEditorSettings.GlobalState.preferredKotlinEditorVisibility() = when (preferredKotlinEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
+  AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
+  else -> PreferredVisibility.HIDDEN // default
 }
 
 /**

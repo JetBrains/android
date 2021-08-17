@@ -6,18 +6,19 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.List;
+import javaslang.collection.Array;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.UsesFeature;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
@@ -35,6 +36,159 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   @Override
   protected String getPathToCopy(String testFileName) {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
+  }
+
+  public void testAttributeTagHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <attribute android:tag=\"true\" android:label=\"true\"/>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testAttributeTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <<caret>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("attribute");
+  }
+
+  public void testAttributeAttributesCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <attribute <caret>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsAllOf("android:label", "android:tag");
+  }
+
+  public void testPropertyHighlighting() {
+    // UNRESOLVED errors do not relate to the <property> tag which is the purpose of the test.
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=XML
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        package=\"p1.p2\" >\n" +
+      "  <application>\n" +
+      "    <property android:name=\"android.cts.PROPERTY_STRING_VIA_RESOURCE\" android:value=\"foo\" />\n" +
+      "    <activity android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_ACTIVITY\" android:value=\"foo\" />\n" +
+      "    </activity>\n" +
+      "    <activity-alias android:name=\"UNRESOLVED\" android:targetActivity=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_ACTIVITY_ALIAS\" android:value=\"foo\" />\n" +
+      "    </activity-alias>\n" +
+      "    <provider android:name=\"<error>UNRESOLVED</error>\" android:authorities=\"UNRESOLVED\">\n" +
+      "      <property android:name=\"android.cts.PROPERTY_PROVIDER\" android:value=\"foo\" />\n" +
+      "    </provider>\n" +
+      "    <receiver android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_RECEIVER\" android:value=\"foo\" />\n" +
+      "    </receiver>\n" +
+      "    <service android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_SERVICE\" android:value=\"foo\" />\n" +
+      "    </service>\n" +
+      "  </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testPropertyTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <<caret>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("property");
+  }
+
+  public void testPropertyAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <property <caret>/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:name", "android:value", "android:resource");
+  }
+
+
+  public void testPropertyResourceAttributeValueCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <property android:name=\"android.cts.PROPERTY_RESOURCE_XML\" android:resource=\"@<caret>\"/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    //Contains every accessible resource.
+    assertThat(myFixture.getLookupElementStrings()).containsAllOf("@android:", "@color/color0", "@color/color1");
+  }
+
+
+  public void testProfileableHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable android:shell=\"true\"/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testProfileableTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <<caret>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("profileable");
+  }
+
+  public void testProfileableAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <profileable <caret>/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:shell");
   }
 
   public void testOverlayTagCompletion() throws Throwable {
@@ -65,6 +219,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       "    <queries>\n" +
       "        <intent>\n" +
       "            <action android:name=\"android.intent.action.BATTERY_LOW\"/>\n" +
+      "            <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
       "            <data android:mimeType=\"basic string\"/>\n" +
       "        </intent>\n" +
       "    </queries>\n" +
@@ -110,7 +265,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     // Testing Intent subtags
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("data", "action");
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("data", "action", "category");
 
     // Testing Package tag attributes
     AndroidTestUtils.moveCaret(myFixture, "<package |/>");
@@ -121,6 +276,38 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
+  }
+
+  public void testQueriesCategoryNameCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "            <category android:name=\"<caret>\"/>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android.intent.category.BROWSABLE");
+  }
+
+  public void testUsesFeatureCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <uses-feature android:name=\"<caret>\" android:required=\"\"/>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings())
+      .containsAllIn(Array.of("android.hardware.audio.low_latency", "android.hardware.camera", "android.hardware.telephony"));
+
+    AndroidTestUtils.moveCaret(myFixture, "android:required=\"|\"");
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsAllIn(Array.of("true", "false"));
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
@@ -378,54 +565,40 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
-  /* b/144507473
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",
                              "android.intent.action.CALL_BUTTON",
                              "android.intent.action.CARRIER_SETUP");
   }
-  */
 
-  /* b/144507473
   public void testIntentActionCompletion2() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CAMERA_BUTTON",
                              "android.intent.action.NEW_OUTGOING_CALL");
   }
-  */
 
-  /* b/144507473
   public void testIntentActionCompletion3() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion3.xml", "IntentActionCompletion3_after.xml");
   }
-  */
 
-  /* b/144507473
   // Regression test for http://b.android.com/154004
   public void testIntentActionCompletion4() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion4.xml", "IntentActionCompletion4_after.xml");
   }
-  */
 
-  /* b/144507473
   public void testIntentCategoryCompletion1() throws Throwable {
     doTestCompletion(false);
   }
-  */
 
-  /* b/144507473
   public void testIntentCategoryCompletion2() throws Throwable {
     doTestCompletion(false);
   }
-  */
 
-  /* b/144507473
   // Tests for completion of actions outside of set of constants defined in android.intent.Intent
   // Regression test for http://b.android.com/187026
   public void testTelephonyActionCompletion() throws Throwable {
     toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
   }
-  */
 
   // Test support for tools: namespace attribute completion in manifest files,
   // tools:node in this particular case
@@ -496,11 +669,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     }
   }
 
-  /* b/144507473
   public void testIntentsCompletion1() throws Throwable {
     toTestFirstCompletion("intentsCompletion1.xml", "intentsCompletion1_after.xml");
   }
-  */
 
   public void testIntentsCompletion2() throws Throwable {
     doTestCompletion();
@@ -619,9 +790,24 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testAddUsesFeatureTag() throws Throwable {
+    VirtualFile manifestFile = copyFileToProject("AddUsesFeature.xml");
+    myFixture.configureFromExistingVirtualFile(manifestFile);
+
+    Manifest manifest = AndroidUtils.loadDomElement(myModule, manifestFile, Manifest.class);
+    assertNotNull(manifest);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      UsesFeature feature = manifest.addUsesFeature();
+      feature.getName().setStringValue("android.hardware.type.watch");
+    });
+
+    myFixture.checkResultByFile(myTestFolder + '/' + "AddUsesFeature_after.xml");
+  }
+
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                             "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "28", "29", "30");
+      doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                               "26", "27", "28", "29", "30", "S");
   }
 }

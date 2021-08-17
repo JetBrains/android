@@ -51,6 +51,9 @@ public interface ConfigurationListener {
   /** The font scale has changed */
   int CFG_FONT_SCALE = 1 << 10;
 
+  /** The shape of adaptive icons has changed */
+  int CFG_ADAPTIVE_SHAPE = 1 << 11;
+
   /** References all attributes */
   int MASK_ALL = 0xFFFF;
 
@@ -64,7 +67,7 @@ public interface ConfigurationListener {
   int MASK_RESOLVE_RESOURCES = MASK_FOLDERCONFIG | CFG_FOLDER | CFG_THEME;
 
   /** Attributes which affect rendering appearance */
-  int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME | CFG_FONT_SCALE;
+  int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME | CFG_FONT_SCALE | CFG_ADAPTIVE_SHAPE;
 
   /** Attributes which are edited project-wide */
   int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET|CFG_DEVICE;

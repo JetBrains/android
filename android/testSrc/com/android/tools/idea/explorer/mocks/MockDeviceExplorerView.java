@@ -70,6 +70,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToServiceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToDeviceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<String> myReportErrorGenericTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportMessageRelatedToNodeTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
@@ -170,6 +171,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToNodeTracker.produce(message + getThrowableMessage(t));
     myViewImpl.reportErrorRelatedToNode(node, message, t);
+  }
+
+  @Override
+  public void reportErrorGeneric(@NotNull String message, @NotNull Throwable t) {
+    myReportErrorGenericTracker.produce(message + getThrowableMessage(t));
+    myViewImpl.reportErrorGeneric(message, t);
   }
 
   @Override
@@ -341,6 +348,11 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull
   public FutureValuesTracker<String> getReportErrorRelatedToNodeTracker() {
     return myReportErrorRelatedToNodeTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<String> getReportErrorGenericTracker() {
+    return myReportErrorGenericTracker;
   }
 
   @NotNull

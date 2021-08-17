@@ -1,9 +1,68 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/adt/idea/studio:studio.bzl", "studio_plugin", "android_studio")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 
 studio_plugin(
-    name = "intellij.android.plugin",
+    name = "org.jetbrains.android",
     directory = "android",
+    libs = [
+        "//prebuilts/r8",
+        "//prebuilts/tools/common/archive-patcher:explainer",
+        "//prebuilts/tools/common/archive-patcher:generator",
+        "//prebuilts/tools/common/archive-patcher:shared",
+        "//prebuilts/tools/common/m2/repository/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09:jetifier-core",
+        "//prebuilts/tools/common/m2/repository/com/google/auto/auto-common/0.10:auto-common",
+        "//prebuilts/tools/common/m2/repository/com/google/flatbuffers/flatbuffers-java/1.12.0:flatbuffers-java",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha04:utp-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:juniversalchardet",
+        "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.10.0:javapoet",
+        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
+        "//prebuilts/tools/common/m2/repository/commons-lang/commons-lang/2.6:commons-lang",
+        "//prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.5.3:antlr4-runtime",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9:kotlinx-coroutines-guava",
+        "//prebuilts/tools/common/m2/repository/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2:tensorflow-lite-metadata",
+        "//tools/adt/idea/.idea/libraries:aapt-proto",
+        "//tools/adt/idea/.idea/libraries:aia-proto",
+        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/adt/idea/.idea/libraries:baksmali",
+        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:emulator-proto",
+        "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+        "//tools/adt/idea/.idea/libraries:libapp-processes-proto",
+        "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/.idea/libraries:sqlite",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/.idea/libraries:zxing-core",
+        "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
+        "//tools/adt/idea/android:moshi",
+        "//tools/adt/idea/android/lib:android-sdk-tools-jps",
+        "//tools/adt/idea/android/lib:instantapps-api",
+        "//tools/adt/idea/android/lib:pepk",
+        "//tools/adt/idea/android/lib:spantable",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/model:workmanager-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/view:workmanager-inspector-proto",
+        "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
+        "//tools/adt/idea/nav/editor:eclipse-layout-kernel",
+        "//tools/adt/idea/profilers-android:traceprocessor-proto",
+        "//tools/adt/idea/profilers:traceprocessor-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/base/deploy/deployer:deploy_java_proto",
+        "//tools/base/deploy/deployer:libjava_sites",
+        "//tools/base/deploy/deployer:libjava_version",
+        "//tools/vendor/google/game-tools/main:game-tools-protos",
+    ],
     modules = {
         "adt-ui.jar": [
             "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
@@ -40,15 +99,20 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide",
             "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api",
             "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide",
+            "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:intellij.android.app-inspection.inspectors.backgroundtask.ide",
+            "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:intellij.android.app-inspection.inspectors.backgroundtask.model",
+            "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:intellij.android.app-inspection.inspectors.backgroundtask.view",
             "//tools/adt/idea/app-inspection/inspectors/workmanager/ide:intellij.android.app-inspection.inspectors.workmanager.ide",
             "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model",
             "//tools/adt/idea/app-inspection/inspectors/workmanager/view:intellij.android.app-inspection.inspectors.workmanager.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
+            "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
-            "//tools/adt/idea/android-debuggers:intellij.android.debuggers",
+            "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
+            "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
@@ -68,7 +132,9 @@ studio_plugin(
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
+            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
+            "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
             "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",
@@ -81,6 +147,11 @@ studio_plugin(
             "//tools/adt/idea/wizard:intellij.android.wizard",
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
             "//tools/adt/idea/whats-new-assistant:whats-new-assistant",
+            "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common",
+            "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide",
+            "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model",
+            "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view",
+            "//tools/adt/idea/server-flags:intellij.android.server-flags",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -100,8 +171,10 @@ studio_plugin(
         "game-tools.jar": [
             "//tools/vendor/google/game-tools/main:android.game-tools.main",
         ],
-        "jps/android-jps-plugin.jar": [
-            "//tools/adt/idea/jps-plugin:intellij.android.jps",
+        "inspectors-common.jar": [
+            "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api",
+            "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide",
+            "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
         ],
         "layoutlib-loader.jar": [
             "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
@@ -143,21 +216,39 @@ studio_plugin(
         "sdklib.jar": [
             "//tools/base/sdklib:studio.android.sdktools.sdklib",
         ],
+        "utp.jar": [
+            "//tools/adt/idea/utp",
+        ],
         "wizard-template.jar": [
             "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
             "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
         ],
-    },
-    resources = {
-        "lib": [
-            "//tools/adt/idea/android/lib:unb.asm-tools_files",
-            "//tools/adt/idea/android/lib:bundled-libs",
-            "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
-            "//tools/adt/idea/android/lib:sample-data-bundle",
-            "//tools/adt/idea/android/annotations:androidAnnotations",
-            "//prebuilts/studio/layoutlib:layoutlib",
+        "google-analytics-library.jar": [
+            "//tools/analytics-library/shared:analytics-shared",
+            "//tools/analytics-library/tracker:analytics-tracker",
+            "//tools/analytics-library/publisher:analytics-publisher",
+            "//tools/analytics-library/crash:analytics-crash",
         ],
+        "android-base-common.jar": [
+            "//tools/base/common:studio.android.sdktools.common",
+        ],
+    },
+    # List of modules and libraries we expect to be provided by the platform
+    provided = [
+        "//tools/adt/idea/.idea/libraries:layoutlib",  # Plugins :com.android.layoutlib.*" are optional
+        "//tools/adt/idea/.idea/libraries:kxml2",
+        "//tools/adt/idea/android-kotlin:dx",  # TODO
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # Plugins :com.android.layoutlib.*" are optional
+    ],
+    resources = {
         "resources": [
+            "//prebuilts/studio/layoutlib:layoutlib",
+            "//tools/adt/idea/android/lib:sample-data-bundle",
+            "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
+            "//tools/adt/idea/android/annotations:androidAnnotations",
+            "//tools/base/app-inspection/inspectors/network:bundle",
+            "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
@@ -166,148 +257,255 @@ studio_plugin(
             "//prebuilts/tools:simpleperf-bundle",
             "//prebuilts/tools/common/perfetto:perfetto-bundle",
             "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite-inspection-bundle",
-            "//prebuilts/tools/common/app-inspection/androidx/work:workmanager-inspection-bundle",
             "//tools/base/deploy/installer:android-installer-bundle",
             "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
-    tags = ["manual"],
+    deps = [
+        ":com.android.tools.idea.smali",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
+    ],
 )
 
 studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
-    tags = ["manual"],
+    deps = [
+        ":com.android.tools.idea.smali",
+        ":com.android.tools.ndk",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
+    libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
-    tags = ["manual"],
+    resources = {
+        "resources/lldb": [
+            "//prebuilts/tools:lldb-bundle",
+        ],
+    },
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+    ],
 )
 
 studio_plugin(
-    name = "intellij.android.layoutlib",
+    name = "com.android.layoutlib",
     directory = "android-layoutlib",
+    libs = [
+        "//tools/adt/idea/.idea/libraries:layoutlib",
+        "//tools/adt/idea/.idea/libraries:kxml2",
+    ],
     modules = {
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
     },
-    tags = ["manual"],
+    provided = [
+        "//tools/adt/idea/.idea/libraries:kxml2",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+    ],
 )
 
 studio_plugin(
-    name = "com.android.layoutlib.native",
-    directory = "android-layoutlib-native",
+    name = "com.android.layoutlib.legacy",
+    directory = "android-layoutlib-legacy",
+    libs = [
+        "//prebuilts/studio/layoutlib/data:layoutlib-legacy",
+        "//tools/adt/idea/.idea/libraries:kxml2",
+    ],
     modules = {
-        "android-layoutlib-native.jar": ["//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native"],
+        "android-layoutlib-legacy.jar": ["//tools/adt/idea/layoutlib-legacy:intellij.android.layoutlib-legacy"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
     },
-    tags = ["manual"],
+    provided = [
+        "//tools/adt/idea/.idea/libraries:kxml2",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+    ],
 )
 
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
-    tags = ["manual"],
+    provided = [
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # layout plugins are optional.
+    ],
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
 )
 
 studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
+    libs = ["//tools/vendor/google/firebase:google-api-services-mobilesdk-v1"],
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.test.recorder",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct.testing",
     directory = "firebase-testing",
+    libs = [
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-storage-v1-rev1-1.18.0-rc",
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-toolresults-v1beta3-rev20151013-1.20.0",
+        "//tools/adt/idea/.idea/libraries:tightvnc",
+    ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.core",
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+    ],
 )
 
 studio_plugin(
     name = "com.google.appindexing",
     directory = "google-appindexing",
+    libs = ["//tools/studio/google/appindexing/lib:fetchasgoogle"],
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.urlassistant",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct",
     directory = "google-cloud-tools-as",
+    libs = [
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:samplesindex-v1-1.0-SNAPSHOT",
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-debugger",
+    ],
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.core",
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct.core",
     directory = "google-cloud-tools-core-as",
+    libs = [
+        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-debugger",
+    ],
     modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.login",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+    ],
 )
 
 studio_plugin(
     name = "com.google.gct.login",
     directory = "google-login-as",
+    libs = [
+        "//tools/studio/google/cloud/tools/google-login-plugin/third_party/jackson-core-asl:jackson-core-asl-1.9.11",
+        "//tools/studio/google/cloud/tools/google-login-plugin/third_party/javax-servlet-api:javax.servlet-api-3.0.1",
+        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-api-services-oauth2-v2-rev70-1.18.0-rc",
+        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-gct-login-context-pg",
+        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-http-client-jackson-1.18.0-rc",
+        "//tools/studio/google/cloud/tools/google-login-plugin/lib:google.gdt.eclipse.login.common",
+        "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
+    ],
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.cluestick.studioclient",
     directory = "google-samples",
     modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
-    tags = ["manual"],
+    deps = [
+        ":com.google.gct.login",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
-    tags = ["manual"],
 )
 
 studio_plugin(
     name = "com.google.gct.test.recorder",
     directory = "test-recorder",
+    libs = [
+        "//tools/studio/google/cloud/testing/test-recorder/lib:uiautomatorviewer",
+        "//tools/studio/google/cloud/testing/test-recorder/lib:swt",
+    ],
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
-    tags = ["manual"],
+    deps = [
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
-    tags = ["manual"],
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+    ],
 )
 
 android_studio(
     name = "android-studio",
+    codesign_entitlements = "codesign/entitlements.xml",
+    codesign_filelist = "codesign/filelist",
     jre = "//prebuilts/studio/jdk:jdk-bundle",
-    modules = {
-        "android-base-common.jar": [
-            "//tools/base/common:studio.android.sdktools.common",
-        ],
-        "google-analytics-library.jar": [
-            "//tools/base/annotations:studio.android.sdktools.android-annotations",
-            "//tools/analytics-library/shared:analytics-shared",
-            "//tools/analytics-library/tracker:analytics-tracker",
-            "//tools/analytics-library/publisher:analytics-publisher",
-            "//tools/analytics-library/crash:analytics-crash",
-        ],
-    },
-    platform = "//prebuilts/studio/intellij-sdk:studio-sdk.platform",
+    platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
-        ":intellij.android.plugin",
+        ":org.jetbrains.android",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
-        ":intellij.android.layoutlib",
-        ":com.android.layoutlib.native",
+        ":com.android.layoutlib",
+        ":com.android.layoutlib.legacy",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
         ":com.google.gct.testing",
@@ -321,32 +519,6 @@ android_studio(
         ":com.google.urlassistant",
     ],
     resources = {
-        "bin/lldb": [
-            "//prebuilts/tools:lldb-bundle",
-        ],
-        "lib": [
-            # For now listing all the project library needed until we get them from deps
-            "//tools/adt/idea/.idea/libraries:unb.javax-inject",
-            "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
-            "//tools/adt/idea/.idea/libraries:unb.studio-proto",
-            "//tools/adt/idea/.idea/libraries:unb.dexlib2",
-            "//tools/adt/idea/.idea/libraries:unb.asm-tools",
-            "//tools/adt/idea/.idea/libraries:unb.kxml2",
-            "//tools/adt/idea/.idea/libraries:unb.libam-instrumentation-data-proto",
-            "//tools/adt/idea/.idea/libraries:unb.sqlite",
-            "//tools/adt/idea/.idea/libraries:unb.aapt-proto",
-            "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
-            "//tools/adt/idea/.idea/libraries:unb.aia-proto",
-            "//tools/adt/idea/.idea/libraries:unb.baksmali",
-            "//tools/adt/idea/.idea/libraries:unb.zxing-core",
-            "//tools/adt/idea/.idea/libraries:unb.transport-proto",
-            "//tools/adt/idea/.idea/libraries:unb.emulator-proto",
-            "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
-            "//tools/adt/idea/.idea/libraries:unb.sqlite-inspector-proto",
-            "//tools/adt/idea/.idea/libraries:unb.kotlinx-coroutines-guava",
-            "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto",
-            "//tools/adt/idea/.idea/libraries:unb.tightvnc",
-        ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
             "//tools/adt/idea/android/lib:licenses",
@@ -354,18 +526,18 @@ android_studio(
             "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
             "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
             "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains dupplicated licenses with google-login-plugin
+            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains duplicated licenses with google-login-plugin
             "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
             "//tools/vendor/google/firebase:licenses",
             "//prebuilts/studio/layoutlib:licenses",
         ],
     },
-    searchable_options = "searchable-options",
-    tags = ["manual"],
-    version_eap = True,
-    version_full = "dev build",
-    version_micro = 0,
-    version_patch = 0,
+    searchable_options = "//tools/adt/idea/searchable-options",
+    version_eap = False,
+    version_full = "Arctic Fox | {0}.{1}.{2}",
+    version_micro = 1,
+    version_patch = 22,
+    visibility = ["//visibility:public"],
 )
 
 py_test(
@@ -374,44 +546,26 @@ py_test(
     data = [
         "tests/expected_linux.txt",
         "tests/expected_mac.txt",
+        "tests/expected_mac_arm.txt",
         "tests/expected_win.txt",
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
+        ":android-studio.mac_arm.zip",
         ":android-studio.win.zip",
     ],
-    tags = ["manual"],
 )
 
 py_test(
-    name = "searchable_options_test",
-    timeout = "eternal",
+    name = "startup_test",
     srcs = [
-        "tests/searchable_options_test.py",
-        "tests/update_searchable_options.py",
+        "tests/startup_test.py",
     ],
     data = [
         ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
+        "//tools/vendor/google/testing/display:xvfb",
     ],
     tags = [
         "block_network",
-        "manual",
-        "no_windows",
-    ],
-)
-
-py_binary(
-    name = "update_searchable_options",
-    srcs = ["tests/update_searchable_options.py"],
-    data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
-    ],
-    tags = [
-        "block_network",
-        "manual",
         "no_mac",
         "no_windows",
     ],
@@ -420,6 +574,12 @@ py_binary(
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "check_plugin",
+    srcs = ["check_plugin.py"],
     visibility = ["//visibility:public"],
 )
 
@@ -440,7 +600,6 @@ java_binary(
     main_class = "com.intellij.updater.Runner",
     tags = [
         "block_network",
-        "manual",
         "no_mac",
         "no_windows",
     ],
@@ -457,9 +616,12 @@ java_binary(
         "//prebuilts/tools/common/m2/repository/log4j/log4j/1.2.17:jar",
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna-platform/5.5.0:jar",
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna/5.5.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.32:jar",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
-        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/studio-updater:intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater
         "//tools/analytics-library/shared:analytics-shared.jar",
         "//tools/analytics-library/tracker:analytics-tracker.jar",
@@ -468,20 +630,19 @@ java_binary(
     ],
 )
 
-# managed by go/iml_to_build [unb]
+# managed by go/iml_to_build
 iml_module(
     name = "studio",
     iml_files = ["studio.iml"],
-    project = "unb",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module]",
         "//tools/vendor/google/android-apk[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
-        "//tools/adt/idea/layoutlib-native:intellij.android.layoutlib-native[module]",
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",
@@ -500,7 +661,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-filePrediction",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-github",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-hg4idea",
@@ -525,5 +685,34 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-changeReminder",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.tests",
+    iml_files = ["tests/intellij.android.studio.tests.iml"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    test_class = "com.android.testutils.JarTestSuite",
+    test_data = [
+        ":android-studio.linux.zip",
+        ":android-studio.mac.zip",
+        ":android-studio.win.zip",
+        ":android-studio.plugin.lst",
+    ],
+    test_srcs = ["tests/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

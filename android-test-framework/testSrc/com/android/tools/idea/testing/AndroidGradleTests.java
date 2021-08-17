@@ -24,39 +24,39 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager;
@@ -65,6 +65,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
@@ -83,7 +84,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -100,10 +100,16 @@ public class AndroidGradleTests {
   @Nullable private static Boolean useRemoteRepositories = null;
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
+  private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
 
   public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project) throws Exception {
+    waitForSourceFolderManagerToProcessUpdates(project, null);
+  }
+
+  public static void waitForSourceFolderManagerToProcessUpdates(@NotNull Project project, @Nullable Long timeoutMillis) throws Exception {
+    long timeout = (timeoutMillis == null) ? DEFAULT_TIMEOUT_MILLIS : timeoutMillis;
     ((SourceFolderManagerImpl)SourceFolderManager.getInstance(project)).consumeBulkOperationsState(future -> {
-      PlatformTestUtil.waitForFuture(future, 1000);
+      PlatformTestUtil.waitForFuture(future, timeout);
       return null;
     });
   }
@@ -113,22 +119,16 @@ public class AndroidGradleTests {
    */
   public static class SyncIssuesPresentError extends AssertionError {
     @NotNull
-    private List<SyncIssueData> issues;
-    public SyncIssuesPresentError(@NotNull String message, @NotNull List<SyncIssueData> issues) {
+    private List<IdeSyncIssue> issues;
+    public SyncIssuesPresentError(@NotNull String message, @NotNull List<IdeSyncIssue> issues) {
       super(message);
       this.issues = issues;
     }
 
     @NotNull
-    public List<SyncIssueData> getIssues() {
+    public List<IdeSyncIssue> getIssues() {
       return issues;
     }
-  };
-
-  /** Interface to allow tests to accept sync issues as valid when they load a project */
-  public interface SyncIssueFilter {
-    /** returns true if the error should be ignored */
-    boolean ignoreIssue(@NotNull SyncIssueData issue);
   }
 
   /**
@@ -168,7 +168,7 @@ public class AndroidGradleTests {
         }
 
         // Override settings just for tests (e.g. sdk.dir)
-        updateLocalProperties(path, getSdk());
+        updateLocalProperties(path, TestUtils.getSdk().toFile());
         updateGradleProperties(path);
         // We need the wrapper for import to succeed
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
@@ -211,7 +211,7 @@ public class AndroidGradleTests {
       contents = updateRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, Charsets.UTF_8);
       }
     }
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
@@ -242,7 +242,7 @@ public class AndroidGradleTests {
       contents = updateRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, path, Charsets.UTF_8);
+        Files.write(contents, path, Charsets.UTF_8);
       }
     }
   }
@@ -291,6 +291,11 @@ public class AndroidGradleTests {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     gradleProperties.setJvmArgs(Strings.nullToEmpty(gradleProperties.getJvmArgs()) + " -XX:MaxMetaspaceSize=768m ");
+    // Disable Gradle file watching as it may be causing DirectoryNotEmptyException, see b/184293946.
+    gradleProperties.getProperties().setProperty("org.gradle.vfs.watch", "false");
+    if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
+      gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+    }
     gradleProperties.save();
   }
 
@@ -376,14 +381,11 @@ public class AndroidGradleTests {
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       if (TestUtils.runningFromBazel()) {
-        repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
-      }
-      else if (System.getProperty("idea.gui.test.running.on.release") != null) {
-        repositories.add(new File(PathManager.getHomePath(), "gradle"));
+        repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
       }
       else {
-        repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
-        repositories.add(getWorkspaceFile("out/repo"));
+        repositories.add(TestUtils.getPrebuiltOfflineMavenRepo().toFile());
+        repositories.add(TestUtils.resolveWorkspacePath("out/repo").toFile());
       }
     } else {
       assert shouldUseRemoteRepositories(): "IDEA should use real remote repositories";
@@ -526,6 +528,7 @@ public class AndroidGradleTests {
       if (IdeInfo.getInstance().isAndroidStudio()) {
         if (!ideSdks.isUsingEnvVariableJdk()) {
           ideSdks.setUseEmbeddedJdk();
+          applyJdkToProject(project, ideSdks.getJdk());
         }
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
@@ -554,8 +557,7 @@ public class AndroidGradleTests {
    */
   public static void importProject(
     @NotNull Project project,
-    @NotNull GradleSyncInvoker.Request syncRequest,
-    @Nullable SyncIssueFilter issueFilter) throws Exception {
+    @NotNull GradleSyncInvoker.Request syncRequest) throws Exception {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.configureNewProject(project);
@@ -563,7 +565,7 @@ public class AndroidGradleTests {
       return syncProject(project, syncRequest);
     });
 
-    AndroidGradleTests.checkSyncStatus(project, syncListener, issueFilter);
+    AndroidGradleTests.checkSyncStatus(project, syncListener);
     AndroidTestBase.refreshProjectFiles();
   }
 
@@ -606,21 +608,16 @@ public class AndroidGradleTests {
   }
 
   public static void checkSyncStatus(@NotNull Project project,
-                                     @NotNull TestGradleSyncListener syncListener,
-                                     @Nullable SyncIssueFilter issueFilter) throws SyncIssuesPresentError {
+                                     @NotNull TestGradleSyncListener syncListener) throws SyncIssuesPresentError {
     if (!syncListener.isSyncFinished() || syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
     // Also fail the test if SyncIssues with type errors are present.
-    List<SyncIssueData> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
+    List<IdeSyncIssue> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
       .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
-    Stream<SyncIssueData> errorStream = errors.stream();
-    if (issueFilter != null) {
-      errorStream = errorStream.filter(data -> !issueFilter.ignoreIssue(data));
-    }
-    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("/n"));
+    String errorMessage = errors.stream().map(IdeSyncIssue::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }
@@ -657,6 +654,26 @@ public class AndroidGradleTests {
     LOG.info("Using JDK from " + jdk8Path);
     ideSdks.overrideJdkEnvVariable(jdk8Path);
     assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
+  }
+
+  public static void overrideJdkToCurrentJdk() throws IOException {
+    @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
+    File jdkPath = ideSdks.getJdkPath();
+    assertNotNull("Could not find path of current JDK", jdkPath);
+    LOG.info("Using JDK from " + jdkPath);
+    ideSdks.overrideJdkEnvVariable(jdkPath.getAbsolutePath());
+    assertTrue("Could not use JDK from " + jdkPath, ideSdks.isJdkEnvVariableValid());
+  }
+
+  public static void addJdk8ToTableButUseCurrent() throws IOException {
+    String jdk8Path = getEmbeddedJdk8Path();
+    Sdk jdk = Jdks.getInstance().createJdk(jdk8Path);
+    assertThat(jdk).isNotNull();
+    runWriteAction(() -> {
+      ProjectJdkTable.getInstance().addJdk(jdk);
+      return null;
+    });
+    overrideJdkToCurrentJdk();
   }
 
   public static void restoreJdk() {

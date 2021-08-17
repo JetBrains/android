@@ -59,11 +59,16 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class TransportServiceProxyTest {
+  @Rule
+  public Timeout myTimeout = Timeout.seconds(10);
+
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
@@ -78,7 +83,7 @@ public class TransportServiceProxyTest {
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
     assertThat(definedMethods.size()).isEqualTo(allMethods.size());
-    definedMethods.containsAll(allMethods);
+    assertThat(definedMethods.containsAll(allMethods)).isTrue();
   }
 
   @Test

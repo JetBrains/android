@@ -24,6 +24,7 @@ import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -49,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ScreenRecorderTask implements Runnable {
+  private static final String SAVE_PATH_KEY = "ScreenRecorderTask.SavePath";
   private static final CharSequence MEDIA_UNSUPPORTED_ERROR = "-1010";
   private static final long MAX_RECORDING_TIME_MILLIS = TimeUnit.MINUTES.toMillis(3);
 
@@ -71,7 +74,6 @@ final class ScreenRecorderTask implements Runnable {
   @Slow
   @Override
   public void run() {
-    CountDownLatch completionLatch = null;
     CollectingOutputReceiver receiver = null;
 
     EmulatorConsole console = null;
@@ -89,9 +91,8 @@ final class ScreenRecorderTask implements Runnable {
       }
     }
     else {
-      completionLatch = new CountDownLatch(1);
-      receiver = new CollectingOutputReceiver(completionLatch);
-      startDeviceRecording(receiver, completionLatch);
+      receiver = new CollectingOutputReceiver();
+      startDeviceRecording(receiver);
     }
 
     long start = System.currentTimeMillis();
@@ -107,7 +108,7 @@ final class ScreenRecorderTask implements Runnable {
     try {
       while (!stoppingLatch.await(millisUntilNextSecondTick(start), TimeUnit.MILLISECONDS) &&
              System.currentTimeMillis() - start < MAX_RECORDING_TIME_MILLIS &&
-             (completionLatch == null || completionLatch.getCount() > 0)) {
+             (receiver == null || !receiver.isComplete())) {
         EventQueue.invokeLater(() -> dialog.setRecordingTimeMillis(System.currentTimeMillis() - start));
 
         // If using emulator screen recording feature, stop the recording if the emulator dies.
@@ -122,10 +123,10 @@ final class ScreenRecorderTask implements Runnable {
 
       EventQueue.invokeLater(() -> dialog.setRecordingLabelText("Stopping..."));
 
-      stopRecording(receiver, completionLatch, console);
+      stopRecording(receiver, console);
     }
     catch (InterruptedException e) {
-      stopRecording(receiver, null, console);
+      stopRecording(receiver, console);
       throw new ProcessCanceledException();
     }
     finally {
@@ -144,7 +145,7 @@ final class ScreenRecorderTask implements Runnable {
     return 1000 - (System.currentTimeMillis() - start) % 1000;
   }
 
-  private void startDeviceRecording(@NotNull CollectingOutputReceiver receiver, @NotNull CountDownLatch completionLatch) {
+  private void startDeviceRecording(@NotNull CollectingOutputReceiver receiver) {
     // The IDevice.startScreenRecorder method is blocking, so execute it asynchronously.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       // Store the temp media file in the respective AVD folder.
@@ -152,25 +153,22 @@ final class ScreenRecorderTask implements Runnable {
         myDevice.startScreenRecorder(ScreenRecorderAction.REMOTE_PATH, myOptions, receiver);
       }
       catch (Exception e) {
-        completionLatch.countDown();
+        receiver.flush();
         EventQueue.invokeLater(() -> showError("Unexpected error while launching screen recording", e));
       }
     });
   }
 
-  private void stopRecording(@Nullable CollectingOutputReceiver receiver, @Nullable CountDownLatch completionLatch,
-                             @Nullable EmulatorConsole console) {
+  private void stopRecording(@Nullable CollectingOutputReceiver receiver, @Nullable EmulatorConsole console) {
     if (receiver != null) {
       receiver.cancel();
-      if (completionLatch != null) {
-        try {
-          // Wait for an additional second to make sure that the command
-          // completed and screen recorder finishes writing the output.
-          completionLatch.await(1, TimeUnit.SECONDS);
-        }
-        catch (InterruptedException e) {
-          throw new ProcessCanceledException();
-        }
+      try {
+        // Wait for an additional second to make sure that the command
+        // completed and screen recorder finishes writing the output.
+        receiver.awaitCompletion(1, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException e) {
+        throw new ProcessCanceledException();
       }
     }
     else if (console != null) {
@@ -217,10 +215,17 @@ final class ScreenRecorderTask implements Runnable {
   }
 
   private @Nullable VirtualFileWrapper getTargetFile(@NotNull String extension) {
+    PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
     FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", extension);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-    VirtualFile baseDir = VfsUtil.getUserHomeDir();
-    return saveFileDialog.save(baseDir, getDefaultFileName(extension));
+    String lastPath = properties.getValue(SAVE_PATH_KEY);
+    VirtualFile baseDir = lastPath != null ? LocalFileSystem.getInstance().findFileByPath(lastPath) : VfsUtil.getUserHomeDir();
+    VirtualFileWrapper saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension));
+    if (saveFileWrapper != null) {
+      File saveFile = saveFileWrapper.getFile();
+      properties.setValue(SAVE_PATH_KEY, saveFile.getPath());
+    }
+    return saveFileWrapper;
   }
 
   @UiThread

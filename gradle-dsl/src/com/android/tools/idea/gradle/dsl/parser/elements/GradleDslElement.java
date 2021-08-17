@@ -18,15 +18,16 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,9 +104,10 @@ public interface GradleDslElement extends AnchorProvider {
 
   void setPsiElement(@Nullable PsiElement psiElement);
 
-  boolean shouldUseAssignment();
+  @NotNull
+  ExternalNameSyntax getExternalSyntax();
 
-  void setUseAssignment(boolean useAssignment);
+  void setExternalSyntax(@NotNull ExternalNameSyntax syntax);
 
   @NotNull
   PropertyType getElementType();
@@ -144,7 +146,7 @@ public interface GradleDslElement extends AnchorProvider {
   PsiElement move();
 
   /**
-   * Deletes this element and all it's children from the .gradle file.
+   * Deletes this element and all its children from the .gradle file.
    */
   void delete();
 
@@ -237,7 +239,7 @@ public interface GradleDslElement extends AnchorProvider {
    * @return a map from expressed code to model semantics
    */
   @NotNull
-  ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter);
+  ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter);
 
 
   /**

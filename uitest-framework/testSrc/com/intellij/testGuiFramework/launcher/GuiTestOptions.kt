@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import java.io.File
 
 enum class RestartPolicy {
@@ -28,9 +28,7 @@ object GuiTestOptions {
   const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
   const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
   const val REMOTE_IDE_VM_OPTIONS_PATH_KEY = "idea.gui.test.remote.ide.vmoptions"
-  const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
   const val RESTART_POLICY = "idea.gui.test.restart.policy"
-  const val STANDALONE_MODE = "idea.gui.test.from.standalone.runner"
 
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
@@ -39,11 +37,11 @@ object GuiTestOptions {
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
 
   fun getAspectsAgentJar(): String =
-    getSystemProperty("aspects.agent.jar", "${TestUtils.getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
+    getSystemProperty("aspects.agent.jar", "${getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
   fun getAspectsAgentRules(): String =
-    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.json")
+    getSystemProperty("aspects.agent.rules", "${getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.json")
   fun getAspectsAgentBaseline(): String =
-    getSystemProperty("aspects.agent.baseline", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
+    getSystemProperty("aspects.agent.baseline", "${getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
   fun getAspectsBaselineExportPath(): String = getSystemProperty("aspects.baseline.export.path", "")
 
   //used for restarted and resumed test to qualify from what point to start
@@ -51,8 +49,6 @@ object GuiTestOptions {
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
   fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
   fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
-  fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
-  fun isStandaloneMode(): Boolean = getSystemProperty(STANDALONE_MODE, false)
   fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR_OR_JUNIT_TIMEOUT"))
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {

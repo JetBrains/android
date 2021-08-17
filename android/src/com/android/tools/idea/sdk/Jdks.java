@@ -34,8 +34,8 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.system.CpuArch;
+import java.io.File;
 import java.nio.file.Path;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,17 +62,13 @@ public final class Jdks {
     myIdeInfo = ideInfo;
   }
 
-  public Jdks() {
-    myIdeInfo = IdeInfo.getInstance();
+  @Nullable
+  public JavaSdkVersion findVersion(@NotNull File jdkRoot) {
+    return getVersion(jdkRoot.getPath());
   }
 
   @Nullable
-  public JavaSdkVersion findVersion(@NotNull Path jdkRoot) {
-    return getVersion(jdkRoot.toString());
-  }
-
-  @Nullable
-  private static JavaSdkVersion getVersion(@NotNull String jdkRoot) {
+  private static JavaSdkVersion getVersion(String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
@@ -91,7 +87,7 @@ public final class Jdks {
 
   @Nullable
   public Sdk createEmbeddedJdk() {
-    if (myIdeInfo.isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
       Path path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
       if (path == null) {
         return null;

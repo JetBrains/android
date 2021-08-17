@@ -34,7 +34,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testMotionSceneSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "Transition", "StateSet");
+    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintSet", "Transition", "ViewTransition", "Include", "StateSet");
   }
 
   public void testTransitionSubTags() throws Throwable {
@@ -42,7 +42,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testConstraintSetSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "Constraint");
+    doTestCompletionVariants(getTestName(true) + ".xml", "ConstraintOverride", "Constraint");
   }
 
   public void testConstraintSubTags() throws Throwable {

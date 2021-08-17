@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
+import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 public final class SubTableModelListenerTest {
   @Test
@@ -35,22 +33,5 @@ public final class SubTableModelListenerTest {
 
     new SubTableModelListener(model, delegateListener).tableChanged(new TableModelEvent(delegateModel));
     Mockito.verify(delegateListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
-  }
-
-  private static final class TableModelEventArgumentMatcher implements ArgumentMatcher<TableModelEvent> {
-    private final TableModelEvent myExpectedEvent;
-
-    private TableModelEventArgumentMatcher(@NotNull TableModelEvent expectedEvent) {
-      myExpectedEvent = expectedEvent;
-    }
-
-    @Override
-    public boolean matches(@NotNull TableModelEvent actualEvent) {
-      return myExpectedEvent.getSource().equals(actualEvent.getSource()) &&
-             myExpectedEvent.getFirstRow() == actualEvent.getFirstRow() &&
-             myExpectedEvent.getLastRow() == actualEvent.getLastRow() &&
-             myExpectedEvent.getColumn() == actualEvent.getColumn() &&
-             myExpectedEvent.getType() == actualEvent.getType();
-    }
   }
 }

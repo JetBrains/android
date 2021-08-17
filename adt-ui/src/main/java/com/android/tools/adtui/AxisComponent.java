@@ -15,23 +15,24 @@
  */
 package com.android.tools.adtui;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A component that draws an axis based on data from a {@link Range} object.

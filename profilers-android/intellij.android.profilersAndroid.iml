@@ -48,10 +48,9 @@
     <orderEntry type="module" module-name="android.sdktools.perflib" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module-library">
-      <library name="traceprocessor-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:27.2.0.0" />
+      <library name="traceprocessor-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/27.2.0.0/traceprocessor_protos-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -61,5 +60,9 @@
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
+    <orderEntry type="library" name="transport-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
   </component>
 </module>

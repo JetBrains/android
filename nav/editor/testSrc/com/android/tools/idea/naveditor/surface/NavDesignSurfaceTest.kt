@@ -213,7 +213,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     interactionManager.startListening()
 
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(view)
 
     surface.scene!!.layout(0, SceneContext.get(view))
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
@@ -293,7 +292,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
-    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
@@ -522,7 +520,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
-    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 

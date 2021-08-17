@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.CONTINUE_BUILD_OPTION;
+
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 @State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public String COMMAND_LINE_OPTIONS = "";
+  public boolean CONTINUE_FAILED_BUILD = true;
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
     return project.getService(AndroidGradleBuildConfiguration.class);
@@ -53,6 +56,9 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
     CommandLineTokenizer tokenizer = new CommandLineTokenizer(COMMAND_LINE_OPTIONS);
     while(tokenizer.hasMoreTokens()) {
       options.add(tokenizer.nextToken());
+    }
+    if (CONTINUE_FAILED_BUILD && !options.contains(CONTINUE_BUILD_OPTION)) {
+      options.add(CONTINUE_BUILD_OPTION);
     }
     return ArrayUtil.toStringArray(options);
   }

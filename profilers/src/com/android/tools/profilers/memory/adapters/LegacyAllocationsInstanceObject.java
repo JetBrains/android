@@ -15,15 +15,13 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.memory.adapters.ClassDb.ClassEntry;
-import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 final class LegacyAllocationsInstanceObject implements InstanceObject {
   @NotNull static final Map<String, ValueObject.ValueType> ourTypeMap = ImmutableMap.<String, ValueObject.ValueType>builder()

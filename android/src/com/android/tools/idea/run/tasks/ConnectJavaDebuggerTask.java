@@ -32,6 +32,7 @@ import com.android.tools.idea.run.AndroidDebugState;
 import com.android.tools.idea.run.AndroidProcessText;
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ApplicationLogListener;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -60,17 +61,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.time.ZoneId;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
-  public ConnectJavaDebuggerTask(@NotNull Set<String> applicationIds,
+  public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider, //Set<String> applicationIds,
                                  @NotNull AndroidDebugger debugger,
                                  @NotNull Project project,
                                  boolean attachToRunningProcess) {
-    super(applicationIds, debugger, project, attachToRunningProcess);
+    super(applicationIdProvider, debugger, project, attachToRunningProcess);
   }
 
   @Override

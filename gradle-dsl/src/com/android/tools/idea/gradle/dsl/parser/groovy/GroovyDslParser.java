@@ -20,6 +20,8 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
@@ -43,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
@@ -51,7 +54,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -84,6 +86,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExp
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
@@ -438,10 +441,13 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (referenceExpression == null) {
       return false;
     }
-    // TODO(b/165576187): This allows us to parse plugins with versions, but (as with the Kotlin equivalent) we lose the association of
-    //  Dsl and Psi.  We also are more permissive, parsing any kind of infix-like operator rather than just `version`
-    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement && blockElement instanceof PluginsDslElement) {
-      return parseGrApplication((GrApplicationStatement) referenceExpression.getFirstChild(), blockElement);
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement) {
+      PsiElement operator = referenceExpression.getLastChild();
+      if (operator.textMatches("version") || operator.textMatches("apply")) {
+        // TODO(b/165576187): as with the Kotlin version, the association between Dsl and Psi is not right for individual plugin
+        //  properties, because the tree structures are not aligned.
+        return processPluginDeclaration(statement, blockElement);
+      }
     }
 
     GrCommandArgumentList argumentList = getNextSiblingOfType(referenceExpression, GrCommandArgumentList.class);
@@ -513,6 +519,27 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return true;
   }
 
+  boolean processPluginDeclaration(GrApplicationStatement statement, GradlePropertiesDslElement parent) {
+    GradlePropertiesDslElement pluginElement;
+    if (parent instanceof GradleDslInfixExpression) {
+      pluginElement = parent;
+    }
+    else {
+      pluginElement = new GradleDslInfixExpression(parent, statement);
+      parent.addParsedElement(pluginElement);
+    }
+    GrReferenceExpression referenceExpression = (GrReferenceExpression)statement.getFirstChild();
+    GrApplicationStatement innerApplicationStatement = (GrApplicationStatement)referenceExpression.getFirstChild();
+    boolean success = parseGrApplication(innerApplicationStatement, pluginElement);
+    PsiElement operator = referenceExpression.getLastChild();
+    PsiElement operand = statement.getLastChild().getFirstChild();
+    if (!(operand instanceof GrExpression)) return false;
+    GrExpression value = (GrExpression) operand;
+    GradleDslElement propertyElement = getExpressionElement(pluginElement, value, GradleNameElement.from(operator, this), value);
+    pluginElement.addParsedElement(propertyElement);
+    return success;
+  }
+
   @NotNull
   private GradleDslExpression createExpressionElement(@NotNull GradleDslElement parent,
                                                       @NotNull GroovyPsiElement psiElement,
@@ -564,10 +591,12 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
   private boolean parseGrAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     PsiElement operationToken = assignment.getOperationToken();
-    if (!operationToken.getText().equals("=")) {
-      return false; // TODO: Add support for other operators like +=.
-    }
+    if (operationToken.getText().equals("=")) return processAssignment(assignment, blockElement);
+    if (operationToken.getText().equals("+=")) return processAugmentedAssignment(assignment, blockElement);
+    return false;
+  }
 
+  private boolean processAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     GrExpression left = assignment.getLValue();
     GradleNameElement name = GradleNameElement.from(left, this);
     if (name.isEmpty()) {
@@ -619,7 +648,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       name = GradleNameElement.create(ensureUnquotedText(index));
       if (blockElement instanceof GradleDslExpressionMap) {
         GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-        propertyElement.setUseAssignment(true);
+        propertyElement.setExternalSyntax(ASSIGNMENT);
         propertyElement.setElementType(REGULAR);
 
         blockElement.setParsedElement(propertyElement);
@@ -631,12 +660,49 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
     else {
       GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-      propertyElement.setUseAssignment(true);
+      propertyElement.setExternalSyntax(ASSIGNMENT);
       propertyElement.setElementType(REGULAR);
 
       blockElement.setParsedElement(propertyElement);
     }
     return true;
+  }
+
+  boolean processAugmentedAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
+    GrExpression left = assignment.getLValue();
+    GradleNameElement name = GradleNameElement.from(left, this);
+    if (name.isEmpty()) {
+      return false;
+    }
+
+    if (name.isQualified()) {
+      GradlePropertiesDslElement nestedElement = getPropertiesElement(name.qualifyingParts(), blockElement, null);
+      if (nestedElement != null) {
+        blockElement = nestedElement;
+      }
+      else {
+        return false;
+      }
+    }
+
+    GrExpression right = assignment.getRValue();
+    if (right == null) {
+      return false;
+    }
+
+    Matcher matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name());
+    if (matcher.find()) {
+      // not supporting indexing for += (yet?)
+      return false;
+    }
+    else {
+      GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+      propertyElement.setExternalSyntax(AUGMENTED_ASSIGNMENT);
+      propertyElement.setElementType(REGULAR);
+
+      blockElement.augmentParsedElement(propertyElement);
+      return true;
+    }
   }
 
   @NotNull
@@ -645,11 +711,17 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
                                                    @NotNull GradleNameElement propertyName,
                                                    @NotNull GrExpression propertyExpression) {
     if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, false);
+      PsiElement injection = getChildOfType(propertyExpression, GrStringInjection.class); // ex: compileSdkVersion = " ${abc} -23"
+      return new GradleDslLiteral(
+        parentElement,
+        psiElement,
+        propertyName,
+        propertyExpression,
+        injection != null ? GradleDslLiteral.LiteralType.INTERPOLATION : GradleDslLiteral.LiteralType.LITERAL);
     }
 
     if (propertyExpression instanceof GrReferenceExpression) { // ex: compileSdkVersion SDK_VERSION or sourceCompatibility = VERSION_1_5
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE);
     }
 
     if (propertyExpression instanceof GrMethodCallExpression) { // ex: compile project("someProject")
@@ -665,7 +737,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (propertyExpression instanceof GrIndexProperty) {
-      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true);
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE);
     }
 
     if (propertyExpression instanceof GrNewExpression) {

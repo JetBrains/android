@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -27,11 +29,12 @@ import com.android.build.OutputFile;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.impl.ModelCache;
-import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub;
+import com.android.ide.common.build.GenericBuiltArtifacts;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
+import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
+import com.android.tools.idea.gradle.model.stubs.AndroidArtifactOutputStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -45,6 +48,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -69,9 +74,10 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     initMocks(this);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    BestOutputFinder bestOutputFinder = mock(BestOutputFinder.class);
+//    BestOutputFinder bestOutputFinder = mock(BestOutputFinder.class);
 
     when(myVariant.getName()).thenReturn("myVariant");
+    when(myVariant.getDisplayName()).thenReturn("myVariant (display name)");
     when(androidModel.getFeatures()).thenReturn(myModelFeatures);
 
     AndroidFacetConfiguration configuration = new AndroidFacetConfiguration();
@@ -88,15 +94,33 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
     when(mainArtifact.getOutputs()).thenReturn(mainOutputs);
     when(testArtifact.getOutputs()).thenReturn(testOutputs);
+    when(mainArtifact.getAbiFilters()).thenReturn(emptySet());
+    when(testArtifact.getAbiFilters()).thenReturn(emptySet());
+    when(testArtifact.isTestArtifact()).thenReturn(true);
 
     when(myVariant.getMainArtifact()).thenReturn(mainArtifact);
     when(myVariant.getAndroidTestArtifact()).thenReturn(testArtifact);
 
-    when(bestOutputFinder.findBestOutput(myVariant, emptyList(), mainOutputs)).thenReturn(myApkFile);
-    when(bestOutputFinder.findBestOutput(myVariant, emptyList(), testOutputs)).thenReturn(myTestApkFile);
+    GradleApkProvider.BestOutputFinder finder = new GradleApkProvider.BestOutputFinder() {
+      @Override
+      @NotNull File findBestOutput(@NotNull Set<String> artifactAbiFilters,
+                                   @NotNull List<String> abis,
+                                   @NotNull List<IdeAndroidArtifactOutput> outputs) {
+        if (mainOutputs.equals(outputs)) return myApkFile;
+        if (testOutputs.equals(outputs)) return myTestApkFile;
+        throw new AssertionError();
+      }
+
+      @Override
+      @NotNull File findBestOutput(@NotNull Set<String> artifactAbiFilters,
+                                   @NotNull List<String> abis,
+                                   @NotNull GenericBuiltArtifacts builtArtifact)  {
+        throw new AssertionError();
+      }
+    };
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          bestOutputFinder, true, it -> GradleApkProvider.OutputKind.Default);
+                                          finder, true, it -> GradleApkProvider.OutputKind.Default);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 
@@ -106,7 +130,8 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   public void testGetApkWithoutModelProvider() throws Exception {
     when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(false);
 
-    File apk = myApkProvider.getApk(myVariant, emptyList(), new AndroidVersion(27), myAndroidFacet, false);
+    File apk = myApkProvider.getApk(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
+    );
     assertEquals(myApkFile, apk);
 
     // Pre 3.0 plugins should not use this.
@@ -116,7 +141,8 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   public void testGetApkWithModelProvider() throws Exception {
     when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(true);
 
-    File apk = myApkProvider.getApk(myVariant, emptyList(), new AndroidVersion(27), myAndroidFacet, false);
+    File apk = myApkProvider.getApk(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
+    );
     assertEquals(myApkFile, apk);
 
     // Post 3.0 plugins should use this.
@@ -124,22 +150,24 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   }
 
   public void testGetApkFromPreSyncBuild() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(myVariant, emptyList(), false);
+    File apk = myApkProvider.getApkFromPreBuildSync(myVariant.getMainArtifact(), emptyList());
     assertEquals(myApkFile, apk);
   }
 
   public void testGetApkFromPreSyncBuildForTests() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(myVariant, emptyList(), true);
+    File apk = myApkProvider.getApkFromPreBuildSync(Objects.requireNonNull(myVariant.getAndroidTestArtifact()), emptyList());
     assertEquals(myTestApkFile, apk);
   }
 
   public void testGetApkFromPostBuild() throws Exception {
-    File apk = myApkProvider.getApkFromPostBuildSync(myVariant, emptyList(), new AndroidVersion(27), myAndroidFacet, false);
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
+    );
     assertEquals(myApkFile, apk);
   }
 
   public void testGetApkFromPostBuildForTests() throws Exception {
-    File apk = myApkProvider.getApkFromPostBuildSync(myVariant, emptyList(), new AndroidVersion(27), myAndroidFacet, true);
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), Objects.requireNonNull(myVariant.getAndroidTestArtifact()), emptyList(), new AndroidVersion(27), myAndroidFacet
+    );
     assertEquals(myTestApkFile, apk);
   }
 
@@ -160,6 +188,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
     when(projectBuildOutput.getVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
 
-    when(myPostBuildModel.findProjectBuildOutput(facet)).thenReturn(projectBuildOutput);
+    when(myPostBuildModel.findProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(projectBuildOutput);
   }
 }

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.util.AndroidTestPaths
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import java.nio.file.Paths
 
 /**
  * See implementing classes for usage examples.
@@ -86,12 +86,10 @@ private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> {
   val configuredWorkspace =
     System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
-      ?.let { File(it).resolve(snapshotDirectoryAdtIdeaRelativePath) }
-    ?: AndroidTestPaths.adtSources()
-      .resolve(snapshotDirectoryAdtIdeaRelativePath)
-      .toFile()
+      ?.let { Paths.get(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
+    ?: resolveWorkspacePath(snapshotDirectoryWorkspaceRelativePath)
   return snapshotSuffixes
-    .map { File("$configuredWorkspace/${project.substringAfter("projects/")}$it.txt") }
+    .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it.txt").toFile() }
 }
 
 private fun SnapshotComparisonTest.updateSnapshotFile(snapshotName: String, text: String) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.errors.tryExtractPreferredNdkDownloadVersion
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.CxxConfigurationIssuesReporter.Classification.MISSING_NDK_WITH_PREFERRED_VERSION

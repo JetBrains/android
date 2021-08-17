@@ -28,7 +28,8 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -47,7 +48,6 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSe
 import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -137,8 +137,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
+  private final CsvExporter myCsvExporter;
+
   public MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
     mySelection = selection;
+    myCsvExporter = new CsvExporter(() -> myTree, () -> myCaptureObject, ideProfilerComponents, selection.getIdeServices());
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
@@ -191,6 +194,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     myAttributeColumns.put(
       ClassifierAttribute.REMAINING_SIZE,
       makeColumn("Remaining Size", 140, ClassifierSet::getTotalRemainingSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.SHALLOW_DIFFERENCE,
+      makeColumn("Shallow Size Change", 110, ClassifierSet::getDeltaShallowSize));
   }
 
   /**
@@ -203,31 +209,24 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
     Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
       NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
-    final Supplier<ColoredTreeCellRenderer> renderer;
-    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
-      // Progress-bar style background that reflects percentage contribution
-      renderer = () -> new PercentColumnRenderer<>(
-        textGetter, v -> null, SwingConstants.RIGHT,
-        node -> {
-          MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
-          if (parent == null) {
-            return 0;
-          }
-          else {
-            assert myTreeRoot != null;
-            // Compute relative contribution with respect to top-most parent
-            long myVal = prop.applyAsLong(node.getAdapter());
-            ClassifierSet root = myTreeRoot.getAdapter();
-            long parentVal = prop.applyAsLong(root);
-            return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
-          }
+    // Progress-bar style background that reflects percentage contribution
+    final Supplier<ColoredTreeCellRenderer> renderer = () -> new PercentColumnRenderer<>(
+      textGetter, v -> null, SwingConstants.RIGHT,
+      node -> {
+        MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
+        if (parent == null) {
+          return 0;
         }
-      );
-    }
-    else {
-      // Legacy renderer
-      renderer = () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
-    }
+        else {
+          assert myTreeRoot != null;
+          // Compute relative contribution with respect to top-most parent
+          long myVal = prop.applyAsLong(node.getAdapter());
+          ClassifierSet root = myTreeRoot.getAdapter();
+          long parentVal = prop.applyAsLong(root);
+          return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
+        }
+      }
+    );
 
     int preferredWidth = Math.max(SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH, width);
     int maxWidth = preferredWidth * 4;
@@ -383,6 +382,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
       return null;
     });
+
+    if (mySelection.getIdeServices().getFeatureConfig().isMemoryCSVExportEnabled()) {
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeClassExportItem());
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeInstanceExportItem());
+    }
 
     List<ClassifierAttribute> attributes = myCaptureObject.getClassifierAttributes();
     myTableColumnModel = new DefaultTableColumnModel();
@@ -650,24 +654,35 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   @Nullable
   public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                              @NotNull ClassifierSet targetSet) {
-    return findSmallestSuperSetNode(rootNode, targetSet.getInstancesStream().collect(Collectors.toSet()));
+    Set<InstanceObject> target = targetSet.getInstancesStream().collect(Collectors.toSet());
+    // When `targetSet` is empty, if `rootNode` isn't empty, many of its leaves (if any) trivially count as smallest super-set nodes.
+    // Because the result isn't interesting, we arbitrarily return `rootNode` itself for this special case to save some work.
+    return targetSet.isEmpty() ? rootNode
+         : rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target)
+         : null;
   }
 
-  @Nullable
+  @NotNull
   private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                               @NotNull Set<InstanceObject> targetSet) {
-    if (rootNode.getAdapter().isSupersetOf(targetSet)) {
-      for (MemoryObjectTreeNode<ClassifierSet> child : rootNode.getChildren()) {
-        MemoryObjectTreeNode<ClassifierSet> result = findSmallestSuperSetNode(child, targetSet);
-        if (result != null) {
-          return result;
-        }
-      }
+    // At any point, we maintain that `rootNode` is the only subtree that can cover non-empty `targetSet`.
+    // Given that nodes' immediate instances don't overlap:
+    // - If `rootNode`'s immediate instances overlap with `targetSet`, then it's also the smallest superset.
+    // - If `rootNode` doesn't immediately overlap with `targetSet` but it has 2+ children that overlap with `targetSet`, it must
+    //   also be the smallest superset
 
+    // Get children first for the side-effect of possibly pushing down the node's instances to its children
+    List<MemoryObjectTreeNode<ClassifierSet>> childNodes = rootNode.getChildren();
+
+    if (rootNode.getAdapter().immediateInstancesOverlapWith(targetSet)) {
       return rootNode;
     }
 
-    return null;
+    List<MemoryObjectTreeNode<ClassifierSet>> subResults = childNodes.stream()
+      .filter(node -> node.getAdapter().overlapsWith(targetSet))
+      .collect(Collectors.toList());
+    assert childNodes.isEmpty() || !subResults.isEmpty();
+    return subResults.size() == 1 ? findSmallestSuperSetNode(subResults.get(0), targetSet) : rootNode;
   }
 
   /**

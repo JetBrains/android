@@ -53,7 +53,9 @@ open class FakeDatabaseInspectorController(private val repository: DatabaseRepos
 
   override suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    appPackageName: String?
   ) { }
 
   override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) { }

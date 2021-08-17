@@ -15,12 +15,13 @@
  */
 package org.jetbrains.android;
 
+import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.ide.common.util.PathString;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.GutterIconRenderer.NavigationTargetProvider;
@@ -309,7 +310,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   private String getFrameworkResourcesPath() {
     IAndroidTarget target = ConfigurationManager.getOrCreateInstance(myModule).getProjectTarget();
     assertThat(target).isNotNull();
-    return target.getPath(IAndroidTarget.RESOURCES);
+    return target.getPath(IAndroidTarget.RESOURCES).toString();
   }
 
   @Nullable
@@ -339,7 +340,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
     // Go through the same process as the real annotator, to handle retina correctly.
     BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet));
-    ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
+    assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 
   private static void checkHighlightInfoColor(@NotNull HighlightInfo highlightInfo, @NotNull Color expectedColor) {

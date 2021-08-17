@@ -42,6 +42,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       JavacOutputParser(),
                                                       KotlincWithQuickFixesParser(),
                                                       InstantExecutionReportParser(),
+                                                      ConfigurationCacheErrorParser(),
                                                       GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
 
   fun sendBuildFailureMetrics() {

@@ -30,7 +30,6 @@ import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getA
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivityAliases
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -40,7 +39,7 @@ import java.util.*
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
-private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.model.AndroidManifestIndexQueryUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("AndroidManifestIndexQueryUtils.kt")
 
 /**
  * Applies [processContributors] to the data indexed for [facet]'s merged manifest contributors,

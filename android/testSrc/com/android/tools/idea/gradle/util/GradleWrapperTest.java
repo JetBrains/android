@@ -18,17 +18,13 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.Projects;
-import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapperFilePath);
 
@@ -52,14 +48,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    PathKt.write(wrapperFilePath.toPath(), "#Wed Apr 10 15:27:10 PDT 2013\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip");
+    writeWrapperProperties(
+      "#Wed Apr 10 15:27:10 PDT 2013\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
@@ -72,14 +71,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    PathKt.write(wrapperFilePath.toPath(), "#Wed Apr 10 15:27:10 PDT 2013\n" +
-                 "distributionBase=GRADLE_USER_HOME\n" +
-                 "distributionPath=wrapper/dists\n" +
-                 "zipStoreBase=GRADLE_USER_HOME\n" +
-                 "zipStorePath=wrapper/dists\n" +
-                 "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip");
+    writeWrapperProperties(
+      "#Wed Apr 10 15:27:10 PDT 2013\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
@@ -91,14 +93,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdateDistributionUrlReplacesGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    PathKt.write(wrapperFilePath.toPath(), "#Wed Apr 10 15:27:10 PDT 2013\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip");
+    writeWrapperProperties(
+      "#Wed Apr 10 15:27:10 PDT 2013\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
@@ -110,14 +115,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    PathKt.write(wrapperFilePath.toPath(), "#Tue Feb 19 10:20:30 PDT 2019\n" +
-                "distributionBase=GRADLE_USER_HOME\n" +
-                "distributionPath=wrapper/dists\n" +
-                "zipStoreBase=GRADLE_USER_HOME\n" +
-                "zipStorePath=wrapper/dists\n" +
-                "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-bin.zip");
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradlewrapper.updateDistributionUrlAndDisplayFailure("6.1.1");
@@ -129,15 +137,16 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlMissing() throws IOException {
     // Test when we have no Gradle version specified, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -157,16 +166,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromStandard() throws IOException {
     // Test when we have a standard Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -186,16 +196,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromStandardAll() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -215,16 +226,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromStandardPreview() throws IOException {
     // Test when we have a preview Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-rc-3-bin.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-rc-3-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -244,16 +256,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromStandardSnapshot() throws IOException {
     // Test when we have a snapshot Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=https\\://services.gradle.org/distributions-snapshots/gradle-1.9-rc-3+0000-bin.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/distributions-snapshots/gradle-1.9-rc-3+0000-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -274,16 +287,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testUpdatedDistributionUrlFromStandardUnparsed() throws IOException {
     // Test when we have a distributionUrl pointing to gradle.org but not of the form that we understand, we
     // produce our standard form.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=https\\://services.gradle.org/gradle.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=https\\://services.gradle.org/gradle.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -303,16 +317,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromFile() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new local version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-bin.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-bin.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -332,16 +347,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromFileAll() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-all.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle-4.5-all.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -361,16 +377,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   public void testUpdatedDistributionUrlFromUnparsedFile() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new local version.
-    File projectPath = Projects.getBaseDirPath(myProject);
+    File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
-    write("#Tue Feb 19 10:20:30 PDT 2019\n" +
-          "distributionBase=GRADLE_USER_HOME\n" +
-          "distributionPath=wrapper/dists\n" +
-          "zipStoreBase=GRADLE_USER_HOME\n" +
-          "zipStorePath=wrapper/dists\n" +
-          "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle.zip",
-          wrapperFilePath,
-          Charsets.UTF_8);
+    writeWrapperProperties(
+      "#Tue Feb 19 10:20:30 PDT 2019\n" +
+      "distributionBase=GRADLE_USER_HOME\n" +
+      "distributionPath=wrapper/dists\n" +
+      "zipStoreBase=GRADLE_USER_HOME\n" +
+      "zipStorePath=wrapper/dists\n" +
+      "distributionUrl=file\\:/usr/local/home/studio-master-dev/tools/external/gradle/gradle.zip",
+      wrapperFilePath
+    );
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     String updatedUrl = gradlewrapper.getUpdatedDistributionUrl("6.1.1", true);
@@ -389,18 +406,18 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
   }
 
   public void testGetPropertiesFilePath() {
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File wrapperPath = GradleWrapper.getDefaultPropertiesFilePath(projectPath);
 
-    List<String> expected = new ArrayList<>(FileUtil.splitPath(projectPath.getPath()));
-    expected.addAll(FileUtil.splitPath(FD_GRADLE_WRAPPER));
+    List<String> expected = new ArrayList<>(splitPath(projectPath.getPath()));
+    expected.addAll(splitPath(FD_GRADLE_WRAPPER));
     expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
     assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
   }
 
   public void testCreateWithSpecificGradleVersion() throws IOException {
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
@@ -412,7 +429,7 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
 
   // http://b.android.com/218575
   public void testCreateWithoutSpecificGradleVersion() throws IOException {
-    File projectPath = Projects.getBaseDirPath(getProject());
+    File projectPath = getProjectBaseDir();
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
@@ -451,5 +468,26 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testGetDistributionUrlWithAllSnapshotVersion() {
     String url = GradleWrapper.getDistributionUrl("4.0-20170406000015+0000", false /* all */);
     assertEquals("https://services.gradle.org/distributions-snapshots/gradle-4.0-20170406000015+0000-all.zip", url);
+  }
+
+  @NotNull
+  private File getProjectBaseDir() {
+    //noinspection UnstableApiUsage
+    Path path = ((ProjectStoreOwner)myProject).getComponentStore().getProjectBasePath();
+    if (Files.notExists(path)) {
+      try {
+        Files.createDirectories(path);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return path.toFile();
+  }
+
+  private void writeWrapperProperties(String text, File to) throws IOException {
+    VirtualFile directory = VfsUtil.createDirectoryIfMissing(to.getParent());
+    VirtualFile file = createChildData(directory, to.getName());
+    setFileText(file, text);
   }
 }

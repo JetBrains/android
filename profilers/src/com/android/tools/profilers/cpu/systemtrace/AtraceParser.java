@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.MainProcessSelector;
@@ -84,7 +85,7 @@ public class AtraceParser implements TraceParser {
     }
 
     SystemTraceCpuCaptureBuilder builder = new SystemTraceCpuCaptureBuilder(model);
-    return builder.build(traceId, selectedProcess);
+    return builder.build(traceId, selectedProcess, new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()));
   }
 
   /**

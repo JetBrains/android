@@ -70,6 +70,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
     if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
+    val startTimeMs = System.currentTimeMillis()
+
     ProgressManager.checkCanceled()
     if (!element.canBeLineMarkerProvide) return
 
@@ -109,6 +111,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       GutterIconRenderer.Alignment.RIGHT,
       gotoTargets
     )
+    val calculationTime = System.currentTimeMillis() - startTimeMs
+    element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(typeForMetrics, calculationTime)
     result.add(info)
   }
 

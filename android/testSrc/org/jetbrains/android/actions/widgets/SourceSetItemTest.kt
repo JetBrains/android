@@ -38,10 +38,13 @@ class SourceSetItemTest {
   val rule = AndroidProjectRule.withAndroidModels(
     AndroidModuleModelBuilder(":app", "debug",
                               AndroidProjectBuilder(mainSourceProvider = {
-                                buildMainSourceProviderStub().apply {
-                                  resDirectories.add(basePath.resolve("myResDir"))
-                                  resDirectories.add(basePath.resolve("foo/bar/deep/resources/android/res"))
-                                }
+                                buildMainSourceProviderStub()
+                                  .appendDirectories(
+                                    resDirectories = listOf(
+                                      basePath.resolve("myResDir"),
+                                      basePath.resolve("foo/bar/deep/resources/android/res")
+                                    )
+                                  )
                               })))
 
   @Before

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
@@ -227,16 +228,15 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
     robot.click(button)
   }
 
-  fun clickButtonByIcon(icon: Icon): SceneViewTopPanelFixture = also {
-    robot.click(findButtonByIcon(icon))
-  }
-
-  fun findButtonByIcon(icon: Icon) =
-    robot.finder().find(toolbar, object: GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+  fun findButtonByIcon(icon: Icon, secondsToWait: Long = 10L): ActionButtonFixture {
+    val button = GuiTests.waitUntilShowing(
+      robot, toolbar, object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
         return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
       }
-    })
+    }, secondsToWait)
+    return ActionButtonFixture(robot, button)
+  }
 }
 
 class SceneViewFixture(private val robot: Robot,
@@ -253,14 +253,11 @@ class SceneViewFixture(private val robot: Robot,
 
   fun countSceneComponents(): Int = sceneView.scene.sceneComponents.size
 
-  fun toolbar(): SceneViewTopPanelFixture {
-    // Find the SceneViewPeerPanel
-    val sceneViewPeerPanel = robot.finder().find(sceneView.surface) {
-      component -> component is SceneViewPeerPanel && component.sceneView == sceneView
-    } as SceneViewPeerPanel
+  fun toolbar() = SceneViewTopPanelFixture(robot, target().sceneViewTopPanel)
 
-    return SceneViewTopPanelFixture(robot, sceneViewPeerPanel.sceneViewTopPanel)
-  }
+  fun target() = robot.finder().find(sceneView.surface) {
+    component -> component is SceneViewPeerPanel && component.sceneView == sceneView
+  } as SceneViewPeerPanel
 
   fun size(): Dimension = sceneView.scaledContentSize
 }

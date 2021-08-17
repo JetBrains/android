@@ -83,9 +83,11 @@ public class ContentEntriesTest extends HeavyPlatformTestCase {
     return result;
   }
 
-  private @NotNull ContentEntry createContentEntry(@NotNull Module module) {
+  @NotNull
+  private ContentEntry createContentEntry(@NotNull Module module) {
+    VirtualFile rootFolder = getTempDir().createVirtualDir();
     ModifiableRootModel rootModel = ModuleRootManager.getInstance(module).getModifiableModel();
-    ContentEntry contentEntry = rootModel.addContentEntry(getTempDir().createVirtualDir());
+    ContentEntry contentEntry = rootModel.addContentEntry(rootFolder);
     ApplicationManager.getApplication().runWriteAction(rootModel::commit);
     return contentEntry;
   }

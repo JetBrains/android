@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.model;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import junit.framework.TestCase;

@@ -26,9 +26,9 @@ import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.AddCppToModuleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.LinkCppProjectFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AddRemoveCppDependencyTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
 
   /**
    * To verify project deploys successfully after adding and removing dependency
@@ -54,7 +54,7 @@ public class AddRemoveCppDependencyTest {
    *   1. Create a new project, checking the box for "Include C++ Support"
    *   2. Remove the externalNativeBuild section of the project level build.gradle
    *   3. Sync gradle; verify that the project's app/cpp files are gone but app/java remains
-   *   4. Go to File -> Link C++ Project with Gradle
+   *   4. Go to File -> Add C++ Project with Gradle
    *   5. Leave the build system dropdown on cmake and select ${projectDir}/app/CMakeLists.txt for project path (Verify 1, 2)
    *   6. Build project
    *
@@ -66,7 +66,7 @@ public class AddRemoveCppDependencyTest {
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void addRemoveCppDependency() throws Exception {
+  public void addRemoveCppDependency() {
     createCppProject(CppStandardType.DEFAULT, guiTest);
 
     IdeFrameFixture ideFixture = guiTest.ideFrame();
@@ -105,12 +105,15 @@ public class AddRemoveCppDependencyTest {
     ideFixture
       .actAndWaitForGradleProjectSyncToFinish(
         it ->
-          it.openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
-            .selectCMakeBuildSystem()
-            .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
-            .clickOk()
+        {
+          AddCppToModuleDialogFixture fixture = it.openFromMenu(AddCppToModuleDialogFixture.Companion::find, "File", "Add C++ to Module")
+            .selectLinkCppProject();
+          fixture.getEnabledTextField().enterText(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath());
+          fixture.getOkButton().click();
+        }
       )
       .getEditor()
+      .open("app/build.gradle")
       .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp

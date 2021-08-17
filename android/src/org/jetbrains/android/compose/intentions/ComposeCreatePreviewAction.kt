@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose.intentions
+package com.android.tools.compose.intentions
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.isComposableAnnotation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.codeInsight.intention.IntentionAction
@@ -22,10 +26,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
-import org.jetbrains.android.compose.ComposeLibraryNamespace
-import org.jetbrains.android.compose.isComposableAnnotation
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFile
@@ -40,9 +40,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 class ComposeCreatePreviewAction : IntentionAction {
   override fun startInWriteAction() = true
 
-  override fun getText() = AndroidBundle.message("compose.create.preview")
+  override fun getText() = ComposeBundle.message("create.preview")
 
-  override fun getFamilyName() = AndroidBundle.message("compose.create.preview")
+  override fun getFamilyName() = ComposeBundle.message("create.preview")
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
@@ -75,7 +75,7 @@ class ComposeCreatePreviewAction : IntentionAction {
     val composableAnnotationEntry = getComposableAnnotationEntry(editor, file) ?: return
     val composableFunction = composableAnnotationEntry.parentOfType<KtFunction>() ?: return
     val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry(
-      "@" + ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationName)
+      "@" + ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName)
 
     ShortenReferences.DEFAULT.process(composableFunction.addAnnotationEntry(previewAnnotationEntry))
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
@@ -32,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslE
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
-import java.util.*
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -177,7 +177,7 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   val parent = element.parent
   val parts = ArrayList(name.fullNameParts());
   // FIXME(xof): this case needs fixing too
-  if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, null, name.isFake)
+  if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, UNKNOWN, name.isFake)
 
   val effect = element.modelEffect
   val part = parts.removeAt(parts.size - 1)
@@ -194,5 +194,5 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
 
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
   parts.addAll(externalNameInfo.externalNameParts)
-  return ExternalNameInfo(parts, externalNameInfo.asMethod, name.isFake)
+  return ExternalNameInfo(parts, externalNameInfo.syntax, name.isFake)
 }

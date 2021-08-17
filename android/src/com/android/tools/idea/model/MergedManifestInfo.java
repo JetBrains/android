@@ -127,19 +127,36 @@ final class MergedManifestInfo {
       PsiManager psiManager = PsiManager.getInstance(project);
       for (VirtualFile file : files) {
         fileListBuilder.add(file);
-        try {
-          PsiFile psiFile = psiManager.findFile(file);
-          if (psiFile == null) {
-            // TODO(b/137394236): When does this happen? Should we just ignore these files?
-            modificationStamps.put(file, file.getModificationStamp());
-          } else {
-            modificationStamps.put(psiFile, psiFile.getModificationStamp());
-          }
-          // TODO(b/137394236): We should probably allow this exception to propagate up the call
-          //  stack, since the result should no longer be needed.
-        } catch (ProcessCanceledException ignore) {}
+        PsiFile psiFile = psiManager.findFile(file);
+        if (psiFile == null) {
+          // No PSI has been created for the file yet.
+          modificationStamps.put(file, file.getModificationStamp());
+        } else {
+          modificationStamps.put(psiFile, psiFile.getModificationStamp());
+        }
       }
       return new ModificationStamps(fileListBuilder.build(), modificationStamps);
+    }
+
+    public boolean isCurrent(@NotNull Project project, @NotNull List<VirtualFile> files) {
+      if (!files.equals(this.files)) {
+        return false;
+      }
+      PsiManager psiManager = PsiManager.getInstance(project);
+      for (VirtualFile file : files) {
+        PsiFile psiFile = psiManager.findFile(file);
+        if (psiFile == null) {
+          // No PSI has been created for the file yet.
+          if (file.getModificationStamp() != modificationStamps.get(file)) {
+            return false;
+          }
+        } else {
+          if (psiFile.getModificationStamp() != modificationStamps.get(psiFile)) {
+            return false;
+          }
+        }
+      }
+      return true;
     }
 
     @NotNull
@@ -206,8 +223,7 @@ final class MergedManifestInfo {
   private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
-    Project project = facet.getModule().getProject();
-    if (project.isDisposed() || manifests.primaryManifest == null) {
+    if (manifests.primaryManifest == null) {
       return null;
     }
 
@@ -253,9 +269,7 @@ final class MergedManifestInfo {
     if (myDomDocument == null || mySyncTimestamp != lastSyncTimestamp) {
       return false;
     }
-    // TODO(b/128854237): We should use something backed with an iterator here so that we can early
-    //  return without computing all the files we might care about first.
-    return myModificationStamps.equals(ModificationStamps.forFiles(myFacet.getModule().getProject(), manifests.allFiles));
+    return myModificationStamps.isCurrent(myFacet.getModule().getProject(), manifests.allFiles);
   }
 
   public boolean hasSevereError() {
@@ -320,8 +334,8 @@ final class MergedManifestInfo {
     manifestMergerInvoker.addBundleManifests(libraryManifests);
 
     ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
-    overrides.getPlaceholders().forEach((placeholder, value) -> manifestMergerInvoker.setPlaceHolderValue(placeholder, value));
-    overrides.getDirectOverrides().forEach((property, value) -> manifestMergerInvoker.setOverride(property, value));
+    overrides.getPlaceholders().forEach(manifestMergerInvoker::setPlaceHolderValue);
+    overrides.getDirectOverrides().forEach(manifestMergerInvoker::setOverride);
 
     if (mergeType == ManifestMerger2.MergeType.APPLICATION) {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);

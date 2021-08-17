@@ -17,14 +17,11 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary
 
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 
-fun buildGradle(javaVersion: String): String {
-
-  return """
+fun buildGradle(javaVersion: String = "JavaVersion.VERSION_1_7"): String = """
 ${emptyPluginsBlock()}
 
 java {
-    sourceCompatibility = ${javaVersion}
-    targetCompatibility = ${javaVersion}
+  sourceCompatibility = $javaVersion
+  targetCompatibility = $javaVersion
 }
 """
-}

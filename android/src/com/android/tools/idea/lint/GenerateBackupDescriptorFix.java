@@ -22,12 +22,14 @@ import static com.android.SdkConstants.GET_STRING_METHOD;
 import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
 import com.android.tools.idea.util.EditorUtil;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
@@ -62,7 +64,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -105,13 +106,13 @@ class GenerateBackupDescriptorFix implements LintIdeQuickFix {
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
     PsiClass psiOpenHelperClass = javaPsiFacade.findClass("android.database.sqlite.SQLiteOpenHelper", allScope);
     assert psiOpenHelperClass != null;
-    PsiClass psiContext = javaPsiFacade.findClass(CLASS_CONTEXT, allScope);
-    assert psiContext != null;
+    PsiClass contextPsiClass = javaPsiFacade.findClass(CLASS_CONTEXT, allScope);
+    assert contextPsiClass != null;
 
     final Set<String> databaseNames =
       findDatabasesInProject(useScope, psiOpenHelperClass, stringType, javaPsiFacade);
     final Set<String> sharedPreferenceFiles =
-      findSharedPrefsInProject(useScope, psiContext, facet, stringType, javaPsiFacade);
+      findSharedPrefsInProject(useScope, contextPsiClass, startElement, stringType, javaPsiFacade);
 
     WriteCommandAction.runWriteCommandAction(project, "Create Backup Descriptor", null, () -> {
       try {
@@ -149,15 +150,15 @@ class GenerateBackupDescriptorFix implements LintIdeQuickFix {
   }
 
   private static Set<String> findSharedPrefsInProject(GlobalSearchScope useScope,
-                                                      PsiClass psiContext,
-                                                      @NotNull AndroidFacet facet,
+                                                      @NotNull PsiClass contextPsiClass,
+                                                      @NotNull PsiElement contextElement,
                                                       @NotNull final PsiClassType stringType,
                                                       @NotNull JavaPsiFacade psiFacade) {
     final Set<String> prefFiles = new SmartHashSet<>();
     // Note: To find the usages of a given method, we need to use the following:
     // 1. First find all the methods that override the given method.
     // 2. Search of usages of the given method and all the overriding methods.
-    PsiMethod[] methods = psiContext.findMethodsByName("getSharedPreferences", true);
+    PsiMethod[] methods = contextPsiClass.findMethodsByName("getSharedPreferences", true);
     List<PsiMethod> allMethods = new ArrayList<>(Arrays.asList(methods));
     // Find all overriding methods of getSharedPreferences(..)
     for (PsiMethod method : methods) {
@@ -189,9 +190,8 @@ class GenerateBackupDescriptorFix implements LintIdeQuickFix {
                 if (resource == null || resource.isFramework() || resource.type != ResourceType.STRING) {
                   return;
                 }
-
-                List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
-                  .findResourcesByFieldName(ResourceNamespace.TODO(), ResourceType.STRING.getName(), resource.name);
+                PsiElement[] resources = AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(
+                  new ResourceReference(ResourceNamespace.TODO(), ResourceType.STRING, resource.name), contextElement);
 
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {

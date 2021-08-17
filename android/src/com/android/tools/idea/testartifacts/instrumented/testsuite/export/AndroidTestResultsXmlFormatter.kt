@@ -129,7 +129,7 @@ class AndroidTestResultsXmlFormatter(
               "duration" to duration.toString(),
               "status" to status)) {
             addOutputElement("stderr", testCase.results.getErrorStackTrace(device))
-            addOutputElement("stdout", testCase.results.getBenchmark(device))
+            addOutputElement("stdout", testCase.results.getBenchmark(device).lines.joinToString("\n") { it.rawText })
             addOutputElement("stdout", testCase.results.getLogcat(device))
           }
         }
@@ -243,7 +243,7 @@ class AndroidTestResultsXmlFormatter(
                 "errorStackTrace" to testCase.getErrorStackTrace(device),
                 "startTimestampMillis" to "0",
                 "endTimestampMillis" to (testCase.getDuration(device)?.toMillis()?.toString() ?: "0"),
-                "benchmark" to testCase.getBenchmark(device)
+                "benchmark" to testCase.getBenchmark(device).lines.joinToString("\n") { "${it.rawText}" }
               ))
           }
         }

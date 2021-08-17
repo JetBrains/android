@@ -149,25 +149,6 @@ class NewKtsProjectTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
   }
 
-  @Test
-  fun createNewThingsKotlinKtsProject() {
-    guiTest.welcomeFrame()
-      .createNewProject()
-      .chooseAndroidProjectStep
-      .selectTab(FormFactor.THINGS)
-      .wizard()
-      .clickNext() // Select default Automotive Activity
-      .configureNewAndroidProjectStep
-      .setSourceLanguage(Language.Kotlin)
-      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
-      .setUseKtsBuildFiles(true)
-      .wizard()
-      .clickNext() // Skip extra Step to configure Activity
-      .clickFinishAndWaitForSyncToFinish()
-
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-  }
-
   private fun createNewMobileKtsProject(language: Language) {
     guiTest.welcomeFrame()
       .createNewProject()

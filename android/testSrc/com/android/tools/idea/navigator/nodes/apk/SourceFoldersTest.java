@@ -24,12 +24,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +42,9 @@ public class SourceFoldersTest extends HeavyPlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    Project project = getProject();
-    Path appDir = ProjectKt.getStateStore(project).getProjectBasePath().resolve("app");
-    Files.createDirectories(appDir);
-    myAppModule = createModuleAt("app", project, getModuleType(), appDir);
-    VirtualFile virtualAppDir = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(appDir);
-    mySrcFolder = createFolder(virtualAppDir, "src");
+    VirtualFile appFolder = createFolderInProjectRoot(getProject(), "app");
+    myAppModule = createModuleAt("app", getProject(), getModuleType(), appFolder.toNioPath());
+    mySrcFolder = createFolder(appFolder, "src");
     myMypackageFolder = createFolder(mySrcFolder, "mypackage");
     myLibFolder = createFolder(virtualAppDir, "lib");
   }

@@ -89,7 +89,12 @@ public class GradleUserProperties {
   @Nullable
   private static GradleProperties getProperties(String dir) {
     try {
-      return new GradleProperties(new File(dir, "gradle.properties"));
+      File file = new File(dir, "gradle.properties");
+      if (file.exists()) {
+        return new GradleProperties(file);
+      } else {
+        return null;
+      }
     }
     catch (IOException e) {
       LOG.info("Failed to read gradle.properties from " + dir, e);

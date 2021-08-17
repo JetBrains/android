@@ -25,6 +25,4 @@ public class ModelEffectDescription {
     this.property = property;
     this.semantics = semantics;
   }
-
-
 }

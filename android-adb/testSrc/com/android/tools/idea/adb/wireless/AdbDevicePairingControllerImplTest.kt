@@ -20,7 +20,7 @@ import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -28,11 +28,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.util.LineSeparator
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import icons.StudioIcons
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -43,7 +45,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.JButton
 import javax.swing.JTextField
 
-class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
+class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
   @get:Rule
   val restoreFlagRule = RestoreFlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
@@ -60,26 +62,30 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
     AdbServiceWrapperImpl(project, timeProvider, MoreExecutors.listeningDecorator(taskExecutor))
   }
 
-  private val devicePairingService: AdbDevicePairingService by lazy {
-    AdbDevicePairingServiceImpl(randomProvider, adbService.instance, taskExecutor)
+  private val devicePairingService: WiFiPairingService by lazy {
+    WiFiPairingServiceImpl(randomProvider, adbService.instance, taskExecutor)
   }
 
-  private val model: MockAdbDevicePairingModel by lazy { MockAdbDevicePairingModel() }
+  private val notificationService: MockWiFiPairingNotificationService by lazy {
+    MockWiFiPairingNotificationService(project)
+  }
+
+  private val model: MockWiFiPairingModel by lazy { MockWiFiPairingModel() }
 
   private val view: MockDevicePairingView by lazy {
-    MockDevicePairingView(project, model)
+    MockDevicePairingView(project, notificationService, model)
   }
 
-  private val controller: AdbDevicePairingControllerImpl by lazy {
-    AdbDevicePairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, view,
-                                   pinCodePairingControllerFactory = { createPinCodePairingController(it) })
+  private val controller: WiFiPairingControllerImpl by lazy {
+    WiFiPairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, notificationService, view,
+                              pairingCodePairingControllerFactory = { createPairingCodePairingController(it) })
   }
 
   private val testTimeUnit = TimeUnit.SECONDS
   private val testTimeout = TimeoutRemainder(30, testTimeUnit)
 
-  private var lastPinCodeView: MockPinCodePairingView? = null
-  private var lastPinCodeController: PinCodePairingController? = null
+  private var lastPairingCodeView: MockPairingCodePairingView? = null
+  private var lastPairingCodeController: PairingCodePairingController? = null
 
     override fun setUp() {
       super.setUp()
@@ -88,13 +94,13 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
     }
 
   @Suppress("SameParameterValue")
-  private fun createPinCodePairingController(mdnsService: MdnsService): PinCodePairingController {
-    val model = PinCodePairingModel(mdnsService)
-    val view = MockPinCodePairingView(project, model).also {
-      lastPinCodeView = it
+  private fun createPairingCodePairingController(mdnsService: MdnsService): PairingCodePairingController {
+    val model = PairingCodePairingModel(mdnsService)
+    val view = MockPairingCodePairingView(project, notificationService, model).also {
+      lastPairingCodeView = it
     }
-    return PinCodePairingController(edtExecutor, devicePairingService, view).also {
-      lastPinCodeController = it
+    return PairingCodePairingController(edtExecutor, devicePairingService, view).also {
+      lastPairingCodeController = it
     }
   }
 
@@ -103,7 +109,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
     // Prepare
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -120,7 +126,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf("unknown command"))))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -137,7 +143,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpEventsAndWaitForFuture(view.showDialogTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
       pumpEventsAndWaitForFuture(view.startMdnsCheckTracker.consume(), testTimeout.remainingUnits, testTimeUnit)
@@ -154,7 +160,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -171,7 +177,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -240,7 +246,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
       pumpAndWait(view.showDialogTracker.consume())
       pumpAndWait(view.startMdnsCheckTracker.consume())
@@ -269,23 +275,29 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       val (mdnsService2, device) = pumpAndWait(view.showQrCodePairingSuccessTracker.consume())
       Truth.assertThat(mdnsService2).isEqualTo(mdnsService)
       Truth.assertThat(device).isEqualTo(phoneDeviceInfo)
+
+      val (title, content, type, icon) = pumpAndWait(notificationService.showBalloonTracker.consume())
+      Truth.assertThat(title).isEqualTo("${device.displayString} connected over Wi-Fi")
+      Truth.assertThat(content).isEqualTo("The device is now available to use.")
+      Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
+      Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
     }
   }
 
   /**
    * Summary of this test:
    *
-   * * Simulate the phone entering a pin code pairing session, which results in exposing a mDNS service
+   * * Simulate the phone entering a pairing code pairing session, which results in exposing a mDNS service
    *   of the form `"${generatedServiceName} _adb-tls-pairing._tcp. ${phoneIpAddress}:${phonePairingPort}"`.
    *   The service is discovered by running `"adb mdns services"` in a loop.
    *
    * * When the new mDNS service is detected, a new "Pair" panel is shown in the right hand side of the
    *   pairing dialog, with a "Pair" button.
    *
-   * * The test simulates clicking that button, which opens a new "Pin Code Pairing" dialog, then
+   * * The test simulates clicking that button, which opens a new "Pairing Code Pairing" dialog, then
    *   simulates a 6 digit pairing code in the new dialog. Finally, the test simulates clicking the
    *   "Ok" button in the new dialog, which results in executing a
-   *   `"adb mdns pair ${phoneIpAddress}:${phonePairingPort} ${phonePairingPinCode}"` command through ADB.
+   *   `"adb mdns pair ${phoneIpAddress}:${phonePairingPort} ${phonePairingCode}"` command through ADB.
    *   This command returns the phone `IP/port` address for connecting (the `port` for connecting is not the same
    *   as the `port` using for pairing) as well as the phone mDNS service name (of the form `"adb-xxxx"`).
    *
@@ -295,13 +307,13 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
    *
    */
   @Test
-  fun controllerShouldPairDeviceUsingPinCodeOnceItShowsUp() {
+  fun controllerShouldPairDeviceUsingPairingCodeOnceItShowsUp() {
     // Prepare
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
     val phoneServiceName = "adb-939AX05XBZ-vWgJpq"
     val phonePairingString = "${phoneServiceName}\t_adb-tls-pairing._tcp.\t${phoneIpAddress}:${phonePairingPort}"
-    val phonePairingPinCode = "123456"
+    val phonePairingCode = "123456"
     val phoneConnectPort = 12345
     val phoneDeviceInfo = AdbOnlineDevice("myid", mapOf(
       Pair(IDevice.PROP_DEVICE_MANUFACTURER, "Google"),
@@ -319,7 +331,7 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf())))
 
     Mockito
-      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingPinCode + newLine()))
+      .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
       .thenReturn(Futures.immediateFuture(
         AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf())))
 
@@ -327,17 +339,16 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       .`when`(adbService.instance.waitForOnlineDevice(any()))
       .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
 
-    fun enterPinCode(pinCodeDialog: DialogWrapper, @Suppress("SameParameterValue") phonePairingPinCode: String) {
-      //val pinController = lastPinCodeController ?: throw AssertionError("Pin Code Pairing Controller show be set")
-      val pinView = lastPinCodeView ?: throw AssertionError("Pin Code Pairing View show be set")
+    fun enterPairingCode(pairingCodeDialog: DialogWrapper, @Suppress("SameParameterValue") phonePairingCode: String) {
+      val pairingView = lastPairingCodeView ?: throw AssertionError("Pairing Code Pairing View show be set")
 
-      val fakeUi = FakeUi(pinCodeDialog.rootPane)
+      val fakeUi = FakeUi(pairingCodeDialog.rootPane)
 
-      // Enter the pin code
-      phonePairingPinCode.forEachIndexed{ index, ch ->
+      // Enter the pairing code
+      phonePairingCode.forEachIndexed{ index, ch ->
         // Note: FakeUi keyboard does not emulate focus, so we need to focus each
         //       custom component individually
-        fakeUi.keyboard.setFocus(fakeUi.getComponent<JTextField> { c -> c.name == "PinCode-Digit-${index}" })
+        fakeUi.keyboard.setFocus(fakeUi.getComponent<JTextField> { c -> c.name == "PairingCode-Digit-${index}" })
         fakeUi.keyboard.type(ch.toInt())
       }
 
@@ -346,26 +357,32 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       Truth.assertThat(okButton).isNotNull()
       fakeUi.clickOn(okButton)
 
-      pumpAndWait(pinView.showDialogTracker.consume())
-      pumpAndWait(pinView.showPairingInProgressTracker.consume())
+      pumpAndWait(pairingView.showDialogTracker.consume())
+      pumpAndWait(pairingView.showPairingInProgressTracker.consume())
 
-      val pairingResult = pumpAndWait(pinView.showWaitingForDeviceProgressTracker.consume())
+      val pairingResult = pumpAndWait(pairingView.showWaitingForDeviceProgressTracker.consume())
       Truth.assertThat(pairingResult.mdnsServiceId).isEqualTo(phoneServiceName)
       Truth.assertThat(pairingResult.ipAddress.hostAddress).isEqualTo(phoneIpAddress)
       Truth.assertThat(pairingResult.port).isEqualTo(phoneConnectPort)
 
-      val (mdnsService, device) = pumpAndWait(pinView.showPairingSuccessTracker.consume())
+      val (mdnsService, device) = pumpAndWait(pairingView.showPairingSuccessTracker.consume())
       Truth.assertThat(mdnsService).isNotNull()
-      Truth.assertThat(mdnsService.serviceType).isEqualTo(ServiceType.PinCode)
+      Truth.assertThat(mdnsService.serviceType).isEqualTo(ServiceType.PairingCode)
       Truth.assertThat(mdnsService.serviceName).isEqualTo(phoneServiceName)
       Truth.assertThat(mdnsService.ipAddress.hostAddress).isEqualTo(phoneIpAddress)
       Truth.assertThat(mdnsService.port).isEqualTo(phonePairingPort)
 
       Truth.assertThat(device).isEqualTo(phoneDeviceInfo)
+
+      val (title, content, type, icon) = pumpAndWait(notificationService.showBalloonTracker.consume())
+      Truth.assertThat(title).isEqualTo("${device.displayString} connected over Wi-Fi")
+      Truth.assertThat(content).isEqualTo("The device is now available to use.")
+      Truth.assertThat(type).isEqualTo(NotificationType.INFORMATION)
+      Truth.assertThat(icon).isEqualTo(StudioIcons.Common.SUCCESS)
     }
 
     // Act
-    createDialogAndInteractWithIt({ controller.showDialog() }) {
+    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       val fakeUi = FakeUi(it.rootPane)
 
       // Assert
@@ -374,21 +391,21 @@ class AdbDevicePairingControllerImplTest : LightPlatform4TestCase() {
       pumpAndWait(view.showMdnsCheckSuccessTracker.consume())
       pumpAndWait(view.showQrCodePairingStartedTracker.consume())
 
-      val pinCodeServices = pumpAndWait(model.pinCodeServicesTracker.consume())
-      Truth.assertThat(pinCodeServices).isNotNull()
-      Truth.assertThat(pinCodeServices).hasSize(1)
-      Truth.assertThat(pinCodeServices[0].serviceName).isEqualTo(phoneServiceName)
-      Truth.assertThat(pinCodeServices[0].ipAddress.hostAddress).isEqualTo(phoneIpAddress)
-      Truth.assertThat(pinCodeServices[0].port).isEqualTo(phonePairingPort)
-      Truth.assertThat(pinCodeServices[0].serviceType).isEqualTo(ServiceType.PinCode)
+      val pairingCodeServices = pumpAndWait(model.pairingCodeServicesTracker.consume())
+      Truth.assertThat(pairingCodeServices).isNotNull()
+      Truth.assertThat(pairingCodeServices).hasSize(1)
+      Truth.assertThat(pairingCodeServices[0].serviceName).isEqualTo(phoneServiceName)
+      Truth.assertThat(pairingCodeServices[0].ipAddress.hostAddress).isEqualTo(phoneIpAddress)
+      Truth.assertThat(pairingCodeServices[0].port).isEqualTo(phonePairingPort)
+      Truth.assertThat(pairingCodeServices[0].serviceType).isEqualTo(ServiceType.PairingCode)
 
-      // We need to layout, since a new panel (for the pin code device) should have been added
+      // We need to layout, since a new panel (for the pairing code device) should have been added
       fakeUi.layout()
 
       val pairButton = fakeUi.getComponent<JButton> { comp -> comp.text == "Pair" }
       Truth.assertThat(pairButton).isNotNull()
-      createDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pinCodeDialog ->
-        enterPinCode(pinCodeDialog, phonePairingPinCode)
+      createModalDialogAndInteractWithIt({ fakeUi.clickOn(pairButton) }) { pairingCodeDialog ->
+        enterPairingCode(pairingCodeDialog, phonePairingCode)
       }
     }
   }

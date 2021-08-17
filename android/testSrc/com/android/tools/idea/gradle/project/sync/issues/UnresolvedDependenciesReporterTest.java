@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

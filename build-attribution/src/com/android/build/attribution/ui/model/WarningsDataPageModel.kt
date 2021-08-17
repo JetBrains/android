@@ -15,25 +15,32 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
 interface WarningsDataPageModel {
-  val reportData: BuildAttributionReportUiData
-
   /** Text of the header visible above the tree. */
   val treeHeaderText: String
 
@@ -62,25 +69,24 @@ interface WarningsDataPageModel {
   fun selectPageById(warningsPageId: WarningsPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: (Boolean) -> Unit)
+  fun addModelUpdatedListener(listener: (Boolean) -> Unit)
 
   /** Retrieve node descriptor by it's page id. Null if node does not exist in currently presented tree structure. */
   fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor?
 }
 
 class WarningsDataPageModelImpl(
-  override val reportData: BuildAttributionReportUiData
+  private val reportData: BuildAttributionReportUiData
 ) : WarningsDataPageModel {
-  @VisibleForTesting
-  var modelUpdatedListener: ((Boolean) -> Unit)? = null
-    private set
+
+  private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
 
   override val treeHeaderText: String
     get() = treeStructure.treeStats.let { treeStats ->
       "Warnings - Total: ${treeStats.totalWarningsCount}, Filtered: ${treeStats.filteredWarningsCount}"
     }
 
-  override var filter: WarningsFilter = WarningsFilter.default()
+  override var filter: WarningsFilter = WarningsFilter.DEFAULT
     set(value) {
       field = value
       treeStructure.updateStructure(groupByPlugin, value)
@@ -127,7 +133,9 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.totalIssuesCount == 0
+    get() = reportData.issues.sumBy { it.warningCount } +
+      reportData.annotationProcessors.issueCount +
+      reportData.confCachingData.warningsCount() == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
     selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
@@ -138,8 +146,8 @@ class WarningsDataPageModelImpl(
     treeStructure.pageIdToNode[warningsPageId]?.let { selectNode(it) }
   }
 
-  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
-    modelUpdatedListener = listener
+  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+    modelUpdatedListeners.add(listener)
   }
 
   override fun getNodeDescriptorById(pageId: WarningsPageId): WarningsTreePresentableNodeDescriptor? =
@@ -153,7 +161,7 @@ class WarningsDataPageModelImpl(
 
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke(treeStructureChanged)
+      modelUpdatedListeners.forEach { it.invoke(treeStructureChanged) }
       modelChanged = false
       treeStructureChanged = false
     }
@@ -206,19 +214,39 @@ private class WarningsTreeStructure(
         }
       }
       treeStats.totalWarningsCount += reportData.issues.sumBy { it.warningCount }
-      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
-        .filter { filter.acceptAnnotationProcessorIssue(it) }
-        .map { AnnotationProcessorDetailsNodeDescriptor(it) }
-        .toList()
-        .ifNotEmpty {
-          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
-          rootNode.add(annotationProcessorsRootNode)
-          forEach {
-            annotationProcessorsRootNode.add(treeNode(it))
+
+      if (filter.showAnnotationProcessorWarnings) {
+        reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+          .map { AnnotationProcessorDetailsNodeDescriptor(it) }
+          .toList()
+          .ifNotEmpty {
+            val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+            rootNode.add(annotationProcessorsRootNode)
+            forEach {
+              annotationProcessorsRootNode.add(treeNode(it))
+            }
+            treeStats.filteredWarningsCount += size
           }
-          treeStats.filteredWarningsCount += size
-        }
+      }
       treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
+
+      // Add configuration caching issues
+      if (filter.showConfigurationCacheWarnings && reportData.confCachingData.shouldShowWarning()) {
+        val configurationDuration = reportData.buildSummary.configurationDuration
+        val configurationCacheData = reportData.confCachingData
+        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(configurationCacheData, configurationDuration)).apply {
+          if (configurationCacheData is IncompatiblePluginsDetected) {
+            configurationCacheData.upgradePluginWarnings.forEach {
+              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
+            }
+            configurationCacheData.incompatiblePluginWarnings.forEach {
+              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
+            }
+          }
+        })
+        treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
+      }
+      treeStats.totalWarningsCount += reportData.confCachingData.warningsCount()
     }
   }
 
@@ -237,6 +265,7 @@ class WarningsTreeNode(
   val descriptor: WarningsTreePresentableNodeDescriptor
 ) : DefaultMutableTreeNode(descriptor)
 
+// TODO (mlazeba): consider removing this class as it is not really used
 enum class WarningsPageType {
   EMPTY_SELECTION,
   TASK_WARNING_DETAILS,
@@ -244,7 +273,9 @@ enum class WarningsPageType {
   TASK_UNDER_PLUGIN,
   TASK_WARNING_PLUGIN_GROUP,
   ANNOTATION_PROCESSOR_DETAILS,
-  ANNOTATION_PROCESSOR_GROUP
+  ANNOTATION_PROCESSOR_GROUP,
+  CONFIGURATION_CACHING_ROOT,
+  CONFIGURATION_CACHING_WARNING,
 }
 
 data class WarningsPageId(
@@ -263,7 +294,11 @@ data class WarningsPageId(
     fun annotationProcessor(annotationProcessorData: AnnotationProcessorUiData) = WarningsPageId(
       WarningsPageType.ANNOTATION_PROCESSOR_DETAILS, annotationProcessorData.className)
 
+    fun configurationCachingWarning(data: IncompatiblePluginWarning) =
+      WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_WARNING, data.plugin.toString())
+
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
+    val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
     val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
@@ -339,9 +374,7 @@ class TaskUnderPluginDetailsNodeDescriptor(
   val filteredWarnings: List<TaskIssueUiData>
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.task(taskData)
-
-  // TODO (b/150295612): add new page type, there is no matching one in the old model.
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.PLUGIN_TASK_WARNINGS
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
@@ -377,6 +410,59 @@ class AnnotationProcessorDetailsNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(annotationProcessorData.compilationTimeMs)
     )
 }
+
+/** Descriptor for the configuration caching problems page node. */
+class ConfigurationCachingRootNodeDescriptor(
+  val data: ConfigurationCachingCompatibilityProjectResult,
+  val projectConfigurationTime: TimeWithPercentage
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.configurationCachingRoot
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_ROOT
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = "Configuration cache",
+      suffix = when (data) {
+        is AGPUpdateRequired -> "Android Gradle plugin update required"
+        is IncompatiblePluginsDetected -> data.upgradePluginWarnings.size.let {
+          when (it) {
+            0 -> ""
+            1 -> "1 plugin requires update"
+            else -> "$it plugins require update"
+          }
+        }
+        is NoIncompatiblePlugins -> ""
+        ConfigurationCachingTurnedOn -> ""
+        ConfigurationCacheCompatibilityTestFlow -> ""
+        ConfigurationCachingTurnedOff -> ""
+      },
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
+    )
+}
+
+class ConfigurationCachingWarningNodeDescriptor(
+  val data: IncompatiblePluginWarning,
+  val projectConfigurationTime: TimeWithPercentage
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.configurationCachingWarning(data)
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_PLUGIN_WARNING
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = data.plugin.displayName,
+      suffix = if (data.requiredVersion != null) "update required" else "not compatible",
+      nodeIconState = NodeIconState.WARNING_ICON
+    )
+}
+
+private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
+  is AGPUpdateRequired -> 1
+  is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
+  is NoIncompatiblePlugins -> 1
+  ConfigurationCacheCompatibilityTestFlow -> 1
+  ConfigurationCachingTurnedOn -> 0
+  ConfigurationCachingTurnedOff -> 0
+}
+
+fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0
 
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
   if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"

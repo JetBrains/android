@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.adb.wireless;
 
-import com.intellij.ui.components.JBTabbedPane;
+import com.android.annotations.concurrency.UiThread;
+import com.intellij.openapi.Disposable;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class PairingContentPanel {
+/**
+ * Form that displays a {@link com.intellij.ui.components.JBTabbedPane} with one
+ * tab for {@link QrCodeTabPanel} and one tab for {@link PairingCodeTabPanel}.
+ */
+@UiThread
+public class WiFiPairingContentPanel {
   @NotNull private JPanel myRootContainer;
-  @NotNull private JBTabbedPane myTabbedPane;
-  @NotNull private PairingContentTabbedPaneContainer myQrCodePanel;
-  @NotNull private PairingContentTabbedPaneContainer myPinCodePanel;
+  @NotNull private WiFiPairingContentTabbedPaneContainer myQrCodePanel;
+  @NotNull private WiFiPairingContentTabbedPaneContainer myPairingCodePanel;
+
+  public WiFiPairingContentPanel(@NotNull Disposable parentDisposable) {
+    myPairingCodePanel.setParentDisposable(parentDisposable);
+    myQrCodePanel.setParentDisposable(parentDisposable);
+  }
 
   @NotNull
   public JComponent getComponent() {
@@ -35,7 +45,8 @@ public class PairingContentPanel {
     myQrCodePanel.setContent(component);
   }
 
-  public void setPinCodeComponent(@NotNull JComponent component) {
-    myPinCodePanel.setContent(component);
+  public void setPairingCodeComponent(@NotNull JComponent component) {
+    myPairingCodePanel.setContent(component);
+    myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
   }
 }

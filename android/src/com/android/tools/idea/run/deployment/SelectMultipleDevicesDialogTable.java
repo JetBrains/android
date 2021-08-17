@@ -20,9 +20,9 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -43,18 +43,12 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
     setRowSelectionAllowed(false);
   }
 
-  @NotNull
-  List<Device> getSelectedDevices() {
-    return IntStream.range(0, getRowCount())
-      .filter(this::isSelected)
-      .mapToObj(this::getDeviceAt)
-      .collect(Collectors.toList());
+  @NotNull Set<@NotNull Target> getSelectedTargets() {
+    return ((SelectMultipleDevicesDialogTableModel)dataModel).getSelectedTargets();
   }
 
-  void setSelectedDevices(@NotNull Collection<Key> keys) {
-    IntStream.range(0, getRowCount())
-      .filter(viewRowIndex -> getDeviceAt(viewRowIndex).hasKeyContainedBy(keys))
-      .forEach(viewRowIndex -> setSelected(true, viewRowIndex));
+  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+    ((SelectMultipleDevicesDialogTableModel)dataModel).setSelectedTargets(selectedTargets);
   }
 
   boolean isSelected(int viewRowIndex) {
@@ -63,13 +57,8 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
   }
 
   @VisibleForTesting
-  void setSelected(@SuppressWarnings("SameParameterValue") boolean selected, int viewRowIndex) {
+  void setSelected(@SuppressWarnings("SameParameterValue") boolean selected, @SuppressWarnings("SameParameterValue") int viewRowIndex) {
     dataModel.setValueAt(selected, convertRowIndexToModel(viewRowIndex), SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
-  }
-
-  @NotNull
-  private Device getDeviceAt(int viewRowIndex) {
-    return ((SelectMultipleDevicesDialogTableModel)dataModel).getDeviceAt(convertRowIndexToModel(viewRowIndex));
   }
 
   @NotNull

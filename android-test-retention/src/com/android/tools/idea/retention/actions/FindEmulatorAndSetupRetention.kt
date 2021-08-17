@@ -19,21 +19,30 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
+import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
+import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.debugger.ui.DebuggerContentInfo
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
@@ -47,10 +56,14 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
+import com.intellij.ui.AppUIUtil
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebugSessionListener
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
+import com.intellij.xdebugger.frame.XExecutionStack
+import com.intellij.xdebugger.frame.XStackFrame
+import com.intellij.xdebugger.frame.XSuspendContext
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
@@ -65,6 +78,7 @@ private const val PUSH_SNAPSHOT_FRACTION = 0.6
 private const val LOAD_SNAPSHOT_FRACTION = 0.7
 private const val CLIENTS_READY_FRACTION = 0.8
 private const val DEBUGGER_CONNECTED_FRACTION = 0.9
+private const val DEBUGGER_PAUSED_FRACTION = 0.95
 
 private const val NOTIFICATION_GROUP_NAME = "Retention Snapshot Load"
 
@@ -84,18 +98,42 @@ class FindEmulatorAndSetupRetention : AnAction() {
         override fun run(indicator: ProgressIndicator) {
           indicator.isIndeterminate = false
           indicator.fraction = 0.0
-          val deviceName = dataContext.getData(DEVICE_NAME_KEY)
+          val deviceName = dataContext.getData(AVD_NAME_KEY)
+          val isManagedDevice = dataContext.getData(IS_MANAGED_DEVICE)!!
           val catalog = RunningEmulatorCatalog.getInstance()
           val androidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
           val logWrapper = LogWrapper(LOG)
-          val avdManager = AvdManager.getInstance(androidSdkHandler, logWrapper)
+          val baseAvdFolder = if (isManagedDevice) {
+            AndroidLocationsSingleton.gradleAvdLocation
+          } else {
+            AndroidLocationsSingleton.avdLocation
+          }
+          val avdManager = AvdManager.getInstance(
+            androidSdkHandler,
+            baseAvdFolder.toFile(),
+            logWrapper
+          )
           val avdInfo = avdManager?.getAvd(deviceName, true)
+          try {
+            AndroidDebugBridge.init(true)
+          } catch (exp: IllegalStateException) {
+            LOG.debug("ADB already initialized: ${exp}")
+          }
+          if (!AndroidDebugBridge.getClientSupport()) {
+            showErrorMessage(project, "Adb client support required. " +
+                                      "Please try to reboot adb by running \"adb kill-server\"")
+            return
+          }
           if (avdInfo == null) {
             showErrorMessage(project, "Cannot find valid AVD with name: ${deviceName}")
             return
           }
           if (!avdManager.isAvdRunning(avdInfo, logWrapper)) {
-            val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+            val deviceFuture = bootEmulator(project,
+                                            avdInfo,
+                                            isManagedDevice,
+                                            (dataContext.getData(EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS) ?: listOf<String>()) as List<String>
+            )
             val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
             ProgressIndicatorUtils.awaitWithCheckCanceled { device.isOnline }
           }
@@ -114,7 +152,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
           val shouldAttachDebugger = dataContext.getData(RETENTION_AUTO_CONNECT_DEBUGGER_KEY) ?: false
           val packageName = dataContext.getData(PACKAGE_NAME_KEY) ?: return
           if (!shouldAttachDebugger) {
-            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+            if (!emulatorController.pushAndLoadAndDeleteSync(snapshotId, snapshotFile, indicator)) {
               showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
                                         + "command line parameters as you run the test.")
             }
@@ -126,7 +164,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
           }?.forEach {
             it.getClient(packageName)?.kill()
           }
-          var adbDevice: IDevice? = null
           val deviceReadySignal = CountDownLatch(1)
           // After loading a snapshot, the following events will happen:
           // Device disconnects -> device reconnects-> device client list changes
@@ -136,17 +173,22 @@ class FindEmulatorAndSetupRetention : AnAction() {
 
             override fun deviceConnected(device: IDevice) {
               if (emulatorSerialString == device.serialNumber) {
-                adbDevice = device
                 deviceReadySignal.countDown()
                 AndroidDebugBridge.removeDeviceChangeListener(this)
               }
             }
 
-            override fun deviceChanged(device: IDevice, changeMask: Int) {}
+            // Sometimes it reports back in device changed instead of connected.
+            override fun deviceChanged(device: IDevice, changeMask: Int) {
+              if (device.isOnline && emulatorSerialString == device.serialNumber) {
+                deviceReadySignal.countDown()
+                AndroidDebugBridge.removeDeviceChangeListener(this)
+              }
+            }
           }
           AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
           try {
-            if (!emulatorController.pushAndLoadSync(snapshotId, snapshotFile, indicator)) {
+            if (!emulatorController.pushAndLoadAndDeleteSync(snapshotId, snapshotFile, indicator)) {
               showErrorMessage(project, "Failed to import snapshots. Please try to boot emulator (${deviceName}) with the same "
                                         + "command line parameters as you run the test.")
               return
@@ -154,28 +196,29 @@ class FindEmulatorAndSetupRetention : AnAction() {
             indicator.fraction = LOAD_SNAPSHOT_FRACTION
             LOG.info("Snapshot loaded.")
             ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
+            LOG.info("Device ready.")
           } finally {
             AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
           }
-          if (adbDevice == null) {
-            showErrorMessage(project, "Failed to connect to device.")
-            return
-          }
-          val targetDevice = adbDevice!!
+
+          // Adb reports device connected, but occasionally it will still give us a stale device.
+          // This happens a lot on AOSP images.
+          lateinit var targetDevice: IDevice
+          val adb = requireNotNull(AndroidDebugBridge.getBridge())
 
           // Check if the ddm client is ready.
           // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
           // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
           // and wait even if we use callbacks.
+          LOG.info("Checking client for $packageName.")
           ProgressIndicatorUtils.awaitWithCheckCanceled {
-            if (targetDevice.getClient(packageName) == null) {
-              Thread.sleep(10)
-              false
-            }
-            else {
-              true
-            }
+            // We need to refresh the device list.
+            targetDevice = adb.devices.find { device ->
+              device.serialNumber == emulatorSerialString
+            }?: return@awaitWithCheckCanceled false
+            return@awaitWithCheckCanceled DeploymentApplicationService.getInstance().findClient(targetDevice, packageName).isNotEmpty()
           }
+          LOG.info("Client ready.")
           indicator.fraction = CLIENTS_READY_FRACTION
 
           val debugSessionReadySignal = CountDownLatch(1)
@@ -214,6 +257,59 @@ class FindEmulatorAndSetupRetention : AnAction() {
           })
           currentSession.pause()
           ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
+          indicator.fraction = DEBUGGER_PAUSED_FRACTION
+          val stackReadySignal = CountDownLatch(1)
+          // Switch focus to the debugger
+          AppUIUtil.invokeOnEdt {
+            currentSession.ui.run {
+              selectAndFocus(findContent(DebuggerContentInfo.FRAME_CONTENT), true, false)
+            }
+          }
+          // Find user content
+          currentSession.suspendContext.computeExecutionStacks(object: XSuspendContext.XExecutionStackContainer {
+            var foundUserFrame = false
+            override fun errorOccurred(errorMessage: String) {
+              stackReadySignal.countDown()
+              LOG.warn("$errorMessage")
+            }
+
+            override fun addExecutionStack(executionStacks: MutableList<out XExecutionStack>, last: Boolean) {
+              if (foundUserFrame) {
+                return
+              }
+              for (stack in executionStacks) {
+                stack.computeStackFrames(0, object  : XExecutionStack.XStackFrameContainer {
+                  override fun errorOccurred(errorMessage: String) {
+                    stackReadySignal.countDown()
+                    LOG.warn("$errorMessage")
+                  }
+
+                  override fun addStackFrames(stackFrames: MutableList<out XStackFrame>, last: Boolean) {
+                    if (foundUserFrame) {
+                      return
+                    }
+                    for (frame in stackFrames) {
+                      if (frame.sourcePosition?.file?.canonicalPath?.startsWith(
+                          project.basePath?:"") == true) {
+                          frame.sourcePosition?.createNavigatable(project)?.also {
+                            AppUIUtil.invokeOnEdt {
+                              currentSession.setCurrentStackFrame(stack, frame)
+                              stackReadySignal.countDown()
+                            }
+                            foundUserFrame = true
+                            return@addStackFrames
+                          }
+                        }
+                    }
+                  }
+                })
+              }
+              if (last && !foundUserFrame) {
+                stackReadySignal.countDown()
+              }
+            }
+          })
+          ProgressIndicatorUtils.awaitWithCheckCanceled(stackReadySignal)
           LOG.info("Ready for debugging.")
         }
       })
@@ -225,6 +321,48 @@ class FindEmulatorAndSetupRetention : AnAction() {
     val snapshotFile = event.dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY)
     event.presentation.isEnabledAndVisible = (snapshotId != null && snapshotFile != null)
   }
+}
+
+private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Boolean, parameters: List<String>): ListenableFuture<IDevice> {
+  val avdManagerConnection = if (isManagedDevice) {
+    AvdManagerConnection.getDefaultGradleAvdManagerConnection()
+  } else {
+    AvdManagerConnection.getDefaultAvdManagerConnection()
+  }
+  return avdManagerConnection.startAvd(
+    project,
+    avdInfo
+  ) { emulator, avd ->
+     EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
+  }
+}
+
+@VisibleForTesting
+fun filterEmulatorBootParameters(parameters: List<String>): List<String> {
+  val filtered = mutableListOf<String>()
+  if (parameters.isEmpty()) {
+    return filtered
+  }
+  val iterator = parameters.iterator()
+  // The first parameter is the emulator path. Skip it.
+  iterator.next()
+  while (iterator.hasNext()) {
+    when (val parameter = iterator.next()) {
+      // Skip avd name. Skip flags set by studio.
+      // Need to be careful about which flag has extra parameters.
+      "-avd", "-netdelay", "-netspeed", "-idle-grpc-timeout" -> {
+        iterator.next()
+      }
+      "-qt-hide-window", "-grpc-use-token" -> Unit
+      else -> {
+        // You can set AVD name by passing "@avd_name". So we skip it.
+        if (!parameter.startsWith("@")) {
+          filtered.add(parameter)
+        }
+      }
+    }
+  }
+  return filtered.toList()
 }
 
 @Slow
@@ -255,8 +393,8 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
  * @return true if succeeds.
  */
 @Slow
-private fun EmulatorController.pushAndLoadSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
-  return pushSnapshotSync(snapshotId, snapshotFile, indicator) && loadSnapshotSync(snapshotId)
+private fun EmulatorController.pushAndLoadAndDeleteSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
+  return pushSnapshotSync(snapshotId, snapshotFile, indicator) && loadSnapshotSync(snapshotId) && deleteSnapshotSync(snapshotId)
 }
 
 /**
@@ -271,6 +409,37 @@ private fun EmulatorController.loadSnapshotSync(snapshotId: String): Boolean {
   val doneSignal = CountDownLatch(1)
   var succeeded = true
   loadSnapshot(snapshotId, object : StreamObserver<SnapshotPackage> {
+    override fun onNext(response: SnapshotPackage) {
+      if (!response.success) {
+        succeeded = false
+        showErrorMessage(null, "Snapshot load failed: " + response.err.toString(Charset.defaultCharset()))
+      }
+    }
+    override fun onCompleted() {
+      doneSignal.countDown()
+    }
+
+    override fun onError(throwable: Throwable) {
+      succeeded = false
+      doneSignal.countDown()
+    }
+  })
+  ProgressIndicatorUtils.awaitWithCheckCanceled(doneSignal)
+  return succeeded
+}
+
+/**
+ * Delete a snapshot in the emulator.
+ *
+ * @param snapshotId a name of a snapshot in the emulator.
+ *
+ * @return true if succeeds.
+ */
+@Slow
+private fun EmulatorController.deleteSnapshotSync(snapshotId: String): Boolean {
+  val doneSignal = CountDownLatch(1)
+  var succeeded = true
+  deleteSnapshot(snapshotId, object : StreamObserver<SnapshotPackage> {
     override fun onNext(response: SnapshotPackage) {
       if (!response.success) {
         succeeded = false
@@ -332,10 +501,15 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
             return@setOnReadyHandler
           }
           if (!snapshotIdSent) {
-            clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setSnapshotId(snapshotId).setFormat(format).build())
-            snapshotIdSent = true;
+            clientCallStreamObserver.onNext(SnapshotPackage
+                                              .newBuilder()
+                                              .setSnapshotId(snapshotId)
+                                              .setFormat(format)
+                                              .setPath(snapshotFile.absolutePath)
+                                              .build())
+            snapshotIdSent = true
           }
-          var bytesRead = 0;
+          var bytesRead = 0
           while (clientCallStreamObserver.isReady) {
             bytesRead = inputStream.read(bytes)
             if (bytesRead <= 0) {

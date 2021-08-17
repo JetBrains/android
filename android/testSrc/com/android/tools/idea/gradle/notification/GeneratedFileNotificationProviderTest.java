@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

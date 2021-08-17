@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
@@ -26,39 +25,44 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.File;
 import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A supplier of an optional list of VirtualDevices or PhysicalDevices. It is safe to call the get method from the event dispatch thread.
+ *
+ * <p>One worker collects the available virtual devices and the other one collects the running devices (which can be virtual or physical).
+ * This class combines both results.
+ *
+ * <p>The "Async" part of the name comes from the workers doing their work off the event dispatch thread. The get method does not block; the
+ * workers hold onto previous results and those are used if the background threads are busy. If a worker does not have a previous result the
+ * get method returns Optional.empty.
+ */
 final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
-
-  @NotNull
-  private final BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
   private final Worker<List<ConnectedDevice>> myConnectedDevicesWorker;
+
+  private final @NotNull AndroidDebugBridge myBridge;
 
   @NotNull
   private final KeyToConnectionTimeMap myMap;
@@ -72,11 +76,9 @@ final class AsyncDevicesGetter implements Disposable {
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
     myProject = project;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get;
-
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-
+    myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = new KeyToConnectionTimeMap();
     myGetName = new NameGetter(this);
   }
@@ -84,15 +86,12 @@ final class AsyncDevicesGetter implements Disposable {
   @NonInjectable
   @VisibleForTesting
   AsyncDevicesGetter(@NotNull Project project,
-                     @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,
                      @NotNull KeyToConnectionTimeMap map,
-                     @NotNull Function<ConnectedDevice, String> getName) {
+                     @NotNull Function<@NotNull ConnectedDevice, @NotNull String> getName) {
     myProject = project;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
-
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-
+    myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = map;
     myGetName = getName;
   }
@@ -113,31 +112,17 @@ final class AsyncDevicesGetter implements Disposable {
   @NotNull
   Optional<List<Device>> get() {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
-    File adb = AndroidSdkUtils.getAdb(myProject);
-
-    if (adb == null) {
-      Logger.getInstance(AsyncDevicesGetter.class).info("adb not found");
-      return Optional.empty();
-    }
-
-    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
-
-    if (!bridge.isConnected()) {
-      Logger.getInstance(AsyncDevicesGetter.class).info("ADB is not connected");
-      return Optional.empty();
-    }
 
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
       .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled)
       .setFileSystem(FileSystems.getDefault())
       .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
       .setChecker(myChecker)
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(bridge, myChecker));
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
 
     if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
       return Optional.empty();
@@ -186,7 +171,7 @@ final class AsyncDevicesGetter implements Disposable {
   private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
                                                                      @NotNull Key key) {
     return devices.stream()
-      .filter(device -> device.matches(key))
+      .filter(device -> device.getKey().equals(key) || device.getNameKey().orElseThrow(AssertionError::new).equals(key))
       .findFirst();
   }
 
@@ -205,7 +190,11 @@ final class AsyncDevicesGetter implements Disposable {
       .map(ConnectedDevice::getKey)
       .collect(Collectors.toSet());
 
-    return virtualDevices.stream().filter(device -> !device.hasKeyContainedBy(connectedVirtualDeviceKeys));
+    return virtualDevices.stream().filter(device -> !containsPathOrName(connectedVirtualDeviceKeys, device));
+  }
+
+  private static boolean containsPathOrName(@NotNull Collection<@NotNull Key> keys, @NotNull VirtualDevice device) {
+    return keys.contains(device.getKey()) || keys.contains(device.getNameKey().orElseThrow(AssertionError::new));
   }
 
   @VisibleForTesting

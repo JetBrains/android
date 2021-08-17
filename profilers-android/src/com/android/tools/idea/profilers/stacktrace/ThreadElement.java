@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.stacktrace;
 
-import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link StackElement} which represents the current thread a stack trace belongs to.
  */
-final class ThreadElement implements StackElement {
+public final class ThreadElement implements StackElement {
   @NotNull private final ThreadId myThreadId;
 
-  ThreadElement(@NotNull ThreadId threadId) {
+  public ThreadElement(@NotNull ThreadId threadId) {
     myThreadId = threadId;
   }
 

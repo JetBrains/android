@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templateSet group="AndroidCompose">
   <template name="W" description="Surround with widget"
-            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            value="$WIDGET$ {&#10; $SELECTION$$END$ &#10; }"
             toReformat="true" toShortenFQNames="true">
-    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.ui.layout.Container&quot;" alwaysStopAt="true"/>
+    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Box&quot;" alwaysStopAt="true"/>
     <context>
       <option name="KOTLIN" value="true"/>
       <option name="KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="WR" description="Surround with Row"
-            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            value="$WIDGET$ {&#10; $SELECTION$$END$ &#10; }"
             toReformat="true" toShortenFQNames="true">
-    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Row&quot;" alwaysStopAt="true"/>
+    <variable name="WIDGET" expression="&quot;androidx.compose.foundation.layout.Row&quot;"/>
     <context>
       <option name="KOTLIN" value="true"/>
       <option name="KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="WC" description="Surround with Column"
-            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            value="$WIDGET$ {&#10; $SELECTION$$END$ &#10; }"
             toReformat="true" toShortenFQNames="true">
-    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Column&quot;" alwaysStopAt="true"/>
+    <variable name="WIDGET" expression="&quot;androidx.compose.foundation.layout.Column&quot;"/>
     <context>
       <option name="KOTLIN" value="true"/>
       <option name="KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="comp"
-            value="@androidx.compose.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
+            value="@androidx.compose.runtime.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
             description="Create @Composable function"
             toReformat="true"
             toShortenFQNames="true">
@@ -41,14 +41,14 @@
 
   <!-- region Modifiers -->
   <template name="paddp"
-            value="androidx.ui.core.Modifier.padding($DP$.dp)"
+            value="androidx.compose.ui.Modifier.padding($DP$.dp)"
             description="Add padding Modifier in dp"
             toReformat="true"
             toShortenFQNames="true">
     <variable name="DP" expression="" defaultValue="" alwaysStopAt="true"/>
   </template>
   <template name="weight"
-            value="androidx.ui.core.Modifier.weight($WEIGHT$)"
+            value="androidx.compose.ui.Modifier.weight($WEIGHT$)"
             description="Add weight Modifier"
             toReformat="true"
             toShortenFQNames="true">

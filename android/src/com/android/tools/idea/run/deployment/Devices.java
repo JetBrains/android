@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.deployment;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,28 +26,46 @@ final class Devices {
   }
 
   static boolean containsAnotherDeviceWithSameName(@NotNull Collection<Device> devices, @NotNull Device device) {
-    Object key = device.getKey().getDeviceKey();
+    Object key = device.getKey();
     Object name = device.getName();
 
     return devices.stream()
-      .filter(d -> !d.getKey().getDeviceKey().equals(key))
+      .filter(d -> !d.getKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
   }
 
-  @NotNull
-  static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
-    String snapshotName = snapshot == null ? null : snapshot.toString();
-    return getText(device.getName(), key == null ? null : key.getDeviceKey(), snapshotName, device.getValidityReason());
+  static @NotNull Optional<@NotNull String> getBootOption(@NotNull Device device,
+                                                          @NotNull Target target,
+                                                          @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+    if (!selectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {
+      return Optional.empty();
+    }
+
+    if (device.isConnected()) {
+      return Optional.empty();
+    }
+
+    if (device.getSnapshots().isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(target.getText(device));
   }
 
-  @NotNull
-  static String getText(@NotNull String device, @Nullable String reason) {
-    return getText(device, null, null, reason);
+  static @NotNull String getText(@NotNull Device device) {
+    return getText(device, null);
   }
 
-  @NotNull
-  private static String getText(@NotNull String device, @Nullable String key, @Nullable String snapshot, @Nullable String reason) {
+  static @NotNull String getText(@NotNull Device device, @Nullable Key key) {
+    return getText(device, key, null);
+  }
+
+  static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {
+    return getText(device.getName(), key == null ? null : key.toString(), bootOption);
+  }
+
+  private static @NotNull String getText(@NotNull String device, @Nullable String key, @Nullable String bootOption) {
     StringBuilder builder = new StringBuilder(device);
 
     if (key != null) {
@@ -55,17 +75,10 @@ final class Devices {
         .append(']');
     }
 
-    if (snapshot != null) {
+    if (bootOption != null) {
       builder
         .append(" - ")
-        .append(snapshot);
-    }
-
-    if (reason != null) {
-      builder
-        .append(" (")
-        .append(reason)
-        .append(')');
+        .append(bootOption);
     }
 
     return builder.toString();

@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
+import static com.android.SdkConstants.ATTR_AUTOFILL_HINTS;
 import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
 import static com.android.SdkConstants.ATTR_CHECKED_CHIP;
 import static com.android.SdkConstants.ATTR_CONSTRAINT_SET_END;
@@ -61,6 +62,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_MENU;
 import static com.android.SdkConstants.ATTR_MOTION_TARGET_ID;
+import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_ON_CLICK;
 import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_SRC;
@@ -69,6 +71,7 @@ import static com.android.SdkConstants.ATTR_THEME;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
@@ -108,9 +111,12 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.AutoFillHintsConverter;
+import org.jetbrains.android.dom.converters.ColorConverter;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
 import org.jetbrains.android.dom.converters.FlagConverter;
+import org.jetbrains.android.dom.converters.FloatConverter;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
 import org.jetbrains.android.dom.converters.IntegerConverter;
 import org.jetbrains.android.dom.converters.OnClickConverter;
@@ -183,6 +189,8 @@ public class AndroidDomUtil {
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
+  private static final AutoFillHintsConverter AUTOFILL_HINTS_CONVERTER = new AutoFillHintsConverter();
+
   // List of available font families extracted from framework's fonts.xml
   // Used to provide completion for values of android:fontFamily attribute
   // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
@@ -254,6 +262,10 @@ public class AndroidDomUtil {
         return IntegerConverter.INSTANCE;
       case DIMENSION:
         return DimensionConverter.INSTANCE;
+      case COLOR:
+        return ColorConverter.INSTANCE;
+      case FLOAT:
+        return FloatConverter.INSTANCE;
       default:
         return null;
     }
@@ -311,6 +323,10 @@ public class AndroidDomUtil {
     String localName = attrName.getLocalName();
     String tagName = xmlTag.getName();
 
+    if (tagName.equals(FRAGMENT_CONTAINER_VIEW) && localName.equals(ATTR_NAME)) {
+      return FRAGMENT_CLASS_CONVERTER;
+    }
+
     if (ANDROID_URI.equals(attrName.getNamespaceKey())) {
       // Framework attributes:
       if (context instanceof XmlResourceElement) {
@@ -326,6 +342,9 @@ public class AndroidDomUtil {
           return context instanceof LayoutViewElement
                  ? OnClickConverter.CONVERTER_FOR_LAYOUT
                  : OnClickConverter.CONVERTER_FOR_MENU;
+        }
+        else if (ATTR_AUTOFILL_HINTS.equals(localName)) {
+          return AUTOFILL_HINTS_CONVERTER;
         }
       }
     }

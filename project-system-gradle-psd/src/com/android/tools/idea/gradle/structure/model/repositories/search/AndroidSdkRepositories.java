@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search;
-
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.sdk.IdeSdks;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
+package com.android.tools.idea.gradle.repositories.search;
 
 import static com.android.ide.common.repository.SdkMavenRepository.ANDROID;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
+
+import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.tools.idea.sdk.IdeSdks;
+import java.io.File;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AndroidSdkRepositories {
   public static final String ANDROID_REPOSITORY_NAME = "Android Repository";
@@ -45,13 +44,13 @@ public final class AndroidSdkRepositories {
 
   @Nullable
   private static ArtifactRepository getMavenRepository(@NotNull SdkMavenRepository repository, @NotNull String name) {
-    File location = getRepositoryLocation(repository);
-    return location != null ? new LocalMavenRepository(location, name) : null;
+    Path location = getRepositoryLocation(repository);
+    return location != null ? new LocalMavenRepository(location.toFile(), name) : null;
   }
 
   @Nullable
-  private static File getRepositoryLocation(@NotNull SdkMavenRepository repository) {
+  private static Path getRepositoryLocation(@NotNull SdkMavenRepository repository) {
     File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
-    return repository.getRepositoryLocation(androidSdkPath, true, FileOpUtils.create());
+    return repository.getRepositoryLocation(androidSdkPath.toPath(), true);
   }
 }

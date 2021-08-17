@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import java.io.File
@@ -49,9 +50,14 @@ interface AndroidTestResults {
   fun getTestResultSummary(): AndroidTestCaseResult
 
   /**
-   * Returns a one liner test result summary string.
+   * Returns the aggregated test result for given devices.
    */
-  fun getTestResultSummaryText(): String
+  fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult
+
+  /**
+   * Returns a one liner test result summary string for given devices.
+   */
+  fun getTestResultSummaryText(devices: List<AndroidDevice>): String
 
   /**
    * Returns a test result stats.
@@ -62,6 +68,11 @@ interface AndroidTestResults {
    * Returns a test result stats of a given device.
    */
   fun getResultStats(device: AndroidDevice): AndroidTestResultStats
+
+  /**
+   * Returns the test result stats for given devices.
+   */
+  fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats
 
   /**
    * Returns the logcat message emitted during the test on a given device.
@@ -91,7 +102,11 @@ interface AndroidTestResults {
   /**
    * Returns a benchmark test results.
    */
-  fun getBenchmark(device: AndroidDevice): String
+  fun getBenchmark(device: AndroidDevice): BenchmarkOutput
+  /**
+   * Returns the retention info artifact from Android Test Retention if available.
+   */
+  fun getRetentionInfo(device: AndroidDevice): File?
   /**
    * Returns the snapshot artifact from Android Test Retention if available.
    */
@@ -131,6 +146,17 @@ data class AndroidTestResultStats(
   var cancelled: Int = 0) {
   val total: Int
     get() = passed + failed + skipped + running + cancelled
+  fun addTestCaseResult(result: AndroidTestCaseResult?): AndroidTestResultStats {
+    when (result) {
+      AndroidTestCaseResult.PASSED -> passed++
+      AndroidTestCaseResult.FAILED -> failed++
+      AndroidTestCaseResult.SKIPPED -> skipped++
+      AndroidTestCaseResult.IN_PROGRESS -> running++
+      AndroidTestCaseResult.CANCELLED -> cancelled++
+      else -> {}
+    }
+    return this
+  }
 }
 
 operator fun AndroidTestResultStats.plus(rhs: AndroidTestResultStats) = AndroidTestResultStats(

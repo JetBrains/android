@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
@@ -93,5 +96,19 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
     // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
     // initialized on the EDT.
     return RuleChain.outerRule(projectRule).around(EdtRule()).apply(super.apply(base, description), description)
+  }
+
+  /**
+   * Test utility for adding a fake navigation dependency to our module. This allows testing for the
+   * existence / absence of various features that are gated by a certain feature version.
+   *
+   * If this is not called, it is expected that only base functionality will be provided.
+   *
+   * Finally, this method should be called before any light classes are generated.
+   */
+  fun addFakeNavigationDependency(version: GradleVersion) {
+    val projectSystem = TestProjectSystem(module.project)
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, module, version)
+    projectSystem.useInTests()
   }
 }

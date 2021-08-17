@@ -140,7 +140,7 @@ public final class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @NotNull
   @Override
-  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func) {
+  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<@NotNull Integer, @Nullable Integer> func) {
     final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {

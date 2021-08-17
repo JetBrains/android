@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
@@ -51,7 +51,8 @@ public final class SyncIssuesReporter {
     this(new UnresolvedDependenciesReporter(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
-         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter());
+         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter(),
+         new JcenterDeprecatedReporter(), new AgpUsedJavaTooLowReporter());
   }
 
   @NonInjectable

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.stacktrace;
 
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.Arrays;
-import java.util.List;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
@@ -109,9 +108,6 @@ public final class CodeLocation {
     return myMethodName;
   }
 
-  /**
-   * @param lineNumber 0-based line number
-   */
   public int getLineNumber() {
     return myLineNumber;
   }
@@ -204,11 +200,11 @@ public final class CodeLocation {
 
     /**
      * Signature of a method, encoded by java type encoding
-     *
+     * <p>
      * For example:
      * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
      * the signature is (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
-     *
+     * <p>
      * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
      */
     @NotNull
@@ -219,7 +215,7 @@ public final class CodeLocation {
 
     /**
      * Parameters of a method or function.
-     *
+     * <p>
      * For example, {@code int aMethod(int a, float b} produces {@code ["int", "float"]} as the list of parameters.
      */
     @NotNull

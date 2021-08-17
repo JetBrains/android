@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search
+package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME
 
 data class FoundArtifact(
   val repositoryNames: Set<String>,

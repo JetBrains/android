@@ -20,28 +20,26 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractUninstaller;
-import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Generates a patch that deletes all the files in the given package.
  */
 class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
-  private LocalPackage myPatcher;
-  private File myEmptyDir;
-  private File myGeneratedPatch;
+  private final LocalPackage myPatcher;
+  private final Path myEmptyDir;
+  private Path myGeneratedPatch;
 
-  public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-    super(p, mgr, fop);
+  public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr) {
+    super(p, mgr);
     myPatcher = PatchInstallerUtil.getLatestPatcher(getRepoManager());
-    myEmptyDir = FileOpUtils.getNewTempDir("PatchUninstaller", mFop);
+    myEmptyDir = FileOpUtils.getNewTempDir("PatchUninstaller", p.getLocation().getFileSystem());
     registerStateChangeListener((op, progress) -> {
       if (getInstallStatus() == InstallStatus.COMPLETE) {
-        mFop.deleteFileOrFolder(getLocation(progress));
+        FileOpUtils.deleteFileOrFolder(getLocation(progress));
       }
     });
   }
@@ -54,7 +52,7 @@ class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
 
   @NotNull
   @Override
-  public File getNewFilesRoot() {
+  public Path getNewFilesRoot() {
     return myEmptyDir;
   }
 
@@ -71,18 +69,18 @@ class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
   }
 
   @Override
-  protected boolean doPrepare(@Nullable File installTemp,
+  protected boolean doPrepare(@Nullable Path installTemp,
                               @NonNull ProgressIndicator progress) {
     if (myPatcher == null) {
       return false;
     }
-    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTemp, mFop, progress);
+    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTemp, progress);
     return myGeneratedPatch != null;
   }
 
   @Override
-  protected boolean doComplete(@Nullable File installTemp,
+  protected boolean doComplete(@Nullable Path installTemp,
                                @NotNull ProgressIndicator progress) {
-    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, mFop, progress);
+    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, progress);
   }
 }

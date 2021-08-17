@@ -100,9 +100,8 @@ public class InstantApps {
     return defaultUrl;
   }
 
-  public static boolean isInstantAppApplicationModule(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
-    return model != null && model.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+  public static boolean isInstantAppApplicationModule(@NotNull AndroidFacet androidFacet) {
+    return androidFacet.getProperties().PROJECT_TYPE  == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
   }
 
   public static boolean isPostO(IDevice device) {

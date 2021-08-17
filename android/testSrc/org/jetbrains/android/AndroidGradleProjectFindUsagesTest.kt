@@ -38,7 +38,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
 
     // Resource from androidx library used in both app and lib modules
     myFixture.moveCaret("R.color.abc_tint|_default")
-    val usages = AndroidFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
+    val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("Usage (4 usages)\n" +
@@ -78,7 +78,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     // Adding the non-transitive representation of the same resource written above, ie. from Aar R class. Although they have different
     // fully qualified paths, they reference the same resource.
     myFixture.type("\n    androidx.appcompat.R.color.abc_tint_default")
-    val usages = AndroidFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
+    val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("Usage (6 usages)\n" +

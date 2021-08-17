@@ -49,6 +49,16 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
     })
   }
 
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    val emulatorController = getEmulatorController(event)
+    if (emulatorController != null) {
+      // Rotation is disabled if the device has no rotation sensors or more than one display.
+      event.presentation.isVisible = isEmulatorConnected(event) && emulatorController.emulatorConfig.hasOrientationSensors &&
+                                     getNumberOfDisplays(event) <= 1
+    }
+  }
+
   /**
    * Rounds the given angle to a multiple of 90 degrees and puts it in the [-180, 180) interval.
    */

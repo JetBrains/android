@@ -22,6 +22,7 @@ import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
+import static com.android.SdkConstants.ATTR_COMPOSABLE_NAME;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_DISCARD;
 import static com.android.SdkConstants.ATTR_ITEM_COUNT;
@@ -45,6 +46,7 @@ import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_TARGET_API;
 import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
 import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT;
@@ -424,19 +426,7 @@ public class AttributeProcessingUtil {
     if (viewName == null) {
       return null;
     }
-    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
-    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
-    switch (viewName) {
-      case "AppBarLayout":
-      case "CollapsingToolbarLayout":
-      case "CoordinatorLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        return viewName + "_LayoutParams";
-
-      default:
-        return null;
-    }
+    return viewName + "_LayoutParams";
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -472,7 +462,7 @@ public class AttributeProcessingUtil {
     @NotNull Set<XmlName> skipAttrNames,
     @NotNull ResourceNamespace resourceNamespace
   ) {
-    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getAllResources();
+    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
     if (repo == null) return;
 
     //@see AttributeProcessingUtil.getLayoutStyleablePrimary and AttributeProcessingUtil.getLayoutStyleableSecondary
@@ -573,6 +563,10 @@ public class AttributeProcessingUtil {
 
     String tagName = tag.getName();
     switch (tagName) {
+      case CLASS_COMPOSE_VIEW:
+        registerToolsAttribute(ATTR_COMPOSABLE_NAME, callback);
+        break;
+
       case VIEW_FRAGMENT:
         registerToolsAttribute(ATTR_LAYOUT, callback);
         break;

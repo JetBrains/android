@@ -16,19 +16,17 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.StreamEvent
 import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
-import com.android.tools.idea.transport.manager.TransportStreamEventListener
-import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asExecutor
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.atomic.AtomicInteger
 
 fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.ExecuteRequest.newBuilder().setCommand(this).build()
@@ -39,9 +37,7 @@ fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.Ex
  */
 class AppInspectionTransport(
   val client: TransportClient,
-  val stream: Common.Stream,
-  val process: Common.Process,
-  val dispatcher: CoroutineDispatcher,
+  val process: ProcessDescriptor,
   private val streamChannel: TransportStreamChannel
 ) {
 
@@ -79,37 +75,18 @@ class AppInspectionTransport(
   )
 
   /**
-   * Creates a new [TransportEventListener] given the provided filtering criteria.
-   *
-   * See [TransportStreamEventListener] for more details about what these parameters are.
+   * Creates a flow that subscribes to events filtered by the provided filtering criteria.
    */
-  fun createStreamEventListener(
-    eventKind: Common.Event.Kind,
-    filter: (Common.Event) -> Boolean = { true },
-    startTimeNs: () -> Long = { Long.MIN_VALUE },
-    isTransient: Boolean = false,
-    callback: (Common.Event) -> Unit
-  ) = TransportStreamEventListener(
-    createStreamEventQuery(eventKind, filter, startTimeNs),
-    executor = dispatcher.asExecutor(),
-    isTransient = isTransient,
-    callback = callback
-  )
-
-  /**
-   * Registers the given listener with poller.
-   */
-  fun registerEventListener(streamEventListener: TransportStreamEventListener) {
-    streamChannel.registerStreamEventListener(streamEventListener)
-  }
-
-  fun unregisterEventListener(streamEventListener: TransportStreamEventListener) {
-    streamChannel.unregisterStreamEventListener(streamEventListener)
+  fun eventFlow(eventKind: Common.Event.Kind,
+                filter: (Common.Event) -> Boolean = { true },
+                startTimeNs: () -> Long = { Long.MIN_VALUE }): Flow<StreamEvent> {
+    val query = createStreamEventQuery(eventKind, filter, startTimeNs)
+    return streamChannel.eventFlow(query)
   }
 
   private fun AppInspection.AppInspectionCommand.toCommand() = Commands.Command.newBuilder()
     .setType(Commands.Command.CommandType.APP_INSPECTION)
-    .setStreamId(stream.streamId)
+    .setStreamId(process.streamId)
     .setPid(process.pid)
     .setAppInspectionCommand(this).build()
 
@@ -122,38 +99,31 @@ class AppInspectionTransport(
   }
 
   /**
-   * Executes the provided AppInspection [command] and await for a response that satisfies the [streamEventListener].
+   * Executes the provided  [command] and await for a response that satisfies the provided [streamEventQuery].
    * */
   suspend fun executeCommand(request: Transport.ExecuteRequest,
-                             streamEventQuery: StreamEventQuery): Common.Event = withContext(dispatcher) {
-    val deferred = CompletableDeferred<Common.Event>()
-    val listener = TransportStreamEventListener(streamEventQuery, dispatcher.asExecutor(), false) { event ->
-      try {
-        deferred.complete(event)
-      }
-      catch (t: Throwable) {
-        deferred.completeExceptionally(t)
-      }
-    }
-    registerEventListener(listener)
-    client.transportStub.execute(request)
-    try {
-      deferred.await()
-    }
-    finally {
-      unregisterEventListener(listener)
-    }
+                             streamEventQuery: StreamEventQuery): Common.Event  {
+    executeCommand(request)
+    return streamChannel.eventFlow(streamEventQuery).first().event
   }
 
   /**
-   * Sends a command via the transport pipeline to device. Suspends for a little bit while command executes.
+   * Sends an app inspection command via the transport pipeline to device.
    */
-  suspend fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) = withContext(dispatcher) {
+  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) {
     val command = Commands.Command.newBuilder()
       .setType(Commands.Command.CommandType.APP_INSPECTION)
-      .setStreamId(stream.streamId)
+      .setStreamId(process.streamId)
       .setPid(process.pid)
       .setAppInspectionCommand(appInspectionCommand).build()
-    client.transportStub.execute(command.toExecuteRequest())
+    executeCommand(command.toExecuteRequest())
+  }
+
+  /**
+   * Executes a command. This call blocks the thread for a little bit while waiting for a response.
+   */
+  private fun executeCommand(request: Transport.ExecuteRequest) {
+    //noinspection CheckResult
+    client.transportStub.execute(request)
   }
 }

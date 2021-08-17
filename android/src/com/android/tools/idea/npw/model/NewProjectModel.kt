@@ -18,10 +18,9 @@ package com.android.tools.idea.npw.model
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.repository.io.FileOpUtils
+import com.android.io.CancellableFileIo
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -141,7 +140,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   }
 
   override fun handleFinished() {
-    val projectLocation = projectLocation.get()
+    val projectLocation = projectLocation.get().trimEnd(File.separatorChar)
 
     val couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction<Boolean>(null) {
       // We generally assume that the path has passed a fair amount of pre-validation checks
@@ -156,7 +155,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       // already used in new wizard's PathValidator.
       // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
       try {
-        if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(File(projectLocation))) {
+        if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && CancellableFileIo.isWritable(Paths.get(projectLocation))) {
           return@runWriteCommandAction true
         }
       }
@@ -224,8 +223,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       )
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
-        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(),
-                             projectTemplateDataBuilder.addJetifierSupport, useGradleKts.get())
+        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
@@ -237,13 +235,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
-          if (gradleDistFile == null) {
-            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
-          }
-          else {
-            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(gradleDistFile)
-          }
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
         }
         catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".

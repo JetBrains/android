@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.databinding.analytics
 
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import org.junit.Before
 import org.junit.Rule
@@ -37,7 +36,8 @@ class DataBindingDefaultTrackerTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = AndroidTestPaths.adtSources().resolve("android/testData/${TestProjectPaths.SIMPLE_APPLICATION}").toString()
+    projectRule.fixture.testDataPath =
+        resolveWorkspacePath("tools/adt/idea/android/testData/${TestProjectPaths.SIMPLE_APPLICATION}").toString()
     projectRule.fixture.copyDirectoryToProject("", "")
   }
 

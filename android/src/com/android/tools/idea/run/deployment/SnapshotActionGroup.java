@@ -19,30 +19,28 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class SnapshotActionGroup extends ActionGroup {
-  @NotNull
-  private final List<Device> myDevices;
+  private final @NotNull Device myDevice;
+  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
-  SnapshotActionGroup(@NotNull List<Device> devices) {
+  SnapshotActionGroup(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     setPopup(true);
-    myDevices = devices;
+
+    myDevice = device;
+    myComboBoxAction = comboBoxAction;
   }
 
-  @NotNull
-  @Override
-  public AnAction[] getChildren(@Nullable AnActionEvent event) {
-    DeviceAndSnapshotComboBoxAction action = DeviceAndSnapshotComboBoxAction.getInstance();
+  @NotNull Device getDevice() {
+    return myDevice;
+  }
 
-    return myDevices.stream()
-      .map(device -> SelectDeviceAction.newSnapshotActionGroupChild(device, action))
+  @Override
+  public @NotNull AnAction @NotNull [] getChildren(@Nullable AnActionEvent event) {
+    return myDevice.getTargets().stream()
+      .map(target -> new SelectTargetAction(target, myDevice, myComboBoxAction))
       .toArray(AnAction[]::new);
   }
 
@@ -50,36 +48,22 @@ final class SnapshotActionGroup extends ActionGroup {
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
-    presentation.setIcon(getIcon());
-    presentation.setText(getText(), false);
+    presentation.setIcon(myDevice.getIcon());
+    presentation.setText(Devices.getText(myDevice), false);
   }
 
-  @NotNull
-  private Icon getIcon() {
-    Optional<Icon> icon = myDevices.stream()
-      .filter(Device::isConnected)
-      .map(Device::getIcon)
-      .findFirst();
-
-    return icon.orElse(myDevices.get(0).getIcon());
+  @Override
+  public int hashCode() {
+    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
   }
 
-  @NotNull
-  private String getText() {
-    String name = getProperty(Device::getName);
-    assert name != null;
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof SnapshotActionGroup)) {
+      return false;
+    }
 
-    return Devices.getText(name, getProperty(Device::getValidityReason));
-  }
-
-  @Nullable
-  private <P> P getProperty(@NotNull Function<Device, P> accessor) {
-    P property = accessor.apply(myDevices.get(0));
-
-    assert myDevices.subList(1, myDevices.size()).stream()
-      .map(accessor)
-      .allMatch(Predicate.isEqual(property));
-
-    return property;
+    SnapshotActionGroup group = (SnapshotActionGroup)object;
+    return myDevice.equals(group.myDevice) && myComboBoxAction.equals(group.myComboBoxAction);
   }
 }

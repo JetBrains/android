@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.ui
+package com.android.tools.idea.uibuilder.property.ui
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
@@ -33,9 +33,9 @@ import javax.swing.JPanel
  * Custom panel to support direct editing of transition easing curves
  */
 class EasingCurvePanel(
-  private val model: NelePropertiesModel,
+  private val model: NlPropertiesModel,
   easingAttributeName : String,
-  properties: PropertiesTable<NelePropertyItem>
+  properties: PropertiesTable<NlPropertyItem>
 ) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
@@ -47,8 +47,8 @@ class EasingCurvePanel(
   private var processingChange: Boolean = false
   private var processingModelUpdate: Boolean = false
 
-  private val modelListener = object: PropertiesModelListener<NelePropertyItem> {
-    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+  private val modelListener = object: PropertiesModelListener<NlPropertyItem> {
+    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
       updateFromValues()
     }
   }

@@ -43,6 +43,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -124,6 +125,11 @@ public abstract class BaseAction extends AnAction {
                                 "the selected configuration is not supported");
     }
 
+    if (!programRunnerAvailable(selectedRunConfig)) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no runner available",
+                                "there are no Program Runners available to run the given configuration (perhaps project needs a sync?)");
+    }
+
     if (isExecutorStarting(project, selectedRunConfig)) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "building and/or launching",
                                 "the selected configuration is currently building and/or launching");
@@ -195,6 +201,12 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
+  private static boolean programRunnerAvailable(@NotNull RunConfiguration config) {
+    ProcessHandler handler = findRunningProcessHandler(config.getProject(), config);
+    Executor executor = findRunningExecutor(handler);
+    return executor != null && ProgramRunner.getRunner(executor.getId(), config) != null;
+  }
+
   /**
    * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
    */
@@ -227,10 +239,7 @@ public abstract class BaseAction extends AnAction {
     }
 
     ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration());
-    Executor executor = handler == null
-                        // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
-                        ? DefaultRunExecutor.getRunExecutorInstance()
-                        : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
+    Executor executor = findRunningExecutor(handler);
     if (executor == null) {
       LOG.warn(myName + " action could not identify executor of existing running application");
       return;
@@ -241,6 +250,13 @@ public abstract class BaseAction extends AnAction {
 
     env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType, handler));
     ProgramRunnerUtil.executeConfiguration(env, false, true);
+  }
+
+  private static @Nullable Executor findRunningExecutor(@Nullable ProcessHandler handler) {
+    return handler == null
+           // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
+           ? DefaultRunExecutor.getRunExecutorInstance()
+           : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
   }
 
   @Nullable
@@ -288,7 +304,12 @@ public abstract class BaseAction extends AnAction {
         // IDEA-239076
         XDebugSession debugSession = session.getXDebugSession();
         if (debugSession != null && !debugSession.isStopped()) {
-          return debugSession.getRunContentDescriptor().getProcessHandler();
+          RunContentDescriptor descriptor = debugSession.getRunContentDescriptor();
+          // IDEA-239076
+          // One of the classes implementing the interface potentially violates @NotNull annotation.
+          if (descriptor != null) {
+            return descriptor.getProcessHandler();
+          }
         }
       }
     }

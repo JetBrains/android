@@ -51,7 +51,6 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE
@@ -72,22 +71,21 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
-import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
-import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
@@ -102,7 +100,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -125,7 +122,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiRecursiveElementVisitor
 import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.ResolveResult
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.util.InheritanceUtil
@@ -152,15 +148,12 @@ import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.actions.CreateTypedResourceFileAction
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.color.ColorSelector
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
-import org.jetbrains.android.dom.drawable.DrawableSelector
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceElement
 import org.jetbrains.android.dom.resources.Resources
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -174,14 +167,13 @@ import java.awt.Color
 import java.io.File
 import java.io.IOException
 import java.util.*
-import java.util.function.Function
 import javax.swing.Icon
 
 private const val RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME
 private const val ROOT_TAG_PROPERTY = "ROOT_TAG"
 private const val LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH"
 private const val LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT"
-private val LOG: Logger = Logger.getInstance("#com.android.tools.idea.res.IdeResourcesUtil")
+private val LOG: Logger = Logger.getInstance("IdeResourcesUtil.kt")
 private val RESOURCE_PROTOCOLS = arrayOf(ApkFileSystem.PROTOCOL, JAR_PROTOCOL, FILE_PROTOCOL)
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
@@ -382,6 +374,7 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     true
   }
 }
+
 /**
  * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
  * in case of common packages, which is handled by various inflaters in Android framework. This method checks
@@ -774,7 +767,7 @@ fun parseColor(s: String?): Color? {
 }
 
 /**
- * Converts a color to hex-string representation, including alpha channel.
+ * Converts a color to hex-string representation: #AARRGGBB, including alpha channel.
  * If alpha is FF then the output is #RRGGBB with no alpha component.
  */
 fun colorToString(color: Color): String {
@@ -784,6 +777,15 @@ fun colorToString(color: Color): String {
     return String.format("#%08X", longColor)
   }
   return String.format("#%06X", longColor)
+}
+
+/**
+ * Converts a color to Java/Kotlin hex-string representation: 0xAARRGGBB, including alpha channel.
+ *
+ * The alpha channel is always included for this format.
+ */
+fun colorToStringWithAlpha(color: Color): String {
+  return String.format("0x%08X", (color.red shl 16 or (color.green shl 8) or color.blue).toLong() or (color.alpha.toLong() shl 24))
 }
 
 private fun extend(nibble: Long): Long {
@@ -949,7 +951,7 @@ fun getCompletionFromTypes(
     if (frameworkResources != null) {
       addFrameworkItems(resources, type, includeFileResources, frameworkResources)
     }
-    addProjectItems(resources, type, includeFileResources, appResources, repoManager.resourceVisibility)
+    addProjectItems(resources, type, includeFileResources, appResources, facet)
   }
 
   if (sort) {
@@ -1014,16 +1016,16 @@ private fun addProjectItems(
   type: ResourceType,
   includeFileResources: Boolean,
   repository: LocalResourceRepository,
-  lookup: ResourceVisibilityLookup?
+  facet: AndroidFacet
 ) {
   val namespace = ResourceNamespace.TODO()
   for (entry in repository.getResources(namespace, type).asMap().entries) {
     val resourceName = entry.key
-    if (lookup != null && lookup.isPrivate(type, resourceName)) {
+    if (!isAccessible(namespace, type, resourceName, facet)) {
       continue
     }
     val items = entry.value
-    if (!includeFileResources && Iterables.getFirst(items, null)?.isFileBased == true) {
+    if (!includeFileResources && items.firstOrNull()?.isFileBased == true) {
       continue
     }
 
@@ -1167,37 +1169,19 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
 fun ResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
-  visibilityLookup: ResourceVisibilityLookup,
   minVisibility: ResourceVisibility
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
 
-  // TODO(namespaces): Only AarResourceRepository and its subclasses properly support resource visibility.
-  //                   We need to make all repositories support it.
-  return when {
-    this is AarResourceRepository -> {
-      // Resources in AarResourceRepository know their visibility.
-      val items = getResources(namespace, type) { item ->
-        (item as ResourceItemWithVisibility).visibility >= minVisibility
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
-    }
-    else -> {
-      val items = getResources(namespace, type) { item ->
-        when {
-          minVisibility == ResourceVisibility.values()[0] -> true
-          item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
-          else ->
-            // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
-            // TODO(namespaces)
-            // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
-            // which is probably a better UX and the only way to make our tests pass (for now).
-            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(type, item.name)
-        }
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
+  val items = getResources(namespace, type) { item ->
+    when {
+      minVisibility == ResourceVisibility.values()[0] -> true
+      item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
+      // Only project resources may not implement ResourceItemWithVisibility.
+      else -> true // TODO(b/74324283): Distinguish between PRIVATE and PRIVATE_XML_ONLY for project resources.
     }
   }
+  return items.mapTo(HashSet(items.size), ResourceItem::getName)
 }
 
 /** Checks if the given [ResourceItem] is available in XML resources in the given [AndroidFacet]. */
@@ -1221,27 +1205,24 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 }
 
 /**
- * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes only public resources can be accessed.
- *
- * TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+ * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes
+ * that only public resources can be accessed.
  */
-private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repoManager = ResourceRepositoryManager.getInstance(facet)
-  return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(emptySet()) ?: return false
-    val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
-    items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+// TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
+  val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+  val repository = repositoryManager.getResourcesForNamespace(namespace)
+  // For some unclear reason nonexistent resources in the application workspace are treated differently from the framework ones.
+  // This non-intuitive behavior is required for the DerivedStyleFinderTest to pass.
+  val resource = repository?.getResources(namespace, type, name)?.firstOrNull() ?: return namespace == repositoryManager.namespace
+  if (namespace == repositoryManager.namespace && resource.libraryName == null) {
+    return true // Project resource.
   }
-  else {
-    val repo = repoManager.appResources
-    val item = repo.getResources(namespace, type, name).firstOrNull()
-    if (item?.libraryName != null) {
-      (item as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
-    }
-    else {
-      !repoManager.resourceVisibility.isPrivate(type, name)
-    }
+  if (resource is ResourceItemWithVisibility) {
+    return resource.visibility == ResourceVisibility.PUBLIC
   }
+  throw AssertionError("Library resource $type/$name of type ${resource.javaClass}" +
+                       " doesn't implement ResourceItemWithVisibility")
 }
 
 /**
@@ -1272,7 +1253,7 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
 
   ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-  prefix = suggestedPrefix ?: when(namespaceUri) {
+  prefix = suggestedPrefix ?: when (namespaceUri) {
     SdkConstants.TOOLS_URI -> SdkConstants.TOOLS_PREFIX
     SdkConstants.ANDROID_URI -> SdkConstants.ANDROID_NS_NAME
     SdkConstants.AAPT_URI -> SdkConstants.AAPT_PREFIX
@@ -1317,23 +1298,9 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
  */
 @JvmField
 val RESOURCE_ELEMENT_COMPARATOR = Comparator { e1: PsiElement, e2: PsiElement ->
-  if (e1 is LazyValueResourceElementWrapper && e2 is LazyValueResourceElementWrapper) {
-    return@Comparator e1.compareTo(e2)
-  }
   val delta = compareResourceFiles(e1.containingFile, e2.containingFile)
   if (delta != 0) delta else e1.textOffset - e2.textOffset
 }
-
-/**
- * Comparator for [ResolveResult] using [RESOURCE_ELEMENT_COMPARATOR] on the result PSI element.
- */
-@JvmField
-val RESOLVE_RESULT_COMPARATOR: Comparator<ResolveResult> = Comparator.nullsLast(
-  Comparator.comparing(
-    Function { obj: ResolveResult -> obj.element },
-    RESOURCE_ELEMENT_COMPARATOR
-  )
-)
 
 fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
   if (context.language !== XMLLanguage.INSTANCE) {
@@ -1422,7 +1389,10 @@ fun findStyleableAttrFieldsForStyleable(facet: AndroidFacet, styleableName: Stri
  *
  */
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
-  ApplicationManager.getApplication().invokeLater({ psiManager.dropPsiCaches() }, psiManager.project.disposed)
+  ApplicationManager.getApplication().invokeLater({
+    psiManager.dropResolveCaches()
+    psiManager.dropPsiCaches()
+  }, psiManager.project.disposed)
 }
 
 private fun findResourceFieldsFromClass(
@@ -1476,44 +1446,6 @@ fun findResourceFieldsForValueResource(tag: XmlTag, onlyInOwnPackages: Boolean):
   return findResourceFields(facet, resourceType.getName(), name, onlyInOwnPackages)
 }
 
-fun findStyleableAttributeFields(tag: XmlTag, onlyInOwnPackages: Boolean): Array<PsiField> {
-  val tagName = tag.name
-  if (SdkConstants.TAG_DECLARE_STYLEABLE == tagName) {
-    val styleableName = tag.getAttributeValue(SdkConstants.ATTR_NAME) ?: return PsiField.EMPTY_ARRAY
-    val facet = AndroidFacet.getInstance(tag) ?: return PsiField.EMPTY_ARRAY
-    val names: MutableSet<String> = Sets.newHashSet()
-    for (attr in tag.subTags) {
-      if (SdkConstants.TAG_ATTR == attr.name) {
-        val attrName = attr.getAttributeValue(SdkConstants.ATTR_NAME)
-        if (attrName != null) {
-          names.add(styleableName + '_' + attrName)
-        }
-      }
-    }
-    if (!names.isEmpty()) {
-      return findResourceFields(facet, ResourceType.STYLEABLE.getName(), names,
-                                onlyInOwnPackages)
-    }
-  }
-  else if (SdkConstants.TAG_ATTR == tagName) {
-    val parentTag = tag.parentTag
-    if (parentTag != null && SdkConstants.TAG_DECLARE_STYLEABLE == parentTag.name) {
-      val styleName = parentTag.getAttributeValue(SdkConstants.ATTR_NAME)
-      val attributeName = tag.getAttributeValue(SdkConstants.ATTR_NAME)
-      val facet = AndroidFacet.getInstance(tag)
-      if (facet != null && styleName != null && attributeName != null) {
-        return findResourceFields(
-          facet,
-          ResourceType.STYLEABLE.getName(),
-          styleName + '_' + attributeName,
-          onlyInOwnPackages
-        )
-      }
-    }
-  }
-  return PsiField.EMPTY_ARRAY
-}
-
 fun getRJavaFieldName(resourceName: String): String {
   if (resourceName.indexOf('.') == -1) {
     return resourceName
@@ -1562,14 +1494,6 @@ fun getResourceClassName(field: PsiField): String? {
     }
   }
   return null
-}
-
-// result contains XmlAttributeValue or PsiFile
-
-fun findResourcesByField(field: PsiField): List<PsiElement> {
-  val facet = AndroidFacet.getInstance(field)
-  return if (facet != null) ModuleResourceManagers.getInstance(facet).localResourceManager.findResourcesByField(field)
-  else emptyList()
 }
 
 /**
@@ -1634,13 +1558,6 @@ fun isStringResource(tag: XmlTag): Boolean {
   return tag.name == SdkConstants.TAG_STRING && tag.getAttribute(SdkConstants.ATTR_NAME) != null
 }
 
-fun findIdFields(value: XmlAttributeValue): Array<PsiField> {
-  return if (value.parent is XmlAttribute) {
-    findIdFields(value.parent as XmlAttribute)
-  }
-  else PsiField.EMPTY_ARRAY
-}
-
 fun isIdDeclaration(attrValue: String?): Boolean {
   return attrValue != null && attrValue.startsWith(SdkConstants.NEW_ID_PREFIX)
 }
@@ -1667,21 +1584,6 @@ fun isConstraintReferencedIds(value: XmlAttributeValue): Boolean {
     return isConstraintReferencedIds(nsURI, nsPrefix, key)
   }
   return false
-}
-
-fun findIdFields(attribute: XmlAttribute): Array<PsiField> {
-  val valueElement = attribute.valueElement
-  val value = attribute.value
-  if (valueElement != null && value != null && isIdDeclaration(valueElement)) {
-    val id = getResourceNameByReferenceText(value)
-    if (id != null) {
-      val facet = AndroidFacet.getInstance(attribute)
-      if (facet != null) {
-        return findResourceFields(facet, ResourceType.ID.getName(), id, false)
-      }
-    }
-  }
-  return PsiField.EMPTY_ARRAY
 }
 
 fun getResourceNameByReferenceText(text: String): String? {
@@ -1799,14 +1701,39 @@ fun getValueResourcesFromElement(resourceType: ResourceType,
   return result
 }
 
+private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
+  val vf = dir.virtualFile
+  val module = ModuleUtilCore.findModuleForFile(vf, dir.project) ?: return false
+  val facet = AndroidFacet.getInstance(module) ?: return false
+  for (provider in SourceProviders.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders) {
+    for (resDir in provider.resDirectories)
+      if (vf == resDir) {
+        return true
+      }
+  }
+  for (resDir in AndroidRootUtil.getResourceOverlayDirs(facet)) {
+    if (vf == resDir) {
+      return true
+    }
+  }
+  return false
+}
+
+fun isInResourceSubdirectoryInAnyVariant(file: PsiFile, resourceType: String? = null): Boolean {
+  var file = file
+  file = file.originalFile
+  val dir = file.containingDirectory ?: return false
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = true)
+}
+
 fun isInResourceSubdirectory(file: PsiFile, resourceType: String? = null): Boolean {
   var file = file
   file = file.originalFile
   val dir = file.containingDirectory ?: return false
-  return isResourceSubdirectory(dir, resourceType)
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = false)
 }
 
-fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null): Boolean {
+fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   val dirName = dir!!.name
   if (resourceType != null) {
@@ -1823,7 +1750,7 @@ fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null
   if ("default" == dir.name) {
     dir = dir.parentDirectory
   }
-  return dir != null && isResourceDirectory(dir)
+  return dir != null && isResourceDirectory(dir, searchInAllVariants)
 }
 
 fun isLocalResourceDirectory(dir: VirtualFile, project: Project): Boolean {
@@ -1841,11 +1768,14 @@ fun isResourceFile(file: VirtualFile, facet: AndroidFacet): Boolean {
   return resDir != null && ModuleResourceManagers.getInstance(facet).localResourceManager.isResourceDir(resDir)
 }
 
-fun isResourceDirectory(directory: PsiDirectory): Boolean {
+fun isResourceDirectory(directory: PsiDirectory, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   // check facet settings
   val vf = dir!!.virtualFile
-  if (isLocalResourceDirectory(vf, dir.project)) {
+  if (searchInAllVariants && isLocalResourceDirectoryInAnyVariant(directory)) {
+    return true
+  }
+  if (!searchInAllVariants && isLocalResourceDirectory(vf, dir.project)) {
     return true
   }
   if (SdkConstants.FD_RES != dir.name) return false
@@ -2385,7 +2315,8 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   val predicate = { element: PsiElement ->
     if (element !is XmlAttribute) {
       false
-    } else {
+    }
+    else {
       val attrValue = element.value
       if (isIdDeclaration(attrValue)) {
         val resourceUrl = ResourceUrl.parse(attrValue!!)
@@ -2403,15 +2334,10 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
  * Returns the [XmlAttributeValue] defining the given resource item. This is only defined for resource items which are not file
  * based.
  *
- *
- * [org.jetbrains.android.AndroidFindUsagesHandlerFactory.createFindUsagesHandler] assumes references to value resources
- * resolve to the "name" [XmlAttributeValue], that's how they are found when looking for usages of a resource.
- *
  * TODO(b/113646219): store enough information in [ResourceItem] to find the attribute and get the tag from there, not the other
  * way around.
  *
  * @see ResourceItem.isFileBased
- * @see org.jetbrains.android.AndroidFindUsagesHandlerFactory.createFindUsagesHandler
  */
 fun getDeclaringAttributeValue(project: Project, item: ResourceItem): XmlAttributeValue? {
   if (item.isFileBased) {
@@ -2646,66 +2572,6 @@ fun findOrCreateStateListFiles(
   }
 
   return if (foundFiles) files else null
-}
-
-fun updateStateList(project: Project, stateList: StateList, files: List<VirtualFile>) {
-  if (!ensureFilesWritable(project, files)) {
-    return
-  }
-  val psiFiles: MutableList<PsiFile> = Lists.newArrayListWithCapacity(files.size)
-  val manager = PsiManager.getInstance(project)
-  for (file in files) {
-    val psiFile = manager.findFile(file)
-    if (psiFile != null) {
-      psiFiles.add(psiFile)
-    }
-  }
-  val selectors: MutableList<AndroidDomElement> = Lists.newArrayListWithCapacity(files.size)
-  val selectorClass: Class<out AndroidDomElement> = if (stateList.folderType == ResourceFolderType.COLOR) {
-    ColorSelector::class.java
-  }
-  else {
-    DrawableSelector::class.java
-  }
-  for (file in files) {
-    val selector = AndroidUtils.loadDomElement(project, file, selectorClass)
-    if (selector == null) {
-      AndroidUtils.reportError(project, file.name + " is not a statelist file")
-      return
-    }
-    selectors.add(selector)
-  }
-
-  return writeCommandAction(project, *psiFiles.toTypedArray()).withName("Change State List").run<Exception> {
-    for (selector in selectors) {
-      val tag = selector.xmlTag
-      for (subtag in tag!!.subTags) {
-        subtag.delete()
-      }
-      for (state in stateList.states) {
-        var child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.namespace, null, false)
-        child = tag.addSubTag(child, false)
-        val attributes = state.attributes
-        for (attributeName in attributes.keys) {
-          child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes[attributeName].toString())
-        }
-        if (!StringUtil.isEmpty(state.alpha)) {
-          child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.alpha)
-        }
-        if (selector is ColorSelector) {
-          child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.value)
-        }
-        else if (selector is DrawableSelector) {
-          child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.value)
-        }
-      }
-    }
-    // The following is necessary since layoutlib will look on disk for the color state list file.
-    // So as soon as a color state list is modified, the change needs to be saved on disk
-    // for the correct values to be used in the theme editor preview.
-    // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
-    FileDocumentManager.getInstance().saveAllDocuments()
-  }
 }
 
 /**

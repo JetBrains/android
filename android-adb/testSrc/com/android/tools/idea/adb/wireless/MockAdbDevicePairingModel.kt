@@ -22,9 +22,9 @@ import com.android.tools.idea.FutureValuesTracker
  * Model used for pairing devices
  */
 @UiThread
-class MockAdbDevicePairingModel : AdbDevicePairingModel() {
+class MockWiFiPairingModel : WiFiPairingModel() {
   val qrCodeServicesTracker = FutureValuesTracker<List<MdnsService>>()
-  val pinCodeServicesTracker = FutureValuesTracker<List<MdnsService>>()
+  val pairingCodeServicesTracker = FutureValuesTracker<List<MdnsService>>()
   val qrCodeImageTracker = FutureValuesTracker<QrCodeImage?>()
 
   override var qrCodeServices: List<MdnsService>
@@ -34,11 +34,11 @@ class MockAdbDevicePairingModel : AdbDevicePairingModel() {
       qrCodeServicesTracker.produce(value)
     }
 
-  override var pinCodeServices: List<MdnsService>
-    get() = super.pinCodeServices
+  override var pairingCodeServices: List<MdnsService>
+    get() = super.pairingCodeServices
     set(value) {
-      super.pinCodeServices = value
-      pinCodeServicesTracker.produce(value)
+      super.pairingCodeServices = value
+      pairingCodeServicesTracker.produce(value)
     }
 
   override var qrCodeImage: QrCodeImage?

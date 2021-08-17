@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
-import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
+import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_VARIANT_COLLISIONS
 import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
@@ -205,7 +205,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   private fun getFlavorDimensions(module: PsAndroidModule): List<String> = module.flavorDimensions.map { it.name }
 
   fun testProductFlavors() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -228,7 +228,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testFallbackProductFlavors() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -359,7 +359,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddProductFlavor() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -463,7 +463,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testBuildTypes() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -486,7 +486,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testFallbackBuildTypes() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -563,7 +563,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddBuildType() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -675,7 +675,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testVariants() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -708,7 +708,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testCanDependOnModules() {
-    loadProject(PROJECT_WITH_APPAND_LIB)
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }

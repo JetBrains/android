@@ -31,9 +31,7 @@ class ConfigurationTimesUiDataBuilder(
   val analyzersProxy: BuildEventsAnalysisResult
 ) {
 
-  val totalConfigurationTimeMs = analyzersProxy.getProjectsConfigurationData()
-    .map { projectData -> projectData.totalConfigurationTimeMs }
-    .sum()
+  val totalConfigurationTimeMs = analyzersProxy.getConfigurationPhaseTimeMs()
 
   fun build(): ConfigurationUiData = createConfigurationUiData()
 

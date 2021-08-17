@@ -24,12 +24,10 @@ import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTa
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
-import com.android.tools.idea.common.analytics.CommonUsageTrackerKt;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.stats.AnonymizerUtil;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
@@ -81,20 +79,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   NlUsageTrackerImpl(@NotNull Executor executor,
                      @Nullable DesignSurface surface,
                      @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
-
-    if (surface == null || surface.getModel() == null) {
-      myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
-    }
-    else {
-      final String applicationId = CommonUsageTrackerKt.getApplicationId(surface.getModel().getFacet());
-      Consumer<AndroidStudioEvent.Builder> builder = delegatingBuilder -> {
-        if (applicationId != null) {
-          delegatingBuilder.setRawProjectId(applicationId).setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId));
-        }
-        eventLogger.accept(delegatingBuilder);
-      };
-      myCommonTracker = new CommonUsageTrackerImpl(executor, surface, builder);
-    }
+    myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
   }
 
   @Override
@@ -112,7 +97,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   }
 
   @Override
-  public void logPropertyChange(@NotNull NelePropertyItem property,
+  public void logPropertyChange(@NotNull NlPropertyItem property,
                                 int filterMatches) {
     LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
       .setAttribute(convertAttribute(property))
@@ -125,7 +110,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   }
 
   @NotNull
-  private static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
+  private static AndroidAttribute convertAttribute(@NotNull NlPropertyItem property) {
     AndroidFacet facet = property.getModel().getFacet();
     AndroidAttribute.AttributeNamespace namespace = UsageTrackerUtil.convertNamespace(property.getNamespace());
 

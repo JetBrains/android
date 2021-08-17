@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.ui
+package com.android.tools.idea.naveditor.property.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.property.ptable2.PFormTable
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.table.TableCellRenderer

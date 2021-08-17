@@ -27,4 +27,7 @@ public interface KotlinOptionsModel extends GradleDslModel {
 
   @NotNull
   GradlePropertyModel useIR();
+
+  @NotNull
+  GradlePropertyModel freeCompilerArgs();
 }

@@ -22,6 +22,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.net.URL
+import java.nio.file.Files
 import java.util.Locale
 
 /**
@@ -53,9 +54,10 @@ internal object MaterialIconsUtils {
    * Eg: '.../Android/Sdk/icons/material'
    */
   fun getIconsSdkTargetPath(): File? {
-    val sdkHome = AndroidSdks.getInstance().tryToChooseSdkHandler().location ?: return null
-    val iconsFolder = File(sdkHome, "icons")
-    return File(iconsFolder, "material").apply { mkdirs() }
+    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+    val sdkHome = sdkHandler.location ?: return null
+    val materialDir = sdkHome.resolve("icons/material")
+    return sdkHandler.fileOp.toFile(Files.createDirectories(materialDir))
   }
 
   /**
@@ -73,12 +75,12 @@ internal object MaterialIconsUtils {
    * @return The [MaterialIconsMetadata] parsed from the URL provided.
    */
   fun getMetadata(url: URL): MaterialIconsMetadata? {
-    try {
-      return MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(url.openStream())))
+    return try {
+      MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(url.openStream())))
     }
     catch (e: Exception) {
       LOG.error("Error obtaining metadata file", e)
-      return null
+      null
     }
   }
 }

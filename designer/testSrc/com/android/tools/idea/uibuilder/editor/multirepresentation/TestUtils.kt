@@ -18,9 +18,9 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import javax.swing.JPanel
 
 open class TestPreviewRepresentation : PreviewRepresentation {
@@ -29,6 +29,7 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   private var restoreCount = 0
   var nCaretNotifications = 0
   var lastCaretEvent: CaretEvent? = null
+  override val preferredInitialVisibility: PreferredVisibility? = null
 
   override val component = JPanel()
   override fun updateNotifications(parentEditor: FileEditor) {}
@@ -39,26 +40,28 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 
   override fun onDeactivate() {
+    assertTrue("onDeactivate called more times than onActivate (nActivations = $nActivations)", nActivations > 0)
     nActivations--
   }
 
   override fun setState(state: PreviewRepresentationState) {
     restoreCount++
-    LightJavaCodeInsightFixtureTestCase.assertEquals("restoreState must not be called more than once", 1, restoreCount)
+    assertEquals("restoreState must not be called more than once", 1, restoreCount)
     this.state = state
   }
 
   override fun getState(): PreviewRepresentationState? = mapOf()
 
-  override fun onCaretPositionChanged(event: CaretEvent) {
+  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+    if (isModificationTriggered) return
     nCaretNotifications++
     lastCaretEvent = event
   }
 }
 
 open class TestPreviewRepresentationProvider(override val displayName: String,
-                                             private val isAccept: Boolean,
+                                             var isAccept: Boolean,
                                              private val representation: PreviewRepresentation = TestPreviewRepresentation()) : PreviewRepresentationProvider {
-  override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
+  override fun accept(project: Project, psiFile: PsiFile) = isAccept
   override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
 }

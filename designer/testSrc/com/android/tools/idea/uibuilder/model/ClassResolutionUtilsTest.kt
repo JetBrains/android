@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.SIMPLE_DESIGN_PROJECT_PATH
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.application.ReadAction
@@ -31,12 +31,11 @@ class ClassResolutionUtilsTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer/testData").path
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
   }
 
   @Test
   fun checkFindClassesForViewTag() {
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer/testData").path
     projectRule.load(SIMPLE_DESIGN_PROJECT_PATH)
     projectRule.requestSyncAndWait()
 

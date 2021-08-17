@@ -32,23 +32,22 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.CloseButton;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -82,10 +81,8 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.SortOrder;
@@ -125,25 +122,18 @@ public final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private InstanceObject myInstanceObject;
 
-  @Nullable private List<FieldObject> myFieldObjectPath;
-
-  private final boolean myIsFullScreenHeapDumpUi;
-
   MemoryClassSetView(@NotNull MemoryCaptureSelection selection,
                      @NotNull IdeProfilerComponents ideProfilerComponents,
                      @NotNull Range selectionRange,
-                     @NotNull StreamingTimeline timeline,
-                     boolean isFullScreenHeapDumpUi) {
+                     @NotNull StreamingTimeline timeline) {
     mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
-    myIsFullScreenHeapDumpUi = isFullScreenHeapDumpUi;
 
     mySelection.getAspect().addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
       .onChange(CaptureSelectionAspect.CURRENT_CLASS, this::refreshClassSet)
       .onChange(CaptureSelectionAspect.CURRENT_INSTANCE, this::refreshSelectedInstance)
-      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances)
-      .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances);
 
     LongFunction<String> timeFormatter = t ->
       TimeFormatter.getSemiSimplifiedClockString(timeline.convertToRelativeTimeUs(t));
@@ -206,18 +196,6 @@ public final class MemoryClassSetView extends AspectObserver {
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
 
-
-    if (!isFullScreenHeapDumpUi) {
-      JPanel headingPanel = new JPanel(new BorderLayout());
-      JLabel instanceViewLabel = new JLabel("Instance View");
-      instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-      headingPanel.add(instanceViewLabel, BorderLayout.WEST);
-
-      CloseButton closeButton = new CloseButton(e -> mySelection.selectClassSet(null));
-      headingPanel.add(closeButton, BorderLayout.EAST);
-
-      myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
-    }
     myInstancesPanel.setVisible(false);
   }
 
@@ -231,7 +209,6 @@ public final class MemoryClassSetView extends AspectObserver {
     myTreeModel = null;
     myClassSet = null;
     myInstanceObject = null;
-    myFieldObjectPath = null;
     myInstancesPanel.setVisible(false);
     mySelection.selectInstanceObject(null);
   }
@@ -285,25 +262,6 @@ public final class MemoryClassSetView extends AspectObserver {
         myInstanceObject = (InstanceObject)valueNode.getAdapter();
         mySelection.selectFieldObjectPath(Collections.emptyList());
         mySelection.selectInstanceObject(myInstanceObject);
-      }
-      else if (memoryObject instanceof FieldObject) {
-        assert path.getPathCount() > 2;
-        MemoryObjectTreeNode instanceNode = (MemoryObjectTreeNode)path.getPathComponent(1);
-        assert instanceNode.getAdapter() instanceof InstanceObject;
-        myInstanceObject = (InstanceObject)instanceNode.getAdapter();
-        mySelection.selectInstanceObject(myInstanceObject);
-
-        Object[] fieldNodePath = Arrays.copyOfRange(path.getPath(), 2, path.getPathCount());
-        ArrayList<FieldObject> fieldObjectPath = new ArrayList<>(fieldNodePath.length);
-        for (Object fieldNode : fieldNodePath) {
-          if (!(fieldNode instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)fieldNode).getAdapter() instanceof FieldObject)) {
-            return;
-          }
-          //noinspection unchecked
-          fieldObjectPath.add(((MemoryObjectTreeNode<FieldObject>)fieldNode).getAdapter());
-        }
-        myFieldObjectPath = fieldObjectPath;
-        mySelection.selectFieldObjectPath(fieldObjectPath);
       }
     });
 
@@ -384,60 +342,10 @@ public final class MemoryClassSetView extends AspectObserver {
         return null;
       }
 
-      MemoryObject selectedObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-      if (selectedObject instanceof InstanceObject) {
-        return new CodeLocation.Builder(((InstanceObject)selectedObject).getClassEntry().getClassName()).build();
-      }
-      else if (selectedObject instanceof FieldObject) {
-        InstanceObject fieldInstance = ((FieldObject)selectedObject).getAsInstance();
-        if (fieldInstance != null) {
-          return new CodeLocation.Builder(fieldInstance.getClassEntry().getClassName()).build();
-        }
-      }
-      return null;
-    });
-
-    myContextMenuInstaller.installGenericContextMenu(myTree, new ContextMenuItem() {
-      @NotNull
-      @Override
-      public String getText() {
-        return "Go to Instance";
-      }
-
-      @Nullable
-      @Override
-      public Icon getIcon() {
-        return null;
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return myInstanceObject != null && myFieldObjectPath != null && !myFieldObjectPath.isEmpty();
-      }
-
-      @Override
-      public void run() {
-        if (myCaptureObject == null || myInstanceObject == null || myFieldObjectPath == null || myFieldObjectPath.isEmpty()) {
-          return;
-        }
-
-        FieldObject selectedField = myFieldObjectPath.get(myFieldObjectPath.size() - 1);
-        if (selectedField.getValueType().getIsPrimitive() || selectedField.getValueType() == ValueObject.ValueType.NULL) {
-          return;
-        }
-
-        InstanceObject selectedObject = selectedField.getAsInstance();
-        assert selectedObject != null;
-
-        HeapSet heapSet = myCaptureObject.getHeapSet(selectedObject.getHeapId());
-        assert heapSet != null;
-        ClassifierSet classifierSet = heapSet.findContainingClassifierSet(selectedObject);
-        assert classifierSet instanceof ClassSet;
-        mySelection.selectHeapSet(heapSet);
-        mySelection.selectClassSet((ClassSet)classifierSet);
-        mySelection.selectInstanceObject(selectedObject);
-        mySelection.selectFieldObjectPath(Collections.emptyList());
-      }
+      MemoryObject selectedObject = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
+      return selectedObject instanceof InstanceObject
+             ? new CodeLocation.Builder(((InstanceObject)selectedObject).getClassEntry().getClassName()).build()
+             : null;
     });
   }
 
@@ -458,13 +366,7 @@ public final class MemoryClassSetView extends AspectObserver {
         }
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
-        myClassSet.getInstancesStream().forEach(subAdapter ->
-                                                  InstanceNodeKt.addChild(
-                                                    this,
-                                                    subAdapter,
-                                                    myIsFullScreenHeapDumpUi ?
-                                                    LeafNode::new :
-                                                    InstanceDetailsTreeNode::new));
+        myClassSet.getInstancesStream().forEach(subAdapter -> InstanceNodeKt.addChild(this, subAdapter, LeafNode::new));
 
         if (myTreeModel != null) {
           myTreeModel.nodeChanged(this);
@@ -557,42 +459,6 @@ public final class MemoryClassSetView extends AspectObserver {
       }
     }
     mySelection.selectInstanceObject(null);
-  }
-
-  private void refreshFieldPath() {
-    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
-    if (Objects.equals(myFieldObjectPath, fieldPath)) {
-      if (myFieldObjectPath != null && !myFieldObjectPath.isEmpty()) {
-        assert myTree != null;
-        myTree.scrollPathToVisible(myTree.getSelectionPath());
-      }
-      return;
-    }
-
-    myFieldObjectPath = fieldPath;
-    if (myFieldObjectPath.isEmpty()) {
-      if (myInstanceObject != null) {
-        // If we have an instance node selected when the field path is unselected, we should reselect the instance node.
-        assert myTreeRoot != null && myTreeModel != null && myTree != null;
-        MemoryObjectTreeNode<MemoryObject> instanceNode = findSelectedInstanceNode();
-        // We may be resetting myInstanceObject, so this might not find a relevant instanceNode.
-        if (instanceNode != null) {
-          selectPath(instanceNode);
-        }
-      }
-      return;
-    }
-
-    // Since this is an memory dump that flattens the classes with no private/public division,
-    // we could certainly have duplicate field names clashing within the same object.
-    // Therefore, we actually need to perform a search, not just blindly find the first instance.
-    assert myTreeRoot != null && myTreeModel != null && myTree != null && myInstanceObject != null;
-    MemoryObjectTreeNode<MemoryObject> instanceNode = findSelectedInstanceNode();
-    assert instanceNode != null;
-    List<MemoryObjectTreeNode<MemoryObject>> fields = findLeafNodesForFieldPath(instanceNode, myFieldObjectPath);
-    if (!fields.isEmpty()) {
-      selectPath(fields.get(0));
-    }
   }
 
   @Nullable

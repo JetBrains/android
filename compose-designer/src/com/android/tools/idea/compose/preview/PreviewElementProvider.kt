@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -26,8 +27,19 @@ import kotlin.concurrent.write
 /**
  * Interface to be implemented by classes providing a list of [PreviewElement]
  */
-interface PreviewElementProvider {
-  val previewElements: Sequence<PreviewElement>
+interface PreviewElementProvider<P: PreviewElement> {
+  val previewElements: Sequence<P>
+}
+
+interface PreviewElementInstanceProvider: PreviewElementProvider<PreviewElementInstance> {
+  override val previewElements: Sequence<PreviewElementInstance>
+}
+
+/**
+ * [PreviewElementProvider] that does not contain [PreviewElement]s.
+ */
+object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
+  override val previewElements: Sequence<PreviewElementInstance> = emptySequence()
 }
 
 /**
@@ -42,9 +54,9 @@ val Sequence<PreviewElement>.groupNames: Set<String>
 /**
  * A [PreviewElementProvider] that applies a filter to the result.
  */
-class FilteredPreviewElementProvider(private val delegate: PreviewElementProvider,
-                                     private val filter: (PreviewElement) -> Boolean) : PreviewElementProvider {
-  override val previewElements: Sequence<PreviewElement>
+class FilteredPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
+                                     private val filter: (P) -> Boolean) : PreviewElementProvider<P> {
+  override val previewElements: Sequence<P>
     get() = delegate.previewElements.filter(filter)
 }
 
@@ -52,12 +64,12 @@ class FilteredPreviewElementProvider(private val delegate: PreviewElementProvide
  * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents
  * will only be updated when the given [modificationTracker] updates.
  */
-class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvider,
-                                     private val modificationTracker: ModificationTracker) : PreviewElementProvider {
+class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
+                                     private val modificationTracker: ModificationTracker) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()
   @GuardedBy("cachedPreviewElementLock")
-  private var cachedPreviewElements: Collection<PreviewElement> = emptyList()
+  private var cachedPreviewElements: Collection<P> = emptyList()
 
   /**
    * Refreshes the [previewElements]. Do not call on the UI thread.
@@ -81,11 +93,19 @@ class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvide
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */
-  override val previewElements: Sequence<PreviewElement>
+  override val previewElements: Sequence<P>
     @Slow get() {
       refreshIfNeeded()
       cachedPreviewElementLock.read {
         return cachedPreviewElements.asSequence()
       }
     }
+}
+
+/**
+ * A [PreviewElementProvider] that allows combining multiple [PreviewElementProvider]s into one.
+ */
+class CombinedPreviewElementProvider<P: PreviewElement>(private val previewElementProviders: Collection<PreviewElementProvider<P>>): PreviewElementProvider<P> {
+  override val previewElements: Sequence<P>
+    get() = previewElementProviders.asSequence().flatMap { it.previewElements }
 }

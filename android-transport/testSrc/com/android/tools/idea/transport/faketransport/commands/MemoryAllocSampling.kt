@@ -18,14 +18,9 @@ package com.android.tools.idea.transport.faketransport.commands
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 
 class MemoryAllocSampling(timer: FakeTimer) : CommandHandler(timer) {
   var samplingRate = 1
-
-  fun getLastSamplingRate(): Int {
-    return samplingRate
-  }
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     samplingRate = command.memoryAllocSampling.samplingNumInterval

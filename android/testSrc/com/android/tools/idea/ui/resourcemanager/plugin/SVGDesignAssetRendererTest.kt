@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.ui.resourcemanager.getPluginsResourcesDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule

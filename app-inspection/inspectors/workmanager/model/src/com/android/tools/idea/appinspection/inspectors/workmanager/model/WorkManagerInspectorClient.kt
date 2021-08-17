@@ -22,6 +22,8 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.TrackWorkManagerCom
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.StubWorkManagerInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.WorkManagerInspectorTracker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +36,9 @@ import net.jcip.annotations.ThreadSafe
  * Class used to send commands to and handle events from the on-device work manager inspector through its [messenger].
  */
 @ThreadSafe
-class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, private val clientScope: CoroutineScope) {
+class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger,
+                                 private val clientScope: CoroutineScope,
+                                 val tracker: WorkManagerInspectorTracker = StubWorkManagerInspectorTracker()) {
   companion object {
     private val logger: Logger = Logger.getInstance(WorkManagerInspectorClient::class.java)
   }
@@ -64,38 +68,65 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
       messenger.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      messenger.rawEventFlow.collect { eventData ->
+      messenger.eventFlow.collect { eventData ->
         handleEvent(eventData)
       }
     }
   }
 
-  fun getWorkInfoCount() = synchronized(lock) {
-    filteredWorks.size
+  /**
+   * Returns a list of filtered works locked within [block].
+   */
+  fun <T> lockedWorks(block: (List<WorkInfo>) -> T): T {
+    return synchronized(lock) { block(filteredWorks) }
   }
 
   /**
-   * Returns a [WorkInfo] at the given [index] or `null` if the [index] is out of bounds of this list.
+   * Returns a chain of works with topological ordering containing the selected work.
+   *
+   * @param id id of the selected work.
    */
-  fun getWorkInfoOrNull(index: Int) = synchronized(lock) {
-    filteredWorks.getOrNull(index)
-  }
+  fun getOrderedWorkChain(id: String): List<WorkInfo> = synchronized(lock) {
+    val workMap = works.associateBy { it.id }
+    val work = workMap[id] ?: return listOf()
+    val connectedWorks = mutableListOf(work)
+    val visitedWorks = mutableSetOf(work)
+    val orderedWorks = mutableListOf<WorkInfo>()
+    // Number of prerequisites not loaded into [orderedWorks].
+    val degreeMap = mutableMapOf<WorkInfo, Int>()
+    var index = 0
 
-  /**
-   * Returns index of the first [WorkInfo] matching the given [predicate], or -1 if the list does not contain such element.
-   */
-  fun indexOfFirstWorkInfo(predicate: (WorkInfo) -> Boolean) = synchronized(lock) {
-    filteredWorks.indexOfFirst(predicate)
-  }
-
-  // TODO(b/165789713): Return work chain ids with topological order.
-  fun getWorkChain(id: String): List<String> = synchronized(lock) {
-    val work = works.first { it.id == id }
-    if (work.namesCount > 0) {
-      val name = work.getNames(0)!!
-      return works.filter { it.namesList.contains(name) }.map { it.id }.toList()
+    // Find works connected with the selected work and load works without prerequisites.
+    while (index < connectedWorks.size) {
+      val currentWork = connectedWorks[index]
+      val previousWorks = currentWork.prerequisitesList.mapNotNull { workMap[it] }
+      val nextWorks = currentWork.dependentsList.mapNotNull { workMap[it] }
+      degreeMap[currentWork] = previousWorks.size
+      if (previousWorks.isEmpty()) {
+        orderedWorks.add(currentWork)
+      }
+      for (connectedWork in (previousWorks + nextWorks)) {
+        if (!visitedWorks.contains(connectedWork)) {
+          visitedWorks.add(connectedWork)
+          connectedWorks.add(connectedWork)
+        }
+      }
+      index += 1
     }
-    return listOf(id)
+    // Load works with topological ordering.
+    index = 0
+    while (index < orderedWorks.size) {
+      val currentWork = orderedWorks[index]
+      val nextWorks = currentWork.dependentsList.mapNotNull { workMap[it] }
+      for (nextWork in nextWorks) {
+        degreeMap[nextWork] = degreeMap[nextWork]!! - 1
+        if (degreeMap[nextWork] == 0) {
+          orderedWorks.add(nextWork)
+        }
+      }
+      index += 1
+    }
+    return orderedWorks
   }
 
   fun cancelWorkById(id: String) {
@@ -149,6 +180,7 @@ class WorkManagerInspectorClient(private val messenger: AppInspectorMessenger, p
             }
           }
           works[index] = newWork.build()
+          updateFilteredWork()
         }
       }
       Event.OneOfCase.ONEOF_NOT_SET -> {

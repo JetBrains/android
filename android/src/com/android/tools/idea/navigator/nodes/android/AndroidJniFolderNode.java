@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -111,7 +111,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       return false;
     }
 
-    return containedInIncludeFolders(getProject(), moduleModel, file);
+    return containedByNativeNodes(getProject(), moduleModel, file);
   }
 
   private List<VirtualFile> getNativeSourceFolders() {

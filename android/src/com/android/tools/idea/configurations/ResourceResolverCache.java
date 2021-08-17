@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceRepository;
@@ -77,7 +78,7 @@ public class ResourceResolverCache {
   private long myCachedGeneration;
 
   /** Map from API level to framework resources */
-  private SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<>();
+  private final SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<>();
 
   /**
    * Store map keys for the latest custom configuration cached, so that they can be removed from the cache
@@ -147,7 +148,7 @@ public class ResourceResolverCache {
       ResourceReference theme = null;
       ResourceUrl themeUrl = ResourceUrl.parse(themeStyle);
       if (themeUrl != null) {
-        ResourceNamespace contextNamespace = ReadAction.compute(() -> repositoryManager.getNamespace());
+        ResourceNamespace contextNamespace = ReadAction.compute(repositoryManager::getNamespace);
         theme = themeUrl.resolve(contextNamespace, ResourceNamespace.Resolver.EMPTY_RESOLVER);
       }
 
@@ -170,6 +171,8 @@ public class ResourceResolverCache {
     return resolver;
   }
 
+  @Slow
+  @NotNull
   public Map<ResourceType, ResourceValueMap> getConfiguredFrameworkResources(@NotNull IAndroidTarget target,
                                                                              @NotNull FolderConfiguration fullConfiguration) {
     ResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target);
@@ -197,6 +200,7 @@ public class ResourceResolverCache {
    *
    * @return the framework resources or {@code null} if not found.
    */
+  @Slow
   @Nullable
   public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
     int apiLevel = target.getVersion().getFeatureLevel();

@@ -145,7 +145,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                               @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
-    if (insertType == InsertType.MOVE_WITHIN) {
+    if (insertType == InsertType.MOVE) {
       // Don't adjust widths/heights/weights when just moving within a single
       // LinearLayout
       return;
@@ -508,7 +508,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     NlComponent parent = sceneParent.getNlComponent();
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
     NlModel model = parent.getModel();
-    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN,
+    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE,
                         component.getScene().getDesignSurface());
     return true;
   }

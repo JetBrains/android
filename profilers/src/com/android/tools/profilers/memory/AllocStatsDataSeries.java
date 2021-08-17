@@ -61,10 +61,6 @@ public final class AllocStatsDataSeries implements DataSeries<Long> {
       return Collections.emptyList();
     }
 
-    if (!myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      return getLegacyAllocationStats(rangeUs);
-    }
-
     Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
       .setStreamId(mySession.getStreamId())
       .setPid(mySession.getPid())
@@ -86,22 +82,6 @@ public final class AllocStatsDataSeries implements DataSeries<Long> {
       });
     }
 
-    return seriesData;
-  }
-
-  private List<SeriesData<Long>> getLegacyAllocationStats(@NotNull Range rangeUs) {
-    long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()) - bufferNs)
-      .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()) + bufferNs);
-    MemoryProfiler.MemoryData response = myClient.getMemoryClient().getData(dataRequestBuilder.build());
-
-    List<SeriesData<Long>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.MemoryData.AllocStatsSample sample : response.getAllocStatsSamplesList()) {
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-      seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample.getAllocStats())));
-    }
     return seriesData;
   }
 

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import com.android.io.CancellableFileIo;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.CollectionFactory;
 import com.intellij.util.lang.UrlClassLoader;
@@ -60,22 +60,21 @@ public class PatchRunner {
    */
   private static final String PATCH_GENERATOR_CLASS_NAME = "com.android.tools.idea.sdk.updater.PatchGenerator";
 
-  private final Class myRunnerClass;
-  private final Class myUiBaseClass;
-  private final Class myUiClass;
-  private final Class myGeneratorClass;
-  private final File myPatcherJar;
+  private final Class<?> myRunnerClass;
+  private final Class<?> myUiBaseClass;
+  private final Class<?> myUiClass;
+  private final Class<?> myGeneratorClass;
+  private final Path myPatcherJar;
 
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static Map<LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
+  private static final Map<LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
 
   /**
    * Run the IJ patcher by reflection.
    */
-  @SuppressWarnings("unchecked")
-  public boolean run(@NotNull File destination, @NotNull File patchFile, @NotNull ProgressIndicator progress)
+  public boolean run(@NotNull Path destination, @NotNull Path patchFile, @NotNull ProgressIndicator progress)
     throws RestartRequiredException {
     Object ui;
     try {
@@ -107,7 +106,7 @@ public class PatchRunner {
 
     try {
       progress.logInfo("Running patcher...");
-      if (!(Boolean)doInstall.invoke(null, patchFile.getPath(), ui, destination.getPath())) {
+      if (!(Boolean)doInstall.invoke(null, patchFile.toString(), ui, destination.toString())) {
         progress.logWarning("Failed to apply patch");
         return false;
       }
@@ -139,7 +138,6 @@ public class PatchRunner {
    * @param destination         The patch file to generate.
    * @return {@code true} if the generation succeeded.
    */
-  @SuppressWarnings("unchecked")
   public boolean generatePatch(@Nullable File existingRoot,
                                @NotNull File newRoot,
                                @Nullable String existingDescription,
@@ -167,17 +165,17 @@ public class PatchRunner {
   }
 
   @Nullable
-  private static File getPatcherFile(@Nullable LocalPackage patcherPackage, @NotNull FileOp fop) {
-    File patcherFile = patcherPackage == null ? null : new File(patcherPackage.getLocation(), PATCHER_JAR_FN);
-    return patcherFile != null && fop.exists(patcherFile) ? patcherFile : null;
+  private static Path getPatcherFile(@Nullable LocalPackage patcherPackage) {
+    Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
+    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? patcherFile : null;
   }
 
   @VisibleForTesting
-  PatchRunner(@NotNull File jarFile,
-              @NotNull Class runnerClass,
-              @NotNull Class uiBaseClass,
-              @NotNull Class uiClass,
-              @NotNull Class generatorClass) {
+  PatchRunner(@NotNull Path jarFile,
+              @NotNull Class<?> runnerClass,
+              @NotNull Class<?> uiBaseClass,
+              @NotNull Class<?> uiClass,
+              @NotNull Class<?> generatorClass) {
     myPatcherJar = jarFile;
     myRunnerClass = runnerClass;
     myUiBaseClass = uiBaseClass;
@@ -193,7 +191,7 @@ public class PatchRunner {
   }
 
   @NotNull
-  public File getPatcherJar() {
+  public Path getPatcherJar() {
     return myPatcherJar;
   }
 
@@ -202,28 +200,28 @@ public class PatchRunner {
 
   public interface Factory {
     @Nullable
-    PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop);
+    PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress);
   }
 
   public static class DefaultFactory implements Factory {
     @Override
     @Nullable
-    public PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
+    public PatchRunner getPatchRunner(@NotNull LocalPackage runnerPackage, @NotNull ProgressIndicator progress) {
       PatchRunner result = ourCache.get(runnerPackage);
       if (result != null) {
         return result;
       }
       try {
-        File patcherFile = getPatcherFile(runnerPackage, fop);
+        Path patcherFile = getPatcherFile(runnerPackage);
         if (patcherFile == null) {
           progress.logWarning("Failed to find patcher JAR!");
           return null;
         }
-        ClassLoader loader = getClassLoader(patcherFile.toPath());
-        Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
-        Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
-        Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
-        Class generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
+        ClassLoader loader = getClassLoader(patcherFile);
+        Class<?> runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
+        Class<?> uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
+        Class<?> uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
+        Class<?> generatorClass = Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader);
 
         result = new PatchRunner(patcherFile, runnerClass, uiBaseClass, uiClass, generatorClass);
         ourCache.put(runnerPackage, result);

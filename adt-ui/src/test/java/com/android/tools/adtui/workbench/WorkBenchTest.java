@@ -80,7 +80,9 @@ public class WorkBenchTest extends WorkBenchTestCase {
     initMocks(this);
     registerApplicationService(WorkBenchManager.class, myWorkBenchManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    when(myFileEditorManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(myFileEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(myFileEditorManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     registerProjectComponent(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));

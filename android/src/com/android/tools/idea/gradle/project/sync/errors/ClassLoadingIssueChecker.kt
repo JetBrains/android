@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
@@ -161,10 +162,11 @@ class StopGradleDaemonQuickFix : BuildIssueQuickFix {
           """.trimIndent()
       val answer = Messages.showYesNoDialog(project, message, title,  Messages.getQuestionIcon())
       if (answer == Messages.YES) {
-        invokeLater {
+        // Run the action asynchronously from the pooled thread to avoid causing unnecessary UI freezes while waiting for Gradle to close.
+        executeOnPooledThread {
           GradleUtil.stopAllGradleDaemonsAndRestart()
-          future.complete(null)
         }
+        future.complete(null)
       }
     }
     else {

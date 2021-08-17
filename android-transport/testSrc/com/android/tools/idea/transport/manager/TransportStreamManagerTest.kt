@@ -21,13 +21,24 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
+@ExperimentalCoroutinesApi
 class TransportStreamManagerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -35,186 +46,158 @@ class TransportStreamManagerTest {
   private val offlineFakeDevice2 =
     FakeTransportService.FAKE_OFFLINE_DEVICE.toBuilder().setDeviceId(FakeTransportService.FAKE_DEVICE_ID + 1).build()
   private val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(fakeDevice2.deviceId).build()
+  private lateinit var executorService: ExecutorService
+  private lateinit var dispatcher: CoroutineDispatcher
 
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  val timeout = Timeout.seconds(10)
 
   @get:Rule
-  val timeoutRule = Timeout(5, TimeUnit.SECONDS)
+  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
 
-  @Test
-  fun discoverNewStream() {
-    val manager =
-      TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  @Before
+  fun setUp() {
+    executorService = Executors.newSingleThreadExecutor()
+    dispatcher = executorService.asCoroutineDispatcher()
+  }
 
-    val streamReadyLatch = CountDownLatch(1)
-    val streamDeadLatch = CountDownLatch(1)
-    manager.addStreamListener(object : TransportStreamListener {
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        assertThat(streamChannel.stream.device).isEqualTo(FakeTransportService.FAKE_DEVICE)
-        streamReadyLatch.countDown()
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-        streamDeadLatch.countDown()
-      }
-    }, MoreExecutors.directExecutor())
-
-    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-
-    streamReadyLatch.await()
-
-    timer.currentTimeNs += 1
-    transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
-
-    streamDeadLatch.await()
+  fun tearDown() {
+    dispatcher.cancel()
+    executorService.shutdownNow()
   }
 
   @Test
-  fun rediscoverStream() {
+  fun discoverNewStream() = runBlocking {
     val manager =
       TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
-    val streamReadyLatch = CountDownLatch(1)
-    val streamReadyAgainLatch = CountDownLatch(1)
-    val streamDeadLatch = CountDownLatch(1)
-    manager.addStreamListener(object : TransportStreamListener {
-      private var calledCounter = 0
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        if (calledCounter == 0) {
-          calledCounter++
-          streamReadyLatch.countDown()
-        } else {
-          streamReadyAgainLatch.countDown()
+    val streamReadyDeferred = CompletableDeferred<Unit>()
+    val streamDeadDeferred = CompletableDeferred<Unit>()
+
+    launch {
+      manager.streamActivityFlow()
+        .take(2)
+        .collect {
+          if (it is StreamConnected) {
+            assertThat(it.streamChannel.stream.device).isEqualTo(FakeTransportService.FAKE_DEVICE)
+            streamReadyDeferred.complete(Unit)
+          }
+          else if (it is StreamDisconnected) {
+            streamDeadDeferred.complete(Unit)
+          }
         }
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-        streamDeadLatch.countDown()
-      }
-    }, MoreExecutors.directExecutor())
+    }
 
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
 
-    streamReadyLatch.await()
+    streamReadyDeferred.await()
 
     timer.currentTimeNs += 1
     transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
 
-    streamDeadLatch.await()
+    streamDeadDeferred.await()
+  }
+
+  @Test
+  fun rediscoverStream() = runBlocking {
+    val manager =
+      TransportStreamManager
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
+
+    val streamReadyDeferred = CompletableDeferred<Unit>()
+    val streamReadyAgainDeferred = CompletableDeferred<Unit>()
+    val streamDeadDeferred = CompletableDeferred<Unit>()
+    launch {
+      manager.streamActivityFlow()
+        .take(3)
+        .collectIndexed { index, activity ->
+          if (activity is StreamConnected) {
+            if (index == 0) {
+              streamReadyDeferred.complete(Unit)
+            }
+            else {
+              streamReadyAgainDeferred.complete(Unit)
+            }
+          }
+          else if (activity is StreamDisconnected) {
+            streamDeadDeferred.complete(Unit)
+          }
+        }
+    }
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+
+    streamReadyDeferred.await()
+
+    timer.currentTimeNs += 1
+    transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
+
+    streamDeadDeferred.await()
 
     timer.currentTimeNs += 1
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
 
-    streamReadyAgainLatch.await()
+    streamReadyAgainDeferred.await()
   }
 
   @Test
-  fun discoverMultipleStreams() {
+  fun discoverMultipleStreams() = runBlocking {
     val manager =
       TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
-    val streamReadyLatch = CountDownLatch(2)
-    val streamDeadLatch = CountDownLatch(2)
-    manager.addStreamListener(object : TransportStreamListener {
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        streamReadyLatch.countDown()
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-        streamDeadLatch.countDown()
-      }
-    }, MoreExecutors.directExecutor())
+    val devicesDetected = CompletableDeferred<Unit>()
+    launch {
+      manager.streamActivityFlow()
+        .take(4)
+        .collectIndexed { index, activity ->
+          if (index < 2) {
+            assertThat(activity).isInstanceOf(StreamConnected::class.java)
+          }
+          else {
+            assertThat(activity).isInstanceOf(StreamDisconnected::class.java)
+          }
+          if (index == 1) {
+            devicesDetected.complete(Unit)
+          }
+        }
+    }
 
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     timer.currentTimeNs += 1
     transportService.addDevice(fakeDevice2)
     timer.currentTimeNs += 1
 
-    streamReadyLatch.await()
+    devicesDetected.await()
 
     transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
     timer.currentTimeNs += 1
     transportService.addDevice(offlineFakeDevice2)
     timer.currentTimeNs += 1
-
-    streamDeadLatch.await()
-  }
-
-  @Test
-  fun registerNewListener() {
-    val manager =
-      TransportStreamManager
-        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-
-    val streamReadyLatch = CountDownLatch(1)
-    var stream: TransportStreamChannel? = null
-    manager.addStreamListener(object : TransportStreamListener {
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        stream = streamChannel
-        streamReadyLatch.countDown()
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-      }
-    }, MoreExecutors.directExecutor())
-
-    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-
-    streamReadyLatch.await()
-
-    val eventHeardLatch = CountDownLatch(1)
-    stream!!.registerStreamEventListener(
-      TransportStreamEventListener(
-        Common.Event.Kind.PROCESS,
-        executor = MoreExecutors.directExecutor()
-      ) {
-        eventHeardLatch.countDown()
-      }
-    )
-
-    transportService.addEventToStream(
-      stream!!.stream.streamId,
-      Common.Event.newBuilder()
-        .setKind(Common.Event.Kind.PROCESS)
-        .setPid(1)
-        .build()
-    )
-
-    eventHeardLatch.await()
   }
 
   // Tests stream manager does not ignore stream events from a device that has a slower clock.
   @Test
-  fun streamsWithDifferentClocks() {
+  fun streamsWithDifferentClocks() = runBlocking {
     val manager =
-      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
 
-    val streamReadyLatch = CountDownLatch(2)
-    val processLatch = CountDownLatch(2)
-    manager.addStreamListener(object : TransportStreamListener {
-      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
-        streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(Common.Event.Kind.PROCESS, executor =  MoreExecutors.directExecutor()) {
-            processLatch.countDown()
+    launch {
+      manager.streamActivityFlow()
+        .take(2)
+        .collect { activity ->
+          launch {
+            activity.streamChannel.eventFlow(StreamEventQuery(Common.Event.Kind.PROCESS))
+              .take(1)
+              .collect()
           }
-        )
-        streamReadyLatch.countDown()
-      }
-
-      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
-      }
-    }, MoreExecutors.directExecutor())
+        }
+    }
 
     // Start stream 1 and stream 2
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addDevice(fakeDevice2)
-
-    // Wait for streams to be ready
-    streamReadyLatch.await()
 
     // Add process 1 to stream 1
     timer.currentTimeNs += 1
@@ -223,8 +206,36 @@ class TransportStreamManagerTest {
     // Add process 2 with an earlier timestamp than process 1 to stream 2
     timer.currentTimeNs -= 1
     transportService.addProcess(fakeDevice2, fakeProcess2)
+  }
 
-    // Await to see if both processes are picked up
-    processLatch.await()
+  @Test
+  fun streamDisconnect_closesFlows() = runBlocking {
+    val manager =
+      TransportStreamManager.createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
+
+    val streamReadyDeferred = CompletableDeferred<Unit>()
+    launch {
+      manager.streamActivityFlow()
+        .take(2)
+        .collect { activity ->
+          if (activity is StreamConnected) {
+            launch {
+              activity.streamChannel.eventFlow(StreamEventQuery(Common.Event.Kind.PROCESS))
+                .collect {
+                  // Collection should be cancelled when stream is disconnected.
+                }
+            }
+            streamReadyDeferred.complete(Unit)
+          }
+        }
+    }
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    streamReadyDeferred.await()
+
+    timer.currentTimeNs += 1
+    transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
   }
 }

@@ -6,18 +6,18 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
+import com.android.builder.model.AndroidProject;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
+import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -86,8 +86,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private boolean mySigned;
   private CompileScope myCompileScope;
   private String myApkPath;
-  private boolean myV1Signature;
-  private boolean myV2Signature;
   private String myExportKeyPath;
   @NotNull private String myTargetType = APK;
 
@@ -195,16 +193,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = new ArrayList<>();
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
-        projectProperties.add(
-          createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
-
-        // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
+        projectProperties
+          .add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
         assert myProject != null;
 
@@ -245,7 +239,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
                       ", destination: " +
-                      createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+                      createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {
@@ -279,7 +273,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       }
       taskNames = getTaskNamesFromSelectedVariant(buildVariants, selectedVariant.getName(), selectedTaskName);
     }
-    return ContainerUtil.map(taskNames, name -> GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, name));
+    return ContainerUtil.map(taskNames, name -> GradleUtil.createFullTaskName(gradleProjectPath, name));
   }
 
   @NotNull
@@ -297,7 +291,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + variantName);
       }
       else {
-        String taskName = targetType.equals(BUNDLE) ? buildInformation.getBundleTaskName() : buildInformation.getAssembleTaskName();
+        String taskName = targetType.equals(BUNDLE)
+                          ? buildInformation.getBuildInformation().getBundleTaskName()
+                          : buildInformation.getBuildInformation().getAssembleTaskName();
         taskNames.add(taskName);
       }
     }
@@ -343,10 +339,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   private static String getTaskName(IdeVariant v, String targetType) {
     if (targetType.equals(BUNDLE)) {
-      return v.getMainArtifact().getBundleTaskName();
+      return v.getMainArtifact().getBuildInformation().getBundleTaskName();
     }
     else {
-      return v.getMainArtifact().getAssembleTaskName();
+      return v.getMainArtifact().getBuildInformation().getAssembleTaskName();
     }
   }
 
@@ -445,14 +441,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setApkPath(@NotNull String apkPath) {
     myApkPath = apkPath;
-  }
-
-  public void setV1Signature(boolean v1Signature) {
-    myV1Signature = v1Signature;
-  }
-
-  public void setV2Signature(boolean v2Signature) {
-    myV2Signature = v2Signature;
   }
 
   public void setGradleOptions(@NotNull List<String> buildVariants) {

@@ -16,6 +16,8 @@
 package com.android.tools.adtui.imagediff;
 
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.LineChartModel;
@@ -249,7 +251,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     @Override
     protected void setUp() {
-      myLineChartModel = new LineChartModel();
+      myLineChartModel = new LineChartModel(newDirectExecutorService());
       myLineChart = new LineChart(myLineChartModel);
       myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
       myData = new ArrayList<>();

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.performance
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -58,11 +58,6 @@ class MemoryProfilerHeapDumpTest {
                                     FakeEventService(),
                                     FakeNetworkService.newBuilder().build())
 
-  @Before
-  fun init() {
-    ideServices.enableSeparateHeapDumpUi(true)
-  }
-
   @Test
   fun `measure loading of github heap dump`() {
     testFile("github")
@@ -74,7 +69,7 @@ class MemoryProfilerHeapDumpTest {
   }
 
   private fun testFile(name: String) {
-    val file = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/performance/$name.hprof")
+    val file = resolveWorkspacePath("tools/adt/idea/profilers/testData/hprofs/performance/$name.hprof").toFile()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     assertThat(profilers.sessionsManager.importSessionFromFile(file)).isTrue()
     val dumpInfo =

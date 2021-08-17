@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.RenderResultStats
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
@@ -53,13 +54,19 @@ class ScannerTestHelper {
    * Create a default component useful for testing.
    * It contains mocked view information.
    */
-  fun buildNlComponent(model: NlModel? = null): NlComponent {
+  fun buildNlComponent(model: NlModel? = null, tagName: String = "tagname"): NlComponent {
     val nlComponent = Mockito.mock(NlComponent::class.java)
     val mixin = NlComponentMixin(nlComponent)
     Mockito.`when`(nlComponent.mixin).thenReturn(mixin)
     model?.let {
       Mockito.`when`(nlComponent.model).thenReturn(model!!)
     }
+
+    val model = Mockito.mock(NlModel::class.java)
+    Mockito.`when`(nlComponent.model).thenReturn(model)
+    Mockito.`when`(model.modelDisplayName).thenReturn("displayName")
+
+    Mockito.`when`(nlComponent.tagName).thenReturn(tagName)
 
     val viewInfos = buildViewInfo()
     nlComponent.viewInfo = viewInfos
@@ -106,6 +113,7 @@ class ScannerTestHelper {
 
     val renderResult = Mockito.mock(Result::class.java)
     Mockito.`when`(result.renderResult).thenReturn(renderResult)
+    Mockito.`when`(result.stats).thenReturn(RenderResultStats())
     Mockito.`when`(renderResult.isSuccess).thenReturn(true)
 
     return result
@@ -161,14 +169,14 @@ class ScannerTestHelper {
   companion object {
 
     /** Create a default issue builder with all the requirements. */
-    fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
+    fun createTestIssueBuilder(fix: ValidatorData.Fix? = null): ValidatorData.Issue.IssueBuilder {
       return ValidatorData.Issue.IssueBuilder()
         .setCategory("")
         .setType(ValidatorData.Type.ACCESSIBILITY)
         .setMsg("Test")
         .setLevel(ValidatorData.Level.ERROR)
         .setSrcId(-1)
-        .setFix(ValidatorData.Fix(""))
+        .setFix(fix)
         .setSourceClass("")
     }
   }

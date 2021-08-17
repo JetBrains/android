@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-
 import com.android.repository.Revision;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
@@ -61,8 +60,8 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
         }
       });
 
-    File tmpDir = TestUtils.createTempDirDeletedOnExit();
-    Path localPath = tmpDir.toPath().resolve("local-3.3.0.xml");
+    Path tmpDir = TestUtils.createTempDirDeletedOnExit();
+    Path localPath = tmpDir.resolve("local-3.3.0.xml");
     Mockito.when(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath);
   }
 

@@ -11,15 +11,9 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:ASM",
-        "//tools/idea/.idea/libraries:gson",
-        "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:http-client",
-        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
-        "//tools/idea/.idea/libraries:JUnit4[test]",
-        "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/idea/.idea/libraries:mockito[test]",
-        "//tools/idea/.idea/libraries:Objenesis[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
 
@@ -38,11 +32,11 @@ java_binary(
         "Can-Retransform-Classes: true",
     ],
     deps = [
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/asm-all/8.0.1:jar",
         "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
-        "//tools/idea/.idea/libraries:ASM",
-        "//tools/idea/.idea/libraries:http-client",
-        "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
+        "//tools/base/third_party:org.apache.httpcomponents_httpclient",
+        "//tools/base/third_party:org.jetbrains_annotations",
     ],
 )
 
@@ -53,22 +47,4 @@ java_jarjar(
     ],
     rules = "jarjar_rules.txt",
     visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "intellij.android.adt.swingp",
-    srcs = ["src/main/java"],
-    iml_files = ["intellij.android.adt.swingp.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
-    test_srcs = ["testSrc"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:unb.Guava",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
-    ],
 )

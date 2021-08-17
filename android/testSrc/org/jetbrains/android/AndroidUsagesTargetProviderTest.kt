@@ -16,7 +16,6 @@
 package org.jetbrains.android
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -44,7 +43,6 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
     MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
     MAIN_MODULE_USAGE_COLOR_FILE = myFixture.addFileToProject(
       "/res/values/morecolors.xml",
@@ -63,15 +61,6 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
       getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
       COLORS_XML
     ).virtualFile
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   override fun configureAdditionalModules(

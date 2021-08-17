@@ -40,6 +40,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   private val processMap: Map<Int, ProcessModel>
   private val cpuCores: List<CpuCoreModel>
+  private val androidFrameLayers: List<TraceProcessor.AndroidFrameEventsResult.Layer>
 
   private val danglingThreads = builder.danglingThreads
 
@@ -70,6 +71,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         .toMap()
       CpuCoreModel(it, builder.coreToScheduling.getOrDefault(it, listOf()), cpuCountersMap)
     }
+
+    androidFrameLayers = builder.androidFrameLayers
   }
 
   override fun getCaptureStartTimestampUs() = startCaptureTimestamp
@@ -85,6 +88,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
   override fun isCapturePossibleCorrupted() = false
+  override fun getAndroidFrameLayers() = androidFrameLayers
 
   class Builder {
     internal var startCaptureTimestamp = Long.MAX_VALUE
@@ -97,6 +101,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
+    internal val androidFrameLayers = mutableListOf<TraceProcessor.AndroidFrameEventsResult.Layer>()
 
     fun addProcessMetadata(processMetadataResult: TraceProcessor.ProcessMetadataResult) {
       for (process in processMetadataResult.processList) {
@@ -252,6 +257,10 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                      counter.valueList.map { convertToUs(it.timestampNanoseconds) to it.value }
                        .toMap().toSortedMap())
       }
+    }
+
+    fun addAndroidFrameEvents(frameEventsResult: TraceProcessor.AndroidFrameEventsResult) {
+      androidFrameLayers.addAll(frameEventsResult.layerList)
     }
 
     fun build(): TraceProcessorModel {

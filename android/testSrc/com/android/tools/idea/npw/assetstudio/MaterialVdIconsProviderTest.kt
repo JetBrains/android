@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio
 
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
@@ -25,6 +27,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.write
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
@@ -33,6 +36,8 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -187,10 +192,8 @@ class MaterialVdIconsProviderTestWithSdk {
     testMaterialIconsSdkDirectory.resolve("style1").resolve("my_sdk_icon").apply { mkdirs() }.resolve("my_sdk_icon.xml").writeText(
       SIMPLE_VD)
 
-    val mockHandler = mock(AndroidSdkHandler::class.java).apply {
-      Mockito.`when`(this.location).thenReturn(testSdkDirectory)
-    }
-    Mockito.`when`(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(mockHandler)
+    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
+    Mockito.`when`(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
   }
 
   @Test

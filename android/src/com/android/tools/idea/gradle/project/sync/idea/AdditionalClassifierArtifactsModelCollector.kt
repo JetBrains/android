@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea
+package com.android.tools.idea.gradle.project.sync
 
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import org.gradle.tooling.BuildController
 
 @UsedInBuildAction
-fun getAdditionalClassifierArtifactsModel(
-  controller: BuildController,
+internal fun getAdditionalClassifierArtifactsModel(
+  actionRunner: GradleInjectedSyncActionRunner,
   inputModules: List<AndroidModule>,
   cachedLibraries: Collection<String>,
   downloadAndroidxUISamplesSources: Boolean
 ) {
-  inputModules.forEach { module ->
-    if (module.modelVersion?.isAtLeast(3, 5, 0) != true) return@forEach
+  actionRunner.runActions(
+    inputModules.map { module ->
+      fun(controller: BuildController) {
+        if (module.modelVersion?.isAtLeast(3, 5, 0) != true) return
 
-    // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
-    val identifiers = module.getLibraryDependencies().filter { !cachedLibraries.contains(idToString(it)) && it.version != "unspecified" }
+        // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
+        val identifiers = module.getLibraryDependencies().filter {
+          !cachedLibraries.contains(idToString(it)) && it.version != "unspecified"
+        }
 
-    // Query for AdditionalClassifierArtifactsModel model.
-    if (identifiers.isNotEmpty()) {
-      module.additionalClassifierArtifacts =
-        controller.findModel(
-          module.findModelRoot,
-          AdditionalClassifierArtifactsModel::class.java,
-          AdditionalClassifierArtifactsModelParameter::class.java
-        ) { parameter ->
-          parameter.artifactIdentifiers = identifiers
-          parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
+        // Query for AdditionalClassifierArtifactsModel model.
+        if (identifiers.isNotEmpty()) {
+          // Since we operate on one module at a time it is safe to run on multiple threads.
+          module.additionalClassifierArtifacts =
+            controller.findModel(
+              module.findModelRoot,
+              AdditionalClassifierArtifactsModel::class.java,
+              AdditionalClassifierArtifactsModelParameter::class.java
+            ) { parameter ->
+              parameter.artifactIdentifiers = identifiers
+              parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
+            }
+        }
       }
     }
-  }
+  )
 }
 
 @UsedInBuildAction

@@ -66,7 +66,7 @@ public class AndroidSdksTest extends PlatformTestCase {
     initMocks(this);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    mySdkPath = getSdk();
+    mySdkPath = getSdk().toFile();
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 

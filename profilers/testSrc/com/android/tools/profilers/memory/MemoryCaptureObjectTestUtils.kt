@@ -21,8 +21,6 @@ import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.truth.Truth
-import java.util.Arrays
-import java.util.HashSet
 import java.util.function.Supplier
 
 class MemoryCaptureObjectTestUtils {
@@ -31,7 +29,7 @@ class MemoryCaptureObjectTestUtils {
     private const val CLASS_NAME_1 = "com.google.Bar"
     private const val CLASS_NAME_2 = "com.android.studio.Baz"
 
-    fun createAndSelectHeapSet(stage: MemoryProfilerStage): HeapSet {
+    fun createAndSelectHeapSet(stage: MainMemoryProfilerStage): HeapSet {
       val captureObject = FakeCaptureObject.Builder().build()
       val instanceObjects: Set<InstanceObject> = setOf(
         FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(

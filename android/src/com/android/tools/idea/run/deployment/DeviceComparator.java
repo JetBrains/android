@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 final class DeviceComparator implements Comparator<Device> {
   private static final Comparator<Device> COMPARATOR =
     Comparator.comparing(Device::getConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()))
-      .thenComparing(Device::isValid, Comparator.reverseOrder())
+      .thenComparing(device -> device.getLaunchCompatibility().getState())
       .thenComparing(DeviceComparator::getType)
       .thenComparing(Device::getName);
 

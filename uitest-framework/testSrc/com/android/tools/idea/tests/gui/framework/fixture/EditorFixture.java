@@ -33,12 +33,11 @@ import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
-import com.android.tools.idea.uibuilder.visual.VisualizationManager;
+import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
@@ -54,7 +53,6 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.editor.Caret;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ScrollType;
@@ -62,7 +60,6 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.SplitEditorToolbar;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
@@ -70,16 +67,14 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.tabs.TabInfo;
-import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.TabLabel;
 import java.awt.Component;
 import java.awt.Point;
@@ -107,7 +102,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -780,7 +774,7 @@ public class EditorFixture {
   @NotNull
   public VisualizationFixture getVisualizationTool() {
     if (!isVisualizationToolShowing()) {
-      myFrame.invokeMenuPath("View", "Tool Windows", AndroidBundle.message("android.layout.visual.tool.window.title"));
+      myFrame.invokeMenuPath("View", "Tool Windows", VisualizationToolWindowFactory.TOOL_WINDOW_ID);
     }
 
     Wait.seconds(20).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
@@ -795,8 +789,11 @@ public class EditorFixture {
   }
 
   private boolean isVisualizationToolShowing() {
-    return GuiQuery.getNonNull(
-      () -> VisualizationManager.getInstance(myFrame.getProject()).isWindowVisible());
+    ToolWindow toolWindow = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID);
+    if (toolWindow == null) {
+      return false;
+    }
+    return GuiQuery.getNonNull(() -> toolWindow.isVisible());
   }
 
   /**

@@ -23,6 +23,7 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
@@ -63,7 +64,6 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -238,8 +238,9 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
     AndroidFacet facet = AndroidFacet.getInstance(myTargetModule);
     assert facet != null; // We know this has to be an Android module
 
-    Iterable<VirtualFile> javaSourceFolders = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
-    VirtualFile javaTargetDir = Iterables.getFirst(javaSourceFolders, null);
+    IdeaSourceProvider sources = SourceProviderManager.getInstance(facet).getSources();
+    Iterable<VirtualFile> sourceFolders = Iterables.concat(sources.getJavaDirectories(), sources.getKotlinDirectories());
+    VirtualFile javaTargetDir = Iterables.getFirst(sourceFolders, null);
 
     VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);
     ResourceFolderRepository repo = ResourceFolderRegistry.getInstance(myProject).get(facet, resDir);

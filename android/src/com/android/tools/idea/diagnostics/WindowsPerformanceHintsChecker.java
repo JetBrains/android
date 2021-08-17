@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -281,7 +280,7 @@ public class WindowsPerformanceHintsChecker {
       sdkData = AndroidSdkUtils.getFirstAndroidModuleSdkData(project);
     }
     if (sdkData != null) {
-      paths.add(Paths.get(sdkData.getLocation().getAbsolutePath()));
+      paths.add(Paths.get(sdkData.getLocation().toString()));
     }
     return paths;
   }

@@ -34,10 +34,10 @@ class RunningEmulatorCatalogTest {
   @Test
   fun testCatalogUpdates() {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root.toPath()
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, standalone = false)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8556, standalone = true)
+    val tempFolder = emulatorRule.root
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = true)
 
     val eventQueue = LinkedBlockingDeque<CatalogEvent>()
     catalog.addListener(object : RunningEmulatorCatalog.Listener {

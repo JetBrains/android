@@ -44,7 +44,7 @@ class BuildTest {
 
   @Test
   fun testHasBeenBuiltSuccessfully() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     val project = projectRule.project
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!

@@ -30,10 +30,10 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable

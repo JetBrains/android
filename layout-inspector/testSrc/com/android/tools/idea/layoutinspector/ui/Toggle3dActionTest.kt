@@ -16,21 +16,33 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.window
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.property.testing.ApplicationRule
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 
 class Toggle3dActionTest {
+
+  @get:Rule
+  val appRule = ApplicationRule()
 
   private val inspectorModel = model {
     view(1) {
@@ -39,15 +51,32 @@ class Toggle3dActionTest {
       }
     }
   }
-
-  private val viewModel = DeviceViewPanelModel(inspectorModel)
+  private lateinit var inspector: LayoutInspector
+  private lateinit var viewModel: DeviceViewPanelModel
 
   private val event: AnActionEvent = mock()
   private val presentation: Presentation = mock()
 
+  private val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
+  private val device: DeviceDescriptor = mock()
+
   @Before
   fun setUp() {
+    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(capabilities)
+    `when`(client.isConnected).thenReturn(true)
+    `when`(client.isCapturing).thenReturn(true)
+    `when`(device.apiLevel).thenReturn(29)
+    val launcher: InspectorClientLauncher = mock()
+    `when`(launcher.activeClient).thenReturn(client)
+    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel, mock()), mock(), MoreExecutors.directExecutor())
+    viewModel = DeviceViewPanelModel(inspectorModel, inspector.stats, inspector.treeSettings)
+    val process: ProcessDescriptor = mock()
+    `when`(process.device).thenReturn(device)
+    `when`(client.process).thenReturn(process)
     `when`(event.getData(DEVICE_VIEW_MODEL_KEY)).thenReturn(viewModel)
+    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     `when`(event.presentation).thenReturn(presentation)
   }
 
@@ -55,7 +84,9 @@ class Toggle3dActionTest {
   fun testUnrotated() {
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = true
-    verify(presentation).text = "Rotate View"
+    verify(presentation).text = "3D Mode"
+    verify(presentation).description = "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
+                                       "mode consumes more device resources and might impact runtime performance."
     verify(presentation).icon = StudioIcons.LayoutInspector.MODE_3D
   }
 
@@ -64,7 +95,9 @@ class Toggle3dActionTest {
     viewModel.xOff = 1.0
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = true
-    verify(presentation).text = "Reset View"
+    verify(presentation).text = "2D Mode"
+    verify(presentation).description =
+      "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
     verify(presentation).icon = StudioIcons.LayoutInspector.RESET_VIEW
   }
 
@@ -77,12 +110,17 @@ class Toggle3dActionTest {
   }
 
   @Test
-  fun testRootImageOnly() {
-    val root = view(3) {
-      image()
-      view(2)
-    }
-    inspectorModel.update(AndroidWindow(root, 3), listOf(3), 0)
+  fun testNoCapability() {
+    capabilities.clear()
+    Toggle3dAction.update(event)
+    verify(presentation).isEnabled = false
+    verify(presentation).text = "Error while rendering device image, rotation not available"
+  }
+
+  @Test
+  fun testOldDevice() {
+    `when`(device.apiLevel).thenReturn(28)
+    capabilities.clear()
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Rotation not available for devices below API 29"
@@ -90,25 +128,14 @@ class Toggle3dActionTest {
 
   @Test
   fun testNoRendererFallback() {
-    val window = window(3, 1, imageType = PNG_AS_REQUESTED) {
+    val window = window(3, 1, imageType = BITMAP_AS_REQUESTED) {
       image()
       view(2)
     }
+    capabilities.clear()
     inspectorModel.update(window, listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
-    verify(presentation).text = "No compatible renderer found for device image, rotation not available"
-  }
-
-  @Test
-  fun testSkpTooLargeFallback() {
-    val window = window(3, 1, imageType = PNG_SKP_TOO_LARGE) {
-      image()
-      view(2)
-    }
-    inspectorModel.update(window, listOf(3), 0)
-    Toggle3dAction.update(event)
-    verify(presentation).isEnabled = false
-    verify(presentation).text = "Device image too large, rotation not available"
+    verify(presentation).text = "Error while rendering device image, rotation not available"
   }
 }

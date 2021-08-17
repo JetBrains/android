@@ -27,6 +27,7 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -37,7 +38,9 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
@@ -89,6 +92,25 @@ public class AndroidPsiUtils {
       return null;
     }
     return psiFile;
+  }
+
+
+  /**
+   * Looks up the {@link PsiFile} for a given {@link Document} in a given {@link Project}, in
+   * a safe way (meaning it will acquire a read lock first, and will check that the file is valid
+   *
+   * @param project the project
+   * @param document the document
+   * @return the corresponding {@link PsiFile}, or null if not found or valid
+   */
+  @Nullable
+  public static PsiFile getPsiFileSafely(@NotNull final Project project, @NotNull final Document document) {
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiFile>)() -> {
+      if (project.isDisposed()) {
+        return null;
+      }
+      return PsiDocumentManager.getInstance(project).getPsiFile(document);
+    });
   }
 
   /**
@@ -176,6 +198,17 @@ public class AndroidPsiUtils {
       }
       return PsiManager.getInstance(project).findDirectory(dir);
     });
+  }
+
+
+  /**
+   * Returns the {@link PsiDirectory} for the given {@link PsiFile}, with a read lock.
+   *
+   * @param file the file to look up the PSI directory for
+   */
+  @Nullable
+  public static PsiDirectory getPsiDirectorySafely(@NotNull final PsiFile file) {
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiDirectory>)file::getParent);
   }
 
   /**
@@ -434,5 +467,15 @@ public class AndroidPsiUtils {
   @Nullable
   public static PsiType toPsiType(@NotNull PsiClass clazz) {
     return JavaPsiFacade.getElementFactory(clazz.getProject()).createType(clazz);
+  }
+
+  /**
+   * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`) for a Java file, this finds the previous
+   * element in the chain (in this case `layout`).
+   */
+  @Nullable
+  public static PsiReferenceExpression getPreviousInQualifiedChain(PsiReferenceExpression referenceExpression) {
+    PsiExpression expression = referenceExpression.getQualifierExpression();
+    return expression instanceof PsiReferenceExpression ? (PsiReferenceExpression)expression : null;
   }
 }

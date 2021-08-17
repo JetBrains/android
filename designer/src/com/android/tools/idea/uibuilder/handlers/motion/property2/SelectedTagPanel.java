@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2;
+package com.android.tools.idea.uibuilder.handlers.motion.property;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.intellij.ui.Gray;
@@ -35,9 +35,9 @@ public class SelectedTagPanel extends AdtSecondaryPanel {
 
   public SelectedTagPanel(@NotNull String label, @NotNull String id, @NotNull Icon icon, boolean includeTopBorder) {
     super(new BorderLayout());
-    JBLabel component = new JBLabel(id, icon, SwingConstants.LEADING);
-    JBLabel description = new JBLabel(label);
-    description.setForeground(new JBColor(Gray._192, Gray._128));
+    JBLabel component = new JBLabel(label, icon, SwingConstants.LEADING);
+    JBLabel description = new JBLabel(id);
+    component.setForeground(new JBColor(Gray._192, Gray._128));
     if (includeTopBorder) {
       Border border = JBUI.Borders.empty(VERTICAL_BORDER, HORIZONTAL_BORDER, 0, HORIZONTAL_BORDER);
       border = JBUI.Borders.merge(border,

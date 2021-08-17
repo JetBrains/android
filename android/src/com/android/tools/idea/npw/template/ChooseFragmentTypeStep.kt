@@ -44,8 +44,6 @@ val fragmentGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
   "android.wizard.config.fragment.title",
   "android.wizard.fragment.not.found",
   "android.wizard.fragment.invalid.min.sdk",
-  "android.wizard.fragment.invalid.min.build",
   "android.wizard.fragment.invalid.androidx",
-  "android.wizard.fragment.invalid.jetifier",
   "android.wizard.fragment.invalid.needs.kotlin"
 )

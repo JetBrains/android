@@ -38,7 +38,7 @@ public interface AdditionalClassifierArtifactsModelParameter {
   void setArtifactIdentifiers(@NotNull Collection<ArtifactIdentifier> ids);
 
   /**
-   * If true try to download sample sources for libraries in group androidx.ui
+   * If true try to download sample sources for libraries in group androidx.compose.ui
    */
   boolean getDownloadAndroidxUISamplesSources();
 

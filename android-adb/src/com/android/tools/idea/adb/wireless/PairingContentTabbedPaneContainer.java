@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.AsyncProcessIcon;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -24,15 +29,35 @@ import org.jetbrains.annotations.NotNull;
  * Top level component in each pairing tab. Contains a top and bottom row of fixed size,
  * and a center panel for a custom component.
  */
-public class PairingContentTabbedPaneContainer {
+@UiThread
+public class WiFiPairingContentTabbedPaneContainer {
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myTopRow;
   @NotNull private JPanel myCenterRow;
   @NotNull private JPanel myBottomRow;
+  @NotNull private AsyncProcessIcon myAsyncProcessIcon;
+  @NotNull private JBLabel myAsyncProcessText;
 
-  public PairingContentTabbedPaneContainer() {
+  public WiFiPairingContentTabbedPaneContainer() {
     EditorPaneUtils.setTitlePanelBorder(myTopRow);
     EditorPaneUtils.setBottomPanelBorder(myBottomRow);
+    myAsyncProcessIcon.suspend();
+    myAsyncProcessIcon.setVisible(false);
+  }
+
+  private void createUIComponents() {
+    myAsyncProcessIcon = new AsyncProcessIcon("available devices progress");
+  }
+
+  public void setParentDisposable(@NotNull Disposable parentDisposable) {
+    // Ensure async icon is disposed deterministically
+    Disposer.register(parentDisposable, myAsyncProcessIcon);
+  }
+
+  public void setAsyncProcessText(@NotNull String text) {
+    myAsyncProcessText.setText(text);
+    myAsyncProcessIcon.setVisible(true);
+    myAsyncProcessIcon.resume();
   }
 
   public void setContent(@NotNull JComponent component) {

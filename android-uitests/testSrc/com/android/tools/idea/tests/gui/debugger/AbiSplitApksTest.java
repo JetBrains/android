@@ -119,6 +119,12 @@ public class AbiSplitApksTest extends DebuggerTestBase {
             .enterText("\n\nandroid.splits.abi.enable true")
             .invokeAction(EditorFixture.EditorAction.SAVE);
 
+    // ndk.dir will be deprecated soon.
+    // Remove it now in test. When ndk.dir is deprecated, will update the test if necessary.
+    ideFrame.getEditor().open("local.properties")
+      .select("(ndk.dir=.*\n)")
+      .enterText("#");
+
     ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";

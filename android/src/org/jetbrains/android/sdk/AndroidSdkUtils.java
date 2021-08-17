@@ -41,11 +41,14 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -67,6 +70,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -392,12 +396,19 @@ public final class AndroidSdkUtils {
    * @return ADB file in SDK path specified by ADB_PATH_PROPERTY or the project, or default SDK if project is null
    */
   @Nullable
+  @Deprecated
   public static File getAdb(@Nullable Project project) {
+    return findAdb(project).adbPath;
+  }
+
+  public static @NotNull AdbSearchResult findAdb(@Nullable Project project) {
+    List<String> searchedPaths = new ArrayList<>(3);
     String path = System.getProperty(ADB_PATH_PROPERTY);
+    searchedPaths.add(String.format("ADB_PATH_PROPERTY (%s): '%s'", ADB_PATH_PROPERTY, Strings.isNullOrEmpty(path) ? "<not set>" : path));
     if (path != null) {
       File adb = new File(path);
       if (adb.exists()) {
-        return adb;
+        return new AdbSearchResult(adb, searchedPaths);
       }
     }
 
@@ -406,16 +417,21 @@ public final class AndroidSdkUtils {
       AndroidSdkData data = getProjectSdkData(project);
       if (data == null) {
         data = getFirstAndroidModuleSdkData(project);
+        searchedPaths.add(String.format("Android SDK location from first Android Module in Project: %s",
+                                        data == null ? "<not present>" : String.format("'%s'", data.getLocationFile().getPath())));
+      } else {
+        searchedPaths.add(String.format("Android SDK location from Project: '%s'", data.getLocationFile().getPath()));
       }
-      adb = data == null ? null : new File(data.getLocation(), platformToolPath(FN_ADB));
+      adb = data == null ? null : new File(data.getLocationFile(), platformToolPath(FN_ADB));
     }
 
     // If project is null, or non-android project (e.g. react-native), we'll use the global default path
     if (adb == null && IdeSdks.getInstance().getAndroidSdkPath() != null) {
       adb = new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB));
+      searchedPaths.add(String.format("Android SDK location from global settings: '%s'", adb.getPath()));
     }
 
-    return adb != null && adb.exists() ? adb : null;
+    return new AdbSearchResult(adb != null && adb.exists() ? adb : null, searchedPaths);
   }
 
   @Nullable
@@ -483,13 +499,20 @@ public final class AndroidSdkUtils {
     AndroidDebugBridge bridge = null;
     boolean retry;
     do {
-      File adb = getAdb(project);
-      if (adb == null) {
-        LOG.error("Unable to locate adb.");
+      AdbSearchResult searchResult = findAdb(project);
+      if (searchResult.adbPath == null) {
+        NotificationGroup
+          .balloonGroup("Android Debug Bridge (adb)")
+          .createNotification(
+            "Unable to locate adb in project/module settings. Locations searched:<br>" + String.join("<br>", searchResult.searchedPaths),
+            NotificationType.ERROR)
+          .setImportant(true)
+          .notify(project);
+        LOG.warn("Unable to locate adb.");
         return null;
       }
 
-      Future<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
+      Future<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(searchResult.adbPath);
       MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
       ProgressManager.getInstance().run(task);
 
@@ -541,6 +564,16 @@ public final class AndroidSdkUtils {
   public static boolean isAndroidSdkManagerEnabled() {
     boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
     return !sdkManagerDisabled;
+  }
+
+  public static class AdbSearchResult {
+    public final @Nullable File adbPath;
+    public final @NotNull List<String> searchedPaths;
+
+    public AdbSearchResult(@Nullable File adbPath, @NotNull List<String> searchedPaths) {
+      this.adbPath = adbPath;
+      this.searchedPaths = searchedPaths;
+    }
   }
 
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {

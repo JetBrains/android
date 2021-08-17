@@ -18,26 +18,31 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
+import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Answers
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.same
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.atLeastOnce
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
-import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
-import java.util.concurrent.CountDownLatch
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 
 /**
  * Unit tests for [SingleDeviceAndroidProcessMonitor].
@@ -45,10 +50,10 @@ import kotlin.test.fail
 class SingleDeviceAndroidProcessMonitorTest {
   companion object {
     const val TARGET_APP_NAME: String = "example.target.app"
-    const val TEST_TIMEOUT_MILLIS: Long = 10000
-    const val TEST_POLLING_INTERVAL_MILLIS: Long = 10
   }
 
+  @get:Rule
+  var mockitoJunit = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
   @Mock
   lateinit var mockDevice: IDevice
   @Mock
@@ -59,218 +64,174 @@ class SingleDeviceAndroidProcessMonitorTest {
   lateinit var mockTextEmitter: TextEmitter
   @Mock
   lateinit var mockListener: SingleDeviceAndroidProcessMonitorStateListener
+  @Mock(answer = Answers.RETURNS_MOCKS)
+  lateinit var mockScheduledExecutor: ScheduledExecutorService
+  @Mock
+  lateinit var mockStateUpdaterScheduledFuture: ScheduledFuture<*>
+  @Mock
+  lateinit var mockTimeoutScheduledFuture: ScheduledFuture<*>
+
+  var capturedCurrentState: SingleDeviceAndroidProcessMonitorState = WAITING_FOR_PROCESS
+
+  lateinit var capturedUpdateStateRunnable: Runnable
+  var capturedUpdateInitialDelay: Long = -1
+  var capturedUpdateInterval: Long = -1
+  lateinit var capturedUpdateIntervalTimeUnit: TimeUnit
+
+  lateinit var capturedTimeoutRunnable: Runnable
+  var capturedTimeout: Long = -1
+  lateinit var capturedTimeoutTimeUnit: TimeUnit
 
   @Before
   fun setUp() {
-    MockitoAnnotations.initMocks(this)
+    `when`(mockScheduledExecutor.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).then {
+      capturedUpdateStateRunnable = it.getArgument(0)
+      capturedUpdateInitialDelay = it.getArgument(1)
+      capturedUpdateInterval = it.getArgument(2)
+      capturedUpdateIntervalTimeUnit = it.getArgument(3)
+      mockStateUpdaterScheduledFuture
+    }
+
+    `when`(mockScheduledExecutor.schedule(any(), anyLong(), any())).then {
+      capturedTimeoutRunnable = it.getArgument(0)
+      capturedTimeout = it.getArgument(1)
+      capturedTimeoutTimeUnit = it.getArgument(2)
+      mockTimeoutScheduledFuture
+    }
   }
 
-  @Test
-  fun processFoundThenProcessFinishes() {
-    val latchForStart = CountDownLatch(1)
-    val latchForEnd = CountDownLatch(1)
-
-    SingleDeviceAndroidProcessMonitor(
+  private fun startMonitor(
+    logcatCaptor: AndroidLogcatOutputCapture? = mockLogcatCaptor
+  ): SingleDeviceAndroidProcessMonitor {
+    return SingleDeviceAndroidProcessMonitor(
       TARGET_APP_NAME,
       mockDevice,
       object : SingleDeviceAndroidProcessMonitorStateListener {
         override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          when (newState) {
-            PROCESS_IS_RUNNING -> latchForStart.countDown()
-            PROCESS_DETACHED -> latchForEnd.countDown()
-            PROCESS_FINISHED ->
-              fail("Process should not have finished, and should have detached instead if it terminates on the device end")
-            else -> {
-            }
-          }
+          capturedCurrentState = newState
         }
       },
       mockDeploymentAppService,
-      mockLogcatCaptor,
+      logcatCaptor,
       mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      TEST_TIMEOUT_MILLIS
+      listenerExecutor = MoreExecutors.directExecutor(),
+      stateUpdaterExecutor = mockScheduledExecutor
     )
+  }
+
+  private fun updateMonitorState() {
+    capturedUpdateStateRunnable.run()
+  }
+
+  private fun timeoutMonitor() {
+    capturedTimeoutRunnable.run()
+  }
+
+  @Test
+  fun processFoundThenProcessFinishes() {
+    startMonitor()
 
     val mockClients = listOf(createMockClient(123))
     `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
-    assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+    updateMonitorState()
 
-    assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
+    verify(mockLogcatCaptor).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now the target process finishes.
     `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf())
+    updateMonitorState()
 
-    assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
+    verify(mockLogcatCaptor).stopCapture(same(mockDevice))
     verify(mockDevice, never()).kill(TARGET_APP_NAME)
   }
 
   @Test
   fun processFoundThenKillProcessByMonitor() {
-    val latchForStart = CountDownLatch(1)
-    val latchForEnd = CountDownLatch(1)
-
-    val monitor = SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      object : SingleDeviceAndroidProcessMonitorStateListener {
-        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          if (newState == PROCESS_IS_RUNNING) {
-            latchForStart.countDown()
-          }
-          if (newState == PROCESS_FINISHED) {
-            latchForEnd.countDown()
-          }
-        }
-      },
-      mockDeploymentAppService,
-      mockLogcatCaptor,
-      mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      TEST_TIMEOUT_MILLIS
-    )
+    val monitor = startMonitor()
 
     val mockClient = createMockClient(123)
     `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
-    assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+    updateMonitorState()
 
-    assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
+    verify(mockLogcatCaptor).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now kill the target process by close.
     monitor.close()
 
-    assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
-    verify(mockClient, timeout(TEST_TIMEOUT_MILLIS)).kill()
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_FINISHED)
+    verify(mockLogcatCaptor).stopCapture(same(mockDevice))
+    verify(mockClient).kill()
   }
 
   @Test
   fun processFoundThenDetachProcess() {
-    val latchForStart = CountDownLatch(1)
-    val latchForEnd = CountDownLatch(1)
-
-    val monitor = SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      object : SingleDeviceAndroidProcessMonitorStateListener {
-        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          if (newState == PROCESS_IS_RUNNING) {
-            latchForStart.countDown()
-          }
-          if (newState == PROCESS_DETACHED) {
-            latchForEnd.countDown()
-          }
-        }
-      },
-      mockDeploymentAppService,
-      mockLogcatCaptor,
-      mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      TEST_TIMEOUT_MILLIS
-    )
+    val monitor = startMonitor()
 
     val mockClient = createMockClient(123)
     `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
-    assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+    updateMonitorState()
 
-    assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
+    verify(mockLogcatCaptor).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now detach the target process by close.
     monitor.detachAndClose()
 
-    assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
+    verify(mockLogcatCaptor).stopCapture(same(mockDevice))
     verify(mockClient, never()).kill()
   }
 
   @Test
   fun monitorShouldTimeout() {
-    val latch = CountDownLatch(1)
-    SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      object : SingleDeviceAndroidProcessMonitorStateListener {
-        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          if (newState == PROCESS_NOT_FOUND) {
-            latch.countDown()
-          }
-        }
-      },
-      mockDeploymentAppService,
-      mockLogcatCaptor,
-      mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      appProcessDiscoveryTimeoutMillis = 1
-    )
-    assertThat(latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+    startMonitor()
+
+    timeoutMonitor()
+
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_NOT_FOUND)
+    verify(mockLogcatCaptor).stopCapture(same(mockDevice))
   }
 
   @Test
   fun monitorShouldWorkWithoutLogcatCaptor() {
-    val monitor = SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      mockListener,
-      mockDeploymentAppService,
-      /*logcatCaptor=*/null,
-      mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      TEST_TIMEOUT_MILLIS
-    )
+    val monitor = startMonitor(logcatCaptor = null)
+
     val mockClients = listOf(createMockClient(123))
     `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    updateMonitorState()
 
-    verify(mockListener, timeout(TEST_TIMEOUT_MILLIS)).onStateChanged(eq(monitor), eq(PROCESS_IS_RUNNING))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
 
     monitor.close()
 
-    verify(mockListener, timeout(TEST_TIMEOUT_MILLIS)).onStateChanged(eq(monitor), eq(PROCESS_FINISHED))
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_FINISHED)
   }
 
   @Test
   fun processFoundThenStopListeningAndClose() {
-    val latchForStart = CountDownLatch(1)
-    val latchForEnd = CountDownLatch(1)
+    val monitor = startMonitor()
 
-    val monitor = SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      object : SingleDeviceAndroidProcessMonitorStateListener {
-        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          if (newState == PROCESS_IS_RUNNING) {
-            latchForStart.countDown()
-          }
-        }
-      },
-      mockDeploymentAppService,
-      mockLogcatCaptor,
-      mockTextEmitter,
-      TEST_POLLING_INTERVAL_MILLIS,
-      TEST_TIMEOUT_MILLIS
-    )
+    val mockClients = listOf(createMockClient(123))
+    `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+    updateMonitorState()
 
-    val mockClient = createMockClient(123)
-    `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
-    assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+    assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
+    verify(mockLogcatCaptor).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
-    assertThat(latchForEnd.count).isEqualTo(1)
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
-
-    // Now detach the target process by close.
+    // Now replace the listener and detach the target process by replaceListenerAndClose.
+    var isListenerReplacedAndDetached = false
     monitor.replaceListenerAndClose(object : SingleDeviceAndroidProcessMonitorStateListener {
       override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-        latchForEnd.countDown()
+        isListenerReplacedAndDetached = newState == PROCESS_FINISHED
       }
     })
 
-    assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
-    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
-    verify(mockClient, atLeastOnce()).kill()
+    assertThat(isListenerReplacedAndDetached).isTrue()
+    verify(mockLogcatCaptor).stopCapture(same(mockDevice))
+    verify(mockClients[0]).kill()
   }
 
   private fun createMockClient(pid: Int): Client {

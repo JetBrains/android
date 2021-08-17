@@ -19,7 +19,6 @@ import com.android.tools.swingp.WindowPaintMethodStat;
 import org.jetbrains.org.objectweb.asm.*;
 import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
 import org.jetbrains.org.objectweb.asm.commons.Method;
-import sun.java2d.SunGraphics2D;
 
 import java.awt.*;
 import java.lang.instrument.ClassFileTransformer;

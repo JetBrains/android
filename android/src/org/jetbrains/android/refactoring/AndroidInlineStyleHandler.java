@@ -13,7 +13,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.ErrorReporter;
 import org.jetbrains.android.util.HintBasedErrorReporter;
@@ -52,10 +51,7 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
       return;
     }
     PsiElement destination;
-    if (element instanceof LazyValueResourceElementWrapper) {
-      destination = element;
-    }
-    else if (psiReference instanceof AndroidResourceReference) {
+    if (psiReference instanceof AndroidResourceReference) {
       PsiElement[] targetElements = ((AndroidResourceReference)psiReference).computeTargetElements();
       if (targetElements.length > 0) {
         destination = targetElements[0];

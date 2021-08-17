@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
-
-import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -25,11 +22,9 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
-import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -37,21 +32,18 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.utils.NullLogger;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
-import java.io.OutputStreamWriter;
 import java.util.Collections;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
+  private static final String ANDROID_PREFS_ROOT = "/android-home";
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
@@ -67,22 +59,23 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, AndroidLocation.FOLDER_AVD), new NullLogger());
+    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, "avd"), new NullLogger());
 
+    assert mAvdManager != null;
     mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
   }
 
   public void testWipeAvd() throws Exception {
     MockLog log = new MockLog();
     // Create an AVD
     AvdInfo avd = mAvdManager.createAvd(
-      mAvdFolder,
+      mFileOp.toPath(mAvdFolder),
       getName(),
       mSystemImage,
       null,
@@ -105,7 +98,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     File snapshotsDir = new File(mAvdFolder, AvdManager.SNAPSHOTS_DIRECTORY);
     String snapshotFile = snapshotsDir.getAbsolutePath() + "/aSnapShotFile.txt";
     mFileOp.recordExistingFile(snapshotFile, "Some contents for the file");
-    assertTrue("Could not create " + snapshotFile, mFileOp.exists(new File (snapshotFile)));
+    assertTrue("Could not create " + snapshotFile, mFileOp.exists(new File(snapshotFile)));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
@@ -128,95 +121,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(24, 1, 1)));
   }
 
-  public void testAddParameters() throws Exception {
-    MockLog log = new MockLog();
-
-    // Create an AVD. Let it default to Fast Boot.
-    String fastBootName = "fastBootAvd";
-    File fastBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, fastBootName, mFileOp, false);
-    AvdInfo fastBootAvd = mAvdManager.createAvd(
-      fastBootFolder,
-      fastBootName,
-      mSystemImage,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      true,
-      false,
-      log);
-
-    // Create another AVD
-    String coldBootName = "coldBootAvd";
-    File coldBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, coldBootName, mFileOp, false);
-    AvdInfo coldBootAvd = mAvdManager.createAvd(
-      coldBootFolder,
-      coldBootName,
-      mSystemImage,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      true,
-      false,
-      log);
-
-    // Modify the second AVD's config.ini file so the AVD does a cold boot
-    File coldConfigIniFile = new File(coldBootFolder, "config.ini");
-    FileOpFileWrapper configIniWrapper = new FileOpFileWrapper(coldConfigIniFile,
-                                                                     mFileOp, false);
-    Map<String, String> iniProperties = ProjectProperties.parsePropertyFile(configIniWrapper, log);
-    iniProperties.put(AVD_INI_FORCE_COLD_BOOT_MODE, "yes");
-
-    try (OutputStreamWriter iniWriter = new OutputStreamWriter(mFileOp.newFileOutputStream(coldConfigIniFile), Charsets.UTF_8)) {
-      for (Map.Entry<String, String> mapEntry : iniProperties.entrySet()) {
-        iniWriter.write(String.format("%1$s=%2$s\n", mapEntry.getKey(), mapEntry.getValue()));
-      }
-    }
-    coldBootAvd = mAvdManager.reloadAvd(coldBootAvd, log);
-
-    // Test all three AVDs using an Emulator that does not support fast boot
-    String COLD_BOOT_COMMAND = "-no-snapstorage";
-    String COLD_BOOT_ONCE_COMMAND = "-no-snapshot-load";
-    GeneralCommandLine cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false , cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    // Mark the Emulator as supporting fast boot
-    recordEmulatorSupportsFastBoot(mFileOp);
-
-    // Re-test all AVDs using an Emulator that DOES support fast boot
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, false, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, false, cmdLine);
-    assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-
-    cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, true, cmdLine);
-    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
-    assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
-  }
-
   public void testGetHardwareProperties() {
     recordEmulatorHardwareProperties(mFileOp);
     assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
@@ -226,57 +130,62 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   public void testDoesSystemImageSupportQemu2() {
     String AVD_LOCATION = "/avd";
     String SDK_LOCATION = "/sdk";
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
 
     // QEMU-1 image
     String q1Path = "system-images;android-q1;google_apis;x86";
-    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path);
+    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path, mFileOp);
     DetailsTypes.SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q1Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
-    fileOp.recordExistingFile(new File(q1Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // QEMU-2 image
     String q2Path = "system-images;android-q2;google_apis;x86";
-    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path);
+    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
-    fileOp.recordExistingFile(new File(q2Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support
-    mFileOp.recordExistingFile(q2Package.getLocation().getPath() + "/kernel-ranchu");
+    mFileOp.recordExistingFile(q2Package.getLocation().resolve("kernel-ranchu"));
 
     // QEMU-2-64 image
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
-    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path);
+    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2_64Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
-    fileOp.recordExistingFile(new File(q2_64Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    mFileOp.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support
-    mFileOp.recordExistingFile(q2_64Package.getLocation().getPath() + "/kernel-ranchu-64");
+    mFileOp.recordExistingFile(q2_64Package.getLocation().resolve("kernel-ranchu-64"));
 
     packages.setLocalPkgInfos(ImmutableList.of(q1Package, q2Package, q2_64Package));
-    FakeRepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-    ISystemImage q1Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q1Path, progress).getLocation());
-    ISystemImage q2Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q2Path, progress).getLocation());
-    ISystemImage q2_64Image = systemImageManager.getImageAt(sdkHandler.getLocalPackage(q2_64Path, progress).getLocation());
+    ISystemImage q1Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q1Path, progress)).getLocation());
+    ISystemImage q2Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2Path, progress)).getLocation());
+    ISystemImage q2_64Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(q2_64Path, progress)).getLocation());
 
-    SystemImageDescription q1ImageDescr = new SystemImageDescription(q1Image);
-    SystemImageDescription q2ImageDescr = new SystemImageDescription(q2Image);
-    SystemImageDescription q2_64ImageDescr = new SystemImageDescription(q2_64Image);
+    assert q1Image != null;
+    SystemImageDescription q1ImageDescription = new SystemImageDescription(q1Image);
+    assert q2Image != null;
+    SystemImageDescription q2ImageDescription = new SystemImageDescription(q2Image);
+    assert q2_64Image != null;
+    SystemImageDescription q2_64ImageDescription = new SystemImageDescription(q2_64Image);
 
-    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescr, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescr, mFileOp));
-    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescr, mFileOp));
+    assertFalse("Should not support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescription));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescription));
+    assertTrue("Should support QEMU2", AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescription));
   }
 
   // Note: This only tests a small part of startAvd(). We are not set up
@@ -291,10 +200,10 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.mkdirs(skinFolder);
 
     AvdInfo skinnyAvd = mAvdManager.createAvd(
-      skinnyAvdFolder,
+      mFileOp.toPath(skinnyAvdFolder),
       skinnyAvdName,
       mSystemImage,
-      skinFolder,
+      mFileOp.toPath(skinFolder),
       "skinName",
       null,
       null,
@@ -305,6 +214,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
+      assert skinnyAvd != null;
       mAvdManagerConnection.startAvd(null, skinnyAvd).get(4, TimeUnit.SECONDS);
       fail();
     }
@@ -323,8 +233,8 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertNotNull("Could not find Emulator", emulatorFile);
     File emulatorDirectory = emulatorFile.getParentFile();
     assertTrue("Found invalid Emulator", mFileOp.isDirectory(emulatorDirectory));
-    String emulatorDirectoryPath = mFileOp.getAgnosticAbsPath(emulatorDirectory);
-    assertEquals("Found wrong emulator", "/sdk/emulator", emulatorDirectoryPath);
+    String emulatorDirectoryPath = mFileOp.getPlatformSpecificPath(emulatorDirectory);
+    assertEquals("Found wrong emulator", mFileOp.getPlatformSpecificPath("/sdk/emulator"), emulatorDirectoryPath);
 
     // Remove the emulator package
     File emulatorPackage = new File("/sdk/emulator/package.xml");
@@ -332,15 +242,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
-    AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
+    AvdManagerConnection managerConnection =
+      new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();
     if (bogusEmulatorFile != null) {
       // An emulator binary was found. It should not be anything that
       // we created (especially not anything in /sdk/tools/).
       String bogusEmulatorPath = bogusEmulatorFile.getAbsolutePath();
-      assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith("/sdk"));
+      assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith(mFileOp.getPlatformSpecificPath("/sdk")));
     }
   }
 
@@ -353,7 +264,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     File skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, mFileOp, false);
 
     AvdInfo skinlessAvd = mAvdManager.createAvd(
-      skinlessAvdFolder,
+      mFileOp.toPath(skinlessAvdFolder),
       skinlessAvdName,
       mSystemImage,
       null,
@@ -367,6 +278,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
+      assert skinlessAvd != null;
       mAvdManagerConnection.startAvd(null, skinlessAvd).get(4, TimeUnit.SECONDS);
       fail();
     }
@@ -443,11 +355,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                            + "    <display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
                            + "  </localPackage>"
                            + "</ns2:repository>");
-  }
-
-  private static void recordEmulatorSupportsFastBoot(MockFileOp fop) {
-    fop.recordExistingFile("/sdk/emulator/lib/advancedFeatures.ini",
-                           "FastSnapshotV1=on\n");
   }
 
   private static void recordEmulatorHardwareProperties(MockFileOp fop) {

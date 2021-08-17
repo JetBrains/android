@@ -101,7 +101,7 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
     // Step the model once so the test data is reflected on the component.
     myTimer.step();
 
-    return ImageDiffUtil.getImageFromComponent(myContentPane);
+    return ImageDiffTestUtil.getImageFromComponent(myContentPane);
   }
 
   private void setUpBase() {

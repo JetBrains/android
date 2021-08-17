@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame.FrameThread
 
@@ -94,7 +95,12 @@ interface CpuSystemTraceData {
   fun getBufferQueueCounterValues(): List<SeriesData<Long>>
 
   /**
-   * Returns the thread id of thread matching name of the render thread.
+   * @return the thread id of thread matching name of the render thread.
    */
   fun getRenderThreadId(): Int
+
+  /**
+   * @return Android frame events organized in phases (e.g. Display, GPU) by Layer. Supported since Android R.
+   */
+  fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer>
 }

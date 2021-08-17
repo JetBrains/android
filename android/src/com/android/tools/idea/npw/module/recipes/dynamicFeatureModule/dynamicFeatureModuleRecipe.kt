@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureModel
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.npw.model.NewProjectModel
@@ -49,7 +48,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val name = moduleData.name
   val projectSimpleName = NewProjectModel.nameToJavaPackage(name)
   val packageName = moduleData.packageName
-  val agpVersion = projectData.gradlePluginVersion
   val baseFeature = moduleData.baseFeature!!
 
   val manifestXml = androidManifestXml(
@@ -60,20 +58,21 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   addIncludeToSettings(name)
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-  save(buildGradle(
-    useGradleKts,
-    false,
-    true,
-    packageName,
-    buildApi.apiString,
-    projectData.buildToolsVersion,
-    minApi.apiString,
-    targetApi.apiString,
-    useAndroidX,
-    agpVersion,
-    baseFeatureName = baseFeature.name,
-    formFactorNames = projectData.includedFormFactorNames
-  ), moduleOut.resolve(buildFile))
+  save(
+    buildGradle(
+      projectData.gradlePluginVersion,
+      useGradleKts,
+      false,
+      true,
+      packageName,
+      buildApi.apiString,
+      minApi.apiString,
+      targetApi.apiString,
+      useAndroidX,
+      baseFeatureName = baseFeature.name,
+      formFactorNames = projectData.includedFormFactorNames
+    ), moduleOut.resolve(buildFile)
+  )
 
   applyPlugin("com.android.dynamic-feature")
   addKotlinIfNeeded(projectData)
@@ -81,14 +80,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
   addTests(packageName, useAndroidX, false, testOut, unitTestOut, language)
-  addTestDependencies(agpVersion)
-
-  val supportsImprovedTestDeps = GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
-  if (supportsImprovedTestDeps) {
-    // TODO(qumeric): check if we still need it
-    /*The following addDependency is added to pass UI tests in AddDynamicFeatureTest. b/123781255*/
-    addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
-  }
+  addTestDependencies()
+  addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
 
   addDynamicFeature(moduleData.name, baseFeature.dir)
   if (isInstantModule) {

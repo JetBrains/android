@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
+package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
 import com.intellij.psi.xml.XmlFile
 
 class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {

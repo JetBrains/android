@@ -18,10 +18,9 @@ package com.android.tools.idea.sdk.install.patch;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Common interface for the different patch {@link PackageOperation}s.
@@ -47,7 +46,7 @@ interface PatchOperation extends PackageOperation {
    * The location of the files representing the result of the patch that will be generated.
    */
   @NotNull
-  File getNewFilesRoot();
+  Path getNewFilesRoot();
 
   /**
    * The name to show for the new version.

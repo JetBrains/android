@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
@@ -30,114 +38,130 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
 import kotlin.math.abs
 
+private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+
 class DeviceViewPanelModelTest {
+
   @Test
   fun testFlatRects() {
-    val expectedTransforms = mutableListOf(
-      ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
+    val expectedTransforms = mapOf(
+      ROOT to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW1 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
 
     checkRects(expectedTransforms, 0.0, 0.0)
   }
 
+  @Test
+  fun testFlatRectsWithHiddenSystemNodes() {
+    val expectedTransforms = mapOf(
+      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0),
+      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0))
+
+    checkRects(expectedTransforms, 0.0, 0.0, hideSystemNodes = true)
+  }
 
   @Test
   fun test1dRects() {
-    val expectedTransforms = mutableListOf(
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      ComparingTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0))
+    val expectedTransforms = mapOf(
+      ROOT to ComparingTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
+      VIEW1 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
+      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0),
+      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
 
     checkRects(expectedTransforms, 0.1, 0.0)
   }
 
   @Test
+  fun test1dRectsWithHiddenSystemNodes() {
+    val expectedTransforms = mapOf(
+      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0),
+      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0))
+
+    checkRects(expectedTransforms, 0.1, 0.0, hideSystemNodes = true)
+  }
+
+  @Test
   fun test2dRects() {
-    val expectedTransforms = mutableListOf(
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      ComparingTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
+    val expectedTransforms = mapOf(
+      ROOT to ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
+      VIEW1 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+      VIEW2 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+      VIEW3 to ComparingTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
 
     checkRects(expectedTransforms, 0.1, 0.2)
   }
 
   @Test
   fun testOverlappingRects() {
-    val rects = listOf(
-      Rectangle(0, 0, 100, 100),
-      Rectangle(0, 0, 100, 50),
-      Rectangle(0, 50, 100, 50),
-      Rectangle(0, 0, 100, 50),
-      Rectangle(0, 0, 100, 50),
-      Rectangle(40, 40, 20, 20))
+    val rectMap = mapOf(
+      ROOT to Rectangle(0, 0, 100, 100),
+      VIEW1 to Rectangle(0, 0, 100, 50),
+      VIEW2 to Rectangle(0, 0, 100, 50),
+      VIEW3 to Rectangle(0, 50, 100, 50),
+      VIEW4 to Rectangle(40, 40, 20, 20))
 
     val model = model {
-      view(ROOT, rects[0]) {
-        view(VIEW1, rects[1]) {
-          view(VIEW2, rects[3]) {
+      view(ROOT, rectMap[ROOT]) {
+        view(VIEW1, rectMap[VIEW1]) {
+          view(VIEW2, rectMap[VIEW2]) {
             image()
           }
         }
-        view(VIEW3, rects[2])
-        view(VIEW4, rects[5])
+        view(VIEW3, rectMap[VIEW3])
+        view(VIEW4, rectMap[VIEW4])
       }
     }
 
-    val expectedTransforms = mutableListOf(
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
+    val expectedTransforms = mapOf(
+      ROOT to ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
+      VIEW1 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW2 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
+      VIEW3 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW4 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
     )
 
-    checkModel(model, 0.5, 0.0, expectedTransforms, rects)
+    checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
   }
 
   @Test
   fun testOverlappingRects2() {
-    val rects = listOf(
-      Rectangle(0, 0, 100, 100),
-      Rectangle(0, 0, 100, 100),
-      Rectangle(0, 0, 10, 10),
-      Rectangle(0, 0, 10, 10),
-      Rectangle(0, 0, 100, 100),
-      Rectangle(40, 40, 20, 20))
+    val rectMap = mapOf(
+      ROOT to Rectangle(0, 0, 100, 100),
+      VIEW1 to Rectangle(0, 0, 100, 100),
+      VIEW2 to Rectangle(0, 0, 10, 10),
+      VIEW3 to Rectangle(0, 0, 100, 100),
+      VIEW4 to Rectangle(40, 40, 20, 20))
 
     val model = model {
-      view(ROOT, rects[0]) {
-        view(VIEW1, rects[1]) {
-          view(VIEW2, rects[2]) {
+      view(ROOT, rectMap[ROOT]) {
+        view(VIEW1, rectMap[VIEW1]) {
+          view(VIEW2, rectMap[VIEW2]) {
             image()
           }
         }
-        view(VIEW3, rects[4]) {
-          view(VIEW4, rects[5])
+        view(VIEW3, rectMap[VIEW3]) {
+          view(VIEW4, rectMap[VIEW4])
         }
       }
     }
 
-    val expectedTransforms = mutableListOf(
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.699, -50.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, 106.699, -50.0)
+    val expectedTransforms = mapOf(
+      ROOT to ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
+      VIEW1 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      VIEW2 to ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
+      VIEW3 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.699, -50.0),
+      VIEW4 to ComparingTransform(0.866, 0.0, 0.0, 1.0, 106.699, -50.0)
     )
 
-    checkModel(model, 0.5, 0.0, expectedTransforms, rects)
-
+    checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
   }
 
   @Test
@@ -149,8 +173,9 @@ class DeviceViewPanelModelTest {
         }
       }
     }
-
-    val panelModel = DeviceViewPanelModel(model)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(0.1, 0.2)
     assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
                  panelModel.hitRects[0].transform)
@@ -163,40 +188,30 @@ class DeviceViewPanelModelTest {
   @Test
   fun testSwitchDevices() {
     val model = model {
-      view(ROOT) {
-        image()
-        view(VIEW1) {
-          image()
-        }
-      }
+      view(ROOT)
     }
+    val treeSettings = FakeTreeSettings()
+    val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(capabilities)
 
-    val panelModel = DeviceViewPanelModel(model)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
     // Switch to a new model
-    val model2 =
-      view(VIEW3) {
-        image()
-        view(VIEW1) {
-          image()
-        }
-      }
+    val model2 = view(VIEW3)
 
-    model.update(AndroidWindow(model2, VIEW3), listOf(VIEW3), 0)
+    model.update(FakeAndroidWindow(model2, VIEW3), listOf(VIEW3), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isTrue()
 
-    // Now switch to a legacy model with only an image on the root
-    val legacyModel =
-      view(VIEW2) {
-        image()
-        view(VIEW1)
-      }
+    capabilities.clear()
+    // Update the view so the listener is fired
+    val legacyModel = view(VIEW2)
 
-    model.update(AndroidWindow(legacyModel, VIEW2), listOf(VIEW2), 0)
+    model.update(FakeAndroidWindow(legacyModel, VIEW2), listOf(VIEW2), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isFalse()
@@ -213,7 +228,8 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 50, 50, 20, 20)
       }
     }
-    var panelModel = DeviceViewPanelModel(model)
+    val treeSettings = FakeTreeSettings()
+    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
     assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
@@ -227,45 +243,51 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = DeviceViewPanelModel(model)
+    panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
   }
 
-  private fun checkRects(expectedTransforms: MutableList<ComparingTransform>, xOff: Double, yOff: Double) {
-    val rects = listOf(
-      Rectangle(0, 0, 100, 200),
-      Rectangle(0, 0, 50, 60),
-      Rectangle(60, 70, 10, 10),
-      Rectangle(10, 20, 30, 40))
+  private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
+    val rectMap = mapOf(
+      ROOT to Rectangle(0, 0, 100, 200),
+      VIEW1 to Rectangle(0, 0, 50, 60),
+      VIEW2 to Rectangle(60, 70, 10, 10),
+      VIEW3 to Rectangle(10, 20, 30, 40))
 
+    @Suppress("MapGetWithNotNullAssertionOperator")
     val model = model {
-      view(ROOT, rects[0]) {
-        view(VIEW1, rects[1]) {
-          view(VIEW3, rects[3]) {
+      view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP, layout = null) {
+        view(VIEW1, rectMap[VIEW1]!!, layout = null) {
+          view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) {
             image()
           }
         }
-        view(VIEW2, rects[2])
+        view(VIEW2, rectMap[VIEW2]!!, layout = activityMain)
       }
     }
 
-    checkModel(model, xOff, yOff, expectedTransforms.plus(expectedTransforms.last()), rects)
+    checkModel(model, xOff, yOff, expectedTransforms, rectMap, hideSystemNodes)
   }
 
-  private fun checkModel(model: InspectorModel,
-                         xOff: Double,
-                         yOff: Double,
-                         expectedTransforms: List<ComparingTransform>,
-                         rects: List<Rectangle>) {
-    val panelModel = DeviceViewPanelModel(model)
+  private fun checkModel(
+    model: InspectorModel,
+    xOff: Double,
+    yOff: Double,
+    expectedTransforms: Map<Long, ComparingTransform>,
+    rectMap: Map<Long, Rectangle>,
+    hideSystemNodes: Boolean = false
+  ) {
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = hideSystemNodes
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(xOff, yOff)
 
-    val actualTransforms = panelModel.hitRects.map { it.transform }
+    val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
     assertEquals(expectedTransforms, actualTransforms)
 
-    val transformedRects = rects.zip(actualTransforms) { rect, transform -> transform.createTransformedShape(rect) }
-    val zip = transformedRects.zip(panelModel.hitRects.map { it.bounds })
-    zip.forEach { (expected, actual) -> assertPathEqual(expected, actual) }
+    panelModel.hitRects.associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }.forEach { (drawId, info) ->
+      assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
+    }
   }
 
   private fun assertPathEqual(expected: Shape, actual: Shape) {

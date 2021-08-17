@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.designer.overlays;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -35,7 +35,7 @@ public final class OverlayPersistentStateService implements PersistentStateCompo
 
 
   public static OverlayPersistentStateService getInstance() {
-    return ServiceManager.getService(OverlayPersistentStateService.class);
+    return ApplicationManager.getApplication().getService(OverlayPersistentStateService.class);
   }
 
   public void addOverlayData(@NotNull OverlayEntry overlayEntry, @NotNull String name) {

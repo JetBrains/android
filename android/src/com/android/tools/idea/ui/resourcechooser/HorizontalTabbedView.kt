@@ -28,15 +28,18 @@ import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Insets
 import java.lang.IllegalArgumentException
+import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
+import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 
 class HorizontalTabbedPanelBuilder {
 
   private val componentsToBuild = mutableMapOf<String, JComponent>()
   private var defaultPage = 0
+  private val actionMap = mutableMapOf<KeyStroke, Action>()
 
   /**
    * Used to add a tab component with the tab label name.
@@ -55,6 +58,8 @@ class HorizontalTabbedPanelBuilder {
   fun setDefaultPage(page: Int) = apply {
     defaultPage = page
   }
+
+  fun addKeyAction(keyStroke: KeyStroke, action: Action) = apply { actionMap[keyStroke] = action }
 
   fun build(): JComponent {
     if (componentsToBuild.isEmpty()) {
@@ -76,6 +81,13 @@ class HorizontalTabbedPanelBuilder {
     // Make the tab size match the ui.
     tabbedPane.updateUI()
     tabbedPane.requestFocusInWindow()
+
+    actionMap.forEach { (keyStroke, action) ->
+      val key = keyStroke.toString()
+      tabbedPane.actionMap.put(key, action)
+      tabbedPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(keyStroke, key)
+    }
+
     return tabbedPane
   }
 

@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.util
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Segment
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -65,15 +65,17 @@ fun modelAffinity(e0: PreviewElement?, e1: PreviewElement): Int {
   }
 }
 
-internal fun modelAffinity(dataContext: DataContext, element: PreviewElementInstance): Int {
-  val modelPreviewElement = dataContext.getData(COMPOSE_PREVIEW_ELEMENT)
-                            ?: return  3 // There is no PreviewElement associated to this method
+internal fun modelAffinity(model: NlModel, element: PreviewElementInstance): Int {
+  val modelPreviewElement = if (!Disposer.isDisposed(model)) {
+    model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT)
+  } else null
 
-  return modelAffinity(modelPreviewElement, element)
+  // If modelPreviewElement is null, There is no PreviewElement associated to this method
+  return modelAffinity(modelPreviewElement ?: return 3, element)
 }
 
 private fun calcAffinityMatrix(models: List<NlModel>, elements: List<PreviewElementInstance>) =
-  elements.map { element -> models.map { modelAffinity(it.dataContext, element) } }
+  elements.map { element -> models.map { modelAffinity(it, element) } }
 
 /**
  * Matches [PreviewElementInstance]s with the most similar [NlModel]s. For a [List] of [PreviewElementInstance] ([elements]) returns a

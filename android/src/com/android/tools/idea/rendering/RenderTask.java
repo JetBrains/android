@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.CLASS_COMPOSE_INSPECTABLE;
-import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
+import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQNS;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.SdkConstants;
@@ -44,6 +43,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
+import com.android.tools.compose.ComposeLibraryNamespace;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
@@ -53,6 +53,7 @@ import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -77,10 +78,12 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -88,7 +91,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -100,10 +102,11 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.ModuleClassLoaderPreloaderKt;
+import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -153,7 +156,7 @@ public class RenderTask {
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
-  @NotNull private final RenderTaskContext myContext;
+  @NotNull private final RenderContext myContext;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -166,6 +169,7 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
   private boolean myEnableLayoutScanner = false;
+  private boolean myEnableLayoutScannerOptimization = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
@@ -185,10 +189,10 @@ public class RenderTask {
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
-   *
-   * @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
+   *  @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                           during rendering at the expense of quality. 1 means that downscaling is disabled.
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
+   * @param onNewModuleClassLoader
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -205,8 +209,10 @@ public class RenderTask {
              @NotNull StackTraceCapture stackTraceCaptureElement,
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
              boolean privateClassLoader,
-             @NotNull Function<ClassVisitor, ClassVisitor> additionalProjectTransform,
-             @NotNull Function<ClassVisitor, ClassVisitor> additionalNonProjectTransform) {
+             @NotNull ClassTransform additionalProjectTransform,
+             @NotNull ClassTransform additionalNonProjectTransform,
+             @NotNull Runnable onNewModuleClassLoader,
+             @NotNull Collection<String> classesToPreload) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -229,14 +235,26 @@ public class RenderTask {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
     ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module, () -> {
+      RenderTask task = xmlFileProvider.get();
+      return task != null ? task.getXmlFile() : null;
+    });
     if (privateClassLoader) {
       myModuleClassLoader = manager.getPrivate(
         myLayoutLib.getClassLoader(),
-        module,
+        moduleRenderContext,
         this, additionalProjectTransform, additionalNonProjectTransform);
+      onNewModuleClassLoader.run();
     } else {
-      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(), module, this);
+      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(),
+                                              moduleRenderContext,
+                                              this,
+                                              additionalProjectTransform,
+                                              additionalNonProjectTransform,
+                                              onNewModuleClassLoader);
     }
+    ModuleClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -246,11 +264,10 @@ public class RenderTask {
       }
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
       myLocale = configuration.getLocale();
-      myContext = new RenderTaskContext(module.getProject(),
-                                        module,
-                                        configuration,
-                                        moduleInfo,
-                                        renderService.getPlatform(facet));
+      myContext = new RenderContext(module,
+                                    configuration,
+                                    moduleInfo,
+                                    renderService.getPlatform(facet));
       myDefaultQuality = quality;
       restoreDefaultQuality();
       myManifestProvider = manifestProvider;
@@ -346,25 +363,6 @@ public class RenderTask {
     }
     catch (Throwable t) {
       LOG.debug(t);
-    }
-  }
-
-  // Workaround for http://b/155861985
-  private void clearComposeTables() {
-    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
-      // If Compose has not been loaded, we do not need to care about disposing it
-      return;
-    }
-
-    try {
-      Class<?> inspectableKt = myLayoutlibCallback.findClass(CLASS_COMPOSE_INSPECTABLE);
-      Field tablesField = inspectableKt.getDeclaredField("tables");
-      tablesField.setAccessible(true);
-      Set<?> tables = (Set<?>)tablesField.get(null);
-      tables.clear();
-    }
-    catch (Throwable e) {
-      // The tables field does not exist anymore in dev11
     }
   }
 
@@ -538,6 +536,11 @@ public class RenderTask {
     return this;
   }
 
+  public RenderTask setEnableLayoutScannerOptimization(boolean enableLayoutScannerOptimization) {
+    myEnableLayoutScannerOptimization = enableLayoutScannerOptimization;
+    return this;
+  }
+
   /**
    * Sets whether the rendering should use 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes.
    * <p>
@@ -564,7 +567,7 @@ public class RenderTask {
    */
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = context.getModule();
     if (module.isDisposed()) {
       return null;
@@ -624,6 +627,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
+    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_OPTIMIZATION, myEnableLayoutScannerOptimization);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -861,6 +865,7 @@ public class RenderTask {
       return CompletableFuture.completedFuture(null);
     }
 
+    long startInflateTimeMs = System.currentTimeMillis();
     // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
     // That's why, for inflating, we allow a more generous timeout than for rendering.
     return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
@@ -870,13 +875,30 @@ public class RenderTask {
 
       return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
-      .whenComplete((result, ex) -> {
+      .handle((result, ex) -> {
         if (ex != null) {
           String message = ex.getMessage();
           if (message == null) {
             message = ex.toString();
           }
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
+        }
+
+        if (result != null) {
+          return result.createWithStats(
+            new RenderResultStats(
+              System.currentTimeMillis() - startInflateTimeMs,
+              -1,
+              myModuleClassLoader.getStats()));
+        }
+        else {
+          if (xmlFile.isValid()) {
+            return RenderResult.createRenderTaskErrorResult(xmlFile, ex);
+          }
+          else {
+            LOG.warn("Invalid file " + xmlFile);
+            return null;
+          }
         }
       });
   }
@@ -907,14 +929,15 @@ public class RenderTask {
   }
 
   /**
-   * Triggers execution of the Handler and frame callbacks in layoutlib
+   * Triggers execution of the Handler and frame callbacks in layoutlib.
    *
-   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
+   * @return a {@link ExecuteCallbacksResult} future that is completed when callbacks are executed that is true if there are more callbacks
+   * to execute.
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks(long timeNanos) {
     if (myRenderSession == null) {
-      return CompletableFuture.completedFuture(false);
+      return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
     }
 
     // Execute the callbacks with a 500ms timeout for all of them to run. Callbacks should not take a long time to execute, if they do,
@@ -922,7 +945,9 @@ public class RenderTask {
     // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
-      return myRenderSession.executeCallbacks(timeNanos);
+      long start = System.currentTimeMillis();
+      boolean hasMoreCallbacks = myRenderSession.executeCallbacks(timeNanos);
+      return ExecuteCallbacksResult.create(hasMoreCallbacks, System.currentTimeMillis() - start);
     }, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -930,21 +955,22 @@ public class RenderTask {
    * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
    * detected of a particular type at a particular point.
    *
-   * @param touchEventType type of a touch event
-   * @param x              horizontal android coordinate of the detected touch event
-   * @param y              vertical android coordinate of the detected touch event
-   * @return a future that is completed when layoutlib handled the touch event
+   * @param touchEventType type of a touch event.
+   * @param x              horizontal android coordinate of the detected touch event.
+   * @param y              vertical android coordinate of the detected touch event.
+   * @return a {@link TouchEventResult} future that is completed when layoutlib handled the touch event.
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
+  public CompletableFuture<TouchEventResult> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
+      long start = System.currentTimeMillis();
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
-      return null;
+      return TouchEventResult.create(System.currentTimeMillis() - start);
     });
   }
 
@@ -987,8 +1013,9 @@ public class RenderTask {
       inflateCompletableResult = CompletableFuture.completedFuture(null);
     }
 
-    return inflateCompletableResult.thenCompose(ignored -> {
+    return inflateCompletableResult.thenCompose(inflateResult -> {
       try {
+        long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
@@ -999,10 +1026,15 @@ public class RenderTask {
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
           return result;
-        }).whenComplete((result, ex) -> {
-          clearComposeTables();
+        }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
+          return result.createWithStats(new RenderResultStats(
+            inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
+            System.currentTimeMillis() - startRenderTimeMs,
+            myModuleClassLoader.getStats().getClassesFound(),
+            myModuleClassLoader.getStats().getAccumulatedFindTimeMs(),
+            myModuleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
         });
       }
       catch (Exception e) {
@@ -1085,7 +1117,7 @@ public class RenderTask {
   public CompletableFuture<BufferedImage> renderDrawable(@NotNull ResourceValue drawableResourceValue) {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = getContext().getModule();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
@@ -1136,7 +1168,7 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     Module module = context.getModule();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
@@ -1262,7 +1294,7 @@ public class RenderTask {
 
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
-    RenderTaskContext context = getContext();
+    RenderContext context = getContext();
     ResourceResolver resolver = context.getConfiguration().getResourceResolver();
 
     myLayoutlibCallback.reset();
@@ -1309,7 +1341,7 @@ public class RenderTask {
    * Returns the context used in this render task. The context includes things like platform information, file or module.
    */
   @NotNull
-  public RenderTaskContext getContext() {
+  public RenderContext getContext() {
     return myContext;
   }
 
@@ -1342,15 +1374,23 @@ public class RenderTask {
    */
   private void disposeRenderSession(@NotNull RenderSession renderSession) {
     Optional<Method> disposeMethod = Optional.empty();
-    try {
-      if (myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
-        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
-        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
-        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+    if (myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE.getComposableAdapterName()) ||
+        myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.getComposableAdapterName())) {
+      for (String composeViewAdapterName: COMPOSE_VIEW_ADAPTER_FQNS) {
+        try {
+          Class<?> composeViewAdapter = myLayoutlibCallback.findClass(composeViewAdapterName);
+          // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
+          disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+          break;
+        }
+        catch (ClassNotFoundException ex) {
+          LOG.debug(composeViewAdapterName + " class not found", ex);
+        }
       }
-    }
-    catch (ClassNotFoundException ex) {
-      LOG.warn(CLASS_COMPOSE_VIEW_ADAPTER + " class not found", ex);
+
+      if (!disposeMethod.isPresent()) {
+        LOG.warn("Unable to find dispose method in ComposeViewAdapter");
+      }
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
@@ -1373,7 +1413,8 @@ public class RenderTask {
    */
   private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
     Object viewObject = viewInfo.getViewObject();
-    if (viewObject == null || !viewObject.getClass().getName().equals(CLASS_COMPOSE_VIEW_ADAPTER)) {
+    if (viewObject == null ||
+        !COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObject.getClass().getName())) {
       return;
     }
     try {

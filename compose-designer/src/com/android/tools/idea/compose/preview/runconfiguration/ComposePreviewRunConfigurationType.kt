@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.configurations.SimpleConfigurationType
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
@@ -30,7 +29,7 @@ class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePrevi
                                                                      StudioIcons.Compose.Toolbar.RUN_CONFIGURATION
                                                                    }) {
   init {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
+    if (!isComposeRunConfigurationEnabled()) {
       throw ExtensionNotApplicableException.INSTANCE
     }
   }

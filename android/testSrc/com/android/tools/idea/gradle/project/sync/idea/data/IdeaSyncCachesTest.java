@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
 public class IdeaSyncCachesTest extends AndroidGradleTestCase {
   private IdeaSyncCachesInvalidator myInvalidator;
@@ -88,6 +89,10 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
               return file;
             });
     });
+    // In order to ensure that future tests don't fail due to Gradle maintaining state we stop the daemons before deleting the
+    // library files.
+    //noinspection UnstableApiUsage
+    GradleDaemonServices.stopDaemons();
     deleteLibraryFilesFromGradleCache(lifecycleLiveDataLibraryPaths);
     openPreparedProject(this, "project", project -> {
       assertEquals(ProjectSystemSyncManager.SyncResult.SUCCESS,

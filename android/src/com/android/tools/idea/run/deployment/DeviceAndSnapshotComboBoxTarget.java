@@ -15,24 +15,38 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
-  @NotNull
-  private final Collection<Device> myDevices;
+  private final @NotNull SelectedTargetSupplier myGetSelectedTargets;
+  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
 
-  DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
-    myDevices = devices;
+  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets) {
+    this(getSelectedTargets, DeviceAndSnapshotComboBoxAction::getInstance);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets,
+                                  @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
+    myGetSelectedTargets = getSelectedTargets;
+    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
   }
 
   @Override
@@ -51,10 +65,31 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   @NotNull
   @Override
   public DeviceFutures getDevices(@NotNull AndroidFacet facet) {
-    DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    myDevices.forEach(device -> device.addTo(futures, project));
+    List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
+    Set<Target> selectedTargets = myGetSelectedTargets.get(project, devices);
+    Collection<Device> selectedDevices = Target.filterDevices(selectedTargets, devices);
 
-    return futures;
+    bootAvailableDevices(selectedTargets, selectedDevices, project);
+    return newDeviceFutures(selectedDevices);
+  }
+
+  private static void bootAvailableDevices(@NotNull Collection<@NotNull Target> selectedTargets,
+                                           @NotNull Collection<@NotNull Device> selectedDevices,
+                                           @NotNull Project project) {
+    Map<Key, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
+
+    selectedDevices.stream()
+      .filter(device -> !device.isConnected())
+      .map(VirtualDevice.class::cast)
+      .forEach(virtualDevice -> map.get(virtualDevice.getKey()).boot(virtualDevice, project));
+  }
+
+  private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<@NotNull Device> selectedDevices) {
+    List<AndroidDevice> devices = selectedDevices.stream()
+      .map(Device::getAndroidDevice)
+      .collect(Collectors.toList());
+
+    return new DeviceFutures(devices);
   }
 }

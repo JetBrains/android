@@ -16,7 +16,6 @@
 package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryApplicationDebuggableFromManifestIndex;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
@@ -109,7 +108,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       String applicationId = androidModel.getApplicationId();
-      if (!UNINITIALIZED_APPLICATION_ID.equals(applicationId)) {
+      if (!AndroidModel.UNINITIALIZED_APPLICATION_ID.equals(applicationId)) {
         return applicationId;
       }
     }

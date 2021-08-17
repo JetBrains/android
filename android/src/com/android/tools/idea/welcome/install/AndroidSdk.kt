@@ -30,8 +30,7 @@ class AndroidSdk(installUpdates: Boolean) : InstallableComponent(
     The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your apps.
     The setup wizard will update your current Android SDK installation (if necessary) or install a new version.
   """.trimIndent(),
-  installUpdates,
-  FileOpUtils.create()) {
+  installUpdates) {
   /**
    * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lang.databinding
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
-import java.io.File
+import java.nio.file.Files
 
 object LangDataBindingTestData {
   const val PROJECT_WITH_DATA_BINDING_SUPPORT = "projects/projectWithDataBindingSupport"
@@ -25,6 +25,6 @@ object LangDataBindingTestData {
 }
 
 fun getTestDataPath(): String {
-  val adtPath = TestUtils.getWorkspaceFile("tools/adt/idea/android-lang-databinding/testData").path
-  return if (File(adtPath).exists()) adtPath else PathManagerEx.findFileUnderCommunityHome("android/android-lang-databinding/testData").path
+  val adtPath = resolveWorkspacePath("tools/adt/idea/android-lang-databinding/testData")
+  return if (Files.exists(adtPath)) adtPath.toString() else PathManagerEx.findFileUnderCommunityHome("plugins/android").path
 }

@@ -16,10 +16,10 @@
 package google.simpleapplication
 
 import androidx.compose.runtime.Composable
-import androidx.ui.tooling.preview.Preview
-import androidx.ui.tooling.preview.PreviewParameter
-import androidx.ui.tooling.preview.PreviewParameterProvider
-import androidx.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 
 /**
  * Simple provider to test instantiation and default parameters.

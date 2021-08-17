@@ -54,17 +54,17 @@ import com.android.resources.UiMode
 import com.android.resources.WideGamutColor
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Configuration
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ResourceConfiguration
+import com.android.tools.idea.layoutinspector.resource.data.Configuration
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
 
 /**
- * Load theme, version, and [FolderConfiguration] from a [ResourceConfiguration] usually received from a device.
+ * Load theme, version, and [FolderConfiguration] from a [AppContext] usually received from a device.
  */
-class ConfigurationLoader(resources: ResourceConfiguration, stringTable: StringTable) {
-  val packageName = stringTable[resources.appPackageName]
-  val theme = stringTable[resources.theme]
-  val folderConfiguration = loadFolderConfiguration(resources.configuration, resources.apiLevel)
-  val version = AndroidVersion(resources.apiLevel, stringTable[resources.apiCodeName])
+class ConfigurationLoader(appContext: AppContext, stringTable: StringTable) {
+  val packageName = stringTable[appContext.appPackageName]
+  val theme = appContext.theme.createReference(stringTable)
+  val folderConfiguration = loadFolderConfiguration(appContext.configuration, appContext.apiLevel)
+  val version = AndroidVersion(appContext.apiLevel, stringTable[appContext.apiCodeName])
 
   private fun loadFolderConfiguration(configuration: Configuration, apiLevel: Int): FolderConfiguration {
     val config = FolderConfiguration()

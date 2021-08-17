@@ -224,12 +224,12 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myFragmentData = new DefaultDataSeries<>();
       myActivityComponent = new ActivityComponent(new LifecycleEventModel(new RangedSeries<>(myXRange, myActivityData),
                                                                           new RangedSeries<>(myXRange, myFragmentData)));
-      myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
+      myActivityComponent.setFont(ImageDiffTestUtil.getDefaultFont());
       myContentPane.add(myActivityComponent, BorderLayout.CENTER);
     }
 
     protected void setUpActivityComponent(int contentPaneHeight) {
-      myActivityComponent.setFont(ImageDiffUtil.getDefaultFont());
+      myActivityComponent.setFont(ImageDiffTestUtil.getDefaultFont());
       Dimension contentPaneDimension = new Dimension(myContentPane.getWidth(), contentPaneHeight);
       myContentPane.setSize(contentPaneDimension);
       myContentPane.setPreferredSize(contentPaneDimension);

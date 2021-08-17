@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -68,16 +66,16 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   @Nullable private String myCurrentLicense;
 
   // Licenses accepted by the user.
-  private Map<String, Boolean> myAcceptances = Maps.newHashMap();
+  private final Map<String, Boolean> myAcceptances = Maps.newHashMap();
 
   // Only licenses that have not been accepted in the past by the user are displayed.
-  private Set<String> myVisibleLicenses = new HashSet<String>();
+  private final Set<String> myVisibleLicenses = new HashSet<String>();
 
   // All package paths that will get installed.
-  private List<RemotePackage> myInstallRequests;
+  private final List<RemotePackage> myInstallRequests;
 
   // True when all the visible licenses have been accepted.
-  private BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
+  private final BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
   public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
     super(model, "License Agreement");
@@ -121,31 +119,28 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private TreeSelectionListener createTreeSelectionListener() {
-    return new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        DefaultMutableTreeNode selected = (DefaultMutableTreeNode)myChangeTree.getLastSelectedPathComponent();
-        if (selected != null && selected.isRoot()) {
-          return;
-        }
-        if (selected != null && !selected.isLeaf()) {
-          License license = (License)selected.getUserObject();
-          myLicenseTextField.setText(license.getValue());
-          myCurrentLicense = license.getId();
-        }
-        else if (selected != null && !selected.isRoot()) {
-          Change change = (Change)selected.getUserObject();
-          myLicenseTextField.setText(change.license.getValue());
-          myCurrentLicense = change.license.getId();
-        }
-        if (myAcceptances.get(myCurrentLicense)) {
-          myAcceptRadioButton.setSelected(true);
-        }
-        else {
-          myDeclineRadioButton.setSelected(true);
-        }
-        myLicenseTextField.setCaretPosition(0);
+    return e -> {
+      DefaultMutableTreeNode selected = (DefaultMutableTreeNode)myChangeTree.getLastSelectedPathComponent();
+      if (selected != null && selected.isRoot()) {
+        return;
       }
+      if (selected != null && !selected.isLeaf()) {
+        License license = (License)selected.getUserObject();
+        myLicenseTextField.setText(license.getValue());
+        myCurrentLicense = license.getId();
+      }
+      else if (selected != null && !selected.isRoot()) {
+        Change change = (Change)selected.getUserObject();
+        myLicenseTextField.setText(change.license.getValue());
+        myCurrentLicense = change.license.getId();
+      }
+      if (myAcceptances.get(myCurrentLicense)) {
+        myAcceptRadioButton.setSelected(true);
+      }
+      else {
+        myDeclineRadioButton.setSelected(true);
+      }
+      myLicenseTextField.setCaretPosition(0);
     };
   }
 
@@ -275,7 +270,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().getSdkRoot().getValue(), FileOpUtils.create())) {
+          if (!license.checkAccepted(getModel().getSdkRoot().getValue().toPath())) {
             toReturn.add(new Change(p, license));
           }
         }

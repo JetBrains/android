@@ -13,48 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.metrics
 
-import com.android.testutils.MockitoKt
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
-import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.InspectorClientProvider
+import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.LegacyClientProvider
+import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import java.util.concurrent.TimeUnit
 
-class LegacyMetricsTest {
+class LegacyInspectorMetricsTest {
+
+  private val windowIds = mutableListOf<String>()
+  private val legacyClientProvider = object : InspectorClientProvider {
+    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+      val loader = Mockito.mock(LegacyTreeLoader::class.java)
+      Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
+      return LegacyClientProvider(loader).create(params, inspector) as LegacyClient
+    }
+  }
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice()
+  val inspectorRule = LayoutInspectorRule(legacyClientProvider)
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
-  fun testAttachSuccessViaSelectProcess() {
-    val client = inspectorRule.inspectorClient as LegacyClient
-    val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any(), MockitoKt.eq(client))).thenReturn(listOf("window1", "window2", "window3"))
-    client.treeLoader = loader
-
-    val event = Mockito.mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    Mockito.`when`(event.presentation).thenReturn(presentation)
-
-    val menuAction = SelectProcessAction(inspectorRule.inspector)
-    val connectAction = findFirstConnectAction(menuAction, DEFAULT_PROCESS.name)
-    connectAction.connect().get()
+  fun testAttachSuccessAfterProcessConnected() {
+    windowIds.addAll(listOf("window1", "window2", "window3"))
+    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -62,9 +63,9 @@ class LegacyMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("123488"), deviceInfo.anonymizedSerialNumber)
-    Assert.assertEquals("My Legacy Model", deviceInfo.model)
-    Assert.assertEquals("Google", deviceInfo.manufacturer)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial), deviceInfo.anonymizedSerialNumber)
+    Assert.assertEquals(LEGACY_DEVICE.model, deviceInfo.model)
+    Assert.assertEquals(LEGACY_DEVICE.manufacturer, deviceInfo.manufacturer)
     Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
 
     val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
@@ -77,14 +78,9 @@ class LegacyMetricsTest {
   }
 
   @Test
-  fun testAttachFailViaSelectProcess() {
-    val event = Mockito.mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    Mockito.`when`(event.presentation).thenReturn(presentation)
-
-    val menuAction = SelectProcessAction(inspectorRule.inspector)
-    val connectAction = findFirstConnectAction(menuAction, DEFAULT_PROCESS.name)
-    connectAction.connect().get()
+  fun testAttachFailAfterProcessConnected() {
+    Assert.assertTrue(windowIds.isEmpty()) // No window IDs will cause attaching to fail
+    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -92,9 +88,9 @@ class LegacyMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("123488"), deviceInfo.anonymizedSerialNumber)
-    Assert.assertEquals("My Legacy Model", deviceInfo.model)
-    Assert.assertEquals("Google", deviceInfo.manufacturer)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial), deviceInfo.anonymizedSerialNumber)
+    Assert.assertEquals(LEGACY_DEVICE.model, deviceInfo.model)
+    Assert.assertEquals(LEGACY_DEVICE.manufacturer, deviceInfo.manufacturer)
     Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
 
     val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
@@ -104,64 +100,5 @@ class LegacyMetricsTest {
     Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
     Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE, studioEvent.dynamicLayoutInspectorEvent.type)
     Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
-  }
-
-  private fun findFirstConnectAction(selectProcessAction: SelectProcessAction, withProcessName: String): SelectProcessAction.ConnectAction {
-    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    return selectProcessAction.getChildren(null)
-             .asSequence()
-             .filterIsInstance<SelectProcessAction.DeviceAction>()
-             .flatMap { it.getChildren(null).asSequence() }
-             .filterIsInstance<SelectProcessAction.ConnectAction>()
-             .find { it.process.name == withProcessName } ?: error("Process not found")
-  }
-}
-
-class LegacyMetricsTest2 {
-  @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient()
-
-  @get:Rule
-  val usageTrackerRule = MetricsTrackerRule()
-
-  @Test
-  fun testAttachOnLaunchWithDelay() {
-    val client = inspectorRule.inspectorClient as LegacyClient
-    val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any(), MockitoKt.eq(client))).thenReturn(listOf("window1", "window2", "window3"))
-    client.treeLoader = loader
-
-    val preferredProcess = LayoutInspectorPreferredProcess(LEGACY_DEVICE.manufacturer, LEGACY_DEVICE.model, LEGACY_DEVICE.serial,
-                                                           DEFAULT_PROCESS.name, LEGACY_DEVICE.featureLevel)
-    client.attachIfSupported(preferredProcess)!!.get()
-    inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
-
-    var usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    // The process hasn't started on the device yet, so we haven't logged anything yet.
-    Assert.assertEquals(0, usages.size)
-
-    inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
-    usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    // Still nothing
-    Assert.assertEquals(0, usages.size)
-
-    // Now start the process
-    inspectorRule.addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
-    Thread.sleep(3000)
-    inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
-    usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    // We should have the attach request and success event now
-    Assert.assertEquals(listOf(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST,
-                               DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS),
-                        usages.map { it.studioEvent.dynamicLayoutInspectorEvent.type })
-
-    inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
-    usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    // And we shouldn't get any more than the two events
-    Assert.assertEquals(2, usages.size)
   }
 }

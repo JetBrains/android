@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +66,15 @@ public abstract class TestCompileType {
 
   @NotNull
   public abstract Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant);
+
+  @NotNull
+  public String getName() {
+    if (this == ALL) return "All";
+    if (this == ANDROID_TESTS) return "Android tests";
+    if (this == UNIT_TESTS) return "Unit tests";
+    if (this == NONE) return "None";
+    return "(unknown)";
+  }
 
   @NotNull
   public static TestCompileType get(@Nullable String runConfigurationId) {

@@ -1,0 +1,15 @@
+def parentVar1 = true
+ext {
+  parentProperty1 = "hello"
+}
+
+android {
+  def androidVar = false
+  buildTypes {
+    foo {
+      debuggable false
+    }
+    // this is a comment
+  }
+  ext.androidProperty = "foo"
+}

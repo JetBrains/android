@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -33,7 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
-import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
@@ -53,6 +53,7 @@ import org.junit.runner.RunWith
 import java.awt.Color
 import java.awt.event.KeyEvent.VK_SPACE
 import java.net.Socket
+import java.util.ArrayDeque
 import java.util.concurrent.TimeUnit
 
 private const val PROJECT_NAME = "LayoutTest"
@@ -67,6 +68,12 @@ private const val LAYOUT_NAME = "inspection"
  */
 @RunWith(GuiTestRemoteRunner::class)
 class BasicLayoutInspectorUITest {
+  companion object {
+    init {
+      System.loadLibrary("layout_inspector_test_support")
+    }
+  }
+
   private val commandHandler = MyDeviceCommandHandler()
   private val namespace = ResourceNamespace.fromPackageName(NAMESPACE)
   private val layoutReference = ResourceReference(namespace, ResourceType.LAYOUT, LAYOUT_NAME)
@@ -85,12 +92,10 @@ class BasicLayoutInspectorUITest {
     .withCommandHandler(LayoutInspectorCommand.Type.START, ::startHandler)
     .withCommandHandler(LayoutInspectorCommand.Type.STOP, ::stopHandler)
     .withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::produceProperties)
-    .withTestData(guiTest.copyProjectBeforeOpening("DynamicLayoutInspector"))
     .withDeviceCommandHandler(commandHandler)
-    .withFile(PAYLOAD_SINGLE_BOX, "single.skp")
-    .withFile(PAYLOAD_BOXES, "boxes.skp")
+    .withFile(PAYLOAD_SINGLE_BOX, generateSingle())
+    .withFile(PAYLOAD_BOXES, generateBoxes())
 
-  // TODO: Consider running this test by using the skia server from prebuilts.
   @get:Rule
   val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
 
@@ -156,7 +161,6 @@ class BasicLayoutInspectorUITest {
     inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}",
                            "${DEFAULT_PROCESS.name} (${DEFAULT_PROCESS.pid})")
     inspector.waitForComponentTreeToLoad(1)
-    commandHandler.started()
 
     // Simulate that the user did something on the device that caused a different skia image to be received.
     transportRule.addEventToStream(DEFAULT_DEVICE, createBoxesTreeEvent(DEFAULT_PROCESS.pid))
@@ -168,7 +172,7 @@ class BasicLayoutInspectorUITest {
     // This should cause the property panel to populate.
     inspector.tree.expandAll()
     inspector.tree.selectRow(3)
-    inspector.waitForPropertiesToPopulate(button4Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button4Id))
 
     // Find "backgroundTint" in the "Declared Attributes" section and verify its value.
     val declared = properties.findSectionByName("Declared Attributes")!!
@@ -200,14 +204,14 @@ class BasicLayoutInspectorUITest {
     val deviceView = inspector.deviceView
     deviceView.clickOnImage(50, 50)
     inspector.tree.requireSelection(0)
-    inspector.waitForPropertiesToPopulate(linearLayoutId.name)
+    inspector.waitForPropertiesToPopulate(toUrl(linearLayoutId))
     requireDeclaredAttributeValue(properties, "background", "#FFFF00")
     requireNoDeclaredAttribute(properties, "backgroundTint")
 
     // Click on the Button4
     deviceView.clickOnImage(500, 1400)
     inspector.tree.requireSelection(3)
-    inspector.waitForPropertiesToPopulate(button4Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button4Id))
     requireNoDeclaredAttribute(properties, "background")
     requireDeclaredAttributeValue(properties, "backgroundTint", "#FF0000")
 
@@ -215,23 +219,23 @@ class BasicLayoutInspectorUITest {
     val layerSpacingSlider = inspector.layerSpacingSlider
     assertThat(layerSpacingSlider.isEnabled).isFalse()
     assertThat(deviceView.angleAfterLastPaint).isEqualTo(0.0)
-    deviceView.clickOnImage(310, 510)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    deviceView.clickOnImage(210, 210)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
 
     // Change to 3D viewing
     deviceView.mode3DActionButton.click()
-    deviceView.clickOnImage(310, 510)  // no longer expected to be button3
-    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    deviceView.clickOnImage(210, 210)  // no longer expected to be button3
+    inspector.waitForPropertiesToPopulate(toUrl(frameLayoutId))
     deviceView.clickOnImage(410, 320)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
     assertThat(deviceView.angleAfterLastPaint).isWithin(1.0).of(26.0)
 
     // Exaggerate the 3D viewing
     deviceView.clickAndDrag(400, 800, 2000, 1000)
     deviceView.clickOnImage(410, 320)   // no longer expected to be button3
-    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    inspector.waitForPropertiesToPopulate(toUrl(frameLayoutId))
     deviceView.clickOnImage(490, 360)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
     assertThat(deviceView.angleAfterLastPaint).isWithin(1.0).of(38.4)
 
     // Layer spacing
@@ -241,17 +245,17 @@ class BasicLayoutInspectorUITest {
     // Maximum layer spacing moves button3 to the right
     layerSpacingSlider.slideToMaximum()
     deviceView.clickOnImage(490, 360) // no longer expected to be button3
-    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    inspector.waitForPropertiesToPopulate(toUrl(frameLayoutId))
     deviceView.clickOnImage(720, 420)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
     assertThat(deviceView.layerSpacing).isEqualTo(500)
 
     // Minimum layer spacing moves button3 to the left
     layerSpacingSlider.slideToMinimum()
     deviceView.clickOnImage(720, 420) // no longer expected to be button3
-    inspector.waitForPropertiesToPopulate(linearLayoutId.name)
+    inspector.waitForPropertiesToPopulate(toUrl(linearLayoutId))
     deviceView.clickOnImage(400, 340)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
     assertThat(deviceView.layerSpacing).isEqualTo(0)
 
     // Back to start
@@ -259,8 +263,8 @@ class BasicLayoutInspectorUITest {
 
     // Reset to 2D
     deviceView.mode3DActionButton.click()
-    deviceView.clickOnImage(310, 510)
-    inspector.waitForPropertiesToPopulate(button3Id.name)
+    deviceView.clickOnImage(210, 210)
+    inspector.waitForPropertiesToPopulate(toUrl(button3Id))
     assertThat(deviceView.angleAfterLastPaint).isEqualTo(0.0)
     inspector.waitUntilMode3dSliderEnabled(false)
 
@@ -332,6 +336,9 @@ class BasicLayoutInspectorUITest {
     val row = table.findRowOf(attrName)
     assertThat(row).named("The attribute: ${attrName} was found unexpectedly").isEqualTo(-1)
   }
+
+  private fun toUrl(ref: ResourceReference): String =
+    ref.getRelativeResourceUrl(namespace).toString()
 
   private fun startHandler(command: Commands.Command, events: MutableList<Common.Event>) {
     events.add(createSingleBoxTreeEvent(command.pid))
@@ -652,35 +659,67 @@ class BasicLayoutInspectorUITest {
     }.build()
   }
 
+  private external fun generateSingle(): ByteArray
+
+  private external fun generateBoxes(): ByteArray
+
   private class MyDeviceCommandHandler : DeviceCommandHandler("shell") {
-    private var debugAttributeCleanupCount = 0
+    var debugViewAttributesChanges = 0
+      private set
+    var debugViewAttributes: String? = null
+      private set
+    var debugViewAttributesApplicationPackage: String? = null
+      private set
 
     val stopped: Boolean
-      get() = debugAttributeCleanupCount == 2
-
-    fun started() {
-      debugAttributeCleanupCount = 0
-    }
+      get() = debugViewAttributes == null &&
+              debugViewAttributesApplicationPackage == null
 
     override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-      when (args) {
-        "settings put global debug_view_attributes 1",
-        "settings put global debug_view_attributes_application_package com.example" ->
-          return writeOK(socket)
-
-        "settings delete global debug_view_attributes",
-        "settings delete global debug_view_attributes_application_package" -> {
-          debugAttributeCleanupCount++
-          return writeOK(socket)
-        }
-
+      val response = when (command) {
+        "shell" -> handleShellCommand(args) ?: return false
         else -> return false
       }
+      writeOkay(socket.getOutputStream())
+      writeString(socket.getOutputStream(), response)
+      return true
     }
 
-    private fun writeOK(socket: Socket): Boolean {
-      com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-      return true
+    /**
+     * Handle shell commands.
+     *
+     * Examples:
+     *  - "settings get global debug_view_attributes"
+     *  - "settings get global debug_view_attributes_application_package"
+     *  - "settings put global debug_view_attributes 1"
+     *  - "settings put global debug_view_attributes_application_package com.example.myapp"
+     *  - "settings delete global debug_view_attributes"
+     *  - "settings delete global debug_view_attributes_application_package"
+     */
+    private fun handleShellCommand(command: String): String? {
+      val args = ArrayDeque(command.split(' '))
+      if (args.poll() != "settings") {
+        return null
+      }
+      val operation = args.poll()
+      if (args.poll() != "global") {
+        return null
+      }
+      val variable = when (args.poll()) {
+        "debug_view_attributes" -> this::debugViewAttributes
+        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
+        else -> return null
+      }
+      val argument = if (args.isEmpty()) "" else args.poll()
+      if (args.isNotEmpty()) {
+        return null
+      }
+      return when (operation) {
+        "get" -> { variable.get().toString() }
+        "put" -> { variable.set(argument); debugViewAttributesChanges++; ""}
+        "delete" -> { variable.set(null); debugViewAttributesChanges++; ""}
+        else -> null
+      }
     }
   }
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -55,8 +56,10 @@ import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
+import java.util.IdentityHashMap
 
 /**
  * This implementation of AndroidProjectSystem is used for projects where the build system is not
@@ -75,9 +78,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun allowsFileCreation() = false
 
-  override fun buildProject() {
-  }
-
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
     override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
@@ -91,9 +91,17 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun getLastSyncResult() = SyncResult.SUCCESS
   }
 
+  override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
+
   override val projectSystem = this
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
+  private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleCache.getOrPut(module, { DefaultModuleSystem(module) })
+
+  @TestOnly
+  fun setModuleSystem(module: Module, moduleSystem: AndroidModuleSystem) {
+    moduleCache[module] = moduleSystem
+  }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null

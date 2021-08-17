@@ -26,14 +26,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.util.function.Consumer
 
-val LOG: Logger get() = Logger.getInstance("#com.android.tools.idea.util.SyncUtil")
+private val LOG: Logger get() = Logger.getInstance("SyncUtil.kt")
 
 /**
  * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus

@@ -167,7 +167,7 @@ public class AppCompatPublicDotTxtLookup {
       return null;
     }
     GradleCoordinate coordinate = artifactId.getCoordinate(appCompatVersion);
-    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocation(), FileOpUtils.create());
+    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocationFile(), FileOpUtils.create());
     if (appCompatAarFile == null || !appCompatAarFile.exists()) {
       return null;
     }

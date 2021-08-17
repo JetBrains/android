@@ -21,19 +21,19 @@ import org.junit.Test
 
 class FakeTraceProcessorServiceTest {
 
-  private val fakeFeatureTracker = FakeFeatureTracker()
+  private val fakeIdeProfilerServices = FakeIdeProfilerServices()
 
   @Test
   fun `deserialize valid trace`() {
     val fakeService = FakeTraceProcessorService()
 
-    val loadOk = fakeService.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeFeatureTracker)
+    val loadOk = fakeService.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeIdeProfilerServices)
     Truth.assertThat(loadOk).isTrue()
 
-    val processList = fakeService.getProcessMetadata(1, fakeFeatureTracker)
+    val processList = fakeService.getProcessMetadata(1, fakeIdeProfilerServices)
     Truth.assertThat(processList).hasSize(35)
 
-    val model = fakeService.loadCpuData(1, listOf(processList[0].id), fakeFeatureTracker)
+    val model = fakeService.loadCpuData(1, listOf(processList[0].id), "", fakeIdeProfilerServices)
     Truth.assertThat(model.getProcesses()).hasSize(35)
     Truth.assertThat(model.getCpuCores()).hasSize(8)
   }
@@ -42,7 +42,7 @@ class FakeTraceProcessorServiceTest {
   fun `deserialize unknown trace`() {
     val fakeService = FakeTraceProcessorService()
 
-    val loadOk = fakeService.loadTrace(1, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), fakeFeatureTracker)
+    val loadOk = fakeService.loadTrace(1, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), fakeIdeProfilerServices)
     Truth.assertThat(loadOk).isFalse()
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -76,9 +76,8 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("Manifest") { listOf(manifestFile) }
         dumpPaths("AidlDirectories") { it.aidlDirectories }
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
-        dumpPaths("CDirectories") { it.cDirectories }
-        dumpPaths("CppDirectories") { it.cppDirectories }
         dumpPaths("JavaDirectories") { it.javaDirectories }
+        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
         dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
         dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
         dumpPaths("ResDirectories") { it.resDirectories }
@@ -102,6 +101,8 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
         dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
         dumpPaths("JavaDirectories") { it.javaDirectories }
+        dumpUrls("KotlinDirectoryUrls") { it.kotlinDirectoryUrls }
+        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
         dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
         dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
         dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }

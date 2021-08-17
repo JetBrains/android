@@ -36,7 +36,7 @@ public final class AndroidIdl {
     }
 
     final List<String> commands = new ArrayList<String>();
-    final String frameworkAidlPath = target.getPath(IAndroidTarget.ANDROID_AIDL);
+    final String frameworkAidlPath = target.getPath(IAndroidTarget.ANDROID_AIDL).toString();
 
     commands.add(buildToolInfo.getPath(BuildToolInfo.PathId.AIDL));
     commands.add("-p" + frameworkAidlPath);

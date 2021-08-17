@@ -18,18 +18,13 @@ package com.android.tools.idea.lint.common;
 import com.android.annotations.NonNull;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.utils.PositionXmlParser;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.xml.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
-
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlComment;
@@ -93,7 +88,7 @@ public class DomPsiConverter {
         return null;
       }
 
-      return convert(xmlDocument);
+      return convert(xmlDocument, xmlFile);
     }
     catch (ProcessCanceledException e) {
       // Ignore: common occurrence, e.g. we're running lint as part of an editor background
@@ -115,12 +110,14 @@ public class DomPsiConverter {
   /**
    * Convert the given {@link XmlDocument} to a DOM tree
    *
+   *
    * @param document the document to be converted
+   * @param xmlFile the underlying PSI file
    * @return a corresponding W3C DOM tree
    */
   @NotNull
-  private static Document convert(@NotNull XmlDocument document) {
-    return new DomDocument(document);
+  private static Document convert(@NotNull XmlDocument document, @NotNull XmlFile xmlFile) {
+    return new DomDocument(document, xmlFile);
   }
 
   @Nullable
@@ -176,7 +173,19 @@ public class DomPsiConverter {
   @NotNull
   public static TextRange getTextNameRange(@NotNull Node node) {
     if (!(node instanceof DomNode)) {
-      return getTextRange(node);
+      TextRange range = getTextRange(node);
+
+      // If element, limit to just the name tag
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        String tag = node.getNodeName();
+        int start = range.getStartOffset() + 1;
+        return new TextRange(start, start + tag.length());
+      } else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+        String name = node.getNodeName();
+        int start = range.getStartOffset();
+        return new TextRange(start, start + name.length());
+      }
+      return range;
     }
 
     DomNode domNode = (DomNode)node;
@@ -209,7 +218,16 @@ public class DomPsiConverter {
   @NotNull
   public static TextRange getTextValueRange(@NotNull Node node) {
     if (!(node instanceof DomNode)) {
-      return getTextRange(node);
+      TextRange range = getTextRange(node);
+      if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+        String name = node.getNodeValue();
+        int end = range.getEndOffset() - 1;
+        int start = end - name.length();
+        if (start >= range.getStartOffset()) {
+          return new TextRange(start, end);
+        }
+      }
+      return range;
     }
 
     DomNode domNode = (DomNode)node;
@@ -228,10 +246,14 @@ public class DomPsiConverter {
     return textRange;
   }
 
-  @NotNull
+  @Nullable
   public static XmlElement getPsiElement(@NotNull Node node) {
-    DomNode domNode = (DomNode)node;
-    return domNode.myElement;
+    if (node instanceof DomNode) {
+      DomNode domNode = (DomNode)node;
+      return domNode.myElement;
+    } else {
+      return null;
+    }
   }
 
   private static final DomNodeList EMPTY = new DomNodeList() {
@@ -697,11 +719,13 @@ public class DomPsiConverter {
 
   private static class DomDocument extends DomNode implements Document {
     @NotNull private final XmlDocument myPsiDocument;
+    private final XmlFile myFile;
     @Nullable private DomElement myRoot;
 
-    private DomDocument(@NotNull XmlDocument document) {
+    private DomDocument(@NotNull XmlDocument document, @NotNull XmlFile file) {
       super(null, null, document);
       myPsiDocument = document;
+      myFile = file;
     }
 
     // From org.w3c.dom.Node:
@@ -729,9 +753,28 @@ public class DomPsiConverter {
       if (myChildren == null) {
         DomNodeList list = new DomNodeList();
         myChildren = list;
-        DomNode documentElement = (DomNode)getDocumentElement();
-        if (documentElement != null) {
-          list.add(documentElement);
+        // Include siblings as well such as the root comment
+        PsiElement element = myPsiDocument.getFirstChild();
+        while (element != null) {
+          if (element instanceof XmlTag) {
+            if (myRoot != null && myRoot.myTag == element) {
+              list.add(myRoot);
+            } else {
+              DomElement node = new DomElement(this, this, (XmlTag)element);
+              if (myRoot == null) {
+                myRoot = node;
+              }
+              list.add(node);
+            }
+          } else if (element instanceof XmlComment) {
+            DomNode node = new DomComment(this, this, (XmlComment)element);
+            list.add(node);
+          } else if (element instanceof XmlText) {
+            // This is not valid XML but PSI may represent erroneous XML being edited
+            DomNode node = new DomText(this, this, (XmlText)element);
+            list.add(node);
+          }
+          element = element.getNextSibling();
         }
       }
 
@@ -741,6 +784,9 @@ public class DomPsiConverter {
     @Nullable
     @Override
     public Object getUserData(String s) {
+      if (s.equals(PsiFile.class.getName())) {
+        return myFile;
+      }
       return null;
     }
 
@@ -968,32 +1014,19 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNamespaceURI() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)myTag::getNamespace);
-      }
-      return myTag.getNamespace();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getNamespace);
     }
 
     @NotNull
     @Override
     public NamedNodeMap getAttributes() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<NamedNodeMap>)this::getAttributes);
-      }
-
-      if (myAttributes == null) {
-        XmlAttribute[] attributes = myTag.getAttributes();
-        if (attributes.length == 0) {
-          myAttributes = EMPTY_ATTRIBUTES;
+      return ApplicationManager.getApplication().runReadAction((Computable<NamedNodeMap>)() -> {
+        if (myAttributes == null) {
+          XmlAttribute[] attributes = myTag.getAttributes();
+          myAttributes = attributes.length == 0 ? EMPTY_ATTRIBUTES : new DomNamedNodeMap(this, attributes);
         }
-        else {
-          myAttributes = new DomNamedNodeMap(this, attributes);
-        }
-      }
-
-      return myAttributes;
+        return myAttributes;
+      });
     }
 
     // From org.w3c.dom.Element:
@@ -1001,23 +1034,13 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getTagName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getTagName);
-      }
-
-      return myTag.getName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getName);
     }
 
     @Nullable
     @Override
     public String getLocalName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getTagName);
-      }
-
-      return myTag.getLocalName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getLocalName);
     }
 
     @NotNull
@@ -1173,12 +1196,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNodeValue);
-      }
-
-      return myText.getText();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myText::getText);
     }
 
     @Override
@@ -1204,6 +1222,11 @@ public class DomPsiConverter {
       }
 
       return true;
+    }
+
+    @Override
+    public @NotNull String getData() throws DOMException {
+      return getNodeValue();
     }
 
     @NotNull
@@ -1238,12 +1261,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNodeValue);
-      }
-
-      return myComment.getText();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myComment::getCommentText);
     }
 
     @Override
@@ -1254,6 +1272,11 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getTextContent() throws DOMException {
+      return getNodeValue();
+    }
+
+    @Override
+    public @NotNull String getData() throws DOMException {
       return getNodeValue();
     }
   }
@@ -1292,11 +1315,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getName);
-      }
-      return myAttribute.getName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getName);
     }
 
     @Override
@@ -1307,49 +1326,28 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getValue() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getValue);
-      }
-
-      String value = myAttribute.getDisplayValue();
-      if (value == null) {
-        value = "";
-      }
-      return value;
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+        String value = myAttribute.getDisplayValue();
+        return value == null ? "" : value;
+      });
     }
 
     @NotNull
     @Override
     public String getLocalName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getLocalName);
-      }
-
-      return myAttribute.getLocalName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getLocalName);
     }
 
     @NotNull
     @Override
     public String getPrefix() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getPrefix);
-      }
-
-      return myAttribute.getNamespacePrefix();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getNamespacePrefix);
     }
 
     @NotNull
     @Override
     public String getNamespaceURI() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNamespaceURI);
-      }
-
-      return myAttribute.getNamespace();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getNamespace);
     }
 
     @Override

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 /**
  * Specifies how default property values are provided.
@@ -23,7 +23,7 @@ interface DefaultPropertyValueProvider {
   /**
    * Return the default value of the specified [property] as a string.
    */
-  fun provideDefaultValue(property: NelePropertyItem): String? = null
+  fun provideDefaultValue(property: NlPropertyItem): String? = null
 
   /**
    * Return true if the default values may have changed since they were generated last.

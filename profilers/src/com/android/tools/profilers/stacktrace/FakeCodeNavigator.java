@@ -15,12 +15,17 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import org.jetbrains.annotations.NotNull;
 
 public class FakeCodeNavigator extends CodeNavigator {
+  @NotNull
+  private final FeatureTracker myFeatureTracker;
+
   public FakeCodeNavigator(@NotNull FeatureTracker featureTracker) {
-    super(featureTracker);
+    myFeatureTracker = featureTracker;
   }
 
   @Override
@@ -30,5 +35,6 @@ public class FakeCodeNavigator extends CodeNavigator {
 
   @Override
   protected void handleNavigate(@NotNull CodeLocation location) {
+    myFeatureTracker.trackNavigateToCode();
   }
 }

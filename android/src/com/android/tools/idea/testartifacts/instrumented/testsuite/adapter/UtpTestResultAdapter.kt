@@ -24,14 +24,18 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Timestamp
-import com.google.testing.platform.plugin.android.info.host.proto.AndroidTestDeviceInfoProto
+import com.google.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
+import java.io.IOException
+import java.nio.charset.Charset
+
 
 @VisibleForTesting
 const val DEVICE_INFO_LABEL = "device-info"
@@ -55,7 +59,17 @@ private typealias DeviceMap = Map<Pair<String, AndroidDeviceType>, DeviceTestSui
  * @param listener the listener to receive the test results
  */
 class UtpTestResultAdapter(private val protoFile: File) {
-  private val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(protoFile.inputStream())
+  private val resultProto: TestSuiteResultProto.TestSuiteResult = protoFile.let {
+    if (it.extension == "textproto") {
+      val builder = TestSuiteResultProto.TestSuiteResult.newBuilder()
+      TextFormat.merge(it.readText(Charset.defaultCharset()),
+                       builder)
+      builder.build()
+    } else {
+      TestSuiteResultProto.TestSuiteResult.parseFrom(it.inputStream())
+    }
+  }
+
   private val dir = protoFile.parentFile
   private val deviceMap = getDeviceMap(dir, resultProto)
 
@@ -85,6 +99,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
   private fun getDeviceMap(dir: File, resultProto: TestSuiteResultProto.TestSuiteResult): DeviceMap {
     val defaultDevice = AndroidDevice(DEFAULT_DEVICE_NAME,
                                       DEFAULT_DEVICE_NAME,
+                                      DEFAULT_DEVICE_NAME,
                                       DEFAULT_DEVICE_TYPE,
                                       AndroidVersion.DEFAULT)
     val defaultDeviceSuite = DeviceTestSuite(defaultDevice)
@@ -94,12 +109,32 @@ class UtpTestResultAdapter(private val protoFile: File) {
       if (deviceInfo == null) {
         return@map defaultDeviceSuite
       } else {
-        val deviceType = if (deviceInfo.avdName == "") {
-          AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-        } else {
-          AndroidDeviceType.LOCAL_EMULATOR
+        val deviceType = when {
+          deviceInfo.avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+          deviceInfo.gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
+          else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
         }
-        val device = AndroidDevice(id.toString(), deviceInfo.name, deviceType, AndroidVersion(deviceInfo.apiLevel))
+
+        val device = AndroidDevice(
+          id.toString(),
+          deviceInfo.displayName(),
+          deviceInfo.avdName,
+          deviceType,
+          AndroidVersion(deviceInfo.apiLevel),
+        )?.apply {
+          if (deviceInfo.manufacturer.isNotBlank()) {
+            additionalInfo["Manufacturer"] = deviceInfo.manufacturer
+          }
+          if (deviceInfo.model.isNotBlank()) {
+            additionalInfo["Model"] = deviceInfo.model
+          }
+          if (deviceInfo.processorsCount > 0) {
+            additionalInfo["Processor"] = deviceInfo.processorsList.joinToString("\n")
+          }
+          if (deviceInfo.ramInBytes > 0) {
+            additionalInfo["RAM"] = String.format("%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
+          }
+        }
         id += 1
         return@map DeviceTestSuite(device)
       }
@@ -127,7 +162,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val deviceKey = if (deviceInfo == null) {
         defaultDeviceKey
       } else {
-        Pair(deviceInfo.name, deviceInfo.deviceType())
+        Pair(deviceInfo.displayName(), deviceInfo.deviceType())
       }
       val deviceTestSuite = deviceMap[deviceKey]!!
       val device = deviceTestSuite.device
@@ -138,11 +173,16 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }
+      val iceboxInfo = testResultProto.outputArtifactList.find {
+        it.label.label == "icebox.info" && it.label.namespace == "android"
+      }
       val retentionArtifactFile = resolveFile(dir, iceboxArtifact?.sourcePath?.path)
+      val iceboxInfoFile = resolveFile(dir, iceboxInfo?.sourcePath?.path)
       val testCase = AndroidTestCase(id = fullName,
                                      methodName = testCaseProto.testMethod,
                                      className = testCaseProto.testClass,
                                      packageName = testCaseProto.testPackage,
+                                     retentionInfo = iceboxInfoFile,
                                      retentionSnapshot = retentionArtifactFile,
                                      result = when (testResultProto.testStatus) {
                                        TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED
@@ -183,12 +223,13 @@ private fun TestResultProto.TestResult.getDeviceInfo(dir: File): AndroidTestDevi
   }
 }
 
-private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType {
-  if (avdName == "") {
-    return AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-  } else {
-    return AndroidDeviceType.LOCAL_EMULATOR
-  }
+private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.displayName(): String =
+    if (gradleDslDeviceName.isNotEmpty()) "Gradle:$gradleDslDeviceName" else name
+
+private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType = when {
+    avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+    gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
+    else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
 }
 
 // Try to find a file. The fallbacks of file path is as follows:

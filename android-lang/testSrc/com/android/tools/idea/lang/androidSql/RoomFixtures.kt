@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.androidSql
 
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -32,7 +33,7 @@ private val roomAnnotationToClassBody = mapOf(
   "Database" to """
   package androidx.room;
 
-  public @interface Database { Class[] tables(); int version(); }
+  public @interface Database { Class<?>[] entities(); Class<?>[] views() default {}; int version(); }
   """.trimIndent(),
 
   "Entity" to """
@@ -110,12 +111,28 @@ fun JavaCodeInsightTestFixture.findField(
   return findClass(qualifiedClassName).findFieldByName(fieldName, checkBases)!!
 }
 
+fun JavaCodeInsightTestFixture.findMethod(
+  qualifiedClassName: String,
+  methodName: String,
+  checkBases: Boolean = false
+): PsiMethod {
+  return findClass(qualifiedClassName).findMethodsByName(methodName, checkBases).first()!!
+}
+
 fun JavaCodeInsightTestFixture.fieldPointer(
   qualifiedClassName: String,
   fieldName: String,
   checkBases: Boolean = false
 ): SmartPsiElementPointer<PsiField> {
   return SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findField(qualifiedClassName, fieldName, checkBases))
+}
+
+fun JavaCodeInsightTestFixture.methodPointer(
+  qualifiedClassName: String,
+  methodName: String,
+  checkBases: Boolean = false
+): SmartPsiElementPointer<PsiMethod> {
+  return SmartPointerManager.getInstance(project).createSmartPsiElementPointer(findMethod(qualifiedClassName, methodName, checkBases))
 }
 
 fun JavaCodeInsightTestFixture.addRoomEntity(

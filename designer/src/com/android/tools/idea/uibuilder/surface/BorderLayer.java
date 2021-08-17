@@ -37,6 +37,8 @@ public class BorderLayer extends Layer {
   public void paint(@NotNull Graphics2D g2d) {
     Shape screenShape = myScreenView.getScreenShape();
     if (screenShape != null) {
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
       g2d.draw(screenShape);
       return;
     }

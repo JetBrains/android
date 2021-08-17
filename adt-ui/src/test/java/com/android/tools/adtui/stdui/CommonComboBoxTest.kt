@@ -21,6 +21,9 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito
+import java.awt.Component
+import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JList
@@ -65,15 +68,21 @@ class CommonComboBoxTest {
 
     // Show outline based on the edited text when editing:
     val editor = comboBox.editor.editorComponent as CommonTextField<*>
-    editor.text = "Error"
-    assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
-    editor.text = "Warning"
-    assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
-    editor.text = "FixedText"
-    assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    val oldManager = acquireFocus(editor)
+    try {
+      editor.text = "Error"
+      assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(ERROR_VALUE)
+      editor.text = "Warning"
+      assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isEqualTo(WARNING_VALUE)
+      editor.text = "FixedText"
+      assertThat(comboBox.getClientProperty(OUTLINE_PROPERTY)).isNull()
 
-    // Verify that the model value has not changed:
-    assertThat(model.value).isEqualTo("FixedValue")
+      // Verify that the model value has not changed:
+      assertThat(model.value).isEqualTo("FixedValue")
+    }
+    finally {
+      KeyboardFocusManager.setCurrentKeyboardFocusManager(oldManager)
+    }
   }
 
   @Test
@@ -115,6 +124,14 @@ class CommonComboBoxTest {
     ui.keyboard.setFocus(editor)
     ui.keyboard.type(KeyEvent.VK_A)
     assertThat(comboBox.isPopupVisible).isFalse()
+  }
+
+  private fun acquireFocus(component: Component): KeyboardFocusManager {
+    val oldManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+    val manager = Mockito.mock(KeyboardFocusManager::class.java)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(manager)
+    Mockito.`when`(manager.focusOwner).thenReturn(component)
+    return oldManager
   }
 
   private class FakeComboBoxUI : BasicComboBoxUI() {

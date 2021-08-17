@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
@@ -23,9 +23,9 @@ import org.jetbrains.android.dom.converters.DimensionConverter
 import java.util.EnumSet
 
 /**
- * Types of a [NelePropertyItem].
+ * Types of a [NlPropertyItem].
  */
-enum class NelePropertyType {
+enum class NlPropertyType {
   UNKNOWN,
   ANIM,
   ANIMATOR,

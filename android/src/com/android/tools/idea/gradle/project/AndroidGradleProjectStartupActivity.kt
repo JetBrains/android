@@ -15,35 +15,37 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
+import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
+import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
+import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.project.AndroidProjectInfo
-import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
+import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings.Companion.getInstance
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -63,6 +65,9 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -88,6 +93,10 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       return false
     }
 
+    // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
+    // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
+    removeGradleProducersFromIgnoredList(project)
+
     if (shouldSyncOrAttachModels()) {
       removeEmptyModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
@@ -100,33 +109,9 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     AndroidStudioPreferences.cleanUpPreferences(project)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
-      getInstance(project).autoReloadType = ExternalSystemProjectTrackerSettings.AutoReloadType.NONE
-      notifyOnLegacyAndroidProject(project) // FIXME-ank5: show notification in IDEA
-      notifyOnInvalidGradleJDKEnv(project)
+      ExternalSystemProjectTrackerSettings.getInstance(project).autoReloadType = ExternalSystemProjectTrackerSettings.AutoReloadType.NONE
+      showNeededNotifications(project)
     }
-  }
-}
-
-fun notifyOnLegacyAndroidProject(project: Project) {
-  val legacyAndroidProjects = LegacyAndroidProjects(project)
-  if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject
-      && !AndroidProjectInfo.getInstance(project).isApkProject) {
-    legacyAndroidProjects.trackProject()
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-      legacyAndroidProjects.showMigrateToGradleWarning()
-    }
-  }
-}
-
-fun notifyOnInvalidGradleJDKEnv(project: Project) {
-  val ideSdks = IdeSdks.getInstance()
-  if (ideSdks.isJdkEnvVariableDefined && !ideSdks.isJdkEnvVariableValid) {
-    val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
-              "is being ignored since it is set to an invalid JDK Location:\n" +
-              ideSdks.envVariableJdkValue
-    AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
-                                                         SelectJdkFromFileSystemHyperlink.create(project)!!)
   }
 }
 
@@ -178,19 +163,23 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 
+  val moduleVariants = project.getSelectedVariantAndAbis()
+
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
       .mapNotNull { it.externalProjectPath }
       .toSet()
-      .map {
-        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, it)
+      .map { externalProjectPath ->
+        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
         if (externalProjectInfo != null && externalProjectInfo.lastImportTimestamp != externalProjectInfo.lastSuccessfulImportTimestamp) {
           requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
           return
         }
-        externalProjectInfo?.externalProjectStructure ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
+        externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
+        ?: run { requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants"); return }
       }
+
 
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
@@ -259,12 +248,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
 
+    fun AndroidModuleModel.validate() =
+    // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
+      // depend on the state of the project information.
+      !shouldForcePluginUpgrade(project, modelVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getFacet: Module.() -> V?,
       attach: V.(T) -> Unit,
-      configure: T.(Module) -> Unit = { _ -> }
+      configure: T.(Module) -> Unit = { _ -> },
+      validate: T.() -> Boolean = { true }
     ): (() -> Unit)? {
       val model =
         ExternalSystemApiUtil
@@ -272,6 +267,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           .singleOrNull() // None or one node is expected here.
           ?.data
         ?: return { /* Nothing to do if no model present. */ }
+      if (!model.validate()) requestSync("invalid model found for $dataKey in ${module.name}")
       val facet = module.getFacet() ?: run {
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
@@ -282,7 +278,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     }
 
     listOf(
-      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule) ?: return,
+      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule,
+              validate = AndroidModuleModel::validate) ?: return,
       prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
       prepare(NDK_MODEL, { NdkFacet.getInstance(this) }, NdkFacet::setNdkModuleModel) ?: return
@@ -303,8 +300,16 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 }
 
 private fun additionalProjectSetup(project: Project) {
+  AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
   ConflictSet.findConflicts(project).showSelectionConflicts()
   ProjectStructure.getInstance(project).analyzeProjectStructure()
   setUpModules(project)
+}
+
+private fun removeGradleProducersFromIgnoredList(project: Project) {
+  val producerService = RunConfigurationProducerService.getInstance(project)
+  producerService.state.ignoredProducers.remove(AllInPackageGradleConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
+  producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
 }
 

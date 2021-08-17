@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeSigningConfig
+import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.matchFiles

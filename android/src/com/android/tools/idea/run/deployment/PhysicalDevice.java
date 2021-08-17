@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
+import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -35,8 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice extends Device {
-  private static final Icon ourValidIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-  private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
+  private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+  private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
+  private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
   @NotNull
   static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
@@ -46,11 +50,11 @@ final class PhysicalDevice extends Device {
 
     return new Builder()
       .setName(getName.apply(device))
-      .setValid(device.isValid())
-      .setValidityReason(device.getValidityReason())
+      .setLaunchCompatibility(device.getLaunchCompatibility())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(device.getAndroidDevice())
+      .setType(device.getType())
       .build();
   }
 
@@ -63,15 +67,8 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull
-    private Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    private Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    @NotNull Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -96,6 +93,11 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
+      return this;
+    }
+
     @NotNull
     @Override
     PhysicalDevice build() {
@@ -110,7 +112,31 @@ final class PhysicalDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return isValid() ? ourValidIcon : ourInvalidIcon;
+    Icon deviceIcon;
+    switch (getType()) {
+      case TV:
+        deviceIcon = ourTvIcon;
+        break;
+      case WEAR:
+        deviceIcon = ourWearIcon;
+        break;
+      case PHONE:
+        deviceIcon = ourPhoneIcon;
+        break;
+      default:
+        throw new IllegalStateException("Unexpected device type: " + getType());
+    }
+
+    switch (getLaunchCompatibility().getState()) {
+      case ERROR:
+        return new LayeredIcon(deviceIcon, ERROR_DECORATOR);
+      case WARNING:
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case OK:
+        return deviceIcon;
+      default:
+        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
+    }
   }
 
   /**
@@ -122,20 +148,19 @@ final class PhysicalDevice extends Device {
     return true;
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return null;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return Collections.emptyList();
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
-    return getKey().matches(key);
+  @NotNull Target getDefaultTarget() {
+    return new RunningDeviceTarget(getKey());
   }
 
   @Override
-  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
+  @NotNull Collection<@NotNull Target> getTargets() {
+    return Collections.singletonList(new RunningDeviceTarget(getKey()));
   }
 
   @NotNull
@@ -148,11 +173,6 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
-    futures.getDevices().add(getAndroidDevice());
-  }
-
-  @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof PhysicalDevice)) {
       return false;
@@ -161,8 +181,7 @@ final class PhysicalDevice extends Device {
     Device device = (Device)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice());
@@ -170,6 +189,6 @@ final class PhysicalDevice extends Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), isValid(), getValidityReason(), getKey(), getConnectionTime(), getAndroidDevice());
+    return Objects.hash(getName(), getLaunchCompatibility(), getKey(), getConnectionTime(), getAndroidDevice());
   }
 }

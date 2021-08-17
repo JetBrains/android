@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2
+package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.MOTION_PATH_MOTION_ARC
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CONSTRAINT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE
-import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
+import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test

@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.profilers.stacktrace.ProfilerCodeNavigator;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.profiler.proto.Common;
@@ -257,7 +257,9 @@ public class AndroidProfilerToolWindow implements Disposable {
     return getDeviceDisplayName(manufacturer, model, serial);
   }
 
-  /** Gets the display name of a device with the given manufacturer, model, and serial string. */
+  /**
+   * Gets the display name of a device with the given manufacturer, model, and serial string.
+   */
   @NotNull
   public static String getDeviceDisplayName(@NotNull String manufacturer, @NotNull String model, @NotNull String serial) {
     StringBuilder deviceNameBuilder = new StringBuilder();
@@ -288,10 +290,11 @@ public class AndroidProfilerToolWindow implements Disposable {
       myWindow = window;
       ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
       myProfilers = new StudioProfilers(client, ideProfilerServices);
-      IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
+      ProfilerCodeNavigator navigator = (ProfilerCodeNavigator)ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
-      Common.SessionMetaData selectedSessionMetadata = myProfilers.getSessionsManager().getSelectedSessionMetaData();
-      navigator.setCpuAbiArchSupplier(() -> selectedSessionMetadata == null ? null : myProfilers.getProcess().getAbiCpuArch());
+      navigator.setCpuAbiArchSupplier(() ->
+        myProfilers.getSessionsManager().getSelectedSessionMetaData().getProcessAbi()
+      );
 
       myProfilers.addDependency(this)
         .onChange(ProfilerAspect.MODE, this::modeChanged)

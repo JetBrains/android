@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -29,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResult
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.BuildProgressListener
@@ -37,6 +37,7 @@ import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
@@ -61,6 +62,7 @@ import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
@@ -259,7 +261,13 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
     syncPublisher { syncSkipped(project) }
   }
 
-  open fun isSyncNeeded(): ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
+  open fun isSyncNeeded(): ThreeState {
+    return when {
+      PropertiesComponent.getInstance().getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
+      GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
+      else -> ThreeState.NO
+    }
+  }
 
   /**
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
@@ -273,6 +281,7 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
     }
 
     project.putUserData(GradleSyncExecutor.FULL_SYNC_KEY, null)
+    PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
@@ -288,8 +297,13 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
     // Using the IdeSdks requires us to be on the dispatch thread
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    val ideSdks = IdeSdks.getInstance()
-    if (ideSdks.isUsingJavaHomeJdk) return
+    val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+    if (gradleInstallation.isUsingJavaHomeJdk(project)) {
+      return
+    }
+    val namePrefix = "Project ${project.name}"
+    val jdkPath: String? = gradleInstallation.getGradleJvmPath(project, project.basePath!!)
+
 
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
@@ -297,8 +311,8 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = """
-      Android Studio is using the following JDK location when running Gradle:
-      ${ideSdks.jdkPath}
+      $namePrefix is using the following JDK location when running Gradle:
+      $jdkPath
       Using different JDK locations on different processes might cause Gradle to
       spawn multiple daemons, for example, by executing Gradle tasks from a terminal
       while using Android Studio.
@@ -504,3 +518,4 @@ private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
 private fun normalizePath(projectPath: String) = ExternalSystemApiUtil.toCanonicalPath(projectPath)
 
 private val Any.LOG get() = Logger.getInstance(this::class.java)  // Used for non-frequent logging.
+private const val ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME = "android.gradle.sync.needed"

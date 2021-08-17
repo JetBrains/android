@@ -19,9 +19,9 @@ import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.module.ModuleManager
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Project service that keeps track of whether the project uses any namespaced modules or not.
@@ -44,7 +44,7 @@ class ProjectNamespacingStatusService(private val project: Project) {
   }
 
   private fun checkNamespacesUsed(): Boolean {
-    return ModuleManager.getInstance(project).modules.any { it.androidFacet?.namespacing == Namespacing.REQUIRED }
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).any { it.namespacing == Namespacing.REQUIRED }
   }
 
   companion object {

@@ -46,7 +46,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     super.setUp();
     StudioFlags.ML_MODEL_BINDING.override(true);
 
-    myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models").getPath());
+    myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models").toString());
   }
 
   private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {

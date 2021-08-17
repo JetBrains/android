@@ -20,13 +20,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profilers.stacktrace.ThreadId;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

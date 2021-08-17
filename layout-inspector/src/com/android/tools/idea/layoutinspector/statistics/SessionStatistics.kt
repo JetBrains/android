@@ -13,37 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.statistics
+package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics {
+class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
-  val memory = MemoryStatistics()
+  val memory = MemoryStatistics(model)
+  val compose = ComposeStatistics()
+  val system = SystemViewToggleStatistics(treeSettings)
 
   fun start(isCapturing: Boolean) {
     live.start(isCapturing)
     rotation.start()
     memory.start()
+    compose.start()
+    system.start()
   }
 
   fun save(data: DynamicLayoutInspectorSession.Builder) {
     live.save(data.liveBuilder)
     rotation.save(data.rotationBuilder)
     memory.save(data.memoryBuilder)
+    compose.save(data.composeBuilder)
+    system.save(data.systemBuilder)
   }
 
-  fun selectionMadeFromImage() {
+  fun selectionMadeFromImage(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromImage()
+    compose.selectionMadeFromImage(view)
+    system.selectionMade()
   }
 
-  fun selectionMadeFromComponentTree() {
+  fun selectionMadeFromComponentTree(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromComponentTree()
+    compose.selectionMadeFromComponentTree(view)
+    system.selectionMade()
+  }
+
+  fun gotoSourceFromPropertyValue(view: ViewNode?) {
+    compose.gotoSourceFromPropertyValue(view)
   }
 }

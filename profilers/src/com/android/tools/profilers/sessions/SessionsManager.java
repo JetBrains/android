@@ -40,11 +40,11 @@ import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
@@ -85,9 +85,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * An interface for querying artifacts that belong to a session (e.g. heap dump, cpu capture, bookmarks).
    */
   private interface ArtifactFetcher {
-    List<SessionArtifact> fetch(@NotNull StudioProfilers profilers,
-                                @NotNull Common.Session session,
-                                @NotNull Common.SessionMetaData sessionMetaData);
+    List<SessionArtifact<?>> fetch(@NotNull StudioProfilers profilers,
+                                   @NotNull Common.Session session,
+                                   @NotNull Common.SessionMetaData sessionMetaData);
   }
 
   private static final SessionArtifactComparator ARTIFACT_COMPARATOR = new SessionArtifactComparator();
@@ -160,6 +160,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
       myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     }
+    myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
   }
 
   @NotNull
@@ -242,12 +243,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     // Note: we only add to a growing list of sessions at the moment.
     // If there are multiple groups being updated (e.g., one session ends and another one starts), we want to
-    // process the new session at last. The last one being processed will be the selected session. The order
-    // of completed sessions don't matter.
+    // process the new session at last. The last one being processed will be the selected session.
     List<EventGroup> sortedGroups = Lists.newArrayList(groups);
     // Each group should have up to two events. The first event is the start event, and the second one is the end.
-    // So the new session should have one event, while completed sessions have two events.
-    Collections.sort(sortedGroups, Comparator.comparingInt(EventGroup::getEventsCount).reversed());
+    // So the new session should have one event, while completed sessions have two events. The order of completed
+    // sessions usually doesn't matter, but when a new project is loaded, every session is perceived as new and we
+    // want to select the last imported one.
+    Collections.sort(sortedGroups, Comparator.comparing(EventGroup::getEventsCount, Comparator.reverseOrder())
+      .thenComparingLong(g -> g.getEventsCount() > 0 ? g.getEvents(0).getSession().getSessionStarted().getStartTimestampEpochMs() : 0));
     sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
       boolean sessionStateChanged = false;
@@ -342,7 +345,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Change the current selected session explicitly, such as when importing an old session or caputre files, or the user manually navigate
+   * Change the current selected session explicitly, such as when importing an old session or captured files, or the user manually navigate
    * to a different session via the sessions panel.
    * This has the effect of disabling the auto-process selection logic. Also see {@link StudioProfilers#setAutoProfilingEnabled(boolean)}.
    */
@@ -416,9 +419,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
-      // TODO(b/150503095)
-      Transport.ExecuteResponse response =
-          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
@@ -468,9 +469,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
-      // TODO(b/150503095)
-      Transport.ExecuteResponse response =
-          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());
     }
     else {
       // In legacy pipeline BeginSession uses device ID as stream ID.

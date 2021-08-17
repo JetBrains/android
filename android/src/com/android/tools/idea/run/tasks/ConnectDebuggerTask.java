@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
@@ -32,9 +34,9 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,27 +45,41 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   private static final int POLL_TIMEOUT = 15;
   private static final TimeUnit POLL_TIMEUNIT = TimeUnit.SECONDS;
 
-  @NotNull protected final Set<String> myApplicationIds;
+  // The first entry in the list contains the main package name, and an optional second entry contains test package name.
+  @NotNull protected final List<String> myApplicationIds;
   @NotNull protected final AndroidDebugger myDebugger;
   @NotNull protected final Project myProject;
   protected final boolean myAttachToRunningProcess;
 
-  protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
+  protected ConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                 @NotNull AndroidDebugger debugger,
                                 @NotNull Project project,
-                                boolean monitorRemoteProcess) {
-    this(applicationIds, debugger, project, monitorRemoteProcess, false);
-  }
-
-  protected ConnectDebuggerTask(@NotNull Set<String> applicationIds,
-                                @NotNull AndroidDebugger debugger,
-                                @NotNull Project project,
-                                boolean monitorRemoteProcess,
                                 boolean attachToRunningProcess) {
-    myApplicationIds = applicationIds;
     myDebugger = debugger;
     myProject = project;
     myAttachToRunningProcess = attachToRunningProcess;
+
+    Logger logger = Logger.getInstance(ConnectDebuggerTask.class);
+    myApplicationIds = new LinkedList<>();
+
+    try {
+      String packageName = applicationIdProvider.getPackageName();
+      myApplicationIds.add(packageName);
+    }
+    catch (ApkProvisionException e) {
+      logger.error(e);
+    }
+
+    try {
+      String testPackageName = applicationIdProvider.getTestPackageName();
+      if (testPackageName != null) {
+        myApplicationIds.add(testPackageName);
+      }
+    }
+    catch (ApkProvisionException e) {
+      // not as severe as failing to obtain package id for main application
+      logger.warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
+    }
   }
 
   @NotNull

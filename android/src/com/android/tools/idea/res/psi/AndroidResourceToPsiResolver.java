@@ -18,7 +18,6 @@ package com.android.tools.idea.res.psi;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -34,9 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * Implements logic for mapping Android resources concepts from old and new stacks ({@link ResourceValue}, {@link ResourceItem}) to PSI
  * elements.
  *
- * <p>{@link ResourceManagerToPsiResolver} contains legacy code extracted from various parts of the editing stack, which are slightly
- * incompatible with each other. {@link ResourceRepositoryToPsiResolver} implements all methods in a consistent way, implementing all
- * methods in terms of {@link #resolveToDeclaration(ResourceItem, Project)}.
+ * <p>{@link ResourceRepositoryToPsiResolver} implements all methods in a consistent way, implementing all methods in terms of
+ * {@link #resolveToDeclaration(ResourceItem, Project)}.
  */
 public interface AndroidResourceToPsiResolver {
 
@@ -106,6 +104,6 @@ public interface AndroidResourceToPsiResolver {
                                                                   @NotNull PsiElement context);
 
   static AndroidResourceToPsiResolver getInstance() {
-    return StudioFlags.RESOLVE_USING_REPOS.get() ? ResourceRepositoryToPsiResolver.INSTANCE : ResourceManagerToPsiResolver.INSTANCE;
+    return ResourceRepositoryToPsiResolver.INSTANCE;
   }
 }

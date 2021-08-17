@@ -55,6 +55,7 @@ class BuildAttributionReportBuilder(
       override val issues = issueUiDataContainer.allIssueGroups()
       override val configurationTime = pluginConfigurationTimeReport
       override val annotationProcessors = AnnotationProcessorsReportBuilder(buildAnalysisResult).build()
+      override val confCachingData = buildAnalysisResult.getConfigurationCachingCompatibility()
     }
   }
 

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.model
+package com.android.tools.idea.uibuilder.property.model
 
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.Icon
 
 /**
- * A model controlling a [com.android.tools.idea.uibuilder.property2.ui.ToggleButtonPropertyEditor]
+ * A model controlling a [com.android.tools.idea.uibuilder.property.ui.ToggleButtonPropertyEditor]
  *
  * Which is a toggle button i.e. the user can select/un-select the button.
  * The model implements a [selected] property which uses the values specified
@@ -34,11 +34,11 @@ class ToggleButtonPropertyEditorModel(
   val trueValue: String,
   @VisibleForTesting
   val falseValue: String,
-  private val neleProperty: NelePropertyItem
-) : BasePropertyEditorModel(neleProperty) {
+  private val nlProperty: NlPropertyItem
+) : BasePropertyEditorModel(nlProperty) {
 
   var selected: Boolean
-    get() = neleProperty.resolvedValue == trueValue
+    get() = nlProperty.resolvedValue == trueValue
     set(value) {
       this.value = if (value) trueValue else falseValue
     }

@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
+    aidlPackagedList += ['one.aidl', 'two.aidl']
+
+    defaultConfig {
+        minSdkVersion 21
+        multiDexEnabled true
+        targetSdkVersion 29
+        consumerProguardFiles getDefaultProguardFile('cPF1.txt')
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        release {
+            isDefault true
+            minifyEnabled false
+            consumerProguardFiles 'release-cPF.txt'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    productFlavors {
+        xyz {
+            consumerProguardFiles 'xyz-cPF1.txt', 'xyz-cPF2.txt'
+            isDefault true
+            multiDexEnabled true
+        }
+    }
+}
+

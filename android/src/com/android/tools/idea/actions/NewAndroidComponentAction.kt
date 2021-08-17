@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -28,7 +27,6 @@ import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
-import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -43,12 +41,10 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.UpdateInBackground
 import com.intellij.openapi.module.Module
-import icons.AndroidIcons
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.refactoring.isJetifierEnabled
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
@@ -65,7 +61,6 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val category: Category,
   private val templateName: String,
   private val minSdkApi: Int,
-  private val minBuildSdkApi: Int = minSdkApi,
   private val templateConstraints: Collection<TemplateConstraint> = setOf()
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null), UpdateInBackground {
 
@@ -82,31 +77,23 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     get() = NEW_WIZARD_CATEGORIES.contains(category)
 
   init {
-    templatePresentation.icon = if (isActivityTemplate) AndroidIcons.Activity else StudioIcons.Shell.Filetree.ANDROID_FILE
+    templatePresentation.icon = if (isActivityTemplate) StudioIcons.Shell.Filetree.ACTIVITY else StudioIcons.Shell.Filetree.ANDROID_FILE
   }
 
+  @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
     val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return
     val moduleInfo = AndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
     presentation.isVisible = true
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
-    val buildSdkVersion = moduleInfo.buildSdkVersion
     when {
       minSdkApi > moduleInfo.minSdkVersion.featureLevel -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
         presentation.isEnabled = false
       }
-      buildSdkVersion != null && minBuildSdkApi > buildSdkVersion.featureLevel -> {
-        presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
-        presentation.isEnabled = false
-      }
-      templateConstraints.contains(TemplateConstraint.AndroidX) && !hasAndroidXEnabled(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
-        presentation.isEnabled = false
-      }
-      templateConstraints.contains(TemplateConstraint.Jetifier) && !hasJetifierEnabled(module) -> {
-        presentation.text = AndroidBundle.message("android.wizard.action.requires.jetifier", templateName)
         presentation.isEnabled = false
       }
       !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
@@ -159,16 +146,12 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val wizardBuilder = ModelWizard.Builder().apply {
       addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates))
     }
-    val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+    val wizardLayout = SimpleStudioWizardLayout()
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build(wizardLayout).show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
   }
 
   companion object {
-    private fun hasAndroidXEnabled(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
-
-    private fun hasJetifierEnabled(module: Module?): Boolean =
-      // If androidX is not enabled, we assume Jetfier is not enabled too (ie appcompat dependencies should work)
-      hasAndroidXEnabled(module) && module != null && module.project.isJetifierEnabled()
+    private fun useAndroidX(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
   }
 }

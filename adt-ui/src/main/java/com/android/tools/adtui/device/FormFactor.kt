@@ -25,12 +25,14 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
+import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
 import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG
-import com.android.sdklib.repository.targets.SystemImage.TV_TAG
+import com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG
+import com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG
 import com.android.sdklib.repository.targets.SystemImage.WEAR_TAG
 import icons.StudioIllustrations.FormFactors
 import javax.swing.Icon
@@ -49,16 +51,14 @@ enum class FormFactor(
   val largeIcon: Icon,
   private val apiTags: List<IdDisplay> = listOf()
 ) {
-  MOBILE("Mobile", "Phone and Tablet", LOWEST_ACTIVE_API, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
+  MOBILE("Mobile", "Phone and Tablet", RECOMMENDED_MIN_SDK_VERSION, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
   WEAR("Wear", "Wear OS", LOLLIPOP, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
   TV("TV", "Android TV", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
-     FormFactors.TV_LARGE, listOf(TV_TAG)),
+     FormFactors.TV_LARGE, listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG)),
   AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API, FormFactors.CAR,
-             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG)),
-  THINGS("Things", "Android Things", VersionCodes.N, VersionCodes.N, HIGHEST_KNOWN_API, FormFactors.THINGS,
-         FormFactors.THINGS_LARGE);
+             FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG));
 
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
 

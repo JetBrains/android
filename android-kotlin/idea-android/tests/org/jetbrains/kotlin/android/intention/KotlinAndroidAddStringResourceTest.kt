@@ -15,52 +15,24 @@
  */
 package org.jetbrains.kotlin.android.intention
 
-import com.android.tools.idea.testing.caret
-import com.android.tools.idea.testing.moveCaret
-import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.android.KotlinTestUtils
 
-class KotlinAndroidAddStringResourceTest : KotlinAndroidTestCase() {
-
-  private val addStringResource = AndroidBundle.message("add.string.resource.intention.text")
-
-  fun testNotApplicableFoComposeFunctions() {
-    myFixture.addClass(
-      // language=JAVA
-      """
-      package androidx.compose;
-
-      public @interface Composable {}
-      """.trimIndent()
-    )
-    assertTrue(myFixture.findClass("androidx.compose.Composable").isAnnotationType)
-
-    val file = myFixture.addFileToProject("src/com/example/test.kt",
+class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest() {
+  fun testKotlinAndroidAddStringResource_composable_function() {
+    myFixture.stubComposableAnnotation()
+    myFixture.addFileToProject(
+      "src/androidx/compose/ui/res/StringResources.kt",
       // language=kotlin
       """
-        package com.example
-
-        import androidx.compose.Composable
+        package androidx.compose.ui.res
 
         @Composable
-        fun myCompose() {
-          val str = "stri${caret}ng"
-        }
-
-        fun myNotCompose() {
-          val str = "string2"
-        }
+        fun stringResource(id: Int): String = ""
       """.trimIndent()
     )
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    assertThat(intentions).doesNotContain(addStringResource)
-
-    // Check that it's available in other places.
-    myFixture.moveCaret("stri|ng2")
-    assertThat(intentions).contains(addStringResource)
+    val fileName = KotlinTestUtils.navigationMetadata(
+      "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableFunction/function.test")
+    doTest(fileName)
   }
-
-  private val intentions get() = myFixture.availableIntentions.map { it.text }
 }

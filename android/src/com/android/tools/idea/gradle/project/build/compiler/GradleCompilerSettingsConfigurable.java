@@ -64,6 +64,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private RawCommandLineEditor myCommandLineOptionsEditor;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
+  private JCheckBox myContinueBuildWithErrors;
 
   private final String myDisplayName;
 
@@ -102,6 +103,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled() ||
            myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
+           myBuildConfiguration.CONTINUE_FAILED_BUILD != isContinueWithFailuresEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
@@ -112,6 +114,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     }
     myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
+    myBuildConfiguration.CONTINUE_FAILED_BUILD = isContinueWithFailuresEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -120,6 +123,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isAutoMakeEnabled() {
     return myAutoMakeCheckBox.isSelected();
+  }
+
+  private boolean isContinueWithFailuresEnabled() {
+    return myContinueBuildWithErrors.isSelected();
   }
 
   @NotNull
@@ -135,6 +142,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
+    myContinueBuildWithErrors.setSelected(myBuildConfiguration.CONTINUE_FAILED_BUILD);
     myCommandLineOptionsEditor.setText(commandLineOptions);
   }
 

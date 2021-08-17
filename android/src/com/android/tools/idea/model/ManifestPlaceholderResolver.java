@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that resolves manifest merger placeholder values in gradle module.
@@ -38,23 +35,7 @@ public class ManifestPlaceholderResolver {
   private final ImmutableMap<String, Object> myPlaceholders;
 
   public ManifestPlaceholderResolver(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
-
-    if (model != null) {
-      ImmutableMap.Builder<String, Object> placeholdersBuilder = ImmutableMap.builder();
-
-      IdeVariant selectedVariant = model.getSelectedVariant();
-      IdeBuildTypeContainer buildType = model.findBuildType(selectedVariant.getBuildType());
-      if (buildType != null) {
-        placeholdersBuilder.putAll(buildType.getBuildType().getManifestPlaceholders());
-      }
-      // flavors and default config
-      placeholdersBuilder.putAll(selectedVariant.getMergedFlavor().getManifestPlaceholders());
-
-      myPlaceholders = placeholdersBuilder.build();
-    } else {
-      myPlaceholders = ImmutableMap.of();
-    }
+    myPlaceholders = ImmutableMap.copyOf(ProjectSystemUtil.getModuleSystem(module).getManifestPlaceholders());
   }
 
   /**

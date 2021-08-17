@@ -35,14 +35,17 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.event.HyperlinkEvent;
@@ -58,13 +61,12 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
   private final Project myProject;
   private JPanel myDescription;
-  private JPanel myStartupInnerPanel;
   private JTextPane myNativeMemoryRateProfilerDescription;
   // TODO(b/112536124): vertical gap between checkbox and text doesn't toggle the checkbox
   private JCheckBox myAdvancedProfilingCheckBox;
   private ClickableLabel myAdvancedProfilingLabel;
   private HyperlinkLabel myHyperlinkLabel;
-  private JTextPane myAdvancedProfilingDescription;
+  private JEditorPane myAdvancedProfilingDescription;
   private JCheckBox myStartupProfileCheckBox;
   private ClickableLabel myStartupProfileLabel;
   private LabeledComponent<JBTextField> myNativeMemoryProfilerSampleRate;
@@ -139,8 +141,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
    */
   public void resetFrom(ProfilerState state) {
     boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
-    myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
-    myAdvancedProfilingDescription.setForeground(UIUtil.getContextHelpForeground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
 
     myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
@@ -183,6 +183,14 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     // TODO: Hyperlink label has a fixed 2 pixel offset at the beginning and cannot be indented. Change for a good component later.
     myHyperlinkLabel = new HyperlinkLabel();
     myHyperlinkLabel.addHyperlinkListener(this);
+
+    myAdvancedProfilingDescription =
+      SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
+    myAdvancedProfilingDescription.setText(
+      "<html>Adds support for network payloads, the event timeline, allocated object count and garbage collection events on devices" +
+      " running API level < 26. May slightly increase build time due to compile-time instrumentation. Has no effect on devices running" +
+      " API level >= 26. <a href=\"https://developer.android.com/r/studio-ui/profiler/support-for-older-devices\">Learn more</a></html>");
+    myAdvancedProfilingDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 
   private void updateHyperlink(String message) {

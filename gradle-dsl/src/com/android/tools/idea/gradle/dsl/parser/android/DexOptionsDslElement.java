@@ -37,14 +37,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class DexOptionsDslElement extends GradleDslBlockElement {
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
     {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
@@ -63,8 +62,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"setThreadCount", exactly(1), THREAD_COUNT, SET}
   }).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
     {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
@@ -86,8 +84,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("dexOptions", DexOptionsDslElement.class, DexOptionsDslElement::new);
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter.isKotlin()) {
       return ktsToModelNameMap;
     }

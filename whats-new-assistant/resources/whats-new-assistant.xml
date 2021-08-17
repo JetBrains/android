@@ -14,229 +14,327 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <tutorialBundle
-    name="What's New"
-    resourceRoot="/"
-    stepByStep="false"
-    hideStepIndex="true"
-    version="4.2.24">
-  <feature
-      name="What's New in 4.2">
-    <tutorial
-        key="whats-new"
-        label=" What's New in 4.2"
-        icon="stable/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/releases#4.2"
-        remoteLinkLabel="Read in a browser">
-      <description>
-        <![CDATA[
+        name="What's New"
+        resourceRoot="/"
+        stepByStep="false"
+        hideStepIndex="true"
+        version="2020.3.22">
+    <feature
+            name="What's New in Arctic Fox(2020.3.1)">
+        <tutorial
+                key="whats-new"
+                label=" What's New in Arctic Fox(2020.3.1)"
+                icon="stable/whats_new_icon.png"
+                remoteLink="https://developer.android.com/studio/releases#2020.3.1"
+                remoteLinkLabel="Read in a browser">
+            <description>
+                <![CDATA[
           This panel describes some of the new features and behavior changes
           included in this update.
           <br><br>
           To open this panel again later, select <b>Help &gt; What's New in Android Studio</b>
           from the main menu.
           ]]>
-      </description>
-      <step label="Upgrade Assistant for AGP">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <p>
-              A new Upgrade Assistant for Android Gradle plugin can help you update
-              the AGP version for your project.
-              </p>
-              <br />
-              <p>Built on top of the existing AGP upgrade functionality, this tool guides you
-              through project-wide updates/refactorings and includes a preview of the
-              updates to help prevent potential breaking changes before executing the AGP
-              upgrade.
-              </p>
-              <br />
-              <img src="https://d.android.com/studio/releases/assistant/4.2.0/agp-upgrade-assistant-wna.png"/>
-             <br /><br />
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Database Inspector Improvements">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <p><b>Query editor</b></p>
-              <br>
-              <p>The Database Inspector has been updated to help you
-              write and execute your custom SQL statements. When
-              you open the inspector and open a <b>New query</b> tab, you should notice a
-              larger, resizable editor surface to author and format your queries, as
-              shown below.
-              </p>
-              <br><img src="https://d.android.com/studio/releases/assistant/4.2.0/db-inspector-query-editor-wna.png"></p>
-              <br><br>
-              <p>Additionally, we now provide history of your previous queries. When you click on the
-              <b>Show query history</b> <img src="https://d.android.com/studio/images/buttons/db-inspector-query-history.png">
-              button, you should see a list of queries you previously ran against the currently
-              selected database. Click a query in the list to see a preview of the full
-              query in the editor and press <b>Enter</b> to copy it to the editor. Then,
-              click <b>Run</b> to execute the statement.
-              </p>
-              <br><br>
-              <p><b>Offline mode</b></p>
-              <br>
-              <p>We've added the ability to keep
-              inspecting your app's databases after a process disconnects, making it easier
-              to debug your app after a crash. While offline, you can open and query tables.
-              However, you cannot edit values or run modification statements until you reconnect
-              to an app process.
-              </p>
-              <br>
-              <a href="https://developer.android.com/studio/releases?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#4.2-db-inspector">Learn more</a>
-              <br>
-              <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="System Trace: Improved metrics for memory and graphics">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p>In the CPU profiler, the System Trace feature now includes new metrics for analyzing app performance:
-            </p>
-            <br />
-            <ul>
-              <li><b>Events Table:</b> Displays all trace events in the currently selected thread.
-              </li>
-              <li>New tracks and track groups:
-              <br />
-              <br />
-                      <ul>
-                        <li><b>BufferQueue:</b> In the Display section, this new track shows the
-                          buffer count of the app's surface BufferQueue (0, 1 or 2).
-                          <br />
-                          <br />
-                        <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-buffer-queue-wna.png"/>
-                        </li>
-                        <li><b>CPU Frequency:</b> In the CPU cores section, this track
-                          shows how hard each core is working.
-                          <br />
-                          <br />
-                          <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-cpu-frequency-wna.png"/>
-                        </li>
-                        <li><b>Process Memory (RSS):</b> The new Process Memory (RSS) track group
-                          shows the amount of physical memory currently in use by the app.
-                          <br />
-                          <br />
-                           <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-process-memory-wna.png"/>
-                        </li>
-                      </ul>
-                  </li>
-                </ul>
-          <br />
-          <p><a href="https://d.android.com/r/studio-ui/profiler/rss-memory?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable">Learn more</a>
-          </p>
-             <br />
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="New Layout Inspector refresh action">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <img src="https://d.android.com/studio/releases/assistant/4.2.0/layout-inspector-refresh-wna.png"/>
-             <br /><br />
-              <p>Introduced in Android Studio 4.0, the Layout Inspector was designed for
-                real-time inspection of your running app's UI stack.
-                However, you might not always want the Layout Inspector
-                to immediately reflect what's happening in your app, since you might want to
-                inspect a snapshot of your app's layout at a specific point in time or
-                minimize the performance impact of live updates on your app.
-                </p>
-                <br />
-                <p>To manually load a snapshot of UI data from your app, first disable the
-                <b>Live updates</b> option. You can then click the <b>Refresh</b> <img src="https://d.android.com/studio/images/buttons/live-layout-refresh-icon.png">
-                button to take a new snapshot of the UI stack for inspection. The Layout
-                Inspector now remembers your preference to keep <b>Live updates</b> enabled or
-                disabled between sessions.
-              </p>
-             <br />
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Support for Safe Args">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <p>Safe Args is a Gradle plugin that generates simple object and builder
-              classes for type-safe navigation and access to any associated arguments.
-              Android Studio now includes richer support when working
-              with Safe Args, as described below:
-              </p>
-              <br />
-              <ul>
-                <li>Autocompletions for Directions, Args, and the various builder classes
-                </li>
-                <li>Support for both Java and Kotlin safe args plugins
-                </li>
-                <li>Navigation from source to XML
-                </li>
-               </ul>
-              <br>
-              <a href="https://d.android.com/guide/navigation/navigation-pass-data?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#Safe-args">Learn more</a>
-              <br>
-              <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="v3 and v4 signing now supported">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <p>
-              Android Gradle Plugin 4.2 now supports the v3 and v4 APK signing formats.
-               </p>
-               <br>
-               <p>APK v4 signing allows you to quickly deploy large APKs using the
-              <a href="https://developer.android.com/about/versions/11/features#incremental">ADB Incremental APK installation</a>
-              in Android 11. This new flag takes care of the APK signing step
-              in the deployment process.
-              </p>
-              <br>
-              <a href="https://developer.android.com/studio/releases/gradle-plugin?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#v3-v4-signing">Learn more</a>
-              <br>
-              <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Apply Changes">
-        <stepElement>
-          <section>
-            <![CDATA[
-              To help you be more productive as you iterate on your app, we've made the following
-              enhancements to Apply Changes for devices running Android 11 or higher:
-              <br><br>
-              <ul>
-                <li>Support for adding static final primitive fields.</li>
-                <li>Support for adding resources.</li>
-              </ul>
-              <a href="https://developer.android.com/r/studio-wna/4.2.0/apply-changes">Learn more</a>
-              <br><br>
-             ]]>
-          </section>
-        </stepElement>
-      </step>
-      <footerStep label="">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <br><em>Last updated 3/31/2021</em><br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </footerStep>
-    </tutorial>
-  </feature>
+            </description>
+            <step label="Improved developer productivity">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            We want to ensure your workspace and environment are ready for the latest systems and
+                            optimized for speed and quality. You can enjoy a whole slew of new features and improvements
+                            that come with a major update to Intellij 2020.3, test your app with what Android 12 has to
+                            offer, improve your app performance with the updated UI for Memory Profiler, understand
+                            background task relationships with WorkManager Inspector, and use Non-Transitive R classes
+                            IDE Refactoring to increase build speed.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Improved user experience">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            You can create previews in different configurations and navigate your code with Compose
+                            Preview, test it in isolation with Deploy Preview to Device, and inspect the full app with
+                            Layout Inspector. Throughout iterations, you can quickly edit strings and numbers and see
+                            immediate updates. Moreover, with the Accessibility Scanner in Layout Editor, your View
+                            based layouts are audited for accessibility problems.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Improved device support">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            We have prepared new emulators and system images, and even authentic simulations for
+                            different testing scenarios: pair your watch and phone emulators with Wear OS Pairing, take
+                            a virtual run with Wear OS heart rate sensors, switch channels with GoogleTV Remote Control,
+                            and drive with Automotive OS Sensor Replay.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="IntelliJ Platform Update">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             Android Studio Arctic Fox (2020.3.1) includes the IntelliJ 2020.3 platform release, which
+                             has many new features such as Debugger interactive hints, new Welcome screen, and a ton of
+                             new code editor enhancements to speed up your workflow.
+                             <a href="https://blog.jetbrains.com/idea/2020/12/intellij-idea-2020-3/">Learn more</a>.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Android 12 lint checks">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             We’ve added lint checks that are specific to building your app for Android 12 so that you
+                             can get guidance in context. To name a few: we have built checks for custom declarations of
+                             splash screens, coarse location permission for fine location usage, media formats, and high
+                             sensor sampling rate permission.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Non-transitive R classes Refactoring">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            Using non-transitive R classes with the Android Gradle Plugin can lead to faster builds for
+                            applications with multiple modules. It prevents resource duplication by ensuring that each
+                            module only contains references to its own resources, without pulling references from
+                            dependencies. You can access this feature by going to Refactor > Migrate to Non-transitive R
+                            Classes.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Apple Silicon Support Preview">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            For those using MacOS on Apple Silicon (arm64) hardware, Android Studio Arctic Fox provides
+                            preview support for this new architecture.  The arm64 platform support is still under active
+                            development, but we wanted to provide you a release order to get your feedback. Since this
+                            is a preview release for the arm64 architecture, you will have to separately download this
+                            version from the Android Studio download archive page and look for Mac (Apple Silicon).
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Extended controls in the Emulator tool window">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            Developers now have access to all extended emulator controls when the emulator is opened in
+                            a tool window. The extended controls will give developers powerful tools for testing their
+                            apps such as navigation playback, virtual sensors, and snapshots all within Android studio.
+                            To launch the Emulator within Android Studio go to Android Studio's Preferences > Tools >
+                            Emulator and select “Launch in a tool window”.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Background Task Inspector">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            You can now utilize the Background Task Inspector to visualize, monitor, and debug your
+                            app's background workers when using WorkManager library 2.5.0 or higher. You can access it
+                            by going to View > Tool Windows > App Inspection from the menu bar. When you deploy an app
+                            on a device running API level 26 and higher, you should see active workers in the Background
+                            Task Inspector tab, as shown below.
+                            <a href="https://developer.android.com/studio/releases#background-task-inspector">Learn more</a>.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Parallel device testing with Test Matrix">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            Instrumentation tests can now be run across multiple devices in parallel and investigated
+                            using a new specialized instrumentation test results panel, called the Test Matrix, which
+                            streams the test results in real time.
+                            <a href="https://developer.android.com/studio/releases#instrumentation-testing">Learn more</a>.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Memory Profiler new recording UI">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            We have consolidated the Memory Profiler UI for different recording activities, such as
+                            capturing a heap dump and recording Java, Kotlin, and native memory allocations.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Updated system requirements">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            In order to ensure that we provide the best experience for Android developers, we are
+                            updating the system requirements when using Android Studio. These requirements also
+                            represent the configurations we use to thoroughly test Android Studio to maintain high
+                            quality and performance, and we plan to update them more frequently going forward. So,
+                            while you’re still able to use systems that fall below the requirements, we can’t guarantee
+                            compatibility or support when doing so. You can see the
+                            <a href="https://developers.android.com/studio#Requirements">updated system requirements</a>
+                            on the official developer site.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Compose Preview">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            You can create previews of your Compose UI with Compose Preview! By using the @Preview
+                            annotation, Compose previews can be made to visualize multiple components at once in
+                            different configurations (i.e themes, device) as well as create a mental mapping for you to
+                            navigate your code.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Layout Inspector for Compose">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            You can now inspect layouts written in Compose with	Layout Inspector. Whether your app uses
+                            layouts fully written in Compose or layouts that use a hybrid of Compose and Views, the
+                            Layout Inspector helps you understand how your layouts are rendered on your running device
+                            or emulator, obtain rich details (such as parameters and modifiers passed to each
+                            composable), and debug issues that might arise. As you interact with the app, you now also
+                            have the option to either enable Live Updates to constantly stream data from your device, or
+                            reduce performance impact on your device by disabling live updates and clicking the Refresh
+                            action as needed.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Deploy Preview to Device">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            Use this feature to deploy a snippet of your UI to a device or emulator. This will help to
+                            test small parts of your code in the device without having to start the full application.
+                            Your preview will benefit the same context (permissions, resources) as your application. You
+                            can click the Deploy to device icon on the top of any Compose preview or next to the
+                            @Preview annotation in the code editor gutter and Android Studio will deploy that @Preview
+                            to your connected device or emulator.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Live Edit of literals">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            Live Editing of literals allows developers using Compose to quickly edit literals (strings,
+                            numbers, booleans) in their code and see the results immediately without needing to wait for
+                            compilation. The  goal of the feature is to increase your productivity by having code
+                            changes appear near instantaneously in the previews, emulator, or physical device.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Accessibility Scanner for Layout Editor">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             Android Studio now integrates with the Android Accessibility Test Framework to help you
+                             find accessibility issues in your layouts. When using the Layout Editor, click on the error
+                             report button to launch the panel. The tool will report accessibility related issues and
+                             also offers suggested fixes for some common problems (e.g. missing content descriptions,
+                             or low contrast)
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Wear OS Pairing">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             We created a new Wear OS pairing assistant to guide developers step by step through pairing
+                             Wear OS emulators with physical or virtual phones directly in Android Studio! You can start
+                             by going to device dropdown > Wear OS emulator pairing assistant. Note that this will
+                             currently pair with Wear OS 2 companion, and newer versions of the companion app will be
+                             coming soon.
+                             <a href="https://developer.android.com/training/wearables/apps/creating#pairing-assistant">Learn more</a>.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="New Wear OS system images">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             A developer preview of the Android 11 (API level 30) system image is now available so that
+                             you can use and play with the newest version of the platform!
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Heart Rate Sensor for Wear OS Emulators">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             To help you test your Wear OS apps, the Android Emulator now has support for the
+                             <a href="https://developer.android.com/training/wearables/apps/creating#pairing-assistant">Heart Rate Sensor API</a>
+                             when you run the Wear OS emulator. Make sure you are running at least Android Emulator
+                             v30.4.5 downloaded via the Android Studio SDK Manager.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Google TV Remote Control">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             On top of running the new Google TV UI, we now have an updated Remote control panel, which
+                             has mapping for the new Google TV remote controls features like: user profile, and settings.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="New Google TV system images">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             We have updated the system images to reflect the new Google TV experience allowing you to
+                             freely explore the UI.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <step label="Automotive OS Sensor Replay">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                             You can now use the Android Automotive emulator to simulate driving scenarios, with the
+                             ability to replay car sensor data (e.g. speed, gear), completing your development and
+                             testing workflow.
+                        ]]>
+                    </section>
+                </stepElement>
+            </step>
+            <footerstep label="">
+                <stepElement>
+                    <section>
+                        <![CDATA[
+                            <br><em>Last updated 7/28/2021</em><br><br>
+                        ]]>
+                    </section>
+                </stepElement>
+            </footerstep>
+        </tutorial>
+    </feature>
 </tutorialBundle>

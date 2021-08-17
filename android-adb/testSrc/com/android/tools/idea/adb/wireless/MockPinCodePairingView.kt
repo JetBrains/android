@@ -18,9 +18,11 @@ package com.android.tools.idea.adb.wireless
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
 
-class MockPinCodePairingView(val project: Project, override val model: PinCodePairingModel) : PinCodePairingView {
-  private val viewImpl = PinCodePairingViewImpl(project, model)
-
+class MockPairingCodePairingView(val project: Project,
+                                 notificationService: WiFiPairingNotificationService,
+                                 override val model: PairingCodePairingModel
+) : PairingCodePairingView {
+  private val viewImpl = PairingCodePairingViewImpl(project, notificationService, model)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val showPairingInProgressTracker = FutureValuesTracker<Unit>()
   val showWaitingForDeviceProgressTracker = FutureValuesTracker<PairingResult>()
@@ -52,11 +54,11 @@ class MockPinCodePairingView(val project: Project, override val model: PinCodePa
     viewImpl.showPairingError(service, error)
   }
 
-  override fun addListener(listener: PinCodePairingView.Listener) {
+  override fun addListener(listener: PairingCodePairingView.Listener) {
     viewImpl.addListener(listener)
   }
 
-  override fun removeListener(listener: PinCodePairingView.Listener) {
+  override fun removeListener(listener: PairingCodePairingView.Listener) {
     viewImpl.removeListener(listener)
   }
 }

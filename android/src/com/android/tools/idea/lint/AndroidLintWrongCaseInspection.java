@@ -39,7 +39,7 @@ public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
     @SuppressWarnings("unchecked")
-    List<String> oldAndNew = LintFix.getData(fixData, List.class);
+    List<String> oldAndNew = LintFix.getStringList(fixData, WrongCaseDetector.KEY_REPLACEMENTS);
     if (oldAndNew != null && oldAndNew.size() == 2) {
       String current = oldAndNew.get(0);
       String proposed = oldAndNew.get(1);

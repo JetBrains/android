@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.inspector.groups.ConstraintGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.MarginGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.PaddingGroup
-import com.android.tools.idea.uibuilder.property2.inspector.groups.ThemeGroup
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.inspector.groups.ConstraintGroup
+import com.android.tools.idea.uibuilder.property.inspector.groups.MarginGroup
+import com.android.tools.idea.uibuilder.property.inspector.groups.PaddingGroup
+import com.android.tools.idea.uibuilder.property.inspector.groups.ThemeGroup
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
@@ -32,15 +32,15 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.TableUIProvider
 
 class AllAttributesInspectorBuilder(
-  private val model: NelePropertiesModel,
-  controlTypeProvider: NeleControlTypeProvider,
-  editorProvider: EditorProvider<NelePropertyItem>
-) : InspectorBuilder<NelePropertyItem> {
+  private val model: NlPropertiesModel,
+  controlTypeProvider: NlControlTypeProvider,
+  editorProvider: EditorProvider<NlPropertyItem>
+) : InspectorBuilder<NlPropertyItem> {
 
   private val allTableUIProvider = TableUIProvider.create(
-    NelePropertyItem::class.java, controlTypeProvider, editorProvider)
+    NlPropertyItem::class.java, controlTypeProvider, editorProvider)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.ALL.visible) {
       return
     }
@@ -50,8 +50,8 @@ class AllAttributesInspectorBuilder(
     inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
   }
 
-  private fun createGroups(properties: PropertiesTable<NelePropertyItem>): List<GroupSpec<NelePropertyItem>> {
-    val groups = mutableListOf<GroupSpec<NelePropertyItem>>()
+  private fun createGroups(properties: PropertiesTable<NlPropertyItem>): List<GroupSpec<NlPropertyItem>> {
+    val groups = mutableListOf<GroupSpec<NlPropertyItem>>()
     groups.add(PaddingGroup(properties))
     groups.add(MarginGroup(properties))
     groups.add(ConstraintGroup(properties))

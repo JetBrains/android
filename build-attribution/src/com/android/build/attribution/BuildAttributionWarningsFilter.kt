@@ -43,7 +43,7 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
   }
 
   fun applyAlwaysRunTaskFilter(task: TaskData): Boolean {
-    return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
+    return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.idName))
   }
 
   fun applyNonIncrementalAnnotationProcessorFilter(annotationProcessorClassName: String): Boolean {
@@ -51,7 +51,7 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
   }
 
   fun applyNoncacheableTaskFilter(task: TaskData): Boolean {
-    return !suppressedWarnings.noncacheableTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
+    return !suppressedWarnings.noncacheableTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.idName))
   }
 
   var suppressNoGCSettingWarning: Boolean

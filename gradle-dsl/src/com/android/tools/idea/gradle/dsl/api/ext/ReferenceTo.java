@@ -35,10 +35,16 @@ public final class ReferenceTo {
   /**
    * Create a reference to a {@link GradlePropertyModel}.
    * @param model the model we want to refer to.
+   * @throws IllegalArgumentException if the model isn't of a valid existing property.
    */
   public ReferenceTo(@NotNull GradlePropertyModel model) {
-    myReferenceText = model.getFullyQualifiedName();
-    propertyModel = model;
+    if (model.getRawElement() != null) {
+      myReferenceText = model.getFullyQualifiedName();
+      propertyModel = model;
+    }
+    else {
+      throw new IllegalArgumentException("The model property isn't valid. Please check the property exist");
+    }
   }
 
   /**
@@ -72,7 +78,7 @@ public final class ReferenceTo {
     return new ReferenceTo(referenceModel);
   }
 
-  @Nullable
+  @NotNull
   public GradleDslElement getReferredElement() {
     return propertyModel.getRawElement();
   }

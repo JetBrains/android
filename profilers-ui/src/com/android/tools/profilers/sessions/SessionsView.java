@@ -36,6 +36,8 @@ import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.AllocationArtifactView;
+import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdArtifactView;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofArtifactView;
@@ -223,6 +225,7 @@ public class SessionsView extends AspectObserver {
     mySessionArtifactViewBinder.bind(HeapProfdSessionArtifact.class, HeapProfdArtifactView::new);
     mySessionArtifactViewBinder.bind(LegacyAllocationsSessionArtifact.class, LegacyAllocationsArtifactView::new);
     mySessionArtifactViewBinder.bind(CpuCaptureSessionArtifact.class, CpuCaptureArtifactView::new);
+    mySessionArtifactViewBinder.bind(AllocationSessionArtifact.class, AllocationArtifactView::new);
 
     initializeUI();
     refreshProcessDropdown();
@@ -375,6 +378,8 @@ public class SessionsView extends AspectObserver {
     CommonAction loadAction = new CommonAction("Load from file...", null);
     List<String> supportedExtensions = new ArrayList<>();
     supportedExtensions.add("trace");
+    supportedExtensions.add("pftrace");
+    supportedExtensions.add("perfetto-trace");
     supportedExtensions.add("alloc");
     supportedExtensions.add("hprof");
     if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {

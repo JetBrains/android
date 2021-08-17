@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.inspectors.common.ui;
 
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 public interface ContextMenuInstaller {
   /**
@@ -40,7 +39,7 @@ public interface ContextMenuInstaller {
    * @param component       Target {@link JComponent} that triggers the popup menu when is clicked.
    * @param contextMenuItem {@link ContextMenuItem} to be added to the popup menu.
    * @param itemEnabled     {@link IntPredicate} that receives the mouse X coordinate within {@code component} when the popup is triggered
-                            and decides whether {@code contextMenuItem} should be enabled.
+   *                        and decides whether {@code contextMenuItem} should be enabled.
    * @param callback        {@link IntConsumer} that runs an action depending on the mouse X coordinate when the popup is triggered.
    */
   void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem, @NotNull IntPredicate itemEnabled,
@@ -58,5 +57,4 @@ public interface ContextMenuInstaller {
   void installNavigationContextMenu(@NotNull JComponent component,
                                     @NotNull CodeNavigator navigator,
                                     @NotNull Supplier<CodeLocation> codeLocationSupplier);
-
 }

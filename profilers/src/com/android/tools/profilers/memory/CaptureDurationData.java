@@ -21,23 +21,27 @@ import org.jetbrains.annotations.NotNull;
 
 public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigurableDurationData {
   @NotNull private final CaptureEntry<T> myCaptureEntry;
-  private final boolean myIsHeapDumpData;
+  private final Class<? super T> myCaptureObjectType;
 
   public CaptureDurationData(long duration,
                              boolean selectableWhenUnspecifiedDuration,
                              boolean selectPartialRange,
                              @NotNull CaptureEntry<T> captureEntry) {
-    this(duration, selectableWhenUnspecifiedDuration, selectPartialRange, captureEntry, false);
+    this(duration, selectableWhenUnspecifiedDuration, selectPartialRange, captureEntry, CaptureObject.class);
   }
 
+  /**
+   * @param captureObjectType a subclass of CaptureObject that any capture object produced by `captureEntry`
+   *                          is guaranteed to be an instance of
+   */
   public CaptureDurationData(long duration,
                              boolean selectableWhenUnspecifiedDuration,
                              boolean selectPartialRange,
                              @NotNull CaptureEntry<T> captureEntry,
-                             boolean isHeapDumpData) {
+                             Class<? super T> captureObjectType) {
     super(duration, selectableWhenUnspecifiedDuration, selectPartialRange);
     myCaptureEntry = captureEntry;
-    myIsHeapDumpData = isHeapDumpData;
+    myCaptureObjectType = captureObjectType;
   }
 
   @NotNull
@@ -46,10 +50,10 @@ public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigu
   }
 
   /**
-   * TODO: better property name
-   * @return whether the data should be displayed in a separate UI
+   * @return an upperbound of the capture object type.
+   * The capture object produced by `getCaptureEntry()` is guaranteed to be a instance of this class.
    */
-  public final boolean isHeapDumpData() {
-    return myIsHeapDumpData;
+  public final Class<? super T> getCaptureObjectType() {
+    return myCaptureObjectType;
   }
 }

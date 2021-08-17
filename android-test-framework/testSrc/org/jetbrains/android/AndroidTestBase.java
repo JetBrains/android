@@ -40,22 +40,18 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceContributor;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -71,6 +67,9 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
+  // Keep track of each leaked disposable so that we can fail just the *first* test that leaks it.
+  private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
+
   protected JavaCodeInsightTestFixture myFixture;
   protected MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
@@ -98,9 +97,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
     checkUndisposedAndroidRelatedObjects();
   }
-
-  // Keep track of each leaked disposable so that we can fail just the *first* test that leaks it.
-  private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
 
   /**
    * Checks that there are no undisposed Android-related objects.
@@ -168,11 +164,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return getModulePath("android");
   }
 
-  public static String getModulePath(String moduleFolder) {
+  public static String getModulePath(@NotNull String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    File adtIdea = TestUtils.getWorkspaceFile("tools/adt/idea");
-    Path adtPath = Paths.get(adtIdea.getAbsolutePath(), moduleFolder).normalize();
+    Path adtIdea = TestUtils.resolveWorkspacePath("tools/adt/idea");
+    Path adtPath = adtIdea.resolve(moduleFolder).normalize();
     if (Files.exists(adtPath)) {
       return adtPath.toString();
     }
@@ -229,16 +225,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (elements == null) {
       return "Empty";
     }
-    List<PsiElement> sortedElements = Arrays.stream(elements).map((element) -> {
-      if (element instanceof LazyValueResourceElementWrapper) {
-        LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-        XmlAttributeValue value = wrapper.computeElement();
-        if (value != null) {
-          return value;
-        }
-      }
-      return element;
-    }).sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
+    List<PsiElement> sortedElements = Arrays.stream(elements)
+      .sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
     StringBuilder sb = new StringBuilder();
     for (PsiElement target : sortedElements) {
       appendElementDescription(sb, target);

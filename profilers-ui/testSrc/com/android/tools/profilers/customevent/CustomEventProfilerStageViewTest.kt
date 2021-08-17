@@ -18,6 +18,7 @@ package com.android.tools.profilers.customevent
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.StreamingScrollbar
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -25,7 +26,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerScrollbar
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -88,7 +88,7 @@ class CustomEventProfilerStageViewTest {
     assertThat(timeline.size).isEqualTo(1)
 
     //scrollbar
-    val scrollbar = treeWalker.descendants().filterIsInstance(ProfilerScrollbar::class.java)
+    val scrollbar = treeWalker.descendants().filterIsInstance(StreamingScrollbar::class.java)
     assertThat(scrollbar.size).isEqualTo(1)
   }
 

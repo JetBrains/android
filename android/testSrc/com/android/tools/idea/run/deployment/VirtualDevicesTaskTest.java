@@ -26,11 +26,10 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -44,19 +43,17 @@ public final class VirtualDevicesTaskTest {
   private final AndroidDevice myAndroidDevice = Mockito.mock(AndroidDevice.class);
 
   @Test
-  public void get() throws InterruptedException, ExecutionException {
+  public void getSnapshotIsntNull() throws Exception {
     // Arrange
-    Collection<AvdInfo> avds = Arrays.asList(mockAvd("Pixel 4 API 30",
-                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                     "Pixel_4_API_30"),
-                                             mockAvd("Pixel 4 API 30",
-                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                     "Pixel_4_API_30"));
+    Collection<AvdInfo> avds = Collections.singletonList(mockAvd("Pixel 4 API 30",
+                                                                 "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
+                                                                 "Pixel_4_API_30"));
+
+    Files.createDirectories(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"));
 
     AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(() -> avds)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -93,7 +90,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -104,7 +100,7 @@ public final class VirtualDevicesTaskTest {
     Object snapshot = task.getSnapshot(directory);
 
     // Assert
-    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
+    assertEquals(new Snapshot(directory), snapshot);
   }
 
   @Test
@@ -113,7 +109,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -134,7 +129,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
@@ -143,13 +137,13 @@ public final class VirtualDevicesTaskTest {
       .addImages(Image.getDefaultInstance())
       .build();
 
-    Path directory = Snapshot.defaultBoot(myFileSystem);
+    Path directory = myFileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
 
     // Act
     Object snapshot = task.getSnapshot(protocolBufferSnapshot, directory);
 
     // Assert
-    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
+    assertEquals(new Snapshot(directory), snapshot);
   }
 
   @Test
@@ -158,7 +152,6 @@ public final class VirtualDevicesTaskTest {
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> false)
       .setFileSystem(myFileSystem)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();

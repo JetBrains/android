@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN
@@ -488,13 +489,13 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val classPathProperty = buildModel.buildscript().dependencies().artifacts()[0]
     val depsProperty = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
+    verifyPropertyModel(classPathProperty.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", INTERPOLATED, REGULAR, 1)
 
     // Set the value of the result of the version
     classPathProperty.version().resultModel.setValue("3.2.0")
 
     fun verify(model: ArtifactDependencyModel) {
-      verifyPropertyModel(model.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", STRING, REGULAR, 1)
+      verifyPropertyModel(model.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(model.completeModel().unresolvedModel, STRING_TYPE,
                           if (isGroovy) "deps.android_gradle_plugin" else "extra[\"deps\"][\"android_gradle_plugin\"]",
                           REFERENCE, REGULAR, 1)
@@ -528,7 +529,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", INTERPOLATED, REGULAR, 1)
     verifyPropertyModel(artModel.completeModel().unresolvedModel, STRING_TYPE,
                         if (isGroovy) "rootProject.ext.deps.android_gradle_plugin" else "rootProject.extra[\"deps\"][\"android_gradle_plugin\"]",
                         REFERENCE, REGULAR, 1)
@@ -561,7 +562,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:boo:2.0", STRING, REGULAR, 2)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:boo:2.0", INTERPOLATED, REGULAR, 2)
   }
 
   @Test
@@ -572,7 +573,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, if (isGroovy) DERIVED else REGULAR, 3)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", INTERPOLATED, if (isGroovy) DERIVED else REGULAR, 3)
   }
 
   @Test
@@ -583,7 +584,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, REGULAR, 3)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", INTERPOLATED, REGULAR, 3)
   }
 
   @Test
@@ -597,7 +598,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = subModuleGradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:agh:2.0", STRING, REGULAR, 2)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "boo:agh:2.0", INTERPOLATED, REGULAR, 2)
   }
 
   @Test
@@ -629,7 +630,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val artModel = childBuildModel.dependencies().artifacts()[0]!!
 
     verifyPropertyModel(childBuildModel.ext().findProperty("hello").resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1)
-    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "good:dep:1.0", INTERPOLATED, REGULAR, 1)
   }
 
   @Test
@@ -642,7 +643,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertSize(1, buildModel.ext().inScopeProperties.entries)
 
     val artModel = buildModel.buildscript().dependencies().artifacts()[0]!!
-    verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
+    verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", INTERPOLATED, REGULAR, 1)
   }
 
   @Test

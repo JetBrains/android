@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
@@ -47,6 +49,8 @@ class SaturationBrightnessComponentTest {
                                                  1,
                                                  false))
 
+    runInEdtAndWait() { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+
     // pressing won't change the color in color model, but just trigger pickingColorChanged callback.
     assertEquals(initialColor, model.color)
     Mockito.verify(listener, Mockito.times(0)).colorChanged(centerColor, brightnessComponent)
@@ -60,6 +64,8 @@ class SaturationBrightnessComponentTest {
                                                  centerY,
                                                  1,
                                                  false))
+    runInEdtAndWait() { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+
     // dragging won't change the color but trigger pickingColorChanged callback neither.
     assertEquals(initialColor, model.color)
     Mockito.verify(listener, Mockito.times(0)).colorChanged(centerColor, brightnessComponent)
@@ -74,6 +80,7 @@ class SaturationBrightnessComponentTest {
                                                  centerY,
                                                  1,
                                                  false))
+    runInEdtAndWait() { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     // releasing change the color of model but doesn't trigger pickingColorChanged callback.
     assertEquals(centerColor, model.color)
     Mockito.verify(listener, Mockito.times(1)).colorChanged(centerColor, brightnessComponent)

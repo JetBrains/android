@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl
 
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.TestDataFile
+import com.intellij.testFramework.TestDataPath
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
@@ -23,8 +25,8 @@ interface TestFileName {
   @JvmDefault
   fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtil.toSystemDependentName(basePath) + extension)
 }
-
-enum class TestFileNameImpl(val path: String): TestFileName {
+@TestDataPath("\$CONTENT_ROOT/../testData/parser")
+enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
   AAPT_OPTIONS_EDIT_ELEMENTS("aaptOptions/editElements"),
@@ -109,14 +111,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addNdkBuildVersionAndApplyChangesExpected"),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION("externalNativeBuildModel/setConstructorToFunction"),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED("externalNativeBuildModel/setConstructorToFunctionExpected"),
-  KOTLIN_OPTIONS_MODEL_ADD("kotlinOptionsModel/add"),
-  KOTLIN_OPTIONS_MODEL_ADD_EXPECTED("kotlinOptionsModel/addExpected"),
-  KOTLIN_OPTIONS_MODEL_BLOCK("kotlinOptionsModel/block"),
-  KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET("kotlinOptionsModel/addUnknownTarget"),
-  KOTLIN_OPTIONS_MODEL_MODIFY("kotlinOptionsModel/modify"),
-  KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED("kotlinOptionsModel/modifyExpected"),
-  KOTLIN_OPTIONS_MODEL_REMOVE("kotlinOptionsModel/remove"),
-  KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED("kotlinOptionsModel/removeExpected"),
   LINT_OPTIONS_MODEL_TEXT("lintOptionsModel/lintOptionsText"),
   LINT_OPTIONS_MODEL_ADD_ELEMENTS("lintOptionsModel/addElements"),
   LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED("lintOptionsModel/addElementsExpected"),
@@ -125,19 +119,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED("lintOptionsModel/removeOneOfElementsInTheListExpected"),
   LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST("lintOptionsModel/removeOnlyElementsInTheList"),
   MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES("modelMapPropertyImpl/propertyValues"),
-  PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS("packagingOptionsModel/parseElementsInApplicationStatements"),
-  PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS("packagingOptionsModel/parseElementsInAssignmentStatements"),
-  PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS("packagingOptionsModel/replaceElements"),
-  PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED("packagingOptionsModel/replaceElementsExpected"),
-  PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS("packagingOptionsModel/addElements"),
-  PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED("packagingOptionsModel/addElementsExpected"),
-  PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS("packagingOptionsModel/appendElements"),
-  PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS_EXPECTED("packagingOptionsModel/appendElementsExpected"),
-  PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS("packagingOptionsModel/removeElements"),
-  PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS("packagingOptionsModel/removeOneOfElements"),
-  PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_EXPECTED("packagingOptionsModel/removeOneOfElementsExpected"),
-  PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT("packagingOptionsModel/removeOnlyElement"),
-  PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_EXPECTED("packagingOptionsModel/removeOnlyElementExpected"),
   PRODUCT_FLAVOR_MODEL_NATIVE_ELEMENT_TEXT("productFlavorModel/nativeElementText"),
   PRODUCT_FLAVOR_MODEL_EDIT_NATIVE_ELEMENTS_EXPECTED("productFlavorModel/editNativeElementsExpected"),
   PRODUCT_FLAVOR_MODEL_REMOVE_ONE_OF_NATIVE_ELEMENTS_IN_THE_LIST_EXPECTED("productFlavorModel/removeOneOfNativeElementsInTheListExpected"),
@@ -266,11 +247,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING("viewBindingModel/addElementsFromExisting"),
   VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED("viewBindingModel/addElementsFromExistingExpected"),
   VIEW_BINDING_MODEL_REMOVE_ELEMENTS("viewBindingModel/removeElements"),
-  ALL_PROJECTS_ALL_PROJECTS_SECTION("allProjects/allProjectsSection"),
-  ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION("allProjects/overrideAllProjectsSection"),
-  ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT("allProjects/overrideAllProjectsSectionInSubproject"),
-  ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB("allProjects/overrideAllProjectsSectionInSubproject_sub"),
-  ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION("allProjects/overrideWithAllProjectsSection"),
   BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES("buildScriptModel/parseDependencies"),
   BUILD_SCRIPT_MODEL_ADD_DEPENDENCY("buildScriptModel/addDependency"),
   BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED("buildScriptModel/addDependencyExpected"),
@@ -293,13 +269,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   REFERENCE_RESOLUTION_RESOLVE_ROOT_DIR_SUB("referenceResolution/resolveRootDir_sub"),
   REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT("referenceResolution/resolveRootProject"),
   REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB("referenceResolution/resolveRootProject_sub"),
-  SUB_PROJECTS_APPLY_PLUGINS("subProjects/applyPlugins"),
-  SUB_PROJECTS_APPLY_PLUGINS_SUB("subProjects/applyPlugins_sub"),
-  SUB_PROJECTS_APPLY_PLUGINS_SUB2("subProjects/applyPlugins_sub2"),
-  SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION("subProjects/overrideSubProjectSection"),
-  SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB("subProjects/overrideSubProjectSection_sub"),
-  SUB_PROJECTS_SUB_PROJECTS_SECTION("subProjects/subProjectsSection"),
-  SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES("subProjects/subProjectsSectionWithLocalProperties"),
   DEPENDENCIES_ALL_DEPENDENCIES("dependencies/allDependencies"),
   DEPENDENCIES_KOTLIN_DEPENDENCIES("dependencies/kotlinDependencies"),
   DEPENDENCIES_REMOVE_JAR_DEPENDENCIES("dependencies/removeJarDependencies"),
@@ -422,18 +391,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB("extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory_sub"),
   PROPERTY_MODIFIED_TEST_FILE("propertyModified/testFile"),
   PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME("propertyUtil/writeBackElementWithTrimmedName"),
-  GRADLE_DSL_FILE_INVOLVED_FILES("gradleDslFile/involvedFiles"),
-  GRADLE_DSL_FILE_INVOLVED_FILES_SUB("gradleDslFile/involvedFiles_sub"),
-  GRADLE_DSL_FILE_PROPERTIES_LIST("gradleDslFile/propertiesList"),
-  GRADLE_DSL_FILE_PROPERTIES_LIST_SUB("gradleDslFile/propertiesList_sub"),
-  GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES("gradleDslFile/involvedAppliedFiles"),
-  GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE("gradleDslFile/involvedAppliedFilesAppliedFileOne"),
-  GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO("gradleDslFile/involvedAppliedFilesAppliedFileTwo"),
-  GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES("gradleDslFile/listPropertiesFromAppliedFiles"),
-  GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE("gradleDslFile/listPropertiesFromAppliedFilesAppliedFileOne"),
-  GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO("gradleDslFile/listPropertiesFromAppliedFilesAppliedFileTwo"),
-  GRADLE_DSL_FILE_APPLY_FROM_BLOCK("gradleDslFile/applyFromBlock"),
-  GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED("gradleDslFile/applyFromBlockApplied"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY("googleMavenRepository/hasGoogleMavenRepositoryEmpty"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5("googleMavenRepository/hasGoogleMavenRepositoryName3dot5"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME4DOT0("googleMavenRepository/hasGoogleMavenRepositoryName4dot0"),
@@ -444,11 +401,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_URL_ALREADY("googleMavenRepository/addGoogleRepositoryWithUrlAlready"),
   GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY3DOT5("googleMavenRepository/addGoogleRepositoryWithGoogleAlready3dot5"),
   GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY4DOT0("googleMavenRepository/addGoogleRepositoryWithGoogleAlready4dot0"),
-  GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE("gradlePropertyListValue/replaceListValue"),
-  GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_EXPECTED("gradlePropertyListValue/replaceListValueExpected"),
-  GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST("gradlePropertyListValue/replaceListValueOnNoneList"),
-  GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES("gradlePropertyListValue/removeListValues"),
-  GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES_EXPECTED("gradlePropertyListValue/removeListValuesExpected"),
   COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED("compositeBuild/compositeProjectApplied"),
   COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD("compositeBuild/compositeProjectRootBuild"),
   COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS("compositeBuild/compositeProjectSettings"),

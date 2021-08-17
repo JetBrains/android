@@ -25,7 +25,9 @@ import java.util.List;
 @NameStrategy(PascalNameStrategy.class)
 @Styleable(value = "MotionScene", packageName = "android.support.constraint")
 public interface MotionScene extends MotionElement {
+  List<ViewTransition> getViewTransitions();
   List<Transition> getTransitions();
   StateSet getStateSet();
+  List<include> getincludes();
   List<ConstraintSet> getConstraintSets();
 }

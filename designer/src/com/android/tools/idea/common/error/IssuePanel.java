@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.error;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.annotations.VisibleForTesting;
@@ -89,6 +89,15 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private static final String ACTION_COLLAPSE = "collapse";
   private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
+  /** Event listeners for the issue panel */
+  public interface EventListener {
+    /** Called when the panel is expanded or minimized */
+    void onPanelExpanded(boolean isExpanded);
+
+    /** Called when the individual issue is expanded or minimized */
+    void onIssueExpanded(@Nullable Issue issue, boolean isExpanded);
+  }
+
   private final HashBiMap<Issue, IssueView> myDisplayedError = HashBiMap.create();
   private final IssueModel myIssueModel;
   private final JPanel myErrorListPanel;
@@ -97,8 +106,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final JBScrollPane myScrollPane;
   private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
-  private final List<MinimizeListener> myMinimizeListener = new ArrayList();
-  private ExpandListener myExpandListener;
+  private final List<EventListener> myEventListeners = new ArrayList<>();
   @Nullable private IssueView mySelectedIssueView;
   @Nullable private Issue mySelectedIssue;
 
@@ -292,6 +300,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     UIUtil.invokeLaterIfNeeded(() -> {
       if (!myIssueModel.hasIssues()) {
         myTitleLabel.setText(TITLE_NO_ISSUES);
+        setSelectedIssue(null);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
         if (myAutoSize) {
@@ -364,6 +373,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       Issue issue = entry.getKey();
       if (!newIssues.contains(issue)) {
         IssueView issueView = entry.getValue();
+        if (mySelectedIssueView == issueView) {
+          setSelectedIssue(null);
+        }
         myErrorListPanel.remove(issueView);
         iterator.remove();
       }
@@ -432,24 +444,20 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     revalidate();
     repaint();
 
-    if (!myMinimizeListener.isEmpty()) {
-      UIUtil.invokeLaterIfNeeded(() -> myMinimizeListener.forEach(it ->
-        it.onMinimizeChanged(isMinimized)
+    if (!myEventListeners.isEmpty()) {
+      UIUtil.invokeLaterIfNeeded(() -> myEventListeners.forEach(it ->
+        it.onPanelExpanded(!isMinimized)
       ));
     }
   }
 
-  public void addMinimizeListener(@Nullable MinimizeListener listener) {
-    myMinimizeListener.add(listener);
+  public void addEventListener(@NotNull EventListener listener) {
+    myEventListeners.add(listener);
   }
 
-  public void setExpandListener(ExpandListener listener) {
-    myExpandListener = listener;
-  }
-
-  @Nullable
-  public ExpandListener getExpandListener() {
-    return myExpandListener;
+  @NotNull
+  public List<EventListener> getEventListeners() {
+    return myEventListeners;
   }
 
   @Nullable
@@ -462,8 +470,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   @Override
   public void dispose() {
-    myMinimizeListener.clear();
-    myExpandListener = null;
+    myEventListeners.clear();
     mySelectedIssue = null;
     mySelectedIssueView = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
@@ -479,6 +486,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     if (mySelectedIssueView != selectedIssue) {
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(false);
+        mySelectedIssue = null;
       }
       mySelectedIssueView = selectedIssue;
       if (mySelectedIssueView != null) {
@@ -523,34 +531,36 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   }
 
   /**
-   * Select the first issue related to the provided component and scroll the viewport to this issue
+   * Select the highest severity issue related to the provided component and scroll the viewport to this issue
    *
    * @param component      The component owning the issue to show
    * @param collapseOthers if true, all other issues will be collapsed
    */
-  public void showIssueForComponent(NlComponent component, boolean collapseOthers) {
-    Issue issue = myIssueModel.findIssue(component);
-    if (issue != null) {
-      IssueView issueView = myDisplayedError.get(issue);
-      if (issueView != null) {
-        setSelectedIssue(issueView);
-        issueView.setExpanded(true);
+  public void showIssueForComponent(@NotNull NlComponent component, boolean collapseOthers) {
+    Issue issue = myIssueModel.getHighestSeverityIssue(component);
+    if (issue == null) {
+      return;
+    }
 
-        // Collapse all other issue
-        if (collapseOthers) {
-          for (IssueView other : myDisplayedError.values()) {
-            if (other != issueView) {
-              other.setExpanded(false);
-            }
+    IssueView issueView = myDisplayedError.get(issue);
+    if (issueView != null) {
+      setSelectedIssue(issueView);
+      issueView.setExpanded(true);
+
+      // Collapse all other issue
+      if (collapseOthers) {
+        for (IssueView other : myDisplayedError.values()) {
+          if (other != issueView) {
+            other.setExpanded(false);
           }
         }
       }
-      setMinimized(false);
-      if (issueView != null) {
-        JViewport viewport = myScrollPane.getViewport();
-        viewport.validate();
-        viewport.setViewPosition(issueView.getLocation());
-      }
+    }
+    setMinimized(false);
+    if (issueView != null) {
+      JViewport viewport = myScrollPane.getViewport();
+      viewport.validate();
+      viewport.setViewPosition(issueView.getLocation());
     }
   }
 
@@ -589,14 +599,6 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       myDisplayedError.clear();
       updateErrorList();
     }
-  }
-
-  public interface MinimizeListener {
-    void onMinimizeChanged(boolean isMinimized);
-  }
-
-  public interface ExpandListener {
-    void onExpanded(Issue issue, boolean isExpanded);
   }
 
   /**

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType

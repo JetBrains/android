@@ -1,4 +1,5 @@
 import filecmp
+import glob
 import os
 import platform
 import re
@@ -27,25 +28,33 @@ class SearchableOptionTests(unittest.TestCase):
     plugin_path = {
       "Windows": "android-studio/plugins",
       "Linux": "android-studio/plugins",
-      "Darwin": "Android Studio.app/Contents/plugins",
+      "Darwin": "Android Studio*.app/Contents/plugins",
     }
     actual_dir = os.path.join(work_dir, "actual")
-    plugins_dir = os.path.join(work_dir, plugin_path[platform.system()])
+    [plugins_dir] = glob.glob(os.path.join(work_dir, plugin_path[platform.system()]))
     for plugin in os.listdir(plugins_dir):
       if plugin in plugin_list:
         lib_dir = os.path.join(plugins_dir, plugin, "lib")
         for jar in os.listdir(lib_dir):
           if jar.endswith(".jar"):
             with zipfile.ZipFile(os.path.join(lib_dir, jar)) as jar_file:
+              has_searchable_options = False
+              has_search_entry = False
               for name in jar_file.namelist():
                 if re.match(r"search/.*searchableOptions\.xml", name):
                   jar_file.extract(name, path=os.path.join(actual_dir, plugin, jar))
+                  has_searchable_options = True
+                if name == "search/":
+                  has_search_entry = True
+              if has_searchable_options and not has_search_entry:
+                self.fail("Jar %s contains searchable options xmls, but it does " % jar +
+                  "not have a search/ directory entry. IntelliJ requires the directory entry to find the .xmls")
 
     eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir))
     if not eq:
       print("Searchable options comparison failed.")
-      print("The expected output is in outputs.zip, please update tools/adt/idea/studio/searchable-options with it.")
-      print("Alternatively, if you are on linux you can run: bazel run //tools/adt/idea/studio:update_searchable_options")
+      print("The expected output is in outputs.zip, please update tools/adt/idea/searchable-options with it.")
+      print("Alternatively, if you are on Linux you can run: bazel run //tools/adt/idea/searchable-options:update_searchable_options")
       undeclared_outputs = os.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
       for name in os.listdir(expected_dir):
         shutil.copytree(os.path.join(expected_dir, name), os.path.join(undeclared_outputs, name))

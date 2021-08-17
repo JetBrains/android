@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.inspector.groups.CONSTRAINT_GROUP_NAME
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
-import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.inspector.groups.CONSTRAINT_GROUP_NAME
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.google.common.truth.Truth
@@ -179,9 +179,9 @@ class AllAttributesInspectorBuilderTest {
       ).inOrder()
   }
 
-  private fun createBuilder(model: NelePropertiesModel): AllAttributesInspectorBuilder {
-    val enumSupportProvider = NeleEnumSupportProvider(model)
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+  private fun createBuilder(model: NlPropertiesModel): AllAttributesInspectorBuilder {
+    val enumSupportProvider = NlEnumSupportProvider(model)
+    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
     return AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider)
   }

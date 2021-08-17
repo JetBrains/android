@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui.visualtests.flamegraph;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
@@ -23,8 +25,6 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.flamegraph.SampledMethodUsage;
-import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.LineChartModel;
@@ -98,7 +98,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
 
-    mLineChartModel = new LineChartModel();
+    mLineChartModel = new LineChartModel(newDirectExecutorService());
     this.mLineChart = new LineChart(mLineChartModel);
     RangeSelectionModel selection = new RangeSelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
     this.mSelector = new RangeSelectionComponent(selection);

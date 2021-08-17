@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
 import com.android.repository.api.RemotePackage
-import com.android.repository.io.FileOp
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
@@ -36,6 +35,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
@@ -45,19 +45,22 @@ import com.google.common.base.Objects
 import com.google.common.collect.ImmutableSet
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
-import java.io.File
+import java.nio.file.Path
+import com.google.wireless.android.sdk.stats.ProductDetails
+
+import com.android.tools.analytics.CommonMetricsData.osArchitecture
+import com.intellij.openapi.util.SystemInfo
+
 
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice(
-  remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean, fop: FileOp
-) : InstallableComponent(
+class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
-  installUpdates,
-  fop
+  installUpdates
 ) {
+  private val IS_ARM64_HOST_OS = SystemInfo.isArm64 || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
   private lateinit var myProgressStep: ProgressStep
   private var myLatestVersion: AndroidVersion? = null
 
@@ -80,27 +83,36 @@ class AndroidVirtualDevice(
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
-    val hardwareSkinPath = AvdWizardUtils.pathToUpdatedSkins(d.defaultHardware.skinFile, systemImageDescription, fileOp)
+    val hardwareSkinPath = d.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }
+      ?.let { defaultHardwareSkin ->
+        DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
+      }
     val displayName = connection.uniquifyDisplayName(d.displayName + " " + systemImageDescription.version + " " + systemImageDescription.abiType)
     val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
     val abi = Abi.getEnum(systemImageDescription.abiType)
-    val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, fileOp)
+    val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
     val settings = getAvdSettings(internalName, d)
     if (useRanchu) {
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
     return connection.createOrUpdateAvd(
-      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath, settings, true
+      null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize,
+      hardwareSkinPath, settings, true
     )
   }
+
+  @VisibleForTesting
+  fun getRequiredSysimgPath(isArm64HostOs: Boolean): String =
+    DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG,
+                               if (isArm64HostOs) SdkConstants.ABI_ARM64_V8A else SdkConstants.ABI_INTEL_ATOM)
 
   override val requiredSdkPackages: Collection<String>
     get() {
       val result = mutableListOf<String>()
       if (myLatestVersion != null) {
         result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG))
-        result.add(DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM))
+        result.add(getRequiredSysimgPath(IS_ARM64_HOST_OS))
       }
       return result
     }
@@ -110,8 +122,8 @@ class AndroidVirtualDevice(
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    myProgressStep!!.progressIndicator.isIndeterminate = true
-    myProgressStep!!.progressIndicator.text = "Creating Android virtual device"
+    myProgressStep.progressIndicator.isIndeterminate = true
+    myProgressStep.progressIndicator.text = "Creating Android virtual device"
     installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
     try {
       val avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdkHandler), sdkHandler)
@@ -165,9 +177,8 @@ class AndroidVirtualDevice(
     )
 
     @Throws(WizardException::class)
-    private fun getDevice(sdkPath: File): Device {
-      val devices = DeviceManagerConnection.getDeviceManagerConnection(
-        sdkPath).devices
+    private fun getDevice(sdkPath: Path): Device {
+      val devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices
       for (device in devices) {
         if (Objects.equal(device.id, DEFAULT_DEVICE_ID)) {
           return device

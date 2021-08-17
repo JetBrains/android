@@ -15,29 +15,25 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.android.tools.idea.run.deployment.Tasks.getTypeFromAndroidDevice;
+
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ThreeState;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -48,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
   private final @NotNull ExecutorService myExecutorService;
   private final @NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final FileSystem myFileSystem;
@@ -61,7 +56,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   static final class Builder {
     private @Nullable ExecutorService myExecutorService;
     private @Nullable Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-    private @Nullable BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
     private @Nullable FileSystem myFileSystem;
     private @Nullable Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
     private @Nullable LaunchCompatibilityChecker myChecker;
@@ -73,11 +67,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
     @NotNull Builder setGetAvds(@NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> getAvds) {
       myGetAvds = getAvds;
-      return this;
-    }
-
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
       return this;
     }
 
@@ -108,9 +97,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     assert builder.myGetAvds != null;
     myGetAvds = builder.myGetAvds;
 
-    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled != null;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
-
     assert builder.myFileSystem != null;
     myFileSystem = builder.myFileSystem;
 
@@ -128,42 +114,9 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   @NotNull
   private Collection<VirtualDevice> getVirtualDevices() {
-    Collection<VirtualDevice> deviceCollection;
-
-    Collection<AvdInfo> avdCollection = myGetAvds.get();
-    Stream<AvdInfo> avdStream = avdCollection.stream();
-
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
-      deviceCollection = avdStream
-        .map(avd -> newDisconnectedDevice(avd, null))
-        .collect(Collectors.toList());
-    }
-    else {
-      deviceCollection = avdStream
-        .flatMap(this::newDisconnectedDevices)
-        .collect(Collectors.toList());
-    }
-
-    if (!hasDuplicateKeys(deviceCollection)) {
-      return deviceCollection;
-    }
-
-    Logger.getInstance(VirtualDevicesTask.class).warn("duplicate keys found");
-    logDebugStrings(avdCollection);
-
-    return newListWithoutDuplicateKeys(deviceCollection);
-  }
-
-  @NotNull
-  private Stream<VirtualDevice> newDisconnectedDevices(@NotNull AvdInfo device) {
-    Stream.Builder<VirtualDevice> builder = Stream.<VirtualDevice>builder()
-      .add(newDisconnectedDevice(device, null));
-
-    getSnapshots(device).stream()
-      .map(snapshot -> newDisconnectedDevice(device, snapshot))
-      .forEach(builder::add);
-
-    return builder.build();
+    return myGetAvds.get().stream()
+      .map(avd -> newDisconnectedDevice(avd, getSnapshots(avd)))
+      .collect(Collectors.toList());
   }
 
   @NotNull
@@ -175,8 +128,11 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
+      Object defaultBoot = myFileSystem.getPath("default_boot");
+
       return stream
         .filter(Files::isDirectory)
+        .filter(directory -> !directory.getFileName().equals(defaultBoot))
         .map(this::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()
@@ -192,14 +148,13 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   @VisibleForTesting
   Snapshot getSnapshot(@NotNull Path snapshotDirectory) {
     Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
-    Path snapshotDirectoryName = snapshotDirectory.getFileName();
 
     if (!Files.exists(snapshotProtocolBuffer)) {
-      return new Snapshot(snapshotDirectoryName, myFileSystem);
+      return new Snapshot(snapshotDirectory);
     }
 
     try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
-      return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectoryName);
+      return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectory);
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevicesTask.class).warn(snapshotDirectory.toString(), exception);
@@ -217,14 +172,13 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     String name = snapshot.getLogicalName();
 
     if (name.isEmpty()) {
-      return new Snapshot(snapshotDirectory, myFileSystem);
+      return new Snapshot(snapshotDirectory);
     }
 
     return new Snapshot(snapshotDirectory, name);
   }
 
-  @NotNull
-  private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @Nullable Snapshot snapshot) {
+  private @NotNull VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @NotNull Collection<@NotNull Snapshot> snapshots) {
     AndroidDevice device = myNewLaunchableAndroidDevice.apply(avd);
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
@@ -232,38 +186,15 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       .setKey(new VirtualDevicePath(avd.getDataFolderPath()))
       .setAndroidDevice(device)
       .setNameKey(new VirtualDeviceName(avd.getName()))
-      .setSnapshot(snapshot);
+      .addAllSnapshots(snapshots)
+      .setType(getTypeFromAndroidDevice(device));
 
     if (myChecker == null) {
       return builder.build();
     }
 
-    LaunchCompatibility compatibility = myChecker.validate(device);
-
     return builder
-      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
-      .setValidityReason(compatibility.getReason())
+      .setLaunchCompatibility(myChecker.validate(device))
       .build();
-  }
-
-  private static boolean hasDuplicateKeys(@NotNull Collection<@NotNull ? extends Device> devices) {
-    Collection<Key> keys = devices.stream()
-      .map(Device::getKey)
-      .collect(Collectors.toSet());
-
-    return keys.size() != devices.size();
-  }
-
-  private static void logDebugStrings(@NotNull Collection<@NotNull AvdInfo> avds) {
-    Logger logger = Logger.getInstance(VirtualDevicesTask.class);
-
-    avds.stream()
-      .map(AvdInfo::toDebugString)
-      .forEach(logger::warn);
-  }
-
-  private static @NotNull List<@NotNull VirtualDevice> newListWithoutDuplicateKeys(@NotNull Collection<@NotNull VirtualDevice> devices) {
-    Collection<Key> keys = Sets.newHashSetWithExpectedSize(devices.size());
-    return ContainerUtil.filter(devices, device -> keys.add(device.getKey()));
   }
 }

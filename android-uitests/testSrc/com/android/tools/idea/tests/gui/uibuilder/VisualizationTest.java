@@ -17,16 +17,14 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,18 +35,8 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VisualizationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
-
-  @Before
-  public void setUp() {
-    StudioFlags.NELE_VISUALIZATION.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_VISUALIZATION.clearOverride();
-  }
 
   @Test
   @UseBleak

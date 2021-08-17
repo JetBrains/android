@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.commands
 
-import com.android.ddmlib.ClientData
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
@@ -27,15 +26,14 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import io.grpc.StatusRuntimeException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
 class LegacyCpuTraceCommandHandler(val device: IDevice,
-                                   val transportStub: TransportServiceGrpc.TransportServiceBlockingStub,
-                                   val eventQueue: BlockingDeque<Common.Event>,
+                                   private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub,
+                                   private val eventQueue: BlockingDeque<Common.Event>,
                                    byteCache: MutableMap<String, ByteString>)
   : TransportProxy.ProxyCommandHandler {
 
@@ -43,7 +41,6 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     return Logger.getInstance(LegacyCpuTraceCommandHandler::class.java)
   }
 
-  private val legacyProfilingRecord = HashMap<Int, LegacyCpuTraceRecord>()
   /**
    * Map from process id to the record of the profiling.
    * Existence in the map means there is an active ongoing profiling for that given app.
@@ -52,12 +49,11 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
    * {@link LegacyCpuTraceProfiler#getTraceInfo} API. We don't need synchronization in the new pipeline because events are streamed
    * immediately within the command handlers.
    */
-
-  @VisibleForTesting
-  internal val profilingHandler = LegacyCpuProfilingHandler(legacyProfilingRecord, byteCache)
+  private val legacyProfilingRecord = HashMap<Int, LegacyCpuTraceRecord>()
 
   init {
-    ClientData.setMethodProfilingHandler(profilingHandler)
+    // Register this command handler's device and associated metadata on the singleton ddmlib profiling handler.
+    LegacyCpuProfilingHandler.registerDevice(device, legacyProfilingRecord, byteCache)
   }
 
   override fun shouldHandle(command: Commands.Command): Boolean {

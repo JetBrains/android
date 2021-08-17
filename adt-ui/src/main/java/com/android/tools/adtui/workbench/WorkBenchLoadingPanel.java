@@ -16,17 +16,23 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
+import com.android.tools.adtui.stdui.ActionData;
+import com.android.tools.adtui.stdui.Chunk;
 import com.android.tools.adtui.stdui.EmptyStatePanel;
 import com.android.tools.adtui.stdui.IconChunk;
-import com.android.tools.adtui.stdui.TextChunk;
 import com.android.tools.adtui.stdui.LabelData;
+import com.android.tools.adtui.stdui.NewLineChunk;
+import com.android.tools.adtui.stdui.TextChunk;
+import com.android.tools.adtui.stdui.UrlData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
+import java.util.ArrayList;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -97,11 +103,45 @@ public class WorkBenchLoadingPanel extends JPanel {
   /**
    * Replaces loading animation with the given message.
    */
-  public void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
+  public void abortLoading(String message, @Nullable @SuppressWarnings("SameParameterValue") Icon icon) {
+    abortLoading(message, icon, null);
+  }
+
+  /**
+   * Replaces loading animation with the given message.
+   */
+  public void abortLoading(@NotNull String message,
+                           @Nullable @SuppressWarnings("SameParameterValue") Icon icon,
+                           @Nullable ActionData actionData) {
+    abortLoading(message, icon, null, actionData);
+
+  }
+
+  /**
+   * Replaces loading animation with the given message.
+   */
+  public void abortLoading(@NotNull String message,
+                           @Nullable @SuppressWarnings("SameParameterValue") Icon icon,
+                           @Nullable UrlData helpUrlData,
+                           @Nullable ActionData actionData) {
     if (myMessagePanel != null) {
       super.remove(myMessagePanel);
     }
-    myMessagePanel = new EmptyStatePanel(new LabelData(new IconChunk(icon), new TextChunk(message)));
+
+    ArrayList<Chunk> chunks = new ArrayList<>();
+    if (icon != null) {
+      chunks.add(new IconChunk(icon));
+    }
+    boolean firstLine = true;
+    for (String line : StringUtil.splitByLines(message)) {
+      if (!firstLine) {
+        chunks.add(NewLineChunk.INSTANCE);
+      }
+      firstLine = false;
+      chunks.add(new TextChunk(line));
+    }
+
+    myMessagePanel = new EmptyStatePanel(new LabelData(chunks.toArray(new Chunk[0])), helpUrlData, actionData);
     super.remove(myLoadingPanel);
     super.add(myMessagePanel);
   }

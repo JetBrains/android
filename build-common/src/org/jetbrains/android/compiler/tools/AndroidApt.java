@@ -213,7 +213,7 @@ public final class AndroidApt {
     }
 
     args.add("-I");
-    args.add(target.getPath(IAndroidTarget.ANDROID_JAR));
+    args.add(target.getPath(IAndroidTarget.ANDROID_JAR).toString());
 
     if (proguardCfgOutputFileOsPath != null) {
       args.add("-G");
@@ -416,7 +416,7 @@ public final class AndroidApt {
       }
 
       args.add("-I");
-      args.add(target.getPath(IAndroidTarget.ANDROID_JAR));
+      args.add(target.getPath(IAndroidTarget.ANDROID_JAR).toString());
 
       if (customManifestPackage != null) {
         args.add("--rename-manifest-package");

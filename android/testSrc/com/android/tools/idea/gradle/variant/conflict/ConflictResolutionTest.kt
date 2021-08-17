@@ -23,12 +23,12 @@ import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 
-
 class ConflictResolutionTest : ConflictsTestCase() {
   fun testSolveSelectionConflict() {
     setupTestProjectFromAndroidModel(
       project,
       File(myFixture.tempDirPath),
+      setupAllVariants = true,
       rootModuleBuilder,
       appModuleBuilder(selectedVariant = "release", dependOnVariant = "release"),
       libModuleBuilder()

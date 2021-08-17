@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
@@ -101,7 +101,8 @@ class LegacyPropertiesProviderTest {
     assertThat(root.width).isEqualTo(1432)
     assertThat(root.height).isEqualTo(123)
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
-    assertThat(root.isDimBehind).isTrue()
+    // TODO(171901393): assertThat(root.isDimBehind).isTrue()
+    assertThat(properties.getOrNull(ANDROID_URI, ATTR_DIM_BEHIND)).isNull()
     check(properties, NAMESPACE_INTERNAL, SdkConstants.ATTR_NAME, "TextView", PropertySection.VIEW)
     check(properties, NAMESPACE_INTERNAL, "x", "4px", PropertySection.DIMENSION)
     check(properties, NAMESPACE_INTERNAL, "y", "350px", PropertySection.DIMENSION)
@@ -126,6 +127,6 @@ class LegacyPropertiesProviderTest {
                     expectedSection: PropertySection = PropertySection.DEFAULT) {
     val property = properties.getOrNull(namespace, name) ?: error("Property: $name is missing")
     assertThat(property.value).isEqualTo(expectedValue)
-    assertThat(property.group).isEqualTo(expectedSection)
+    assertThat(property.section).isEqualTo(expectedSection)
   }
 }

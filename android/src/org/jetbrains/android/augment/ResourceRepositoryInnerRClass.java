@@ -12,7 +12,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implementation of {@link InnerRClassBase} back by a resource repository.
+ * Implementation of {@link InnerRClassBase} backed by a resource repository.
  */
 public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   @NotNull private final ResourceRepositoryRClass.ResourcesSource mySource;
@@ -32,8 +32,9 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
 
     return InnerRClassBase.buildResourceFields(resourcesSource.getResourceRepository(),
                                                resourcesSource.getResourceNamespace(),
+                                               resourcesSource.getResourceRepositoryManager(),
                                                modifier,
-                                               resourcesSource::isPublic,
+                                               ACCESSIBLE_RESOURCE_FILTER,
                                                resourceType,
                                                context);
   }
@@ -58,7 +59,8 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   public PsiField findFieldByName(String name, boolean checkBases) {
     // bail if this is a scenario we don't fully support
     if (myResourceType == ResourceType.STYLEABLE // styleables require further modification of the name to handle sub attributes
-        || mySource.getFieldModifier() == AndroidLightField.FieldModifier.FINAL) { // app projects use final ids, which requires assigning ids to all fields
+        || mySource.getFieldModifier() == AndroidLightField.FieldModifier.FINAL // app projects use final ids, which requires assigning ids to all fields
+        || name.contains("_")) { // Resource fields with underscores are flattened resources, for which ResourceRepository.hasResources will not find the correct resource.
       return super.findFieldByName(name, checkBases);
     }
 

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.PropertiesTable
 
 interface PropertiesProvider {
 
-  fun getProperties(model: NelePropertiesModel, optionalValue: Any?, components: List<NlComponent>): PropertiesTable<NelePropertyItem>
+  fun getProperties(model: NlPropertiesModel, optionalValue: Any?, components: List<NlComponent>): PropertiesTable<NlPropertyItem>
 
-  fun createEmptyTable(): PropertiesTable<NelePropertyItem>
+  fun createEmptyTable(): PropertiesTable<NlPropertyItem>
 }

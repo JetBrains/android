@@ -20,7 +20,6 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -37,7 +36,6 @@ import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
-import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
@@ -53,10 +51,10 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 
@@ -74,6 +72,7 @@ class RecommendedUpgradeReminder(
     get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 
+  @Slow
   override fun shouldAsk(currentTime: Long): Boolean {
     val pluginInfo = project.findPluginInfo() ?: return false
     val gradleVersion = pluginInfo.pluginVersion ?: return false
@@ -91,18 +90,18 @@ class RecommendedUpgradeReminder(
  * [current] defaults to the value that is obtained from the [project], if it can't be found, false is returned.
  */
 @Slow
-@JvmOverloads
-fun shouldRecommendPluginUpgrade(
-  project: Project,
-  current: GradleVersion? = project.findPluginInfo()?.pluginVersion,
-  recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-) : Boolean {
+fun shouldRecommendPluginUpgrade(project: Project): Boolean {
+  // If we don't know the current plugin version then we don't upgrade.
+  val current = project.findPluginInfo()?.pluginVersion ?: return false
+  val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  return shouldRecommendPluginUpgrade(project, current, recommended)
+}
+
+fun shouldRecommendPluginUpgrade(project: Project, current: GradleVersion, recommended: GradleVersion) : Boolean {
   // Needed internally for development of Android support lib.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
 
   if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
-  // If we don't know the current plugin version then we don't upgrade.
-  if (current == null) return false
   return shouldRecommendUpgrade(current, recommended)
 }
 
@@ -133,7 +132,7 @@ fun recommendPluginUpgrade(project: Project) {
     }
 
     val notification = ProjectUpgradeNotification(
-      "Plugin Update Recommended", IdeBundle.message("updates.ready.message", "Android Gradle Plugin"), listener)
+      AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body"), listener)
     notification.notify(project)
   }
 }
@@ -190,7 +189,7 @@ fun performRecommendedPluginUpgrade(
   return false
 }
 
-// TODO(xof): this is too weak; it doesn't catch modifications to:
+// TODO(b/174543899): this is too weak; it doesn't catch modifications to:
 //  - the root project's build.gradle[.kts]
 //  - gradle-wrapper.properties
 //  - gradle properties files
@@ -210,10 +209,12 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 /**
  * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor.  The
  * usual case is the return value from a dialog presenting information and options to the user, but we show a different
- * dialog if we detect that the upgrade will fail in some way.
+ * dialog if we detect that the upgrade will fail in some way.  If [preserveProcessorConfigurations] is false (the default), the
+ * dialog is permitted to initialize the processors' state (whether they are enabled, and any configuration) appropriately; if it
+ * is true, the processor is assumed to be already configured.
  */
 @Slow
-fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean {
+fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor, preserveProcessorConfigurations: Boolean = false): Boolean {
   val java8Processor = processor.componentRefactoringProcessors.firstIsInstanceOrNull<Java8DefaultRefactoringProcessor>()
   if (java8Processor == null) {
     LOG.error("no Java8Default processor found in AGP Upgrade Processor")
@@ -233,7 +234,8 @@ fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boole
       dialog.show()
       return@invokeAndWaitIfNeeded false
     }
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8Processor!!, hasChangesInBuildFiles)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, java8Processor!!, hasChangesInBuildFiles, preserveProcessorConfigurations)
     dialog.showAndGet()
   }
   return runProcessor
@@ -291,14 +293,15 @@ fun shouldForcePluginUpgrade(
   }
   
   // Now we can check the actual version information.
-  return shouldForcePluginUpgrade(current, recommended)
+  return versionsShouldForcePluginUpgrade(current, recommended)
 }
 
 /**
- * This method should ONLY be used in tests.
+ * Returns whether, given the [current] version of AGP and the [recommended] version to upgrade to (which should be the
+ * version returned by [LatestKnownPluginVersionProvider] except for tests), we should force a plugin upgrade to that
+ * recommended version.
  */
-@VisibleForTesting
-fun shouldForcePluginUpgrade(
+fun versionsShouldForcePluginUpgrade(
   current: GradleVersion?,
   recommended: GradleVersion
 ) : Boolean {
@@ -393,7 +396,15 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
   notification.notify(project)
 }
 
-private fun Project.findPluginInfo() : AndroidPluginInfo? {
+fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
+  this.pluginVersion?.let { currentAgpVersion ->
+    val recommendedAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    if (shouldRecommendPluginUpgrade(project, currentAgpVersion, recommendedAgpVersion)) recommendPluginUpgrade(project)
+  }
+}
+
+@Slow
+internal fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
   if (pluginInfo == null) {
     LOG.warn("Unable to obtain application's Android Project")

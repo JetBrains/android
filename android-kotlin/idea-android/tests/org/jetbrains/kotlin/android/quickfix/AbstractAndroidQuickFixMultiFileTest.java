@@ -33,7 +33,7 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
     @NotNull
     @Override
     protected String getTestDataPath() {
-        return TestUtils.getWorkspaceFile("tools/adt/idea/android-kotlin").getPath() + "/";
+      return TestUtils.resolveWorkspacePath("tools/adt/idea/android-kotlin").toString() + "/";
     }
 
     @Override

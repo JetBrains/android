@@ -16,7 +16,6 @@
 package com.android.tools.property.panel.api
 
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.ui.ExpandableLabel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.intellij.ui.Gray
@@ -36,17 +35,17 @@ class SelectedComponentPanel(private val model: SelectedComponentModel) : JPanel
   init {
     background = secondaryPanelBackground
     PropertyTextField.addBorderAtTextFieldBorderSize(this)
-    right.foreground = JBColor(Gray._192, Gray._128)
+    left.foreground = JBColor(Gray._192, Gray._128)
     add(left, BorderLayout.WEST)
     add(right, BorderLayout.EAST)
-    model.addValueChangedListener(ValueChangedListener { updateAfterModelChange () })
+    model.addValueChangedListener { updateAfterModelChange() }
     updateAfterModelChange()
   }
 
   private fun updateAfterModelChange() {
     left.icon = model.icon
-    left.actualText = model.id
-    right.actualText = model.description
+    left.actualText = model.description
+    right.actualText = model.id
   }
 
   override fun doLayout() {

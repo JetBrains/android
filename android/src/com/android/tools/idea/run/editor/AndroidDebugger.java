@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -25,8 +26,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * An interface to implement Android debugger.
@@ -98,21 +97,18 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * {@link #attachToClient} is used instead.
    *
    * @param env an execution environment of a debugee process is running
-   * @param applicationIds target Android application IDs to be debugged
+   * @param applicationIdProvider provides the Android application IDs for the targets to be debugged
    * @param state an Android debugger state and configuration to be used to start the debugger
    * @param runConfigTypeId a run configuration type ID of a debugee process
-   * @param packageNameOverride to be used for attaching to a process that has a name different from the name of the app's package
    * @return a task which starts a debugger and attach to target processes
    */
   @NotNull
   DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
                                             @Nullable AndroidVersion version,
-                                            @NotNull Set<String> applicationIds,
+                                            @NotNull ApplicationIdProvider applicationIdProvider,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
-                                            @NotNull String runConfigTypeId,
-                                            // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
-                                            @Nullable String packageNameOverride);
+                                            @NotNull String runConfigTypeId);
 
   /**
    * Returns true if this debugger supports a given {@code project}.

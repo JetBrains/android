@@ -1,0 +1,5 @@
+android {
+  dataBinding {
+    isEnabled = true
+  }
+}

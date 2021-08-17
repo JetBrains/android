@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -24,7 +25,6 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * An action group containing Android tools (AVD Manager, SDK Manager, etc.). With IDEA-246051 in mind, we want to show Android tools menu

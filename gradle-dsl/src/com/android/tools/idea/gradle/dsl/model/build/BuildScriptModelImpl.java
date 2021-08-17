@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import java.util.List;
 import java.util.Map;
@@ -73,9 +74,12 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @Override
   public ExtModel ext() {
     int at = 0;
-    List<GradleDslElement> elements = myDslElement.getAllElements();
-    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
-      at += 1;
+    List<GradleDslElement> elements = myDslElement.getCurrentElements();
+    if (!elements.isEmpty()) {
+      GradleDslElement firstElement = elements.get(0);
+      if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
+        at += 1;
+      }
     }
     ExtDslElement extDslElement = myDslElement.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);

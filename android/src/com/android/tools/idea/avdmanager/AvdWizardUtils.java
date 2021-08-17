@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.DOT_PNG;
-import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
-import static com.android.SdkConstants.FN_SKIN_LAYOUT;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
@@ -29,15 +26,16 @@ import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
-import com.android.sdklib.FileOpFileWrapper;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -45,38 +43,25 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.imageio.ImageIO;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,14 +127,20 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG, AUTOMOTIVE_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+                                                                         CHROMEOS_TAG, AUTOMOTIVE_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG,
+                                                                              PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+                                                                              WEAR_TAG, CHROMEOS_TAG,
                                                                               AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
-  public static final File NO_SKIN = new File("_no_skin");
+  /**
+   * @deprecated Use fileSystem.getPath({@link AvdManagerUtils#NO_SKIN})
+   */
+  @Deprecated
+  static final File NO_SKIN = new File(AvdManagerUtils.NO_SKIN);
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
@@ -164,11 +155,6 @@ public class AvdWizardUtils {
   private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
 
   private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
-
-  private static Logger getLog() {
-    return Logger.getInstance(AvdWizardUtils.class);
-  }
-
 
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
@@ -229,10 +215,9 @@ public class AvdWizardUtils {
       // The file is in the emulator component
       LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
       if (emulatorPackage != null) {
-        File hardwareDefs = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_HARDWARE_INI);
-        FileOp fop = sdkHandler.getFileOp();
+        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
         ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new FileOpFileWrapper(hardwareDefs, fop, false), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
       }
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
@@ -264,126 +249,13 @@ public class AvdWizardUtils {
   }
 
   /**
-   * Determine where the skins are and ensure they're current.
-   *
-   * @param deviceFile the name of the hardware device
-   * @param image the system image holding the skins
-   * @param fop FileOp to use
-   * @return where the (possibly updated) skins are. Generally this is in the SDK.
+   * @deprecated Use {@link DeviceSkinUpdaterService#updateSkins(Path, SystemImageDescription)}
    */
-  @Nullable
-  public static File pathToUpdatedSkins(@Nullable File deviceFile, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
-    if (deviceFile == null || deviceFile.getPath().isEmpty()) {
-      return deviceFile;
-    }
-    if (FileUtil.filesEqual(deviceFile, NO_SKIN)) {
-      return NO_SKIN;
-    }
-    if (deviceFile.isAbsolute()) {
-      return deviceFile;
-    }
-    if (image != null) {
-      File[] skins = image.getSkins();
-      for (File skin : skins) {
-        if (skin.getPath().endsWith(File.separator + deviceFile.getPath())) {
-          return skin;
-        }
-      }
-    }
-    // Find the resource in the Studio distribution
-    File resourcePath = null;
-    File resourceParent = DeviceArtDescriptor.getBundledDescriptorsFolder();
-    if (resourceParent != null) {
-      // Unfortunately, some Wear devices use one name for the resource directory
-      // and different name for the skin directory. Remap those.
-      String deviceName = deviceFile.getPath();
-      if (deviceName.equals("AndroidWearSquare")) {
-        deviceName = "wear_square";
-      }
-      else if (deviceName.equals("AndroidWearRound")) {
-        deviceName = "wear_round";
-      }
-      else if (deviceName.equals("AndroidWearRoundChin320x290")){
-        deviceName = "wear_round_chin_320_290";
-      }
-      resourcePath = new File(resourceParent, deviceName);
-    }
-    // Find the local SDK and the directory for the local copy of the skin.
-    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    File skinDir = null;
-    if (sdkData != null) {
-      File sdkDir = sdkData.getLocation();
-      File sdkSkinsDir = new File(sdkDir, "skins");
-      skinDir = new File(sdkSkinsDir, deviceFile.getPath());
-    }
-    boolean webpOk = (sdkData != null) && emulatorSupportsWebp(sdkData.getSdkHandler());
-    return ensureSkinsAreCurrent(resourcePath, skinDir, deviceFile, webpOk, fop);
-  }
-
-  /**
-   * Ensure that the skin images for this hardware device are current.
-   *
-   * If the skin files don't exist in the SDK, or if the skin files in the SDK
-   * are old, then copy the skin files from the Studio resource into the SDK.
-   *
-   * @param resourcePath where these skin files are in the Studio distribution.
-   * @param skinDestination where the skin files should be
-   * @param deviceName the hardware device that the skins represent
-   * @param emulatorCanDecodeWebp true if our version of the emulator supports WebP files
-   * @param fop the FileOp to use
-   * @return where to find the skin files for use in the emulator
-   */
-  @VisibleForTesting
-  @Nullable
-  public static File ensureSkinsAreCurrent(@Nullable File resourcePath,
-                                           @Nullable File skinDestination,
-                                           @Nullable File deviceName,
-                                           boolean emulatorCanDecodeWebp,
-                                           @NotNull FileOp fop) {
-    if (resourcePath == null) {
-      return (skinDestination == null) ? deviceName : skinDestination;
-    }
-    if (skinDestination == null) {
-      return resourcePath;
-    }
-    // The resource and destination paths both exist.
-    if (fop.exists(skinDestination)) {
-      // The destination skin directory already exists. Check if its files are up to date.
-      File resourceLayout = new File(resourcePath, FN_SKIN_LAYOUT);
-      File destLayout = new File(skinDestination, FN_SKIN_LAYOUT);
-      if (!resourceLayout.exists() ||
-          (destLayout.exists() && destLayout.lastModified() >= resourceLayout.lastModified())) {
-        // The 'dest/layout' file is up to date. Assume the other 'dest/' files are, also.
-        return skinDestination;
-      }
-      // The resource and destination directories exists, but the destination has old files.
-      // Remove the destination directory. We'll re-create it below.
-      fop.deleteFileOrFolder(skinDestination);
-    }
-    // Create the destination skin directory and populate it from
-    // the resource.
-    try {
-      fop.mkdirs(skinDestination);
-      if (!emulatorCanDecodeWebp) {
-        // Convert webp skin files to PNG for older versions of the emulator.
-        convertWebpSkinToPng(fop, skinDestination, resourcePath);
-      }
-      else {
-        // Normal copy
-        for (File src : fop.listFiles(resourcePath)) {
-          File target = new File(skinDestination, src.getName());
-          if (fop.isFile(src)) {
-            fop.copyFile(src, target);
-          }
-        }
-      }
-      return skinDestination;
-    }
-    catch (IOException e) {
-      getLog().warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
-                                  skinDestination, resourcePath));
-    }
-    return resourcePath;
+  @Deprecated
+  @Slow
+  public static @Nullable File pathToUpdatedSkins(@Nullable Path device,
+                                                  @Nullable SystemImageDescription image) {
+    return device == null ? null : DeviceSkinUpdater.updateSkins(device, image).toFile();
   }
 
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
@@ -401,69 +273,6 @@ public class AvdWizardUtils {
       return sdkPackage.getVersion().compareTo(minRevision) >= 0;
     }
     return false;
-  }
-
-  /**
-   * Copies a skin folder from the internal device data folder over to the SDK skin folder, rewriting
-   * the webp files to PNG, and rewriting the layout file to reference webp instead.
-   *
-   * @param fop          the file operation to use to conduct I/O
-   * @param dest         the destination folder to write the skin files to
-   * @param resourcePath the source folder to read skin files from
-   * @throws IOException if there's a problem
-   */
-  @VisibleForTesting
-  static void convertWebpSkinToPng(@NotNull FileOp fop, @NotNull File dest, @NotNull File resourcePath) throws IOException {
-    File[] files = fop.listFiles(resourcePath);
-    Map<String,String> renameMap = Maps.newHashMap();
-    File skinFile = null;
-    for (File src : files) {
-      String name = src.getName();
-      if (name.equals(FN_SKIN_LAYOUT)) {
-        skinFile = src;
-        continue;
-      }
-
-      if (name.endsWith(DOT_WEBP)) {
-        // Convert WEBP to PNG until emulator supports it
-        try (InputStream inputStream = new BufferedInputStream(fop.newFileInputStream(src))) {
-          BufferedImage icon = ImageIO.read(inputStream);
-          if (icon != null) {
-            File target = new File(dest, name.substring(0, name.length() - DOT_WEBP.length()) + DOT_PNG);
-            try (BufferedOutputStream outputStream = new BufferedOutputStream(fop.newFileOutputStream(target))) {
-              ImageIO.write(icon, "PNG", outputStream);
-              renameMap.put(name, target.getName());
-              continue;
-            }
-          }
-        }
-      }
-
-      // Normal copy: either the file is not a webp or skin file (for example, some skins such as the
-      // wear ones are not in webp format), or it's a webp file where we couldn't
-      // (a) decode the webp file (for example if there's a problem loading the native library doing webp
-      // decoding, or (b) there was an I/O error writing the PNG file. In that case we'll leave the file in
-      // webp format (current emulators support it.)
-      File target = new File(dest, name);
-      if (fop.isFile(src) && !fop.exists(target)) {
-        fop.copyFile(src, target);
-      }
-    }
-
-    if (skinFile != null) {
-      // Replace skin paths
-      try (InputStream inputStream = new BufferedInputStream(fop.newFileInputStream(skinFile))) {
-        File target = new File(dest, skinFile.getName());
-        try (BufferedOutputStream outputStream = new BufferedOutputStream(fop.newFileOutputStream(target))) {
-          byte[] bytes = ByteStreams.toByteArray(inputStream);
-          String layout = new String(bytes, Charsets.UTF_8);
-          for (Map.Entry<String, String> entry : renameMap.entrySet()) {
-            layout = layout.replace(entry.getKey(), entry.getValue());
-          }
-          outputStream.write(layout.getBytes(Charsets.UTF_8));
-        }
-      }
-    }
   }
 
   /**

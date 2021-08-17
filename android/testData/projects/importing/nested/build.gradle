@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java'
+apply plugin: 'java-library'
 
 dependencies {
-    compile 'com.google.guava:guava:23.0'
+    api 'com.google.guava:guava:23.0'
 }
 

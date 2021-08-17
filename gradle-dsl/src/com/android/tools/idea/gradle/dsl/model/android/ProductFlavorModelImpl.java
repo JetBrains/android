@@ -54,6 +54,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
    * These are used here and in the construction of Dsl by {@link ProductFlavorDslElement}.
    */
   @NonNls public static final String APPLICATION_ID = "mApplicationId";
+  @NonNls public static final String DEFAULT = "mDefault";
   @NonNls public static final String DIMENSION = "mDimension";
   @NonNls public static final String MAX_SDK_VERSION = "mMaxSdkVersion";
   @NonNls public static final String MIN_SDK_VERSION = "mMinSdkVersion";
@@ -82,6 +83,12 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   public ResolvedPropertyModel applicationId() {
     return getModelForProperty(APPLICATION_ID);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel isDefault() {
+    return getModelForProperty(DEFAULT);
   }
 
   @Override

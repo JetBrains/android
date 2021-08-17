@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.inspector
+package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
@@ -23,16 +23,16 @@ import com.android.tools.idea.naveditor.model.isArgument
 import com.android.tools.idea.naveditor.model.isInclude
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.startDestination
-import com.android.tools.idea.naveditor.property2.ui.DefaultValueModel
-import com.android.tools.idea.naveditor.property2.ui.DefaultValuePanel
-import com.android.tools.idea.naveditor.property2.ui.DefaultValueTableModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.naveditor.property.ui.DefaultValueModel
+import com.android.tools.idea.naveditor.property.ui.DefaultValuePanel
+import com.android.tools.idea.naveditor.property.ui.DefaultValueTableModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 
-class DefaultValueInspectorBuilder : InspectorBuilder<NelePropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+class DefaultValueInspectorBuilder : InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!component.isAction && !component.isNavigation || component.isInclude) {
       return

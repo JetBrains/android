@@ -26,12 +26,15 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
@@ -344,6 +347,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
     myStatusText.text = "<html><nobr>${statusText}</nobr></html>"
     myStatusText.maximumSize = myStatusText.preferredSize
+    myStatusText.minimumSize = myStatusText.preferredSize
 
     val statusBreakdownText = StringBuilder("${scheduledTestCases} tests")
     if (myScheduledDevices.size > 1) {
@@ -371,12 +375,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
       if (myScheduledDevices.add(device)) {
         myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
-        if (myScheduledDevices.size == 1) {
-          myResultsTableView.showTestStatusColumn = false
-        }
-        else {
+        if (myScheduledDevices.size > 1) {
           myDetailsView.isDeviceSelectorListVisible = true
-          myResultsTableView.showTestStatusColumn = true
         }
         myResultsTableView.addDevice(device)
         myDetailsView.addDevice(device)
@@ -416,10 +416,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     AppUIUtil.invokeOnEdt {
       // Include a benchmark output to a raw output console for backward compatibility.
       val benchmarkOutput = testCase.benchmark
-      if (!benchmarkOutput.isBlank()) {
-        for (line in benchmarkOutput.lines()) {
-          print("benchmark: $line\n", ConsoleViewContentType.NORMAL_OUTPUT)
-        }
+      if (benchmarkOutput.isNotEmpty()) {
+        val benchmark = BenchmarkOutput(benchmarkOutput)
+        benchmark.print(myDetailsView.rawTestLogConsoleView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(myProject))
       }
       when (Preconditions.checkNotNull(testCase.result)) {
         AndroidTestCaseResult.PASSED -> passedTestCases++
@@ -452,7 +451,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         }
       }
       updateProgress()
-      myResultsTableView.refreshTable()
+      myResultsTableView.setTestSuiteResultForDevice(
+        device, testSuite.result ?: AndroidTestSuiteResult.CANCELLED)
       myDetailsView.reloadAndroidTestResults()
     }
   }

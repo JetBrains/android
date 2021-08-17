@@ -17,15 +17,17 @@ package com.android.tools.idea.common.actions
 
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.ide.CopyPasteManagerEx
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.util.ui.EmptyClipboardOwner
-import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.BufferedImage
-import java.lang.ref.WeakReference
+import javax.swing.ImageIcon
+
+private const val IMAGE_COPIED_ID = "Image copied"
 
 private class BufferedImageTransferable(val image: BufferedImage) : Transferable {
   override fun getTransferData(flavor: DataFlavor): BufferedImage = when(flavor) {
@@ -40,9 +42,24 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
  * [AnAction] that copies the result image from the given [LayoutlibSceneManager].
  */
 class CopyResultImageAction(private val sceneManagerProvider: () -> LayoutlibSceneManager?,
-                            title: String = "Copy Image") : AnAction(title) {
+                            title: String = "Copy Image",
+                            private val actionCompleteText: String = "Image copied") : AnAction(title) {
+  override fun update(e: AnActionEvent) {
+    e.presentation.isVisible = sceneManagerProvider()?.renderResult != null
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val resultImage = sceneManagerProvider()?.renderResult?.renderedImage?.copy ?: return
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
+
+    e.project?.let {
+      Notification(IMAGE_COPIED_ID, null,
+                   actionCompleteText,
+                   "",
+                   "",
+                   NotificationType.INFORMATION,
+                  null)
+        .notify(e.project)
+    }
   }
 }

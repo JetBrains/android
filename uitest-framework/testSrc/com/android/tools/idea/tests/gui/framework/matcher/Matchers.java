@@ -17,12 +17,15 @@ package com.android.tools.idea.tests.gui.framework.matcher;
 
 import com.android.tools.adtui.TextAccessors;
 import com.intellij.BundleBase;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.util.Objects;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Objects;
 
 /** Utility methods for {@link org.fest.swing.core.ComponentMatcher matchers}. */
 public final class Matchers {
@@ -76,6 +79,16 @@ public final class Matchers {
     return new FluentMatcher<T>(componentType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
+        return Objects.equals(icon, component.getIcon());
+      }
+    };
+  }
+
+  @NotNull
+  public static FluentMatcher<ActionButton> buttonWithIcon(@Nullable Icon icon) {
+    return new FluentMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
         return Objects.equals(icon, component.getIcon());
       }
     };

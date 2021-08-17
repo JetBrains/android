@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.structure.manifest;
 
 import com.intellij.ide.presentation.PresentationProvider;
 import com.intellij.psi.PsiClass;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +27,7 @@ public class ActivityPresentationProvider extends PresentationProvider<Activity>
   @Nullable
   @Override
   public Icon getIcon(Activity activity) {
-    return AndroidIcons.Activity;
+    return StudioIcons.Shell.Filetree.ACTIVITY;
   }
 
   @Nullable

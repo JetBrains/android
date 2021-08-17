@@ -96,8 +96,8 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     }
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
     (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkConsistency(it) }
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false,
-                                                                          true)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
     (processor.componentRefactoringProcessors + processor.classpathRefactoringProcessor).forEach { checkConsistency(it) }
     Disposer.dispose(dialog.disposable)
   }
@@ -168,8 +168,8 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
   fun testHasNoComboBoxFrom420Alpha04IfDisabledWithState() {
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0-alpha04"), GradleVersion.parse("4.2.0"))
     processor.getJava8DefaultRefactoringProcessor().isEnabled = false
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false,
-                                                                          true)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
     val comboBoxes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), ComboBox::class.java)
     assertSize(0, comboBoxes)
     Disposer.dispose(dialog.disposable)
@@ -210,8 +210,8 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
     processor.setJava8DefaultIsAlwaysNoOpForProject(false)
     processor.getJava8DefaultRefactoringProcessor().noLanguageLevelAction = INSERT_OLD_DEFAULT
-    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false,
-                                                                          true)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
     val comboBox = UIUtil.findComponentOfType(dialog.createCenterPanel(), ComboBox::class.java)!!
     assertEquals(INSERT_OLD_DEFAULT, comboBox.model.selectedItem)
     Disposer.dispose(dialog.disposable)
@@ -266,7 +266,7 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val java8DefaultProcessor = processor.componentRefactoringProcessors.firstIsInstance<Java8DefaultRefactoringProcessor>()
     assertEquals(INSERT_OLD_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
     val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8DefaultProcessor, false)
-    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Preview" }
+    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Show Usages" }
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertEquals(ACCEPT_NEW_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
@@ -283,10 +283,71 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8DefaultProcessor, false)
     val comboBox = UIUtil.findComponentOfType(dialog.createCenterPanel(), ComboBox::class.java)!!
     comboBox.selectedItem = INSERT_OLD_DEFAULT
-    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Preview" }
+    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Show Usages" }
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertEquals(INSERT_OLD_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
     assertTrue(isPreviewUsagesField.getBoolean(processor))
+  }
+
+  @Test
+  fun testUpgradeVersionTextIfAgpClasspathEnabled() {
+    val fromVersion = "4.1.0"
+    val toVersion = "4.2.0-alpha05"
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    processor.classpathRefactoringProcessor.isEnabled = true
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertTrue(editorPanes[0].text.contains("from\\s+Android\\s+Gradle\\s+Plugin\\s+version\\s+$fromVersion".toRegex()))
+    assertTrue(editorPanes[0].text.contains("to\\s+version\\s+$toVersion".toRegex()))
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testNoUpgradeVersionTextIfAgpClasspathNotEnabled() {
+    val fromVersion = "4.1.0"
+    val toVersion = "4.2.0-alpha05"
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse(fromVersion), GradleVersion.parse(toVersion))
+    processor.setJava8DefaultIsAlwaysNoOpForProject(false)
+    processor.classpathRefactoringProcessor.isEnabled = false
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
+    val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
+    assertSize(1, editorPanes)
+    assertFalse(editorPanes[0].text.contains("version\\s+$fromVersion".toRegex()))
+    assertFalse(editorPanes[0].text.contains("to\\s+version\\s+$toVersion".toRegex()))
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testDialogSetsBackFromPreviewAction() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    assertNull(processor.backFromPreviewAction)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, processor.getJava8DefaultRefactoringProcessor(), false)
+    assertNotNull(processor.backFromPreviewAction)
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testDialogKeepingProcessorStateSetsBackFromPreviewAction() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    assertNull(processor.backFromPreviewAction)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true)
+    assertNotNull(processor.backFromPreviewAction)
+    Disposer.dispose(dialog.disposable)
+  }
+
+  @Test
+  fun testRecreatedDialogPreservesBackFromPreviewAction() {
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    assertNull(processor.backFromPreviewAction)
+    val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+      processor, processor.getJava8DefaultRefactoringProcessor(), false, true, true)
+    assertNull(processor.backFromPreviewAction)
+    Disposer.dispose(dialog.disposable)
   }
 }

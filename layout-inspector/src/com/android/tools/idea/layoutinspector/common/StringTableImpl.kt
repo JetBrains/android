@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.common
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 
 class StringTableImpl(strings: List<LayoutInspectorProto.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
 
+  override val keys: Set<Int> = table.keys
   override operator fun get(id: Int): String = table[id].orEmpty()
 
-  override operator fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
-    if (resource == null) {
-      return null
-    }
-    val type = table[resource.type] ?: return null
-    val namespace = table[resource.namespace] ?: return null
-    val name = table[resource.name] ?: return null
-    val resNamespace = ResourceNamespace.fromPackageName(namespace)
-    val resType = ResourceType.fromFolderName(type) ?: return null
-    return ResourceReference(resNamespace, resType, name)
+  operator fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
+    return resource?.convert()?.createReference(this)
   }
 }

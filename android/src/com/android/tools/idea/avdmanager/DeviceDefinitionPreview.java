@@ -174,9 +174,21 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         int foldedY = (int)(myDeviceData.screenFoldedYOffset().get() * displayFactor + 0.5);
         int foldedWidth = (int)(myDeviceData.screenFoldedWidth().get() * displayFactor + 0.5);
         int foldedHeight = (int)(myDeviceData.screenFoldedHeight().get() * displayFactor + 0.5);
+        int foldedX2 = (int)(myDeviceData.screenFoldedXOffset2().get() * displayFactor + 0.5);
+        int foldedY2 = (int)(myDeviceData.screenFoldedYOffset2().get() * displayFactor + 0.5);
+        int foldedWidth2 = (int)(myDeviceData.screenFoldedWidth2().get() * displayFactor + 0.5);
+        int foldedHeight2 = (int)(myDeviceData.screenFoldedHeight2().get() * displayFactor + 0.5);
+        int foldedX3 = (int)(myDeviceData.screenFoldedXOffset3().get() * displayFactor + 0.5);
+        int foldedY3 = (int)(myDeviceData.screenFoldedYOffset3().get() * displayFactor + 0.5);
+        int foldedWidth3 = (int)(myDeviceData.screenFoldedWidth3().get() * displayFactor + 0.5);
+        int foldedHeight3 = (int)(myDeviceData.screenFoldedHeight3().get() * displayFactor + 0.5);
 
         foldedX += PADDING;
         foldedY += JBUI.scale(100);
+        foldedX2 += PADDING;
+        foldedY2 += JBUI.scale(100);
+        foldedX3 += PADDING;
+        foldedY3 += JBUI.scale(100);
 
         g2d.setStroke(new BasicStroke(OUTLINE_LINE_WIDTH, BasicStroke.CAP_BUTT,
                                       BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0));
@@ -200,6 +212,46 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
           // Show the bottom boundary
           g2d.drawLine(foldedX, foldedY + foldedHeight, foldedX + foldedWidth, foldedY + foldedHeight);
         }
+        if (myDeviceData.screenFoldedXOffset2().get() != 0) {
+          // Show the left boundary
+          g2d.drawLine(foldedX2, foldedY2, foldedX2, foldedY2 + foldedHeight2);
+        }
+        if (myDeviceData.screenFoldedYOffset2().get() != 0) {
+          // Show the top boundary
+          g2d.drawLine(foldedX2, foldedY2, foldedX2 + foldedWidth2, foldedY2);
+        }
+        if ((myDeviceData.screenFoldedWidth2().get() != 0) &&
+            (myDeviceData.screenFoldedXOffset2().get() + myDeviceData.screenFoldedWidth2().get())
+            != myDeviceData.screenResolutionWidth().get()) {
+          // Show the right boundary
+          g2d.drawLine(foldedX2 + foldedWidth2, foldedY2, foldedX2 + foldedWidth2, foldedY2 + foldedHeight2);
+        }
+        if ((myDeviceData.screenFoldedHeight2().get() != 0) &&
+            (myDeviceData.screenFoldedYOffset2().get() + myDeviceData.screenFoldedHeight2().get())
+            != myDeviceData.screenResolutionHeight().get()) {
+          // Show the bottom boundary
+          g2d.drawLine(foldedX2, foldedY2 + foldedHeight2, foldedX2 + foldedWidth2, foldedY2 + foldedHeight2);
+        }
+        if (myDeviceData.screenFoldedXOffset3().get() != 0) {
+          // Show the left boundary
+          g2d.drawLine(foldedX3, foldedY3, foldedX3, foldedY3 + foldedHeight3);
+        }
+        if (myDeviceData.screenFoldedYOffset3().get() != 0) {
+          // Show the top boundary
+          g2d.drawLine(foldedX3, foldedY3, foldedX3 + foldedWidth3, foldedY3);
+        }
+        if ((myDeviceData.screenFoldedWidth3().get() != 0)
+            &&(myDeviceData.screenFoldedXOffset3().get() + myDeviceData.screenFoldedWidth3().get())
+            != myDeviceData.screenResolutionWidth().get()) {
+          // Show the right boundary
+          g2d.drawLine(foldedX3 + foldedWidth3, foldedY3, foldedX3 + foldedWidth3, foldedY3 + foldedHeight3);
+        }
+        if ((myDeviceData.screenFoldedHeight3().get() != 0) &&
+            (myDeviceData.screenFoldedYOffset3().get() + myDeviceData.screenFoldedHeight3().get())
+            != myDeviceData.screenResolutionHeight().get()) {
+          // Show the bottom boundary
+          g2d.drawLine(foldedX3, foldedY3 + foldedHeight3, foldedX3 + foldedWidth3, foldedY3 + foldedHeight3);
+        }
         g2d.setStroke(normalStroke);
       }
 
@@ -213,7 +265,6 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       int widthStringWidth = metrics.stringWidth(widthString);
       int widthTextX = round(PADDING + (screenSize.width - widthStringWidth) / 2.0);
       g2d.drawLine(widthTextX - FIGURE_PADDING, widthLineY, widthTextX + widthStringWidth + FIGURE_PADDING, widthLineY);
-
 
       // Paint the width text
       g2d.setColor(JBColor.foreground());
@@ -322,8 +373,27 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
       if (myDeviceData.isFoldable().get()) {
         infoSegmentY += stringHeight;
-        g2d.drawString("Folded: " + myDeviceData.screenFoldedWidth().get() +
-                       "x" + myDeviceData.screenFoldedHeight(), infoSegmentX, infoSegmentY);
+        if (myDeviceData.screenFoldedWidth2().get() == 0 &&
+            myDeviceData.screenFoldedWidth3().get() == 0) {
+          g2d.drawString("Folded: " + myDeviceData.screenFoldedWidth().get() +
+                         "x" + myDeviceData.screenFoldedHeight(), infoSegmentX, infoSegmentY);
+        } else {
+          g2d.drawString("Rolled in: " + myDeviceData.screenFoldedWidth().get() +
+                         "x" + myDeviceData.screenFoldedHeight(), infoSegmentX, infoSegmentY);
+          if (myDeviceData.screenFoldedWidth2().get() != 0) {
+            infoSegmentY += stringHeight;
+            g2d.drawString("Intermediate: " + myDeviceData.screenFoldedWidth2().get() +
+                           "x" + myDeviceData.screenFoldedHeight2(), infoSegmentX, infoSegmentY);
+          }
+          if (myDeviceData.screenFoldedWidth3().get() != 0) {
+            infoSegmentY += stringHeight;
+            g2d.drawString("Intermediate2: " + myDeviceData.screenFoldedWidth3().get() +
+                           "x" + myDeviceData.screenFoldedHeight3(), infoSegmentX, infoSegmentY);
+          }
+          infoSegmentY += stringHeight;
+          g2d.drawString("Rolled out: " + pixelScreenSize.width +
+                         "x" + pixelScreenSize.height, infoSegmentX, infoSegmentY);
+        }
       }
     }
   }

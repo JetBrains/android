@@ -18,13 +18,12 @@ package com.android.tools.idea.lint;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
@@ -40,7 +39,6 @@ import com.android.tools.lint.model.LintModelLibrary;
 import com.android.tools.lint.model.LintModelModule;
 import com.android.tools.lint.model.LintModelModuleType;
 import com.android.tools.lint.model.LintModelVariant;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ProjectFacetManager;
@@ -312,10 +310,9 @@ public class AndroidLintIdeProject extends LintIdeProject {
       AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel instanceof AndroidModuleModel) {
         AndroidModuleModel model = (AndroidModuleModel)androidModel;
-        IdeAndroidProject builderModelProject = model.getAndroidProject();
         String variantName = model.getSelectedVariantName();
-        String gradlePath = Strings.nullToEmpty(GradleUtil.getGradlePath(module));
-        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
+
+        LintModelModule lintModel = getLintModuleModel(model, dir, shallowModel);
         LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);
@@ -335,6 +332,18 @@ public class AndroidLintIdeProject extends LintIdeProject {
     project.setIdeaProject(module.getProject());
     client.registerProject(dir, project);
     return project;
+  }
+
+  @NotNull
+  private static LintModelModule getLintModuleModel(@NotNull AndroidModuleModel model, File dir, boolean shallowModel) {
+    IdeAndroidProject builderModelProject = model.getAndroidProject();
+    if (model.lintModuleModelCache != null) {
+      return (LintModelModule)model.lintModuleModelCache;
+    }
+
+    LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
+    model.lintModuleModelCache = module;
+    return module;
   }
 
   /**
@@ -680,7 +689,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (LintIdeClient.SUPPORT_CLASS_FILES) {
         return super.getJavaLibraries(includeProvided);
-      } else {
+      }
+      else {
         return Collections.emptyList();
       }
     }

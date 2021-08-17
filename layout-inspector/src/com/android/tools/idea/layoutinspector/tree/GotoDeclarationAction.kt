@@ -15,69 +15,37 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiFile
-import com.intellij.psi.search.FilenameIndex
-import com.intellij.psi.search.GlobalSearchScope
-import kotlin.math.absoluteValue
 
 /**
  * Action for navigating to the currently selected node in the layout inspector.
  */
-object GotoDeclarationAction : AnAction("Go to Declaration") {
+object GotoDeclarationAction : AnAction("Go To Declaration") {
   override fun actionPerformed(event: AnActionEvent) {
     findNavigatable(event)?.navigate(true)
   }
 
+  override fun update(event: AnActionEvent) {
+    event.presentation.isEnabled = findNavigatable(event) != null
+  }
+
   private fun findNavigatable(event: AnActionEvent): Navigatable? {
-    return model(event)?.let { findNavigatable(it) }
+    return LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
   }
 
   fun findNavigatable(model: InspectorModel): Navigatable? {
     val resourceLookup = model.resourceLookup
     val node = model.selection ?: return null
-    if (node is ComposeViewNode) {
-      return findNavigatableFromComposable(model, node)
+    return if (node is ComposeViewNode) {
+      resourceLookup.findComposableNavigatable(node)
     }
     else {
-      return resourceLookup.findFileLocation(node)?.navigatable
+      resourceLookup.findFileLocation(node)?.navigatable
     }
   }
-
-  private fun findNavigatableFromComposable(model: InspectorModel, node: ComposeViewNode): Navigatable? {
-    val project = model.project
-    val ktFile = findKotlinFile(project, node.composeFilename, node.composePackageHash) ?: return null
-    val vFile = ktFile.getVirtualFile() ?: return null
-    return PsiNavigationSupport.getInstance().createNavigatable(project, vFile, node.composeOffset)
-  }
-
-  /**
-   * Find the kotlin file from the filename found in the tooling API.
-   *
-   * If there are multiple files with the same name chose the one where the package name hash matches.
-   */
-  private fun findKotlinFile(project: Project, fileName: String, packageHash: Int): PsiFile? {
-    val files = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project))
-    if (files.size == 1) {
-      return files[0]
-    }
-    return files.asSequence().firstOrNull { packageNameHashMatch(it, packageHash) }
-  }
-
-  private fun packageNameHashMatch(file: PsiFile, packageHash: Int): Boolean {
-    val classOwner = file as? PsiClassOwner ?: return false
-    val packageName = classOwner.packageName
-    val hash = packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
-    return hash == packageHash
-  }
-
-  private fun model(event: AnActionEvent): InspectorModel? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.layoutInspectorModel
 }

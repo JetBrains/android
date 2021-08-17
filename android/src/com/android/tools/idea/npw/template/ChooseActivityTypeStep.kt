@@ -75,8 +75,6 @@ val activityGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
   "android.wizard.config.activity.title",
   "android.wizard.activity.not.found",
   "android.wizard.activity.invalid.min.sdk",
-  "android.wizard.activity.invalid.min.build",
   "android.wizard.activity.invalid.androidx",
-  "android.wizard.activity.invalid.jetifier",
   "android.wizard.activity.invalid.needs.kotlin"
 )

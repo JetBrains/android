@@ -19,7 +19,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.intellij.openapi.module.Module
@@ -28,15 +28,26 @@ import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import java.nio.file.Path
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, ModuleHierarchyProvider {
+interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
+
+  /** [ClassFileFinder] that uses this module as scope for the search. */
+  val moduleClassFileFinder: ClassFileFinder
+
+  /**
+   * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
+   * origin source file to allow for disambiguation.
+   * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
+   */
+  fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
   /**
    * Requests information about the folder layout for the module. This can be used to determine
@@ -104,7 +115,19 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * **Note**: This function will not acquire any locks during it's operation.
    */
   @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
+  @JvmDefault
+  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
+
+  /**
+   * Returns the absolute path of the provided coordinate, if it is resolvable within the module.
+   * <p>
+   * Note the resulting path doesn't necessarily point to an archive file (ex: jar). It is determined
+   * by the build system this method is implemented for.
+   */
+  fun getDependencyPath(coordinate: GradleCoordinate): Path?
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
@@ -112,31 +135,28 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   /**
    * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
    * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
+   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
    * <p>
    * **Note**: This function will perform a write action.
    */
+  @Throws(DependencyManagementException::class)
   fun registerDependency(coordinate: GradleCoordinate)
 
   /**
-   * Like [registerDependency] where you can specify the type of dependency to add
+   * Like [registerDependency] where you can specify the type of dependency to add.
+   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
    */
+  @Throws(DependencyManagementException::class)
   fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
 
   /**
    * Returns the resolved libraries that this module depends on.
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
-   *
-   * @param includeExportedTransitiveDeps indicates if the module dependencies should be searched recursively.
-   * `false` = search only own module dependencies
-   * `true` = search module direct dependencies + exported transitive dependencies
    */
-  fun getResolvedLibraryDependencies(includeExportedTransitiveDeps : Boolean): Collection<ExternalLibrary>
-
-  /**
-   * Same as `getResolvedDependentLibraries(includeExportedTransitiveDeps = true)`.
-   */
-  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
+  @JvmDefault
+  fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> = getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+  fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary>
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
@@ -175,6 +195,16 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   fun getManifestOverrides(): ManifestOverrides
 
   /**
+   * Returns the manifest placeholders that the underlying build system applies when computing the module's
+   * merged manifest.
+   *
+   * This is a light version of [getManifestOverrides] and the returned value is supposed to be equal to
+   * `getManifestOverrides().placeholders`.
+   */
+  @JvmDefault
+  fun getManifestPlaceholders(): Map<String, String> = getManifestOverrides().placeholders
+
+  /**
    * Returns a structure describing the manifest files contributing to the module's merged manifest.
    */
   @JvmDefault
@@ -188,9 +218,22 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * this method may be optimized to avoid the costs of merged manifest computation.
    *
    * The returned package name is guaranteed to reflect the latest contents of the Android
-   * manifests including changes that haven't been saved yet.
+   * manifests including changes that haven't been saved yet but is NOT guaranteed to reflect
+   * the latest contents of the build configuration if the project hasn't been re-synced with
+   * the build configuration yet.
    */
   fun getPackageName(): String?
+
+  /**
+   * Returns the module's resource test package name, or null if it could not be determined.
+   *
+   * The returned package name is guaranteed to reflect the latest contents of the Android
+   * manifests including changes that haven't been saved yet but is NOT guaranteed to reflect
+   * the latest contents of the build configuration if the project hasn't been re-synced with
+   * the build configuration yet.
+   */
+  @JvmDefault
+  fun getTestPackageName(): String? = null
 
   /**
    * DO NOT USE!
@@ -248,6 +291,10 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   @JvmDefault
   val isMlModelBindingEnabled: Boolean get() = false
 
+  /** Whether the view binding feature is enabled for this module. */
+  @JvmDefault
+  val isViewBindingEnabled: Boolean get() = false
+
   /**
    * Whether the R class in applications and dynamic features are constant.
    *
@@ -289,6 +336,12 @@ enum class DependencyType {
   IMPLEMENTATION,
   // TODO: Add "API," & support in build systems
   ANNOTATION_PROCESSOR
+}
+
+enum class DependencyScopeType {
+  MAIN,
+  UNIT_TEST,
+  ANDROID_TEST
 }
 
 /**

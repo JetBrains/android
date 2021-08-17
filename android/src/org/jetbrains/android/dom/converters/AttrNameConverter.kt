@@ -33,9 +33,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.ResolvingConverter
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.dom.resources.StyleItem
 import org.jetbrains.android.dom.resources.Attr
+import org.jetbrains.android.dom.resources.StyleItem
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.NonNls
@@ -80,7 +80,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
       return null
     }
     val facet = AndroidFacet.getInstance(context) ?: return null
-    val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return null
+    val allResources = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceReference.namespace) ?: return null
     val hasResources = allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)
     return if (hasResources) ResourceReferencePsiElement(resourceReference, context.psiManager) else null
   }

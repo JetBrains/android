@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2
+package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
@@ -33,10 +33,9 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.ON_CLICK
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.TRANSITION
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START
-import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType.CUSTOM_STRING
-import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
+import com.android.tools.idea.uibuilder.handlers.motion.property.CustomAttributeType.CUSTOM_STRING
+import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -69,7 +68,7 @@ class MotionLayoutAttributesModelTest {
   val edtRule = EdtRule()
 
   @Mock
-  private lateinit var listener: PropertiesModelListener<NelePropertyItem>
+  private lateinit var listener: PropertiesModelListener<NlPropertyItem>
 
   @Before
   fun setUp() {
@@ -139,7 +138,6 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     motionRule.selectConstraintSet("start")
     val property = model.allProperties[CONSTRAINTSET]!![ANDROID_URI, ATTR_ID]
-    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> NeleIdRenameProcessor.RefactoringChoice.YES }
     property.value = "different_start"
     motionRule.update()
 

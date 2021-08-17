@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.compose.findComposeToolingNamespace
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
@@ -29,6 +34,8 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
@@ -40,9 +47,10 @@ import org.jetbrains.kotlin.idea.util.module
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
-  : AnAction(message("action.deploy.title"), null, RUN_ON_DEVICE) {
+  : AnAction(message("action.deploy.title"), message("action.deploy.description"), RUN_ON_DEVICE), CustomComponentAction {
+
   override fun actionPerformed(e: AnActionEvent) {
-    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.let {
+    previewElement()?.let {
       val psiElement = it.previewBodyPsi?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
@@ -51,9 +59,21 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     }
   }
 
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled &&
+                               isNoLibraryAndroidModule
+    e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place)
+
   private fun runPreviewConfiguration(project: Project, module: Module, previewElement: PreviewElement) {
     val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
-    val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory).apply {
+    val activityName = module.findComposeToolingNamespace().previewActivityName
+    val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory, activityName).apply {
       name = previewElement.displaySettings.name
       composableMethodFqn = previewElement.composableMethodFqn
       previewElement.previewProviderClassAndIndex()?.let {
@@ -63,24 +83,18 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       setModule(module)
     }
 
-    // TODO(b/152186687): select the configuration in the run configurations combobox.
     val configurationAndSettings = RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
                                    ?: RunManager.getInstance(project).createConfiguration(composePreviewRunConfiguration, factory).apply {
                                      isTemporary = true
                                    }.also { configAndSettings ->
                                      RunManager.getInstance(project).addConfiguration(configAndSettings)
                                    }
-
-    // TODO(b/152185907): consider stopping all the ComposePreviewRunConfiguration before running this one.
-    RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
+    (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
+      .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    // TODO(b/152183978): listen to gradle events to disable the button when build is in progress.
-    val dataContext = dataContextProvider()
-    e.presentation.isEnabled =
-      dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-  }
+  private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)
+
+  private fun isRefreshing() = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.status()?.isRefreshing == true
 }

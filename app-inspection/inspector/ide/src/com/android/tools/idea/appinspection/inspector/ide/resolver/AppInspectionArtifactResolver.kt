@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.intellij.openapi.project.Project
+import java.nio.file.Path
 
 /**
  * A class that handles the downloading of gradle/maven artifacts.
  */
-interface AppInspectionArtifactResolver {
+interface ArtifactResolver {
   /**
-   * Resolves the provided list of gradle coordinates in the given project and returns a map containing the downloaded jars.
+   * Attempts to resolve the requested artifact and returns the path of the resolved jar.
+   * Null if artifact can't be resolved for some reason.
    */
-  suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>, project: Project): Map<ArtifactCoordinate, AppInspectorJar>
+  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path?
 }

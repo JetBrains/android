@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.application.ApplicationConfiguration;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
     Mockito.when(myGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    AndroidExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(key), myGetter);
+    AndroidExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(new QuickBootTarget(key)), myGetter);
 
     // Act
     Object actualDevices = target.getRunningDevices();
@@ -72,7 +73,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
     Mockito.when(myGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(key), myGetter);
+    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singleton(new QuickBootTarget(key)), myGetter);
 
     // Act
     Object actualDisplayName = target.getDisplayName();
@@ -86,6 +87,8 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
     // Arrange
     Key key1 = new VirtualDeviceName("Pixel_2_API_29");
     Key key2 = new VirtualDeviceName("Pixel_3_API_29");
+
+    Collection<Target> targets = Sets.newHashSet(new QuickBootTarget(key1), new QuickBootTarget(key2));
 
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
@@ -101,7 +104,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
     Mockito.when(myGetter.get()).thenReturn(Optional.of(Arrays.asList(device1, device2)));
 
-    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Sets.newHashSet(key1, key2), myGetter);
+    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(targets, myGetter);
 
     // Act
     Object actualDisplayName = target.getDisplayName();

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
+package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.instructions.InstructionsPanel
@@ -103,7 +103,7 @@ class FlameChartDetailsViewTest {
   fun flameChartHasCpuTraceEventTooltipView() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
-    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
+    val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
     val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),

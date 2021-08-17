@@ -21,11 +21,12 @@ import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTIO
 import com.android.resources.Density.DEFAULT_DENSITY
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -38,6 +39,8 @@ import com.intellij.util.ui.ColorIcon
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Icon
 
+private const val DEFAULT_FONT_SCALE = 1.0f
+
 /**
  * Utility for looking up resources in a project.
  *
@@ -45,6 +48,7 @@ import javax.swing.Icon
  * the property definition or property assignment.
  */
 class ResourceLookup(private val project: Project) {
+  private val composeResolver = LambdaResolver(project)
 
   @VisibleForTesting
   var resolver: ResourceLookupResolver? = null
@@ -58,16 +62,16 @@ class ResourceLookup(private val project: Project) {
   /**
    * The fontScale currently used on the device.
    */
-  var fontScale: Float = 0.0f
+  var fontScale: Float = DEFAULT_FONT_SCALE
 
   /**
    * Update the configuration after a possible configuration change detected on the device.
    */
-  fun updateConfiguration(resources: LayoutInspectorProto.ResourceConfiguration, stringTable: StringTable) {
-    val config = resources.configuration
+  fun updateConfiguration(appContext: AppContext, stringTable: StringTable) {
+    val config = appContext.configuration
     dpi = if (config.density != 0) config.density else DEFAULT_DENSITY
-    fontScale = config.fontScale
-    val loader = ConfigurationLoader(resources, stringTable)
+    fontScale = if (config.fontScale != 0.0f) config.fontScale else DEFAULT_FONT_SCALE
+    val loader = ConfigurationLoader(appContext, stringTable)
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
     if (facet == null) {
       resolver = null
@@ -107,6 +111,25 @@ class ResourceLookup(private val project: Project) {
    */
   fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, location: ResourceReference): String? =
     resolver?.findAttributeValue(property, view, location)
+
+  /**
+   * Find the lambda source location.
+   */
+  fun findLambdaLocation(
+    packageName: String,
+    fileName: String,
+    lambdaName: String,
+    functionName: String,
+    startLine: Int,
+    endLine: Int
+  ): SourceLocation =
+    composeResolver.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLine, endLine)
+
+  /**
+   * Find the source navigatable of a composable function.
+   */
+  fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
+    composeResolver.findComposableNavigatable(composable)
 
   /**
    * Find the icon from this drawable property.

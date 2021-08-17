@@ -269,6 +269,7 @@ Root 2:
 [    1/ 16%/   79B]    72B          1 * att: java.nio.DirectByteBuffer
 
 ================== DISPOSER TREE ==================
+============== DISPOSER TREE SUMMARY ==============
 ================= DISPOSED OBJECTS ================
 Count of disposed-but-strong-referenced objects: 0
 

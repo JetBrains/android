@@ -2,7 +2,9 @@ android {
   buildTypes {
     xyz {
       applicationIdSuffix 'mySuffix-1'
+      crunchPngs false
       debuggable false
+      isDefault false
       embedMicroApp true
       jniDebuggable false
       minifyEnabled true
@@ -13,6 +15,7 @@ android {
       shrinkResources true
       testCoverageEnabled false
       useJack true
+      useProguard false
       versionNameSuffix 'def'
       zipAlignEnabled false
     }

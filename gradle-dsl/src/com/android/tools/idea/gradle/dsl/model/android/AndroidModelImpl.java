@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement.ANDROID_RESOURCES;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE;
@@ -39,11 +40,13 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
@@ -66,6 +69,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
@@ -96,6 +100,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
+  @NonNls public static final ModelPropertyDescription AIDL_PACKAGED_LIST = new ModelPropertyDescription("mAidlPackagedList", MUTABLE_LIST);
+  @NonNls public static final ModelPropertyDescription ASSET_PACKS = new ModelPropertyDescription("mAssetPacks", MUTABLE_SET);
   @NonNls public static final String BUILD_TOOLS_VERSION = "mBuildToolsVersion";
   @NonNls public static final String COMPILE_SDK_VERSION = "mCompileSdkVersion";
   @NonNls public static final String DEFAULT_PUBLISH_CONFIG = "mDefaultPublishConfig";
@@ -105,6 +111,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls public static final String NDK_VERSION = "mNdkVersion";
   @NonNls public static final String PUBLISH_NON_DEFAULT = "mPublishNonDefault";
   @NonNls public static final String RESOURCE_PREFIX = "mResourcePrefix";
+  @NonNls public static final String TARGET_PROJECT_PATH = "mTargetProjectPath";
   // TODO(xof): Add support for useLibrary
 
   public AndroidModelImpl(@NotNull AndroidDslElement dslElement) {
@@ -120,9 +127,28 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
   @Override
   @NotNull
+  public ResolvedPropertyModel aidlPackagedList() {
+    return getModelForProperty(AIDL_PACKAGED_LIST);
+  }
+
+  @Override
+  @NotNull
+  public AndroidResourcesModel androidResources() {
+    AndroidResourcesDslElement androidResourcesElement = myDslElement.ensurePropertyElement(ANDROID_RESOURCES);
+    return new AndroidResourcesModelImpl(androidResourcesElement);
+  }
+
+  @Override
+  @NotNull
   public AdbOptionsModel adbOptions() {
     AdbOptionsDslElement adbOptionsElement = myDslElement.ensurePropertyElement(ADB_OPTIONS);
     return new AdbOptionsModelImpl(adbOptionsElement);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel assetPacks() {
+    return getModelForProperty(ASSET_PACKS);
   }
 
   @Override
@@ -334,6 +360,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   public SplitsModel splits() {
     SplitsDslElement splitsDslElement = myDslElement.ensurePropertyElement(SPLITS);
     return new SplitsModelImpl(splitsDslElement);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel targetProjectPath() {
+    return getModelForProperty(TARGET_PROJECT_PATH);
   }
 
   @Override

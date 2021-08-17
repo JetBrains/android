@@ -161,7 +161,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testSelectSingleComponent() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, textView.getCenterX()),
@@ -174,7 +174,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testSelectDraggedComponent() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = surface.getSelectionModel();
     List<NlComponent> selections = selectionModel.getSelection();
@@ -202,7 +202,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testMultiSelectComponent() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
 
     surface.getSelectionModel().clear();
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
@@ -244,7 +244,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
 
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
 
     SceneComponent button = screenView.getScene().getSceneComponent("button");
     int startX = -20;
@@ -282,7 +282,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = setupLinearLayoutCursorTest();
     NlDesignSurface surface = (NlDesignSurface)manager.getSurface();
     when(surface.isPreviewSurface()).thenReturn(true);
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     deleteXmlTag(textView.getNlComponent());
     clickMouse(manager, MouseEvent.BUTTON1, 2,
@@ -297,7 +297,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = setupLinearLayoutCursorTest().getSurface();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
 
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
@@ -313,7 +313,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
@@ -331,7 +331,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testLinearLayoutCursorHoverRoot() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()),
@@ -342,7 +342,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testLinearLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
                          screenView.getY() + screenView.getScaledContentSize().height,
                          0);
@@ -377,7 +377,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
     int mouseY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
@@ -391,7 +391,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);
 
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
@@ -409,7 +409,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testConstraintLayoutCursorHoverRoot() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()),
@@ -420,7 +420,7 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testConstraintLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
-    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
                          screenView.getY() + screenView.getScaledContentSize().height,
                          0);

@@ -17,12 +17,24 @@ package com.android.tools.adtui.stdui;
 
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
+import javax.swing.Icon;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import java.awt.*;
-import java.awt.event.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An Adaptation of {@link #BasicTabbedPaneUI} with the following changes:
@@ -31,11 +43,23 @@ import java.awt.event.*;
  */
 public class CommonTabbedPaneUI extends BasicTabbedPaneUI {
 
+  public static final Color TEXT_COLOR = StandardColors.TEXT_COLOR;
+  public static final Color INACTIVE_TEXT_COLOR = StandardColors.INACTIVE_TEXT_COLOR;
+
   private final MouseListener mouseHoverListener;
   private final MouseMotionListener mouseMotionListener;
   private int myHoveredTabIndex = -1;
+  private final Color myActiveTextColor;
+  private final Color myInactiveTextColor;
 
   public CommonTabbedPaneUI() {
+    this(TEXT_COLOR, INACTIVE_TEXT_COLOR);
+  }
+
+  public CommonTabbedPaneUI(@NotNull Color activeTextColor, @NotNull Color inactiveTextColor) {
+    myActiveTextColor = activeTextColor;
+    myInactiveTextColor = inactiveTextColor;
+
     mouseHoverListener = new MouseAdapter() {
       @Override
       public void mouseExited(MouseEvent e) {
@@ -188,7 +212,7 @@ public class CommonTabbedPaneUI extends BasicTabbedPaneUI {
                                          textRect,
                                          textIconGap);
 
-      g.setColor(isSelected || tabIndex == myHoveredTabIndex ? StandardColors.TEXT_COLOR : StandardColors.INACTIVE_TEXT_COLOR);
+      g.setColor(isSelected || tabIndex == myHoveredTabIndex ? myActiveTextColor : myInactiveTextColor);
       g.drawString(title, textRect.x, textRect.y + metrics.getAscent());
       paintIcon(g, tabPlacement, tabIndex, icon, iconRect, isSelected);
     }

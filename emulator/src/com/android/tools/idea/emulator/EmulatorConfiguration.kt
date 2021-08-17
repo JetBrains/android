@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.SdkConstants.ANDROID_SDK_ROOT_ENV
+import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
@@ -30,6 +30,8 @@ class EmulatorConfiguration private constructor(
   val displaySize: Dimension,
   val density: Int,
   val skinFolder: Path?,
+  val foldable: Boolean,
+  val rollable: Boolean,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
   val initialOrientation: SkinRotation
@@ -48,15 +50,18 @@ class EmulatorConfiguration private constructor(
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val file = avdFolder.resolve("hardware-qemu.ini")
-      val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density")
+      val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
+                                 "hw.sensor.hinge.count", "hw.sensor.roll.count")
       val hardwareIni = readKeyValueFile(file, keysToExtract1) ?: return null
 
-      val sdkPath = hardwareIni.get("android.sdk.root") ?: System.getenv(ANDROID_SDK_ROOT_ENV) ?: ""
+      val sdkPath = hardwareIni.get("android.sdk.root") ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
       val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
       val displayHeight = parseInt(hardwareIni["hw.lcd.height"], 0)
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
-      val hasAudioOutput = hardwareIni.get("hw.audioOutput")?.toBoolean() ?: true
+      val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
+      val foldable = parseInt(hardwareIni["hw.sensor.hinge.count"], 0) > 0
+      val rollable = parseInt(hardwareIni["hw.sensor.roll.count"], 0) > 0
 
       val keysToExtract2 = setOf("avd.ini.displayname", "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
       val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract2) ?: return null
@@ -75,6 +80,8 @@ class EmulatorConfiguration private constructor(
                                    displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
                                    skinFolder = skinPath,
+                                   foldable = foldable,
+                                   rollable = rollable,
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
                                    initialOrientation = initialOrientation)

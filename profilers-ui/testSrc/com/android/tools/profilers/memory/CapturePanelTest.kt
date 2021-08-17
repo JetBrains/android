@@ -28,7 +28,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.StudioProfilersViewTest
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
@@ -41,7 +40,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
-import kotlin.streams.toList
 
 class CapturePanelTest {
 
@@ -67,7 +65,6 @@ class CapturePanelTest {
 
   @Test
   fun `panel shows numbers for selected heap`() {
-    ideProfilerServices.enableSeparateHeapDumpUi(true)
     val capture = FakeCaptureObject.Builder().build()
     val heap1 = HeapSet(capture, "heap1", 1)
     val heap2 = HeapSet(capture, "heap2", 2)
@@ -83,7 +80,7 @@ class CapturePanelTest {
     insts.forEach { allHeap.addDeltaInstanceObject(it) }
 
 
-    val stage = MemoryProfilerStage(profilers, FakeCaptureObjectLoader())
+    val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
     val selection = MemoryCaptureSelection(profilers.ideServices)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val panel = CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange,

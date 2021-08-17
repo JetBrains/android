@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
@@ -87,6 +89,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getContentRange
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
+import java.util.regex.Pattern
 import kotlin.reflect.KClass
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
@@ -268,7 +271,16 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
     parentElement = currentElement
   }
 
-  return if (externalName.isNotEmpty()) externalName.toString() else null
+  if (externalName.isEmpty()) return null
+
+  val varShouldNotBeWrapped = Pattern.compile("(([a-zA-Z0-9_]\\w*))")
+  return when {
+    !forInjection -> externalName.toString()
+    else -> {
+      if (varShouldNotBeWrapped.matcher(externalName.toString()).matches()) "\$$externalName"
+      else "\${$externalName}"
+    }
+  }
 }
 
 internal fun isValidBlockName(blockName : String?) =
@@ -400,17 +412,25 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
-      // TODO(b/161911921): we will want to only allow references to resolvable elements.
-      val externalTextValue = if (value.referredElement != null) {
+      val externalTextValue =
         convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
-      }
-      else {
-        convertToExternalTextValue(context, applyContext, value.text, false)
-      }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
-    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
-    else -> error("Expression '${value}' not supported.")
+    is InterpolatedText -> {
+      val builder = StringBuilder()
+      for (interpolation in value.interpolationElements) {
+        if (interpolation.textItem != null) {
+          builder.append(interpolation.textItem)
+        }
+        if (interpolation.referenceItem != null) {
+          val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement!!, context, applyContext, true)
+          builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
+        }
+    }
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
+   }
+   is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
+   else -> error("Expression '${value}' not supported.")
   }
 }
 
@@ -759,6 +779,27 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
 }
 
 /**
+ * Given an existing infix expression, add a property to it.
+ */
+internal fun createInfixElement(literal: GradleDslLiteral): PsiElement? {
+  val parent = literal.parent as? GradleDslInfixExpression ?: return null
+  val parentPsi = parent.create() ?: return null
+
+  val expressionPsi = literal.unsavedValue ?: return null
+
+  val psiFactory = KtPsiFactory(parentPsi.project)
+  // FIXME(xof): escaping of name
+  val newInfixExpression = psiFactory.createExpression("${parentPsi.text} ${literal.name} ${expressionPsi.text}") as KtBinaryExpression
+  val newParentPsi = parentPsi.replace(newInfixExpression) as KtBinaryExpression
+  parent.psiElement = newParentPsi
+
+  literal.psiElement = newParentPsi.right
+  literal.commit()
+  literal.reset()
+  return literal.psiElement
+}
+
+/**
  * Add an argument to a GradleDslList (parentDslElement). The PsiElement of the list (parentPsiElement) can either be :
  * KtCallExpression : for cases where we have a list in Kotlin (listOf())
  * KtBinaryExpression : for cases where we have binary expressions ( ex: map arguments or assignment expression)
@@ -783,8 +824,11 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
   // Create a valueArgument to add to the list.
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   // support named argument. ex: plugin = "kotlin-android".
-  val argument = if (dslElement.name.isNotEmpty()) psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
-  else psiFactory.createArgument(psiElement as? KtExpression)
+  val argument = when {
+    parentDslElement is GradleDslMethodCall && dslElement.name.isNotEmpty() ->
+      psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
+    else -> psiFactory.createArgument(psiElement as? KtExpression)
+  }
 
   // If the dslElement has an anchor that is not null and that the list is not empty, we add it to the list after the anchor ;
   // otherwise, we add it at the beginning of the list.

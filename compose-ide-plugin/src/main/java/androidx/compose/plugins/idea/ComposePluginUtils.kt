@@ -14,9 +14,32 @@
  * limitations under the License.
  */
 
-package androidx.compose.plugins.idea
+package com.android.tools.compose
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
+import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
+import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
+
+fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
+  if (element.getChildrenOfType<KtDotQualifiedExpression>().isNotEmpty()) {
+    val fqName = element.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName?.asString()
+    if (fqName == ComposeLibraryNamespace.ANDROIDX_COMPOSE.composeModifierClassName) {
+      return true
+    }
+  }
+  return false
+}
+
+internal fun KotlinType.isClassOrExtendsClass(classFqName:String): Boolean {
+  return fqName?.asString() == classFqName || supertypes().any { it.fqName?.asString() == classFqName }
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search
+package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -41,8 +41,7 @@ import java.io.ObjectOutputStream
  * models inside testData will be updated.
  */
 class SerializedTraceProcessorModelForTestsVerifier {
-
-  private val fakeFeatureTracker = FakeFeatureTracker()
+  private val fakeIdeProfilerServices = FakeIdeProfilerServices()
   private lateinit var service: TraceProcessorServiceImpl
 
   @Before
@@ -58,9 +57,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto trace`() {
-    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeFeatureTracker)
+    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
-    val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val realProcessList = service.getProcessMetadata(1, fakeIdeProfilerServices)
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
@@ -76,7 +75,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+      val realModel = service.loadCpuData(1, pidsToQuery, "", fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -87,9 +86,9 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
   @Test
   fun `test perfetto_cpu_usage trace`() {
-    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), fakeFeatureTracker)
+    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
-    val realProcessList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val realProcessList = service.getProcessMetadata(1, fakeIdeProfilerServices)
     val serializedProcesssList = loadSerializedProcessList(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace_process_list"))
     assertThat(realProcessList).containsExactlyElementsIn(serializedProcesssList).inOrder()
 
@@ -105,7 +104,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+      val realModel = service.loadCpuData(1, pidsToQuery, "", fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto_cpu_usage.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -114,8 +113,25 @@ class SerializedTraceProcessorModelForTestsVerifier {
     }
   }
 
+  @Test
+  fun `test perfetto_frame_lifecycle trace`() {
+    val loadOk = service.loadTrace(1, CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace"), fakeIdeProfilerServices)
+    assertThat(loadOk).isTrue()
+
+    val realModel = service.loadCpuData(1, emptyList(), "android.com.java.profilertester", fakeIdeProfilerServices)
+
+    // We load the serialized model map and verify there's only one element.
+    val serializedModelMap = loadSerializedModelMap(CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace_tpd_model"))
+    assertThat(serializedModelMap).hasSize(1)
+
+    // Check that the frame layers match.
+    val serializedModel = serializedModelMap.values.iterator().next()
+    assertThat(realModel.getAndroidFrameLayers()).isEqualTo(serializedModel.getAndroidFrameLayers())
+  }
+
   private fun loadSerializedProcessList(serializedProcessModelList: File): List<ProcessModel> {
     val ois = ObjectInputStream(FileInputStream(serializedProcessModelList))
+
     @Suppress("UNCHECKED_CAST")
     val processList = ois.readObject() as List<ProcessModel>
     ois.close()
@@ -135,27 +151,38 @@ class SerializedTraceProcessorModelForTestsVerifier {
   @Test
   @Ignore("To be invoked manually to regenerate _process_list and _tpd_model for perfetto traces in testData")
   fun `regen TPD model files`() {
-    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
-    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"))
+    // Use different trace IDs to keep one from overwriting another in TPD. These IDs don't persist outside of this method.
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 1)
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 2)
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace"), 3, "android.com.java.profilertester")
   }
 
-  private fun produceAndWriteModelsFor(traceFile: File) {
-    val loadOk = service.loadTrace(1, traceFile, fakeFeatureTracker)
+  private fun produceAndWriteModelsFor(traceFile: File, traceId: Long, selectedProcessName: String = "") {
+    val loadOk = service.loadTrace(traceId, traceFile, fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
 
-    val processList = service.getProcessMetadata(1, fakeFeatureTracker)
+    val processList = service.getProcessMetadata(traceId, fakeIdeProfilerServices)
 
     val sfProcessId = processList.find {
       it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
     }
 
     val modelMapBuilder = ImmutableMap.builder<Int, SystemTraceModelAdapter>()
-    for (process in processList) {
-      val pid = process.id
-      val pidsToQuery = mutableListOf(pid)
-      sfProcessId?.let { pidsToQuery.add(it.id) }
+    if (selectedProcessName.isEmpty()) {
+      // Generate model for every process.
+      for (process in processList) {
+        val pid = process.id
+        val pidsToQuery = mutableListOf(pid)
+        sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val model = service.loadCpuData(1, pidsToQuery, fakeFeatureTracker)
+        val model = service.loadCpuData(traceId, pidsToQuery, "", fakeIdeProfilerServices)
+        modelMapBuilder.put(pid, model)
+      }
+    }
+    else {
+      // Only generate model for the selected process.
+      val pid = processList.first { processModel -> processModel.name == selectedProcessName }.id
+      val model = service.loadCpuData(traceId, listOf(pid), selectedProcessName, fakeIdeProfilerServices)
       modelMapBuilder.put(pid, model)
     }
 
@@ -163,6 +190,15 @@ class SerializedTraceProcessorModelForTestsVerifier {
     writeObjectToFile(processListModelFile, processList)
     val modelMapFile = File(traceFile.parentFile, "${traceFile.name}_tpd_model")
     writeObjectToFile(modelMapFile, modelMapBuilder.build())
+  }
+
+  private fun produceAndWriteFrameModelOnlyFor(traceFile: File, traceId: Long, selectedProcessName: String) {
+    val loadOk = service.loadTrace(traceId, traceFile, fakeIdeProfilerServices)
+    assertThat(loadOk).isTrue()
+
+    val model = service.loadCpuData(traceId, emptyList(), selectedProcessName, fakeIdeProfilerServices)
+    val modelFile = File(traceFile.parentFile, "${traceFile.name}_tpd_model")
+    writeObjectToFile(modelFile, model)
   }
 
   private fun writeObjectToFile(file: File, serializableObject: Any) {

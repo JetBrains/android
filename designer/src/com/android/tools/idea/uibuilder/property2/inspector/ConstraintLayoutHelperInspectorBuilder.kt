@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants
 import com.android.SdkConstants.AUTO_URI
@@ -22,8 +22,8 @@ import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.ui.ReferencesIdsPanel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.ui.ReferencesIdsPanel
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -44,7 +44,6 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -58,9 +57,9 @@ private const val DELETE_ROW_ACTION_TITLE = "Remove selected View reference"
 /**
  * Builder for the ConstraintHelper references panel
  */
-class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return
     }
@@ -157,7 +156,7 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
   }
 
   companion object {
-    fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
+    fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {
       var components: List<NlComponent>? = properties.first?.components ?: return false
       if (components!!.isEmpty()) return false
       var component: NlComponent? = components?.get(0)

@@ -30,6 +30,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.xml.XmlAttributeValue;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,9 +135,18 @@ class InlinedResource implements ModificationTracker {
     if (s.indexOf('%') == -1) {
       return s;
     }
-    final PsiExpression[] args = methodCallExpression.getArgumentList().getExpressions();
+    PsiExpression[] args = methodCallExpression.getArgumentList().getExpressions();
     if (args.length == 0 || !args[0].isValid()) {
       return s;
+    }
+
+    if (args.length >= 3 && "getQuantityString".equals(methodCallExpression.getMethodExpression().getReferenceName())) {
+      // There are two versions:
+      // String getQuantityString (int id, int quantity)
+      // String getQuantityString (int id, int quantity, Object... formatArgs)
+      // In the second version formatArgs references (1$, 2$, etc) are "one off" (ie args[1] is "quantity" instead of formatArgs[0])
+      // Ignore "quantity" argument for plurals since it's not used for formatting
+      args = Arrays.copyOfRange(args, 1, args.length);
     }
 
     Matcher matcher = FORMAT.matcher(s);

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.tools.idea.editors.setupChangeListener
+import com.android.tools.idea.editors.setupOnSaveListener
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -89,7 +91,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleFileChangeTests() {
     @Language("kotlin")
     val startFileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -165,7 +167,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
   fun testOnSaveTriggers() {
     @Language("kotlin")
     val startFileContent = """
-      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Composable

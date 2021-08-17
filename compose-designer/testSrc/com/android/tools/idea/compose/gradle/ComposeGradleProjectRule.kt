@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
@@ -34,7 +34,7 @@ import org.junit.runners.model.Statement
 /**
  * Default Kotlin version used for Compose projects using this rule.
  */
-const val DEFAULT_KOTLIN_VERSION = "1.4.31"
+const val DEFAULT_KOTLIN_VERSION = "1.5.10"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
@@ -46,7 +46,7 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile(TEST_DATA_PATH).path
+    projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
     projectRule.load(projectPath, kotlinVersion)
 
     projectRule.invokeTasks("compileDebugSources").apply {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.stdui;
 
 import com.android.tools.adtui.TooltipComponent;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Rectangle;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-
 /**
- * This class is essentially a Swing wrapper for the contents of the main profiler tool window.
+ * This class is meant to be used as a Swing wrapper for the contents of a tool window.
  * This class is also needed by {@link TooltipComponent}, so that it can add itself to this container.
- * By doing so, {@link TooltipComponent} will have the same bounds as {@link ProfilerLayeredPane}
- * when used across profilers UI.
+ * By doing so, {@link TooltipComponent} will have the same bounds as {@link TooltipLayeredPane}.
  */
-public class ProfilerLayeredPane extends JLayeredPane {
+public class TooltipLayeredPane extends JLayeredPane {
 
   /**
    *
    * @param content The one and only non-tooltip {@link JComponent} this layered pane shall ever have.
    */
-  public ProfilerLayeredPane(@NotNull JComponent content) {
+  public TooltipLayeredPane(@NotNull JComponent content) {
     add(content, JLayeredPane.DEFAULT_LAYER);
   }
 
   /**
-   * Traverses up to the ProfilerLayeredPane and sets the cursor on it.
+   * Traverses up to the TooltipLayeredPane and sets the cursor on it.
    *
    * @param container where traversal starts.
    * @param cursor    the cursor to set on the ProfilerLayeredPane.
-   * @return the ProfilerLayeredPane if found. Null otherwise.
+   * @return the TooltipLayeredPane if found. Null otherwise.
    */
   @Nullable
-  public static Container setCursorOnProfilerLayeredPane(Container container, Cursor cursor) {
+  public static Container setCursor(Container container, Cursor cursor) {
     for (Container p = container; p != null; p = p.getParent()) {
-      if (p instanceof ProfilerLayeredPane) {
+      if (p instanceof TooltipLayeredPane) {
         p.setCursor(cursor);
         return p;
       }

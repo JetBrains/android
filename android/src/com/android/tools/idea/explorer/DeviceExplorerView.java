@@ -33,6 +33,7 @@ public interface DeviceExplorerView {
   void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t);
+  void reportErrorGeneric(@NotNull String message, @NotNull Throwable t);
 
   void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message);
   void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message);

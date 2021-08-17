@@ -85,6 +85,9 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val javaDirectories: Collection<VirtualFile> get() = ModuleRootManager.getInstance(
     facet.module).contentRoots.toSet()
 
+  override val kotlinDirectoryUrls: Collection<String> = emptySet()
+  override val kotlinDirectories: Iterable<VirtualFile> = emptySet()
+
   override val resourcesDirectoryUrls: Collection<String> get() = emptySet()
   override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
 
@@ -97,9 +100,6 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
     AndroidProjectRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
   override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(
     AndroidProjectRootUtil.getRenderscriptGenDir(facet))
-
-  override val jniDirectoryUrls: Collection<String> get() = emptySet()
-  override val jniDirectories: Collection<VirtualFile> get() = emptySet()
 
   override val jniLibsDirectoryUrls: Collection<String> get() = emptySet()
   override val jniLibsDirectories: Collection<VirtualFile> get() = emptySet()

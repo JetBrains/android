@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
@@ -30,7 +29,6 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.TRANSITIVITY_
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.dom.manifest.getPackageName as getPackageNameFromManifest
 
 class ModuleRClass(
@@ -81,6 +79,10 @@ class ModuleRClass(
       TEST -> getTestPackageName(facet)
     }
 
+    override fun getResourceRepositoryManager(): ResourceRepositoryManager {
+      return ResourceRepositoryManager.getInstance(facet)
+    }
+
     override fun getResourceRepository(): LocalResourceRepository {
       val repoManager = ResourceRepositoryManager.getInstance(facet)
       return when (sourceSet) {
@@ -93,10 +95,6 @@ class ModuleRClass(
           NON_TRANSITIVE -> repoManager.testModuleResources
         }
       }
-    }
-
-    override fun isPublic(resourceType: ResourceType, resourceName: String): Boolean {
-      return !ResourceRepositoryManager.getInstance(facet).resourceVisibility.isPrivate(resourceType, resourceName)
     }
 
     override fun getTransitivity(): Transitivity {

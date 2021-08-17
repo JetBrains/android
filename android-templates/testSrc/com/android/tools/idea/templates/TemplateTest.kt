@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -130,6 +131,8 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
     projectData.language = Language.Kotlin
+    // Use the Kotlin version for tests
+    projectData.kotlinVersion = TestUtils.getKotlinVersionForTests()
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(
@@ -268,8 +271,22 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
-  fun ignoreTestComposeActivity() { // Disabled in 4.2 stable
-    checkCreateTemplate("Empty Compose Activity", withKotlin) // Compose is always Kotlin
+  fun testComposeActivity() {
+    val withOldKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      projectData.kotlinVersion = "1.5.10"
+    }
+    checkCreateTemplate("Empty Compose Activity", withOldKotlin) // Compose is always Kotlin
+  }
+
+  @TemplateCheck
+  fun testResponsiveActivity() {
+    checkCreateTemplate("Responsive Activity")
+  }
+
+  @TemplateCheck
+  fun testResponsiveActivityWithKotlin() {
+    checkCreateTemplate("Responsive Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -300,16 +317,6 @@ open class TemplateTest : AndroidGradleTestCase() {
   @TemplateCheck
   fun testNewTvActivityWithKotlin() {
     checkCreateTemplate("Android TV Blank Activity", withKotlin)
-  }
-
-  @TemplateCheck
-  fun testNewThingsActivity() {
-    checkCreateTemplate("Android Things Empty Activity")
-  }
-
-  @TemplateCheck
-  fun testNewThingsActivityWithKotlin() {
-    checkCreateTemplate("Android Things Empty Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -513,19 +520,12 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testWatchFace() {
-    val withJetifier: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.addJetifierSupport = true
-    }
-    checkCreateTemplate("Watch Face", withJetifier)
+    checkCreateTemplate("Watch Face")
   }
 
   @TemplateCheck
   fun testWatchFaceWithKotlin() {
-    val withJetifierAndKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.addJetifierSupport = true
-      withKotlin(moduleData, projectData)
-    }
-    checkCreateTemplate("Watch Face", withJetifierAndKotlin)
+    checkCreateTemplate("Watch Face", withKotlin)
   }
 
   @TemplateCheck

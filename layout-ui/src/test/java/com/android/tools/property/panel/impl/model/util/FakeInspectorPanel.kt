@@ -49,7 +49,7 @@ class FakeInspectorPanel : InspectorPanel {
                         tableUI: TableUIProvider,
                         actions: List<AnAction>,
                         parent: InspectorLineModel?): TableLineModel {
-    val line = FakeTableLineModel(tableModel, searchable)
+    val line = FakeTableLineModel(tableModel, tableUI, searchable)
     lines.add(line)
     addAsChild(line, parent)
     return line

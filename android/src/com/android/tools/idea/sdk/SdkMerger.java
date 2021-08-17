@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -25,6 +27,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -48,16 +51,16 @@ public class SdkMerger {
       }
       if (pkg.destPkg != null) {
         // Destination package exists but is older; delete the old and replace with the new.
-        File destPkgDir = pkg.destPkg.getLocation();
+        Path destPkgDir = pkg.destPkg.getLocation();
         try {
           FileUtil.delete(destPkgDir);
         }
-        catch (RuntimeException e) {
-          LOG.warn("Failed to delete destination directory " + destPkgDir.getPath(), e);
+        catch (IOException | RuntimeException e) {
+          LOG.warn("Failed to delete destination directory " + destPkgDir, e);
         }
       }
       try {
-        FileUtil.copyDir(pkg.srcPkg.getLocation(),
+        FileUtil.copyDir(FileOpUtils.toFileUnsafe(pkg.srcPkg.getLocation()),
                          new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {
@@ -70,7 +73,9 @@ public class SdkMerger {
 
     // Dest dir is changed, refresh.
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(indicator);
-    AndroidSdkHandler.getInstance(destDir).getSdkManager(repoProgress).loadSynchronously(0, repoProgress, null, null);
+    AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, destDir.toPath())
+      .getSdkManager(repoProgress)
+      .loadSynchronously(0, repoProgress, null, null);
   }
 
   @NotNull
@@ -96,8 +101,8 @@ public class SdkMerger {
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
     Collection<MergeablePackage> results = new ArrayList<>();
 
-    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir);
-    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir);
+    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, srcDir.toPath());
+    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, destDir.toPath());
 
 
     Map<String, ? extends LocalPackage> srcPackages = srcHandler.getSdkManager(repoProgress).getPackages().getLocalPackages();

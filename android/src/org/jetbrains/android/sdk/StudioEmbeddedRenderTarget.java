@@ -16,7 +16,6 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
-import com.android.internal.util.Preconditions;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -25,6 +24,7 @@ import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -34,9 +34,10 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.download.AndroidLayoutlibDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,10 +70,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
    * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
-    StudioEmbeddedRenderTarget embeddedRenderer = getInstance();
-    if (!embeddedRenderer.isValid() || ourDisableEmbeddedTargetForTesting) {
-      // There is no embedded layoutlib in Idea distribution. It will be downloaded automatically on first use.
-      // However in offline mode download may fail, PlatformRenderer should be used in this case.
+    if (ourDisableEmbeddedTargetForTesting) {
       return new CompatibilityRenderTarget(target, target.getVersion().getApiLevel(), target);
     }
 
@@ -83,10 +81,9 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       target = compatRenderTarget.getRealTarget();
     }
 
-    return new CompatibilityRenderTarget(embeddedRenderer, api, target);
+    return new CompatibilityRenderTarget(getInstance(), api, target);
   }
 
-  @NotNull
   @VisibleForTesting
   public static StudioEmbeddedRenderTarget getInstance() {
     if (ourStudioEmbeddedTarget == null) {
@@ -99,54 +96,28 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     myBasePath = getEmbeddedLayoutLibPath();
   }
 
-  private boolean isValid(){
-    return myBasePath != null;
-  }
   /**
    * Returns the URL for the embedded layoutlib distribution.
    */
   @Nullable
   public static String getEmbeddedLayoutLibPath() {
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath() + "/");
+    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
-    // Possible paths of the embedded "layoutlib" directory.
-    final String[] paths = {
-      FileUtil.join(homePath, "plugins/android/lib/layoutlib/"), // Bundled path.
-      StudioPathManager.isRunningFromSources() //Dev path.
-      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/")
-      : null,
-      StudioPathManager.isRunningFromSources() //IJ Dev path.
-      ? FileUtil.join(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk/layoutlib/plugins/android/lib/layoutlib/")
-      : null
-    };
+    String path = FileUtil.join(homePath, "plugins/android/resources/layoutlib/");
+    if (StudioPathManager.isRunningFromSources()) {
+      path = FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/");
+    }
 
-    StringBuilder notFoundPaths = new StringBuilder();
-    for (String path : paths) {
-      if (path == null) continue;
-      VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
-
-      if (root != null) {
-        File rootFile = VfsUtilCore.virtualToIoFile(root);
-        if (rootFile.exists() && rootFile.isDirectory()) {
-          LOG.debug("Embedded layoutlib found at " + path);
-          return rootFile.getAbsolutePath() + File.separator;
-        }
-      }
-      else {
-        notFoundPaths.append(path).append('\n');
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
+    if (root != null) {
+      File rootFile = VfsUtilCore.virtualToIoFile(root);
+      if (rootFile.exists() && rootFile.isDirectory()) {
+        LOG.debug("Embedded layoutlib found at " + path);
+        return rootFile.getAbsolutePath() + File.separator;
       }
     }
 
-    AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
-    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/lib/layoutlib/");
-    if (dir.exists()) {
-      return dir.getAbsolutePath() + File.separator;
-    }
-    else {
-      notFoundPaths.append(dir).append('\n');
-    }
-
-    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths);
+    LOG.error("Unable to find embedded layoutlib in path: " + path);
     return null;
   }
 
@@ -192,18 +163,19 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   @Override
   @NotNull
-  public String getPath(int pathId) {
+  public Path getPath(int pathId) {
+    String path;
     // The prebuilt version of layoutlib only includes the layoutlib.jar and the resources.
     switch (pathId) {
       case DATA:
-        return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER;
+        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER);
       case RESOURCES:
-        return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER + FRAMEWORK_RES_JAR;
+        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER + FRAMEWORK_RES_JAR);
       case FONTS:
-        return getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER;
+        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER);
       default:
         assert false : getClass().getSimpleName() + " does not support path of type " + pathId;
-        return getLocation();
+        return Paths.get(getLocation());
     }
   }
 
@@ -215,7 +187,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   @Override
   @NotNull
   public List<String> getBootClasspath() {
-    return ImmutableList.of(getPath(IAndroidTarget.ANDROID_JAR));
+    return ImmutableList.of(getPath(IAndroidTarget.ANDROID_JAR).toString());
   }
 
   @Override
@@ -262,13 +234,13 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   @Override
   @NotNull
-  public File[] getSkins() {
+  public Path[] getSkins() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
   @Override
   @Nullable
-  public File getDefaultSkin() {
+  public Path getDefaultSkin() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
@@ -300,9 +272,5 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   @Override
   public int compareTo(IAndroidTarget o) {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
-  }
-
-  public static void resetInstance() {
-    ourStudioEmbeddedTarget = null;
   }
 }

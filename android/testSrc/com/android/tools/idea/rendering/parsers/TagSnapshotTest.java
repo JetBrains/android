@@ -134,4 +134,21 @@ public class TagSnapshotTest {
       "}",
       button.toString());
   }
+
+  @Test
+  public void testComposeViewReplacement() {
+    @Language("XML") final String imageString = "<androidx.compose.ui.platform.ComposeView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                "  android:layout_width=\"wrap_content\"\n" +
+                                                "  android:layout_height=\"wrap_content\" />";
+
+    TagSnapshot button = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+      XmlTag image = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString);
+      return TagSnapshot.createTagSnapshot(image, null);
+    });
+    assertEquals(
+      "TagSnapshot{androidx.compose.ui.tooling.ComposeViewAdapter, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}], children=\n" +
+      "[]\n" +
+      "}",
+      button.toString());
+  }
 }

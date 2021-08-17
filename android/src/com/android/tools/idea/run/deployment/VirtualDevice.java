@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
+import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -42,16 +48,18 @@ import org.jetbrains.annotations.Nullable;
  * Device.myKey may be a VirtualDevicePath, VirtualDeviceName, or SerialNumber depending on what the IDevice returns and myNameKey is null.
  */
 final class VirtualDevice extends Device {
-  @VisibleForTesting
-  static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+  private static final Icon ourPhoneIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+  private static final Icon ourWearIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
+  private static final Icon ourTvIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
 
   /**
-   * Matches with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator in Version 30.0.18
+   * The virtual device names match with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator
+   * in Version 30.0.18
    */
   private final @Nullable VirtualDeviceName myNameKey;
 
-  @Nullable
-  private final Snapshot mySnapshot;
+  private final @NotNull Collection<@NotNull Snapshot> mySnapshots;
+  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
@@ -73,21 +81,20 @@ final class VirtualDevice extends Device {
 
     return new Builder()
       .setName(device.getName())
-      .setValid(connectedDevice.isValid())
-      .setValidityReason(connectedDevice.getValidityReason())
+      .setLaunchCompatibility(connectedDevice.getLaunchCompatibility())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
       .setNameKey(nameKey)
-      .setSnapshot(device.getSnapshot())
+      .addAllSnapshots(device.getSnapshots())
+      .setType(device.getType())
       .build();
   }
 
   static final class Builder extends Device.Builder {
     private @Nullable VirtualDeviceName myNameKey;
-
-    @Nullable
-    private Snapshot mySnapshot;
+    private final @NotNull Collection<@NotNull Snapshot> mySnapshots = new ArrayList<>();
+    private boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get();
 
     @NotNull
     Builder setName(@NotNull String name) {
@@ -96,14 +103,8 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    Builder setLaunchCompatibility(LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -131,9 +132,23 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull
-    Builder setSnapshot(@Nullable Snapshot snapshot) {
-      mySnapshot = snapshot;
+    @NotNull Builder addSnapshot(@NotNull Snapshot snapshot) {
+      mySnapshots.add(snapshot);
+      return this;
+    }
+
+    @NotNull Builder addAllSnapshots(@NotNull Collection<@NotNull Snapshot> snapshots) {
+      mySnapshots.addAll(snapshots);
+      return this;
+    }
+
+    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(@SuppressWarnings("SameParameterValue") boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+      return this;
+    }
+
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -148,13 +163,58 @@ final class VirtualDevice extends Device {
     super(builder);
 
     myNameKey = builder.myNameKey;
-    mySnapshot = builder.mySnapshot;
+    mySnapshots = new ArrayList<>(builder.mySnapshots);
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+  }
+
+  @NotNull Optional<@NotNull VirtualDeviceName> getNameKey() {
+    return Optional.ofNullable(myNameKey);
+  }
+
+  void coldBoot(@NotNull Project project) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).coldBoot(project);
+  }
+
+  void quickBoot(@NotNull Project project) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).quickBoot(project);
+  }
+
+  void bootWithSnapshot(@NotNull Project project, @NotNull Path snapshot) {
+    ((LaunchableAndroidDevice)getAndroidDevice()).bootWithSnapshot(project, snapshot.toString());
   }
 
   @NotNull
   @Override
   Icon getIcon() {
-    return isConnected() ? ourConnectedIcon : StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+    Icon deviceIcon;
+    switch (getType()) {
+      case TV:
+        deviceIcon = ourTvIcon;
+        break;
+      case WEAR:
+        deviceIcon = ourWearIcon;
+        break;
+      case PHONE:
+        deviceIcon = ourPhoneIcon;
+        break;
+      default:
+        throw new IllegalStateException("Unexpected device type: " + getType());
+    }
+
+    if (isConnected()) {
+      deviceIcon = ExecutionUtil.getLiveIndicator(deviceIcon);
+    }
+
+    switch (getLaunchCompatibility().getState()) {
+      case ERROR:
+        return new LayeredIcon(deviceIcon, ERROR_DECORATOR);
+      case WARNING:
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case OK:
+        return deviceIcon;
+      default:
+        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
+    }
   }
 
   @Override
@@ -162,28 +222,50 @@ final class VirtualDevice extends Device {
     return getConnectionTime() != null;
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return mySnapshot;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return mySnapshots;
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
-    if (myNameKey == null) {
-      return getKey().matches(key);
+  @NotNull Target getDefaultTarget() {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return new QuickBootTarget(getKey());
     }
 
-    return getKey().matches(key) || myNameKey.matches(key);
+    if (isConnected()) {
+      return new RunningDeviceTarget(getKey());
+    }
+
+    return new QuickBootTarget(getKey());
   }
 
   @Override
-  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
-    if (myNameKey == null) {
-      return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
+  @NotNull Collection<@NotNull Target> getTargets() {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return Collections.singletonList(new QuickBootTarget(getKey()));
     }
 
-    return keys.contains(getKey()) || keys.contains(myNameKey) || keys.contains(myNameKey.asNonprefixedKey());
+    if (isConnected()) {
+      return Collections.singletonList(new RunningDeviceTarget(getKey()));
+    }
+
+    if (mySnapshots.isEmpty()) {
+      return Collections.singletonList(new QuickBootTarget(getKey()));
+    }
+
+    Collection<Target> targets = new ArrayList<>(2 + mySnapshots.size());
+    Key deviceKey = getKey();
+
+    targets.add(new ColdBootTarget(deviceKey));
+    targets.add(new QuickBootTarget(deviceKey));
+
+    mySnapshots.stream()
+      .map(Snapshot::getDirectory)
+      .map(snapshotKey -> new BootWithSnapshotTarget(deviceKey, snapshotKey))
+      .forEach(targets::add);
+
+    return targets;
   }
 
   @NotNull
@@ -202,26 +284,6 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
-    AndroidDevice device = getAndroidDevice();
-
-    if (!isConnected()) {
-      device.launch(project, getEmulatorCommandArguments());
-    }
-
-    futures.getDevices().add(device);
-  }
-
-  @NotNull
-  private List<String> getEmulatorCommandArguments() {
-    if (mySnapshot == null) {
-      return Collections.emptyList();
-    }
-
-    return Arrays.asList("-snapshot", mySnapshot.getDirectory().toString(), "-id", getKey().toString());
-  }
-
-  @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof VirtualDevice)) {
       return false;
@@ -230,25 +292,25 @@ final class VirtualDevice extends Device {
     VirtualDevice device = (VirtualDevice)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
            Objects.equals(myNameKey, device.myNameKey) &&
-           Objects.equals(mySnapshot, device.mySnapshot);
+           mySnapshots.equals(device.mySnapshots) &&
+           mySelectDeviceSnapshotComboBoxSnapshotsEnabled == device.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
       getName(),
-      isValid(),
-      getValidityReason(),
+      getLaunchCompatibility(),
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),
       myNameKey,
-      mySnapshot);
+      mySnapshots,
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
   }
 }

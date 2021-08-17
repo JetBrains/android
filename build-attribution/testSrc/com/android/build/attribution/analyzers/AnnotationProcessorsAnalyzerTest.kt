@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -78,6 +79,7 @@ class AnnotationProcessorsAnalyzerTest {
   }
 
   @Test
+  @Ignore("b/179137380")
   fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
     setUpProject()
 

@@ -2,9 +2,8 @@
 
 package com.android.tools.idea.run.editor;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -370,7 +369,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     // Lock and hide subset of UI when attached to an instantApp
     AndroidModuleModel model = AndroidModuleModel.get(currentModule);
-    boolean isInstantApp = model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP;
+    boolean isInstantApp = model != null && model.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP;
     if (isInstantApp) {
       myLaunchOptionCombo.setSelectedItem(DeepLinkLaunch.INSTANCE);
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);

@@ -16,10 +16,6 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
-import com.android.build.attribution.analyzers.isAndroidPlugin
-import com.android.build.attribution.analyzers.isGradlePlugin
-import com.android.build.attribution.analyzers.isJavaPlugin
-import com.android.build.attribution.analyzers.isKotlinPlugin
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.PluginSourceType
@@ -40,19 +36,23 @@ class TaskUiDataContainer(
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
   private val tasksDeterminingBuildDuration: Set<TaskData> = buildAnalysisResult.getTasksDeterminingBuildDuration().toHashSet()
   private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
+  private val configurationCacheUsed: Boolean = buildAnalysisResult.buildUsesConfigurationCache()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
     object : TaskUiData {
-      override val pluginName: String = task.originPlugin.displayName
+      override val pluginName: String = task.originPlugin.displayNameInProject(task.projectPath)
       override val sourceType: PluginSourceType = when {
-        isAndroidPlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
-        isKotlinPlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
-        isGradlePlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
-        isJavaPlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
+        task.originPlugin.isAndroidPlugin() -> PluginSourceType.ANDROID_PLUGIN
+        task.originPlugin.isKotlinPlugin() -> PluginSourceType.ANDROID_PLUGIN
+        task.originPlugin.isGradlePlugin() -> PluginSourceType.ANDROID_PLUGIN
+        task.originPlugin.isJavaPlugin() -> PluginSourceType.ANDROID_PLUGIN
         task.originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN ||
         task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SRC
         else -> PluginSourceType.THIRD_PARTY
       }
+      override val pluginUnknownBecauseOfCC: Boolean = task.originPlugin.pluginType == PluginData.PluginType.UNKNOWN &&
+                                                       configurationCacheUsed
+
       override val module: String = task.projectPath
       override val name: String = task.taskName
       override val taskPath: String = task.getTaskPath()

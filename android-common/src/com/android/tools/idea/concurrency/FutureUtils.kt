@@ -301,7 +301,7 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
   // because it is completed by now, so it is relatively safe.
   // It isn't completely safe, because to access the tree Disposer grabs internal lock
   // and it is blocking operation
-  addListener(Runnable {
+  addListener({
     if (!Disposer.isDisposed(disposable)) {
       // we need to remove disposable from the tree since we don't need it anymore
       // as well as we need to free future, so it can be gc-ed
@@ -320,7 +320,7 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
 /**
  * Tries to get the result of the future without blocking. If result is not ready for any reason, return null.
  */
-fun <V> ListenableFuture<V>.getDoneOrNull(): V? {
+fun <V> Future<V>.getDoneOrNull(): V? {
   try {
     return Futures.getDone(this)
   }

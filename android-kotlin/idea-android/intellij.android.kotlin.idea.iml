@@ -37,11 +37,16 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
   </component>
 </module>

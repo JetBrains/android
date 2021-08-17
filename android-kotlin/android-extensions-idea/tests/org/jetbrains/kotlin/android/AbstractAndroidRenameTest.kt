@@ -16,26 +16,24 @@
 
 package org.jetbrains.kotlin.android
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 
 abstract class AbstractAndroidRenameTest : KotlinAndroidTestCase() {
     private val NEW_NAME = "NEWNAME"
-    private val NEW_ID_NAME = "@+id/$NEW_NAME"
 
     fun doTest(path: String) {
         copyResourceDirectoryForTest(path)
         val virtualFile = myFixture.copyFileToProject("$path${getTestName(true)}.kt", "src/${getTestName(true)}.kt")
         myFixture.configureFromExistingVirtualFile(virtualFile)
-        myFixture.renameElement(myFixture.elementAtCaret, if (StudioFlags.RESOLVE_USING_REPOS.get()) NEW_NAME else NEW_ID_NAME)
+        myFixture.renameElement(myFixture.elementAtCaret, NEW_NAME)
         myFixture.checkResultByFile("$path/expected/${getTestName(true)}.kt")
         assertResourcesEqual("$testDataPath/$path/expected/res")
     }
 
-    fun assertResourcesEqual(expectedPath: String) {
-        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath), getResourceDirectory())
+    private fun assertResourcesEqual(expectedPath: String) {
+        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
     }
 
-    fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
+    private fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
 }

@@ -19,7 +19,6 @@ import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
-import com.android.tools.idea.gradle.util.GradleUtil.isGradleScript
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
 import com.intellij.testFramework.rules.TempDirectory
@@ -108,33 +107,5 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
     val foundSettingsFile = GradleUtil.findGradleSettingsFile(tempDir.root.toVFile())
     assertNotNull(foundBuildFile)
     assertEquals(groovySettingsFile, foundSettingsFile)
-  }
-
-  @Test
-  fun isGradleFile() {
-    val groovyBuildFile = tempDir.newFile(FN_BUILD_GRADLE).toVFile()
-    assertTrue(isGradleScript(groovyBuildFile))
-    val kotlinBuildFile = tempDir.newFile(FN_BUILD_GRADLE_KTS).toVFile()
-    assertTrue(isGradleScript(kotlinBuildFile))
-    val groovySettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE).toVFile()
-    assertTrue(isGradleScript(groovySettingsFile))
-    val kotlinSettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE_KTS).toVFile()
-    assertTrue(isGradleScript(kotlinSettingsFile))
-    val renamedGroovyBuildFile = tempDir.newFile("somefile.gradle").toVFile()
-    assertTrue(isGradleScript(renamedGroovyBuildFile))
-    val renamedKotlinBuildFile = tempDir.newFile("somefile.gradle.kts").toVFile()
-    assertTrue(isGradleScript(renamedKotlinBuildFile))
-    val nonBuildFile = tempDir.newFile("someotherfilename.txt").toVFile()
-    assertFalse(isGradleScript(nonBuildFile))
-  }
-
-  @Test
-  fun isGradeFileDirectory() {
-    val randomDir = tempDir.newDirectory("coolDir").toVFile()
-    assertFalse(isGradleScript(randomDir))
-    val buildGradleFolder = tempDir.newDirectory(FN_BUILD_GRADLE).toVFile()
-    assertFalse(isGradleScript(buildGradleFolder))
-    val settingsGradleFolder = tempDir.newDirectory(FN_SETTINGS_GRADLE_KTS).toVFile()
-    assertFalse(isGradleScript(settingsGradleFolder))
   }
 }

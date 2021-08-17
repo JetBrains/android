@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.swing.DefaultLookup.
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -30,12 +33,15 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.Andro
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CommonActionsManager
@@ -73,8 +79,6 @@ import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Color
 import java.awt.Component
 import java.awt.KeyboardFocusManager
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -111,18 +115,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
                                   logger: AndroidTestSuiteLogger) {
   private val myModel = AndroidTestResultsTableModel()
   private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
-  private val myTableViewContainer = JBScrollPane(myTableView).apply {
-    addComponentListener(object: ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        // Automatically resize columns when the table is expanded and keep column widths fixed when the table is shrunk (b/169497998)
-        if (myTableView.preferredSize.width < myTableView.parent.width) {
-          myTableView.autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
-        } else {
-          myTableView.autoResizeMode = JTable.AUTO_RESIZE_OFF
-        }
-      }
-    })
-  }
+  private val myTableViewContainer = JBScrollPane(myTableView)
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
   @get:UiThread
@@ -140,6 +133,12 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun addDevice(device: AndroidDevice) {
     myModel.addDeviceColumn(device)
+    refreshTable()
+  }
+
+  @UiThread
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
+    myModel.myRootAggregationRow.setTestSuiteResultForDevice(device, result)
     refreshTable()
   }
 
@@ -189,18 +188,6 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     myModel.setColumnFilter(filter)
     refreshTable()
   }
-
-  /**
-   * Shows or hides a test status column in the table.
-   */
-  @get:UiThread
-  @set:UiThread
-  var showTestStatusColumn: Boolean
-    get() = myModel.showTestStatusColumn
-    set(value) {
-      myModel.showTestStatusColumn = value
-      refreshTable()
-    }
 
   /**
    * Refreshes and redraws the table.
@@ -405,7 +392,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   private var myLastReportedResults: AndroidTestResults? = null
   private var myLastReportedDevice: AndroidDevice? = null
 
-  private var mySortKeyColumn: Int = -1
   private var mySortOrder: SortOrder = SortOrder.UNSORTED
 
   init {
@@ -500,6 +486,10 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     handleSelectionChanged(event)
   }
 
+  override fun getScrollableTracksViewportWidth(): Boolean {
+    return preferredSize.width < parent.width
+  }
+
   private fun handleSelectionChanged(event: ListSelectionEvent) {
     // Ignore intermediate values.
     if (event.valueIsAdjusting) {
@@ -547,6 +537,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
         PsiLocation.fromPsiElement(psiElement, testArtifactSearchScopes?.module)
+      }
+      RunConfiguration.DATA_KEY.`is`(dataId) -> {
+        return AndroidTestRunConfiguration(javaPsiFacade.project, AndroidTestRunConfigurationType.getInstance().factory)
       }
       else -> null
     }
@@ -599,7 +592,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           if (component !is JLabel) {
             return component
           }
-          component.icon = if (column == mySortKeyColumn) {
+          component.icon = if (column == model.mySortKeyColumn) {
             when(mySortOrder) {
               SortOrder.ASCENDING -> UIManager.getIcon("Table.ascendingSortIcon")
               SortOrder.DESCENDING -> UIManager.getIcon("Table.descendingSortIcon")
@@ -620,14 +613,14 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           if (clickedColumnIndex < 0) {
             return
           }
-          if (mySortKeyColumn == clickedColumnIndex) {
+          if (model.mySortKeyColumn == clickedColumnIndex) {
             mySortOrder = when(mySortOrder) {
               SortOrder.ASCENDING -> SortOrder.DESCENDING
               SortOrder.DESCENDING -> SortOrder.UNSORTED
               else -> SortOrder.ASCENDING
             }
           } else {
-            mySortKeyColumn = clickedColumnIndex
+            model.mySortKeyColumn = clickedColumnIndex
             mySortOrder = SortOrder.ASCENDING
           }
           refreshTable()
@@ -661,10 +654,10 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
     // TreeTableView doesn't support TableRowSorter so we sort items
     // directly in the model (IDEA-248054).
-    val rowComparator = if (mySortKeyColumn >= 0) {
+    val rowComparator = if (model.mySortKeyColumn >= 0 && model.mySortKeyColumn < getColumnModel().columnCount) {
       when(mySortOrder) {
-        SortOrder.ASCENDING -> getColumnInfo(mySortKeyColumn).comparator
-        SortOrder.DESCENDING -> getColumnInfo(mySortKeyColumn).comparator?.reversed()
+        SortOrder.ASCENDING -> getColumnInfo(model.mySortKeyColumn).comparator
+        SortOrder.DESCENDING -> getColumnInfo(model.mySortKeyColumn).comparator?.reversed()
         else -> null
       }
     } else {
@@ -691,11 +684,12 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(AggregationRow(), arrayOf()) {
   /**
    * A map of test results rows. The key is [AndroidTestCase.id] and the value is [AndroidTestResultsRow].
-   * Note that [AndroidTestResultsRow] has test results for every devices.
+   * Note that [AndroidTestResultsRow] has test results for every device.
    */
   val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
+  var mySortKeyColumn = -1
 
   private val myRowInsertionOrder: MutableMap<AndroidTestResults, Int> = mutableMapOf(myRootAggregationRow to 0)
   val insertionOrderComparator: Comparator<AndroidTestResults> = compareBy {
@@ -704,8 +698,6 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
 
   private val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
   private lateinit var myFilteredColumns: Array<ColumnInfo<Any, Any>>
-
-  var showTestStatusColumn: Boolean = true
 
   /**
    * A filter to show and hide columns.
@@ -772,17 +764,52 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   }
 
   private fun updateFilteredColumns() {
-    val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(
-      TestNameColumn, TestDurationColumn as ColumnInfo<Any, Any>)
-    if (showTestStatusColumn) {
-      filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
-    }
-    myDeviceColumns.filter {
+    // Store current sortKeyColumn in case it gets filtered out
+    val sortColumn = if (mySortKeyColumn != -1) { columns[mySortKeyColumn].name } else { null }
+
+    // We always display test name and test duration columns.
+    val filteredColumns = mutableListOf(
+      TestNameColumn,
+      TestDurationColumn as ColumnInfo<Any, Any>)
+
+    // Show test status and device columns.
+    // We should hide test status column if there is only one device
+    // because the information displayed in test status and device column
+    // would be the same and redundant.
+    val filteredDeviceColumns = myDeviceColumns.filter {
       myColumnFilter?.invoke(it.device) ?: true
-    }.map {
-      it as ColumnInfo<Any, Any>
-    }.toCollection(filteredColumns)
+    }
+    if (filteredDeviceColumns.size > 1) {
+      val filteredDevices = filteredDeviceColumns.map {
+        it.device
+      }.toList()
+      filteredColumns.add(TestStatusColumn(filteredDevices) as ColumnInfo<Any, Any>)
+    }
+    filteredColumns.addAll(filteredDeviceColumns as List<ColumnInfo<Any, Any>>)
+
     myFilteredColumns = filteredColumns.toTypedArray()
+
+    // Update sortKeyColumn index after columns are filtered
+    updateSortKeyColumnAfterFilter(sortColumn)
+  }
+
+  private fun updateSortKeyColumnAfterFilter(sortKeyColumn: String?) {
+    // Do not need to update if no column is selected for sorting
+    if (sortKeyColumn == null) {
+      return
+    }
+
+    var sortKeyColumnRemainsAfterFilter = false
+    for ((index, column) in columns.iterator().withIndex()) {
+      if (column.name == sortKeyColumn) {
+        sortKeyColumnRemainsAfterFilter = true
+        mySortKeyColumn = index
+        break
+      }
+    }
+    if (!sortKeyColumnRemainsAfterFilter) {
+      mySortKeyColumn = -1
+    }
   }
 
   override fun getColumnClass(column: Int): Class<*> {
@@ -906,20 +933,21 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
 /**
  * A column for displaying an aggregated test result grouped by a test case ID.
  */
-private object TestStatusColumn : ColumnInfo<AndroidTestResults, AndroidTestResults>("Status") {
+private class TestStatusColumn(val devices: List<AndroidDevice>) : ColumnInfo<AndroidTestResults, AndroidTestResults>("Status") {
   private val myComparator = Comparator<AndroidTestResults> { lhs, rhs ->
-    compareValues(lhs.getTestResultSummary(), rhs.getTestResultSummary())
+    compareValues(lhs.getTestResultSummary(devices), rhs.getTestResultSummary(devices))
   }
+  private val renderer: TableCellRenderer = TestStatusColumnCellRenderer(devices)
   override fun valueOf(item: AndroidTestResults): AndroidTestResults = item
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
   override fun getWidth(table: JTable): Int = 80
-  override fun getRenderer(item: AndroidTestResults?): TableCellRenderer = TestStatusColumnCellRenderer
+  override fun getRenderer(item: AndroidTestResults?): TableCellRenderer = renderer
   override fun getCustomizedRenderer(o: AndroidTestResults?, renderer: TableCellRenderer?): TableCellRenderer {
-    return TestStatusColumnCellRenderer
+    return this.renderer
   }
 }
 
-private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
+private class TestStatusColumnCellRenderer(val devices: List<AndroidDevice>) : DefaultTableCellRenderer() {
   override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
@@ -927,14 +955,14 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
                                              row: Int,
                                              column: Int): Component {
     val results = value as? AndroidTestResults ?: return this
-    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
+    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(devices), isSelected, hasFocus, row, column)
     icon = null
     horizontalTextPosition = CENTER
     horizontalAlignment = CENTER
     foreground = if(isSelected && table.hasFocus()) {
       UIUtil.getTreeSelectionForeground(true)
     } else {
-      getColorFor(results.getTestResultSummary())
+      getColorFor(results.getTestResultSummary(devices))
     }
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
@@ -1068,7 +1096,12 @@ private class AndroidTestResultsRow(override val methodName: String,
   /**
    * Returns a benchmark result for a given [device].
    */
-  override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
+  override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput(myTestCases[device.id]?.benchmark ?: "")
+
+  /**
+   * Returns the retention info artifact from Android Test Retention if available.
+   */
+  override fun getRetentionInfo(device: AndroidDevice): File? = myTestCases[device.id]?.retentionInfo
 
   /**
    * Returns the snapshot artifact from Android Test Retention if available.
@@ -1081,10 +1114,15 @@ private class AndroidTestResultsRow(override val methodName: String,
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
 
   /**
-   * Returns a one liner test result summary string.
+   * Returns an aggregated test result for the given devices.
    */
-  override fun getTestResultSummaryText(): String {
-    val stats = getResultStats()
+  override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = getResultStats(devices).getSummaryResult()
+
+  /**
+   * Returns a one liner test result summary string for the given devices.
+   */
+  override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
+    val stats = getResultStats(devices)
     return when {
       stats.failed == 1 -> "Fail"
       stats.failed > 0 -> "Fail (${stats.failed})"
@@ -1097,31 +1135,20 @@ private class AndroidTestResultsRow(override val methodName: String,
   }
 
   override fun getResultStats(): AndroidTestResultStats {
-    val stats = AndroidTestResultStats()
-    myTestCases.values.forEach {
-      when(it.result) {
-        AndroidTestCaseResult.PASSED -> stats.passed++
-        AndroidTestCaseResult.FAILED -> stats.failed++
-        AndroidTestCaseResult.SKIPPED -> stats.skipped++
-        AndroidTestCaseResult.IN_PROGRESS -> stats.running++
-        AndroidTestCaseResult.CANCELLED -> stats.cancelled++
-        else -> {}
-      }
+    return myTestCases.values.fold(AndroidTestResultStats()) { acc, androidTestCase ->
+      acc.addTestCaseResult(androidTestCase.result)
     }
-    return stats
   }
 
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     val stats = AndroidTestResultStats()
-    when(getTestCaseResult(device)) {
-      AndroidTestCaseResult.PASSED -> stats.passed++
-      AndroidTestCaseResult.FAILED -> stats.failed++
-      AndroidTestCaseResult.SKIPPED -> stats.skipped++
-      AndroidTestCaseResult.IN_PROGRESS -> stats.running++
-      AndroidTestCaseResult.CANCELLED -> stats.cancelled++
-      else -> {}
+    return stats.addTestCaseResult(getTestCaseResult(device))
+  }
+
+  override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats {
+    return devices.fold(AndroidTestResultStats()) { acc, device ->
+      acc.addTestCaseResult(getTestCaseResult(device))
     }
-    return stats
   }
 }
 
@@ -1164,23 +1191,85 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
  */
 private class AggregationRow(override val packageName: String = "",
                              override val className: String = "") : AndroidTestResults, FilterableTreeNode() {
+
+  private val myTestSuiteResult: MutableMap<String, AndroidTestSuiteResult> = mutableMapOf()
+
+  /**
+   * Sets the test suite result of the given device.
+   */
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
+    myTestSuiteResult[device.id] = result
+  }
+
   override val methodName: String = ""
-  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = getResultStats(device).getSummaryResult()
-  override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
-  override fun getTestResultSummaryText(): String {
-    val stats = getResultStats()
+
+  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult {
+    val result = myTestSuiteResult[device.id]
+    return if (result != null) {
+      when (result) {
+        AndroidTestSuiteResult.PASSED -> AndroidTestCaseResult.PASSED
+        AndroidTestSuiteResult.FAILED -> AndroidTestCaseResult.FAILED
+        AndroidTestSuiteResult.ABORTED,
+        AndroidTestSuiteResult.CANCELLED -> AndroidTestCaseResult.CANCELLED
+      }
+    } else {
+      getResultStats(device).getSummaryResult()
+    }
+  }
+
+  override fun getTestResultSummary(): AndroidTestCaseResult {
+    return when {
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.FAILED } -> {
+        AndroidTestCaseResult.FAILED
+      }
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.CANCELLED ||
+                                     it == AndroidTestSuiteResult.ABORTED } -> {
+        AndroidTestCaseResult.CANCELLED
+      }
+      else -> {
+        getResultStats().getSummaryResult()
+      }
+    }
+  }
+
+  override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult {
+    return when {
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.FAILED } -> {
+        AndroidTestCaseResult.FAILED
+      }
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.CANCELLED ||
+                                     it == AndroidTestSuiteResult.ABORTED } -> {
+        AndroidTestCaseResult.CANCELLED
+      }
+      else -> {
+        getResultStats(devices).getSummaryResult()
+      }
+    }
+  }
+
+  override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
+    val stats = getResultStats(devices)
     return "${stats.passed + stats.skipped}/${stats.total}"
   }
+
   override fun getResultStats(): AndroidTestResultStats {
     return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats()?.plus(acc) ?: acc
-    }?:AndroidTestResultStats()
+    }
   }
+
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
-    }?:AndroidTestResultStats()
+    }
   }
+
+  override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats {
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
+      (result as? AndroidTestResults)?.getResultStats(devices)?.plus(acc) ?: acc
+    }
+  }
+
   override fun getLogcat(device: AndroidDevice): String {
     return allChildren.fold("") { acc, result ->
       val logcat = (result as? AndroidTestResults)?.getLogcat(device)
@@ -1193,7 +1282,7 @@ private class AggregationRow(override val packageName: String = "",
           "${acc}\n${logcat}"
         }
       }
-    }?:""
+    }
   }
 
   override fun getStartTime(device: AndroidDevice): Long? {
@@ -1220,26 +1309,30 @@ private class AggregationRow(override val packageName: String = "",
       }
     }
   }
+
   override fun getTotalDuration(): Duration {
     return Duration.ofMillis(allChildren.map {
       (it as? AndroidTestResults)?.getTotalDuration()?.toMillis() ?: 0
     }.sum())
   }
+
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
-  override fun getBenchmark(device: AndroidDevice): String {
-    return allChildren.fold("") { acc, result ->
-      val benchmark = (result as? AndroidTestResults)?.getBenchmark(device)
-      if (benchmark.isNullOrBlank()) {
+
+  override fun getBenchmark(device: AndroidDevice): BenchmarkOutput {
+    return allChildren.fold(BenchmarkOutput.Empty) { acc, result ->
+      val benchmark = (result as? AndroidTestResults)?.getBenchmark(device) ?: BenchmarkOutput.Empty
+      if (benchmark == BenchmarkOutput.Empty) {
         acc
+      } else if (acc == BenchmarkOutput.Empty) {
+        benchmark
       } else {
-        if (acc.isBlank()) {
-          benchmark
-        } else {
-          "${acc}\n${benchmark}"
-        }
+        acc.fold(benchmark)
       }
     }
   }
+
+  override fun getRetentionInfo(device: AndroidDevice): File? = null
+
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
   /**

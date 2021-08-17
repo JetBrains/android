@@ -142,8 +142,8 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
       TransactionGuard.getInstance().submitTransactionAndWait {
         // This code needs to run in EDT.
         log.info("Finishing generating sources.")
-        multiRenderingFinished(project)
         templateRenderers.forEach(TemplateRenderer::finish)
+        multiRenderingFinished(project)
       }
     }
   }

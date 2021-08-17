@@ -15,62 +15,88 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
+import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
+import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.RotationRadian
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.Touch
+import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
+import com.android.emulator.control.TouchEvent
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ide.ClipboardSynchronizer
+import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.IdeGlassPane
+import com.intellij.openapi.wm.IdeGlassPaneUtil
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
+import org.HdrHistogram.Histogram
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
+import java.awt.MouseInfo
 import java.awt.Point
+import java.awt.RadialGradientPaint
 import java.awt.Rectangle
+import java.awt.RenderingHints
+import java.awt.RenderingHints.KEY_ANTIALIASING
+import java.awt.RenderingHints.KEY_RENDERING
+import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
+import java.awt.RenderingHints.VALUE_RENDER_QUALITY
 import java.awt.color.ColorSpace
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
-import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
@@ -85,22 +111,29 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.AffineTransform
+import java.awt.geom.Area
+import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
 import java.awt.image.DataBufferInt
 import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
+import java.lang.Math.PI
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.SwingUtilities
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -108,17 +141,22 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
+import com.android.emulator.control.Notification as EmulatorNotification
 
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
- * @param parentDisposable the disposable parent
+ * @param disposableParent the disposable parent
  * @param emulator the handle of the Emulator
+ * @param displayId the ID of the device display
+ * @param displaySize the size of the device display; a null value defaults to `emulator.emulatorConfig.displaySize`
  * @param deviceFrameVisible controls visibility of the device frame
  */
 class EmulatorView(
+  disposableParent: Disposable,
   val emulator: EmulatorController,
-  parentDisposable: Disposable,
+  val displayId: Int,
+  private val displaySize: Dimension?,
   deviceFrameVisible: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
@@ -127,7 +165,13 @@ class EmulatorView(
   private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
   private val screenshotShape
-    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
+    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
+  private val initialOrientation
+    get() = if (displayId == PRIMARY_DISPLAY_ID) emulator.emulatorConfig.initialOrientation else SkinRotation.PORTRAIT
+  private val deviceDisplaySize
+    get() = displaySize ?: emulator.emulatorConfig.displaySize
+  private val currentDisplaySize
+    get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -141,9 +185,11 @@ class EmulatorView(
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
 
-  private var clipboardFeed: Cancelable? = null
+  private var notificationFeed: Cancelable? = null
   @Volatile
-  private var clipboardReceiver: ClipboardReceiver? = null
+  private var notificationReceiver: NotificationReceiver? = null
+
+  private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
 
   var displayRotation: SkinRotation
     get() = screenshotShape.rotation
@@ -160,9 +206,6 @@ class EmulatorView(
         requestScreenshotFeed()
       }
     }
-
-  private val emulatorConfig
-    get() = emulator.emulatorConfig
 
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
@@ -193,8 +236,76 @@ class EmulatorView(
   override val scale: Double
     get() = computeScaleToFit(realSize, screenshotShape.rotation)
 
+  /**
+   * The size of the device including frame in device pixels.
+   */
+  val displaySizeWithFrame: Dimension
+    get() = computeActualSize(screenshotShape.rotation)
+
+  private val isMultiTouchModeSupported = displayId == 0 // See b/150699691.
+
+  private var multiTouchMode = false
+    set(value) {
+      if (value != field) {
+        field = value
+        repaint()
+        if (!value) {
+          // Terminate all ongoing touches.
+          lastMultiTouchEvent?.let {
+            val touchEvent = it.toBuilder()
+            for (touch in touchEvent.touchesBuilderList) {
+              touch.pressure = 0
+            }
+            emulator.sendTouch(touchEvent.build())
+            lastMultiTouchEvent = null
+          }
+        }
+      }
+    }
+
+  /** Last multi-touch event with pressure. */
+  private var lastMultiTouchEvent: TouchEvent? = null
+  /** Last received state of the first mouse button. */
+  private var mouseButton1Pressed = false
+
+  private var virtualSceneCameraActive = false
+    set(value) {
+      if (value != field) {
+        field = value
+        if (value) {
+          multiTouchMode = false
+          if (isFocusOwner) {
+            showVirtualSceneCameraPrompt()
+          }
+        }
+        else {
+          virtualSceneCameraOperating = false
+          hideVirtualSceneCameraPrompt()
+        }
+      }
+    }
+
+  private var virtualSceneCameraOperating = false
+    set(value) {
+      if (value != field) {
+        field = value
+        if (value) {
+          startOperatingVirtualSceneCamera()
+        }
+        else {
+          stopOperatingVirtualSceneCamera()
+        }
+      }
+    }
+
+  private var virtualSceneCameraOperatingDisposable: Disposable? = null
+  private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
+  private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
+
   init {
-    Disposer.register(parentDisposable, this)
+    Disposer.register(disposableParent, this)
+
+    background = primaryPanelBackground
 
     disconnectedStateLabel = JLabel()
     disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
@@ -207,78 +318,31 @@ class EmulatorView(
     addComponentListener(this)
 
     // Forward mouse & keyboard events.
-    val mouseListener = object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
-      }
-
-      override fun mouseReleased(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 0)
-      }
-
-      override fun mouseClicked(event: MouseEvent) {
-        requestFocusInWindow()
-      }
-
-      override fun mouseDragged(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
-      }
-    }
+    val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
 
-    addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(event: KeyEvent) {
-        val c = event.keyChar
-        if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
-          return
-        }
+    addKeyListener(MyKeyListener())
 
-        val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
-        emulator.sendKey(keyboardEvent)
-      }
-
-      override fun keyPressed(event: KeyEvent) {
-        // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
-        if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
-          val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
-          traverseFocusLocally(tabEvent)
-          return
-        }
-
-        if (event.modifiersEx != 0) {
-          return
-        }
-        val keyName =
-          when (event.keyCode) {
-            VK_BACK_SPACE -> "Backspace"
-            VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
-            VK_ENTER -> "Enter"
-            VK_ESCAPE -> "Escape"
-            VK_TAB -> "Tab"
-            VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
-            VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
-            VK_UP, VK_KP_UP -> "ArrowUp"
-            VK_DOWN, VK_KP_DOWN -> "ArrowDown"
-            VK_HOME -> "Home"
-            VK_END -> "End"
-            VK_PAGE_UP -> "PageUp"
-            VK_PAGE_DOWN -> "PageDown"
-            else -> return
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      addFocusListener(object : FocusListener {
+        override fun focusGained(event: FocusEvent) {
+          if (virtualSceneCameraActive) {
+            showVirtualSceneCameraPrompt()
           }
-        emulator.sendKey(createHardwareKeyEvent(keyName))
-      }
-    })
-
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        if (connected) {
-          setDeviceClipboardAndListenToChanges()
         }
-      }
 
-      override fun focusLost(event: FocusEvent) {
-        cancelClipboardFeed()
+        override fun focusLost(event: FocusEvent) {
+          hideVirtualSceneCameraPrompt()
+        }
+      })
+    }
+
+    val connection = ApplicationManager.getApplication().messageBus.connect(this)
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+      if (connected) {
+        val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+        emulator.setUiTheme(style)
       }
     })
 
@@ -286,10 +350,19 @@ class EmulatorView(
   }
 
   override fun dispose() {
-    cancelClipboardFeed()
+    cancelNotificationFeed()
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
+    stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
+  }
+
+  fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {
+    displayConfigurationListeners.add(listener)
+  }
+
+  fun removeDisplayConfigurationListener(listener: DisplayConfigurationListener) {
+    displayConfigurationListeners.remove(listener)
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -373,19 +446,10 @@ class EmulatorView(
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
+      skin.getRotatedFrameSize(rotation, currentDisplaySize)
     }
     else {
-      computeRotatedDisplaySize(emulatorConfig, rotation)
-    }
-  }
-
-  private fun computeRotatedDisplaySize(config: EmulatorConfiguration, rotation: SkinRotation): Dimension {
-    return if (rotation.is90Degrees) {
-      Dimension(config.displayHeight, config.displayWidth)
-    }
-    else {
-      Dimension(config.displayWidth, config.displayHeight)
+      currentDisplaySize.rotated(rotation)
     }
   }
 
@@ -406,44 +470,65 @@ class EmulatorView(
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val displayRect = this.displayRectangle ?: return // Null displayRectangle means that Emulator screen is not displayed.
-    val physicalX = x * screenScale // Coordinate is physical screen pixels.
+    val physicalX = x * screenScale // Coordinate in physical screen pixels.
     val physicalY = y * screenScale
     if (!displayRect.contains(physicalX, physicalY)) {
       return // Outside of the display rectangle.
     }
     val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
     val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-    val deviceDisplayWidth = emulatorConfig.displayWidth
-    val deviceDisplayHeight = emulatorConfig.displayHeight
+    val deviceDisplayRegion = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
     val displayX: Int
     val displayY: Int
     when (screenshotShape.rotation) {
       SkinRotation.PORTRAIT -> {
-        displayX = ((0.5 + normalizedX) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 + normalizedY) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 + normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 + normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.LANDSCAPE -> {
-        displayX = ((0.5 - normalizedY) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 + normalizedX) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 - normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 + normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.REVERSE_PORTRAIT -> {
-        displayX = ((0.5 - normalizedX) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 - normalizedY) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 - normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 - normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.REVERSE_LANDSCAPE -> {
-        displayX = ((0.5 + normalizedY) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 - normalizedX) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 + normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 - normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       else -> {
         return
       }
     }
-    val mouseEvent = MouseEventMessage.newBuilder()
-      .setX(displayX.coerceIn(0, deviceDisplayWidth))
-      .setY(displayY.coerceIn(0, deviceDisplayHeight))
-      .setButtons(button)
-      .build()
-    emulator.sendMouse(mouseEvent)
+
+    if (multiTouchMode) {
+      val touchEvent = TouchEvent.newBuilder()
+        .setDisplay(displayId)
+        .addTouches(createTouch(displayX, displayY, 0, button))
+        .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
+        .build()
+      emulator.sendTouch(touchEvent)
+      lastMultiTouchEvent = touchEvent
+    }
+    else {
+      val mouseEvent = MouseEventMessage.newBuilder()
+        .setDisplay(displayId)
+        .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
+        .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
+        .setButtons(button)
+        .build()
+      emulator.sendMouse(mouseEvent)
+    }
+  }
+
+  private fun createTouch(x: Int, y: Int, identifier: Int, pressure: Int): Touch.Builder {
+    return Touch.newBuilder()
+      .setX(x)
+      .setY(y)
+      .setIdentifier(identifier)
+      .setPressure(pressure)
+      .setExpiration(NEVER_EXPIRE)
   }
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
@@ -459,8 +544,10 @@ class EmulatorView(
         if (screenshotFeed == null) {
           requestScreenshotFeed()
         }
-        if (isFocusOwner) {
-          setDeviceClipboardAndListenToChanges()
+        if (displayId == PRIMARY_DISPLAY_ID) {
+          if (notificationFeed == null) {
+            requestNotificationFeed()
+          }
         }
       }
     }
@@ -475,36 +562,6 @@ class EmulatorView(
     repaint()
   }
 
-  private fun setDeviceClipboardAndListenToChanges() {
-    val text = getClipboardText()
-    if (text.isEmpty()) {
-      requestClipboardFeed()
-    }
-    else {
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
-        override fun onCompleted() {
-          requestClipboardFeed()
-        }
-
-        override fun onError(t: Throwable) {
-          if (t is StatusRuntimeException && t.status.code == Status.Code.UNIMPLEMENTED) {
-            notifyEmulatorIsOutOfDate()
-          }
-        }
-      })
-    }
-  }
-
-  private fun getClipboardText(): String {
-    val synchronizer = ClipboardSynchronizer.getInstance()
-    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
-    }
-    else {
-      ""
-    }
-  }
-
   private fun notifyEmulatorIsOutOfDate() {
     if (emulatorOutOfDateNotificationShown) {
       return
@@ -512,7 +569,7 @@ class EmulatorView(
     val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
     val title = "Emulator is out of date"
     val message = "Please update the Android Emulator"
-    NOTIFICATION_GROUP
+    EMULATOR_NOTIFICATION_GROUP
       .createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING)
       .setCollapseDirection(Notification.CollapseActionsDirection.KEEP_LEFTMOST)
       .addAction(object : NotificationAction("Check for updates") {
@@ -549,17 +606,89 @@ class EmulatorView(
       g.drawImage(screenshot.image, displayTransform, null)
     }
 
+    if (multiTouchMode) {
+      drawMultiTouchFeedback(g, displayRect)
+    }
+
     if (deviceFrameVisible) {
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
     }
+    if (!screenshot.painted) {
+      screenshot.painted = true
+      val paintTime = System.currentTimeMillis()
+      stats?.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
+    }
+  }
+
+  private fun drawMultiTouchFeedback(parentGc: Graphics2D, displayRectangle: Rectangle) {
+    val mouseLocation = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(mouseLocation, this)
+    val touchPoint = mouseLocation.scaled(screenScale)
+
+    if (!displayRectangle.contains(touchPoint)) {
+      return
+    }
+    val g = parentGc.create() as Graphics2D
+    g.setRenderingHints(RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON, KEY_RENDERING to VALUE_RENDER_QUALITY)))
+    g.clip = displayRectangle
+
+    val centerPoint = Point(displayRectangle.x + displayRectangle.width / 2, displayRectangle.y + displayRectangle.height / 2)
+    val mirrorPoint = Point(centerPoint.x * 2 - touchPoint.x, centerPoint.y * 2 - touchPoint.y)
+    val r1 = (max(displayRectangle.width, displayRectangle.height) * 0.015).roundToInt()
+    val r2 = r1 / 4
+    val touchCircle = createCircle(touchPoint, r1)
+    val mirrorCircle = createCircle(mirrorPoint, r1)
+    val centerCircle = createCircle(centerPoint, r2)
+    val clip = Area(displayRectangle).apply {
+      subtract(Area(touchCircle))
+      subtract(Area(mirrorCircle))
+      subtract(Area(centerCircle))
+    }
+    g.clip = clip
+    val darkColor = Color(0, 154, 133, 157)
+    val lightColor = Color(255, 255, 255, 157)
+    g.color = darkColor
+    g.drawLine(touchPoint.x, touchPoint.y, mirrorPoint.x, mirrorPoint.y)
+    g.clip = displayRectangle
+    g.fillCircle(centerPoint, r2 * 3 / 4)
+    val backgroundIntensity = if (mouseButton1Pressed) 0.8 else 0.3
+    paintTouchBackground(g, touchPoint, r1, darkColor, backgroundIntensity)
+    paintTouchBackground(g, mirrorPoint, r1, darkColor, backgroundIntensity)
+    g.color = lightColor
+    g.drawCircle(touchPoint, r1)
+    g.drawCircle(mirrorPoint, r1)
+    g.drawCircle(centerPoint, r2)
+  }
+
+  private fun paintTouchBackground(g: Graphics2D, center: Point, radius: Int, color: Color, intensity: Double) {
+    require(0 < intensity && intensity <= 1)
+    val r = radius * 5 / 4
+    val intenseColor = Color(color.red, color.green, color.blue, (color.alpha * intensity).roundToInt())
+    val subtleColor = Color(color.red, color.green, color.blue, (color.alpha * intensity * 0.15).roundToInt())
+    g.paint = RadialGradientPaint(center, r.toFloat(), floatArrayOf(0F, 0.8F, 1F), arrayOf(subtleColor, intenseColor, subtleColor))
+    g.fillCircle(center, r)
+  }
+
+  private fun createCircle(center: Point, radius: Int): Ellipse2D {
+    val diameter = radius * 2.0
+    return Ellipse2D.Double((center.x - radius).toDouble(), (center.y - radius).toDouble(), diameter, diameter)
+  }
+
+  private fun Graphics.drawCircle(center: Point, radius: Int) {
+    drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
+  }
+
+  private fun Graphics.fillCircle(center: Point, radius: Int) {
+    fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
-    // The roundSlightly call below is used to avoid scaling by a factor that only slightly differs from 1.
+    // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
+    // by a factor that is only slightly below 1.
     return if (deviceFrameVisible) {
       val frameRectangle = skin.frameRectangle
-      val scale = roundSlightly(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
+      val scale = roundScale(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
@@ -567,16 +696,16 @@ class EmulatorView(
       Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
     else {
-      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val scale = roundScale(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
     }
   }
 
-  /** Rounds the given value to a multiple of 1.0/128. */
-  private fun roundSlightly(value: Double): Double {
-    return round(value * 128) / 128
+  /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  private fun roundScale(value: Double): Double {
+    return if (value >= 1) floor(value) else round(value * 128) / 128
   }
 
   private fun requestScreenshotFeed() {
@@ -584,18 +713,25 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
+    val currentReceiver = screenshotReceiver
+    if (currentReceiver != null && currentReceiver.viewSize == size && currentReceiver.rotation == rotation &&
+        currentReceiver.deviceFrame == deviceFrameVisible) {
+      return // Keep the current screenshot feed.
+    }
+
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val actualSize = computeActualSize(rotation)
 
       // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
       val scaleX = (realSize.width.toDouble() / actualSize.width).coerceAtMost(1.0)
       val scaleY = (realSize.height.toDouble() / actualSize.height).coerceAtMost(1.0)
+      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
       val w = rotatedDisplaySize.width.scaledDown(scaleX)
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
       val imageFormat = ImageFormat.newBuilder()
+        .setDisplay(displayId)
         .setFormat(ImageFormat.ImgFormat.RGB888)
         .setWidth(w)
         .setHeight(h)
@@ -613,19 +749,19 @@ class EmulatorView(
     screenshotFeed = null
   }
 
-  private fun requestClipboardFeed() {
-    cancelClipboardFeed()
+  private fun requestNotificationFeed() {
+    cancelNotificationFeed()
     if (connected) {
-      val receiver = ClipboardReceiver()
-      clipboardReceiver = receiver
-      clipboardFeed = emulator.streamClipboard(receiver)
+      val receiver = NotificationReceiver()
+      notificationReceiver = receiver
+      notificationFeed = emulator.streamNotification(receiver)
     }
   }
 
-  private fun cancelClipboardFeed() {
-    clipboardReceiver = null
-    clipboardFeed?.cancel()
-    clipboardFeed = null
+  private fun cancelNotificationFeed() {
+    notificationReceiver = null
+    notificationFeed?.cancel()
+    notificationFeed = null
   }
 
   override fun componentResized(event: ComponentEvent) {
@@ -634,10 +770,12 @@ class EmulatorView(
 
   override fun componentShown(event: ComponentEvent) {
     requestScreenshotFeed()
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      requestNotificationFeed()
+    }
   }
 
   override fun componentHidden(event: ComponentEvent) {
-    cancelClipboardFeed()
   }
 
   override fun componentMoved(event: ComponentEvent) {
@@ -658,7 +796,69 @@ class EmulatorView(
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
+  private fun showVirtualSceneCameraPrompt() {
+    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+  }
+
+  private fun hideVirtualSceneCameraPrompt() {
+    findNotificationHolderPanel()?.hideNotification()
+  }
+
+  private fun startOperatingVirtualSceneCamera() {
+    findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse or arrow keys")
+    val glass = IdeGlassPaneUtil.find(this)
+    val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
+    val rootPane = glass.rootPane
+    val scale = PI / min(rootPane.width, rootPane.height)
+    UIUtil.setCursor(rootPane, cursor)
+    glass.setCursor(cursor, this)
+    val referencePoint = MouseInfo.getPointerInfo().location
+    val mouseListener = object: MouseAdapter() {
+
+      override fun mouseMoved(event: MouseEvent) {
+        rotateVirtualSceneCamera(-(event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
+        referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
+        event.consume()
+      }
+
+      override fun mouseDragged(e: MouseEvent) {
+        mouseMoved(e)
+      }
+
+      override fun mouseEntered(event: MouseEvent) {
+        glass.setCursor(cursor, this)
+      }
+    }
+
+    val disposable = Disposer.newDisposable("Virtual scene camera operation")
+    virtualSceneCameraOperatingDisposable = disposable
+    glass.addMousePreprocessor(mouseListener, disposable)
+    glass.addMouseMotionPreprocessor(mouseListener, disposable)
+  }
+
+  private fun stopOperatingVirtualSceneCamera() {
+    virtualSceneCameraVelocityController.stop()
+    virtualSceneCameraOperatingDisposable?.let { Disposer.dispose(it) }
+    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+    val glass = IdeGlassPaneUtil.find(this)
+    glass.setCursor(null, this)
+    UIUtil.setCursor(glass.rootPane, null)
+  }
+
+  private fun rotateVirtualSceneCamera(rotationX: Double, rotationY: Double) {
+    val cameraRotation = RotationRadian.newBuilder()
+      .setX(rotationX.toFloat())
+      .setY(rotationY.toFloat())
+      .build()
+    emulator.rotateVirtualSceneCamera(cameraRotation)
+  }
+
+  private val IdeGlassPane.rootPane
+    get() = (this as IdeGlassPaneImpl).rootPane
+
   private fun findLoadingPanel(): EmulatorLoadingPanel? = findContainingComponent()
+
+  private fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
 
   private inline fun <reified T : JComponent> findContainingComponent(): T? {
     var component = parent
@@ -671,44 +871,195 @@ class EmulatorView(
     return null
   }
 
-  private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-    var responseCount = 0
+  private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
-    override fun onNext(response: ClipData) {
-      if (clipboardReceiver != this) {
-        return // This clipboard feed has already been cancelled.
+    override fun onNext(response: EmulatorNotification) {
+      if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
+        LOG.info("Notification ${response.event}")
       }
 
-      // Skip the first response that reflects the current clipboard state.
-      if (responseCount != 0 && response.text.isNotEmpty()) {
-        invokeLaterInAnyModalityState {
-          val content = StringSelection(response.text)
-          ClipboardSynchronizer.getInstance().setContent(content, content)
+      if (notificationReceiver != this) {
+        return // This notification feed has already been cancelled.
+      }
+
+      invokeLaterInAnyModalityState {
+        when (response.event) {
+          VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
+          VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
+          DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners()
+          else -> {}
         }
       }
-      responseCount++
+    }
+  }
+
+  private fun notifyDisplayConfigurationListeners() {
+    for (listener in displayConfigurationListeners) {
+      listener.displayConfigurationChanged()
+    }
+  }
+
+  private inner class MyKeyListener  : KeyAdapter() {
+
+    override fun keyTyped(event: KeyEvent) {
+      if (virtualSceneCameraOperating) {
+        return
+      }
+
+      val c = event.keyChar
+      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+        return
+      }
+
+      val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
+      emulator.sendKey(keyboardEvent)
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+      if (event.keyCode == VK_SHIFT && event.modifiersEx == SHIFT_DOWN_MASK && virtualSceneCameraActive) {
+        virtualSceneCameraOperating = true
+        return
+      }
+
+      if (virtualSceneCameraOperating) {
+        when (event.keyCode) {
+          VK_LEFT, VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_RIGHT, VK_KP_RIGHT -> rotateVirtualSceneCamera(0.0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_UP, VK_KP_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+          VK_DOWN, VK_KP_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+          VK_HOME -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          else -> virtualSceneCameraVelocityController.keyPressed(event.keyCode)
+        }
+        return
+      }
+
+      if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
+        multiTouchMode = isMultiTouchModeSupported
+        return
+      }
+
+      // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
+      if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
+        val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
+        traverseFocusLocally(tabEvent)
+        return
+      }
+
+      if (event.modifiersEx != 0) {
+        return
+      }
+      val keyName =
+        when (event.keyCode) {
+          VK_BACK_SPACE -> "Backspace"
+          VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+          VK_ENTER -> "Enter"
+          VK_ESCAPE -> "Escape"
+          VK_TAB -> "Tab"
+          VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
+          VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
+          VK_UP, VK_KP_UP -> "ArrowUp"
+          VK_DOWN, VK_KP_DOWN -> "ArrowDown"
+          VK_HOME -> "Home"
+          VK_END -> "End"
+          VK_PAGE_UP -> "PageUp"
+          VK_PAGE_DOWN -> "PageDown"
+          else -> return
+        }
+      emulator.sendKey(createHardwareKeyEvent(keyName))
+    }
+
+    override fun keyReleased(event: KeyEvent) {
+      if (event.keyCode == VK_CONTROL) {
+        multiTouchMode = false
+      }
+      else if (event.keyCode == VK_SHIFT) {
+        virtualSceneCameraOperating = false
+      }
+
+      if (virtualSceneCameraOperating) {
+        virtualSceneCameraVelocityController.keyReleased(event.keyCode)
+      }
+    }
+  }
+
+  private inner class MyMouseListener : MouseAdapter() {
+
+    override fun mousePressed(event: MouseEvent) {
+      requestFocusInWindow()
+      if (event.button == BUTTON1) {
+        mouseButton1Pressed = true
+        updateMultiTouchMode(event)
+        sendMouseEvent(event.x, event.y, 1)
+      }
+    }
+
+    override fun mouseReleased(event: MouseEvent) {
+      if (event.button == BUTTON1) {
+        mouseButton1Pressed = false
+        updateMultiTouchMode(event)
+        sendMouseEvent(event.x, event.y, 0)
+      }
+    }
+
+    override fun mouseEntered(event: MouseEvent) {
+      updateMultiTouchMode(event)
+    }
+
+    override fun mouseExited(event: MouseEvent) {
+      multiTouchMode = false
+    }
+
+    override fun mouseDragged(event: MouseEvent) {
+      updateMultiTouchMode(event)
+      if (!virtualSceneCameraOperating) {
+        sendMouseEvent(event.x, event.y, 1)
+      }
+    }
+
+    override fun mouseMoved(event: MouseEvent) {
+      updateMultiTouchMode(event)
+    }
+
+    private fun updateMultiTouchMode(event: MouseEvent) {
+      val oldMultiTouchMode = multiTouchMode
+      multiTouchMode = isMultiTouchModeSupported && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraOperating
+      if (multiTouchMode && oldMultiTouchMode) {
+        repaint() // If multitouch mode changed above, the repaint method was already called.
+      }
     }
   }
 
   private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
+    val viewSize: Dimension = size
+    val deviceFrame = deviceFrameVisible
     private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
     private val skinLayoutCache = SkinLayoutCache(emulator)
     private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
     private val alarm = Alarm(this)
+    private var expectedFrameNumber = -1
 
     override fun onNext(response: ImageMessage) {
+      val arrivalTime = System.currentTimeMillis()
       val imageFormat = response.format
       val imageRotation = imageFormat.rotation.rotation
+      val frameOriginationTime: Long = response.timestampUs / 1000
 
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation")
+        val latency = arrivalTime - frameOriginationTime
+        val foldedState = if (imageFormat.hasFoldedDisplay()) " ${imageFormat.foldedDisplay}" else ""
+        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height}$foldedState $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
+        expectedFrameNumber++
         return // This screenshot feed has already been cancelled.
       }
 
       if (imageFormat.width == 0 || imageFormat.height == 0) {
+        expectedFrameNumber++
         return // Ignore empty screenshot.
       }
 
@@ -719,6 +1070,7 @@ class EmulatorView(
         invokeLaterInAnyModalityState {
           requestScreenshotFeed(imageRotation)
         }
+        expectedFrameNumber++
         return
       }
 
@@ -733,15 +1085,21 @@ class EmulatorView(
         val pixels = IntArray(imageFormat.width * imageFormat.height)
         unpackPixels(response.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
-        val sampleModel =
-            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+        val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, SAMPLE_MODEL_BIT_MASKS)
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
         @Suppress("UndesirableClassUsage")
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
-      val displayShape = DisplayShape(imageFormat)
-      val screenshot = Screenshot(displayShape, image)
+      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
+      stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
+      expectedFrameNumber = response.seq + 1
+
+      val foldedDisplay = imageFormat.foldedDisplay
+      val foldedDisplayRegion = if (foldedDisplay.width == 0 || foldedDisplay.height == 0) null
+                                else Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
+      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, foldedDisplayRegion)
+      val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape)
       if (skinLayout == null) {
         computeSkinLayoutOnPooledThread(screenshot)
@@ -758,9 +1116,14 @@ class EmulatorView(
       executeOnPooledThread {
         // If the screenshot feed has not been cancelled, update the skin and the display image.
         if (screenshotReceiver == this) {
-          val screenshot = screenshotForProcessing.getAndSet(null) ?: return@executeOnPooledThread
-          screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
-          updateDisplayImageOnUiThread(screenshot)
+          val screenshot = screenshotForProcessing.getAndSet(null)
+          if (screenshot == null) {
+            stats?.recordDroppedFrame()
+          }
+          else {
+            screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
+            updateDisplayImageOnUiThread(screenshot)
+          }
         }
       }
     }
@@ -780,7 +1143,11 @@ class EmulatorView(
     private fun updateDisplayImage() {
       hideLongRunningOperationIndicatorInstantly()
 
-      val screenshot = screenshotForDisplay.getAndSet(null) ?: return
+      val screenshot = screenshotForDisplay.getAndSet(null)
+      if (screenshot == null) {
+        stats?.recordDroppedFrame()
+        return
+      }
 
       // Creation of a large BufferedImage is expensive. Recycle the old image if it has the proper size.
       lastScreenshot?.image?.let {
@@ -819,8 +1186,9 @@ class EmulatorView(
     }
   }
 
-  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage) {
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val frameOriginationTime: Long) {
     lateinit var skinLayout: SkinLayout
+    var painted = false
   }
 
   /**
@@ -852,23 +1220,99 @@ class EmulatorView(
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation) {
-    constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
+  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation, val foldedDisplayRegion: Rectangle? = null)
+
+  private class Stats: Disposable {
+    @GuardedBy("this")
+    private var data = Data()
+    private val alarm = Alarm(this)
+
+    init {
+      scheduleNextLogging()
+    }
+
+    @Synchronized
+    fun recordFrameArrival(latencyOfArrival: Long, numberOfLostFrames: Int, numberOfPixels: Int) {
+      data.frameCount += 1 + numberOfLostFrames
+      data.pixelCount += (1 + numberOfLostFrames) * numberOfPixels
+      data.latencyOfArrival.recordValue(latencyOfArrival)
+      if (numberOfLostFrames != 0) {
+        data.droppedFrameCount += numberOfLostFrames
+        data.droppedFrameCountBeforeArrival += numberOfLostFrames
+      }
+    }
+
+    @Synchronized
+    fun recordDroppedFrame() {
+      data.droppedFrameCount++
+    }
+
+    @Synchronized
+    fun recordLatencyEndToEnd(latency: Long) {
+      data.latencyEndToEnd.recordValue(latency)
+    }
+
+    @Synchronized
+    override fun dispose() {
+      data.log()
+    }
+
+    @Synchronized
+    private fun getAndSetData(newData: Data): Data {
+      val oldData = data
+      data = newData
+      return oldData
+    }
+
+    private fun scheduleNextLogging() {
+      alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+    }
+
+    private fun logAndReset() {
+      getAndSetData(Data()).log()
+      scheduleNextLogging()
+    }
+
+    private class Data {
+      var frameCount = 0
+      var droppedFrameCount = 0
+      var droppedFrameCountBeforeArrival = 0
+      var pixelCount = 0L
+      val latencyEndToEnd = Histogram(1)
+      val latencyOfArrival = Histogram(1)
+      val collectionStart = System.currentTimeMillis()
+
+      fun log() {
+        if (frameCount != 0) {
+          val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
+          val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
+          val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
+          LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+                   "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+                   "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+        }
+      }
+    }
   }
 }
 
 private var emulatorOutOfDateNotificationShown = false
 
+private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
+private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * PI / 180
+
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
-private val NOTIFICATION_GROUP = NotificationGroup("Emulator Errors", NotificationDisplayType.STICKY_BALLOON, true)
-
 private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24
+private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                           32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
+                                   32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
+
+private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis()
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

@@ -20,6 +20,9 @@ import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
 import kotlinx.coroutines.CompletableDeferred
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -35,7 +38,7 @@ import javax.swing.JTabbedPane
  */
 class AppInspectorTabShell(
   val provider: AppInspectorTabProvider
-) : Comparable<AppInspectorTabShell> {
+) : Comparable<AppInspectorTabShell>, UserDataHolderBase(), Disposable {
   @VisibleForTesting
   val containerPanel = JPanel(BorderLayout())
 
@@ -68,6 +71,9 @@ class AppInspectorTabShell(
     tabbedPane.addTab(provider.displayName, provider.icon, containerPanel)
   }
 
+  override fun dispose() {
+  }
+
   /**
    * Suspends until content is added to the containerPanel.
    *
@@ -76,5 +82,5 @@ class AppInspectorTabShell(
   @VisibleForTesting
   suspend fun waitForContent() = contentChangedDeferred.await()
 
-  override fun compareTo(other: AppInspectorTabShell) = this.provider.displayName.compareTo(other.provider.displayName)
+  override fun compareTo(other: AppInspectorTabShell): Int = provider.compareTo(other.provider)
 }

@@ -1,0 +1,8 @@
+apply plugin: 'com.android.application'
+
+android {
+    <warning descr="Deprecated: Replace 'packageName' with 'applicationId'">defaultConfig.packageName</warning> 'my.pkg'
+    buildTypes {
+        <warning descr="Deprecated: Replace 'packageNameSuffix' with 'applicationIdSuffix'">debug.packageNameSuffix</warning> ".debug"
+    }
+}

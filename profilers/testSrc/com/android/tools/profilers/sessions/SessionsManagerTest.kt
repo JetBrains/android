@@ -25,7 +25,6 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
-import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -41,27 +40,13 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assume
-import org.junit.Assume.assumeTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import java.util.Arrays
 
-@RunWith(Parameterized::class)
-class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun useNewEventPipelineParameter(): Collection<Boolean> {
-      return Arrays.asList(false, true)
-    }
-  }
-
+class SessionsManagerTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
@@ -88,7 +73,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   @Before
   fun setup() {
     ideProfilerServices = FakeIdeProfilerServices().apply {
-      enableEventsPipeline(useUnifiedEvents)
+      enableEventsPipeline(true)
     }
     myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(
@@ -356,11 +341,9 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   /**
    * Note: This test does not use the global manager because it needs to set the native memory sampling flag to enabled.
-   * Note: This test only runs on the unified pipeline.
    */
   @Test
   fun testNativeHeapArtifacts() {
-    assumeTrue(useUnifiedEvents)
     ideProfilerServices.enableNativeMemorySampling(true)
     val profiler = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
@@ -431,40 +414,34 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val legacyAllocationsInfo = AllocationsInfo.newBuilder()
       .setStartTime(legacyAllocationsInfoTimestamp).setEndTime(legacyAllocationsInfoTimestamp + 1).setLegacy(true).build()
     val liveAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build()
-    if (useUnifiedEvents) {
-      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
-      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
-      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session2.pid).build())
 
-      myTransportService.addEventToStream(
-        device.deviceId,
-        ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session1.pid, legacyAllocationsInfo).build())
-      myTransportService.addEventToStream(
-        device.deviceId,
-        ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session1.pid, liveAllocationsInfo).build())
-      myTransportService.addEventToStream(
-        device.deviceId,
-        ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session2.pid, legacyAllocationsInfo).build())
-      myTransportService.addEventToStream(
-        device.deviceId,
-        ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session2.pid, liveAllocationsInfo).build())
+    val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
+    myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
+    myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session2.pid).build())
 
-      val cpuTrace = Common.Event.newBuilder()
-        .setGroupId(session1Timestamp + cpuTraceTimestamp)
-        .setKind(Common.Event.Kind.CPU_TRACE)
-        .setTimestamp(session1Timestamp)
-        .setIsEnded(true)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-      myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session1.pid).build())
-      myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session2.pid).build())
-    }
-    else {
-      myCpuService.addTraceInfo(cpuTraceInfo)
-      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-      myMemoryService.setMemoryData(
-        MemoryProfiler.MemoryData.newBuilder().addAllAllocationsInfo(Arrays.asList(legacyAllocationsInfo, liveAllocationsInfo)).build())
-    }
+    myTransportService.addEventToStream(
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session1.pid, legacyAllocationsInfo).build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session1.pid, liveAllocationsInfo).build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(legacyAllocationsInfoTimestamp, session2.pid, legacyAllocationsInfo).build())
+    myTransportService.addEventToStream(
+      device.deviceId,
+      ProfilersTestData.generateMemoryAllocationInfoData(liveAllocationsInfoTimestamp, session2.pid, liveAllocationsInfo).build())
+
+    val cpuTrace = Common.Event.newBuilder()
+      .setGroupId(session1Timestamp + cpuTraceTimestamp)
+      .setKind(Common.Event.Kind.CPU_TRACE)
+      .setTimestamp(session1Timestamp)
+      .setIsEnded(true)
+      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+    myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session1.pid).build())
+    myTransportService.addEventToStream(device.deviceId, cpuTrace.setPid(session2.pid).build())
+
     myManager.update()
 
     // The Hprof and CPU capture artifacts are now included and sorted in ascending order
@@ -501,10 +478,9 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testImportedSessionOnlyProcessedWhenEnded() {
-    assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
-
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
-                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
     myManager.update()
     assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
@@ -513,11 +489,25 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
   }
 
+  // The epoch time in session meta data is the time when the file is imported.
+  @Test
+  fun testImportedSessionIsSelectedByImportTime() {
+    // Note the event may be added to the pipeline out of order (of epoch time).
+    myTransportService.addEventToStream(
+      1, ProfilersTestData.generateSessionStartEvent(
+      1, 1, 1, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 200).build())
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myTransportService.addEventToStream(
+      3, ProfilersTestData.generateSessionStartEvent(
+      3, 3, 3, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, 100).build())
+    myTransportService.addEventToStream(3, ProfilersTestData.generateSessionEndEvent(3, 3, 4).build())
+    myManager.update()
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(1)
+  }
+
+  @Ignore("b/136292864")
   @Test
   fun testImportedSessionDoesNotHaveChildren() {
-    // TODO b/136292864
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
-
     val session1Timestamp = 1L
     val session2Timestamp = 2L
 
@@ -527,32 +517,27 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
                           .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                             .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))).build()
 
-    if (useUnifiedEvents) {
-      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
-                                                                                         Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
-      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build())
-      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
-      myTransportService.addEventToStream(1, heapDumpEvent.build())
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build())
+    val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
+    myTransportService.addEventToStream(1, heapDumpEvent.build())
 
-      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
-                                                                                         Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE).build())
-      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build())
-      val cpuTrace = Common.Event.newBuilder()
-        .setGroupId(session2Timestamp)
-        .setKind(Common.Event.Kind.CPU_TRACE)
-        .setTimestamp(session2Timestamp)
-        .setIsEnded(true)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-        .build()
-      myTransportService.addEventToStream(2, cpuTrace)
-    }
-    else {
-      myManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
-      myManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 3, 4, 1)
-      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-      myCpuService.addTraceInfo(cpuTraceInfo)
-    }
+    myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
+                                                                                       Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                                                                                       2).build())
+    myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build())
+    val cpuTrace = Common.Event.newBuilder()
+      .setGroupId(session2Timestamp)
+      .setKind(Common.Event.Kind.CPU_TRACE)
+      .setTimestamp(session2Timestamp)
+      .setIsEnded(true)
+      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .build()
+    myTransportService.addEventToStream(2, cpuTrace)
+
     myManager.update()
 
     assertThat(myManager.sessionArtifacts.size).isEqualTo(2)
@@ -577,16 +562,11 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     val heapDumpTimestamp = 10L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    if (useUnifiedEvents) {
-      myTransportService.addEventToStream(device.deviceId,
-                                          ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime,
-                                                                                       heapDumpInfo)
-                                            .setPid(process1.pid)
-                                            .build())
-    }
-    else {
-      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-    }
+    myTransportService.addEventToStream(device.deviceId,
+                                        ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime,
+                                                                                     heapDumpInfo)
+                                          .setPid(process1.pid)
+                                          .build())
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
     // Repeated update should not fire the aspect.
@@ -595,20 +575,17 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     val cpuTraceTimestamp = 20L
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
-    if (useUnifiedEvents) {
-      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
-        .setGroupId(cpuTraceTimestamp)
-        .setPid(process1.pid)
-        .setKind(Common.Event.Kind.CPU_TRACE)
-        .setTimestamp(myTimer.currentTimeNs)
-        .setIsEnded(true)
-        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
-                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
-        .build())
-    }
-    else {
-      myCpuService.addTraceInfo(cpuTraceInfo)
-    }
+
+    myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+      .setGroupId(cpuTraceTimestamp)
+      .setPid(process1.pid)
+      .setKind(Common.Event.Kind.CPU_TRACE)
+      .setTimestamp(myTimer.currentTimeNs)
+      .setIsEnded(true)
+      .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                     .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      .build())
+
     myManager.update()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
     // Repeated update should not fire the aspect.
@@ -672,7 +649,6 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testGetAllSessions() {
-    assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device1 = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setDeviceId(1).setPid(10).setState(Common.Process.State.ALIVE).build()
     val device2 = Common.Device.newBuilder().setDeviceId(2).setState(Common.Device.State.ONLINE).build()
@@ -729,20 +705,13 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   }
 
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {
-    if (useUnifiedEvents) {
-      myManager.beginSession(1, device, process)
-      myManager.update()
-    }
-    else {
-      myManager.beginSession(device, process)
-    }
+    myManager.beginSession(1, device, process)
+    myManager.update()
   }
 
   private fun endSessionHelper() {
     myManager.endCurrentSession()
-    if (useUnifiedEvents) {
-      myManager.update()
-    }
+    myManager.update()
   }
 
 

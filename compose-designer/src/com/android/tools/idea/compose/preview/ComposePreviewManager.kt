@@ -107,9 +107,9 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * If [elementInstance] is not null sets [PreviewElementInstance] to run in the interactive mode or exits interactive mode if null.
+   * Represents the [PreviewElementInstance] open in the Interactive Preview. Null if no preview is in interactive mode.
    */
-  fun setInteractivePreviewElementInstance(elementInstance: PreviewElementInstance?)
+  var interactivePreviewElementInstance: PreviewElementInstance?
 
   /**
    * Represents the [PreviewElementInstance] open in the Animation Inspector. Null if no preview is being inspected.
@@ -117,9 +117,19 @@ interface ComposePreviewManager {
   var animationInspectionPreviewElementInstance: PreviewElementInstance?
 
   /**
+   * Returns true if the current preview has the live literals feature available.
+   */
+  val hasLiveLiterals: Boolean
+
+  /**
    * Enables/disables live literals in the preview.
    */
-  var isLiveLiteralsEnabled: Boolean
+  val isLiveLiteralsEnabled: Boolean
+
+  /**
+   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
+   */
+  val hasDesignInfoProviders: Boolean
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

@@ -16,20 +16,20 @@
 package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
+import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -39,10 +39,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,9 +157,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myUseTraceProcessor = true;
 
   /**
-   * Whether separate heap-dump view is enabled
+   * Whether we support profileable processes
    */
-  private boolean mySeparateHeapDumpUiEnabled = false;
+  private boolean myProfileableEnabled = false;
+
+  /**
+   * Whether we support profileable processes in Q & R
+   */
+  private boolean myProfileableInQrEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -168,14 +175,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   /**
+   * When {@link #openListBoxChooserDialog} is called this will be used to try to match one of the options and return the first match.
+   * If no option is matched, it will use the {@code myListBoxOptionsIndex}.
+   */
+  @Nullable private Predicate<String> myListBoxOptionMatcher;
+
+  /**
    * When {@link #openListBoxChooserDialog} is called this index is used to return a specific element in the set of options.
-   * If this index is out of bounds, null is returned.
+   * If this index is out of bounds (e.g. -1 or more than the available options), null is returned just as like the user has cancelled
+   * the selection.
    */
   private int myListBoxOptionsIndex;
-  /**
-   * Fake application id to be used by test.
-   */
-  private String myApplicationId = "";
 
   @Nullable private Notification myNotification;
 
@@ -242,16 +252,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
-  public String getApplicationId() {
-    return myApplicationId;
-  }
-
-  public void setApplicationId(@NotNull String name) {
-    myApplicationId = name;
-  }
-
-  @NotNull
-  @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
@@ -281,6 +281,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isMemoryCSVExportEnabled() {
+        return false;
+      }
+
+      @Override
       public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
 
       @Override
@@ -291,6 +296,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isProfileableEnabled() {
+        return myProfileableEnabled;
+      }
+
+      @Override
+      public boolean isProfileableInQrEnabled() {
+        return myProfileableInQrEnabled;
       }
 
       @Override
@@ -311,11 +326,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isUseTraceProcessor() {
         return myUseTraceProcessor;
-      }
-
-      @Override
-      public boolean isSeparateHeapDumpUiEnabled() {
-        return mySeparateHeapDumpUiEnabled;
       }
     };
   }
@@ -343,6 +353,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
                                         @Nullable String message,
                                         @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
+    if (myListBoxOptionMatcher != null) {
+      Optional<T> optionMatch = options.stream().filter(o -> myListBoxOptionMatcher.test(listBoxPresentationAdapter.apply(o))).findFirst();
+      if (optionMatch.isPresent()) {
+        return optionMatch.get();
+      }
+    }
+
     if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.size()) {
       return options.get(myListBoxOptionsIndex);
     }
@@ -352,6 +369,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   public TracePreProcessor getTracePreProcessor() {
     return myFakeTracePreProcessor;
+  }
+
+  /**
+   * Sets the listbox options matcher to search for one of options.
+   * If set to null (default) or match is not successful, then fallback to {@code setListBoxOptionsIndex(int)}.
+   */
+  public void setListBoxOptionsMatcher(@Nullable Predicate<String> optionMatcher) {
+    myListBoxOptionMatcher = optionMatcher;
   }
 
   /**
@@ -474,12 +499,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
-
   public void enableUseTraceProcessor(boolean enabled) {
     myUseTraceProcessor = enabled;
   }
 
-  public void enableSeparateHeapDumpUi(boolean enabled) {
-    mySeparateHeapDumpUiEnabled = enabled;
+  public void enableProfileable(boolean enabled) {
+    myProfileableEnabled = enabled;
+  }
+
+  public void enableProfileableInQr(boolean enabled) {
+    myProfileableInQrEnabled = enabled;
   }
 }

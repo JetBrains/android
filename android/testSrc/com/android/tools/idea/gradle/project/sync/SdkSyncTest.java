@@ -44,7 +44,7 @@ public class SdkSyncTest extends PlatformTestCase {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myLocalProperties = new LocalProperties(myProject);
-    myAndroidSdkPath = TestUtils.getSdk();
+    myAndroidSdkPath = TestUtils.getSdk().toFile();
     myIdeSdks = IdeSdks.getInstance();
     new IdeComponents(getProject()).replaceApplicationService(IdeSdks.class, myIdeSdks);
     mySdkSync = new SdkSync();

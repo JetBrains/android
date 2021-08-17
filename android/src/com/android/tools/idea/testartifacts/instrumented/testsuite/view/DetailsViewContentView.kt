@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -50,7 +52,7 @@ import javax.swing.JPanel
 /**
  * Shows detailed tests results for a selected device.
  */
-class DetailsViewContentView(parentDisposable: Disposable, project: Project, logger: AndroidTestSuiteLogger) {
+class DetailsViewContentView(parentDisposable: Disposable, private val project: Project, logger: AndroidTestSuiteLogger) {
 
   /**
    * Returns the root panel.
@@ -121,6 +123,9 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
 
     // Android Test Retention tab.
     myRetentionView = RetentionView()
+    logger.addImpressionWhenDisplayed(
+      myRetentionView.component,
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_RETENTION_VIEW)
     myRetentionTab = TabInfo(myRetentionView.rootPanel)
     myRetentionTab.text = "Retention"
     myRetentionTab.tooltipText = "Show emulator snapshots of failed tests"
@@ -175,10 +180,16 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     }
   }
 
-  fun setBenchmarkText(benchmarkText: String) {
+  fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
     myBenchmarkView.clear()
-    myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT)
-    myBenchmarkTab.isHidden = StringUtil.isEmpty(benchmarkText)
+    for (line in benchmarkText.lines) {
+      line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
+    }
+    myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
+  }
+
+  fun setRetentionInfo(retentionInfo: File?) {
+    myRetentionView.setRetentionInfoFile(retentionInfo)
   }
 
   fun setRetentionSnapshot(rententionSnapshot: File?) {
@@ -260,8 +271,10 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
                        ConsoleViewContentType.NORMAL_OUTPUT)
       return
     }
-    myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
-    myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
+      myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
+      myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    }
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
   }
 }

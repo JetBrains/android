@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
+import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
@@ -47,7 +48,13 @@ import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+
+val DEFAULT_TEST_INSPECTION_STREAM = Common.Stream.newBuilder().apply {
+  type = Common.Stream.Type.DEVICE
+  streamId = FakeTransportService.FAKE_DEVICE_ID
+  device = FakeTransportService.FAKE_DEVICE
+}.build()!!
+val DEFAULT_TEST_INSPECTION_PROCESS = TransportProcessDescriptor(DEFAULT_TEST_INSPECTION_STREAM, FakeTransportService.FAKE_PROCESS)
 
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
@@ -57,7 +64,9 @@ import java.util.concurrent.TimeUnit
 class AppInspectionServiceRule(
   private val timer: FakeTimer,
   private val transportService: FakeTransportService,
-  private val grpcServer: FakeGrpcServer
+  private val grpcServer: FakeGrpcServer,
+  private val stream: Common.Stream = DEFAULT_TEST_INSPECTION_STREAM,
+  private val process: ProcessDescriptor = DEFAULT_TEST_INSPECTION_PROCESS
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
   lateinit var executorService: ExecutorService
@@ -70,13 +79,6 @@ class AppInspectionServiceRule(
   lateinit var processNotifier: ProcessNotifier
   lateinit var apiServices: AppInspectionApiServices
 
-  private val stream = Common.Stream.newBuilder()
-    .setType(Common.Stream.Type.DEVICE)
-    .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-    .setDevice(FakeTransportService.FAKE_DEVICE)
-    .build()
-  private val process = FakeTransportService.FAKE_PROCESS!!
-
   private val defaultAttachHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       events.add(
@@ -85,6 +87,7 @@ class AppInspectionServiceRule(
           .setPid(command.pid)
           .setKind(Common.Event.Kind.AGENT)
           .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
+          .setTimestamp(timer.currentTimeNs)
           .build()
       )
     }
@@ -92,14 +95,14 @@ class AppInspectionServiceRule(
 
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
-    streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-    streamChannel = TransportStreamChannel(stream, streamManager.poller)
     executorService = Executors.newSingleThreadExecutor()
+    streamManager = TransportStreamManager.createManager(client.transportStub, executorService.asCoroutineDispatcher())
+    streamChannel = TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
-    transport = AppInspectionTransport(client, stream, process, executorService.asCoroutineDispatcher(), streamChannel)
+    transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
-    targetManager = AppInspectionTargetManager(client, scope, executorService.asCoroutineDispatcher())
-    processNotifier = AppInspectionProcessDiscovery(executorService.asCoroutineDispatcher(), streamManager)
+    targetManager = AppInspectionTargetManager(client, scope)
+    processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
     apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
@@ -108,7 +111,6 @@ class AppInspectionServiceRule(
     TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
-    client.shutdown()
     timer.currentTimeNs += 1
     client.shutdown()
   }
@@ -149,23 +151,57 @@ class AppInspectionServiceRule(
   }
 
   /**
+   * Generate fake [Common.Event]s using the provided [payloadEvents].
+   *
+   * Once this has been called, the complete payload (all passed in payload events concatenated)
+   * should be cached on the other side of the connection, and it can be referenced via the
+   * [payloadId] passed in here.
+   *
+   * @param payloadId You may pass in any unique ID you want here. Re-using an old ID will
+   * potentially overwrite a previously sent payload, so be careful not to do that! In production,
+   * this value will be generated automatically by the app inspection service, but for tests, you
+   * can just specify a value, as long as you're consistent about using it later when fetching the
+   * payload.
+   *
+   * See also: [AppInspectionTestUtils.createPayloadChunks]
+   */
+  fun addAppInspectionPayload(payloadId: Long, payloadEvents: List<AppInspection.AppInspectionPayload>) {
+    payloadEvents.forEachIndexed { i, payloadEvent -> addAppInspectionPayload(payloadId, payloadEvent, i == payloadEvents.lastIndex) }
+  }
+
+  private fun addAppInspectionPayload(payloadId: Long, payloadEvent: AppInspection.AppInspectionPayload, isEnded: Boolean) {
+    addTransportEvent { transportEvent ->
+      transportEvent.kind = Common.Event.Kind.APP_INSPECTION_PAYLOAD
+      transportEvent.groupId = payloadId
+      transportEvent.isEnded = isEnded
+      transportEvent.appInspectionPayload = payloadEvent
+    }
+  }
+
+  /**
    * Generate a fake [Common.Event] using the provided [appInspectionEvent].
    */
   fun addAppInspectionEvent(appInspectionEvent: AppInspection.AppInspectionEvent) {
-    transportService.addEventToStream(
-      stream.streamId,
-      Common.Event.newBuilder()
-        .setPid(process.pid)
-        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-        .setTimestamp(timer.currentTimeNs)
-        .setIsEnded(true)
-        .setAppInspectionEvent(appInspectionEvent)
-        .build()
-    )
-    timer.currentTimeNs += 1
+    addTransportEvent { transportEvent ->
+      transportEvent.kind = Common.Event.Kind.APP_INSPECTION_EVENT
+      transportEvent.appInspectionEvent = appInspectionEvent
+    }
   }
 
   fun addProcessListener(listener: ProcessListener) {
     processNotifier.addProcessListener(executorService, listener)
+  }
+
+  private fun addTransportEvent(initEvent: (Common.Event.Builder) -> Unit) {
+    val transportEvent = Common.Event.newBuilder().apply {
+      pid = this@AppInspectionServiceRule.process.pid
+      timestamp = timer.currentTimeNs
+      isEnded = true
+
+      initEvent(this)
+    }.build()
+
+    transportService.addEventToStream(stream.streamId, transportEvent)
+    timer.currentTimeNs += 1
   }
 }

@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenHttpSettingsHype
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
@@ -107,7 +108,7 @@ fun SyncIssueUsageReporter.collect(quickFixes: Collection<NotificationHyperlink>
     collect(quickFixes.mapNotNull { it.toSyncIssueQuickFix() })
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
-private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
+fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
     when (this) {
       is AddGoogleMavenRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK
       is BuildProjectHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.BUILD_PROJECT_HYPERLINK
@@ -147,6 +148,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
       is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
+      is RemoveJcenterHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 
@@ -203,6 +205,8 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       IdeSyncIssue.TYPE_EDIT_LOCKED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EDIT_LOCKED_DSL_VALUE
       IdeSyncIssue.TYPE_MISSING_ANDROID_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_ANDROID_MANIFEST
       IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JCENTER_IS_DEPRECATED
+      IdeSyncIssue.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW
+      IdeSyncIssue.TYPE_COMPILE_SDK_VERSION_TOO_HIGH -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_TOO_HIGH
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 

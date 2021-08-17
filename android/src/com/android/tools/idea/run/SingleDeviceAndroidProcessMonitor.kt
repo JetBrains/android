@@ -29,6 +29,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
@@ -52,18 +53,15 @@ import kotlin.properties.Delegates
  * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device.
  *   A collected logcat messages are emitted to [textEmitter]. You can set null if you don't need them.
  * @param textEmitter a text emitter to output debug messages to be displayed
- * @param pollingIntervalMillis a polling interval to check running remote android processes in milliseconds
- * @param appProcessDiscoveryTimeoutMillis a timeout for the target application discovery used in milliseconds
  */
 class SingleDeviceAndroidProcessMonitor(
   val targetApplicationId: String,
   val targetDevice: IDevice,
-  var listener: SingleDeviceAndroidProcessMonitorStateListener,
+  private var listener: SingleDeviceAndroidProcessMonitorStateListener,
   private val deploymentApplicationService: DeploymentApplicationService,
   private val androidLogcatOutputCapture: AndroidLogcatOutputCapture?,
   private val textEmitter: TextEmitter,
-  pollingIntervalMillis: Long = POLLING_INTERVAL_MILLIS,
-  appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS,
+  stateUpdaterExecutor: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService(),
   listenerExecutor: Executor = AppExecutorUtil.getAppExecutorService()
 ) : Closeable {
 
@@ -96,11 +94,11 @@ class SingleDeviceAndroidProcessMonitor(
 
   private val myMonitoringPids = ConcurrentHashMap<Int, Unit>()
 
-  private val myStateUpdaterScheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
-    this::updateState, 0, pollingIntervalMillis, TimeUnit.MILLISECONDS)
+  private val myStateUpdaterScheduledFuture = stateUpdaterExecutor.scheduleWithFixedDelay(
+    this::updateState, 0, POLLING_INTERVAL_MILLIS, TimeUnit.MILLISECONDS)
 
-  private val myTimeoutScheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().schedule(
-    this::timeout, appProcessDiscoveryTimeoutMillis, TimeUnit.MILLISECONDS)
+  private val myTimeoutScheduledFuture = stateUpdaterExecutor.schedule(
+    this::timeout, APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
 
   /**
    * Updates the internal state to sync with the process' state on the target device.

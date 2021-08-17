@@ -131,7 +131,7 @@ public class SceneLayer extends Layer {
   @Override
   public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean show = false;
-    if (getSceneView() == myDesignSurface.getHoverSceneView(x, y)) {
+    if (getSceneView() == myDesignSurface.getSceneViewAt(x, y)) {
       show = true;
     }
     if (isShowOnHover() != show) {

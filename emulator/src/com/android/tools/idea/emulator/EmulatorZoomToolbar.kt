@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.editor.EditorActionsFloatingToolbar
+import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.uibuilder.editor.createZoomControlsGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import javax.swing.JComponent
 
-internal class EmulatorZoomToolbar private constructor(
+internal class EmulatorZoomToolbarProvider private constructor(
   component: JComponent,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbar(component, parentDisposable) {
+) : EditorActionsFloatingToolbarProvider(component, parentDisposable) {
 
   init {
     updateToolbar()
@@ -39,7 +39,7 @@ internal class EmulatorZoomToolbar private constructor(
   companion object {
     @JvmStatic
     fun createToolbar(component: JComponent, parentDisposable: Disposable): JComponent {
-      return EmulatorZoomToolbar(component, parentDisposable).designSurfaceToolbar
+      return EmulatorZoomToolbarProvider(component, parentDisposable).floatingToolbar
     }
   }
 }

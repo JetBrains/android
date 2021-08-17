@@ -17,8 +17,8 @@ package com.android.tools.idea.templates
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -31,7 +31,6 @@ import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
-import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
@@ -48,7 +47,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
-import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
 
@@ -132,7 +131,7 @@ class TemplateManager private constructor() {
 
     for (templateName in categoryRow.keys) {
       val template = _categoryTable!![category, templateName]!!
-      val templateAction = NewAndroidComponentAction(category, templateName, template.minSdk, template.minCompileSdk, template.constraints)
+      val templateAction = NewAndroidComponentAction(category, templateName, template.minSdk, template.constraints)
       val actionId = ACTION_ID_PREFIX + category + templateName
       am.replaceAction(actionId, templateAction)
       categoryGroup.add(templateAction)
@@ -157,12 +156,12 @@ class TemplateManager private constructor() {
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private fun addTemplateToTable(template: Template, userDefinedTemplate: Boolean = false) = with(template) {
+  private fun addTemplateToTable(template: Template) = with(template) {
     if (category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
       return
     }
     val existingTemplate = _categoryTable!![category, name]
-    if (existingTemplate == null || template.revision > existingTemplate.revision) {
+    if (existingTemplate == null) {
       _categoryTable!!.put(category, name, template)
     }
   }
@@ -214,13 +213,13 @@ class TemplateManager private constructor() {
         else -> throw RuntimeException("Invalid category name: $category")
       }
       val wizard = ModelWizard.Builder().addStep(chooseTypeStep).build()
-      val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+      val wizardLayout = SimpleStudioWizardLayout()
       StudioWizardDialogBuilder(wizard, dialogTitle).build(wizardLayout).show()
     }
 
     private fun setPresentation(category: Category, categoryGroup: AnAction) {
       categoryGroup.templatePresentation.apply {
-        icon = AndroidIcons.Android
+        icon = StudioIcons.Common.ANDROID_HEAD
         text = category.name
       }
     }

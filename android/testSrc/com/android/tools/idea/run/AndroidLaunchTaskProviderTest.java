@@ -79,7 +79,7 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    GradleApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
 
     ApkProvider apkProvider = new GradleApkProvider(myAndroidFacet, appIdProvider, false);
 

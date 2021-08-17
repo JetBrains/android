@@ -16,11 +16,12 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.findResourceFields
 import com.android.tools.idea.res.getReferredResourceOrManifestField
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.SdkUtils
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
@@ -47,7 +48,6 @@ import com.intellij.xml.util.XmlTagUtil
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -94,7 +94,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
             createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, KotlinIcons.CLASS, "Related Kotlin class"))
         } else {
           result.add(
-            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class,"Related Java class"))
+            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class, "Related Java class"))
         }
       }
     }
@@ -171,7 +171,8 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     @JvmStatic
     fun getItemsForXmlFile(file: XmlFile, facet: AndroidFacet): List<GotoRelatedItem>? {
-      return when (ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)) {
+      val folderName = file.containingDirectory?.name ?: return null
+      return when (ResourceFolderType.getFolderType(folderName)) {
         ResourceFolderType.LAYOUT -> collectRelatedClasses(file, facet)
         // TODO: Handle menus as well!
         else -> null
@@ -184,16 +185,14 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         override fun visitReferenceExpression(expression: PsiReferenceExpression) {
           super.visitReferenceExpression(expression)
 
-          val resClassName = ResourceType.LAYOUT.getName()
-          val info = getReferredResourceOrManifestField(facet, expression, resClassName, true) ?: return
+          val info = getReferredResourceOrManifestField(facet, expression, ResourceType.LAYOUT.getName(), true) ?: return
           if (info.isFromManifest) {
             return
           }
-          files.addAll(ModuleResourceManagers
-                         .getInstance(facet)
-                         .localResourceManager
-                         .findResourcesByFieldName(ResourceNamespace.TODO(), resClassName, info.fieldName)
-                         .filterIsInstance<PsiFile>())
+          files.addAll(
+            AndroidResourceToPsiResolver.getInstance()
+              .getGotoDeclarationTargets(ResourceReference(info.namespace, ResourceType.LAYOUT, info.fieldName), expression)
+              .filterIsInstance<PsiFile>())
         }
       })
       return files.toList()
@@ -204,19 +203,17 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       ktClass.accept(object : KtTreeVisitorVoid() {
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
           super.visitReferenceExpression(expression)
-          val resClassName = ResourceType.LAYOUT.getName()
+
           val info = (expression as? KtSimpleNameExpression)?.let {
-            getReferredResourceOrManifestField(facet, it, resClassName, true)
+            getReferredResourceOrManifestField(facet, it, ResourceType.LAYOUT.getName(), true)
           } ?: return
           if (info.isFromManifest) {
             return
           }
-
-          files.addAll(ModuleResourceManagers
-                         .getInstance(facet)
-                         .localResourceManager
-                         .findResourcesByFieldName(ResourceNamespace.TODO(), resClassName, info.fieldName)
-                         .filterIsInstance<PsiFile>())
+          files.addAll(
+            AndroidResourceToPsiResolver.getInstance()
+              .getGotoDeclarationTargets(ResourceReference(info.namespace, ResourceType.LAYOUT, info.fieldName), expression)
+              .filterIsInstance<PsiFile>())
         }
       })
       return files.toList()

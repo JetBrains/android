@@ -31,7 +31,7 @@ public class DependenciesDslElement extends GradleDslBlockElement {
     Arrays.asList(
       "classpath", // extension function installed by ScriptHandlerScope
 
-      // TODO(xof): I wonder if there's a way of introspecting this list for any given Gradle and AGP version?
+      // TODO(b/175670624): I wonder if there's a way of introspecting this list for any given Gradle and AGP version?
       //  (I made this list by looking in ~/.gradle/caches/6.1-milestone-2/kotlin-dsl-accessors/<>/cache/org/gradle/kotlin/dsl and running
       //    for file in *ConfigurationAccessors.kt; do
       //      printf \"%s%s\", $(echo ${file:0:1} | tr A-Z a-z) $(echo ${file:1} | sed s'/ConfigurationAccessors.kt//');
@@ -162,7 +162,7 @@ private static final List<String> KNOWN_CONFIGURATIONS_IN_ORDER = ImmutableList.
   @Override
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    List<GradleDslElement> es = getAllElements();
+    List<GradleDslElement> es = getCurrentElements();
     int i = 0;
     for (; i < es.size(); i++) {
       if (comparator.compare(es.get(i), newElement) > 0) {

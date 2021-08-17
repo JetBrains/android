@@ -18,9 +18,11 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.Icon;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -30,37 +32,45 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   static final int TYPE_MODEL_COLUMN_INDEX = 1;
   private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
   private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
-  private static final int SNAPSHOT_MODEL_COLUMN_INDEX = 4;
+  private static final int BOOT_OPTION_MODEL_COLUMN_INDEX = 4;
 
-  @NotNull
-  private final List<Boolean> mySelected;
-
-  @NotNull
-  private final List<Device> myDevices;
+  private final @NotNull List<@NotNull SelectMultipleDevicesDialogTableModelRow> myRows;
 
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
-    int size = devices.size();
-    mySelected = new ArrayList<>(Collections.nCopies(size, false));
+  SelectMultipleDevicesDialogTableModel(@NotNull List<@NotNull Device> devices,
+                                        @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+    devices.sort(new DeviceComparator());
+    myRows = new ArrayList<>();
 
-    myDevices = devices;
-    myDevices.sort(new DeviceComparator());
+    for (Device device : devices) {
+      for (Target target : device.getTargets()) {
+        myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, selectDeviceSnapshotComboBoxSnapshotsEnabledGet, target));
+      }
+    }
 
     myDeviceNameMultiset = devices.stream()
       .map(Device::getName)
-      .collect(Collectors.toCollection(() -> HashMultiset.create(size)));
+      .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
   }
 
-  @NotNull
-  Device getDeviceAt(int modelRowIndex) {
-    return myDevices.get(modelRowIndex);
+  @NotNull Set<@NotNull Target> getSelectedTargets() {
+    return myRows.stream()
+      .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
+      .map(SelectMultipleDevicesDialogTableModelRow::getTarget)
+      .collect(Collectors.toSet());
+  }
+
+  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+    IntStream.range(0, myRows.size())
+      .filter(modelRowIndex -> selectedTargets.contains(myRows.get(modelRowIndex).getTarget()))
+      .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));
   }
 
   @Override
   public int getRowCount() {
-    return myDevices.size();
+    return myRows.size();
   }
 
   @Override
@@ -80,8 +90,8 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
         return "Device";
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return "Serial Number";
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
-        return "Snapshot";
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
+        return "Boot Option";
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -97,7 +107,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
         return Icon.class;
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
         return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -112,7 +122,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
         return false;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -124,19 +134,15 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   public Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
-        return mySelected.get(modelRowIndex);
+        return myRows.get(modelRowIndex).isSelected();
       case TYPE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getIcon();
+        return myRows.get(modelRowIndex).getDevice().getIcon();
       case DEVICE_MODEL_COLUMN_INDEX:
-        Device device = myDevices.get(modelRowIndex);
-        String reason = device.getValidityReason();
-
-        return reason == null ? device.getName() : "<html>" + device.getName() + "<br>" + reason;
+        return myRows.get(modelRowIndex).getDeviceCellText();
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-        return getSerialNumber(myDevices.get(modelRowIndex));
-      case SNAPSHOT_MODEL_COLUMN_INDEX:
-        Object snapshot = myDevices.get(modelRowIndex).getSnapshot();
-        return snapshot == null ? "" : snapshot.toString();
+        return getSerialNumber(myRows.get(modelRowIndex).getDevice());
+      case BOOT_OPTION_MODEL_COLUMN_INDEX:
+        return myRows.get(modelRowIndex).getBootOption();
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -149,7 +155,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     }
 
     if (myDeviceNameMultiset.count(device.getName()) != 1) {
-      return device.getKey().getDeviceKey();
+      return device.getKey().toString();
     }
 
     return "";
@@ -157,7 +163,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
 
   @Override
   public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
-    mySelected.set(modelRowIndex, (Boolean)value);
+    myRows.get(modelRowIndex).setSelected((Boolean)value);
     fireTableCellUpdated(modelRowIndex, modelColumnIndex);
   }
 }

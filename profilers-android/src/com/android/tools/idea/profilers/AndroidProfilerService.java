@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.profilers.commands.GcCommandHandler;
+import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
+import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
-import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
@@ -31,11 +32,13 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.intellij.ide.util.PropertiesComponent;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.application.ApplicationManager;
+import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidProfilerService implements TransportDeviceManager.TransportDeviceManagerListener {
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
+  @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryAllocationDataFetchExecutor";
 
   public static AndroidProfilerService getInstance() {
     return ApplicationManager.getApplication().getService(AndroidProfilerService.class);
@@ -72,7 +76,28 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   @Override
   public void customizeProxyService(@NotNull TransportProxy proxy) {
     // Register profiler-specific command handlers (memory GC, pre-O CPU recording, etc.).
-    ProfilerServiceProxyManager.registerCommandHandlers(proxy);
+    IDevice device = proxy.getDevice();
+    proxy.registerProxyCommandHandler(Commands.Command.CommandType.GC, new GcCommandHandler(device));
+    if (!StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get() || device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+      LegacyAllocationCommandHandler trackAllocationHandler =
+        new LegacyAllocationCommandHandler(device,
+                                           proxy.getEventQueue(),
+                                           proxy.getBytesCache(),
+                                           Executors.newSingleThreadExecutor(
+                                             new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
+                                           StudioLegacyAllocationTracker::new);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_ALLOC_TRACKING, trackAllocationHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_ALLOC_TRACKING, trackAllocationHandler);
+    }
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+      LegacyCpuTraceCommandHandler cpuTraceHandler =
+        new LegacyCpuTraceCommandHandler(device,
+                                         TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()),
+                                         proxy.getEventQueue(),
+                                         proxy.getBytesCache());
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_CPU_TRACE, cpuTraceHandler);
+    }
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
     // to the datastore.
@@ -101,22 +126,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   @Override
   public void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder,
                                    @Nullable AndroidRunConfigurationBase runConfig) {
-    int liveAllocationSamplingRate;
-    if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
-      // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
-      if (shouldEnableMemoryLiveAllocation(runConfig)) {
-        liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
-          IntellijProfilerPreferences.getProfilerPropertyName(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-      }
-      else {
-        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
-      }
-    }
-    else {
-      // Sampling feature is disabled, use full mode.
-      liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
-    }
+    // Disable live allocation tracking by default
+    final int liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
     configBuilder
       .setCommon(
         configBuilder.getCommonBuilder()
@@ -145,18 +156,5 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     } else {
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);
     }
-  }
-
-  private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
-    if (runConfig == null) {
-      return true;
-    }
-    ProfilerState state = runConfig.getProfilerState();
-    if (state.isCpuStartupProfilingEnabled()) {
-      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(runConfig.getProject()).getConfigByName(configName);
-      return startupConfig == null || !startupConfig.isDisableLiveAllocation();
-    }
-    return !state.isNativeMemoryStartupProfilingEnabled();
   }
 }

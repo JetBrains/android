@@ -126,6 +126,14 @@ class AgpClasspathDependencyRefactoringProcessorTest : UpgradeGradleFileModelTes
   }
 
   @Test
+  fun testPluginDslDependency() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/PluginDslDependency"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/PluginDslDependencyExpected"))
+  }
+
+  @Test
   fun testLiteralTooltipsNotNull() {
     writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
     val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))

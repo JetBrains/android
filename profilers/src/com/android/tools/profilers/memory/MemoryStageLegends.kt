@@ -21,16 +21,20 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.legend.EventLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.adtui.model.legend.SeriesLegend
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode.*
-import com.android.tools.profilers.memory.MemoryProfilerStage.MEMORY_AXIS_FORMATTER
-import com.android.tools.profilers.memory.MemoryProfilerStage.OBJECT_COUNT_AXIS_FORMATTER
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.Companion.MEMORY_AXIS_FORMATTER
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.Companion.OBJECT_COUNT_AXIS_FORMATTER
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
 
-class MemoryStageLegends private constructor (stage: MemoryProfilerStage, range: Range, isTooltip: Boolean, usage: DetailedMemoryUsage)
+class MemoryStageLegends private constructor (stage: BaseStreamingMemoryProfilerStage,
+                                              range: Range,
+                                              isTooltip: Boolean,
+                                              usage: DetailedMemoryUsage)
       : LegendComponentModel(range) {
-  constructor(stage: MemoryProfilerStage, range: Range, isTooltip: Boolean): this(stage, range, isTooltip, stage.detailedMemoryUsage)
+  constructor(stage: BaseStreamingMemoryProfilerStage, range: Range, isTooltip: Boolean): this(stage, range, isTooltip, stage.detailedMemoryUsage)
 
   val javaLegend = SeriesLegend(usage.javaSeries, MEMORY_AXIS_FORMATTER, range)
   val nativeLegend = SeriesLegend(usage.nativeSeries, MEMORY_AXIS_FORMATTER, range)

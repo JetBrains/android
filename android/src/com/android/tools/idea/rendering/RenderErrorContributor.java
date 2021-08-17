@@ -104,6 +104,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -147,7 +148,7 @@ public class RenderErrorContributor {
   protected static final Logger LOG = Logger.getInstance(RenderErrorContributor.class);
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
-  private final List<RenderErrorModel.Issue> myIssues = new ArrayList<>();
+  private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
   private final HtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
   private final RenderResult myResult;
@@ -351,7 +352,7 @@ public class RenderErrorContributor {
   }
 
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
-                                           @NotNull RenderTaskContext renderTaskContext,
+                                           @NotNull RenderContext renderTaskContext,
                                            @Nullable XmlFile psiFile) {
     Module module = logger.getModule();
     if (module == null) {
@@ -444,14 +445,14 @@ public class RenderErrorContributor {
   @VisibleForTesting
   public void performClick(@NotNull RenderResult result, @NotNull String url) {
     Module module = result.getModule();
-    PsiFile file = result.getFile();
+    PsiFile file = result.getSourceFile();
 
     myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
 
-  private void reportRelevantCompilationErrors(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
+  private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
     Module module = logger.getModule();
-    if (module == null) {
+    if (module == null || module.isDisposed()) {
       return;
     }
 
@@ -476,7 +477,7 @@ public class RenderErrorContributor {
           .newline().newline();
       }
     }
-    else if (renderTask.getLayoutlibCallback().isUsed()) {
+    else if (myResult.hasRequestedCustomViews()) {
       boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> FileTypeRegistry.getInstance().isFileOfType(virtualFile, JavaFileType.INSTANCE));
       if (hasJavaErrors) {
         summary = "Compilation errors";
@@ -628,8 +629,8 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask() != null ?
-                                      myResult.getRenderTask().getContext().getConfiguration().getRealTarget() :
+              IAndroidTarget target = myResult.getRenderContext() != null ?
+                                      myResult.getRenderContext().getConfiguration().getRealTarget() :
                                       null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
@@ -682,7 +683,18 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
-  private void reportRtlNotEnabled(@NotNull RenderLogger logger, @Nullable RenderTask task) {
+  /**
+   * Adds a build call action to the given {@link HtmlBuilder}.
+   */
+  private void addBuildAction(@NotNull HtmlBuilder builder) {
+    builder.newlineIfNecessary()
+      .newline()
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink(null, "Build", " the project.",
+               myLinkManager.createBuildProjectUrl()).newline();
+  }
+
+  private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
     ApplicationManager.getApplication().runReadAction(() -> {
       Project project = logger.getProject();
       if (project == null || project.isDisposed()) {
@@ -734,20 +746,20 @@ public class RenderErrorContributor {
       return;
     }
 
-    RenderTask renderTask = result.getRenderTask();
-    if (renderTask == null) {
+    RenderContext renderContext = result.getRenderContext();
+    if (renderContext == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getContext().getConfiguration().getRealTarget();
+    IAndroidTarget target = renderContext.getConfiguration().getRealTarget();
     if (target == null) {
       return;
     }
-    AndroidPlatform platform = renderTask.getContext().getPlatform();
+    AndroidPlatform platform = renderContext.getPlatform();
     if (platform == null) {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getFile().getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getSourceFile().getProject());
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
@@ -781,7 +793,16 @@ public class RenderErrorContributor {
     }
   }
 
-  private void reportOtherProblems(@NotNull RenderLogger logger, RenderTask task) {
+  /**
+   * Returns true if the {@link Throwable} represents a failure to instantiate a Preview Composable. This means that the user probably
+   * added one or more previews and a build is needed.
+   */
+  private static boolean isComposeNotFoundThrowable(@Nullable Throwable throwable) {
+    return throwable instanceof NoSuchMethodException &&
+           "invokeComposableViaReflection".equals(throwable.getStackTrace()[1].getMethodName());
+  }
+
+  private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
     if (messages.isEmpty()) {
@@ -797,21 +818,46 @@ public class RenderErrorContributor {
       seenTags.add(tag);
 
       if (tag != null) {
-        if (ILayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
-          reportTagResourceFormat(myResult, message);
-          continue;
-        }
-        else if (ILayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
-          reportRtlNotEnabled(logger, task);
-          continue;
-        }
-        else if (ILayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
-          addIssue()
-            .setSeverity(HighlightSeverity.ERROR)
-            .setSummary("RTL support requires API level >= 17")
-            .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
-            .build();
-          continue;
+        switch (tag) {
+          case ILayoutLog.TAG_RESOURCES_FORMAT:
+            reportTagResourceFormat(myResult, message);
+            continue;
+          case ILayoutLog.TAG_RTL_NOT_ENABLED:
+            reportRtlNotEnabled(logger);
+            continue;
+          case ILayoutLog.TAG_RTL_NOT_SUPPORTED:
+            addIssue()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("RTL support requires API level >= 17")
+              .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
+              .build();
+            continue;
+          case ILayoutLog.TAG_THREAD_CREATION: {
+            Throwable throwable = message.getThrowable();
+            HtmlBuilder builder = new HtmlBuilder();
+            reportThrowable(builder, throwable, false);
+            addIssue()
+              .setSeverity(HighlightSeverity.WARNING)
+              .setSummary(message.getHtml())
+              .setHtmlContent(builder)
+              .build();
+            continue;
+          }
+          case ILayoutLog.TAG_INFLATE: {
+            Throwable throwable = message.getThrowable();
+            if (isComposeNotFoundThrowable(throwable)) {
+              HtmlBuilder builder = new HtmlBuilder().add("The preview will display after rebuilding the project.");
+              addBuildAction(builder);
+              // This is a Compose not found error. This is not a high severity error so transform to a warning.
+              addIssue()
+                .setSeverity(HighlightSeverity.WARNING)
+                .setSummary("Unable to find @Preview '" + throwable.getMessage() + "'")
+                .setHtmlContent(builder)
+                .build();
+              continue;
+            }
+            break;
+          }
         }
       }
 
@@ -823,6 +869,7 @@ public class RenderErrorContributor {
       String summary = "Render problem";
       if (throwable != null) {
         if (!reportSandboxError(throwable, false, true)) {
+          if (isComposeNotFoundThrowable(throwable)) continue; // This is handled as a warning above.
           if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
             // The error was hidden.
             if (!html.isEmpty()) {
@@ -1081,15 +1128,19 @@ public class RenderErrorContributor {
     }
     builder.endList();
 
-    builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-    builder.addLink("Tip: Try to ", "build", " the project.",
-                    myLinkManager.createBuildProjectUrl());
-    addRefreshAction(builder);
+    builder
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink("Tip: Try to ", "build", " the project.",
+                    myLinkManager.createBuildProjectUrl())
+      .newline()
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink("Tip: Try to ", "refresh", " the layout.",
+               myLinkManager.createRefreshRenderUrl())
+      .newline();
     if (foundCustomView) {
       builder.newline()
         .add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
     }
-    builder.newline().newline();
 
     addIssue()
       .setSeverity(HighlightSeverity.ERROR)
@@ -1312,7 +1363,7 @@ public class RenderErrorContributor {
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
                          JavaPsiFacade.getInstance(project).findClass(className, scope);
-          String layoutName = myResult.getFile().getName();
+          String layoutName = myResult.getSourceFile().getName();
           boolean separate = false;
           if (clz != null) {
             // TODO: Should instead find all R.layout elements
@@ -1391,18 +1442,20 @@ public class RenderErrorContributor {
 
   public Collection<RenderErrorModel.Issue> reportIssues() {
     RenderLogger logger = myResult.getLogger();
-    RenderTask renderTask = myResult.getRenderTask();
+    RenderContext renderContext = myResult.getRenderContext();
 
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
-    if (renderTask != null) {
-      reportRelevantCompilationErrors(logger, renderTask);
-      reportMissingSizeAttributes(logger, renderTask.getContext(), renderTask.getXmlFile());
+    if (renderContext != null) {
+      reportRelevantCompilationErrors(logger);
+      reportMissingSizeAttributes(logger,
+                                  renderContext,
+                                  (myResult.getSourceFile() instanceof XmlFile) ? (XmlFile)myResult.getSourceFile() : null);
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
     reportInstantiationProblems(logger);
-    reportOtherProblems(logger, renderTask);
+    reportOtherProblems(logger);
     reportUnknownFragments(logger);
     reportRenderingFidelityProblems(logger);
 

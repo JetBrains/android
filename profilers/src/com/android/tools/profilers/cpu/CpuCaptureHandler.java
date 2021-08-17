@@ -110,7 +110,7 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     myIsParsing = true;
     myParseRange.set(0, 0);
     CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
-      myCaptureFile, myTraceId, null, myCaptureProcessIdHint, myCaptureProcessNameHint);
+      myCaptureFile, myTraceId, myConfiguration.getTraceType(), myCaptureProcessIdHint, myCaptureProcessNameHint);
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {

@@ -17,7 +17,6 @@ package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
@@ -25,6 +24,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +64,7 @@ public interface FeatureTracker {
    * Track when we enter a new stage. The stage should always be included as state with all other
    * tracking events.
    */
-  void trackEnterStage(@NotNull Class<? extends Stage> stage);
+  void trackEnterStage(AndroidProfilerEvent.Stage stageType);
 
   /**
    * Track when the user clicks the Profile button. This can happen via the tool bar, or the run menu.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templateSet group="AndroidComposePreview">
   <template name="prev"
-            value="@androidx.ui.tooling.preview.Preview&#10;@androidx.compose.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
+            value="@androidx.compose.ui.tooling.preview.Preview&#10;@androidx.compose.runtime.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
             description="Create @Preview composable function"
             toReformat="true"
             toShortenFQNames="true">

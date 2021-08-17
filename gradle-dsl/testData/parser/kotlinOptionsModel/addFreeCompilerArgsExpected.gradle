@@ -1,0 +1,5 @@
+android {
+  kotlinOptions {
+    freeCompilerArgs = ['-XX:1']
+  }
+}

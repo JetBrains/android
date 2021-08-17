@@ -17,14 +17,14 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.lint.checks.DetectMissingPrefix;
+import com.android.tools.lint.checks.MissingPrefixDetector;
 import org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintMissingPrefixInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingPrefixInspection() {
-    super(AndroidBundle.message("android.lint.inspections.missing.prefix"), DetectMissingPrefix.MISSING_NAMESPACE);
+    super(AndroidBundle.message("android.lint.inspections.missing.prefix"), MissingPrefixDetector.MISSING_NAMESPACE);
   }
 
   @NotNull

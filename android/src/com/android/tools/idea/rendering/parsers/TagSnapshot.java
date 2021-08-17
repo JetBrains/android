@@ -19,13 +19,16 @@ import static com.android.SdkConstants.AAPT_URI;
 import static com.android.SdkConstants.ATTR_ATTR;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_USE_TAG;
+import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.base.Charsets.UTF_8;
 
+import com.android.tools.compose.ComposeLibraryNamespaceKt;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
@@ -86,6 +89,19 @@ public class TagSnapshot {
     return newSnapshot;
   }
 
+  @Nullable
+  private static String getTagNameForSnapshot(@NotNull XmlTag tag) {
+    XmlAttribute useTagAttribute = tag.getAttribute(ATTR_USE_TAG, TOOLS_URI);
+    String tagName = useTagAttribute == null ? tag.getName() : useTagAttribute.getValue();
+
+    // ComposeView gets replaced with ComposeViewAdapter so it can be rendered correctly within the Layout Editor.
+    // The ComposeView requires a ViewTreeLifecycleOwner but, since the Layout Editor does not run within an activity, there is not one.
+    // ComposeViewAdapter provides that logic allowing for transparently replace it.
+    return CLASS_COMPOSE_VIEW.equals(tagName) ?
+           ComposeLibraryNamespaceKt.findComposeToolingNamespace(ModuleUtilCore.findModuleForPsiElement(tag)).getComposableAdapterName()
+                                              : tagName;
+  }
+
   /**
    * Creates a new tag snapshot starting at the given tag
    * @param tag The root tag to create the snapshot from
@@ -128,11 +144,8 @@ public class TagSnapshot {
       children = Collections.emptyList();
     }
 
-
-    XmlAttribute useTagAttribute = tag.getAttribute(ATTR_USE_TAG, TOOLS_URI);
-    String tagName = useTagAttribute == null ? tag.getName() : useTagAttribute.getValue();
     TagSnapshot newSnapshot =
-      new TagSnapshot(tag, tagName, tag.getNamespacePrefix(),
+      new TagSnapshot(tag, getTagNameForSnapshot(tag), tag.getNamespacePrefix(),
                       tag.getNamespace(), attributes, children, hasDeclaredAaptAttrs);
     if (afterCreate != null) {
       afterCreate.accept(newSnapshot);
@@ -160,7 +173,7 @@ public class TagSnapshot {
 
     return new TagSnapshot(
       tag,
-      tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(),
+      getTagNameForSnapshot(tag), tag.getNamespacePrefix(), tag.getNamespace(),
       attributes,
       Collections.emptyList(),
       hasDeclaredAaptAttrs);

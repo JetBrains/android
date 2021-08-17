@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,6 +94,15 @@ public class AndroidSessionInfo {
   @Nullable
   public RunConfiguration getRunConfiguration() {
     return myRunConfiguration;
+  }
+
+  /**
+   * Find all the actively running session in the a given progject.
+   */
+  @Nullable
+  public static List<AndroidSessionInfo> findActiveSession(@NotNull Project project) {
+    return Arrays.stream(ExecutionManager.getInstance(project).getRunningProcesses()).map(
+      handler -> handler.getUserData(KEY)).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @Nullable

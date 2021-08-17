@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.common;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.tools.idea.gradle.util.ImportUtil.escapeGroovyStringLiteral;
-import static com.intellij.openapi.application.PathManager.getJarPathForClass;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
@@ -169,12 +168,21 @@ public class GradleInitScripts {
         path = escapeGroovyStringLiteral(path);
         paths.append("      maven { url '").append(path).append("'}\n");
       }
-      return "allprojects {\n" +
+      return "import org.gradle.util.GradleVersion\n\n" +
+             "allprojects {\n" +
              "  buildscript {\n" +
              "    repositories {\n" + paths +
              "    }\n" +
              "  }\n" +
              "  repositories {\n" + paths +
+             "  }\n" +
+             "}\n" +
+             "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
+             "  beforeSettings {\n" +
+             "    it.dependencyResolutionManagement {\n" +
+             "      repositories {\n" + paths +
+             "      }\n" +
+             "    }\n" +
              "  }\n" +
              "}\n";
     }

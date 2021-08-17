@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -29,12 +30,17 @@ import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.FileDatabaseManager
 import com.android.tools.idea.sqlite.OfflineModeManager
+import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -57,6 +63,7 @@ import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -66,7 +73,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -115,6 +124,8 @@ class DatabaseInspectorControllerImpl(
   private var databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel? = null
 
   private var appInspectionIdeServices: AppInspectionIdeServices? = null
+  private var processDescriptor: ProcessDescriptor? = null
+  private var appPackageName: String? = null
 
   private var evaluatorTabCount = 0
   private var keepConnectionsOpen = false
@@ -228,7 +239,9 @@ class DatabaseInspectorControllerImpl(
 
   override suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    appPackageName: String?,
   ) {
     // cancel offline mode
     withContext(workDispatcher) { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
@@ -237,11 +250,15 @@ class DatabaseInspectorControllerImpl(
     clientCommandsChannel.keepConnectionsOpen(keepConnectionsOpen)
 
     this.appInspectionIdeServices = appInspectionIdeServices
+    this.processDescriptor = processDescriptor
+    this.appPackageName = appPackageName
   }
 
+  // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
   override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {
     databaseInspectorClientCommandsChannel = null
-    appInspectionIdeServices = null
+    this.processDescriptor = null
+    this.appPackageName = null
 
     if (DatabaseInspectorFlagController.isOfflineModeEnabled) {
       enterOfflineMode(model.getAllDatabaseIds(), appPackageName, processDescriptor)
@@ -320,15 +337,18 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
-    try {
+    return try {
       val schema = databaseRepository.fetchSchema(databaseId)
-      return filterSqliteSchema(schema)
+      filterSqliteSchema(schema)
     }
     catch (e: LiveInspectorException) {
-      return null
+      null
     }
     catch (e: AppInspectionConnectionException) {
-      return null
+      null
+    }
+    catch (e: DatabaseIdNotFoundException) {
+      null
     }
     catch (e: Exception) {
       withContext(uiDispatcher) { view.reportError("Error reading Sqlite database", e) }
@@ -435,14 +455,12 @@ class DatabaseInspectorControllerImpl(
       val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
       if (oldTable == null) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
 
         diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
       }
       else if (oldTable != newTable) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
           .filterNot { oldTable.columns.contains(it.sqliteColumn) }
 
@@ -480,6 +498,7 @@ class DatabaseInspectorControllerImpl(
       sqliteEvaluatorView,
       { appInspectionIdeServices?.showNotification(it) },
       { closeTab(tabId) },
+      ::showExportDialog,
       edtExecutor,
       taskExecutor
     )
@@ -513,6 +532,7 @@ class DatabaseInspectorControllerImpl(
       databaseId = databaseId,
       databaseRepository = databaseRepository,
       sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
+      showExportDialog = ::showExportDialog,
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
     )
@@ -535,6 +555,50 @@ class DatabaseInspectorControllerImpl(
     val filteredTables = schema.tables.filter { it.name != "android_metadata" && it.name != "sqlite_sequence" }
     return SqliteSchema(filteredTables)
   }
+
+  private fun showExportDialog(exportDialogParams: ExportDialogParams) {
+    val view = viewFactory.createExportToFileView(project, exportDialogParams, databaseInspectorAnalyticsTracker)
+    val controller = ExportToFileController(
+      project,
+      projectScope,
+      view,
+      databaseRepository,
+      downloadDatabase = { id, onError -> processDescriptor?.let { procDesc -> downloadDatabase(id, onError, procDesc) } ?: emptyFlow() },
+      deleteDatabase = { fileDatabaseManager.cleanUp(it) },
+      acquireDatabaseLock = { databaseInspectorClientCommandsChannel?.acquireDatabaseLock(it)?.await() },
+      releaseDatabaseLock = { databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await() },
+      taskExecutor = taskExecutor,
+      edtExecutor = edtExecutor,
+      notifyExportInProgress = { job -> viewFactory.createExportInProgressView(project, job, taskExecutor.asCoroutineDispatcher()).show() },
+      notifyExportComplete = { request ->
+        appInspectionIdeServices?.showNotification( // TODO(161081452):  replace with a Toast
+          title = DatabaseInspectorBundle.message("export.notification.success.title"),
+          content = when (RevealFileAction.isSupported()) {
+            true -> DatabaseInspectorBundle.message("export.notification.success.message.reveal", RevealFileAction.getActionName())
+            else -> ""
+          },
+          hyperlinkClicked = { RevealFileAction.openFile(request.dstPath) }
+        )
+      },
+      notifyExportError = { _, throwable ->
+        if (throwable is CancellationException) return@ExportToFileController // normal cancellation of a coroutine as per Kotlin spec
+        appInspectionIdeServices?.showNotification(
+          title = DatabaseInspectorBundle.message("export.notification.error.title"),
+          content = throwable?.message ?: throwable?.toString() ?: "",
+          severity = Severity.ERROR
+        )
+      }
+    )
+    controller.setUp()
+    controller.showView()
+    Disposer.register(project, controller)
+  }
+
+  private fun downloadDatabase(
+    databaseId: LiveSqliteDatabaseId,
+    onError: (String, Throwable?) -> Unit,
+    processDescriptor: ProcessDescriptor
+  ): Flow<DownloadProgress> = offlineModeManager.downloadFiles(listOf(databaseId), processDescriptor, appPackageName, onError)
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
     override fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable) {
@@ -573,6 +637,8 @@ class DatabaseInspectorControllerImpl(
       databaseInspectorAnalyticsTracker.trackEnterOfflineModeUserCanceled()
       projectScope.launch { downloadAndOpenOfflineDatabasesJob?.cancelAndJoin() }
     }
+
+    override fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams) = showExportDialog(exportDialogParams)
   }
 
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
@@ -631,8 +697,10 @@ interface DatabaseInspectorController : Disposable {
   @UiThread
   suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
-    appInspectionIdeServices: AppInspectionIdeServices
-  )
+    appInspectionIdeServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    appPackageName: String?,
+    )
 
   @UiThread
   fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor)

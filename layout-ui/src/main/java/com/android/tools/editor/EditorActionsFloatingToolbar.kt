@@ -16,17 +16,19 @@
 package com.android.tools.editor
 
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.ActionListener
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
@@ -40,15 +42,20 @@ import javax.swing.Timer
 
 private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 
-abstract class EditorActionsFloatingToolbar(
+/**
+ * Provides the floating action toolbar for editor. It provides support for pan and zoom specifically, and arbitrary actions can be added
+ * in additional toolbar segments.
+ * [component] is used for data-context retrieval. See [ActionToolbar.setTargetComponent].
+ */
+abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
   parentDisposable: Disposable
 ) : PanZoomListener, Disposable {
 
-  val designSurfaceToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
+  val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
-  private val otherToolbars: MutableList<ActionToolbar> = mutableListOf()
+  private val otherToolbars: MutableMap<ActionGroup, ActionToolbar> = mutableMapOf()
 
   private val emptyBoxConstraints = GridBagConstraints().apply {
     gridx = 0
@@ -84,7 +91,7 @@ abstract class EditorActionsFloatingToolbar(
   /** Timer used to automatically set the Zoom Label panel to not visible after a period of time. */
   private var hiddenZoomLabelTimer: Timer? =
     if (!ApplicationManager.getApplication().isUnitTestMode) { // Running a timer in a TestCase may cause it to fail.
-      Timer(2000, ActionListener { hiddenZoomLabelComponent?.isVisible = false }).apply {
+      Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply {
         isRepeats = false
       }
     }
@@ -96,10 +103,15 @@ abstract class EditorActionsFloatingToolbar(
     Disposer.register(parentDisposable, this)
   }
 
+  fun findActionButton(group: ActionGroup, action: AnAction): ActionButton? {
+    val toolbar = otherToolbars[group] ?: return null
+    return ActionToolbarUtil.findActionButton(toolbar, action)
+  }
+
   protected fun updateToolbar() {
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
-    val zoomControlsToolbar = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
+    val zoomActionGroup = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
 
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
       createToolbar(actionManager, it, component).apply {
@@ -108,22 +120,22 @@ abstract class EditorActionsFloatingToolbar(
     }
     zoomToolbars.apply {
       clear()
-      if (zoomControlsToolbar != null) {
-        add(zoomControlsToolbar)
+      if (zoomActionGroup != null) {
+        add(zoomActionGroup)
       }
       if (zoomLabelToolbar != null) {
         add(zoomLabelToolbar)
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.mapTo(otherToolbars) { createToolbar(actionManager, it, component) }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(actionManager, it, component) }
 
-    designSurfaceToolbar.removeAll()
-    if (zoomControlsToolbar != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
+    floatingToolbar.removeAll()
+    if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
       // Empty space with weight to push components down.
-      designSurfaceToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
+      floatingToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
     }
-    for ((index, toolbar) in otherToolbars.withIndex()) {
+    for ((index, toolbar) in otherToolbars.values.withIndex()) {
       val controlsPanel = toolbar.component.wrapInDesignSurfaceUI()
       val otherControlsConstraints = GridBagConstraints().apply {
         gridx = 0
@@ -132,38 +144,38 @@ abstract class EditorActionsFloatingToolbar(
         anchor = GridBagConstraints.FIRST_LINE_END
         insets = VERTICAL_PANEL_MARGINS
       }
-      designSurfaceToolbar.add(controlsPanel, otherControlsConstraints)
+      floatingToolbar.add(controlsPanel, otherControlsConstraints)
     }
     if (zoomLabelToolbar != null) {
       val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()
-      designSurfaceToolbar.add(zoomLabelPanel, zoomLabelConstraints)
+      floatingToolbar.add(zoomLabelPanel, zoomLabelConstraints)
       hiddenZoomLabelTimer?.start()
       hiddenZoomLabelComponent = zoomLabelPanel
     }
-    if (zoomControlsToolbar != null) {
-      val zoomControlsPanel = zoomControlsToolbar.component.wrapInDesignSurfaceUI()
-      designSurfaceToolbar.add(zoomControlsPanel, zoomControlsConstraints)
+    if (zoomActionGroup != null) {
+      val zoomControlsPanel = zoomActionGroup.component.wrapInDesignSurfaceUI()
+      floatingToolbar.add(zoomControlsPanel, zoomControlsConstraints)
     }
 
-    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomControlsToolbar as? JPanel))
+    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomActionGroup as? JPanel))
   }
 
   override fun dispose() {
-    designSurfaceToolbar.removeAll()
+    floatingToolbar.removeAll()
     // Stop timer so that it can be garbage collected.
     hiddenZoomLabelTimer?.stop()
     // Set to null to guarantee Timer.start() will not be called again on it.
     hiddenZoomLabelTimer = null
   }
 
-  override fun zoomChanged() = UIUtil.invokeLaterIfNeeded {
+  override fun zoomChanged(previousScale: Double, newScale: Double) = UIUtil.invokeLaterIfNeeded {
     zoomToolbars.forEach { it.updateActionsImmediately() }
     hiddenZoomLabelComponent?.isVisible = true
     hiddenZoomLabelTimer?.restart()
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent?) = UIUtil.invokeLaterIfNeeded {
-    otherToolbars.forEach { it.updateActionsImmediately() }
+    otherToolbars.values.forEach { it.updateActionsImmediately() }
   }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups

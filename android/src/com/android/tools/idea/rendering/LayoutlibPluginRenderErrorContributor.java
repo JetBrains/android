@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -22,6 +23,7 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,12 +39,15 @@ public class LayoutlibPluginRenderErrorContributor extends RenderErrorContributo
 
   @Override
   public Collection<RenderErrorModel.Issue> reportIssues() {
-    RenderResult result = getResult();
-    RenderLogger logger = result.getLogger();
-    if (!LayoutLibrary.isNative()) {
-      reportLayoutlibStandardIssue();
-    } else if (logger.hasErrors()) {
-      reportLayoutlibNativeIssue();
+    if (StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get()) {
+      RenderResult result = getResult();
+      RenderLogger logger = result.getLogger();
+      if (!LayoutLibrary.isNative()) {
+        reportLayoutlibStandardIssue();
+      }
+      else if (logger.hasErrors()) {
+        reportLayoutlibNativeIssue();
+      }
     }
     return getIssues();
   }

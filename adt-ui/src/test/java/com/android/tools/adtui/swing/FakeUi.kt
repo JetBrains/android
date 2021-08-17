@@ -18,6 +18,7 @@ package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.PlatformTestUtil
@@ -90,7 +91,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   /**
    * Renders the given component and returns the image reflecting its appearance.
    */
-  public fun render(component: Component): BufferedImage {
+  fun render(component: Component): BufferedImage {
     val image =
         createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -119,10 +120,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   fun getPosition(component: Component): Point {
-    var comp = component
+    var comp: Component? = component
     var rx = 0
     var ry = 0
-    while (comp !== root) {
+    while (comp !== root && comp != null) {
       rx += comp.x
       ry += comp.y
       comp = comp.parent
@@ -138,12 +139,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   /**
    * Simulates pressing and releasing the left mouse button over the given component.
    */
-  @Throws(InterruptedException::class)
   fun clickOn(component: Component) {
     val location = getPosition(component)
     mouse.click(location.x + component.width / 2, location.y + component.height / 2)
-    // Allow events to propagate.
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   /**
@@ -173,7 +171,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return null
   }
 
-  inline fun <reified T: Component?> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
+  inline fun <reified T: Component> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
     return findComponent(T::class.java) { predicate(it) }
   }
 
@@ -181,12 +179,44 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return findComponent(type) { predicate.test(it) }
   }
 
-  inline fun <reified T: Component?> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
+  inline fun <reified T: Component> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
     return findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
   }
 
   fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T {
     return findComponent(type) { predicate.test(it) } ?: throw AssertionError()
+  }
+
+  /**
+   * Returns all components of the given type satisfying the given predicate in the breadth-first
+   * order.
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun <T> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
+    val result = mutableListOf<T>()
+    if (type.isInstance(root) && predicate(root as T)) {
+      result.add(root)
+    }
+    if (root is Container) {
+      val queue = ArrayDeque<Container>()
+      queue.add(root)
+      while (queue.isNotEmpty()) {
+        val container = queue.remove()
+        for (child in container.components) {
+          if (type.isInstance(child) && predicate(child as T)) {
+            result.add(child)
+          }
+          if (child is Container) {
+            queue.add(child)
+          }
+        }
+      }
+    }
+    return result
+  }
+
+  inline fun <reified T: Component> findAllComponents(crossinline predicate: (T) -> Boolean = { true }) : List<T> {
+    return findAllComponents(T::class.java) { predicate(it) }
   }
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? {
@@ -212,7 +242,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   private fun isMouseTarget(target: Component): Boolean {
-    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty()
+    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty() ||
+           target is ActionButton // ActionButton calls enableEvents and overrides processMouseEvent
   }
 
   /**
@@ -302,14 +333,19 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
 
 /**
  * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+ *
+ * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
+ * or down (to decrease the importance of text in generated images).
  */
-fun setPortableUiFont() {
+fun setPortableUiFont(scale: Float = 1.0f) {
   val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
+  val default = ImageDiffTestUtil.getDefaultFont()
   while (keys.hasMoreElements()) {
     val key = keys.nextElement()
     val value = UIManager.get(key)
     if (value is FontUIResource) {
-      UIManager.put(key, FontUIResource("Droid Sans", value.style, value.size))
+      val font = default.deriveFont(value.style).deriveFont(value.size.toFloat() * scale)
+      UIManager.put(key, FontUIResource(font))
     }
   }
 }

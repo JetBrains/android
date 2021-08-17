@@ -32,7 +32,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
@@ -85,7 +87,7 @@ public final class AdtImportBuilder extends ProjectImportBuilder<String> {
       importer.setCreateGradleWrapper(true);
       AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdkData != null) {
-        importer.setSdkLocation(sdkData.getLocation());
+        importer.setSdkLocation(sdkData.getLocationFile());
       }
     }
     importer.importProjects(projects);
@@ -120,21 +122,34 @@ public final class AdtImportBuilder extends ProjectImportBuilder<String> {
                              @Nullable ModifiableArtifactModel artifactModel) {
     File destDir = getBaseDirPath(project);
     try {
-      if (!destDir.exists()) {
-        boolean ok = destDir.mkdirs();
-        if (!ok) {
-          throw new IOException("Could not create destination directory");
-        }
-      }
-      // Re-read the project here since one of the wizard steps can have modified the importer options,
-      // and that affects the imported state (for example, if you enable/disable the replace-lib-with-dependency
-      // options, the set of modules can change)
-      readProjects();
-      if (!myImporter.getErrors().isEmpty()) {
+      boolean isExportSuccessful = ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        () -> {
+          if (!destDir.exists()) {
+            boolean ok = destDir.mkdirs();
+            if (!ok) {
+              throw new IOException("Could not create destination directory");
+            }
+          }
+          // Re-read the project here since one of the wizard steps can have modified the importer options,
+          // and that affects the imported state (for example, if you enable/disable the replace-lib-with-dependency
+          // options, the set of modules can change)
+          readProjects();
+          if (!myImporter.getErrors().isEmpty()) {
+            return false;
+          }
+
+          myImporter.exportProject(destDir, true);
+          VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+          if (projectDir != null) {
+            projectDir.refresh(false, true);
+          }
+          return true;
+        },
+        "Migrating project...", false, null
+      );
+      if (!isExportSuccessful) {
         return null;
       }
-      myImporter.exportProject(destDir, true);
-      project.getBaseDir().refresh(false, true);
     }
     catch (IOException e) {
       Logger.getInstance(AdtImportBuilder.class).error(e);
@@ -162,7 +177,7 @@ public final class AdtImportBuilder extends ProjectImportBuilder<String> {
         request.isNewProject = true;
         importer.importProjectNoSync(request);
         Path projectDir = getBaseDirPath(request.project).getAbsoluteFile().toPath();
-        ProjectManagerEx.getInstanceEx().openProject(projectDir, new OpenProjectTask(true, null, false, false, project, null, true, null, null, -1, -1, true, false, true, null, false, false, null, null, null));
+        ProjectManagerEx.getInstanceEx().openProject(projectDir, new OpenProjectTask(true, null, false, false, project, null, true, null, null, -1, -1, true, false, true, null, false, true, null, null, null));
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);

@@ -16,8 +16,8 @@
 #
 
 # Compile PreviewAnimationClock
-javac -cp ../../lib/ui-animation-tooling-internal.jar androidx/ui/tooling/preview/animation/PreviewAnimationClock.java
+javac -cp ../../lib/ui-animation-tooling-internal.jar androidx/compose/ui/tooling/animation/PreviewAnimationClock.java
 # Generate the JAR
-jar -cf composeanimation.jar androidx/ui/tooling/preview/animation/PreviewAnimationClock.class
+jar -cf composeanimation.jar androidx/compose/ui/tooling/animation/PreviewAnimationClock.class
 # Clean up
-rm androidx/ui/tooling/preview/animation/PreviewAnimationClock.class
+rm androidx/compose/ui/tooling/animation/PreviewAnimationClock.class

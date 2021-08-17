@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,11 @@ public class CustomEventProfilerStage extends StreamingStage {
     for (UserCounterModel model : myUserCounterModels) {
       getStudioProfilers().getUpdater().unregister(model);
     }
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
   }
 
   /**

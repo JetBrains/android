@@ -96,11 +96,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     assertThat(trackerService.calledMethods).hasSize(1)
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackFindUsagesNodeWasDisplayed CONSUMER")
+    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time:")
+    assertThat(trackerService.calledMethods.last()
+                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ").toInt()).isNotNull()
 
     val usage = findAllUsages(myFixture.elementAtCaret).filterIsInstance<UsageInfo2UsageAdapter>().first()
 
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackFindUsagesNodeWasDisplayed CONSUMER")
+    assertThat(trackerService.calledMethods).hasSize(2)
+    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
+    assertThat(trackerService.calledMethods.last()
+                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ").toInt()).isNotNull()
 
     usage.navigate(false)
 

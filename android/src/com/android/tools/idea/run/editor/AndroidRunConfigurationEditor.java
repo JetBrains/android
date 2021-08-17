@@ -122,7 +122,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModulesComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        androidDebuggerContext.setDebuggeeModule(myModulesComboBox.getSelectedModule());
+        Module module = myModulesComboBox.getSelectedModule();
+        androidDebuggerContext.setDebuggeeModuleProvider(() -> module);
       }
     });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.ByteBufferUtil
 import com.android.ddmlib.DebugViewDumpHandler
@@ -21,35 +21,46 @@ import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
 import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.RawImage
 import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.TestUtils
+import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
@@ -63,9 +74,6 @@ class LegacyTreeLoaderTest {
 
   @get:Rule
   val adb = FakeAdbRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
 
   @Before
   fun init() {
@@ -91,15 +99,38 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
 DONE.
 """.trim()
 
+  /**
+   * Creates a real [LegacyClient] that's good enough for most tests and provides access to an
+   * internally constructed [LegacyTreeLoader]
+   */
+  private fun createSimpleLegacyClient(): LegacyClient {
+    val model = model {}
+    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model, FakeTreeSettings()))
+  }
+
+  /**
+   * Creates a mock [LegacyClient] with tree loader and screenshots initialized.
+   *
+   * Callers can continue to mock the returned client if necessary.
+   */
+  private fun createMockLegacyClient(): LegacyClient {
+    val legacyClient = mock<LegacyClient>()
+    `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
+    `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(adb.bridge, legacyClient))
+    return legacyClient
+  }
+
   @Test
   fun testParseNodes() {
-    val lookup = mock(ViewNodeAndResourceLookup::class.java)
-    val resourceLookup = mock(ResourceLookup::class.java)
+    val lookup = mock<ViewNodeAndResourceLookup>()
+    val resourceLookup = mock<ResourceLookup>()
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
     `when`(resourceLookup.dpi).thenReturn(-1)
     val provider = LegacyPropertiesProvider()
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
-    val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
+
+    val treeLoader = createSimpleLegacyClient().treeLoader
+    val (root, hash) = treeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
     assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
@@ -150,25 +181,22 @@ DONE.
     ByteBufferUtil.putString(responseBytes, window1)
     responseBytes.putInt(window2.length)
     ByteBufferUtil.putString(responseBytes, window2)
-    val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
 
-    val legacyClient = LegacyClient(model {}, disposableRule.disposable)
-    legacyClient.selectedClient = ddmClient
-
-    val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)
+    val legacyClient = createSimpleLegacyClient()
+    legacyClient.treeLoader.ddmClientOverride = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
+    val result = legacyClient.treeLoader.getAllWindowIds(null)
     assertThat(result).containsExactly(window1, window2)
   }
 
   @Test
   fun testLoadComponentTree() {
-    val imageFile = File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png")
-    val lookup = mock(ViewNodeAndResourceLookup::class.java)
-    val resourceLookup = mock(ResourceLookup::class.java)
-    val legacyClient = mock(LegacyClient::class.java)
-    val device = mock(IDevice::class.java)
-    val client = mock(ClientImpl::class.java)
+    val image = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
+    val lookup = mock<ViewNodeAndResourceLookup>()
+    val resourceLookup = mock<ResourceLookup>()
+    val legacyClient = createMockLegacyClient()
+    val device = mock<IDevice>()
+    val client = mock<ClientImpl>()
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(legacyClient.selectedClient).thenReturn(client)
     `when`(device.density).thenReturn(560)
     `when`(client.device).thenReturn(device)
     `when`(client.send(argThat { argument ->
@@ -181,18 +209,24 @@ DONE.
     }
     `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
-    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
-       invocation
-         .getArgument<DebugViewDumpHandler>(2)
-         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
-    }
-    val (window, _) = LegacyTreeLoader.loadComponentTree(
+
+    val rawImage = spy(RawImage())
+    rawImage.width = image.width
+    rawImage.height = image.height
+    rawImage.bpp = 8
+    doAnswer { it.getArgument<Int>(0).let { idx -> image.getRGB(idx % image.width, idx / image.width)} }
+      .`when`(rawImage).getARGB(anyInt())
+    `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
+    legacyClient.treeLoader.ddmClientOverride = client
+    val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup, legacyClient, mock(Project::class.java))!!
+      resourceLookup)!!.window!!
+    window.refreshImages(1.0)
+
     assertThat(window.id).isEqualTo("window1")
 
     val expected = view(0x41673e3, width = 585, height = 804) {
-      image(ImageIO.read(imageFile))
+      image(image)
       view(0x8dc1681) {
         view(0xd0e237b)
         view(0x1d72495) {
@@ -212,5 +246,88 @@ DONE.
     }
     assertDrawTreesEqual(expected, window.root)
     verify(resourceLookup).dpi = 560
+  }
+
+  @Suppress("UndesirableClassUsage")
+  @Test
+  fun testRefreshImages() {
+    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
+    val lookup = mock<ViewNodeAndResourceLookup>()
+    val resourceLookup = mock<ResourceLookup>()
+    val legacyClient = createMockLegacyClient()
+    val device = mock<IDevice>()
+    val client = mock<ClientImpl>()
+    `when`(client.device).thenReturn(device)
+    `when`(lookup.resourceLookup).thenReturn(resourceLookup)
+    `when`(client.send(argThat { argument ->
+      argument?.payload?.int == CHUNK_VURT &&
+      argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
+    }, any())).thenAnswer { invocation ->
+      invocation
+        .getArgument(1, DebugViewDumpHandler::class.java)
+        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap("""
+          com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getWidth()=4,1080
+           android.widget.LinearLayout@8dc1681 mID=5,NO_ID layout:getHeight()=4,1794 layout:getWidth()=4,1080
+          DONE.
+
+        """.trimIndent().toByteArray(Charsets.UTF_8)), true, 1)
+    }
+    `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+                                    any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
+
+    val rawImage = spy(RawImage())
+    rawImage.width = image1.width
+    rawImage.height = image1.height
+    rawImage.bpp = 8
+    doAnswer { it.getArgument<Int>(0).let { idx -> image1.getRGB(idx % image1.width, idx / image1.width)} }
+      .`when`(rawImage).getARGB(anyInt())
+    `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
+    legacyClient.treeLoader.ddmClientOverride = client
+    val window = legacyClient.treeLoader.loadComponentTree(
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
+      resourceLookup)!!.window!!
+    val model = InspectorModel(mock())
+    model.update(window, listOf("window1"), 0)
+
+    window.refreshImages(1.0)
+
+    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+      .filterIsInstance<DrawViewImage>()
+      .first()
+      .image, 0.0)
+
+    // Zoom and verify the image is rescaled
+    window.refreshImages(0.5)
+    val scaledImage1 = BufferedImage(image1.width / 2, image1.height / 2, BufferedImage.TYPE_INT_ARGB)
+    scaledImage1.graphics.drawImage(image1, 0, 0, scaledImage1.width, scaledImage1.height, null)
+
+    ImageDiffUtil.assertImageSimilar("image1.png", scaledImage1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+      .filterIsInstance<DrawViewImage>()
+      .first()
+      .image, 0.0)
+
+    // Update the image returned by the device and verify the draw image is not refreshed yet
+    val image2 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image2.png"))
+    rawImage.width = image2.width
+    rawImage.height = image2.height
+    rawImage.bpp = 8
+    doAnswer { it.getArgument<Int>(0).let { idx -> image2.getRGB(idx % image2.width, idx / image2.width)} }
+      .`when`(rawImage).getARGB(anyInt())
+    window.refreshImages(1.0)
+    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+      .filterIsInstance<DrawViewImage>()
+      .first()
+      .image, 0.0)
+
+    // Update and verify the image is updated
+    val (updatedWindow, _) = legacyClient.treeLoader.loadComponentTree(
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")), resourceLookup)!!
+    model.update(updatedWindow, listOf("window1"), 1)
+
+    window.refreshImages(1.0)
+    ImageDiffUtil.assertImageSimilar("image2.png", image2, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+      .filterIsInstance<DrawViewImage>()
+      .first()
+      .image, 0.0)
   }
 }

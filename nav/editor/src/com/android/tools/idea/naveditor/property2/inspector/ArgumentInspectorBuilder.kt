@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.inspector
+package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
@@ -21,7 +21,7 @@ import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsArguments
 import com.android.tools.idea.naveditor.dialogs.AddArgumentDialog
-import com.android.tools.idea.naveditor.property2.ui.ArgumentCellRenderer
+import com.android.tools.idea.naveditor.property.ui.ArgumentCellRenderer
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ARGUMENT
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT

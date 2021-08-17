@@ -15,22 +15,24 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.RecordingOption;
+import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.capturedetails.CpuCaptureView;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -50,8 +52,10 @@ import java.awt.FontMetrics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
-import javax.swing.JComponent;
+import java.util.function.Consumer;
 import javax.swing.JPanel;
+import javax.swing.MutableComboBoxModel;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
@@ -103,7 +107,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
    * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
    */
-  private static final float SPLITTER_DEFAULT_RATIO = 0.5f;
+  private static final float SPLITTER_DEFAULT_RATIO = 0.2f;
 
   /**
    * When we are showing the kernel data we want to increase the size of the kernel and threads view. This in turn reduces
@@ -124,13 +128,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   @NotNull private final JBSplitter mySplitter;
 
-  @NotNull private final CpuCaptureView myCaptureView;
+  @NotNull private final RecordingOptionsView myRecordingOptionsView;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
   @NotNull private final CpuUsageView myUsageView;
-
-  @NotNull private final CpuProfilerToolbar myToolbar;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
@@ -138,23 +140,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myThreads = new CpuThreadsView(myStage);
     myCpus = new CpuKernelsView(myStage);
     myFrames = new CpuFramesView(myStage);
+    myUsageView = new CpuUsageView.NormalModeView(myStage);
 
-    if (myStage.isImportTraceMode()) {
-      myUsageView = new CpuUsageView.ImportModeView(myStage);
-      myToolbar = new CpuProfilerToolbar.ImportMode(myStage);
-    } else {
-      myUsageView = new CpuUsageView.NormalModeView(myStage);
-      myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
-    }
 
     myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
-
-    stage.getAspect().addDependency(this)
-         .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
 
     getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, (stageView, tooltip) -> new CpuKernelTooltipView(stageView.getComponent(), tooltip));
@@ -164,11 +156,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    if (!myStage.isImportTraceMode()) {
-      myTooltipComponent.registerListenersOn(myUsageView);
-      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
-      myUsageView.addMouseListener(listener);
-    }
+    myTooltipComponent.registerListenersOn(myUsageView);
+    MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
+    myUsageView.addMouseListener(listener);
 
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
@@ -176,12 +166,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Order matters as such our tooltip component should be first so it draws on top of all elements.
     details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
 
-    if (!myStage.isImportTraceMode()) {
-      // We shouldn't display the events monitor while in import trace mode.
-      final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-      eventsView.registerTooltip(myTooltipComponent, getStage());
-      details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
-    }
+    // We shouldn't display the events monitor while in import trace mode.
+    final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+    eventsView.registerTooltip(myTooltipComponent, getStage());
+    details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
 
     TabularLayout mainLayout = new TabularLayout("*");
     mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
@@ -195,31 +183,52 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
+    details.add(new StreamingScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
-    // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
-    myCaptureView = new CpuCaptureView(this);
-    mySplitter = new JBSplitter(true);
-    mySplitter.setFirstComponent(details);
-    mySplitter.setSecondComponent(null);
-    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    // The first component in the splitter is the recording options, the 2nd component is the L2 components.
+    myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);
+    mySplitter = new JBSplitter(false);
+    mySplitter.setFirstComponent(myRecordingOptionsView);
+    mySplitter.setSecondComponent(details);
+    mySplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+    mySplitter.setProportion(SPLITTER_DEFAULT_RATIO);
     getComponent().add(mySplitter, BorderLayout.CENTER);
-
-    stage.getStudioProfilers().addDependency(this)
-      .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
-
-    updateCaptureViewVisibility();
 
     CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
     // Add the profilers common menu items
     getProfilersView().installCommonMenuItems(myUsageView);
 
-    if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
+    SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
+    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::sessionChanged);
+    sessions.addDependency(this).onChange(SessionAspect.PROFILING_SESSION, this::sessionChanged);
+
+    if (!getStage().hasUserUsedCpuCapture()) {
       installProfilingInstructions(myUsageView);
     }
+    sessionChanged();
+  }
 
-    SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
-    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
+  @Override
+  public JPanel getToolbar() {
+    return new JPanel();
+  }
+
+  private void sessionChanged() {
+    boolean sessionAlive = SessionsManager.isSessionAlive(getStage().getStudioProfilers().getSessionsManager().getSelectedSession());
+    myRecordingOptionsView.setEnabled(sessionAlive);
+  }
+
+  private Unit editConfigurations(MutableComboBoxModel<RecordingOption> model) {
+    Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
+      // Update the config list to pick up any potential changes.
+      myStage.getProfilerConfigModel().updateProfilingConfigurations();
+      myStage.refreshRecordingConfigurations();
+    };
+    Common.Device selectedDevice = myStage.getStudioProfilers().getDevice();
+    int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
+    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback);
+    myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
+    return Unit.INSTANCE;
   }
 
   @NotNull
@@ -278,32 +287,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     parent.add(panel, new TabularLayout.Constraint(0, 0), 0);
   }
 
-  @Override
-  public JComponent getToolbar() {
-    return myToolbar.getComponent();
-  }
-
-  @Override
-  public boolean supportsStreaming() {
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      // Imported traces will be displayed in the new capture stage. No need to override here.
-      return super.supportsStreaming();
-    }
-    return !myStage.isImportTraceMode();
-  }
-
-  @Override
-  public boolean supportsStageNavigation() {
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      // Imported traces will be displayed in the new capture stage. No need to override here.
-      return super.supportsStageNavigation();
-    }
-    return !myStage.isImportTraceMode();
-  }
-
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
-      mySplitter.setSecondComponent(myCaptureView.getComponent());
+      mySplitter.setFirstComponent(myRecordingOptionsView);
     }
   }
 

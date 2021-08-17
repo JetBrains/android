@@ -23,6 +23,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.WorkManagerInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.protobuf.ProtocolStringList
 import com.intellij.ide.HelpTooltip
@@ -39,7 +40,6 @@ import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTable
 
 /**
  * Interface for converting some model input into a UI component.
@@ -59,12 +59,15 @@ class ToStringProvider<T> : ComponentProvider<T> {
 /**
  * Provides a component that represents a class name which can be navigated to.
  */
-class ClassNameProvider(private val ideServices: AppInspectionIdeServices, private val scope: CoroutineScope) : ComponentProvider<String> {
+class ClassNameProvider(private val ideServices: AppInspectionIdeServices,
+                        private val tracker: WorkManagerInspectorTracker,
+                        private val scope: CoroutineScope) : ComponentProvider<String> {
   override fun convert(fqcn: String): JComponent {
     return HyperlinkLabel(fqcn).apply {
       addHyperlinkListener {
         scope.launch {
           ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
+          tracker.trackJumpedToSource()
         }
       }
     }
@@ -94,6 +97,7 @@ object StateProvider : ComponentProvider<State> {
  * click on that location to navigate into the code.
  */
 class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
+                         private val tracker: WorkManagerInspectorTracker,
                          private val scope: CoroutineScope) : ComponentProvider<CallStack> {
   override fun convert(stack: CallStack): JComponent {
     return if (stack.framesCount == 0) {
@@ -113,6 +117,7 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
         addHyperlinkListener {
           scope.launch {
             ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+            tracker.trackJumpedToSource()
           }
         }
       }
@@ -141,33 +146,35 @@ object StringListProvider : ComponentProvider<ProtocolStringList> {
 /**
  * Provides a component that displays a list of workers, each which, when clicked, select that
  * worker in a source table.
+ *
+ * @param A callback which can be triggered to select some target worker.
  */
 class IdListProvider(private val client: WorkManagerInspectorClient,
-                     private val table: JTable,
-                     private val work: WorkInfo) : ComponentProvider<List<String>> {
+                     private val currentWork: WorkInfo,
+                     private val selectWork: (WorkInfo) -> Unit) : ComponentProvider<List<String>> {
   override fun convert(ids: List<String>): JComponent {
-    val currId = work.id
+    val currId = currentWork.id
     return if (ids.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
-        ids.forEach { id ->
-          val index = client.indexOfFirstWorkInfo { it.id == id }
-          if (index >= 0 && index < table.rowCount) {
-            add(HyperlinkLabel().apply {
-              val suffix = if (id == currId) " (Current)" else ""
-              setHyperlinkText("", id, suffix)
-              addHyperlinkListener {
-                table.selectionModel.setSelectionInterval(index, index)
-              }
-              client.getWorkInfoOrNull(index)?.run {
-                setIcon(state.icon())
-                if (tagsCount > 0) {
-                  toolTipText = "<html><b>Tags</b><br>${tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+        client.lockedWorks { works ->
+          ids.forEach { id ->
+            val work = works.firstOrNull { it.id == id }
+            if (work != null) {
+              add(HyperlinkLabel().apply {
+                val suffix = if (id == currId) "  (Current)" else ""
+                setHyperlinkText("", id, suffix)
+                addHyperlinkListener {
+                  selectWork(work)
                 }
-              }
-            })
-          }
-          else {
-            add(JBLabel(id))
+                setIcon(work.state.icon())
+                if (work.tagsCount > 0) {
+                  toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                }
+              })
+            }
+            else {
+              add(JBLabel(id))
+            }
           }
         }
       }

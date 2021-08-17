@@ -20,61 +20,94 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.isVal
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.google.common.base.Charsets;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jetbrains.android.uipreview.ClassBinaryCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
 
 /**
  * Class loader which can load classes for rendering and if necessary
  * convert the class file format down from unknown versions to a known version.
  */
-public abstract class RenderClassLoader extends ClassLoader {
+public abstract class RenderClassLoader extends ClassLoader implements PseudoClassLocator {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private final Function<ClassVisitor, ClassVisitor> myProjectClassesTransformationProvider;
-  private final Function<ClassVisitor, ClassVisitor> myNonProjectClassesTransformationProvider;
+  private static final UrlClassLoader.CachePool ourLoaderCachePool = UrlClassLoader.createCachePool();
+
+  private final ClassTransform myProjectClassesTransformationProvider;
+  private final ClassTransform myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
   private final Function<String, String> myNonProjectClassNameLookup;
   @GuardedBy("myJarClassLoaderLock")
-  private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
+  private final Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
+  private final ClassBinaryCache myTransformedClassCache;
+  private final Object myCachedTransformationUniqueIdLock = new Object();
+  @GuardedBy("myCachedTransformationUniqueIdLock")
+  @Nullable
+  private String myCachedTransformationUniqueId = null;
+  private boolean myAllowExternalJarFileLocking;
+  // We would like to remember the order the classes were loaded so that we can reload in the same order. Loading classes in the same
+  // order will prevent nested class loading.
+  private final Object myNonProjectClassLock = new Object();
+  @GuardedBy("myNonProjectClassLock")
+  private final Collection<String> myNonProjectLoadedClasses = new LinkedHashSet<>();
+  private final Object myProjectClassLock = new Object();
+  @GuardedBy("myProjectClassLock")
+  private final Collection<String> myProjectLoadedClasses = new LinkedHashSet<>();
 
   /**
    * Creates a new {@link RenderClassLoader}.
    *
    * @param parent the parent {@link ClassLoader}
-   * @param projectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   * @param projectClassesTransformationProvider a {@link ClassTransform} that given a {@link ClassVisitor} returns a new one applying any desired
    *                                             transformation. This transformation is only applied to classes from the user project.
-   * @param nonProjectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any
+   * @param nonProjectClassesTransformationProvider a {@link ClassTransform} that given a {@link ClassVisitor} returns a new one applying any
    *                                                desired transformation. This transformation is applied to all classes except user
    *                                                project classes.
    * @param nonProjectClassNameLookup a {@link Function} that allows mapping "modified" class names to its original form so they can be
    *                                  correctly loaded from the file system. For example, if the class loader is renaming classes to names
    *                                  that do not exist on disk, this allows the {@link RenderClassLoader} to lookup the correct name and
    *                                  load it from disk.
+   * @param cache a binary class representation cache to speed up jar file reads where possible.
+   * @param allowExternalJarFileLocking if true, jar files belonging to external libraries can be locked while in use by this class loader.
+   *                                    This speeds up the I/O but can cause problems on Windows systems.
    */
   public RenderClassLoader(@Nullable ClassLoader parent,
-                           @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
-                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider,
-                           @NotNull Function<String, String> nonProjectClassNameLookup) {
+                           @NotNull ClassTransform projectClassesTransformationProvider,
+                           @NotNull ClassTransform nonProjectClassesTransformationProvider,
+                           @NotNull Function<String, String> nonProjectClassNameLookup,
+                           @NotNull ClassBinaryCache cache,
+                           boolean allowExternalJarFileLocking) {
     super(parent);
     myProjectClassesTransformationProvider = projectClassesTransformationProvider;
     myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
     myNonProjectClassNameLookup = nonProjectClassNameLookup;
+    myTransformedClassCache = cache;
+    myAllowExternalJarFileLocking = allowExternalJarFileLocking;
   }
 
 
@@ -86,8 +119,8 @@ public abstract class RenderClassLoader extends ClassLoader {
    *                               transformation.
    */
   @TestOnly
-  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
-    this(parent, transformationProvider, transformationProvider, Function.identity());
+  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull ClassTransform transformationProvider) {
+    this(parent, transformationProvider, transformationProvider, Function.identity(), ClassBinaryCache.NO_CACHE, false);
   }
 
   /**
@@ -95,8 +128,36 @@ public abstract class RenderClassLoader extends ClassLoader {
    *
    * @param parent the parent {@link ClassLoader}.
    */
+  @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity(), Function.identity(), Function.identity());
+    this(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), ClassBinaryCache.NO_CACHE, false);
+  }
+
+  private static String calculateTransformationsUniqueId(@NotNull ClassTransform projectClassesTransformationProvider,
+                                                         @NotNull ClassTransform nonProjectClassesTransformationProvider) {
+    //noinspection UnstableApiUsage
+    return Hashing.goodFastHash(64).newHasher()
+      .putString(projectClassesTransformationProvider.getId(), Charsets.UTF_8)
+      .putString(nonProjectClassesTransformationProvider.getId(), Charsets.UTF_8)
+      .hash()
+      .toString();
+  }
+
+  @NotNull
+  private String getTransformationsUniqueId() {
+    synchronized (myCachedTransformationUniqueIdLock) {
+      if (myCachedTransformationUniqueId == null) {
+        myCachedTransformationUniqueId = calculateTransformationsUniqueId(myProjectClassesTransformationProvider, myNonProjectClassesTransformationProvider);
+      }
+
+      return myCachedTransformationUniqueId;
+    }
+  }
+
+  public boolean areTransformationsUpToDate(@NotNull ClassTransform projectClassesTransformationProvider,
+                                            @NotNull ClassTransform nonProjectClassesTransformationProvider) {
+    return getTransformationsUniqueId()
+      .equals(calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider));
   }
 
   protected abstract List<Path> getExternalJars();
@@ -112,18 +173,60 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @NotNull
-  private UrlClassLoader createJarClassLoader(@NotNull List<Path> files) {
-    return new UrlClassLoader(UrlClassLoader.build().parent(this).files(files).allowLock(false).setLogErrorOnMissingJar(false), false) {
-      // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
-      @Override
-      public Enumeration<URL> getResources(String name) throws IOException {
-        return findResources(name);
+  @Override
+  public PseudoClass locatePseudoClass(@NotNull String classFqn) {
+    try (InputStream is = getResourceAsStream(classFqn.replace(".", "/") + ".class")) {
+      if (is != null) {
+        byte[] data = ByteStreams.toByteArray(is);
+        return PseudoClass.Companion.fromByteArray(data, this);
       }
-    };
+    }
+    catch (IOException e) {
+      LOG.debug(e);
+    }
+
+    return PseudoClass.Companion.objectPseudoClass();
+  }
+
+  @NotNull
+  private UrlClassLoader createJarClassLoader(@NotNull List<Path> files) {
+    return UrlClassLoader.build()
+      .parent(new FirewalledResourcesClassLoader(this))
+      .files(files)
+      .useCache(ourLoaderCachePool, url -> true)
+      .allowLock(myAllowExternalJarFileLocking)
+      .setLogErrorOnMissingJar(false)
+      .get();
   }
 
   @NotNull
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
+    try {
+      byte[] data = getNonProjectClassData(name, myNonProjectClassesTransformationProvider);
+      Class<?> cl = defineClassAndPackage(name, data, 0, data.length);
+      synchronized (myNonProjectClassLock) {
+        myNonProjectLoadedClasses.add(name);
+      }
+      return cl;
+    }
+    catch (IOException | ClassNotFoundException e) {
+      LOG.debug(e);
+      if (LOG.isDebugEnabled()) LOG.debug(String.format("ClassNotFoundException(%s)", name));
+      throw new ClassNotFoundException(name, e);
+    }
+  }
+
+  /**
+   * Loads from disk the given class and applies the transformation.
+   */
+  @NotNull
+  private byte[] getNonProjectClassData(@NotNull String name, @NotNull ClassTransform classTransform) throws ClassNotFoundException, IOException {
+    String classTransformId = classTransform.getId();
+    byte[] cachedData = myTransformedClassCache.get(name, classTransformId);
+    if (cachedData != null) {
+      return cachedData;
+    }
+
     UrlClassLoader jarClassLoaders;
     synchronized (myJarClassLoaderLock) {
       jarClassLoaders = myJarClassLoader.get();
@@ -131,34 +234,46 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     String diskLookupName = myNonProjectClassNameLookup.apply(name);
     myInsideJarClassLoader = true;
-    try (InputStream is = jarClassLoaders.getResourceAsStream(diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS)) {
-      if (is == null) {
+    try {
+      // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
+      String classResourceName = diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS;
+      URL classUrl = jarClassLoaders.getResource(classResourceName);
+      if (classUrl == null) {
         throw new ClassNotFoundException(name);
       }
-      byte[] data = ByteStreams.toByteArray(is);
+      try (InputStream is = jarClassLoaders.getResourceAsStream(classResourceName)) {
+        if (is == null) {
+          throw new ClassNotFoundException(name);
+        }
+        byte[] data = ByteStreams.toByteArray(is);
 
-      if (!isValidClassFile(data)) {
-        throw new ClassFormatError(name);
+        if (!isValidClassFile(data)) {
+          throw new ClassFormatError(name);
+        }
+        byte[] transformedData = rewriteClass(name, data, classTransform, ClassWriter.COMPUTE_MAXS);
+        Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
+        if (splitPath != null) {
+          myTransformedClassCache.put(name, classTransformId, splitPath.first, transformedData);
+        } else {
+          LOG.warn("Could not find the file for " + classUrl);
+        }
+        return transformedData;
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
-      return defineClassAndPackage(name, rewritten, 0, rewritten.length);
-    }
-    catch (IOException | ClassNotFoundException e) {
-      LOG.debug(e);
     }
     finally {
       myInsideJarClassLoader = false;
     }
-
-    if (LOG.isDebugEnabled()) LOG.debug(String.format("ClassNotFoundException(%s)", name));
-    throw new ClassNotFoundException(name);
   }
 
   @Nullable
   protected Class<?> loadClassFile(String fqcn, @NotNull VirtualFile classFile) {
     try {
       byte[] data = classFile.contentsToByteArray();
-      return loadClass(fqcn, data);
+      Class<?> cl = loadClass(fqcn, data);
+      synchronized (myProjectClassLock) {
+        myProjectLoadedClasses.add(fqcn);
+      }
+      return cl;
     }
     catch (IOException e) {
       LOG.warn(e);
@@ -167,13 +282,17 @@ public abstract class RenderClassLoader extends ClassLoader {
     return null;
   }
 
+  protected byte[] rewriteClass(@NotNull String fqcn, @NotNull byte[] classData, @NotNull ClassTransform transformations, int flags) {
+    return ClassConverter.rewriteClass(classData, transformations, flags, this);
+  }
+
   @NotNull
   protected Class<?> loadClass(@NotNull String fqcn, byte @NotNull [] data) {
     if (!isValidClassFile(data)) {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider);
+    byte[] rewritten = rewriteClass(fqcn, data,  myProjectClassesTransformationProvider, ClassWriter.COMPUTE_FRAMES);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));
@@ -200,7 +319,7 @@ public abstract class RenderClassLoader extends ClassLoader {
     return defineClass(name, b, offset, len);
   }
 
-  protected boolean areDependenciesUpToDate() {
+  public boolean areDependenciesUpToDate() {
     List<Path> updatedDependencies = getExternalJars();
     List<Path> currentDependencies;
     synchronized (myJarClassLoaderLock) {
@@ -225,6 +344,30 @@ public abstract class RenderClassLoader extends ClassLoader {
   public Enumeration<URL> getResources(String name) throws IOException {
     synchronized (myJarClassLoaderLock) {
       return myJarClassLoader.get().getResources(name);
+    }
+  }
+
+  @NotNull
+  public ClassTransform getProjectClassesTransformationProvider() {
+    return myProjectClassesTransformationProvider;
+  }
+
+  @NotNull
+  public ClassTransform getNonProjectClassesTransformationProvider() {
+    return myNonProjectClassesTransformationProvider;
+  }
+
+  @NotNull
+  public ImmutableCollection<String> getNonProjectLoadedClasses() {
+    synchronized (myNonProjectClassLock) {
+      return ImmutableList.copyOf(myNonProjectLoadedClasses);
+    }
+  }
+
+  @NotNull
+  public ImmutableCollection<String> getProjectLoadedClasses() {
+    synchronized (myProjectClassLock) {
+      return ImmutableList.copyOf(myProjectLoadedClasses);
     }
   }
 }

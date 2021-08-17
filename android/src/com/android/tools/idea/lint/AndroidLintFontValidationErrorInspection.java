@@ -27,9 +27,9 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidLintFontValidationErrorInspection extends AndroidLintInspectionBase {
-  public AndroidLintFontValidationErrorInspection() {
-    super(AndroidBundle.message("android.lint.inspections.font.validation.error"), FontDetector.FONT_VALIDATION_ERROR);
+public class AndroidLintFontValidationInspection extends AndroidLintInspectionBase {
+  public AndroidLintFontValidationInspection() {
+    super(AndroidBundle.message("android.lint.inspections.font.validation"), FontDetector.FONT_VALIDATION);
   }
 
   @NotNull
@@ -38,7 +38,7 @@ public class AndroidLintFontValidationErrorInspection extends AndroidLintInspect
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    if (Objects.equals(LintFix.getData(fixData, String.class), APPCOMPAT_LIB_ARTIFACT_ID)) {
+    if (Objects.equals(LintFix.getString(fixData, FontDetector.KEY_ARTIFACT_ID, null), APPCOMPAT_LIB_ARTIFACT_ID)) {
       return new LintIdeQuickFix[]{new UpgradeAppCompatV7Fix()};
     }
 

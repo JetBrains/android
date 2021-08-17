@@ -54,7 +54,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
   val androidGradlePluginVersion: SimpleProperty<PsProject, String> = run {
     fun ArtifactDependencyModel.isAgp() = configurationName() == "classpath" && compactNotation().startsWith("$AGP_GROUP_ID_NAME:")
 
-    val coreProperty = property(
+    property(
       "Android Gradle Plugin Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = {
@@ -82,16 +82,10 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       setter = { setValue(it) },
       parser = ::parseString,
       knownValuesGetter = ::androidGradlePluginVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      preferredVariableName = { "agp_version" },
+      variableScope = { buildScriptVariables }
     )
-    val ret = object : ModelSimpleProperty<PsProject, String> by coreProperty {
-      override fun bind(model: PsProject): ModelPropertyCore<String> {
-        val gradleModelCoreProperty = coreProperty.bind(model)
-        return object : ModelPropertyCore<String> by gradleModelCoreProperty {
-        }
-      }
-    }
-    ret
   }
 
   val gradleVersion: SimpleProperty<PsProject, String> = run {
@@ -133,6 +127,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override val description: String = "Gradle Version"
           override val defaultValueGetter: (() -> String?)? = null
+          override val variableScope: (() -> PsVariablesScope?)? = { PsVariablesScope.NONE }
           override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
         }
 

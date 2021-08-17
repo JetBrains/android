@@ -15,39 +15,39 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.TestUtils.getEmbeddedJdk8Path
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.fileUnderGradleRoot
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
-import com.android.tools.idea.util.runWhenSmartAndSynced
+import com.android.tools.idea.testing.saveAndDump
+import com.android.tools.idea.testing.verifySyncSkipped
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.android.facet.AndroidFacet
-import java.util.function.Consumer
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
+  override fun tearDown() {
+    restoreJdk()
+    super.tearDown()
+  }
+
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      verifySyncSkipped(project)
+      verifySyncSkipped(project, testRootDisposable)
     }
   }
 
@@ -55,7 +55,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      verifySyncSkipped(project)
+      verifySyncSkipped(project, testRootDisposable)
     }
   }
 
@@ -87,31 +87,12 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { }
     openPreparedProject("project") { project ->
-      verifySyncSkipped(project)
-    }
-  }
-
-  fun testReopenWithoutModules() {
-    val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
-
-    val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
-    // Tests always run in do not generate *.iml files mode.
-    assertThat(projectRootVirtualFile.findFileByRelativePath(".idea/modules.xml")).isNull()
-
-    runWriteAction {
-      projectRootVirtualFile.findFileByRelativePath(".idea/modules/app/project.app.iml")!!.delete("test")
-      projectRootVirtualFile.findFileByRelativePath(".idea/modules/project.iml")!!.delete("test")
-    }
-
-    openPreparedProject("project") { project ->
-      assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
-      project.verifyModelsAttached()
+      verifySyncSkipped(project, testRootDisposable)
     }
   }
 
   fun testOpen36Project() {
-    addJdk8ToTable()
+    addJdk8ToTableButUseCurrent()
     prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     openPreparedProject("project") { project ->
       val androidTestRunConfiguration =
@@ -128,7 +109,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36ProjectWithoutModules() {
-    addJdk8ToTable()
+    addJdk8ToTableButUseCurrent()
     val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     runWriteAction {
       val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
@@ -148,42 +129,24 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     }
   }
 
-  private fun addJdk8ToTable() {
-    val jdkTable = ProjectJdkTable.getInstance();
-    val jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path())
-    assertThat(jdk).isNotNull()
-    runWriteAction {
-      jdkTable.addJdk(jdk!!)
+    fun testReopenAndResync() {
+      prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+      val debugBefore = openPreparedProject("project") { project: Project ->
+        runWriteAction {
+          // Modify the project build file to ensure the project is synced when opened.
+          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
+            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
+          }
+        }
+        project.saveAndDump()
+      }
+      val reopenedDebug = openPreparedProject("project") { project ->
+        // TODO(b/146535390): Uncomment when sync required status survives restarts.
+        //  assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+        project.saveAndDump()
+      }
+      assertThat(reopenedDebug).isEqualTo(debugBefore)
     }
-  }
 
-  private fun verifySyncSkipped(project: Project) {
-    assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
-    project.verifyModelsAttached()
-    var completed = false
-    project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
-      completed = true
-    })
-    assertThat(completed).isTrue()
-  }
-}
 
-inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
-  val facet = getFacet()
-  if (facet != null) {
-    val model = facet.getModel()
-    assertThat(model).named("${M::class.simpleName} for ${F::class.simpleName} in ${name} module").isNotNull()
-  }
-}
-
-private fun Project.verifyModelsAttached() {
-  ModuleManager.getInstance(this).modules.forEach { module ->
-    module.verifyModel(GradleFacet::getInstance, GradleFacet::getGradleModuleModel)
-    if (GradleFacet.getInstance(module) != null) {
-      // Java facets are not created for modules without GradleFacet even if there is a JavaModuleModel.
-      module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
-    }
-    module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
-    module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
-  }
 }

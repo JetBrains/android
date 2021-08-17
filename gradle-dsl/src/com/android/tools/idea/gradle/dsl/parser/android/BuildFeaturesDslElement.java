@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.COMPOSE;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.DATA_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.ML_MODEL_BINDING;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
@@ -30,23 +31,24 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public final class BuildFeaturesDslElement extends GradleDslBlockElement {
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
+    {"dataBinding", property, DATA_BINDING, VAR},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"viewBinding", property, VIEW_BINDING, VAR},
   }).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
     {"compose", exactly(1), COMPOSE, SET},
+    {"dataBinding", property, DATA_BINDING, VAR},
+    {"dataBinding", exactly(1), DATA_BINDING, SET},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"mlModelBinding", exactly(1), ML_MODEL_BINDING, SET},
     {"viewBinding", property, VIEW_BINDING, VAR},
@@ -56,8 +58,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("buildFeatures", BuildFeaturesDslElement.class, BuildFeaturesDslElement::new);
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter.isKotlin()) {
       return ktsToModelNameMap;
     }

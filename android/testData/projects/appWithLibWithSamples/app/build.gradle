@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 30
+    namespace = "com.test.app"
 
     defaultConfig {
         applicationId "com.example.appforsamplestest"

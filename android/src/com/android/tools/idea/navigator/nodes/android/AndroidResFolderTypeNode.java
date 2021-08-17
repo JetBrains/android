@@ -85,6 +85,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     // all resource folders of a given folder type
     Multimap<String, PsiFile> multimap = HashMultimap.create();
     for (PsiDirectory resFolder : getResFolders()) {
+      if (!resFolder.isValid()) continue;
       for (PsiFile file : resFolder.getFiles()) {
         String resName = FileUtilRt.getNameWithoutExtension(file.getName());
         multimap.put(resName, file);

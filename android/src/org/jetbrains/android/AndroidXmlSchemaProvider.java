@@ -86,7 +86,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     final XmlFile originalFile = (XmlFile)f;
 
     return ReadAction.compute(() -> {
-      if (IdeResourcesUtil.isInResourceSubdirectory(originalFile, null)) {
+      if (IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(originalFile, null)) {
         PsiDirectory parent = originalFile.getParent();
         if (parent == null) {
           return false;

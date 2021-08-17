@@ -30,45 +30,41 @@
                       doNotActivateOnStart="true"
                       icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                       factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
+    <notificationGroup id="Android Emulator Messages"
+                       displayType="BALLOON"
+                       toolWindowId="Android Emulator"
+                       bundle="messages.AndroidBundle"
+                       key="android.emulator.notification.title"/>
 
-    <notificationGroup id="Android Emulator" displayType="BALLOON"/>
+    <projectService serviceImplementation="com.android.tools.idea.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
 
   <actions>
     <group id="EmulatorToolbar">
       <action id="android.emulator.power.button" class="com.android.tools.idea.emulator.actions.EmulatorPowerButtonAction"
-              icon="StudioIcons.Emulator.POWER" text="Power" description="Press the Power button"/>
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
       <action id="android.emulator.volume.up.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeUpButtonAction"
-              icon="StudioIcons.Emulator.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
       <action id="android.emulator.volume.down.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeDownButtonAction"
-              icon="StudioIcons.Emulator.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
       <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateLeftAction"
-              icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
-              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.emulator.folding.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowFoldingControlsAction"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls"/>
       <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
-              icon="StudioIcons.Emulator.BACK" text="Back" description="Press the Back button"/>
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
       <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
-              icon="StudioIcons.Emulator.HOME" text="Home" description="Press the Home button"/>
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
       <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
-              icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press the Overview button"/>
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
-      <group id="android.emulator.snapshot" class="com.android.tools.idea.emulator.actions.BootOptionsPopupActionGroup"
-             icon="StudioIcons.Emulator.SNAPSHOTS" text="Snapshots" description="Create or select an Emulator snapshot"
-             popup="true">
-        <action id="android.emulator.create.snapshot" class="com.android.tools.idea.emulator.actions.EmulatorCreateSnapshotAction"
-                text="Create Snapshot" description="Create a snapshot of the Emulator state"/>
-        <action id="android.emulator.boot.options" class="com.android.tools.idea.emulator.actions.EmulatorBootOptionsAction"
-                text="Boot Options" description="Select an Emulator boot mode"/>
-        <separator/>
-      </group>
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
-              icon="StudioIcons.Emulator.SNAPSHOTS"
-              text="Snapshots" description="Create, load, rename or delete snapshots"/>
+              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
-              icon="AllIcons.Actions.More"
-              text="Extended Controls" description="Show extended controls"/>
+              icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
     </group>
   </actions>
 </idea-plugin>

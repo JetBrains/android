@@ -16,7 +16,6 @@
 package com.android.tools.idea.transport.manager
 
 import com.android.tools.profiler.proto.Common
-import java.util.concurrent.Executor
 
 /**
  * The set of parameters that will be used to query results from Transport pipeline.
@@ -36,38 +35,3 @@ class StreamEventQuery(
    */
   val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp)
 )
-
-
-/**
- * A fork of [TransportEventListener] but adapted to work specifically with [TransportStreamChannel] and [TransportStreamManager].
- *
- * It is used to configure the exact type of events received when using a [TransportStreamChannel].
- */
-class TransportStreamEventListener(
-  val streamEventQuery: StreamEventQuery,
-  /**
-   * The executor in which to execute [callback]
-   */
-  val executor: Executor,
-  /**
-   * If set to true, remove this listener after first callback.
-   */
-  val isTransient: Boolean = false,
-  /**
-   * What to do after an event satisfying the above filtering criteria is received.
-   */
-  val callback: (Common.Event) -> Unit
-) {
-  constructor(eventKind: Common.Event.Kind,
-              executor: Executor,
-              processId: (() -> Int)? = null,
-              groupId: (() -> Long)? = null,
-              startTime: (() -> Long)? = null,
-              endTime: () -> Long = { Long.MAX_VALUE },
-              filter: (Common.Event) -> Boolean = { true },
-              sortOrder: Comparator<Common.Event> = Comparator.comparing(
-                Common.Event::getTimestamp),
-              isTransient: Boolean = false,
-              callback: (Common.Event) -> Unit) : this(
-    StreamEventQuery(eventKind, processId, groupId, startTime, endTime, filter, sortOrder), executor, isTransient, callback)
-}

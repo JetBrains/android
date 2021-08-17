@@ -1,0 +1,10 @@
+android {
+  buildTypes {
+    abc {
+      jniDebuggable = true
+    }
+    xyz {
+      debuggable false
+    }
+  }
+}

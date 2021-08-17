@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Key;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +34,9 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
 
   private static class Message {
     @NotNull final String text;
-    @NotNull final Key outputType;
+    @NotNull final Key<?> outputType;
 
-    Message(@NotNull String text, @NotNull Key outputType) {
+    Message(@NotNull String text, @NotNull Key<?> outputType) {
       this.text = text;
       this.outputType = outputType;
     }
@@ -46,10 +47,10 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
   @GuardedBy("myLock")
   @NotNull private final List<Message> myStoredMessages = new ArrayList<>();
   @GuardedBy("myLock")
-  @Nullable private ProcessHandler myProcessHandler;
+  @NotNull private WeakReference<ProcessHandler> myProcessHandler;
 
   public ProcessHandlerConsolePrinter(@Nullable ProcessHandler processHandler) {
-    myProcessHandler = processHandler;
+    myProcessHandler = new WeakReference<>(processHandler);
   }
 
   @Override
@@ -65,28 +66,32 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
   public void setProcessHandler(@NotNull ProcessHandler processHandler) {
     final List<Message> storedMessages;
     synchronized (myLock) {
-      myProcessHandler = processHandler;
+      myProcessHandler = new WeakReference<>(processHandler);
       storedMessages = Lists.newArrayList(myStoredMessages);
       myStoredMessages.clear();
     }
-    for (Message message : storedMessages) {
-      print(message.text, message.outputType);
+    // We DO NOT call notifyTextAvailable under a lock, because it could execute arbitrary code
+    // and opens up the (remote) possibility of deadlock.
+    if (Thread.holdsLock(myLock)) {
+      throw new RuntimeException("Lock incorrectly held while setting process handler.");
     }
+    storedMessages.forEach(message -> processHandler.notifyTextAvailable(message.text + '\n', message.outputType));
   }
 
-  private void print(@NotNull String text, @NotNull Key outputType) {
-    @NotNull final ProcessHandler processHandler;
+  private void print(@NotNull String text, @NotNull Key<?> outputType) {
+    final ProcessHandler processHandler;
     synchronized (myLock) {
-      if (myProcessHandler == null) {
+      processHandler = myProcessHandler.get();
+      if (processHandler == null) {
         myStoredMessages.add(new Message(text, outputType));
         return;
-      } else {
-        processHandler = myProcessHandler;
       }
     }
     // We DO NOT call notifyTextAvailable under a lock, because it could execute arbitrary code
     // and opens up the (remote) possibility of deadlock.
-    assert !Thread.holdsLock(myLock);
+    if (Thread.holdsLock(myLock)) {
+      throw new RuntimeException("Lock incorrectly held while printing.");
+    }
     processHandler.notifyTextAvailable(text + '\n', outputType);
   }
 }

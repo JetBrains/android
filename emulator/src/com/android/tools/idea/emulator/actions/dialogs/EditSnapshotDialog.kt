@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator.actions.dialogs
+package com.android.tools.idea.emulator.dialogs
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel

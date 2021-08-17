@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
@@ -143,7 +142,7 @@ public class GuiTestRule implements TestRule {
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new ScreenshotOnFailure())
+      .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(myInnerTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
@@ -178,7 +177,7 @@ public class GuiTestRule implements TestRule {
               boolean hasTestPassed = errors.isEmpty();
               errors.addAll(tearDown());  // shouldn't throw, but called inside a try-finally for defense in depth
               if (hasTestPassed && !errors.isEmpty()) { // If we get a problem during tearDown, take a snapshot.
-                new ScreenshotOnFailure().failed(errors.get(0), description);
+                new ScreenshotOnFailure(myRobotTestRule::getRobot).failed(errors.get(0), description);
               }
             } finally {
               //noinspection ThrowFromFinallyBlock; assertEmpty is intended to throw here
@@ -432,9 +431,7 @@ public class GuiTestRule implements TestRule {
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
-    File path = TestUtils.runningFromBazel() ?
-                getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip") :
-                EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
     return wrapper != null;
@@ -444,7 +441,7 @@ public class GuiTestRule implements TestRule {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
     if (mySetNdkPath) {
-      localProperties.setAndroidNdkPath(TestUtils.getNdk());
+      localProperties.setAndroidNdkPath(TestUtils.getNdk().toFile());
     }
     localProperties.save();
   }

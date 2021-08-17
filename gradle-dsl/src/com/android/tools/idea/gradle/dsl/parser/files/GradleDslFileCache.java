@@ -132,7 +132,9 @@ public class GradleDslFileCache {
 
   private static Properties getProperties(@NotNull VirtualFile file) throws IOException {
     Properties properties = new Properties();
-    properties.load(new InputStreamReader(file.getInputStream(), Charsets.UTF_8));
+    try (InputStreamReader reader = new InputStreamReader(file.getInputStream(), Charsets.UTF_8)) {
+      properties.load(reader);
+    }
     return properties;
   }
 

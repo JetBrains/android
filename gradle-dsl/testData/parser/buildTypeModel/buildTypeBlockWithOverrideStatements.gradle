@@ -3,7 +3,9 @@ android {
     xyz {
       applicationIdSuffix "mySuffix"
       consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+      crunchPngs = false
       debuggable true
+      isDefault = false
       embedMicroApp = false
       jniDebuggable true
       manifestPlaceholders = [activityLabel1: "defaultName1", activityLabel2: "defaultName2"]
@@ -16,6 +18,7 @@ android {
       shrinkResources false
       testCoverageEnabled = true
       useJack false
+      useProguard false
       versionNameSuffix = "abc"
       zipAlignEnabled true
     }
@@ -24,7 +27,9 @@ android {
 android.buildTypes.xyz {
   applicationIdSuffix = "mySuffix-1"
   consumerProguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']
+  crunchPngs true
   debuggable = false
+  isDefault true
   embedMicroApp true
   jniDebuggable = false
   manifestPlaceholders activityLabel3: "defaultName3", activityLabel4: "defaultName4"
@@ -37,6 +42,7 @@ android.buildTypes.xyz {
   shrinkResources = true
   testCoverageEnabled false
   useJack true
+  useProguard true
   versionNameSuffix = "abc-1"
   zipAlignEnabled = false
 }

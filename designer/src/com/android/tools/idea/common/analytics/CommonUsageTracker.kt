@@ -23,15 +23,36 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent.LayoutEditorEventType
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
+import java.util.function.Function
 
 /**
  * Interface for usage tracking in the design tools. Note that implementations of these methods should aim to return immediately.
  */
 interface CommonUsageTracker {
+  enum class RenderResultType(
+    /**
+     * Sampling percentage for the event. 1 -> 1%, 10 -> 10%
+     */
+    val logPercent: Int,
+
+    /**
+     * Mapping to [LayoutEditorEventType] to use in the logging.
+     */
+    val loggingType: LayoutEditorEventType,
+
+    /**
+     * Method to obtain the duration from [RenderResult].
+     */
+    val durationProvider: Function<RenderResult, Long>) {
+
+    INFLATE(10, LayoutEditorEventType.INFLATE_ONLY, { it.stats.inflateDurationMs }),
+    RENDER(1, LayoutEditorEventType.RENDER_ONLY, { it.stats.renderDurationMs });
+  }
 
   /**
    * Logs a design tools event in the usage tracker. Note that rendering actions should be logged through the [logRenderResult] method so it
@@ -44,7 +65,7 @@ interface CommonUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, wasInflated: Boolean)
+  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, resultType: RenderResultType)
 
   /**
    * Logs the given design tools event. This method will return immediately.

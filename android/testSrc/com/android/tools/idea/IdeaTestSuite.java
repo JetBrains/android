@@ -33,7 +33,8 @@ import org.junit.runner.RunWith;
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
-  org.jetbrains.android.dom.CreateMissingClassFixTest.class
+  org.jetbrains.android.dom.CreateMissingClassFixTest.class,
+  com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest.class // b/176807290
 })
 public class IdeaTestSuite extends IdeaTestSuiteBase {
 

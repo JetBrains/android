@@ -3,6 +3,9 @@ package com.android.example.appwithdatabinding;
 import android.view.View;
 import androidx.lifecycle.LiveData;
 import androidx.databinding.ObservableField;
+import kotlinx.coroutines.flow.MutableStateFlow;
+import kotlinx.coroutines.flow.StateFlow;
+import kotlinx.coroutines.flow.StateFlowKt;
 
 public class SampleVo {
     public String name;
@@ -17,6 +20,10 @@ public class SampleVo {
 
     public LiveData<SampleVo> getLiveData() {
         return null;
+    }
+
+    public StateFlow<String> getStateFlowString() {
+        return StateFlowKt.MutableStateFlow("");
     }
 
     public ObservableField<SampleVo> getObservableField() {

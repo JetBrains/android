@@ -18,7 +18,6 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.JBEmptyBorder
@@ -29,8 +28,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 @UiThread
-internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
-  private val centerPanel by lazy { PairingCenterPanel() }
+internal class WiFiPairingPanel(private val parentDisposable: Disposable) {
+  private val centerPanel by lazy { WiFiPairingCenterPanel() }
 
   private val loadingPanel: JBLoadingPanel by lazy {
     JBLoadingPanel(BorderLayout(), parentDisposable).apply {
@@ -49,13 +48,14 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
   }
 
   val qrCodePanel by lazy {
-    QrCodePanel(Runnable {
+    QrCodeTabPanel(Runnable {
       qrCodeScanAgainInvoked()
-    })
+    }, parentDisposable)
   }
 
-  val pinCodePanel by lazy {
-    PinCodePanel(parentDisposable, Consumer<MdnsService> { service -> pinCodePairInvoked(service) })
+  val pairingCodePanel by lazy {
+    PairingCodeTabPanel(
+      Consumer<MdnsService> { service -> pairingCodePairInvoked(service) })
   }
 
   var isLoading: Boolean
@@ -68,7 +68,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       loadingPanel.stopLoading()
     }
 
-  var pinCodePairInvoked: (MdnsService) -> Unit = {}
+  var pairingCodePairInvoked: (MdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
@@ -84,7 +84,7 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
       add(" ")
       add("Pair camera-enabled devices using a QR code.")
       add(" ")
-      add("Other devices can be paired using Pin code.")
+      add("Other devices can be paired using a pairing code.")
       add("  ")
       addLink("Learn more", Urls.learnMore)
     }
@@ -99,11 +99,11 @@ internal class AdbDevicePairingPanel(private val parentDisposable: Disposable) {
 
   private fun createCenterPanel(): JComponent {
     val qrCodePanel = qrCodePanel.component
-    val pinCodePanel = pinCodePanel.component
+    val pairingCodePanel = pairingCodePanel.component
 
-    val contentPanel = PairingContentPanel().apply {
+    val contentPanel = WiFiPairingContentPanel(parentDisposable).apply {
       setQrCodeComponent(qrCodePanel)
-      setPinCodeComponent(pinCodePanel)
+      setPairingCodeComponent(pairingCodePanel)
     }.component
 
     return centerPanel.apply {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.chart
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
@@ -27,8 +27,8 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
-import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
@@ -42,7 +42,7 @@ import java.awt.Paint
 import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
-import java.io.FileInputStream
+import java.nio.file.Files
 
 class HeapSetNodeHRendererTest {
   private val timer = FakeTimer()
@@ -52,16 +52,16 @@ class HeapSetNodeHRendererTest {
                                     FakeTransportService(timer),
                                     FakeProfilerService(timer),
                                     FakeMemoryService())
-  private lateinit var stage: MemoryProfilerStage
+  private lateinit var stage: MainMemoryProfilerStage
 
   @Before
   fun setup() {
     DataVisualizationColors.doInitialize(
-      FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
+      Files.newInputStream(resolveWorkspacePath("tools/adt/idea/profilers-ui/testData/data-colors.json")))
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
     val fakeIdeProfilerServices = FakeIdeProfilerServices()
-    stage = MemoryProfilerStage(
+    stage = MainMemoryProfilerStage(
       StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer()),
       loader)
   }

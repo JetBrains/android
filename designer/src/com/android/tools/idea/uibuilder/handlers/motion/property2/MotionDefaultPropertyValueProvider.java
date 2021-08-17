@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2;
+package com.android.tools.idea.uibuilder.handlers.motion.property;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE;
-import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel.getMotionSelection;
-import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel.getSubTag;
+import static com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel.getMotionSelection;
+import static com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel.getSubTag;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
-import com.android.tools.idea.uibuilder.property2.DefaultPropertyValueProvider;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.DefaultPropertyValueProvider;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
 
   @Nullable
   @Override
-  public String provideDefaultValue(@NotNull NelePropertyItem property) {
+  public String provideDefaultValue(@NotNull NlPropertyItem property) {
     MotionSelection selection = getMotionSelection(property);
     if (selection == null) {
       return null;

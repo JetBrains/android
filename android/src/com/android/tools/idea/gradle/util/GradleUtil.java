@@ -15,15 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
-import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -34,52 +27,47 @@ import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
 import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
 import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
 import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
@@ -145,43 +133,6 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  /**
-   * Returns the path of the folder ".idea/caches" in the given project. The returned path is an absolute path.
-   *
-   * @param project the given project.
-   * @return the path of the folder ".idea/caches" in the given project.
-   */
-  @NotNull
-  public static File getCacheFolderRootPath(@NotNull Project project) {
-    return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-  }
-
-  public static boolean isSupportedGradleVersion(@NotNull GradleVersion gradleVersion) {
-    GradleVersion supported = GradleVersion.parse(GRADLE_MINIMUM_VERSION);
-    return supported.compareTo(gradleVersion) <= 0;
-  }
-
-  /**
-   * Get the main output APK file for the selected variant.
-   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
-   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
-   *
-   * @return the main output file for selected variant.
-   */
-  @Nullable
-  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
-    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
-    }
-    else {
-      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
-      if (outputs.isEmpty()) return null;
-      IdeAndroidArtifactOutput output = getFirstItem(outputs);
-      assert output != null;
-      return output.getOutputFile();
-    }
-  }
-
   @NotNull
   public static Icon getModuleIcon(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
@@ -197,7 +148,7 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static Icon getAndroidModuleIcon(int androidProjectType) {
+  public static Icon getAndroidModuleIcon(@NotNull IdeAndroidProjectType androidProjectType) {
     switch (androidProjectType) {
       case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
@@ -281,17 +232,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the file given by the file exists, is a file and ends with either ".gradle"
-   * or ".gradle.kts".
-   *
-   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#isGradleScript(File)}.
-   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
-   */
-  public static boolean isGradleScript(@NotNull VirtualFile file) {
-    return !file.isDirectory() && (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS));
-  }
-
-  /**
    * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
    * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
    *
@@ -363,23 +303,6 @@ public final class GradleUtil {
     return (result != null && result.isValid()) ? result : null;
   }
 
-  /**
-   * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
-   * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
-   * should use {@link BuildScriptUtil#findGradleSettingsFile(File)} along with
-   * {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
-   * to ensure a refresh occurs.
-   *
-   * @param dirPath the path to find the Gradle settings file for.
-   * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
-   */
-  @Nullable
-  public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
-    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
-    VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
-    return (result != null && result.isValid()) ? result : null;
-  }
-
   @NotNull
   public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
@@ -388,11 +311,6 @@ public final class GradleUtil {
         File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
         executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
-      }
-
-      Path jdkPath = IdeSdks.getInstance().getJdkPath();
-      if (jdkPath != null) {
-        executionSettings.setJavaHome(jdkPath.toString());
       }
     }
     if(executionSettings == null) {
@@ -553,7 +471,7 @@ public final class GradleUtil {
       if (androidModel != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
         else {
@@ -640,9 +558,8 @@ public final class GradleUtil {
     return null;
   }
 
-  // Currently, the latest Gradle version is 2.2.1, and we consider 2.2 and 2.2.1 as compatible.
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
-    return gradleVersion.equals(GRADLE_MINIMUM_VERSION) || gradleVersion.equals(GRADLE_LATEST_VERSION);
+    return gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
 
   /**
@@ -728,7 +645,7 @@ public final class GradleUtil {
   public static IdeLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
+    for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {
       if (filesEqual(bundleDir, library.getFolder())) {
         return library;
       }
@@ -920,10 +837,6 @@ public final class GradleUtil {
     return result;
   }
 
-  public static boolean hasKtsBuildFiles(@NotNull Project project) {
-    return projectBuildFilesTypes(project).contains(DOT_KTS);
-  }
-
   private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
     if (buildFile != null) {
       String buildFileExtension = buildFile.getExtension();
@@ -978,5 +891,14 @@ public final class GradleUtil {
       }
     }
     return null;
+  }
+
+  @NotNull
+  public static String createFullTaskName(@NotNull String gradleProjectPath, @NotNull String taskName) {
+    if (gradleProjectPath.endsWith(GRADLE_PATH_SEPARATOR)) {
+      // Prevent double colon when dealing with root module (e.g. "::assemble");
+      return gradleProjectPath + taskName;
+    }
+    return gradleProjectPath + GRADLE_PATH_SEPARATOR + taskName;
   }
 }

@@ -18,10 +18,11 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.GpuMode.OFF;
 import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
@@ -47,15 +48,20 @@ import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import javax.swing.*;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TemporaryFolder;
 
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
@@ -68,8 +74,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
   private ISystemImage mySnapshotSystemImage;
-  private Map<String, String> myPropertiesMap = Maps.newHashMap();
-  private SystemImageDescription myQImageDescription;
+  private final Map<String, String> myPropertiesMap = Maps.newHashMap();
   private Device myFoldable;
   private Device myAutomotive;
 
@@ -81,60 +86,56 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Q image (API 29)
     String qPath = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath);
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsQ.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsQ.setAbi("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails) detailsQ);
-    pkgQ.setInstalledPath(new File(SDK_LOCATION, "29-Q-x86"));
-    fileOp.recordExistingFile(new File(pkgQ.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
-    pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
-    fileOp.recordExistingFile(new File(pkgMarshmallow.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    // Nougat Preview image (still API 23)
-    String NPreviewPath = "system-images;android-N;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgNPreview = new FakePackage.FakeLocalPackage(NPreviewPath);
-    DetailsTypes.SysImgDetailsType detailsNPreview =
+    // Preview image
+    String previewPath = "system-images;android-ZZZ;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsNPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
-    detailsNPreview.setAbi("x86");
-    detailsNPreview.setApiLevel(23);
-    detailsNPreview.setCodename("N"); // Setting a code name is the key!
-    pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
-    pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
-    fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    detailsPreview.setAbi("x86");
+    detailsPreview.setApiLevel(99);
+    detailsPreview.setCodename("Z"); // Setting a code name is the key!
+    pkgPreview.setTypeDetails((TypeDetails) detailsPreview);
+    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
     String zuluPath = "system-images;android-Z;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath);
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsZulu.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails) detailsZulu);
-    pkgZulu.setInstalledPath(new File(SDK_LOCATION, "zulu-x86"));
-    fileOp.recordExistingFile(new File(pkgZulu.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgNPreview, pkgZulu));
+    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu));
 
-    RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
@@ -144,15 +145,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     ISystemImage marshmallowImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
+      sdkHandler.getLocalPackage(previewPath, progress).getLocation());
     ISystemImage ZuluImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
-    myQImageDescription = new SystemImageDescription(QImage);
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
-    myFoldable = devMgr.getDevice("7.3in Foldable", "Generic");
+    myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
@@ -173,16 +173,17 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     super.tearDown();
   }
 
-  public void testIsGoogleApiTag() throws Exception {
+  public void testIsGoogleApiTag() {
     assertThat(isGoogleApiTag(GOOGLE_APIS_TAG)).isTrue();
-    assertThat(isGoogleApiTag(TV_TAG)).isTrue();
+    assertThat(isGoogleApiTag(ANDROID_TV_TAG)).isTrue();
+    assertThat(isGoogleApiTag(GOOGLE_TV_TAG)).isTrue();
     assertThat(isGoogleApiTag(WEAR_TAG)).isTrue();
 
     assertThat(isGoogleApiTag(DEFAULT_TAG)).isFalse();
     assertThat(isGoogleApiTag(GOOGLE_APIS_X86_TAG)).isFalse();
   }
 
-  public void testGpuOtherMode() throws Exception {
+  public void testGpuOtherMode() {
     assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
     assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
 
@@ -201,7 +202,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     //Device without SdCard
     AvdOptionsModel optionsModelNoSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelNoSdCard);
+    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelNoSdCard, newSkinChooser());
     optionsStepNoSdCard.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStepNoSdCard);
     optionsModelNoSdCard.device().setNullableValue(myAutomotive);
@@ -211,7 +212,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Device with SdCard
     AvdOptionsModel optionsModelWithSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepWithSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelWithSdCard);
+    ConfigureAvdOptionsStep optionsStepWithSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelWithSdCard, newSkinChooser());
     optionsStepWithSdCard.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStepWithSdCard);
     optionsModelWithSdCard.device().setNullableValue(myFoldable);
@@ -223,7 +224,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   public void testFoldedDevice() {
     ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     optionsStep.addListeners();
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsModel.device().setNullableValue(myFoldable);
@@ -239,11 +240,11 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertFalse(skinChooser.isEnabled());
   }
 
-  public void testUpdateSystemImageData() throws Exception {
+  public void testUpdateSystemImageData() {
     ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
 
     optionsStep.updateSystemImageData();
@@ -254,19 +255,17 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
-    // For an actual Preview, the URL will be Default_32.png, but
-    // we now know that N-Preview became Nougat.
-    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Nougat_32.png"));
+    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.contains("Default_32.png"));
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     icon = optionsStep.getSystemImageIcon();
@@ -283,7 +282,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       new AvdInfo("snapAvd", new File("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
 
     File snapshotDir = new File(snapAvdDir, "snapshots");
@@ -338,5 +337,10 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertThat(snapshotList.get(0)).isEqualTo("snapSelected"); // First because it's selected
     assertThat(snapshotList.get(1)).isEqualTo("snapOldest");   // Next because of creation time
     assertThat(snapshotList.get(2)).isEqualTo("snapNewest");
+  }
+
+  private @NotNull SkinChooser newSkinChooser() {
+    Executor executor = MoreExecutors.directExecutor();
+    return new SkinChooser(getProject(), () -> Futures.immediateFuture(Collections.emptyList()), executor, executor);
   }
 }

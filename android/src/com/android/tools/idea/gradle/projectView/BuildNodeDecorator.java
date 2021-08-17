@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;

@@ -199,7 +199,8 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   private fun getAlreadyInstalled(cmakePackages: Collection<LocalPackage>, cmakeVersion: Revision): File? {
     for (localCmakePackage in cmakePackages) {
       if (localCmakePackage.version == cmakeVersion) {
-        return localCmakePackage.location
+        val fileOp = AndroidSdks.getInstance().tryToChooseSdkHandler().fileOp
+        return fileOp.toFile(localCmakePackage.location)
       }
     }
     return null

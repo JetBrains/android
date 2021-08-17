@@ -55,6 +55,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
+import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -473,6 +474,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -521,6 +523,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -571,6 +574,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -619,6 +623,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -810,6 +815,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
     val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
+    assertEquals(table.emptyText.text, "Waiting for data...")
     assertTrue(table.isVisible)
     assertFalse(table.isEnabled)
     assertTrue(progressBar.isVisible)
@@ -826,6 +832,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
     val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
+    assertEquals(table.emptyText.text, "Table is empty")
     assertTrue(table.isVisible)
     assertTrue(table.isEnabled)
     assertFalse(progressBar.isVisible)
@@ -854,6 +861,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { SqliteTable("tab", emptyList(), null, false) },
       databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
+      {},
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()

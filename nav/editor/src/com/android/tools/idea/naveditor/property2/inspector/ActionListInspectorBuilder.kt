@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.inspector
+package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
-import com.android.tools.idea.naveditor.property2.ui.ActionCellRenderer
+import com.android.tools.idea.naveditor.property.ui.ActionCellRenderer
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder(private val model: NelePropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NlPropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
   override fun title(component: NlComponent) =
     if (component.isNavigation) {
       "Global Actions"

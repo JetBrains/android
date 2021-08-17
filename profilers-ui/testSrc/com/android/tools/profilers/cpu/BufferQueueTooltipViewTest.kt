@@ -34,15 +34,15 @@ class BufferQueueTooltipViewTest {
     timeline.dataRange.set(0.0, MICROS_IN_MILLI * 3.0)
     timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("0 buffer(s) in SurfaceFlinger queue")
+    assertThat(tooltipView.valueLabel.text).isEqualTo("0 pending buffer(s) in buffer queue")
 
     timeline.tooltipRange.set(MICROS_IN_MILLI + 1.0, MICROS_IN_MILLI + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("1 buffer(s) in SurfaceFlinger queue")
+    assertThat(tooltipView.valueLabel.text).isEqualTo("1 pending buffer(s) in buffer queue")
 
     timeline.tooltipRange.set(MICROS_IN_MILLI * 2 + 1.0, MICROS_IN_MILLI * 2 + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.002")
-    assertThat(tooltipView.valueLabel.text).isEqualTo("2 buffer(s) in SurfaceFlinger queue")
+    assertThat(tooltipView.valueLabel.text).isEqualTo("2 pending buffer(s) in buffer queue")
   }
 
   private companion object {

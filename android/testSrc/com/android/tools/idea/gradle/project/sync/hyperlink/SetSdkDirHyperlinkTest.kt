@@ -19,7 +19,6 @@ import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
-import com.android.utils.SdkUtils
 import com.android.utils.SdkUtils.escapePropertyValue
 import com.intellij.openapi.util.io.FileUtil.loadFile
 import junit.framework.TestCase
@@ -40,7 +39,7 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
     assertTrue(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url)))
     assertTrue(localPropertiesPath.exists())
     assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPath)
-      .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.absolutePath)}"))
+      .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())}"))
   }
 
   @Test
@@ -59,7 +58,7 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
       listOf(localPropertiesPath.absolutePath, localPropertiesPathTwo.absolutePath, localPropertiesPathThree.absolutePath))
     assertTrue(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url)))
 
-    val sdkLocation = SdkUtils.escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.absolutePath)
+    val sdkLocation = escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())
     assertTrue(localPropertiesPath.exists())
     assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPath)
       .contains("sdk.dir=${sdkLocation}"))

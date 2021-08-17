@@ -28,6 +28,8 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.base.Objects;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +53,7 @@ public final class SystemImageDescription {
     mySystemImage = new RemoteSystemImage(remotePackage);
   }
 
-  static boolean hasSystemImage(RepoPackage p) {
+  public static boolean hasSystemImage(RepoPackage p) {
     TypeDetails details = p.getTypeDetails();
     if (!(details instanceof DetailsTypes.ApiDetailsType)) {
       return false;
@@ -137,7 +139,7 @@ public final class SystemImageDescription {
     return mySystemImage.getRevision();
   }
 
-  public File[] getSkins() {
+  public Path[] getSkins() {
     return mySystemImage.getSkins();
   }
 
@@ -171,7 +173,8 @@ public final class SystemImageDescription {
         }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
-        tag = ((DetailsTypes.SysImgDetailsType)details).getTag();
+        // TODO: support multi-tag
+        tag = ((DetailsTypes.SysImgDetailsType)details).getTags().get(0);
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
         abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
       }
@@ -182,9 +185,9 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public File getLocation() {
+    public Path getLocation() {
       assert false : "Can't get location for remote image";
-      return new File("");
+      return Paths.get("");
     }
 
     @NonNull
@@ -207,8 +210,8 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public File[] getSkins() {
-      return new File[0];
+    public Path[] getSkins() {
+      return new Path[0];
     }
 
     @NonNull

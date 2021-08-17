@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
-
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.intellij.openapi.keymap.KeymapUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
+package com.android.tools.adtui.stdui;
 
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
-public class ProfilerAction implements ContextMenuItem {
+import com.intellij.openapi.keymap.KeymapUtil;
+import java.awt.event.ActionEvent;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class DefaultContextMenuItem implements ContextMenuItem {
   @NotNull private final Supplier<String> myText;
   @NotNull private final Runnable myActionRunnable;
   @NotNull private final BooleanSupplier myEnableBooleanSupplier;
   @NotNull private final KeyStroke[] myKeyStrokes;
   @Nullable private final Supplier<Icon> myIcon;
 
-  private ProfilerAction(Builder builder) {
+  private DefaultContextMenuItem(Builder builder) {
     myText = builder.myText;
     myActionRunnable = builder.myActionRunnable;
     myEnableBooleanSupplier = builder.myEnableBooleanSupplier;
@@ -155,8 +158,8 @@ public class ProfilerAction implements ContextMenuItem {
       return this;
     }
 
-    public ProfilerAction build() {
-      return new ProfilerAction(this);
+    public DefaultContextMenuItem build() {
+      return new DefaultContextMenuItem(this);
     }
   }
 }

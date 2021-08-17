@@ -24,12 +24,13 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,8 +50,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
-  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    super(handler, MoreExecutors.newDirectExecutorService());
+  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler, @NotNull Path avdHomeFolder) {
+    super(handler, avdHomeFolder, MoreExecutors.newDirectExecutorService());
     mySdkHandler = handler;
   }
 
@@ -58,31 +59,18 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     setConnectionFactory(MockAvdManagerConnection::new);
   }
 
-  @Override
-  protected void addParameters(@Nullable Project project,
-                               @NotNull AvdInfo info,
-                               boolean forceColdBoot,
-                               @NotNull GeneralCommandLine commandLine) {
-    super.addParameters(project, info, forceColdBoot, commandLine);
-    commandLine.addParameters("-qt-hide-window");
-  }
-
   @NotNull
-  private File getAdbBinary() {
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
-  }
-
-  public boolean deleteAvdByDisplayName(@NotNull String avdName) {
-    // We need to delete the AVD ID. We get it by converting spaces to underscores.
-    return super.deleteAvd(avdName.replace(' ', '_'));
+  private String getAdbBinary() {
+    return mySdkHandler.getLocation().resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER).resolve(SdkConstants.FN_ADB).toString();
   }
 
   public void killEmulator() {
     try {
       AndroidDebugBridge.initIfNeeded(false);
-      AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
+      AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary(), false);
 
       Collection<IDevice> emulatorDevices = new ArrayList<>();
+      assert adb != null;
       for (IDevice device : adb.getDevices()) {
         EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
         if (emulatorConsole != null) {
@@ -130,23 +118,26 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
           }
           return true;
         });
-    } catch (WaitTimedOutError timeout) {
+    }
+    catch (WaitTimedOutError timeout) {
       getLogger().warn("Emulators did not shut down gracefully");
     }
   }
 
   public void tapRunningAvd(int x, int y) {
     try {
-      exec(getAdbBinary().getAbsolutePath() + " shell input tap " + x + " " + y);
-    } catch (Exception e) {
+      exec(getAdbBinary() + " shell input tap " + x + " " + y);
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   public void tapBackButtonOnRunningAvd() {
     try {
-      exec(getAdbBinary().getAbsolutePath() + " shell input keyevent 4");
-    } catch (Exception e) {
+      exec(getAdbBinary() + " shell input keyevent 4");
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -154,15 +145,28 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   private static void exec(@NotNull String cmd) {
     try {
       Runtime.getRuntime().exec(cmd).waitFor(10, TimeUnit.SECONDS);
-    } catch (InterruptedException interrupted) {
+    }
+    catch (InterruptedException interrupted) {
       // Continue keeping the thread interrupted. Don't block on anything to cleanup
       Thread.currentThread().interrupt();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   private static void killEmulatorCrashReportProcess() {
     exec(isWindows ? "taskkill /F /IM  emulator64-cra*" : "pkill emulator64-cra");
+  }
+
+  @Override
+  protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+                                                           @NotNull File emulator,
+                                                           @NotNull AvdInfo avd,
+                                                           @NotNull EmulatorCommandBuilderFactory factory) {
+    GeneralCommandLine command = super.newEmulatorCommand(project, emulator, avd, factory);
+    command.addParameter("-no-window");
+
+    return command;
   }
 }

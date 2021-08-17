@@ -29,25 +29,40 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.GeneratedSourcesFilter
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
+import com.intellij.psi.search.DelegatingGlobalSearchScope
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode.NO_SHORTENING
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
+
+// Flag used for gradle version >4.2.0 and <7.0.0
 const val NON_TRANSITIVE_APP_R_CLASSES_PROPERTY = "android.experimental.nonTransitiveAppRClass"
+
+private val LOG: Logger by lazy { Logger.getInstance("NamespaceRefactoringsUtil.kt") }
 
 /**
  * Information about an Android resource reference.
@@ -64,6 +79,8 @@ internal abstract class ResourceUsageInfo : UsageInfo {
   var inferredPackage: String? = null
 }
 
+internal class PropertiesUsageInfo(val flag: String, psiElement: PsiElement) : UsageInfo(psiElement, true)
+
 /**
  * [ResourceUsageInfo] for references to R class fields in Java/Kotlin.
  */
@@ -79,17 +96,40 @@ internal class CodeUsageInfo(
 ) : ResourceUsageInfo(fieldReferenceExpression) {
   fun updateClassReference(psiMigration: PsiMigration) {
     val reference = classReference
-    reference.bindToElement(
-      findOrCreateClass(
-        classReference.element.project,
-        psiMigration,
-        packageToRClass(inferredPackage ?: return),
 
-        // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
-        // AndroidResolveScopeEnlarger.
-        scope = reference.element.resolveScope
-      )
+    val newRClass = findOrCreateClass(
+      classReference.element.project,
+      psiMigration,
+      packageToRClass(inferredPackage ?: return),
+
+      // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
+      // AndroidResolveScopeEnlarger.
+      reference.element.resolveScope
     )
+
+    if (reference is KtSimpleNameReference) {
+      // For Kotlin references, we want to not use reference shortening, this is because otherwise we get sporadic prepending of
+      // "_root_ide_package_" to the package name.
+      reference.bindToElement(newRClass, NO_SHORTENING)
+    } else {
+      reference.bindToElement(newRClass)
+    }
+  }
+
+  /**
+   * Verifies if one of the calls on the stack comes from the [KotlinOptimizeImportsRefactoringHelper].
+   * We check the last 5 elements to allow for some future flow changes.
+   */
+  private fun isKotlinOptimizerCall(): Boolean = Thread.currentThread().stackTrace
+    .take(5)
+    .map { it.className }
+    .any { KotlinOptimizeImportsRefactoringHelper::class.qualifiedName == it }
+
+  override fun getFile(): PsiFile? = if (classReference.element.language is KotlinLanguage && isKotlinOptimizerCall()) {
+    null
+  }
+  else {
+    super.getFile()
   }
 }
 
@@ -100,13 +140,25 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
   val result = mutableListOf<CodeUsageInfo>()
   val module = facet.module
   val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
+  val project = module.project
 
-  val rClasses = module.project.getProjectSystem()
+  val rClasses = project.getProjectSystem()
     .getLightResourceClassService()
     .getLightRClassesDefinedByModule(module, true)
 
   for (rClass in rClasses) {
-    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, rClass.useScope)) {
+    val useScopeSearchScope = rClass.useScope
+    val searchScope = if (useScopeSearchScope is GlobalSearchScope) {
+      NonGeneratedSearchScope(project, useScopeSearchScope)
+    } else {
+      if (LOG.isDebugEnabled) {
+        LOG.debug("GlobalSearchScope expected, instead got: ${useScopeSearchScope.javaClass.simpleName} for light class " +
+                  "type: ${rClass.javaClass.simpleName}")
+      }
+      useScopeSearchScope
+    }
+
+    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, searchScope)) {
       val element = psiReference.element
       val (nameRef, resource) = when (element.language) {
         JavaLanguage.INSTANCE -> {
@@ -118,12 +170,13 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
           // Make sure the PSI structure is as expected for something like "R.string.app_name":
           if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue@referencesLoop
 
+          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
           Pair(
             nameRef as PsiElement,
             ResourceReference(
               ResourceNamespace.RES_AUTO,
               ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              nameRef.referenceName ?: continue@referencesLoop
+              resolvedResource?.resourceName ?: nameRef.referenceName ?: continue@referencesLoop
             )
           )
         }
@@ -133,12 +186,13 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
           val typeName = typeRef.getReferencedName()
           val nameRef = typeRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
 
+          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
           Pair(
             nameRef as PsiElement,
             ResourceReference(
               ResourceNamespace.RES_AUTO,
               ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              nameRef.getReferencedName()
+              resolvedResource?.resourceName ?: nameRef.getReferencedName()
             )
           )
         }
@@ -188,7 +242,7 @@ private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement)
 
 internal fun inferPackageNames(
   result: Collection<ResourceUsageInfo>,
-  progressIndicator: ProgressIndicator
+  progressIndicator: ProgressIndicator?
 ) {
 
   val inferredNamespaces: Table<ResourceType, String, String> =
@@ -214,6 +268,15 @@ internal fun inferPackageNames(
       null
     }
 
-    progressIndicator.fraction = (index + 1) / total
+    progressIndicator?.fraction = (index + 1) / total
+  }
+}
+
+/**
+ * Search scope that intersects a provided scope with non-generated files in a Gradle project. ie. no files under the build/ folder.
+ */
+private class NonGeneratedSearchScope(project: Project, baseScope: GlobalSearchScope) : DelegatingGlobalSearchScope(project, baseScope) {
+  override fun contains(file: VirtualFile): Boolean {
+    return super.contains(file) && !GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, project!!)
   }
 }

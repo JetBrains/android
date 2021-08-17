@@ -16,30 +16,37 @@
 package com.android.build.attribution.data
 
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.PluginIdentifier
+import org.gradle.tooling.events.ScriptPluginIdentifier
 
 /**
  * A cache object to unify [PluginData] objects and share them between different analyzers.
  */
 class PluginContainer {
   private val pluginCache = HashMap<String, PluginData>()
+  private val pluginDisplayNamesToPlugin = HashMap<PluginData.DisplayName, PluginData>()
 
-  fun getPlugin(pluginType: PluginData.PluginType, displayName: String): PluginData {
-    return pluginCache.getOrPut(PluginData.toString(pluginType, displayName)) {
-      PluginData(pluginType, displayName)
+  fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {
+    val pluginIdName = getPluginIdName(pluginIdentifier, projectPath)
+    return pluginCache.getOrPut(pluginIdName) { PluginData(getPluginType(pluginIdentifier), pluginIdName) }.also { plugin ->
+      if (pluginIdentifier != null) {
+        val displayName = getPluginDisplayName(pluginIdentifier, projectPath)
+        plugin.recordDisplayName(displayName)
+        pluginDisplayNamesToPlugin[displayName] = plugin
+      }
     }
   }
 
-  fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {
-    return pluginCache.getOrPut(PluginData.toString(pluginIdentifier, projectPath)) {
-      PluginData(pluginIdentifier, projectPath)
-    }
+  fun findPluginByName(pluginName: String, projectPath: String): PluginData? {
+    return pluginDisplayNamesToPlugin[PluginData.DisplayName(pluginName.cleanUpInternalPluginName(), projectPath)]
+           ?: pluginCache[pluginName.cleanUpInternalPluginName()]
   }
 
   fun updatePluginsData(agpAttributionData: AndroidGradlePluginAttributionData) {
     // Identify the build src plugins
     pluginCache.values.forEach { plugin ->
-      if (agpAttributionData.buildSrcPlugins.contains(plugin.displayName)) {
+      if (plugin.displayNames().any { agpAttributionData.buildSrcPlugins.contains(it) }) {
         plugin.markAsBuildSrcPlugin()
       }
     }
@@ -47,5 +54,31 @@ class PluginContainer {
 
   fun clear() {
     pluginCache.clear()
+    pluginDisplayNamesToPlugin.clear()
   }
+
+  private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginData.PluginType {
+    return when (pluginIdentifier) {
+      is BinaryPluginIdentifier -> PluginData.PluginType.BINARY_PLUGIN
+      is ScriptPluginIdentifier -> PluginData.PluginType.SCRIPT
+      else -> PluginData.PluginType.UNKNOWN
+    }
+  }
+
+  private fun getPluginIdName(pluginIdentifier: PluginIdentifier?, projectPath: String): String = when (pluginIdentifier) {
+    null -> ""
+    is BinaryPluginIdentifier -> pluginIdentifier.className.cleanUpInternalPluginName()
+    is ScriptPluginIdentifier -> "$projectPath:${pluginIdentifier.displayName}"
+    else -> pluginIdentifier.displayName
+  }
+
+  private fun getPluginDisplayName(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData.DisplayName = when (pluginIdentifier) {
+    is ScriptPluginIdentifier -> PluginData.DisplayName("$projectPath:${pluginIdentifier.displayName}", projectPath)
+    else -> PluginData.DisplayName(pluginIdentifier.displayName.cleanUpInternalPluginName(), projectPath)
+  }
+
+  private fun String.cleanUpInternalPluginName() = if (startsWith("com.android.internal.")) {
+    replace("com.android.internal.", "com.android.")
+  }
+  else this
 }

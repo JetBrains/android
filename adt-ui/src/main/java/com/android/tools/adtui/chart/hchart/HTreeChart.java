@@ -168,9 +168,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     initializeInputMap();
     initializeMouseEvents();
     setFont(AdtUiUtils.DEFAULT_FONT);
-    myXRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
-    myYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
-    changed();
+    myXRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+    myYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+    rootChanged();
   }
 
   /**
@@ -209,12 +209,16 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     return myFocusedNode;
   }
 
-  private void changed() {
+  private void rangeChanged() {
     myDataUpdated = true;
+    opaqueRepaint();
+  }
+
+  private void rootChanged() {
     myCachedMaxHeight = calculateMaximumHeight();
     // Update preferred size using calculated height to make sure containers of this chart account for the height change during layout.
     setPreferredSize(new Dimension(getPreferredSize().width, myCachedMaxHeight));
-    opaqueRepaint();
+    rangeChanged();
   }
 
   @Override
@@ -351,7 +355,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   public void setHTree(@Nullable N root) {
     this.myRoot = root;
-    changed();
+    rootChanged();
   }
 
   @Nullable

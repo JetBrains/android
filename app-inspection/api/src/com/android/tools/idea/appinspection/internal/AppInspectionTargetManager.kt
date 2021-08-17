@@ -18,14 +18,14 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
-import kotlinx.coroutines.CoroutineDispatcher
+import io.grpc.StatusRuntimeException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -37,8 +37,7 @@ import java.util.concurrent.ConcurrentHashMap
 @AnyThread
 internal class AppInspectionTargetManager internal constructor(
   private val transportClient: TransportClient,
-  parentScope: CoroutineScope,
-  private val workerDispatcher: CoroutineDispatcher
+  parentScope: CoroutineScope
 ) : ProcessListener {
   private val scope = parentScope.createChildScope(true)
 
@@ -59,16 +58,20 @@ internal class AppInspectionTargetManager internal constructor(
     projectName: String
   ): AppInspectionTarget {
     val targetInfo = targets.computeIfAbsent(processDescriptor) {
-      val processDescriptor = processDescriptor.toTransportImpl()
       val targetDeferred = scope.async {
-        val transport = AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, workerDispatcher,
-                                               streamChannel)
+        val transport = AppInspectionTransport(transportClient, processDescriptor, streamChannel)
         attachAppInspectionTarget(transport, jarCopier, scope)
       }
       TargetInfo(targetDeferred, projectName)
     }
     try {
       return targetInfo.targetDeferred.await()
+    }
+    catch (e: StatusRuntimeException) {
+      // A gRPC exception can be thrown here if the process has ended. We cannot recover from this so we prompt user to restart app.
+      targets.remove(processDescriptor)
+      throw AppInspectionProcessNoLongerExistsException("Failed to connect to process ${processDescriptor.name}. The process has " +
+                                                        "likely ended. Please restart it so App Inspection can reconnect.", e)
     }
     catch (e: Throwable) {
       // On any exception, including cancellation, remove the target from the hashmap |targets|.
@@ -77,12 +80,12 @@ internal class AppInspectionTargetManager internal constructor(
     }
   }
 
-  override fun onProcessConnected(descriptor: ProcessDescriptor) {
+  override fun onProcessConnected(process: ProcessDescriptor) {
   }
 
-  override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+  override fun onProcessDisconnected(process: ProcessDescriptor) {
     // There is no need to explicitly dispose clients here because they are handled by AppInspectorConnection.
-    targets.remove(descriptor)?.targetDeferred?.cancel()
+    targets.remove(process)?.targetDeferred?.cancel()
   }
 
   suspend fun getTarget(descriptor: ProcessDescriptor): AppInspectionTarget? {

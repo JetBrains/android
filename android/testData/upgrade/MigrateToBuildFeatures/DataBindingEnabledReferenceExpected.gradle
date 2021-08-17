@@ -1,0 +1,9 @@
+ext {
+  fancy = true
+}
+
+android {
+  buildFeatures {
+    dataBinding fancy
+  }
+}

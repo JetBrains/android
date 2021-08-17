@@ -24,9 +24,11 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolder;
 import icons.StudioIcons;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +53,7 @@ final class Updater {
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-  private final boolean mySnapshotsEnabled;
+  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
 
   static final class Builder {
     @Nullable
@@ -72,7 +74,7 @@ final class Updater {
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-    private boolean mySnapshotsEnabled;
+    private @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
 
     @NotNull
     Builder setProject(@NotNull Project project) {
@@ -110,9 +112,8 @@ final class Updater {
       return this;
     }
 
-    @NotNull
-    Builder setSnapshotsEnabled(boolean snapshotsEnabled) {
-      mySnapshotsEnabled = snapshotsEnabled;
+    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
       return this;
     }
 
@@ -135,9 +136,8 @@ final class Updater {
     myDevicesSelectedService = builder.myDevicesSelectedService;
 
     myDevices = builder.myDevices;
-
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
-    mySnapshotsEnabled = builder.mySnapshotsEnabled;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
   }
 
   void update() {
@@ -209,26 +209,29 @@ final class Updater {
   }
 
   private void updateInToolbarForMultipleDevices() {
-    Set<Key> selectedKeys = myDevicesSelectedService.getDeviceKeysSelectedWithDialog();
+    Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog(myDevices);
 
-    Set<Key> keys = myDevices.stream()
-      .map(Device::getKey)
+    Set<Target> targets = myDevices.stream()
+      .map(Device::getTargets)
+      .flatMap(Collection::stream)
       .collect(Collectors.toSet());
 
-    if (selectedKeys.retainAll(keys)) {
-      myDevicesSelectedService.setDeviceKeysSelectedWithDialog(selectedKeys);
+    if (selectedTargets.retainAll(targets)) {
+      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets);
+    }
 
-      if (selectedKeys.isEmpty()) {
-        myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
-        myDevicesSelectedService.setDeviceSelectedWithComboBox(myDevicesSelectedService.getDeviceSelectedWithComboBox(myDevices));
+    if (selectedTargets.isEmpty()) {
+      myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
 
-        updateInToolbarForSingleDevice();
-        return;
-      }
+      Target selectedTarget = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElse(null);
+      myDevicesSelectedService.setTargetSelectedWithComboBox(selectedTarget);
+
+      updateInToolbarForSingleDevice();
+      return;
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
-    myPresentation.setText("Multiple Devices (" + selectedKeys.size() + ")");
+    myPresentation.setText("Multiple Devices (" + selectedTargets.size() + ")");
   }
 
   private void updateInToolbarForSingleDevice() {
@@ -239,18 +242,32 @@ final class Updater {
       return;
     }
 
-    Device device = myDevicesSelectedService.getDeviceSelectedWithComboBox(myDevices);
-    assert device != null;
+    Target target = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElseThrow(AssertionError::new);
+    Object key = target.getDeviceKey();
+
+    Device device = myDevices.stream()
+      .filter(d -> d.getKey().equals(key))
+      .findFirst()
+      .orElseThrow(AssertionError::new);
 
     myPresentation.setIcon(device.getIcon());
-    myPresentation.setText(getText(device), false);
+    myPresentation.setText(getText(device, target), false);
   }
 
-  @NotNull
-  private String getText(@NotNull Device device) {
+  /**
+   * Returns the text to display in the drop down button. It usually indicates the device selected by the user. If there's another device in
+   * the drop down with the same name as the selected device, this method appends the selected device's key (serial number) to the text to
+   * disambiguate it. If it's appropriate to display the boot option (Cold Boot, Quick Boot, the name of the snapshot for a snapshot boot),
+   * this method appends it to the text. If the underlying machinery has determined a reason why a device isn't valid, this method appends
+   * that too.
+   *
+   * @param device the device selected by the user
+   * @param target responsible for the boot option text if it's appropriate to display it
+   */
+  private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
     Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    Snapshot snapshot = mySnapshotsEnabled ? device.getSnapshot() : null;
+    String bootOption = Devices.getBootOption(device, target, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse(null);
 
-    return Devices.getText(device, key, snapshot);
+    return Devices.getText(device, key, bootOption);
   }
 }

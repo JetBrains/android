@@ -21,6 +21,9 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,12 +67,21 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
     testProjectSystem.useInTests();
 
+    final String[] dialogMessage = new String[1]; // Making it an array to be accessible from an inner class.
+    TestDialog testDialog = message -> {
+      dialogMessage[0] = message.trim(); // Remove line break in the end of the message.
+      return Messages.OK;
+    };
+    TestDialogManager.setTestDialog(testDialog);
+
     // try multiple invalid links
     HtmlLinkManager.handleAddDependency("addDependency:", myModule);
     HtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
     HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
     HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
+    assertThat(dialogMessage[0]).isEqualTo("Can't find com.google.android.gms:palette-v7:+");
     HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
+    assertThat(dialogMessage[0]).isEqualTo("Can't find com.android.support:palette-v7-broken:+");
     assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
 
     HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);

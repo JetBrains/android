@@ -15,8 +15,14 @@
  */
 package org.jetbrains.android.dom.lint;
 
+import static com.android.tools.lint.detector.api.TextFormat.TEXT;
+
+import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.client.api.IssueRegistry;
+import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.TextFormat;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.psi.PsiElement;
@@ -68,6 +74,20 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
     }
 
     final Issue issue = (Issue)object;
-    return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, issue.getId(), issue.getExplanation(TextFormat.HTML));
+    return getDocumentationElementForLookupItem(psiManager, issue);
+  }
+
+  @VisibleForTesting
+  PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Issue issue) {
+    String documentation = issue.getExplanation(TextFormat.HTML);
+    Vendor vendor = issue.getVendor();
+    IssueRegistry registry = issue.getRegistry();
+    if (vendor == null && registry != null) {
+      vendor = registry.getVendor();
+    }
+    if (vendor != null && vendor != IssueRegistry.Companion.getAOSP_VENDOR()) {
+      documentation = documentation + "<br/>\n" + vendor.describe(TextFormat.HTML);
+    }
+    return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, issue.getId(), documentation);
   }
 }

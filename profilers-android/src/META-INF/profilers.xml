@@ -37,13 +37,15 @@
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
     <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
-    <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType"
+    <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.profilers.capture.CpuCaptureFileType"
               extensions="trace"/>
-    <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType"
+    <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.profilers.capture.MemoryAllocationFileType"
               extensions="alloc"/>
-    <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType"/>
-    <fileTypeDetector implementation="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType$Detector"/>
+    <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.profilers.capture.MemoryCaptureFileType"/>
+    <fileTypeDetector implementation="com.android.tools.idea.profilers.capture.MemoryCaptureFileType$Detector"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
               fieldName="INSTANCE" extensions="heapprofd"/>
+    <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
+              extensions="pftrace;perfetto-trace"/>
   </extensions>
 </idea-plugin>

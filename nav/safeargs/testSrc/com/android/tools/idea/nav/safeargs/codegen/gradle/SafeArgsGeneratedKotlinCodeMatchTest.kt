@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.codegen.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.blame.Message
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.resolveClassByFqName
 import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
@@ -83,9 +82,9 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   fun initProject() {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     // to be able to change the project before import, we copy it into a temp folder
-    val testSrc = TestUtils.getWorkspaceFile("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
+    val testSrc = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
     val container = temporaryFolder.newFile("TestApp")
-    testSrc.copyRecursively(container, overwrite = true)
+    testSrc.toFile().copyRecursively(container, overwrite = true)
 
     val settingsFile = container.resolve("settings.gradle").also {
       assertWithMessage("settings file should exist").that(it.exists()).isTrue()

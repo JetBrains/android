@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.projectsystem.gradle.sync
 
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.facet.AndroidArtifactFacet
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
@@ -24,32 +30,20 @@ import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeed
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
-import com.android.tools.idea.gradle.project.sync.setup.post.ComposeInBetaChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
-import com.android.tools.idea.gradle.project.upgrade.recommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
+import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.compiler.options.CompileStepBeforeRun
-import com.intellij.execution.BeforeRunTask
-import com.intellij.execution.BeforeRunTaskProvider
-import com.intellij.execution.RunManagerEx
-import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.configurations.ConfigurationType
-import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -57,23 +51,23 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.jps.model.serialization.PathMacroUtil
-import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -87,29 +81,62 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
   override fun getTargetDataKey(): Key<AndroidModuleModel> = ANDROID_MODEL
 
+  /**
+   * This method is responsible for managing the presence of both the [AndroidFacet] and [AndroidArtifactFacet] across all modules.
+   *
+   * It also sets up the SDKs and language levels for all modules that stem from an [AndroidModuleModel]
+   */
   public override fun importData(toImport: Collection<DataNode<AndroidModuleModel>>,
                                  project: Project,
                                  modelsProvider: IdeModifiableModelsProvider,
-                                 modelsByModuleName: Map<String, AndroidModuleModel>) {
+                                 modelsByModuleName: Map<String, DataNode<AndroidModuleModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
-    for (module in modelsProvider.modules) {
-      val androidModel = modelsByModuleName[module.name]
-      if (androidModel != null) {
-        // Create the Android facet and attache to the module.
-        val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
-                           ?: createAndroidFacet(module, modelsProvider)
-        androidModel.setModule(module)
-        // Configure that Android facet from the information in the AndroidModuleModel.
-        configureFacet(androidFacet, androidModel)
 
-        // Set language level if available
-        val languageLevel = androidModel.javaLanguageLevel
-        if (languageLevel != null) {
-          modelsProvider.getModifiableRootModel(module).getModuleExtension(LanguageLevelModuleExtension::class.java).languageLevel = languageLevel
+    // Any modules left in this set need to be purged of all Android and AndroidArtifact facets.
+    val nonAndroidModules = modelsProvider.modules.toMutableSet()
+
+    for (nodeToImport in toImport) {
+      val mainModuleDataNode = ExternalSystemApiUtil.findParent(
+        nodeToImport,
+        ProjectKeys.MODULE
+      ) ?: continue
+      val mainModuleData = mainModuleDataNode.data
+      val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
+      nonAndroidModules.remove<Module>(mainIdeModule)
+
+      val androidModel = nodeToImport.data
+      androidModel.setModule(mainIdeModule)
+
+      var mainArtifactModule : Module? = null
+      val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
+        modelsProvider.findIdeModule(dataNode.data).also { module ->
+          if (dataNode.data.externalName.substringAfterLast(":") == "main") {
+            mainArtifactModule = module
+          }
+        }
+      }
+
+      modules.forEach { module ->
+        nonAndroidModules.remove<Module>(module)
+        val facetModel = modelsProvider.getModifiableFacetModel(module)
+
+        // If we only have one module then module per source set must be disabled as no GradleSourceSetData was found.
+        if (!StudioFlags.USE_MODULE_PER_SOURCE_SET.get() || module == mainArtifactModule) {
+          val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
+                             ?: createAndroidFacet(module, facetModel)
+          // Configure that Android facet from the information in the AndroidModuleModel.
+          configureFacet(androidFacet, androidModel)
+        } else {
+          removeAllFacets(facetModel, AndroidFacet.ID)
         }
 
         moduleValidator.validate(module, androidModel)
       }
+    }
+
+    nonAndroidModules.forEach { module ->
+      removeAllFacets(modelsProvider.getModifiableFacetModel(module), AndroidFacet.ID)
+      // We don't need to clean up the sdk or language level as that should be set by whatever is handling the new module type.
     }
 
     if (modelsByModuleName.isNotEmpty()) {
@@ -117,22 +144,62 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     }
   }
 
-  override fun removeData(toRemoveComputable: Computable<out Collection<Module>>,
-                          toIgnore: Collection<DataNode<AndroidModuleModel>>,
-                          projectData: @NotNull ProjectData,
-                          project: @NotNull Project,
-                          modelsProvider: @NotNull IdeModifiableModelsProvider) {
-    for (module in toRemoveComputable.get()) {
-      val facetModel = modelsProvider.getModifiableFacetModel(module)
-      removeAllFacets(facetModel, AndroidFacet.ID)
+  private fun Module.setupSdkAndLanguageLevel(
+    modelsProvider: IdeModifiableModelsProvider,
+    languageLevel: LanguageLevel?,
+    sdkToUse: Sdk?)  {
+    val rootModel = modelsProvider.getModifiableRootModel(this)
+    if (languageLevel != null) {
+      rootModel.getModuleExtension(
+        LanguageLevelModuleExtension::class.java).languageLevel = languageLevel
+    }
+    if (sdkToUse != null) {
+      rootModel.sdk = sdkToUse
     }
   }
 
-  override fun postProcess(toImport: MutableCollection<out DataNode<AndroidModuleModel>>,
+  /**
+   * This may be called from either the EDT or a background thread depending on if the project import is being run synchronously.
+   */
+  override fun onSuccessImport(imported: Collection<DataNode<AndroidModuleModel>>,
+                               projectData: ProjectData?,
+                               project: Project,
+                               modelsProvider: IdeModelsProvider) {
+    GradleProjectInfo.getInstance(project).isNewProject = false
+    GradleProjectInfo.getInstance(project).isImportedProject = false
+
+    // TODO(b/124229467): Consider whether this should be here, as it will trigger on any project data import.
+    AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
+
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      MemorySettingsPostSyncChecker
+        .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
+    }
+
+    ProjectStructureUsageTracker(project).trackProjectStructure()
+
+    SupportedModuleChecker.getInstance().checkForSupportedModules(project)
+
+    findConflicts(project).showSelectionConflicts()
+    ProjectSetup(project).setUpProject(false /* sync successful */)
+
+    RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
+
+    ProjectStructure.getInstance(project).analyzeProjectStructure()
+    ProgressManager.getInstance().run(object : Backgroundable(project, "Setting up modules...") {
+      override fun run(indicator: ProgressIndicator) {
+        setUpModules(project)
+      }
+    })
+  }
+
+  override fun postProcess(toImport: MutableCollection<DataNode<AndroidModuleModel>>,
                            projectData: ProjectData?,
                            project: Project,
                            modelsProvider: IdeModifiableModelsProvider) {
     super.postProcess(toImport, projectData, project, modelsProvider)
+    // We need to set the SDK in postProcess since we need to ensure that this is run after the code in
+    // KotlinGradleAndroidModuleModelProjectDataService.
     for (nodeToImport in toImport) {
       val mainModuleDataNode = ExternalSystemApiUtil.findParent(
         nodeToImport,
@@ -152,65 +219,25 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         androidModel.androidProject.bootClasspath,
         IdeSdks.getInstance()
       )
-      if (sdkToUse != null) {
-        modelsProvider.getModifiableRootModel(mainIdeModule).sdk = sdkToUse
+
+      val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
+        modelsProvider.findIdeModule(dataNode.data)
+      }
+      modules.forEach { module ->
+        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
       }
     }
-  }
-
-  /**
-   * This may be called from either the EDT or a background thread depending on if the project import is being run synchronously.
-   */
-  override fun onSuccessImport(imported: Collection<DataNode<AndroidModuleModel>>,
-                               projectData: ProjectData?,
-                               project: Project,
-                               modelsProvider: IdeModelsProvider) {
-    GradleProjectInfo.getInstance(project).isNewProject = false
-    GradleProjectInfo.getInstance(project).isImportedProject = false
-
-    if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
-      // in IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
-      // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
-      return;
-    }
-
-    ApplicationManager.getApplication().executeOnPooledThread {
-      if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
-    }
-
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      ComposeInBetaChecker.checkIfComposeProject(project);
-      MemorySettingsPostSyncChecker
-        .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
-    }
-
-    ProjectStructureUsageTracker(project).trackProjectStructure()
-
-    SupportedModuleChecker.getInstance().checkForSupportedModules(project)
-
-    findConflicts(project).showSelectionConflicts()
-    ProjectSetup(project).setUpProject(false /* sync successful */)
-
-    modifyJUnitRunConfigurations(project)
-    RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
-
-    ProjectStructure.getInstance(project).analyzeProjectStructure()
-    ProgressManager.getInstance().run(object : Backgroundable(project, "Setting up modules...") {
-      override fun run(indicator: ProgressIndicator) {
-        setUpModules(project)
-      }
-    })
   }
 }
 
 /**
  * Creates an [AndroidFacet] on the given [module] with the default facet configuration.
  */
-private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableModelsProvider): AndroidFacet {
-  val model = modelsProvider.getModifiableFacetModel(module)
+private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel): AndroidFacet {
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
-  model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
+  @Suppress("UnstableApiUsage")
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }
 
@@ -222,7 +249,16 @@ private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableMode
 private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: AndroidModuleModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
-  androidFacet.properties.PROJECT_TYPE = androidModuleModel.androidProject.projectType
+  @Suppress("DEPRECATION")
+  androidFacet.properties.PROJECT_TYPE = when(androidModuleModel.androidProject.projectType) {
+    IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidProjectTypes.PROJECT_TYPE_ATOM
+    IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidProjectTypes.PROJECT_TYPE_APP
+    IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+    IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
+  }
 
   val modulePath = androidModuleModel.rootDirPath
   val sourceProvider = androidModuleModel.defaultSourceProvider
@@ -246,7 +282,7 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
   }
 
   AndroidModel.set(androidFacet, androidModuleModel)
-  androidModuleModel.syncSelectedVariantAndTestArtifact(androidFacet)
+  syncSelectedVariant(androidFacet, androidModuleModel.selectedVariant)
 }
 
 // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
@@ -260,57 +296,15 @@ private fun relativePath(basePath: File, file: File?): String {
   return ""
 }
 
-// TODO: Find a better place for this method.
-private fun modifyJUnitRunConfigurations(project: Project) {
-  val junitConfigurationType: ConfigurationType = AndroidJUnitConfigurationType.getInstance()
-  val taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(project)
-  val runManager = RunManagerEx.getInstanceEx(project)
-  // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
-  // For IDEA, use regular "Make".
-  val makeTaskId = if (IdeInfo.getInstance().isAndroidStudio) MakeBeforeRunTaskProvider.ID else CompileStepBeforeRun.ID
-  val targetProvider: BeforeRunTaskProvider<*>? = taskProviders.first { it.id == makeTaskId }
+fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
+  val state = facet.properties
+  state.SELECTED_BUILD_VARIANT = variant.name
+  val mainArtifact = variant.mainArtifact
 
-  if (targetProvider != null) {
-    // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
-    val currentTasks = runManager.getConfigurationsList(junitConfigurationType).associateWith { runManager.getBeforeRunTasks(it) }
-    // Fix the "JUnit Run Configuration" templates.
-    for (configurationFactory in junitConfigurationType.configurationFactories) {
-      val template: RunnerAndConfigurationSettings = runManager.getConfigurationTemplate(configurationFactory)
-      val runConfiguration = template.configuration as AndroidJUnitConfiguration
-      // Set the correct "Make step" in the "JUnit Run Configuration" template.
-      setMakeStepInJUnitConfiguration(project, targetProvider, runConfiguration)
-      runConfiguration.workingDirectory = "$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$"
-    }
-    // Fix existing JUnit Configurations.
-    for (runConfiguration in runManager.getConfigurationsList(junitConfigurationType)) {
-      // Keep the previous configurations in existing run configurations
-      runManager.setBeforeRunTasks(runConfiguration, currentTasks[runConfiguration]!!)
-    }
-  }
-}
-
-// TODO: Find a better place for this method.
-private fun setMakeStepInJUnitConfiguration(
-  project: Project,
-  targetProvider: BeforeRunTaskProvider<*>,
-  runConfiguration: RunConfiguration
-) {
-  // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
-  val newBeforeRunTasks: MutableList<BeforeRunTask<*>> = LinkedList()
-  val runManager = RunManagerEx.getInstanceEx(project)
-  for (beforeRunTask in runManager.getBeforeRunTasks(runConfiguration)) {
-    if (beforeRunTask.providerId == CompileStepBeforeRun.ID) {
-      if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
-        val task = targetProvider.createTask(runConfiguration)
-        if (task != null) {
-          task.isEnabled = true
-          newBeforeRunTasks.add(task)
-        }
-      }
-    }
-    else {
-      newBeforeRunTasks.add(beforeRunTask)
-    }
-  }
-  runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks)
+  // When multi test artifacts are enabled, test tasks are computed dynamically.
+  state.ASSEMBLE_TASK_NAME = mainArtifact.buildInformation.assembleTaskName
+  state.COMPILE_JAVA_TASK_NAME = mainArtifact.compileTaskName
+  state.AFTER_SYNC_TASK_NAMES = HashSet(mainArtifact.ideSetupTaskNames)
+  state.ASSEMBLE_TEST_TASK_NAME = ""
+  state.COMPILE_JAVA_TEST_TASK_NAME = ""
 }

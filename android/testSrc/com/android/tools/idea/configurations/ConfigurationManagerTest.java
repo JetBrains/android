@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {
@@ -86,4 +95,54 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertFalse(manager.hasCachedConfiguration(file1));
     assertFalse(manager.hasCachedConfiguration(file2));
   }
+
+  /**
+   * Check that {@link ConfigurationManager#getConfiguration(VirtualFile)} does not need the read lock and will acquire it if needed.
+   *
+   * Regression test for b/162537840
+   */
+  public void testNoReadAction() throws ExecutionException, InterruptedException {
+    VirtualFile file1 = myFixture.addFileToProject(
+      "res/values/values.xml",
+      "<resources>" +
+      " <color name=\"myColor\">#FF00FF</color>" +
+      "</resources>").getVirtualFile();
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    assertNotNull(manager);
+
+    // Populate the
+    ImmutableList<Device> devices = manager.getDevices();
+    // Our list of devices is pretty big, validity check that there is at least 5 for the test.
+    assertTrue("The existing device list is expected to contain at least 5 devices.", devices.size() > 5);
+    manager.selectDevice(devices.get(0));
+    manager.selectDevice(devices.get(1));
+    manager.selectDevice(devices.get(2));
+
+    AppExecutorUtil.getAppExecutorService().submit(() -> {
+      try {
+        assertNotNull(manager.getConfiguration(file1));
+      } catch (Throwable t) {
+        fail("No exception expected calling ConfiguraitonManager#getConfiguration");
+      }
+    }).get();
+  }
+
+  public void testWearProjectUsesWearDeviceByDefault() {
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      UsesFeature feature = manifest.addUsesFeature();
+      feature.getName().setStringValue("android.hardware.type.watch");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
+  }
+
+  @Language("xml")
+  private static final String LAYOUT_FILE_TEXT = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                 "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                 "  android:layout_width=\"match_parent\"\n" +
+                                                 "  android:layout_height=\"match_parent\" />";
 }

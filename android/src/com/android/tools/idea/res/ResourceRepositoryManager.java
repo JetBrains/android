@@ -17,20 +17,15 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
@@ -56,7 +51,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +64,6 @@ import java.util.function.Function;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,9 +104,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
-  private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
-  @GuardedBy("myLibraryLock")
-  @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
+  private Map<ExternalAndroidLibrary, AarResourceRepository> myLibraryResourceMap;
 
   private final Object myLibraryLock = new Object();
 
@@ -270,61 +261,53 @@ public final class ResourceRepositoryManager implements Disposable {
     return true;
   }
 
-  @NotNull
-  public static Collection<IdeLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<IdeLibrary> libraries = new ArrayList<>();
-    if (AndroidModel.isRequired(facet)) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        addGradleLibraries(libraries, androidModel);
-        for (AndroidFacet dependentFacet : dependentFacets) {
-          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
-          if (dependentGradleModel != null) {
-            addGradleLibraries(libraries, dependentGradleModel);
-          }
-        }
-      }
-    }
-    return libraries;
-  }
-
-  private static void addGradleLibraries(@NotNull List<IdeLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
-    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
-  }
-
   /**
-   * Returns the repository with all resources available to a given module, both framework and non-framework.
+   * Returns the repository for the given namespace.
    *
-   * @return the computed repository or null if framework resources cannot be determined for the module
+   * @return the computed repository, or null if the namespace is {@link ResourceNamespace#ANDROID}
+   *     and the framework resources cannot be determined for the module
    * @see #getAppResources()
    * @see #getFrameworkResources(Set)
+   * @see #getCachedResourcesForNamespace(ResourceNamespace)
    */
+  @Slow
   @Nullable
-  public ResourceRepository getAllResources() {
-    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
-    return frameworkResources == null ? null : new AllResourceRepository(getAppResources(), frameworkResources);
+  public ResourceRepository getResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    return namespace.equals(ResourceNamespace.ANDROID) ? getFrameworkResources(Collections.emptySet()) : getAppResources();
   }
 
   /**
-   * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
-   * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
-   * depend on (e.g. appcompat). This repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS}
-   * namespace.
+   * Returns the repository for the given namespace, if it has been loaded already.
    *
-   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository: it should see all
-   * the resources just like the app does.
+   * @return the repository, or null if the repository hasn't been loaded yet
+   * @see #getAppResources()
+   * @see #getFrameworkResources(Set)
+   * @see #getResourcesForNamespace(ResourceNamespace)
+   */
+  @Nullable
+  public ResourceRepository getCachedResourcesForNamespace(@NotNull ResourceNamespace namespace) {
+    return namespace.equals(ResourceNamespace.ANDROID) ? getCachedFrameworkResources(Collections.emptySet()) : getCachedAppResources();
+  }
+
+  /**
+   * Returns the repository with all non-framework resources available to a given module (in the current variant).
+   * This includes not just the resources defined in this module, but in any other modules that this module depends
+   * on, as well as any libraries those modules may depend on (e.g. appcompat). This repository also contains sample
+   * data resources associated with the {@link ResourceNamespace#TOOLS} namespace.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p>When a layout is rendered in the layout editor, it is getting resources from the app resource repository:
+   * it should see all the resources just like the app does.
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingAppResources()
+   * @see #getCachedAppResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getAppResources() {
-    LocalResourceRepository appResources = getExistingAppResources();
+    LocalResourceRepository appResources = getCachedAppResources();
     if (appResources != null) {
       return appResources;
     }
@@ -346,16 +329,16 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the previously computed repository with all non-framework resources available to a given module (in the current variant).
-   * This includes not just the resources defined in this module, but in any other modules that this module depends on, as well as any AARs
-   * those modules depend on (e.g. appcompat). This repository also contains sample data resources associated with
-   * the {@link ResourceNamespace#TOOLS} namespace.
+   * Returns the previously computed repository with all non-framework resources available to a given module
+   * (in the current variant). This includes not just the resources defined in this module, but in any other
+   * modules that this module depends on, as well as any AARs those modules depend on (e.g. appcompat). This
+   * repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS} namespace.
    *
    * @return the repository, or null if the repository hasn't been created yet
    * @see #getAppResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingAppResources() {
+  public LocalResourceRepository getCachedAppResources() {
     synchronized (APP_RESOURCES_LOCK) {
       return myAppResources;
     }
@@ -365,16 +348,16 @@ public final class ResourceRepositoryManager implements Disposable {
    * Returns the resource repository for a module along with all its (local) module dependencies.
    * The repository doesn't contain resources from AAR dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingProjectResources()
+   * @see #getCachedProjectResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getProjectResources() {
-    LocalResourceRepository projectResources = getExistingProjectResources();
+    LocalResourceRepository projectResources = getCachedProjectResources();
     if (projectResources != null) {
       return projectResources;
     }
@@ -401,26 +384,26 @@ public final class ResourceRepositoryManager implements Disposable {
    * @see #getProjectResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingProjectResources() {
+  public LocalResourceRepository getCachedProjectResources() {
     synchronized (PROJECT_RESOURCES_LOCK) {
       return myProjectResources;
     }
   }
 
   /**
-   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include resources
-   * from any dependencies.
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders).
+   * Does not include resources from any dependencies.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @return the computed repository
-   * @see #getExistingModuleResources()
+   * @see #getCachedModuleResources()
    */
   @Slow
   @NotNull
   public LocalResourceRepository getModuleResources() {
-    LocalResourceRepository moduleResources = getExistingModuleResources();
+    LocalResourceRepository moduleResources = getCachedModuleResources();
     if (moduleResources != null) {
       return moduleResources;
     }
@@ -441,14 +424,14 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * Returns the previously computed resource repository for a single module (which can possibly have multiple resource folders).
-   * Does not include resources from any dependencies.
+   * Returns the previously computed resource repository for a single module (which can possibly have multiple
+   * resource folders). Does not include resources from any dependencies.
    *
    * @return the repository, or null if the repository hasn't been created yet
    * @see #getModuleResources()
    */
   @Nullable
-  public LocalResourceRepository getExistingModuleResources() {
+  public LocalResourceRepository getCachedModuleResources() {
     synchronized (MODULE_RESOURCES_LOCK) {
       return myModuleResources;
     }
@@ -494,9 +477,10 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
-    // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
-    // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
-    // manager and stored in myModuleResources.
+    // For disposal, the newly created test module repository ends up owned by the repository manager
+    // if returned from this method or the TestAppResourceRepository if passed to it. This is slightly
+    // different to the main module repository, which is always owned by the manager and stored in
+    // myModuleResources.
     LocalResourceRepository moduleTestResources = getTestModuleResources();
 
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
@@ -516,7 +500,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @param languages the set of ISO 639 language codes determining the subset of resources to load.
    *     May be empty to load only the language-neutral resources. The returned repository may contain resources
    *     for more languages than was requested.
-   * @return the framework repository or null if the SDK resources directory cannot be determined for the module
+   * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
   @Nullable
@@ -530,14 +514,34 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
-   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing the single resource repository
-   * returned by {@link #getAppResources()}. Otherwise the method returns a list of module, library, or sample data resource
-   * repositories for the given namespace. Usually the returned list will contain at most two resource repositories, one for a module and
-   * another for its user-defined sample data. More repositories may be returned only when there is a package name collision between modules
-   * or libraries.
+   * Returns the resource repository with Android framework resources for the module's compile SDK, if the repository
+   * has been loaded already.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
+   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
+   *     for more languages than was requested.
+   * @return the framework repository, or null if the repository hasn't been loaded yet
+   */
+  @Nullable
+  public ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
+    if (androidPlatform == null) {
+      return null;
+    }
+
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getCachedFrameworkResources(languages);
+  }
+
+  /**
+   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing
+   * the single resource repository returned by {@link #getAppResources()}. Otherwise the method returns
+   * a list of module, library, or sample data resource repositories for the given namespace. Usually the returned
+   * list will contain at most two resource repositories, one for a module and another for its user-defined sample
+   * data. More repositories may be returned only when there is a package name collision between modules or
+   * libraries.
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    *
    * @param namespace the namespace to return resource repositories for
    * @return the repositories for the given namespace
@@ -554,7 +558,6 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
-    resetVisibility();
     resetLibraries();
     SampleDataRepositoryManager.getInstance(myFacet).reset();
 
@@ -606,8 +609,8 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @Override
   public void dispose() {
-    // There's nothing to dispose in this object, but the actual resource repositories may need to do clean-up and they are children
-    // of this object in the Disposer hierarchy.
+    // There's nothing to dispose in this object, but the actual resource repositories may need to do
+    // clean-up and they are children of this object in the Disposer hierarchy.
   }
 
   public void resetAllCaches() {
@@ -622,12 +625,6 @@ public final class ResourceRepositoryManager implements Disposable {
     return myFacet.getModule().getProject();
   }
 
-  private void resetVisibility() {
-    synchronized (myLibraryLock) {
-      myResourceVisibilityProvider = null;
-    }
-  }
-
   private void resetLibraries() {
     synchronized (myLibraryLock) {
       myLibraryResourceMap = null;
@@ -636,15 +633,13 @@ public final class ResourceRepositoryManager implements Disposable {
 
   void updateRootsAndLibraries() {
     try {
-      resetVisibility();
-
-      ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
-      AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
+      ProjectResourceRepository projectResources = (ProjectResourceRepository)getCachedProjectResources();
+      AppResourceRepository appResources = (AppResourceRepository)getCachedAppResources();
       if (projectResources != null) {
         projectResources.updateRoots();
       }
 
-      Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
+      Map<ExternalAndroidLibrary, AarResourceRepository> oldLibraryResourceMap;
       synchronized (myLibraryLock) {
         // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
         oldLibraryResourceMap = myLibraryResourceMap;
@@ -717,40 +712,11 @@ public final class ResourceRepositoryManager implements Disposable {
     return mySharedTestNamespaceInstance;
   }
 
-  @Nullable
-  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    synchronized (myLibraryLock) {
-      if (myResourceVisibilityProvider == null) {
-        if (!AndroidModel.isRequired(myFacet) || AndroidModel.get(myFacet) == null) {
-          return null;
-        }
-        myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-      }
-
-      return myResourceVisibilityProvider;
-    }
-  }
-
-  @NotNull
-  public ResourceVisibilityLookup getResourceVisibility() {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-    if (androidModel != null) {
-      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-      if (provider != null) {
-        IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        IdeVariant variant = androidModel.getSelectedVariant();
-        return provider.get(androidProject, variant);
-      }
-    }
-
-    return ResourceVisibilityLookup.NONE;
-  }
-
   /**
    * Returns all resource directories.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    */
   @Slow
   @NotNull
@@ -766,15 +732,15 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the corresponding resource repository, or null if not found
    */
   @Nullable
-  public AarResourceRepository findLibraryResources(@NotNull ExternalLibrary library) {
+  public AarResourceRepository findLibraryResources(@NotNull ExternalAndroidLibrary library) {
     return getLibraryResourceMap().get(library);
   }
 
   /**
    * Returns resource repositories for all libraries the app depends upon directly or indirectly.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
    */
   @Slow
   @NotNull
@@ -783,7 +749,7 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarResourceRepository> getLibraryResourceMap() {
+  private Map<ExternalAndroidLibrary, AarResourceRepository> getLibraryResourceMap() {
     synchronized (myLibraryLock) {
       if (myLibraryResourceMap == null) {
         myLibraryResourceMap = computeLibraryResourceMap();
@@ -793,25 +759,25 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarResourceRepository> computeLibraryResourceMap() {
-    Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule(), true).values();
+  private Map<ExternalAndroidLibrary, AarResourceRepository> computeLibraryResourceMap() {
+    Collection<ExternalAndroidLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule(), true).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
-    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
-                                                               aarResourceRepositoryCache::getSourceRepository :
-                                                               aarResourceRepositoryCache::getProtoRepository;
+    Function<ExternalAndroidLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
+                                                                      aarResourceRepositoryCache::getSourceRepository :
+                                                                      aarResourceRepositoryCache::getProtoRepository;
 
     ExecutorService executor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
 
     // Construct the repositories in parallel.
-    Map<ExternalLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
-    for (ExternalLibrary library : libraries) {
+    Map<ExternalAndroidLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
+    for (ExternalAndroidLibrary library : libraries) {
       futures.put(library, executor.submit(() -> factory.apply(library)));
     }
 
     // Gather all the results.
-    ImmutableMap.Builder<ExternalLibrary, AarResourceRepository> map = ImmutableMap.builder();
-    for (Map.Entry<ExternalLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
+    ImmutableMap.Builder<ExternalAndroidLibrary, AarResourceRepository> map = ImmutableMap.builder();
+    for (Map.Entry<ExternalAndroidLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
       try {
         map.put(entry.getKey(), entry.getValue().get());
       }

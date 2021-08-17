@@ -37,7 +37,7 @@ class TransportEventPollerTest {
   private var transportEventPoller: TransportEventPoller? = null
 
   @get:Rule
-  val grpcServer = FakeGrpcServer.createFakeGrpcServer("TransportEventPollerTestChannel", transportService, transportService)!!
+  val grpcServer = FakeGrpcServer.createFakeGrpcServer("TransportEventPollerTestChannel", transportService)
 
   @Before
   fun createPoller() {

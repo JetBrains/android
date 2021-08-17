@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView
-import com.android.tools.idea.uibuilder.property2.inspector.neleDesignPropertySections
-import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesView
+import com.android.tools.idea.uibuilder.property.inspector.neleDesignPropertySections
+import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
@@ -37,8 +37,8 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
-fun getPropertiesToolContent(component: Component?): NelePropertiesPanelToolContent? =
-  ToolContent.getToolContent(component) as? NelePropertiesPanelToolContent
+fun getPropertiesToolContent(component: Component?): NlPropertiesPanelToolContent? =
+  ToolContent.getToolContent(component) as? NlPropertiesPanelToolContent
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
@@ -46,15 +46,15 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 /**
  * Create the models and views for the properties tool content.
  */
-class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
+class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
   : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val queue = MergingUpdateQueue(
     UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
-  private val componentModel = NelePropertiesModel(this, facet, queue)
-  private val componentView = NelePropertiesView(componentModel)
+  private val componentModel = NlPropertiesModel(this, facet, queue)
+  private val componentView = NlPropertiesView(componentModel)
   private val motionModel = MotionLayoutAttributesModel(this, facet, queue)
   private val motionEditorView = MotionLayoutAttributesView(motionModel)
-  private val properties = PropertiesPanel<NelePropertyItem>(componentModel)
+  private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
   private var toolWindow: ToolWindowCallback? = null

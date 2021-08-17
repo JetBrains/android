@@ -16,9 +16,9 @@
 package google.simpleapplication
 
 import androidx.compose.Composable
-import androidx.ui.tooling.preview.Preview
-import androidx.ui.tooling.preview.PreviewParameter
-import androidx.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 
 class TestProvider: PreviewParameterProvider<String> {
   override val values: Sequence<String> = sequenceOf("A", "B", "C")

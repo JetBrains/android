@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.2.0-dev">
+<issues format="5" by="lint 7.0.0-dev">
 
     <issue
         id="SimpleDateFormat"
@@ -14,7 +14,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="279"/>
+            line="311"/>
     </issue>
 
     <issue
@@ -37,16 +37,8 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/internal/ColorButton.kt"
-            line="41"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/internal/ColorButton.kt"
-            line="42"/>
+            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
+            line="615"/>
     </issue>
 
     <issue
@@ -54,23 +46,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="614"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="753"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="918"/>
+            line="754"/>
     </issue>
 
     <issue
@@ -86,7 +62,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="1383"/>
+            line="920"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
+            line="1384"/>
     </issue>
 
     <issue
@@ -94,63 +78,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorResourcePicker.kt"
-            line="298"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="361"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="362"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="363"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="364"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="365"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="366"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="367"/>
+            line="299"/>
     </issue>
 
     <issue
@@ -278,7 +206,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="61"/>
+            line="63"/>
     </issue>
 
     <issue
@@ -286,7 +214,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="62"/>
+            line="64"/>
     </issue>
 
     <issue
@@ -294,7 +222,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/ui/IconPickerDialog.java"
-            line="72"/>
+            line="73"/>
     </issue>
 
     <issue
@@ -397,30 +325,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/idea/stats/SatisfactionDialog.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SaturationBrightnessComponent.kt"
-            line="36"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SaturationBrightnessComponent.kt"
-            line="37"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/SectionList.kt"
             line="71"/>
     </issue>
@@ -447,70 +351,6 @@
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/sketchImporter/ui/SketchImporterView.kt"
             line="52"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="60"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="61"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="62"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="65"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="66"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="67"/>
     </issue>
 
     <issue
@@ -550,15 +390,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="383"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/res/ModuleResourceRepository.java"
-            line="269"/>
+            line="388"/>
     </issue>
 
     <issue
@@ -567,22 +399,6 @@
         <location
             file="src/com/android/tools/idea/stats/StatisticsViewer.java"
             line="68"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/stats/StatisticsViewer.java"
-            line="68"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/stats/StatisticsViewer.java"
-            line="70"/>
     </issue>
 
     <issue
@@ -606,7 +422,7 @@
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="986"/>
+            line="987"/>
     </issue>
 
     <issue
@@ -614,7 +430,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="94"/>
+            line="87"/>
     </issue>
 
     <issue
@@ -622,7 +438,7 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="95"/>
+            line="88"/>
     </issue>
 
     <issue
@@ -630,7 +446,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="431"/>
+            line="432"/>
     </issue>
 
     <issue
@@ -638,7 +454,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/fonts/DownloadableFontCacheServiceImpl.java"
-            line="270"/>
+            line="272"/>
     </issue>
 
     <issue
@@ -646,7 +462,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleBuildInvoker.java"
-            line="738"/>
+            line="753"/>
     </issue>
 
     <issue
@@ -702,7 +518,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="337"/>
+            line="353"/>
     </issue>
 
     <issue
@@ -711,14 +527,6 @@
         <location
             file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
             line="99"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/ui/wizard/ProposedFileTreeModel.kt"
-            line="105"/>
     </issue>
 
     <issue
@@ -766,7 +574,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="817"/>
+            line="827"/>
     </issue>
 
     <issue

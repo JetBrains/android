@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.openapi.project.Project
-import icons.AndroidIcons
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
@@ -37,7 +36,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     if (StudioFlags.NPW_NEW_NATIVE_MODULE.get()) AndroidNativeLibraryModuleTemplateGalleryEntry() else null,
     WearModuleTemplateGalleryEntry(),
     TvModuleTemplateGalleryEntry(),
-    ThingsModuleTemplateGalleryEntry(),
     AutomotiveModuleTemplateGalleryEntry()
   )
 
@@ -60,42 +58,35 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.PHONE_TABLET else AndroidIcons.Wizards.MobileModule,
+    StudioIcons.Wizards.Modules.PHONE_TABLET,
     FormFactor.Mobile
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
+    StudioIcons.Wizards.Modules.AUTOMOTIVE,
     FormFactor.Automotive
-  )
-
-  private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    message("android.wizard.module.new.things"),
-    message("android.wizard.module.new.things.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_THINGS else AndroidIcons.Wizards.ThingsModule,
-    FormFactor.Things
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_TV else AndroidIcons.Wizards.TvModule,
+    StudioIcons.Wizards.Modules.ANDROID_TV,
     FormFactor.Tv
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.WEAR_OS else AndroidIcons.Wizards.WearModule,
+    StudioIcons.Wizards.Modules.WEAR_OS,
     FormFactor.Wear
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_LIBRARY else AndroidIcons.Wizards.AndroidModule
+    override val icon: Icon = StudioIcons.Wizards.Modules.ANDROID_LIBRARY
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
@@ -107,7 +98,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class AndroidNativeLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.native.library")
     override val description: String = message("android.wizard.module.new.native.library.description")
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.NATIVE else AndroidIcons.Wizards.CppConfigure
+    override val icon: Icon = StudioIcons.Wizards.Modules.NATIVE
 
     override fun createStep(project: Project,
                             moduleParent: String,

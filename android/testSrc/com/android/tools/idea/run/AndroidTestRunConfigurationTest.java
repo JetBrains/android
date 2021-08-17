@@ -17,35 +17,19 @@ package com.android.tools.idea.run;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
   private static final String TEST_APP_CLASS_NAME = "google.simpleapplication.ApplicationTest";
   private static final String DYNAMIC_FEATURE_INSTRUMENTED_TEST_CLASS_NAME = "com.example.instantapp.ExampleInstrumentedTest";
-
-  @Override
-  public void setUp() throws Exception {
-    // Flag has to be overridden as early as possible, since the run configuration type is initialized
-    // during test setup (see org.jetbrains.android.AndroidPlugin).
-    StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.override(true);
-
-    super.setUp();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
 
   public void testApkProviderForPreLDevice() throws Exception {
     loadProject(DYNAMIC_APP);
@@ -90,4 +74,21 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(24)))
       .isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
   }
+
+  public void testCannotRunLibTestsInReleaseBuild() throws Exception {
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY);
+
+    AndroidRunConfigurationBase androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(getProject(), "com.example.projectwithappandlib.lib.ExampleInstrumentedTest");
+    assertNotNull(androidTestRunConfiguration);
+
+    List<ValidationError> errors = androidTestRunConfiguration.validate(null);
+    assertThat(errors).hasSize(0);
+
+    AndroidGradleTestUtilsKt.switchVariant(getProject(), ":app", "basicRelease");
+    errors = androidTestRunConfiguration.validate(null);
+    assertThat(errors).isNotEmpty();
+    assertThat(errors.stream().map(ValidationError::getMessage).collect(Collectors.toList()))
+      .contains("Active build variant \"release\" does not have a test artifact.");
+ }
 }

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector.groups
+package com.android.tools.idea.uibuilder.property.inspector.groups
 
 import com.android.SdkConstants
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-class PaddingGroup(properties: PropertiesTable<NelePropertyItem>) :
+class PaddingGroup(properties: PropertiesTable<NlPropertyItem>) :
   AbstractMarginGroup("padding",
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING),
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_LEFT),

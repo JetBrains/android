@@ -42,6 +42,10 @@
     <item quantity="one">Quantity One</item>
     <item quantity="few">Quantity Few</item>
   </plurals>
+  <plurals name="numberOfSongsAvailable">
+    <item quantity="one">%d song found from %d.</item>
+    <item quantity="other">%d songs found from %d.</item>
+  </plurals>
   <integer name="shortint">1</integer>
 
 </resources>

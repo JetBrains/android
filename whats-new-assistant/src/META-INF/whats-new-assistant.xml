@@ -33,5 +33,6 @@
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowAction"/>
     <actionStateManager implementation="com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowActionStateManager"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.AppInspectionShowAction"/>
+    <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.OpenEmulatorSettingsAction"/>
   </extensions>
 </idea-plugin>

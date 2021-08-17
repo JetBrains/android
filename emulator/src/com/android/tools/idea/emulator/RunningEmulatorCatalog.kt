@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
@@ -39,7 +40,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Pattern
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
@@ -54,23 +58,25 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private val fileNamePattern = Pattern.compile("pid_\\d+.ini")
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   @Volatile private var isDisposing = false
-  private val updateLock = Object()
-  @GuardedBy("updateLock")
+  /** This lock is held for reading while an update is running. */
+  private val updateLock = ReentrantReadWriteLock()
+  private val dataLock = Object()
+  @GuardedBy("dataLock")
   private var lastUpdateStartTime: Long = 0
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var lastUpdateDuration: Long = 0
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var nextScheduledUpdateTime: Long = Long.MAX_VALUE
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var listeners: List<Listener> = emptyList()
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
   /** Long.MAX_VALUE means no updates. A negative value means that the update interval needs to be calculated. */
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var updateInterval: Long = Long.MAX_VALUE
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var pendingFutures: MutableList<SettableFuture<Set<EmulatorController>>> = mutableListOf()
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private var registrationDirectory: Path? = computeRegistrationDirectory()
 
   /**
@@ -83,9 +89,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @AnyThread
   fun addListener(listener: Listener, updateIntervalMillis: Int) {
     require(updateIntervalMillis > 0)
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       listeners = listeners.plus(listener)
-      updateIntervalsByListener.put(listener, updateInterval)
+      updateIntervalsByListener[listener] = updateInterval
       if (updateIntervalMillis < updateInterval) {
         updateInterval = updateIntervalMillis.toLong()
       }
@@ -98,7 +104,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
    */
   @AnyThread
   fun removeListener(listener: Listener) {
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       listeners = listeners.minus(listener)
       val interval = updateIntervalsByListener.removeLong(listener)
       if (interval == updateInterval) {
@@ -108,7 +114,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   private fun scheduleUpdate(delay: Long) {
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       val updateTime = System.currentTimeMillis() + delay
       // Check if an update is already scheduled soon enough.
       if (nextScheduledUpdateTime > updateTime) {
@@ -116,12 +122,12 @@ class RunningEmulatorCatalog : Disposable.Parent {
           alarm.cancelAllRequests()
         }
         nextScheduledUpdateTime = updateTime
-        alarm.addRequest({ update() }, delay)
+        alarm.addRequest({ updateLock.read { update() } }, delay)
       }
     }
   }
 
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private fun scheduleUpdate() {
     val delay = getUpdateInterval()
     if (delay != Long.MAX_VALUE) {
@@ -129,7 +135,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
-  @GuardedBy("updateLock")
+  @GuardedBy("dataLock")
   private fun getUpdateInterval(): Long {
     if (updateInterval < 0) {
       var value = Long.MAX_VALUE
@@ -146,7 +152,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
    * Triggers an immediate update and returns a future for the updated set of running emulators.
    */
   fun updateNow(): ListenableFuture<Set<EmulatorController>> {
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       val future: SettableFuture<Set<EmulatorController>> = SettableFuture.create()
       pendingFutures.add(future)
       scheduleUpdate(0)
@@ -154,13 +160,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
+  @GuardedBy("updateLock.readLock()")
   private fun update() {
     if (isDisposing) return
 
     val futures: List<SettableFuture<Set<EmulatorController>>>
     val directory: Path
 
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       nextScheduledUpdateTime = Long.MAX_VALUE
 
       if (pendingFutures.isEmpty()) {
@@ -192,7 +199,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
                   if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
-                    logger.info("Discovered emulator ${emulatorId}")
+                    thisLogger().info("Discovered emulator $emulatorId")
                   }
                   emulator = EmulatorController(emulatorId, this)
                   created = true
@@ -218,7 +225,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       val addedEmulators = newEmulators.minus(oldEmulators.keys).values
       val listenersSnapshot: List<Listener>
 
-      synchronized(updateLock) {
+      synchronized(dataLock) {
         if (isDisposing) return
         lastUpdateStartTime = start
         lastUpdateDuration = System.currentTimeMillis() - start
@@ -236,7 +243,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       if (listenersSnapshot.isNotEmpty()) {
         for (emulator in removedEmulators) {
           if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
-            logger.info("Emulator ${emulator.emulatorId} stopped")
+            thisLogger().info("Emulator ${emulator.emulatorId} stopped")
           }
           for (listener in listenersSnapshot) {
             if (isDisposing) break
@@ -255,11 +262,10 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (emulator in removedEmulators) {
         Disposer.dispose(emulator)
       }
-    }
-    catch (e: IOException) {
-      logger.error("Running Emulator detection failed", e)
+    } catch (e: IOException) {
+      thisLogger().error("Running Emulator detection failed", e)
 
-      synchronized(updateLock) {
+      synchronized(dataLock) {
         for (future in futures) {
           future.setException(e)
         }
@@ -273,8 +279,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
   private fun readDirectoryContents(directory: Path): List<Path> {
     return try {
-      Files.list(directory).use {
-        it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
+      Files.list(directory).use { stream ->
+        stream.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
       }
     } catch (e: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
@@ -345,7 +351,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     isDisposing = true
 
     // Shut down all embedded Emulators.
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       for (emulator in emulators) {
         if (emulator.emulatorId.isEmbedded) {
           emulator.shutdown()
@@ -363,12 +369,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
    */
   @TestOnly
   fun overrideRegistrationDirectory(directory: Path?) {
-    synchronized(updateLock) {
+    synchronized(dataLock) {
       listeners = emptyList()
       updateIntervalsByListener.clear()
       emulators = emptySet()
       registrationDirectory = directory ?: computeRegistrationDirectory()
     }
+
+    updateLock.write {} // Make sure that previously running updates have finished.
   }
 
   /**
@@ -401,7 +409,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     private fun computeRegistrationDirectory(): Path? {
       val container = computeRegistrationDirectoryContainer()
       if (container == null) {
-        logger.error("Unable to determine Emulator registration directory")
+        thisLogger().error("Unable to determine Emulator registration directory")
       }
       return container?.resolve(REGISTRATION_DIRECTORY_RELATIVE_PATH)
     }

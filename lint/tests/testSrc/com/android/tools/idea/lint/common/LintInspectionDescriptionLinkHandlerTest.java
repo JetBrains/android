@@ -71,7 +71,10 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "(for example <code>@drawable/icon</code>)." +
                               "<br><br>Issue id: MissingApplicationIcon<br><br>More info:<br><a href=\"" +
                               "https://developer.android.com/studio/publish/preparing#publishing-configure" +
-                              "\">https://developer.android.com/studio/publish/preparing#publishing-configure</a><br>";
+                              "\">https://developer.android.com/studio/publish/preparing#publishing-configure</a><br><br>" +
+                              "Vendor: Android Open Source Project<br/>" +
+                              "Contact: <a href=\"https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
+                              "Feedback: <a href=\"https://issuetracker.google.com/issues/new?component=192708\">https://issuetracker.google.com/issues/new?component=192708</a><br/>";
     String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "MissingApplicationIcon", editor);
     assertThat(description).isEqualTo(issueExplanation);
   }

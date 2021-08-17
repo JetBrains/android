@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -27,6 +29,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.property.panel.api.PropertiesTable
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
@@ -40,7 +43,7 @@ internal const val ATTR_SCROLL_Y = "scrollY"
 internal const val ATTR_X = "x"
 internal const val ATTR_Y = "y"
 internal const val ATTR_Z = "z"
-internal const val ATTR_DIM_BEHIND = "dim_behind"
+@VisibleForTesting const val ATTR_DIM_BEHIND = "dim_behind"
 
 /**
  * A [PropertiesProvider] that can handle pre-api 29 devices.
@@ -87,7 +90,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
           val name = definition.name
           val type = definition.type
           val value = definition.value_mapper(rawValue)
-          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view.drawId, lookup)
+          val property = InspectorPropertyItem(ANDROID_URI, name, name, type, value, section, null, view.drawId, lookup)
           table.put(property.namespace, property.name, property)
         }
 
@@ -99,27 +102,29 @@ class LegacyPropertiesProvider : PropertiesProvider {
       while (!stop)
 
       val parentTable: PropertiesTable<InspectorPropertyItem>? = parent?.let { temp[parent.drawId] }
-      val parentScrollX = parentTable?.getOrNull(SdkConstants.ANDROID_URI, ATTR_SCROLL_X)?.dimensionValue ?: 0
-      val parentScrollY = parentTable?.getOrNull(SdkConstants.ANDROID_URI, ATTR_SCROLL_Y)?.dimensionValue ?: 0
-      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
-      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
-      view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
-      view.height = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
-      view.textValue = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
-      val url = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
+      val parentScrollX = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_X)?.dimensionValue ?: 0
+      val parentScrollY = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_Y)?.dimensionValue ?: 0
+      view.x = (table.remove(ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
+      view.y = (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
+      view.width = table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
+      view.height = table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
+      view.textValue = table[ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
+      val url = table[ANDROID_URI, ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
       // TODO: add other layout flags if we care about them
-      view.layoutFlags = table.remove(SdkConstants.ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
+      // TODO(171901393): since we're taking a screenshot rather than images of each view, disable setting layoutFlags for now, so we don't
+      // add a Dimmer DrawViewNode (with this API the captured image is already dimmed).
+      view.layoutFlags = table.remove(ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
 
       // Remove other attributes that we already have elsewhere:
-      table.remove(SdkConstants.ANDROID_URI, ATTR_X)
-      table.remove(SdkConstants.ANDROID_URI, ATTR_Y)
-      table.remove(SdkConstants.ANDROID_URI, ATTR_Z)
-      table.remove(SdkConstants.ANDROID_URI, ATTR_BOTTOM)
-      table.remove(SdkConstants.ANDROID_URI, ATTR_RIGHT)
+      table.remove(ANDROID_URI, ATTR_X)
+      table.remove(ANDROID_URI, ATTR_Y)
+      table.remove(ANDROID_URI, ATTR_Z)
+      table.remove(ANDROID_URI, ATTR_BOTTOM)
+      table.remove(ANDROID_URI, ATTR_RIGHT)
 
       val properties = PropertiesTable.create(table)
-      addInternalProperties(properties, view, lookup)
+      addInternalProperties(properties, view, url?.name, lookup)
       temp[view.drawId] = properties
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose.code.completion
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.ComposeSettings
+import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_PRESENTATION
@@ -32,8 +35,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
-import com.intellij.codeInspection.InspectionSuppressor
-import com.intellij.codeInspection.SuppressQuickFix
+import com.intellij.codeInsight.template.impl.ConstantNode
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -41,8 +43,8 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
-import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -59,6 +61,8 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
+import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
@@ -79,16 +83,31 @@ private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
     ?.castSafelyTo<FunctionDescriptor>()
 }
 
-private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() {
-  val lastArgType = lastOrNull()?.type ?: return false
-  return lastArgType.isBuiltinFunctionalType
-         && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
-}
+private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean
+  get() {
+    val lastArgType = lastOrNull()?.type ?: return false
+    return lastArgType.isBuiltinFunctionalType
+           && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
+  }
+
+private val ValueParameterDescriptor.isLambdaWithNoParameters: Boolean
+  get() = type.isFunctionType
+          // The only type in the list is the return type (can be Unit).
+          && argumentValueType.arguments.size == 1
+
+/**
+ * true if the last parameter is required, and a lambda type with no parameters.
+ */
+private val List<ValueParameterDescriptor>.isLastRequiredLambdaWithNoParameters: Boolean
+  get() {
+    val lastParameter = lastOrNull() ?: return false
+    return !lastParameter.hasDefaultValue() && lastParameter.isLambdaWithNoParameters
+  }
 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
  */
-class AndroidComposeCompletionContributor : CompletionContributor() {
+class ComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() ||
         parameters.position.getModuleSystem()?.usesCompose != true ||
@@ -147,9 +166,9 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val descriptor = getFunctionDescriptor()
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
-      !AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled -> super.handleInsert(context)
+      !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
-      else -> AndroidComposeInsertHandler(descriptor).handleInsert(context, this)
+      else -> ComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }
 
@@ -221,7 +240,7 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
  * See [com.intellij.codeInsight.completion.PrioritizedLookupElement] for more information on how ordering of lookup elements works and how
  * to debug it.
  */
-class AndroidComposeCompletionWeigher : CompletionWeigher() {
+class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
     return when {
       !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
@@ -248,7 +267,7 @@ private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnor
 
 private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
 
-class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
+private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
 
@@ -263,6 +282,7 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
     val allParameters = descriptor.valueParameters
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val insertLambda = requiredParameters.hasComposableChildren
+                       || allParameters.isLastRequiredLambdaWithNoParameters
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 
     val template = templateManager.createTemplate("", "").apply {
@@ -277,7 +297,12 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
               addTextSegment(", ")
             }
             addTextSegment(parameter.name.asString() + " = ")
-            addVariable(EmptyExpression(), true)
+            if (parameter.isLambdaWithNoParameters) {
+              addVariable(ConstantNode("{ /*TODO*/ }"), true)
+            }
+            else {
+              addVariable(EmptyExpression(), true)
+            }
           }
           addTextSegment(")")
         }
@@ -307,19 +332,5 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
         }
       }
     })
-  }
-}
-
-class AndroidComposeSuppressor : InspectionSuppressor {
-  override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
-           toolId == "FunctionName" &&
-           element.language == KotlinLanguage.INSTANCE &&
-           element.node.elementType == KtTokens.IDENTIFIER &&
-           element.parent.isComposableFunction()
-  }
-
-  override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {
-    return SuppressQuickFix.EMPTY_ARRAY
   }
 }

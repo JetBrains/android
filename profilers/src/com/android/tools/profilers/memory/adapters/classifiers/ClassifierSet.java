@@ -21,7 +21,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -63,10 +62,10 @@ public abstract class ClassifierSet implements MemoryObject {
   private int myDeltaDeallocations = 0;
   private long myDeltaAllocationsSize = 0;
   private long myDeltaDeallocationsSize = 0;
-  // TODO switch to tracking both delta and total for all native/shallow and retained sizes.
   private long myTotalNativeSize = 0L;
   private long myTotalShallowSize = 0L;
   private long myTotalRetainedSize = 0L;
+  private long myDeltaShallowSize = 0L;
   private int myInstancesWithStackInfoCount = 0;
 
   // Number of ClassifierSet that match the filter.
@@ -138,6 +137,10 @@ public abstract class ClassifierSet implements MemoryObject {
     return myTotalNativeSize;
   }
 
+  final public long getDeltaShallowSize() {
+    return myDeltaShallowSize;
+  }
+
   final public int getFilterMatchCount() {
     return myFilterMatchCount;
   }
@@ -163,113 +166,126 @@ public abstract class ClassifierSet implements MemoryObject {
    * Note that instances at the baseline must be an allocation event.
    */
   public void addSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
-    changeSnapshotInstanceObject(instanceObject, true, Set::add);
+    changeSnapshotInstanceObject(instanceObject, SetOperation.ADD);
   }
 
   /**
    * Remove an instance from the baseline snapshot and update the accounting of the "total" values.
    */
   public void removeSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
-    changeSnapshotInstanceObject(instanceObject, false, Set::remove);
+    changeSnapshotInstanceObject(instanceObject, SetOperation.REMOVE);
   }
 
-  private void changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject,
-                                            boolean isAdding,
-                                            BiConsumer<Set<InstanceObject>, InstanceObject> handler) {
+  private boolean changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject, @NotNull SetOperation op) {
+    final boolean changed;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, isAdding);
-      assert classifierSet != null;
-      classifierSet.changeSnapshotInstanceObject(instanceObject, isAdding, handler);
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
+      changed = classifierSet != null &&
+                classifierSet.changeSnapshotInstanceObject(instanceObject, op);
     }
     else {
-      assert isAdding == !mySnapshotInstances.contains(instanceObject);
-      handler.accept(mySnapshotInstances, instanceObject);
+      changed = (op == SetOperation.ADD) != mySnapshotInstances.contains(instanceObject);
+      op.action.accept(mySnapshotInstances, instanceObject);
     }
 
-    int unit = isAdding ? 1 : -1;
-
-    mySnapshotObjectCount += unit;
-    myTotalNativeSize   += unit * validOrZero(instanceObject.getNativeSize());
-    myTotalShallowSize  += unit * validOrZero(instanceObject.getShallowSize());
-    myTotalRetainedSize += unit * validOrZero(instanceObject.getRetainedSize());
-    if (!instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += unit;
+    if (changed) {
+      mySnapshotObjectCount += op.countChange;
+      myTotalNativeSize += op.countChange * validOrZero(instanceObject.getNativeSize());
+      myTotalShallowSize += op.countChange * validOrZero(instanceObject.getShallowSize());
+      myTotalRetainedSize += op.countChange * validOrZero(instanceObject.getRetainedSize());
+      if (!instanceObject.isCallStackEmpty()) {
+        myInstancesWithStackInfoCount += op.countChange;
+      }
+      myInstanceFilterMatchCounter.invalidate();
+      myNeedsRefiltering = true;
     }
-    myInstanceFilterMatchCounter.invalidate();
-    myNeedsRefiltering = true;
+    return changed;
   }
 
   // Add delta alloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean addDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, true, Set::add);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.ADD).instanceChanged;
   }
 
   // Add delta dealloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean freeDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, true, Set::add);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.ADD).instanceChanged;
   }
 
   // Remove delta instance alloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeAddedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, false, Set::remove);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.REMOVE).instanceChanged;
   }
 
   // Remove delta instance dealloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeFreedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, false, Set::remove);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.REMOVE).instanceChanged;
   }
 
-  private boolean changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject,
-                                                 boolean isAllocation,
-                                                 boolean isAdding,
-                                                 BiConsumer<Set<InstanceObject>, InstanceObject> handler) {
-    boolean instanceChanged = false;
-
-    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, isAdding);
-      assert classifierSet != null;
-      instanceChanged = classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, isAdding, handler);
+  private enum DeltaChange {
+    UNCHANGED(false, false),
+    INSTANCE_MODIFIED(true, false),
+    INSTANCE_ADDED_OR_REMOVED(true, true);
+    public final boolean countsChanged, instanceChanged;
+    DeltaChange(boolean countsChanged, boolean instanceChanged) {
+      this.countsChanged = countsChanged;
+      this.instanceChanged = instanceChanged;
     }
-    else if ((isAdding || !instanceObject.hasTimeData()) &&
+  }
+
+  private DeltaChange changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation, @NotNull SetOperation op) {
+    final DeltaChange change;
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
+      change = classifierSet != null
+               ? classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, op)
+               : DeltaChange.UNCHANGED;
+    }
+    else if ((op == SetOperation.ADD || !instanceObject.hasTimeData()) &&
              // `contains` is more expensive, so deferred to after above test fails.
              // This line is run often enough to make a difference.
-             (isAdding == !myDeltaInstances.contains(instanceObject))) {
-      handler.accept(myDeltaInstances, instanceObject);
-      instanceChanged = true;
-    }
-
-    int unit = isAdding ? 1 : -1;
-
-    if (isAllocation) {
-      myDeltaAllocations += unit * instanceObject.getInstanceCount();
-      myDeltaAllocationsSize += unit * instanceObject.getShallowSize();
+             ((op == SetOperation.ADD) != myDeltaInstances.contains(instanceObject))) {
+      op.action.accept(myDeltaInstances, instanceObject);
+      change = DeltaChange.INSTANCE_ADDED_OR_REMOVED;
     } else {
-      myDeltaDeallocations += unit * instanceObject.getInstanceCount();
-      myDeltaDeallocationsSize += unit * instanceObject.getShallowSize();
+      change = DeltaChange.INSTANCE_MODIFIED;
     }
 
-    int factor = unit * (isAllocation ? 1 : -1);
-    // TODO update deltas instead.
-    myTotalNativeSize   += factor * validOrZero(instanceObject.getNativeSize());
-    myTotalShallowSize  += factor * validOrZero(instanceObject.getShallowSize());
-    myTotalRetainedSize += factor * validOrZero(instanceObject.getRetainedSize());
+    if (change.countsChanged) {
+      if (isAllocation) {
+        myDeltaAllocations += op.countChange * instanceObject.getInstanceCount();
+        myDeltaAllocationsSize += op.countChange * instanceObject.getShallowSize();
+      }
+      else {
+        myDeltaDeallocations += op.countChange * instanceObject.getInstanceCount();
+        myDeltaDeallocationsSize += op.countChange * instanceObject.getShallowSize();
+      }
 
-    if (instanceChanged && !instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += unit;
-      myNeedsRefiltering = true;
+      int factor = op.countChange * (isAllocation ? 1 : -1);
+      long deltaNativeSize = factor * validOrZero(instanceObject.getNativeSize());
+      long deltaShallowSize = factor * validOrZero(instanceObject.getShallowSize());
+      long deltaRetainedSize = factor * validOrZero(instanceObject.getRetainedSize());
+      myTotalNativeSize += deltaNativeSize;
+      myDeltaShallowSize += deltaShallowSize;
+      myTotalShallowSize += deltaShallowSize;
+      myTotalRetainedSize += deltaRetainedSize;
+
+      if (change.instanceChanged && !instanceObject.isCallStackEmpty()) {
+        myInstancesWithStackInfoCount += op.countChange;
+        myNeedsRefiltering = true;
+      }
+
+      if (change.instanceChanged) {
+        myInstanceFilterMatchCounter.invalidate();
+      }
     }
-
-    if (instanceChanged) {
-      myInstanceFilterMatchCounter.invalidate();
-    }
-
-    return instanceChanged;
+    return change;
   }
 
   public void clearClassifierSets() {
@@ -282,6 +298,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalShallowSize = 0;
     myTotalNativeSize = 0;
     myTotalRetainedSize = 0;
+    myDeltaShallowSize = 0;
     myInstancesWithStackInfoCount = 0;
     myObjectSetCount = 0;
     myFilteredObjectSetCount = 0;
@@ -399,32 +416,50 @@ public abstract class ClassifierSet implements MemoryObject {
    * {@code targetSet}'s immediate children.
    */
   public boolean isSupersetOf(Set<InstanceObject> targetSet) {
-    return getNonMembers(targetSet).isEmpty();
+    Set<InstanceObject> clone = Collections.newSetFromMap(new IdentityHashMap<>());
+    clone.addAll(targetSet);
+    filterOutInstances(clone);
+    return clone.isEmpty();
   }
 
   /**
-   * @return the remaining instances not contained by this node and its children
+   * Remove this node's and its children's instances from the given set
    */
-  private Set<InstanceObject> getNonMembers(Set<InstanceObject> instances) {
-    // Find instances not part of immediate node
-    Set<InstanceObject> remainders = Collections.newSetFromMap(new IdentityHashMap<>());
-    for (InstanceObject inst : instances) {
-      if (!(myDeltaInstances.contains(inst) || mySnapshotInstances.contains(inst))) {
-        remainders.add(inst);
-      }
-    }
+  private void filterOutInstances(Set<InstanceObject> remainders) {
+    // Filter out from current node
+    remainders.removeAll(myDeltaInstances);
+    remainders.removeAll(mySnapshotInstances);
 
-    // Intersect with children's remainders
+    // Filter out from children
     if (myClassifier != null && !remainders.isEmpty()) {
       for (ClassifierSet child : myClassifier.getAllClassifierSets()) {
-        remainders.retainAll(child.getNonMembers(remainders));
+        child.filterOutInstances(remainders);
         if (remainders.isEmpty()) {
-          return remainders;
+          return;
         }
       }
     }
+  }
 
-    return remainders;
+  /**
+   * @return Whether the node's immediate instances overlap with `targetSet`
+   */
+  public boolean immediateInstancesOverlapWith(Set<InstanceObject> targetSet) {
+    return overlaps(myDeltaInstances, targetSet) || overlaps(mySnapshotInstances, targetSet);
+  }
+
+  /**
+   * @return Whether the node and its descendants' instances overlap with `targetSet`
+   */
+  public boolean overlapsWith(Set<InstanceObject> targetSet) {
+    return immediateInstancesOverlapWith(targetSet) ||
+           (myClassifier != null && myClassifier.getAllClassifierSets().stream().anyMatch(c -> c.overlapsWith(targetSet)));
+  }
+
+  private static boolean overlaps(Set<InstanceObject> set1, Set<InstanceObject> set2) {
+    Set<InstanceObject> iter = set1.size() < set2.size() ? set1 : set2;
+    Set<InstanceObject> test = iter == set1 ? set2 : set1;
+    return iter.stream().anyMatch(test::contains);
   }
 
   /**
@@ -486,6 +521,7 @@ public abstract class ClassifierSet implements MemoryObject {
         myTotalShallowSize += classifierSet.myTotalShallowSize;
         myTotalNativeSize += classifierSet.myTotalNativeSize;
         myTotalRetainedSize += classifierSet.myTotalRetainedSize;
+        myDeltaShallowSize += classifierSet.myDeltaShallowSize;
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
         myFilterMatchCount += classifierSet.myFilterMatchCount;
         myFilteredObjectSetCount++;
@@ -524,5 +560,17 @@ public abstract class ClassifierSet implements MemoryObject {
 
   private static long validOrZero(long value) {
     return value == INVALID_VALUE ? 0L : value;
+  }
+
+  private enum SetOperation {
+    ADD(Set::add, 1),
+    REMOVE(Set::remove, -1);
+
+    public final BiConsumer<Set<InstanceObject>, InstanceObject> action;
+    public final int countChange;
+    SetOperation(BiConsumer<Set<InstanceObject>, InstanceObject> action, int countChange) {
+      this.action = action;
+      this.countChange = countChange;
+    }
   }
 }

@@ -44,8 +44,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.memory.MemoryCaptureSelection;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +67,8 @@ public class HeapDumpInstanceObjectTest {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
-    MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
-                                                        new FakeCaptureObjectLoader());
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
+                                                                new FakeCaptureObjectLoader());
     myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(),
                                                     stage.getStudioProfilers().getIdeServices());
   }

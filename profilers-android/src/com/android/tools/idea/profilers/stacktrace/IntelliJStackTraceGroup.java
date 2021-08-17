@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace;
 
-import com.android.tools.idea.profilers.IntellijContextMenuInstaller;
-import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.android.tools.profilers.stacktrace.StackTraceGroup;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.inspectors.common.api.ide.IntellijContextMenuInstaller;
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import javax.swing.JList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.jetbrains.annotations.NotNull;
 
 public class IntelliJStackTraceGroup implements StackTraceGroup {
   private final Project myProject;

@@ -15,19 +15,18 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Test cases for procuring Sdk Data.
@@ -39,7 +38,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File sdkDir = TestUtils.getSdk();
+    File sdkDir = TestUtils.getSdk().toFile();
     sdkData = AndroidSdkData.getSdkData(sdkDir);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
@@ -53,7 +52,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   public void testSdkDataExposesSdkComponents() throws Exception {
     assertNotNull(sdkData.getLatestBuildTool(false));
     assertThat(sdkData.getTargets().length).isAtLeast(1);
-    assertTrue(FileUtil.filesEqual(sdkData.getLocation(), TestUtils.getSdk()));
+    assertEquals(sdkData.getLocation(), TestUtils.getSdk());
   }
 
   public void testGetSdkDataReturnsNullForInvalidSdkLocations() throws Exception {

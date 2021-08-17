@@ -40,7 +40,7 @@ import java.awt.geom.Rectangle2D
 import java.util.function.Consumer
 import javax.swing.JLabel
 
-class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<CaptureObject>>,
+class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<out CaptureObject>>,
                        private val viewRange: Range)
       : AspectObserver(), AbstractDurationDataRenderer {
   private val startsCache = TDoubleArrayList()

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.swing.ImageIconUIResource.
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane

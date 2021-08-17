@@ -17,12 +17,10 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.ddmlib.TimeoutRemainder
 import com.android.tools.idea.flags.StudioFlags
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 
@@ -48,18 +46,22 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
     AdbServiceWrapperImpl(project, timeProvider, MoreExecutors.listeningDecorator(taskExecutor))
   }
 
-  private val devicePairingService : AdbDevicePairingService by lazy {
-    AdbDevicePairingServiceImpl(randomProvider, adbService, taskExecutor)
+  private val devicePairingService : WiFiPairingService by lazy {
+    WiFiPairingServiceImpl(randomProvider, adbService, taskExecutor)
+  }
+
+  private val notificationService: WiFiPairingNotificationService by lazy {
+    WiFiPairingNotificationServiceImpl(project)
   }
 
   override fun dispose() {
     // Nothing to do
   }
 
-  fun createPairingDialogController(): AdbDevicePairingController {
-    val model = AdbDevicePairingModel()
-    val view = AdbDevicePairingViewImpl(project, model)
-    return AdbDevicePairingControllerImpl(project, this, edtExecutor, devicePairingService, view)
+  fun createPairingDialogController(): WiFiPairingController {
+    val model = WiFiPairingModel()
+    val view = WiFiPairingViewImpl(project, notificationService, model)
+    return WiFiPairingControllerImpl(project, this, edtExecutor, devicePairingService, notificationService, view)
   }
 
   val isFeatureEnabled: Boolean

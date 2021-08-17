@@ -18,7 +18,6 @@ package org.jetbrains.android
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -43,12 +42,9 @@ import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
  * File usages are manually added from [ResourceRepository] as they are not found in the ReferencesSearch. This is done in
  * processElementUsages().
  *
- * TODO(lukeegan): manually find all styleable attr fields when search for an Attr resource.
  */
 class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
-  override fun canFindUsages(element: PsiElement): Boolean {
-    return StudioFlags.RESOLVE_USING_REPOS.get() && ResourceReferencePsiElement.create(element) != null
-  }
+  override fun canFindUsages(element: PsiElement): Boolean = ResourceReferencePsiElement.create(element) != null
 
   override fun createFindUsagesHandler(originalElement: PsiElement, forHighlightUsages: Boolean): FindUsagesHandler? {
     val resourceReferencePsiElement = ResourceReferencePsiElement.create(originalElement) ?: return null

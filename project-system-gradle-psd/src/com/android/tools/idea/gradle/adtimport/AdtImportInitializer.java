@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.intellij.icons.AllIcons.ToolbarDecorator.Import;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.startup.Actions;
@@ -27,7 +29,9 @@ public final class AdtImportInitializer implements ActionConfigurationCustomizer
   @Override
   public void customize(@NotNull ActionManager actionManager) {
     Logger.getInstance(AdtImportInitializer.class).assertTrue(IdeInfo.getInstance().isAndroidStudio(), "Customization only needed in AndroidStudio");
-    Actions.replaceAction(actionManager, "ImportProject", new AndroidImportProjectAction());
-    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
+    Actions.replaceAction(actionManager, "ImportProject",
+                          new AndroidImportProjectAction("Import Project...", null, null));
+    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject",
+                          new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)", null, Import));
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -66,7 +68,7 @@ public class FirstRunWizard extends DynamicWizard {
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists = false;
       if (initialSdkLocation.isDirectory()) {
-        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
+        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, initialSdkLocation.toPath());
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
       }

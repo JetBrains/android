@@ -2,10 +2,8 @@ package com.android.tools.idea.util;
 
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.PathUtil;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
@@ -78,6 +76,14 @@ public class StudioPathManager {
 
     // Running from studio sources.
     return getSourcesRootUnbundled();
+  }
+
+  /**
+   * @return returns the root of the tree of bazel-built binaries. This method
+   * should be called only when {@link #isRunningFromSources()} returns true.
+   */
+  public static String getBinariesRoot() {
+    return getSourcesRoot() + (isRunningInBazelTest() ? "" : "/bazel-bin");
   }
 
   /**

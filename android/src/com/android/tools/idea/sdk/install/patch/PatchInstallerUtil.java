@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
+import com.android.utils.FileUtils;
+import com.android.io.CancellableFileIo;
+import com.android.repository.api.Dependency;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -26,17 +34,17 @@ import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities for creating and installing binary diff packages.
@@ -120,8 +128,7 @@ public class PatchInstallerUtil {
    * Run the specified {@link PatchOperation}, applying the specified patch.
    */
   static boolean installPatch(@NotNull PatchOperation op,
-                              @Nullable File patch,
-                              @NotNull FileOp fop,
+                              @Nullable Path patch,
                               @NotNull ProgressIndicator progress) {
     if (patch == null) {
       return false;
@@ -130,31 +137,41 @@ public class PatchInstallerUtil {
     if (patcherPackage == null) {
       return false;
     }
-    PatchRunner patcher = new PatchRunner.DefaultFactory().getPatchRunner(patcherPackage, progress, fop);
+    PatchRunner patcher = new PatchRunner.DefaultFactory().getPatchRunner(patcherPackage, progress);
     if (patcher == null) {
       return false;
     }
 
     // The patcher won't expect this to be in the target directory, so delete it beforehand.
-    fop.deleteFileOrFolder(new File(op.getLocation(progress), InstallerUtil.INSTALLER_DIR_FN));
+    FileOpUtils.deleteFileOrFolder(op.getLocation(progress).resolve(InstallerUtil.INSTALLER_DIR_FN));
 
     // Move the package.xml away, since the installer won't expect that either. But we want to be able to move it back if need be.
-    File tempPath = patch.getParentFile();
-    File existingPackageXml = new File(op.getLocation(progress), LocalRepoLoaderImpl.PACKAGE_XML_FN);
-    File tempPackageXml = new File(tempPath, LocalRepoLoaderImpl.PACKAGE_XML_FN);
-    fop.renameTo(existingPackageXml, tempPackageXml);
+    Path tempPath = patch.getParent();
+    Path existingPackageXml = op.getLocation(progress).resolve(LocalRepoLoaderImpl.PACKAGE_XML_FN);
+    Path tempPackageXml = tempPath.resolve(LocalRepoLoaderImpl.PACKAGE_XML_FN);
+    try {
+      Files.move(existingPackageXml, tempPackageXml);
+    }
+    catch (IOException e) {
+      return false;
+    }
 
     boolean result;
     try {
       result = patcher.run(op.getLocation(progress), patch, progress);
     }
     catch (PatchRunner.RestartRequiredException e) {
-      askAboutRestart(patcher, op, patch, fop, progress);
+      askAboutRestart(patcher, op, patch, progress);
       result = false;
     }
     if (!result) {
       // We cancelled or selected restart later, or there was some problem. Move package.xml back into place.
-      fop.renameTo(tempPackageXml, existingPackageXml);
+      try {
+        Files.move(tempPackageXml, existingPackageXml);
+      }
+      catch (IOException ignore) {
+        // ignore, we've done our best
+      }
       return false;
     }
     progress.logInfo("Done");
@@ -168,8 +185,7 @@ public class PatchInstallerUtil {
    */
   private static void askAboutRestart(@NotNull PatchRunner patchRunner,
                                       @NotNull PatchOperation op,
-                                      @NotNull final File patchFile,
-                                      @NotNull FileOp fop,
+                                      @NotNull final Path patchFile,
                                       @NotNull final ProgressIndicator progress) {
     final ApplicationEx application = ApplicationManagerEx.getApplicationEx();
     application.invokeLater(() -> {
@@ -201,7 +217,7 @@ public class PatchInstallerUtil {
         progress.logInfo("Cancelled");
       }
       else {
-        if (setupPatchDir(patchFile, patchRunner.getPatcherJar(), op.getPackage(), op.getRepoManager(), fop, progress)) {
+        if (setupPatchDir(patchFile, patchRunner.getPatcherJar(), op.getPackage(), op.getRepoManager(), progress)) {
           if (result == 1 && restartable) {
             progress.logInfo("Installation will continue after restart");
           }
@@ -217,25 +233,27 @@ public class PatchInstallerUtil {
    * Create and populate the directory that we'll look in during startup for pending patches.
    * This includes copying the patch zip there, and then adding the patcher jar into the zip (so it can be run by the update runner).
    */
-  private static boolean setupPatchDir(@NotNull File patchFile, @NotNull File patcherFile, @NotNull RepoPackage toInstallOrDelete,
-                                       @NotNull RepoManager mgr, @NotNull FileOp fop, @NotNull ProgressIndicator progress) {
-    File patchesDir = new File(mgr.getLocalPath(), PATCHES_DIR_NAME);
-    File patchDir;
-    for (int i = 1; ; i++) {
-      patchDir = new File(patchesDir, PATCH_DIR_PREFIX + i);
-      if (!fop.exists(patchDir)) {
-        fop.mkdirs(patchDir);
-        break;
-      }
-    }
+  @SuppressWarnings("NoNioFilesCopy") // Use of ZipPath as source is okay since there is no read-only bit
+  private static boolean setupPatchDir(@NotNull Path patchFile, @NotNull Path patcherFile, @NotNull RepoPackage toInstallOrDelete,
+                                       @NotNull RepoManager mgr, @NotNull ProgressIndicator progress) {
+    Path localPath = mgr.getLocalPath();
+    Path patchesDir = (localPath == null ? patchFile.getFileSystem().getPath("") : localPath).resolve(PATCHES_DIR_NAME);
+    Path patchDir;
     try {
-      File completePatch = new File(patchDir, PATCH_JAR_FN);
-      fop.copyFile(patcherFile, completePatch);
-      try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toURI()), new HashMap<>());
-           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI()), new HashMap<>())) {
+      for (int i = 1; ; i++) {
+        patchDir = patchesDir.resolve(PATCH_DIR_PREFIX + i);
+        if (!CancellableFileIo.exists(patchDir)) {
+          Files.createDirectories(patchDir);
+          break;
+        }
+      }
+      Path completePatch = patchDir.resolve(PATCH_JAR_FN);
+      FileUtils.copyFile(patcherFile, completePatch);
+      try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toUri()), new HashMap<>());
+           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toUri()), new HashMap<>())) {
         Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
       }
-      InstallerUtil.writePendingPackageXml(toInstallOrDelete, patchDir, mgr, fop, progress);
+      InstallerUtil.writePendingPackageXml(toInstallOrDelete, patchDir, mgr, progress);
     }
     catch (IOException e) {
       progress.logWarning("Error while setting up patch.", e);
@@ -251,23 +269,24 @@ public class PatchInstallerUtil {
    * @param destDir The directory in which to generate the patch.
    * @return A handle to the generated patch, or {@code null} if there was a problem.
    */
-  public static File generatePatch(PatchOperation patchOp, File destDir, FileOp fop, ProgressIndicator progress) {
+  public static Path generatePatch(PatchOperation patchOp, Path destDir, ProgressIndicator progress) {
     LocalPackage patcher = patchOp.getPatcher(progress.createSubProgress(0.1));
     progress.setFraction(0.1);
     if (patcher == null) {
       return null;
     }
-    PatchRunner runner = new PatchRunner.DefaultFactory().getPatchRunner(patcher, progress, fop);
+    PatchRunner runner = new PatchRunner.DefaultFactory().getPatchRunner(patcher, progress);
     if (runner == null) {
       return null;
     }
     LocalPackage existing = patchOp.getExisting();
-    File existingRoot = existing == null ? null : existing.getLocation();
+    Path existingRoot = existing == null ? null : existing.getLocation();
     String existingDescription = existing == null ? "None" : existing.getDisplayName() + " Version " + existing.getVersion();
     String description = patchOp.getNewVersionName();
-    File destination = new File(destDir, PATCH_JAR_FN);
-    File newFilesRoot = patchOp.getNewFilesRoot();
-    if (runner.generatePatch(existingRoot, newFilesRoot, existingDescription, description, destination, progress.createSubProgress(1))) {
+    Path destination = destDir.resolve(PATCH_JAR_FN);
+    File newFilesRoot = patchOp.getNewFilesRoot().toFile();
+    if (runner.generatePatch(existingRoot == null ? null : existingRoot.toFile(), newFilesRoot, existingDescription, description,
+                             destination.toFile(), progress.createSubProgress(1))) {
       progress.setFraction(1);
       return destination;
     }

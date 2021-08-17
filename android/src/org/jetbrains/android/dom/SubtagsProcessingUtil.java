@@ -17,19 +17,15 @@ package org.jetbrains.android.dom;
 
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.dom.xml.PreferenceElementBase;
+import org.jetbrains.android.dom.resources.PublicResource;
+import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.xml.PreferenceElementBase;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -133,6 +129,9 @@ public class SubtagsProcessingUtil {
       for (Class<? extends AndroidDomElement> c : subtags.keys()) {
         registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor, processExistingSubTags);
       }
+    }
+    else if (element instanceof Resources && facet.getConfiguration().isLibraryProject()) {
+      subtagProcessor.processSubtag("public", PublicResource.class);
     }
   }
 

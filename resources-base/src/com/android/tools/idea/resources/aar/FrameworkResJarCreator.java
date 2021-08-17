@@ -62,7 +62,7 @@ public class FrameworkResJarCreator {
 
   @VisibleForTesting
   static void createJar(@NotNull Path resDirectory, @NotNull Path jarFile) throws IOException {
-    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, (Set<String>)null, null, false);
+    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resDirectory, null, null, false);
     Set<String> languages = repository.getLanguageGroups();
 
     try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(jarFile))) {
@@ -78,7 +78,7 @@ public class FrameworkResJarCreator {
         // When running on Windows, we need to make sure that the file entries are correctly encoded
         // with the Unix path separator since the ZIP file spec only allows for that one.
         String relativePath = FileUtil.toSystemIndependentName(parentDir.relativize(file).toString());
-        if (!relativePath.equals("res/version")) { // Skip the "version" file.
+        if (!relativePath.equals("res/version") && !relativePath.equals("res/BUILD")) { // Skip "version" and "BUILD" files.
           createZipEntry(relativePath, Files.readAllBytes(file), zip);
         }
       }
@@ -117,6 +117,6 @@ public class FrameworkResJarCreator {
   }
 
   private static void printUsage(@NotNull String programName) {
-    System.out.println(String.format("Usage: %s <res_directory> <jar_file>", programName));
+    System.out.printf("Usage: %s <res_directory> <jar_file>%n", programName);
   }
 }

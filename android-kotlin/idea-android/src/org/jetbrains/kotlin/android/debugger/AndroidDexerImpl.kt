@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.debugger
 
+import com.android.io.CancellableFileIo
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -62,9 +63,9 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
                                   ?: sdkData.getLatestBuildTool(/* allowPreview = */ true)
                                   ?: continue
 
-            val dxJar = File(latestBuildTool.location, "lib/dx.jar")
-            if (dxJar.exists()) {
-                return dxJar
+            val dxJar = latestBuildTool.location.resolve("lib/dx.jar")
+            if (CancellableFileIo.exists(dxJar)) {
+                return dxJar.toFile()
             }
         }
 

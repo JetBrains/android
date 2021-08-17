@@ -892,8 +892,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, "") // the android/defaultConfig block is now empty and will be deleted
 
-    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
@@ -917,8 +917,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
@@ -1827,7 +1827,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("cmake-cFlags", cmake.cFlags())
     assertMissingProperty("cmake-cppFlags", cmake.cppFlags())
     assertMissingProperty("cmake-targets", cmake.targets())
-    checkForInValidPsiElement(cmake, CMakeOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(cmake, CMakeOptionsModelImpl::class.java)
 
     val ndkBuild = externalNativeBuild.ndkBuild()
     assertMissingProperty("ndkBuild-abiFilters", ndkBuild.abiFilters())
@@ -1835,11 +1835,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("ndkBuild-cFlags", ndkBuild.cFlags())
     assertMissingProperty("ndkBuild-cppFlags", ndkBuild.cppFlags())
     assertMissingProperty("ndkBuild-targets", ndkBuild.targets())
-    checkForInValidPsiElement(ndkBuild, NdkBuildOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(ndkBuild, NdkBuildOptionsModelImpl::class.java)
 
     val ndk = defaultConfig.ndk()
     assertMissingProperty("ndk-abiFilters", ndk.abiFilters())
-    checkForInValidPsiElement(ndk, NdkOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(ndk, NdkOptionsModelImpl::class.java)
   }
 
   @Test
@@ -1861,8 +1861,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
     defaultConfig = android.defaultConfig()
-    checkForInValidPsiElement(defaultConfig.externalNativeBuild(), ExternalNativeBuildOptionsModelImpl::class.java)
-    checkForInValidPsiElement(defaultConfig.ndk(), NdkOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(defaultConfig.externalNativeBuild(), ExternalNativeBuildOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(defaultConfig.ndk(), NdkOptionsModelImpl::class.java)
   }
 
   @Test
@@ -1884,8 +1884,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
     externalNativeBuild = android.defaultConfig().externalNativeBuild()
-    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl::class.java)
-    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl::class.java)
+    checkForInvalidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl::class.java)
   }
 
   @Test

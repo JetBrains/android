@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2.internal
 
-import com.android.tools.idea.editors.theme.MaterialColorUtils
+import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel

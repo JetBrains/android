@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -26,12 +27,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   public UseEmbeddedJdkHyperlink() {
-    super("useEmbeddedJdk", "Use embedded JDK");
+    super("useEmbeddedJdk", "Use Embedded JDK (" + IdeSdks.getInstance().getEmbeddedJdkPath() + ")");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setUseEmbeddedJdk());
+    ApplicationManager.getApplication().runWriteAction(() -> setJdkAsEmbedded(project));
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED);
   }
 }

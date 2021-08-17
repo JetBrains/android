@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_REQUEST;
-import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
@@ -35,6 +35,7 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -48,7 +49,6 @@ import com.android.tools.idea.gradle.project.sync.ProjectSyncRequest;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -72,6 +72,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,6 +92,7 @@ public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<Boolean> FULL_SYNC_KEY = new Key<>("android.full.sync");
+  @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
     myProject = project;
@@ -98,6 +100,10 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
+    if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
+      GradleSyncState.getInstance(myProject).syncSkipped(listener);
+      return;
+    }
     // Setup the settings for setup.
     // Setup the settings for the resolver.
     myProject.putUserData(FULL_SYNC_KEY, request.forceFullVariantsSync);
@@ -169,7 +175,6 @@ public class GradleSyncExecutor {
     GradleProjectImportUtil.setupGradleSettings(settings);
     GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, project, Paths.get(externalProjectPath));
     GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, gradleVersion);
-    GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
     return externalProjectPath;
@@ -203,7 +208,7 @@ public class GradleSyncExecutor {
           PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
           moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
 
-          @NotNull Collection<DataNode<SyncIssueData>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
+          @NotNull Collection<DataNode<IdeSyncIssue>> syncIssueNodes = findAll(moduleNode, SYNC_ISSUE);
           if (!syncIssueNodes.isEmpty()) {
             moduleModules.addModel(SyncIssues.class, new SyncIssues(ContainerUtil.map(syncIssueNodes, it -> it.getData())));
           }
@@ -255,7 +260,7 @@ public class GradleSyncExecutor {
     assert projectPath != null;
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
-    ProjectResolverPolicy projectResolverPolicy = new GradlePartialResolverPolicy(it -> it instanceof AndroidGradleProjectResolver);
+    ProjectResolverPolicy projectResolverPolicy = new GradlePartialResolverPolicy(it -> it instanceof AndroidGradleProjectResolverMarker);
     DataNode<ProjectData> projectDataNode =
       projectResolver.resolveProjectInfo(id, projectPath, false, settings, projectResolverPolicy, NULL_OBJECT);
     if (projectDataNode == null) {

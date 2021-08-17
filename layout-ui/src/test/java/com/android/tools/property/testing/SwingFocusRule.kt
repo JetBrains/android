@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.awt.AWTAccessor.
 package com.android.tools.property.testing
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.IdeFrame
+import com.intellij.testFramework.replaceService
 import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -39,7 +43,6 @@ import java.awt.KeyboardFocusManager
 import java.awt.Window
 import java.awt.event.FocusEvent
 import java.awt.peer.ComponentPeer
-import java.lang.reflect.Constructor
 import javax.swing.JComponent
 
 /**
@@ -53,7 +56,7 @@ import javax.swing.JComponent
  * Note that components created dynamically would also have to setup with a peer.
  * Do that by calling [setRootPeer] on the top component again.
  */
-class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
+class SwingFocusRule : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
   private var oldFocusManager : KeyboardFocusManager? = null
@@ -89,6 +92,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     private set
 
   private var ideFocusManager: IdeFocusManager? = null
+  private var disposable: Disposable? = null
 
   /**
    * Make [component] the top component for the test.
@@ -137,7 +141,8 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     _window = FakeFrame()
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
-    appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
+    disposable = Disposer.newDisposable()
+    ApplicationManager.getApplication().replaceService(IdeFocusManager::class.java, ideFocusManager!!, disposable!!)
     oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
   }
@@ -152,7 +157,8 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusOwner = null
     focusManager = null
     ideFocusManager = null
-    appRule = null
+    disposable?.let { Disposer.dispose(it) }
+    disposable = null
     KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
     overrideGraphicsEnvironment(null)
     oldFocusManager = null

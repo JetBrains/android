@@ -16,9 +16,15 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.sync.snapshots.GradleSyncProjectComparisonTest
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.saveAndDump
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 /**
  * Snapshot tests for 'Gradle Sync' that use old versions of AGP
@@ -38,14 +44,19 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
 bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests \
 --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
  */
+@RunWith(JUnit4::class)
+@RunsInEdt
 class GradleSyncProjectComparisonOldAgpTest: GradleSyncProjectComparisonTest() {
+
+  @Test
   fun testSimpleApplicationWithAgp3_3_2() {
-    val text = importSyncAndDumpProject(
-      projectDir = TestProjectPaths.SIMPLE_APPLICATION,
-      patch = {
-        AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2", null)
-      }
+    val projectRootPath = prepareGradleProject(
+      testProjectPath = TestProjectPaths.SIMPLE_APPLICATION,
+      name = projectName,
+      gradleVersion = "5.5",
+      gradlePluginVersion = "3.3.2"
     )
+    val text = openPreparedProject(projectName) { project -> project.saveAndDump() }
     assertIsEqualToSnapshot(text)
   }
 }

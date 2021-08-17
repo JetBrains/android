@@ -23,7 +23,6 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
-import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -69,14 +68,11 @@ class TasksPageViewTest {
   @Test
   @RunsInEdt
   fun testCreateView() {
-    assertThat(model.modelUpdatedListener).isNotNull()
     assertThat(view.component.name).isEqualTo("tasks-view")
     assertThat(view.groupingCheckBox.isSelected).isFalse()
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     assertThat(view.tree.selectionPath).isNull()
-    assertThat(view.chartsPanel.key).isEqualTo(TasksPageId.emptySelection(TasksDataPageModel.Grouping.UNGROUPED))
-    assertThat(findVisibleChartNames(view.chartsPanel)).isEqualTo("task-chart-selected-empty")
     Mockito.verifyZeroInteractions(mockHandlers)
   }
 
@@ -93,8 +89,6 @@ class TasksPageViewTest {
     val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
     assertThat(selectedNode).isEqualTo(model.selectedNode)
     assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
-    assertThat(view.chartsPanel.key).isEqualTo(selectedNode.descriptor.pageId)
-    assertThat(findVisibleChartNames(view.chartsPanel)).isEqualTo("plugin-chart-selected-resources.plugin")
     Mockito.verifyZeroInteractions(mockHandlers)
   }
 
@@ -162,13 +156,6 @@ class TasksPageViewTest {
   private fun findVisibleDetailsPageNames(parent: Component): String {
     return TreeWalker(parent).descendants().asSequence()
       .filter { it.name?.startsWith("details-") ?: false }
-      .filter { it.isVisible }
-      .joinToString(separator = ",") { it.name }
-  }
-
-  private fun findVisibleChartNames(parent: ChartsPanel): String {
-    return TreeWalker(parent).descendants().asSequence()
-      .filter { it.name?.let { name -> name.startsWith("task-chart") || name.startsWith("plugin-chart") } ?: false }
       .filter { it.isVisible }
       .joinToString(separator = ",") { it.name }
   }

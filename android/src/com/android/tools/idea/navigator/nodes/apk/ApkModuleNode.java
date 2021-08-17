@@ -64,7 +64,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
   @Nullable private final VirtualFile myManifestFile;
   @NotNull private final List<VirtualFile> myDexFiles;
 
-  @NotNull private final List<DexGroupNode> myDexGroupNodes;
+  @Nullable private DexGroupNode myDexGroupNode;
 
   public ApkModuleNode(@NotNull Project project,
                        @NotNull Module module,
@@ -82,7 +82,6 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
     VirtualFile rootFolder = findModuleRootFolder();
     myManifestFile = rootFolder != null ? rootFolder.findChild(FN_ANDROID_MANIFEST_XML) : null;
-    myDexGroupNodes = new ArrayList<>();
     myDexFiles = new ArrayList<>();
 
     if (apkRootFile != null) {
@@ -145,13 +144,10 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     children.add(createManifestGroupNode());
 
     // "java" folder
-    if (myDexGroupNodes.isEmpty()) {
-      for (VirtualFile dexFile : myDexFiles) {
-        DexGroupNode node = new DexGroupNode(myProject, settings, dexFile);
-        myDexGroupNodes.add(node);
-      }
+    if (myDexGroupNode == null) {
+      myDexGroupNode = new DexGroupNode(myProject, settings, myDexFiles);
     }
-    children.addAll(myDexGroupNodes);
+    children.add(myDexGroupNode);
 
     // "Native libraries" folder
     VirtualFile found = LibraryFolder.findIn(myProject);
@@ -171,13 +167,13 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Override
   @Nullable
-  public Comparable getSortKey() {
+  public Comparable<String> getSortKey() {
     return getModule().getName();
   }
 
   @Override
   @Nullable
-  public Comparable getTypeSortKey() {
+  public Comparable<String> getTypeSortKey() {
     return getSortKey();
   }
 
@@ -205,7 +201,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     if (Objects.equals(path, getManifestPath())) {
       return true;
     }
-    if (!myDexGroupNodes.isEmpty() && myDexGroupNodes.stream().anyMatch(node -> node.contains(file))) {
+    if (myDexGroupNode != null && myDexGroupNode.contains(file)) {
       return true;
     }
     VirtualFile found = LibraryFolder.findIn(myProject);

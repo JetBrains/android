@@ -20,9 +20,12 @@ import static org.junit.Assert.assertArrayEquals;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.Separator;
+import java.nio.file.FileSystem;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,6 +69,7 @@ public final class PopupActionGroupTest {
     Object[] children = {
       myActionManager.getAction(RunOnMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -83,6 +87,105 @@ public final class PopupActionGroupTest {
     Object[] children = {
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+
+    assertArrayEquals(children, group.getChildren(null));
+  }
+
+  @Test
+  public void newSelectDeviceActionsOrSnapshotActionGroupsRunningDevicesPresent() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Collection<Device> devices = Collections.singletonList(device);
+    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
+    // Act
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+
+    // Assert
+    Object[] children = {
+      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      new SelectDeviceAction(device, myComboBoxAction),
+      Separator.getInstance(),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+
+    assertArrayEquals(children, group.getChildren(null));
+  }
+
+  @Test
+  public void newSelectDeviceActionsOrSnapshotActionGroupsRunningDevicesPresentAndAvailableDevicesPresent() {
+    // Arrange
+    Device runningDevice = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device availableDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
+    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
+    // Act
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+
+    // Assert
+    Object[] children = {
+      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      new SelectDeviceAction(runningDevice, myComboBoxAction),
+      Separator.getInstance(),
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      new SelectDeviceAction(availableDevice, myComboBoxAction),
+      Separator.getInstance(),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
+
+    assertArrayEquals(children, group.getChildren(null));
+  }
+
+  @Test
+  public void newSelectDeviceActionOrSnapshotActionGroup() {
+    // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
+      .build();
+
+    Collection<Device> devices = Collections.singletonList(device);
+    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
+    // Act
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+
+    // Assert
+    Object[] children = {
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      new SnapshotActionGroup(device, myComboBoxAction),
+      Separator.getInstance(),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -105,10 +208,11 @@ public final class PopupActionGroupTest {
     // Assert
     Object[] children = {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
+      new SelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -132,10 +236,11 @@ public final class PopupActionGroupTest {
     // Assert
     Object[] children = {
       myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
+      new SelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -165,13 +270,14 @@ public final class PopupActionGroupTest {
     // Assert
     Object[] children = {
       myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(runningDevice, myComboBoxAction),
+      new SelectDeviceAction(runningDevice, myComboBoxAction),
       Separator.getInstance(),
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(availableDevice, myComboBoxAction),
+      new SelectDeviceAction(availableDevice, myComboBoxAction),
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(WearDevicePairingAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
     assertArrayEquals(children, group.getChildren(null));

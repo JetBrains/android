@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +64,7 @@ public class ConvertFromWebpToPngTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testConvertFromWebPToPng() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject", Wait.seconds(120))
            .getProjectView()
            .selectAndroidPane()
            .expand(30)

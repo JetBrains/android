@@ -24,19 +24,13 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ExceptionUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.color.ColorSpace;
-import java.awt.color.ICC_ColorSpace;
-import java.awt.color.ICC_Profile;
-import java.awt.image.*;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 public class ScreenshotTask extends Task.Modal {
   private final IDevice myDevice;
@@ -65,11 +59,7 @@ public class ScreenshotTask extends Task.Modal {
         rawImage = image.get(100, TimeUnit.MILLISECONDS);
         break;
       }
-      catch (InterruptedException e) {
-        myError = AndroidBundle.message("android.ddms.screenshot.task.error1", ExceptionUtil.getMessage(e));
-        return;
-      }
-      catch (ExecutionException e) {
+      catch (InterruptedException | ExecutionException e) {
         myError = AndroidBundle.message("android.ddms.screenshot.task.error1", ExceptionUtil.getMessage(e));
         return;
       }
@@ -87,50 +77,7 @@ public class ScreenshotTask extends Task.Modal {
 
     indicator.setText(AndroidBundle.message("android.ddms.screenshot.task.step.load"));
 
-    myImage = createImage(rawImage);
-    for (int y = 0; y < rawImage.height; y++) {
-      for (int x = 0; x < rawImage.width; x++) {
-        int argb = rawImage.getARGB((x + y * rawImage.width) * (rawImage.bpp / 8));
-        myImage.setRGB(x, y, argb);
-      }
-    }
-  }
-
-  @NotNull
-  private BufferedImage createImage(RawImage rawImage) {
-    String profileName = getProfileName(rawImage);
-    if (profileName == null) {
-      //noinspection UndesirableClassUsage
-      return new BufferedImage(rawImage.width, rawImage.height, BufferedImage.TYPE_INT_ARGB);
-    }
-
-    ICC_Profile profile = ICC_Profile.getInstance(ColorSpace.CS_sRGB);
-    try {
-      profile = ICC_Profile.getInstance(getClass().getClassLoader().getResourceAsStream("colorProfiles/" + profileName));
-    }
-    catch (IOException e) {
-      // Ignore
-    }
-    ICC_ColorSpace colorSpace = new ICC_ColorSpace(profile);
-
-    ColorModel colorModel = new DirectColorModel(colorSpace, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000, false, DataBuffer.TYPE_INT);
-    WritableRaster raster = colorModel.createCompatibleWritableRaster(rawImage.width, rawImage.height);
-
-    //noinspection UndesirableClassUsage
-    return new BufferedImage(colorModel, raster, colorModel.isAlphaPremultiplied(), null);
-  }
-
-  @Nullable
-  private static String getProfileName(RawImage image) {
-    switch (image.colorSpace) {
-      case RawImage.COLOR_SPACE_UNKNOWN:
-        return null;
-      case RawImage.COLOR_SPACE_SRGB:
-        return "sRGB.icc";
-      case RawImage.COLOR_SPACE_DISPLAY_P3:
-        return "DisplayP3.icc";
-    }
-    return null;
+    myImage = rawImage.asBufferedImage();
   }
 
   public BufferedImage getScreenshot() {

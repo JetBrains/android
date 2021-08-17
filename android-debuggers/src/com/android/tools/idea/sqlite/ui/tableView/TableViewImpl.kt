@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -75,6 +76,9 @@ import javax.swing.table.TableCellRenderer
  * Abstraction on the UI component used to display tables.
  */
 class TableViewImpl : TableView {
+  private val tableIsEmptyText = DatabaseInspectorBundle.message("table.is.empty")
+  private val loadingTableDataText = DatabaseInspectorBundle.message("loading.data")
+
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
@@ -96,6 +100,8 @@ class TableViewImpl : TableView {
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh)
 
   private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
+
+  private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -194,9 +200,20 @@ class TableViewImpl : TableView {
       }
       .installOn(liveUpdatesCheckBox)
 
+    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
+      exportButton.name = "export-button"
+      exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
+      exportButton.isEnabled = false
+      HelpTooltip()
+        .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
+        .installOn(exportButton)
+      tableActionsPanel.add(exportButton)
+      exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
+    }
+
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
-    table.emptyText.text = "Table is empty"
+    table.emptyText.text = tableIsEmptyText
     table.emptyText.isShowAboveCenter = false
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
@@ -246,8 +263,9 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    layeredPane.add(progressBarPanel)
+    // add the table first, otherwise the "resise column" is not shown when hovering the table's header
     layeredPane.add(tablePanel)
+    layeredPane.add(progressBarPanel)
     layeredPane.layout = MatchParentLayoutManager()
 
     progressBar.isVisible = false
@@ -269,7 +287,7 @@ class TableViewImpl : TableView {
   override fun resetView() {
     columns = null
     table.model = MyTableModel(emptyList())
-    table.emptyText.text = "Table is empty"
+    table.emptyText.text = tableIsEmptyText
     orderBy = OrderBy.NotOrdered
 
     setEditable(true)
@@ -284,6 +302,7 @@ class TableViewImpl : TableView {
 
     progressBar.isVisible = true
     table.isEnabled = false
+    table.emptyText.text = loadingTableDataText
 
     tableHadFocus = table.hasFocus()
     if (table.hasFocus()) {
@@ -298,6 +317,7 @@ class TableViewImpl : TableView {
   override fun stopTableLoading() {
     myRevertLastTableCellEdit = null
     setControlButtonsEnabled(true)
+    table.emptyText.text = tableIsEmptyText
 
     isLoading = false
 
@@ -390,6 +410,7 @@ class TableViewImpl : TableView {
   private fun setControlButtonsEnabled(enabled: Boolean) {
     liveUpdatesCheckBox.isEnabled = liveUpdatesEnabled && enabled
     refreshButton.isEnabled = refreshEnabled && enabled
+    exportButton.isEnabled = enabled
     pageSizeComboBox.isEnabled = enabled
   }
 

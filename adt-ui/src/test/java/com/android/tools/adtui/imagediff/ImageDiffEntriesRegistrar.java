@@ -22,7 +22,7 @@ import java.util.List;
  * Registers and keeps a register of {@link ImageDiffEntry} items.
  *
  * An entries registrar should create one or more {@link ImageDiffEntry} items and pass them to the {@link #register} method.
- * All the entries belonging to a entries registrar should be added to {@link ImageDiffUtil.IMAGE_DIFF_ENTRIES}.
+ * All the entries belonging to a entries registrar should be added to {@link ImageDiffTestUtil.IMAGE_DIFF_ENTRIES}.
  */
 abstract class ImageDiffEntriesRegistrar {
 

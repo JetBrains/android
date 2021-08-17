@@ -15,6 +15,9 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
@@ -43,8 +46,9 @@ fun mockTask(
   name: String,
   pluginName: String,
   executionTimeMs: Long,
-  criticalPathDurationMs: Long = defaultCriticalPathDurationMs
-) = TestTaskUiData(module, name, pluginName, TimeWithPercentage(executionTimeMs, criticalPathDurationMs))
+  criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
+  pluginUnknownBecauseOfCC: Boolean = false
+) = TestTaskUiData(module, name, pluginName, TimeWithPercentage(executionTimeMs, criticalPathDurationMs), pluginUnknownBecauseOfCC)
 
 class MockUiData(
   val totalBuildDurationMs: Long = defaultTotalBuildDurationMs,
@@ -60,6 +64,7 @@ class MockUiData(
   override var issues = criticalPathTasks.tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
+  override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,
@@ -141,15 +146,16 @@ class TestTaskUiData(
   override val module: String,
   override val name: String,
   override var pluginName: String,
-  override val executionTime: TimeWithPercentage
+  override val executionTime: TimeWithPercentage,
+  override val pluginUnknownBecauseOfCC: Boolean = false
 ) : TaskUiData {
   override val taskPath: String = "$module:$name"
   override val taskType: String = "CompilationType"
   override val executedIncrementally: Boolean = true
   override val executionMode: String = "FULL"
-  override val onLogicalCriticalPath: Boolean = true
+  override var onLogicalCriticalPath: Boolean = true
   override val onExtendedCriticalPath: Boolean = true
-  override val sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
+  override var sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
   override val reasonsToRun: List<String> = emptyList()
   override var issues: List<TaskIssueUiData> = emptyList()
 }

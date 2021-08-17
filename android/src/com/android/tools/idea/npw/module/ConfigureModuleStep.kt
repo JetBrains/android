@@ -18,10 +18,9 @@ package com.android.tools.idea.npw.module
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -52,7 +51,6 @@ import com.android.tools.idea.wizard.template.Language
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.refactoring.isAndroidx
-import java.util.function.Consumer
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -87,12 +85,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
     }
   }
   protected val rootPanel: JScrollPane by lazy {
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      wrapWithVScroll(validatorPanel, SMALL)
-    }
-    else {
-      wrapWithVScroll(validatorPanel)
-    }
+    wrapWithVScroll(validatorPanel, SMALL)
   }
 
   abstract fun createMainPanel(): JPanel
@@ -136,7 +129,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
     androidVersionsInfo.loadLocalVersions()
     apiLevelCombo.init(formFactor, androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel)) // Pre-populate
     androidVersionsInfo.loadRemoteTargetVersions(
-      formFactor, minSdkLevel, Consumer { items -> apiLevelCombo.init(formFactor, items) }
+      formFactor, minSdkLevel, { items -> apiLevelCombo.init(formFactor, items) }
     )
   }
 

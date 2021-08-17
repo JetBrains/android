@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.util
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.testing.findModule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.manifest.Manifest
@@ -27,14 +27,14 @@ import org.jetbrains.android.facet.AndroidFacet
 private const val defaultPackageName = "com.example"
 
 // TODO: Add tests that uses other configuration values
-class ConfigurationBuilder(private val strings: TestStringTable) {
+class ConfigurationParamsBuilder(private val strings: TestStringTable) {
 
-  fun makeSampleConfiguration(project: Project): LayoutInspectorProto.ResourceConfiguration {
+  fun makeSampleContext(project: Project): AppContext {
     val packageName = runInEdtAndGet { getAppPackageName(project) }
-    return LayoutInspectorProto.ResourceConfiguration.newBuilder().apply {
-      appPackageName = strings.add(packageName)
-      theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))
-    }.build()
+    return AppContext(
+      appPackageName = strings.add(packageName),
+      theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))!!,
+    )
   }
 
   private fun getAppPackageName(project: Project): String {

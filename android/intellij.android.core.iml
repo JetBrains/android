@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -153,16 +153,7 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.2.0.1" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.2.0.1/jb-layoutlib-native-jdk11-27.2.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.terminal" />
@@ -170,10 +161,10 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module-library">
-      <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
+      <library name="utp-core-proto" type="repository">
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha04" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha04/core-proto-0.0.8-alpha04.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -182,10 +173,9 @@
     <orderEntry type="module" module-name="intellij.webp" />
     <orderEntry type="library" name="ini4j" level="project" />
     <orderEntry type="module-library">
-      <library name="android-core-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto:27.2.0.0" />
+      <library name="libandroid-core-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/27.2.0.0/libandroid-core-proto-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -200,5 +190,27 @@
     <orderEntry type="library" name="Velocity" level="project" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="CGLIB" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="library" name="studio-plugin-webp" level="project" />
+    <orderEntry type="module-library">
+      <library name="libstudio.android-test-plugin-host-retention-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="utp" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
   </component>
 </module>

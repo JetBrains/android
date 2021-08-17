@@ -19,7 +19,7 @@ package com.android.tools.idea.nav.safeargs.codegen.gradle
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.blame.Message
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -73,9 +73,9 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   fun initProject() {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     // to be able to change the project before import, we copy it into a temp folder
-    val testSrc = TestUtils.getWorkspaceFile("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
+    val testSrc = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
     val container = temporaryFolder.newFile("TestApp")
-    testSrc.copyRecursively(container, overwrite = true)
+    testSrc.toFile().copyRecursively(container, overwrite = true)
 
     val settingsFile = container.resolve("settings.gradle").also {
       assertWithMessage("settings file should exist").that(it.exists()).isTrue()
@@ -130,14 +130,12 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     val scope = fixture.findClass("FooClass").resolveScope
 
     allGeneratedCode.forEach { generated ->
-      val psiClass = psiFacade.findClass(generated.qualifiedName, scope)
-      val psiDescription = (psiClass?.toUElement() as? UClass)?.javaPsi?.toDescription()
-      expect.withMessage(generated.qualifiedName).that(psiDescription).isNotNull()
-      psiDescription?.let {
-        expect.withMessage(generated.qualifiedName).that(psiDescription.qualifiedName).isEqualTo(generated.qualifiedName)
-        expect.withMessage(generated.qualifiedName).that(psiDescription.methods).containsExactlyElementsIn(generated.methods)
-        expect.withMessage(generated.qualifiedName).that(psiDescription.fields).containsExactlyElementsIn(generated.fields)
-      }
+      val psiClass = psiFacade.findClass(generated.qualifiedName, scope)!!
+      val psiDescription = psiClass.toDescription()
+
+      expect.withMessage(generated.qualifiedName).that(psiDescription.qualifiedName).isEqualTo(generated.qualifiedName)
+      expect.withMessage(generated.qualifiedName).that(psiDescription.methods).containsExactlyElementsIn(generated.methods)
+      expect.withMessage(generated.qualifiedName).that(psiDescription.fields).containsExactlyElementsIn(generated.fields)
     }
   }
 

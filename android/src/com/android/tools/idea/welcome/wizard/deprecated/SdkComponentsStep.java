@@ -21,6 +21,7 @@ import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isExisti
 import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isNonEmptyNonSdk;
 
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
@@ -111,8 +112,11 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
 
-    myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
-                                   FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    if (!IdeInfo.getInstance().isGameTools()) {
+      // Game tools does not allow changing Android SDK install directory from the UI.
+      myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
+                                     FileChooserDescriptorFactory.createSingleFolderDescriptor());
+    }
 
     mySdkDownloadPathKey = sdkDownloadPathKey;
     Font smallLabelFont = JBUI.Fonts.smallFont();

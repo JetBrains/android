@@ -15,17 +15,26 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
+import com.android.io.CancellableFileIo;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link Installer} that creates a patch based on a complete zip of the new component and installs it.
@@ -36,17 +45,16 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
 
   private static final String UNZIP_DIR_FN = "unzip";
 
-  private LocalPackage myExisting;
+  private final LocalPackage myExisting;
   private LocalPackage myPatcher;
-  private File myUnzippedPackage;
-  private File myGeneratedPatch;
+  private Path myUnzippedPackage;
+  private Path myGeneratedPatch;
 
   public FullInstaller(@Nullable LocalPackage existing,
                        @NotNull RemotePackage p,
                        @NotNull RepoManager mgr,
-                       @NotNull Downloader downloader,
-                       @NotNull FileOp fop) {
-    super(p, mgr, downloader, fop);
+                       @NotNull Downloader downloader) {
+    super(p, mgr, downloader);
     myExisting = existing;
     myPatcher = PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
     if (myPatcher == null) {
@@ -55,33 +63,37 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   }
 
   @Override
-  protected boolean doComplete(@Nullable File installTemp,
+  protected boolean doComplete(@Nullable Path installTemp,
                                @NotNull ProgressIndicator progress) {
     if (myPatcher == null) {
       return false;
     }
-    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, mFop, progress);
+    return PatchInstallerUtil.installPatch(this, myGeneratedPatch, progress);
   }
 
   @Override
-  protected boolean doPrepare(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
+  protected boolean doPrepare(@NotNull Path installTempPath, @NotNull ProgressIndicator progress) {
     if (!downloadAndUnzip(installTempPath, getDownloader(), progress.createSubProgress(0.5))) {
       progress.setFraction(1);
       return false;
     }
-    myUnzippedPackage = new File(installTempPath, UNZIP_DIR_FN);
-    File[] children = mFop.listFiles(myUnzippedPackage);
-    if (children.length == 1) {
-      // This is the expected case: zips should contain one directory at the top level. But some (e.g. 3rd-party) don't.
-      myUnzippedPackage = children[0];
+    myUnzippedPackage = installTempPath.resolve(UNZIP_DIR_FN);
+    try (Stream<Path> childrenStream = CancellableFileIo.list(myUnzippedPackage)) {
+      List<Path> children = childrenStream.limit(2).collect(Collectors.toList());
+      if (children.size() == 1) {
+        myUnzippedPackage = children.get(0);
+      }
+    }
+    catch (IOException ignore) {
+      // fall through
     }
 
-    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTempPath, mFop, progress.createSubProgress(1));
+    myGeneratedPatch = PatchInstallerUtil.generatePatch(this, installTempPath, progress.createSubProgress(1));
     progress.setFraction(1);
     return myGeneratedPatch != null;
   }
 
-  private boolean downloadAndUnzip(@NotNull File installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
+  private boolean downloadAndUnzip(@NotNull Path installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
     URL url = InstallerUtil.resolveCompleteArchiveUrl(getPackage(), progress);
     if (url == null) {
       progress.logWarning("No compatible archive found!");
@@ -90,28 +102,27 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
     Archive archive = getPackage().getArchive();
     assert archive != null;
     try {
-      File downloadLocation = new File(installTempPath, url.getFile());
-      String checksum = archive.getComplete().getChecksum();
-      downloader.downloadFullyWithCaching(url, downloadLocation, checksum, progress.createSubProgress(0.5));
+      Path downloadLocation = installTempPath.resolve(url.getFile());
+      downloader.downloadFullyWithCaching(url, downloadLocation, archive.getComplete().getTypedChecksum(), progress.createSubProgress(0.5));
       progress.setFraction(0.5);
       if (progress.isCanceled()) {
         progress.setFraction(1);
         return false;
       }
-      if (!mFop.exists(downloadLocation)) {
+      if (!CancellableFileIo.exists(downloadLocation)) {
         progress.setFraction(1);
         progress.logWarning("Failed to download package!");
         return false;
       }
-      File unzip = new File(installTempPath, UNZIP_DIR_FN);
-      mFop.mkdirs(unzip);
-      InstallerUtil.unzip(downloadLocation, unzip, mFop,
+      Path unzip = installTempPath.resolve(UNZIP_DIR_FN);
+      Files.createDirectories(unzip);
+      InstallerUtil.unzip(downloadLocation, unzip,
                           archive.getComplete().getSize(), progress.createSubProgress(1));
       progress.setFraction(1);
       if (progress.isCanceled()) {
         return false;
       }
-      mFop.delete(downloadLocation);
+      FileOpUtils.deleteFileOrFolder(downloadLocation);
 
       return true;
     }
@@ -147,7 +158,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
 
   @NotNull
   @Override
-  public File getNewFilesRoot() {
+  public Path getNewFilesRoot() {
     return myUnzippedPackage;
   }
 
@@ -160,9 +171,9 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   @Override
   protected void cleanup(@NotNull ProgressIndicator progress) {
     super.cleanup(progress);
-    mFop.deleteFileOrFolder(getLocation(progress));
+    FileOpUtils.deleteFileOrFolder(getLocation(progress));
     if (myUnzippedPackage != null) {
-      mFop.deleteFileOrFolder(myUnzippedPackage);
+      FileOpUtils.deleteFileOrFolder(myUnzippedPackage);
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,104 +13,163 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.TreeLoader
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Common.Event.EventGroupIds
-import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import java.util.EnumSet
 
 /**
  * Client for communicating with the agent.
+ *
+ * When created, it is expected that [connect] should be called shortly after, and that the client
+ * will be in a valid state until [disconnect] is called.
  */
 interface InspectorClient {
-  /**
-   * Register a handler for a specific groupId.
-   */
-  fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
+  enum class State {
+    INITIALIZED,
+    CONNECTING,
+    CONNECTED,
+    DISCONNECTING,
+    DISCONNECTED,
+  }
 
-  /**
-   * Register a handler for when the current process starts and ends.
-   */
-  fun registerProcessChanged(callback: (InspectorClient) -> Unit)
+  enum class Capability {
+    /**
+     * Indicates this client supports continuous fetching via [startFetching] and [stopFetching].
+     */
+    SUPPORTS_CONTINUOUS_MODE,
 
-  /**
-   * Returns a sequence of the known devices seen from this client.
-   */
-  fun getStreams(): Sequence<Common.Stream>
+    /**
+     * Indicates that this client is aware of and uses [TreeSettings.skipSystemNodesInAgent] when
+     * [startFetching] is called.
+     */
+    SUPPORTS_FILTERING_SYSTEM_NODES,
 
-  /**
-   * Returns a sequence of the known processes for the specified device/stream.
-   */
-  fun getProcesses(stream: Common.Stream): Sequence<Common.Process>
+    /**
+     * Indicates that this client is able to separate user defined nodes from system defined nodes.
+     */
+    SUPPORTS_SYSTEM_NODES,
 
-  /**
-   * Attach to a preferred process.
-   */
-  fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>?
+    /**
+     * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
+     */
+    SUPPORTS_SKP,
 
-  /**
-   * Attach to a specific process.
-   */
-  fun attach(stream: Common.Stream, process: Common.Process)
+    /**
+     * Indicates that this client is able to collect semantic information.
+     */
+    SUPPORTS_SEMANTICS,
 
-  /**
-   * Disconnect from the current process.
-   */
-  fun disconnect(): Future<*>
-
-  /**
-   * Send a command to the agent.
-   */
-  fun execute(command: LayoutInspectorCommand)
-
-  /**
-   * Send simple command to agent without arguments.
-   */
-  fun execute(commandType: LayoutInspectorCommand.Type) {
-    execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
+    /**
+     * Indicates that this client is able to inspect compose parts of the application.
+     */
+    SUPPORTS_COMPOSE,
   }
 
   /**
+   * Register a handler that is triggered whenever this client's [state] has changed.
+   */
+  fun registerStateCallback(callback: (State) -> Unit)
+
+  /**
+   * Register a handler that is triggered when this client encounters an error message
+   */
+  fun registerErrorCallback(callback: (String) -> Unit)
+
+  /**
+   * Register a handler that is triggered when this client receives an event containing layout tree
+   * data about this device.
+   *
+   * See also: [treeLoader], which helps consume this data
+   */
+  fun registerTreeEventCallback(callback: (Any) -> Unit)
+
+  /**
+   * Connect this client to the device.
+   *
+   * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has
+   * finished. This may also get set to [State.DISCONNECTED] if the client fails to connect.
+   *
+   * You are only supposed to call this once.
+   */
+  fun connect()
+
+  /**
+   * Disconnect this client.
+   *
+   * Use [registerStateCallback] and check for [State.DISCONNECTED] if you need to know when this has
+   * finished.
+   *
+   * You are only supposed to call this once.
+   */
+  fun disconnect()
+
+  /**
+   * Start fetching information continuously off the device.
+   *
+   * If this is currently happening, then [isCapturing] will be set to true.
+   *
+   * See also [refresh], which is used for pulling the state of the device one piece at a time
+   * instead.
+   *
+   * Once called, you should call [stopFetching] to cancel.
+   *
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
+   * method should not be called, and doing so is undefined.
+   */
+  fun startFetching()
+
+  /**
+   * Stop fetching information off the device.
+   *
+   * See also: [startFetching]
+   *
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
+   * method should not be called, and doing so is undefined.
+   */
+  fun stopFetching()
+
+  /**
    * Refresh the content of the inspector.
+   *
+   * This shouldn't be necessary if the client is already continuously fetching off the device, i.e.
+   * [isCapturing] is true.
    */
   fun refresh()
 
   /**
-   * Log events for Studio stats
+   * Set the requested screenshot type and zoom to be provided by the device.
    */
-  fun logEvent(type: DynamicLayoutInspectorEventType)
+  fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float = 1.0f) {}
+
+  /**
+   * Some compose capabilities are discovered after receiving data from the agent.
+   */
+  fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {}
+
+  /**
+   * Report this client's capabilities so that external systems can check what functionality is
+   * available before interacting with some of this client's methods.
+   */
+  val capabilities: Set<Capability>
+    get() = EnumSet.noneOf(Capability::class.java)
+
+  val state: State
+
+  /**
+   * The process this client is associated with.
+   *
+   * If a new process is connected, a new client should be created to handle it.
+   */
+  val process: ProcessDescriptor
 
   val treeLoader: TreeLoader
-
-  /**
-   * True, if a connection to a device is currently open.
-   */
-  val isConnected: Boolean
-
-  /**
-   * If [isConnected] contains the current selected device stream.
-   */
-  val selectedStream: Common.Stream
-
-  /**
-   * If [isConnected] contains the current selected process.
-   */
-  val selectedProcess: Common.Process
 
   /**
    * True, if the current connection is currently receiving live updates.
@@ -122,42 +181,45 @@ interface InspectorClient {
    */
   val provider: PropertiesProvider
 
-  companion object {
-    /**
-     * Provide a way for tests to generate a mock client.
-     */
-    @VisibleForTesting
-    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
-      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model, parentDisposable))
-    }
-
-    /**
-     * Use this method to create a new client.
-     */
-    fun createInstances(model: InspectorModel, parentDisposable: Disposable): List<InspectorClient> = clientFactory(model, parentDisposable)
-  }
+  /**
+   * Return true if the current client is actively connected (or about to connect) to the current
+   * process.
+   */
+  val isConnected: Boolean get() = (state == State.CONNECTED)
 }
 
 object DisconnectedClient : InspectorClient {
-  override val treeLoader: TreeLoader = object: TreeLoader {
-    override fun loadComponentTree(
-      data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-    ): Pair<AndroidWindow, Int>? = null
-    override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
-  }
-  override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
-  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {}
-  override fun getStreams(): Sequence<Common.Stream> = emptySequence()
-  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
-  override fun attach(stream: Common.Stream, process: Common.Process) {}
-  override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
-  override fun execute(command: LayoutInspectorCommand) {}
+  override fun connect() {}
+  override fun disconnect() {}
+
+  override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
+  override fun registerErrorCallback(callback: (String) -> Unit) = Unit
+  override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
+  override fun startFetching() = Unit
+  override fun stopFetching() = Unit
   override fun refresh() {}
-  override fun logEvent(type: DynamicLayoutInspectorEventType) {}
-  override val isConnected = false
-  override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-  override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+
+  override val state = InspectorClient.State.DISCONNECTED
+  override val process = object : ProcessDescriptor {
+    override val device: DeviceDescriptor = object : DeviceDescriptor {
+      override val manufacturer: String = ""
+      override val model: String = ""
+      override val serial: String = ""
+      override val isEmulator: Boolean = false
+      override val apiLevel: Int = 0
+      override val version: String = ""
+      override val codename: String? = null
+    }
+    override val abiCpuArch: String = ""
+    override val name: String = ""
+    override val isRunning: Boolean = false
+    override val pid: Int = 0
+    override val streamId: Long = 0
+  }
+  override val treeLoader = object : TreeLoader {
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? = null
+    override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
+  }
   override val isCapturing = false
   override val provider = EmptyPropertiesProvider
 }

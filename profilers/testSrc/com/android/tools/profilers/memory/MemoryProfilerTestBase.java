@@ -35,7 +35,7 @@ import java.util.concurrent.Executor;
 
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
-  protected MemoryProfilerStage myStage;
+  protected MainMemoryProfilerStage myStage;
   protected FakeCaptureObjectLoader myMockLoader;
   protected MemoryAspectObserver myAspectObserver;
   protected FakeTimer myTimer = new FakeTimer();
@@ -49,7 +49,7 @@ public abstract class MemoryProfilerTestBase {
     onProfilersCreated(myProfilers);
 
     myMockLoader = new FakeCaptureObjectLoader();
-    myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
+    myStage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect(), myStage.getCaptureSelection().getAspect());
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.

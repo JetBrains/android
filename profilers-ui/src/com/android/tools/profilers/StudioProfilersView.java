@@ -24,6 +24,10 @@ import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
+import com.android.tools.adtui.stdui.TooltipLayeredPane;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuCaptureStageView;
@@ -33,15 +37,16 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
-import com.android.tools.profilers.memory.HeapDumpStage;
-import com.android.tools.profilers.memory.HeapDumpStageView;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.memory.MemoryProfilerStageView;
+import com.android.tools.profilers.memory.AllocationStage;
+import com.android.tools.profilers.memory.AllocationStageView;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStageView;
+import com.android.tools.profilers.memory.MemoryCaptureStage;
+import com.android.tools.profilers.memory.MemoryCaptureStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsView;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -106,7 +111,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private StageView myStageView;
 
   @NotNull
-  private final ProfilerLayeredPane myLayeredPane;
+  private final TooltipLayeredPane myLayeredPane;
   /**
    * Splitter between the sessions and main profiler stage panel. We use IJ's {@link ThreeComponentsSplitter} as it supports zero-width
    * divider while still handling mouse resize properly.
@@ -128,7 +133,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private CommonButton myResetZoom;
   private CommonButton myZoomToSelection;
   private CommonButton myBack;
-  private ProfilerAction myZoomToSelectionAction;
+  private DefaultContextMenuItem myZoomToSelectionAction;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -154,7 +159,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
 
-    myLayeredPane = new ProfilerLayeredPane(mySplitter);
+    myLayeredPane = new TooltipLayeredPane(mySplitter);
     initializeSessionUi();
     initializeStageUi();
 
@@ -162,8 +167,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
-    myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
-    myBinder.bind(HeapDumpStage.class, HeapDumpStageView::new);
+    myBinder.bind(MainMemoryProfilerStage.class, MainMemoryProfilerStageView::new);
+    myBinder.bind(MemoryCaptureStage.class, MemoryCaptureStageView::new);
+    myBinder.bind(AllocationStage.class, AllocationStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
@@ -219,7 +225,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  CommonButton getBackButton() {
+  public CommonButton getBackButton() {
     return myBack;
   }
 
@@ -334,8 +340,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
-    ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
+    DefaultContextMenuItem zoomOutAction =
+      new DefaultContextMenuItem.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
         .build();
@@ -349,8 +355,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
-    ProfilerAction zoomInAction =
-      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(mySplitter)
+    DefaultContextMenuItem zoomInAction =
+      new DefaultContextMenuItem.Builder(ZOOM_IN).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myZoomIn.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
@@ -364,8 +370,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
-    ProfilerAction resetZoomAction =
-      new ProfilerAction.Builder("Reset zoom").setContainerComponent(mySplitter)
+    DefaultContextMenuItem resetZoomAction =
+      new DefaultContextMenuItem.Builder("Reset zoom").setContainerComponent(mySplitter)
         .setActionRunnable(() -> myResetZoom.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                        KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
@@ -378,7 +384,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange());
       myProfiler.getIdeServices().getFeatureTracker().trackZoomToSelection();
     });
-    myZoomToSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
+    myZoomToSelectionAction = new DefaultContextMenuItem.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myZoomToSelection.doClick(0))
       .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
@@ -397,8 +403,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
     myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
     // Configure shortcuts for GoLive.
-    ProfilerAction attachAction =
-      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
+    DefaultContextMenuItem attachAction =
+      new DefaultContextMenuItem.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&
@@ -406,8 +412,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                 myStageView.supportsStreaming())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
         .build();
-    ProfilerAction detachAction =
-      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
+    DefaultContextMenuItem detachAction =
+      new DefaultContextMenuItem.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&
@@ -602,7 +608,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   public static class StageComboBoxRenderer extends ColoredListCellRenderer<Class> {
     private static final ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
-      MemoryProfilerStage.class, "MEMORY",
+      MainMemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",
       EnergyProfilerStage.class, "ENERGY",
       CustomEventProfilerStage.class, "CUSTOM EVENTS");

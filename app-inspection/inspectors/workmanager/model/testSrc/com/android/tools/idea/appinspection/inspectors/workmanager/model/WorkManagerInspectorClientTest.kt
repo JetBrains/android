@@ -39,7 +39,6 @@ import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 class WorkManagerInspectorClientTest {
 
@@ -53,7 +52,7 @@ class WorkManagerInspectorClientTest {
       return singleRawCommandResponse
     }
 
-    override val rawEventFlow = emptyFlow<ByteArray>()
+    override val eventFlow = emptyFlow<ByteArray>()
   }
 
   /**
@@ -105,9 +104,11 @@ class WorkManagerInspectorClientTest {
       .build()
 
     sendWorkAddedEvent(workInfo)
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.id).isEqualTo(id)
-    assertThat(client.indexOfFirstWorkInfo { it.id == id }).isEqualTo(0)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].id).isEqualTo(id)
+      assertThat(works.indexOfFirst { it.id == id }).isEqualTo(0)
+    }
     assertThat(listener.consume()).isGreaterThan(0)
   }
 
@@ -124,14 +125,18 @@ class WorkManagerInspectorClientTest {
 
     sendWorkAddedEvent(workInfo1)
     sendWorkAddedEvent(workInfo2)
-    assertThat(client.getWorkInfoCount()).isEqualTo(2)
+    assertThat(client.lockedWorks { it.size }).isEqualTo(2)
 
     sendWorkRemovedEvent(id2)
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.id).isEqualTo(id1)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].id).isEqualTo(id1)
+    }
 
     sendWorkRemovedEvent(id1)
-    assertThat(client.getWorkInfoCount()).isEqualTo(0)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(0)
+    }
   }
 
   @Test
@@ -148,8 +153,10 @@ class WorkManagerInspectorClientTest {
       .build()
     client.handleEvent(workStateUpdatedEvent.toEvent().toByteArray())
     assertThat(listener.consume()).isGreaterThan(0)
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.state).isEqualTo(WorkInfo.State.ENQUEUED)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].state).isEqualTo(WorkInfo.State.ENQUEUED)
+    }
 
     val data = Data.newBuilder()
       .addEntries(DataEntry.newBuilder().setKey("key").setValue("value").build())
@@ -159,8 +166,11 @@ class WorkManagerInspectorClientTest {
       .setData(data)
       .build()
     client.handleEvent(workDataUpdatedEvent.toEvent().toByteArray())
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.data).isEqualTo(data)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].data).isEqualTo(data)
+    }
+
     assertThat(listener.consume()).isGreaterThan(0)
 
     val runAttemptCount = 1
@@ -169,8 +179,10 @@ class WorkManagerInspectorClientTest {
       .setRunAttemptCount(runAttemptCount)
       .build()
     client.handleEvent(workRunAttemptCountUpdatedEvent.toEvent().toByteArray())
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.runAttemptCount).isEqualTo(runAttemptCount)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].runAttemptCount).isEqualTo(runAttemptCount)
+    }
     assertThat(listener.consume()).isGreaterThan(0)
 
     val scheduleRequestedAt = 10L
@@ -179,8 +191,10 @@ class WorkManagerInspectorClientTest {
       .setScheduleRequestedAt(scheduleRequestedAt)
       .build()
     client.handleEvent(workScheduleRequestedAtUpdatedEvent.toEvent().toByteArray())
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
-    assertThat(client.getWorkInfoOrNull(0)!!.scheduleRequestedAt).isEqualTo(scheduleRequestedAt)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].scheduleRequestedAt).isEqualTo(scheduleRequestedAt)
+    }
     assertThat(listener.consume()).isGreaterThan(0)
   }
 
@@ -208,58 +222,65 @@ class WorkManagerInspectorClientTest {
     sendWorkAddedEvent(workInfo2)
     sendWorkAddedEvent(workInfo3)
     assertThat(client.filterTag).isNull()
-    assertThat(client.getWorkInfoCount()).isEqualTo(3)
+    assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     assertThat(client.getAllTags()).containsAllOf(tag1, tag2)
     assertThat(listener.consume()).isGreaterThan(0)
 
     client.filterTag = tag1
-    assertThat(client.getWorkInfoCount()).isEqualTo(1)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(1)
+      assertThat(works[0].id).isEqualTo(id1)
+    }
     assertThat(client.getAllTags()).containsAllOf(tag1, tag2)
-    assertThat(client.getWorkInfoOrNull(0)!!.id).isEqualTo(id1)
     assertThat(listener.consume()).isGreaterThan(0)
 
     client.filterTag = tag2
-    assertThat(client.getWorkInfoCount()).isEqualTo(2)
+    client.lockedWorks { works ->
+      assertThat(works.size).isEqualTo(2)
+      assertThat(listOf(works[0].id, works[1].id)).containsAllOf(id2, id3)
+    }
     assertThat(client.getAllTags()).containsAllOf(tag1, tag2)
-    assertThat(listOf(client.getWorkInfoOrNull(0)!!.id, client.getWorkInfoOrNull(1)!!.id)).containsAllOf(id2, id3)
     assertThat(listener.consume()).isGreaterThan(0)
 
     client.filterTag = null
-    assertThat(client.getWorkInfoCount()).isEqualTo(3)
+    assertThat(client.lockedWorks { it.size }).isEqualTo(3)
     assertThat(listener.consume()).isGreaterThan(0)
   }
 
   @Test
   fun getWorkChain() = runBlocking {
-    val id1 = "Test1"
-    val id2 = "Test2"
-    val id3 = "Test3"
-    val uniqueName = "name"
-    // TODO(b/165789713): Return work chain ids with topological order.
-    val workInfo1 = WorkInfo.newBuilder()
-      .setId(id1)
-      .addNames(uniqueName)
-      .build()
-    val workInfo2 = WorkInfo.newBuilder()
-      .setId(id2)
-      .addNames(uniqueName)
-      .build()
-    val workInfo3 = WorkInfo.newBuilder()
-      .setId(id3)
-      .build()
+    /**
+     * Constructs a a dependency graph that looks like:
+     *      work1  work2
+     *     /    \   /  \
+     *   work3  work4  work5
+     *          /   \
+     *       work6  work7    work8
+     */
+    val workIdList = (1..8).map { "work${it}" }
+    val dependencyList = listOf(Pair(1, 3), Pair(1, 4), Pair(2, 4), Pair(2, 5), Pair(4, 6), Pair(4, 7))
+      .map { Pair("work${it.first}", "work${it.second}") }
+    val workInfoList = workIdList.map { id ->
+      WorkInfo.newBuilder()
+        .setId(id)
+        .addAllPrerequisites(dependencyList.filter { it.second == id }.map { it.first })
+        .addAllDependents(dependencyList.filter { it.first == id }.map { it.second })
+        .build()
+    }
+    for (workInfo in workInfoList) {
+      sendWorkAddedEvent(workInfo)
+    }
 
-    sendWorkAddedEvent(workInfo1)
-    sendWorkAddedEvent(workInfo2)
-    sendWorkAddedEvent(workInfo3)
-
-    val worksWithName = client.getWorkChain(workInfo1.id)
-    assertThat(worksWithName.size).isEqualTo(2)
-    assertThat(worksWithName).containsAllOf(id1, id2)
+    val complexWorkChain = client.getOrderedWorkChain("work4").map { it.id }
+    assertThat(complexWorkChain.size).isEqualTo(7)
+    for ((from, to) in dependencyList) {
+      assertThat(complexWorkChain.indexOf(from)).isLessThan(complexWorkChain.indexOf(to))
+    }
     assertThat(listener.consume()).isGreaterThan(0)
 
-    val worksWithoutName = client.getWorkChain(workInfo3.id)
-    assertThat(worksWithoutName.size).isEqualTo(1)
-    assertThat(worksWithoutName[0]).isEqualTo(id3)
+    val singleWorkChain = client.getOrderedWorkChain("work8").map { it.id }
+    assertThat(singleWorkChain.size).isEqualTo(1)
+    assertThat(singleWorkChain[0]).isEqualTo("work8")
     assertThat(listener.consume()).isEqualTo(0)
   }
 

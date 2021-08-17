@@ -79,7 +79,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
 
     when (insertType) {
       InsertType.CREATE -> dragWidgetFromPalette(x, y)
-      InsertType.MOVE_INTO -> dragWidgetFromComponentTree(x, y)
+      InsertType.MOVE -> dragWidgetFromComponentTree(x, y)
       else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
     }
 

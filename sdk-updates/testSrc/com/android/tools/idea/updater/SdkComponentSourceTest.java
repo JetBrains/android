@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.repository.Revision;
 import com.android.repository.api.Channel;
@@ -42,16 +44,19 @@ import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.mock.MockApplication;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PermanentInstallationID;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,6 +71,8 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link SdkComponentSource}
@@ -82,13 +89,22 @@ public class SdkComponentSourceTest {
 
   @Before
   public void setUp() throws Exception {
-    MockApplication instance = new MockApplication(myDisposableRule.getDisposable());
+    MockApplication instance = MockApplication.setUp(myDisposableRule.getDisposable());
     instance.registerService(ExternalComponentManager.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
+    ApplicationInfoEx appInfo = mock(ApplicationInfoEx.class);
+    when(appInfo.getBuild()).thenReturn(new BuildNumber("a", 1));
+    instance.registerService(ApplicationInfo.class, appInfo);
     instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
                                                        ExtensionPoint.Kind.INTERFACE, myDisposableRule.getDisposable());
 
     ApplicationManager.setApplication(instance, myDisposableRule.getDisposable());
+
+    try (MockedStatic<PermanentInstallationID> theMock = Mockito.mockStatic(PermanentInstallationID.class)) {
+      theMock.when(PermanentInstallationID::get).thenReturn("foo");
+      //noinspection ResultOfMethodCallIgnored
+      UpdateChecker.INSTANCE.toString();
+    }
 
     myFileOp = new MockFileOp();
     myFileOp.recordExistingFile("/sdk/noRemote/package.xml", getLocalRepoXml("noRemote", new Revision(1)));
@@ -146,8 +162,8 @@ public class SdkComponentSourceTest {
     String url = "http://example.com/repo";
     downloader.registerUrl(new URL(url), getRepoXml(remotePaths, remoteRevisions, remoteChannels, true).getBytes(Charsets.UTF_8));
 
-    final RepoManager mgr = new RepoManagerImpl(myFileOp);
-    mgr.setLocalPath(new File("/sdk"));
+    final RepoManager mgr = new RepoManagerImpl();
+    mgr.setLocalPath(myFileOp.toPath("/sdk"));
     mgr.registerSchemaModule(AndroidSdkHandler.getRepositoryModule());
     mgr.registerSchemaModule(AndroidSdkHandler.getCommonModule());
     mgr.registerSourceProvider(new FakeRepositorySourceProvider(

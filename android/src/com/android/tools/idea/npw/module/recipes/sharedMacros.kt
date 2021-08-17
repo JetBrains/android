@@ -25,8 +25,6 @@ import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.wizard.template.Revision
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -36,11 +34,13 @@ fun generateManifest(
   hasApplicationBlock: Boolean = false,
   theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
-  hasRoundIcon: Boolean = true
+  hasRoundIcon: Boolean = true,
+  appCategory: String = ""
 ): String {
   val applicationBlock = if (hasApplicationBlock) """
     <application
     android:allowBackup="true"
+    ${renderIf(appCategory.isNotBlank()) { """android:appCategory="$appCategory"""" }}
     android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
     ${renderIf(hasRoundIcon) { """android:roundIcon="@mipmap/ic_launcher_round"""" }}
@@ -89,24 +89,33 @@ fun proguardConfig(
     """
   }
 
+fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVersion: GradlePluginVersion): String {
+  val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
+  val versionNumber = fieldValue.toIntOrNull()
+  return when {
+    isNewAGP && versionNumber == null -> "${fieldName}Preview \"$fieldValue\""
+    isNewAGP -> "$fieldName $versionNumber"
+    versionNumber == null -> "${fieldName}Version \"$fieldValue\""
+    else -> "${fieldName}Version $versionNumber"
+  }
+}
+
 fun androidConfig(
+  gradlePluginVersion: GradlePluginVersion,
   buildApiString: String,
-  explicitBuildToolsVersion: Boolean,
-  buildToolsVersion: Revision,
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
   isLibraryProject: Boolean,
-  hasApplicationId: Boolean = false,
-  applicationId: String = "",
-  hasTests: Boolean = false,
-  canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false,
-  enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  explicitApplicationId: Boolean,
+  applicationId: String,
+  hasTests: Boolean,
+  canUseProguard: Boolean,
+  addLintOptions: Boolean,
+  enableCpp: Boolean,
+  cppStandard: CppStandardType
 ): String {
-  val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
-  val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
+  val applicationIdBlock = renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }
   val testsBlock = renderIf(hasTests) {
     "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
   }
@@ -143,13 +152,12 @@ fun androidConfig(
 
   return """
     android {
-    compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
-    $buildToolsVersionBlock
+    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
 
     defaultConfig {
       $applicationIdBlock
-      minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
-      targetSdkVersion ${targetApi.toIntOrNull() ?: "\"$targetApi\""}
+      ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
+      ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
       versionCode 1
       versionName "1.0"
 
@@ -242,15 +250,10 @@ fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
 </resources>
 """
 
-fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =
-  GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
-
-fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
+fun RecipeExecutor.addTestDependencies() {
   addDependency("junit:junit:4.+", "testCompile")
-  if (supportsImprovedTestDeps(agpVersion)) {
-    addDependency("com.android.support.test:runner:+", "androidTestCompile")
-    addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
-  }
+  addDependency("com.android.support.test:runner:+", "androidTestCompile")
+  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
 }
 
 fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File) {

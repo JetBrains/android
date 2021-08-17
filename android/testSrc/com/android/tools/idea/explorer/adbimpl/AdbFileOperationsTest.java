@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.testing.DebugLoggerRule;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.awt.EventQueue;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -27,20 +36,11 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.awt.*;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(Parameterized.class)
 public class AdbFileOperationsTest {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
 
-  @NotNull private Consumer<TestShellCommands> mySetupCommands;
+  @NotNull private final Consumer<TestShellCommands> mySetupCommands;
 
   @Parameterized.Parameters
   public static Object[] data() {
@@ -54,7 +54,7 @@ public class AdbFileOperationsTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @ClassRule
-  public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
+  public static DebugLoggerRule ourLoggerRule = new DebugLoggerRule();
 
   public AdbFileOperationsTest(@NotNull Consumer<TestShellCommands> setupCommands) {
     mySetupCommands = setupCommands;

@@ -85,12 +85,37 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testPackage2() throws Exception {
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  public void testPackage3() throws Exception {
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  public void testPackage4() throws Exception {
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
   public void testMinSdkAssignment() throws Exception {
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
   public void testMinSdkAssignment2() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    doTest(inspection, null);
+  }
+
+  public void testMinSdkAssignment3() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    doTest(inspection, null);
+  }
+
+  public void testMinSdkAssignment4() throws Exception {
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }

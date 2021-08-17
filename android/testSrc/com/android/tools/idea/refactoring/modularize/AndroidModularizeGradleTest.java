@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -104,11 +103,10 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
   }
 
   private void verifyMoved(String relativePath) {
-    VirtualFile projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
-    VirtualFile srcFile = projectBaseDir.findFileByRelativePath("app/" + relativePath);
+    VirtualFile srcFile = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("app/" + relativePath);
     assertFalse("Expected to have moved: " + srcFile, srcFile != null && srcFile.exists());
-    VirtualFile destFile = projectBaseDir.findFileByRelativePath("library/" + relativePath);
-    assertTrue("Expected to find: " + projectBaseDir + "/library/" + relativePath,
+    VirtualFile destFile = PlatformTestUtil.getOrCreateProjectBaseDir(getProject()).findFileByRelativePath("library/" + relativePath);
+    assertTrue("Expected to find: " + PlatformTestUtil.getOrCreateProjectBaseDir(getProject()) + "/library/" + relativePath,
                destFile != null && destFile.exists());
   }
 }

@@ -21,10 +21,13 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -33,8 +36,8 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
@@ -46,6 +49,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -57,10 +61,10 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.swing.JComponent
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.2
@@ -72,7 +76,7 @@ class ResolutionElementEditorTest {
   private var font: Font? = null
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @Before
   fun storeLAF() {
@@ -88,17 +92,38 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  fun testPaint() {
-    setLookAndFeel(IntelliJLaf(), ImageDiffUtil.getDefaultFont())
+  fun testPaintClosed() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")
+  }
 
+  @Ignore("b/187441420")
+  @Test
+  fun testPaintOpen() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
     editors[0].editorModel.isExpandedTableItem = true
     checkImage(editors, "Open")
+  }
 
+  @Ignore("b/187441420")
+  @Test
+  fun testPaintOpenWithDetails() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
+    editors[0].editorModel.isExpandedTableItem = true
     expandFirstLabel(editors[0], true)
     checkImage(editors, "OpenWithDetails")
+  }
 
+  @Ignore("b/187441420")
+  @Test
+  fun testPaintOpenWithTwoDetails() {
+    setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
+    val editors = createEditors()
+    editors[0].editorModel.isExpandedTableItem = true
+    expandFirstLabel(editors[0], true)
     expandFirstLabel(editors[1], true)
     checkImage(editors, "OpenWithTwoDetails")
   }
@@ -135,7 +160,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testHasLinkPanel() {
-    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
@@ -175,6 +200,7 @@ class ResolutionElementEditorTest {
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, BufferedImage.TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
+    graphics.color = secondaryPanelBackground
     graphics.fillRect(0, 0, 200, 300)
     editors[0].setSize(200, editors[0].height)
     editors[0].doLayout()
@@ -191,7 +217,7 @@ class ResolutionElementEditorTest {
     }
     val platform = SystemInfo.OS_NAME.replace(' ', '_')
     val filename = "$TEST_DATA_PATH/testResolutionEditorPaint$expected$platform.png"
-    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename), generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve(filename), generatedImage, DIFF_THRESHOLD)
   }
 
   private fun updateSize(component: Component) {
@@ -215,7 +241,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun createEditors(): List<ResolutionElementEditor> {
-    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
@@ -223,7 +249,7 @@ class ResolutionElementEditorTest {
     val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
     val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, node.drawId, model, map)
+      ANDROID_URI, item.attrName, item.type, value, null, item.section, item.source, node.drawId, model, map)
     val editors = mutableListOf<ResolutionElementEditor>()
     val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))

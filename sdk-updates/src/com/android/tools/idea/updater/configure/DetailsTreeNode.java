@@ -74,14 +74,6 @@ class DetailsTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  public boolean equals(@NotNull Object obj) {
-    if (!(obj instanceof DetailsTreeNode)) {
-      return false;
-    }
-    return myModel.getPkg().equals(((DetailsTreeNode)obj).myModel.getPkg());
-  }
-
-  @Override
   public boolean includeInSummary() {
     return myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.SourceDetailsType ||
            myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;

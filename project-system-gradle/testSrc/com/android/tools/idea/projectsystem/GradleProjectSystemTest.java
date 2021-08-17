@@ -43,8 +43,8 @@ public class GradleProjectSystemTest extends PlatformTestCase {
     assertThat(ProjectSystemUtil.getProjectSystem(getProject())).isInstanceOf(GradleProjectSystem.class);
   }
 
-  public void testBuildProject() {
-    ProjectSystemUtil.getProjectSystem(getProject()).buildProject();
+  public void testCompileProject() {
+    ProjectSystemUtil.getProjectSystem(getProject()).getBuildManager().compileProject();
     verify(GradleProjectBuilder.getInstance(myProject)).compileJava();
   }
 }

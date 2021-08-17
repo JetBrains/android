@@ -101,6 +101,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   @WorkerThread
   override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
     runReadAction {
+      val startTimeMs = System.currentTimeMillis()
       val usages: Collection<PsiElement> = when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
         !element.project.service<DaggerDependencyChecker>().isDaggerPresent() -> return@runReadAction
@@ -115,7 +116,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
       }
       if (usages.isNotEmpty()) {
         usages.forEach { processor.process(UsageWithAnalyticsTracking(it, element)) }
-        element.project.service<DaggerAnalyticsTracker>().trackFindUsagesNodeWasDisplayed(getTypeForMetrics(element))
+        val calculationTime = System.currentTimeMillis() - startTimeMs
+        element.project.service<DaggerAnalyticsTracker>().trackFindUsagesNodeWasDisplayed(getTypeForMetrics(element), calculationTime)
       }
     }
   }

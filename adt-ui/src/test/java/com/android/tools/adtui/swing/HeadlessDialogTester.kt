@@ -18,22 +18,16 @@ package com.android.tools.adtui.swing
 
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
-import com.intellij.ide.DataManager
-import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CommonShortcuts
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager.getApplication
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.impl.LaterInvocator
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.CommandProcessorEx
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -46,20 +40,17 @@ import com.intellij.openapi.ui.popup.StackingPopupDispatcher
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.wm.ex.WindowManagerEx
-import com.intellij.openapi.wm.impl.IdeFrameImpl
-import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
-import com.intellij.ui.ScreenUtil
 import com.intellij.ui.SpeedSearchBase
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.Consumer
-import com.intellij.util.IJSwingUtilities
-import com.intellij.util.ui.JBInsets
+import com.intellij.util.ExceptionUtil
+import com.intellij.util.ReflectionUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
+import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -67,11 +58,14 @@ import java.awt.EventQueue
 import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
 import java.awt.Point
+import java.awt.Toolkit
 import java.awt.Window
+import java.awt.event.InvocationEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionAdapter
 import java.awt.event.MouseMotionListener
+import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -83,9 +77,10 @@ import javax.swing.JRootPane
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.UIManager
+import kotlin.concurrent.withLock
 
 /**
- * Enables showing of modal dialogs in a headless test environment.
+ * Enables showing of dialogs in a headless test environment.
  */
 fun enableHeadlessDialogs(disposable: Disposable) {
   getApplication().replaceService(DialogWrapperPeerFactory::class.java, HeadlessDialogWrapperPeerFactory(), disposable)
@@ -98,22 +93,11 @@ fun enableHeadlessDialogs(disposable: Disposable) {
  * @param dialogCreator user code that opens a modal dialog
  * @param dialogInteractor user code for interacting with the dialog
  */
-fun createDialogAndInteractWithIt(dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
-  createDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor)
+fun createModalDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
+  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor::consume)
 }
 
-/**
- * Executes a [dialogCreator] runnable that opens a modal dialog and then a [Consumer] that interacts with it.
- * The function returns when the dialog is closed. This version of the method is intended to be called from Java.
- *
- * @param dialogCreator user code that opens a modal dialog
- * @param dialogInteractor user code for interacting with the dialog
- */
-fun createDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
-  createDialogAndInteractWithIt(dialogCreator::run, dialogInteractor::consume)
-}
-
-private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
+private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
   val dialogClosed = CountDownLatch(1)
 
   val futureTask = ListenableFutureTask.create {
@@ -122,9 +106,9 @@ private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> 
       while (true) {
         if (modalDialogStack.size == modalDepth) {
           val dialog = modalDialogStack.last()
-          invokeLater(ModalityState.any()) {
+          EventQueue.invokeLater {
             try {
-              dialogInteractor(dialog)
+              dialogInteractor.consume(dialog)
             }
             finally {
               if (dialog.isShowing) {
@@ -145,11 +129,12 @@ private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> 
   getApplication().executeOnPooledThread(futureTask)
 
   try {
-    dialogCreator()
+    dialogCreator.run()
 
     while (dialogClosed.count > 0) {
-      UIUtil.dispatchAllInvocationEvents()
-      dialogClosed.await(10, TimeUnit.MILLISECONDS)
+      if (dispatchNextInvocationEventIfAny() == null) {
+        dialogClosed.await(10, TimeUnit.MILLISECONDS)
+      }
     }
   }
   finally {
@@ -159,17 +144,37 @@ private fun createDialogAndInteractWithIt(modalDepth: Int, dialogCreator: () -> 
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
 
+private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
+  // Code similar to EdtInvocationManager.dispatchAllInvocationEvents.
+  val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
+  while (eventQueue.peekEvent() != null) {
+    try {
+      val event = eventQueue.nextEvent
+      if (event is InvocationEvent) {
+        dispatchEventMethod.invoke(eventQueue, event)
+        return event
+      }
+    }
+    catch (e: InvocationTargetException) {
+      ExceptionUtil.rethrowAllAsUnchecked(e.cause)
+    }
+    catch (e: Exception) {
+      ExceptionUtil.rethrow(e)
+    }
+  }
+  return null
+}
+
 private val modalityChangeLock = ReentrantLock()
 @GuardedBy("modalityChangeLock")
 private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
 
-private val LOG
-  get() = Logger.getInstance(DialogWrapper::class.java)
+private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 
 /**
- * Implementation of [DialogWrapperPeerFactory] for headless tests involving modal dialogs.
+ * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
  */
 class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
 
@@ -185,37 +190,40 @@ class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, canBeParent)
+    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent)
   }
 
   override fun createPeer(wrapper: DialogWrapper, parent: Component, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, parent, canBeParent)
+    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent)
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean, ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null as Window?, canBeParent, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent, ideModalityType)
   }
 
   override fun createPeer(wrapper: DialogWrapper,
                           owner: Window,
                           canBeParent: Boolean,
                           ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, owner, canBeParent, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent, ideModalityType)
   }
 }
 
 /**
- * Semi-realistic implementation of [DialogWrapperPeer] for headless tests involving modal dialogs.
+ * Semi-realistic implementation of [DialogWrapperPeer] for headless tests involving dialogs.
  *
  * Derived from DialogWrapperPeerImpl and undoubtedly contains a significant amount of redundant
  * code. This redundant code is preserved in hope that it may be used in future to implement more
  * behaviors mimicking real dialogs.
  */
-private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
-  private val wrapper: DialogWrapper
+private class HeadlessDialogWrapperPeer(
+  private val wrapper: DialogWrapper,
+  private var project: Project?,
+  canBeParent: Boolean,
+  ideModalityType: IdeModalityType = IdeModalityType.IDE
+) : DialogWrapperPeer() {
   private val canBeParent: Boolean
   private val disposeActions = arrayListOf<Runnable>()
-  private var project: Project? = null
   private val rootPane = createRootPane()
   private var modal = true
   private var size = Dimension(0, 0)
@@ -224,53 +232,9 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
   private var visible = false
   private var nestedEventLoopLatch: CountDownLatch? = null
 
-  /**
-   * Creates modal [DialogWrapper]. The currently active window will be the dialog's parent.
-   *
-   * @param proj parent window for the dialog will be calculated based on focused window for
-   *     the specified project. This parameter can be null. In this case parent window will
-   *     be suggested based on current focused window.
-   * @param canBeParent specifies whether the dialog can be parent for other windows.
-   *     This parameter is used by the window manager.
-   */
-  constructor(wrapper: DialogWrapper, proj: Project?, canBeParent: Boolean, ideModalityType: IdeModalityType = IdeModalityType.IDE) {
-    project = proj
+  init {
+    modal = ideModalityType != IdeModalityType.MODELESS
     val headless = isHeadlessEnv
-    this.wrapper = wrapper
-    val windowManager = windowManager
-    if (windowManager != null) {
-      if (project == null) {
-        project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().dataContext)
-      }
-      var window = windowManager.suggestParentWindow(project)
-      if (window == null) {
-        val focusedWindow = windowManager.mostRecentFocusedWindow
-        if (focusedWindow is IdeFrameImpl) {
-          window = focusedWindow
-        }
-      }
-      if (window == null) {
-        for (frameHelper in windowManager.projectFrameHelpers) {
-          if (frameHelper.frame!!.isActive) {
-            break
-          }
-        }
-      }
-    }
-    this.canBeParent = headless || canBeParent
-  }
-
-  constructor(wrapper: DialogWrapper, canBeParent: Boolean) : this(wrapper, null as Project?, canBeParent)
-
-  constructor(wrapper: DialogWrapper, parent: Component, canBeParent: Boolean) {
-    val headless = isHeadlessEnv
-    this.wrapper = wrapper
-    this.canBeParent = headless || canBeParent
-  }
-
-  constructor(wrapper: DialogWrapper, owner: Window?, canBeParent: Boolean, ideModalityType: IdeModalityType) {
-    val headless = isHeadlessEnv
-    this.wrapper = wrapper
     this.canBeParent = headless || canBeParent
   }
 
@@ -297,12 +261,12 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
   override fun dispose() {
     check(EventQueue.isDispatchThread())
     nestedEventLoopLatch?.countDown()
+    visible = false
     for (runnable in disposeActions) {
       runnable.run()
     }
     disposeActions.clear()
-    val disposer = Runnable { project = null }
-    UIUtil.invokeLaterIfNeeded(disposer)
+    UIUtil.invokeLaterIfNeeded { project = null }
   }
 
   override fun getContentPane(): Container? {
@@ -390,18 +354,13 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     val window = window
     if (window is JDialog && !window.isUndecorated) {
       UIUtil.setCustomTitleBar(window, rootPane) { runnable: Runnable ->
-        Disposer.register(wrapper.disposable, Disposable { runnable.run() })
+        Disposer.register(wrapper.disposable, runnable::run)
       }
     }
 
     val dialog = MyDialog()
     dialog.add(rootPane)
 
-    // FIXME-ank4: CustomFrameDialogContent is internal class. What is this `updateLayout` for?
-    //val contentPane = contentPane
-    //if (contentPane is CustomFrameDialogContent) {
-    //  contentPane.updateLayout()
-    //}
     rootPane.size = rootPane.preferredSize
     anCancelAction.registerCustomShortcutSet(CommonShortcuts.ESCAPE, rootPane)
     disposeActions.add(Runnable { anCancelAction.unregisterCustomShortcutSet(rootPane) })
@@ -421,7 +380,9 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
 
     try {
       visible = true
-      nestedEventLoop()
+      if (changeModalityState) {
+        nestedEventLoop()
+      }
     }
     finally {
       if (changeModalityState) {
@@ -446,24 +407,29 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
   }
 
   private fun nestedEventLoop() {
+    check(nestedEventLoopLatch == null)
     val latch = CountDownLatch(1)
     nestedEventLoopLatch = latch
 
-    modalityChangeLock.lock()
-    modalDialogStack.add(wrapper)
-    modalityChangeCondition.signalAll()
-    modalityChangeLock.unlock()
-
-    while (latch.count > 0 && PlatformTestUtil.dispatchNextEventIfAny() != null) {
-      latch.await(10, TimeUnit.MILLISECONDS)
+    modalityChangeLock.withLock {
+      modalDialogStack.add(wrapper)
+      modalityChangeCondition.signalAll()
     }
 
-    modalityChangeLock.lock()
-    modalDialogStack.removeAt(modalDialogStack.size - 1)
-    modalityChangeCondition.signalAll()
-    modalityChangeLock.unlock()
+    try {
+      while (latch.count > 0) {
+        if (PlatformTestUtil.dispatchNextEventIfAny() == null) {
+          latch.await(10, TimeUnit.MILLISECONDS)
+        }
+      }
+    } finally {
+      modalityChangeLock.withLock {
+        modalDialogStack.removeAt(modalDialogStack.size - 1)
+        modalityChangeCondition.signalAll()
+      }
 
-    nestedEventLoopLatch = null
+      nestedEventLoopLatch = null
+    }
   }
 
   private fun hidePopupsIfNeeded() {
@@ -477,16 +443,6 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     get() {
       val app = getApplication()
       return if (app == null) GraphicsEnvironment.isHeadless() else app.isUnitTestMode || app.isHeadlessEnvironment
-    }
-
-  private val windowManager: WindowManagerEx?
-    get() {
-      var windowManager: WindowManagerEx? = null
-      val application = getApplication()
-      if (application != null) {
-        windowManager = WindowManagerEx.getInstanceEx()
-      }
-      return windowManager
     }
 
   private inner class AnCancelAction : AnAction(), DumbAware {
@@ -533,54 +489,9 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
   }
 
   private inner class DialogRootPane : JRootPane(), DataProvider {
-    private val myGlassPaneIsSet: Boolean
-    private var myLastMinimumSize: Dimension? = null
 
     override fun createLayeredPane(): JLayeredPane {
-      val p: JLayeredPane = JBLayeredPane()
-      p.name = this.name + ".layeredPane"
-      return p
-    }
-
-    override fun validate() {
-      super.validate()
-      if (wrapper.isAutoAdjustable) {
-        val window = wrapper.window
-        if (window != null) {
-          val size = minimumSize
-          if (size != myLastMinimumSize) {
-            // Update window minimum size only if root pane minimum size is changed.
-            if (size == null) {
-              myLastMinimumSize = null
-            }
-            else {
-              myLastMinimumSize = Dimension(size)
-              JBInsets.addTo(size, window.insets)
-              val screen = ScreenUtil.getScreenRectangle(window)
-              if (size.width > screen.width || size.height > screen.height) {
-                val application = getApplication()
-                if (application != null && application.isInternal) {
-                  val sb = StringBuilder("dialog minimum size is bigger than screen: ")
-                  sb.append(size.width).append("x").append(size.height)
-                  IJSwingUtilities.appendComponentClassNames(sb, this)
-                  LOG.warn(sb.toString())
-                }
-                if (size.width > screen.width) size.width = screen.width
-                if (size.height > screen.height) size.height = screen.height
-              }
-            }
-            window.minimumSize = size
-          }
-        }
-      }
-    }
-
-    override fun setGlassPane(glass: Component) {
-      if (myGlassPaneIsSet) {
-        LOG.warn("Setting of glass pane for DialogWrapper is prohibited", Exception())
-        return
-      }
-      super.setGlassPane(glass)
+      return JBLayeredPane().apply { name = "$name.layeredPane" }
     }
 
     override fun setContentPane(contentPane: Container) {
@@ -593,8 +504,6 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     }
 
     init {
-      setGlassPane(IdeGlassPaneImpl(this))
-      myGlassPaneIsSet = true
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
     }

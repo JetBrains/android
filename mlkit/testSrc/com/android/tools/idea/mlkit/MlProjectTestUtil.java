@@ -20,7 +20,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.makeAutoIn
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static java.util.Collections.emptyList;
 
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.google.common.collect.ImmutableList;
@@ -50,20 +50,20 @@ public class MlProjectTestUtil {
         new AndroidProjectBuilder()
           .withMinSdk(it -> minSdk)
           .withMlModelBindingEnabled(it -> true)
-          .withMainSourceProvider(it -> new SourceProviderStub(
+          .withMainSourceProvider(it -> new IdeSourceProviderImpl(
             ARTIFACT_NAME_MAIN,
-            new File(it.getBasePath(), "AndroidManifest.xml"),
-            ImmutableList.of(new File(it.getBasePath(), "src")),
+            it.getBasePath(),
+            "AndroidManifest.xml",
+            ImmutableList.of("src"),
+            ImmutableList.of("srcKotlin"),
             emptyList(),
             emptyList(),
             emptyList(),
-            emptyList(),
-            emptyList(),
-            ImmutableList.of(new File(it.getBasePath(), "res")),
+            ImmutableList.of("res"),
             emptyList(),
             emptyList(),
             emptyList(),
-            ImmutableList.of(new File(it.getBasePath(), "ml")))
+            ImmutableList.of("ml"))
           )));
   }
 }

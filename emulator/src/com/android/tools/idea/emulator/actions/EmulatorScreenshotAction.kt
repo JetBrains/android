@@ -21,18 +21,20 @@ import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
-import com.android.tools.idea.emulator.logger
+import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.util.SystemProperties
 import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,7 +72,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     @JvmStatic
     private fun createAndOpenScreenshotFile(imageContents: ByteString, timestamp: Date, project: Project) {
       val timestampSuffix = TIMESTAMP_FORMAT.format(timestamp)
-      val dir = getRuntimeConfiguration().getDesktopOrUserHomeDirectory()
+      val dir = IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
 
       for (attempt in 0..100) {
         val uniquenessSuffix = if (attempt == 0) "" else "_${attempt}"
@@ -81,7 +83,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             imageContents.writeTo(it)
           }
 
-          val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
+          val virtualFile = VfsUtil.findFile(file, true) ?: return
 
           invokeLater {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
@@ -92,11 +94,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           continue
         }
         catch (e: IOException) {
-          logger.error("Unable to create screenshot file ${file}", e)
+          thisLogger().error("Unable to create screenshot file $file", e)
           return
         }
       }
-      logger.error("Unable to create screenshot file - no suitable name") // Reaching this line is extremely unlikely.
+      thisLogger().error("Unable to create screenshot file - no suitable name") // Reaching this line is extremely unlikely.
     }
   }
 }

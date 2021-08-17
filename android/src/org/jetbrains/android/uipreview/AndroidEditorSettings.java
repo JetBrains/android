@@ -83,7 +83,8 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private boolean myShowLint = false;
     private EditorMode myPreferredEditorMode;
     private EditorMode myPreferredDrawableEditorMode;
-    private boolean myEnableComposeInsertHandler = true;
+    private EditorMode myPreferredComposableEditorMode;
+    private EditorMode myPreferredKotlinEditorMode;
 
     public boolean isRetina() {
       return myRetina;
@@ -157,12 +158,20 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
       myPreferredDrawableEditorMode = preferredDrawableEditorMode;
     }
 
-    public boolean isComposeInsertHandlerEnabled() {
-      return myEnableComposeInsertHandler;
+    public EditorMode getPreferredComposableEditorMode() {
+      return myPreferredComposableEditorMode;
     }
 
-    public void setComposeInsertHandlerEnabled(boolean value) {
-      myEnableComposeInsertHandler = value;
+    public void setPreferredComposableEditorMode(EditorMode preferredComposableEditorMode) {
+      myPreferredComposableEditorMode = preferredComposableEditorMode;
+    }
+
+    public EditorMode getPreferredKotlinEditorMode() {
+      return myPreferredKotlinEditorMode;
+    }
+
+    public void setPreferredKotlinEditorMode(EditorMode preferredKotlinEditorMode) {
+      myPreferredKotlinEditorMode = preferredKotlinEditorMode;
     }
   }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
@@ -27,6 +26,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +49,7 @@ import java.util.Arrays;
 public class IssueView extends JPanel {
 
   private static final int COLLAPSED_ROW_HEIGHT = 30;
-  private static final String SUGGESTED_FIXES = "Suggested Fixes";
+  private static final String SUGGESTED_FIXES = "Suggestion(s)";
   private static final int BORDER_THICKNESS = 1;
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
 
@@ -117,6 +117,10 @@ public class IssueView extends JPanel {
   private void setupHeader(@NotNull Issue issue) {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
+    // Make sure issues aligh whether it is opened or collapsed.
+    int maxWidth = Math.max(UIUtil.getTreeCollapsedIcon().getIconWidth(), UIUtil.getTreeExpandedIcon().getIconWidth());
+    myExpandIcon.setMinimumSize(new Dimension(maxWidth, 0));
+
     myErrorTitle.setText(issue.getSummary());
     String displayText = issue.getSource().getDisplayText();
     if (displayText != "") {
@@ -168,7 +172,7 @@ public class IssueView extends JPanel {
   }
 
   private void createFixEntry(@NotNull Issue.Fix fix) {
-    myFixPanel.add(new FixEntry(fix.getDescription(), fix.getRunnable()));
+    myFixPanel.add(new FixEntry(fix.getButtonText(), fix.getDescription(), fix.getRunnable()));
   }
 
   @NotNull
@@ -207,13 +211,14 @@ public class IssueView extends JPanel {
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
 
-    IssuePanel.ExpandListener expandListener = myContainerIssuePanel.getExpandListener();
-    if (expandListener != null) {
-      expandListener.onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
-    }
+    List<IssuePanel.EventListener> eventListeners = myContainerIssuePanel.getEventListeners();
+    eventListeners.forEach(listener -> {
+      listener.onIssueExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
+    });
 
-    revalidate();
-    repaint();
+    // ColumnHeaderPanel from panel need layout again.
+    myContainerIssuePanel.revalidate();
+    myContainerIssuePanel.repaint();
   }
 
   /**
@@ -326,8 +331,9 @@ public class IssueView extends JPanel {
     private JBLabel myFixText;
     private JComponent myComponent;
 
-    public FixEntry(@NotNull String text, @NotNull Runnable fixRunnable) {
+    public FixEntry(@NotNull String buttonText, @NotNull String text, @NotNull Runnable fixRunnable) {
       myFixText.setText(text);
+      myFixButton.setText(buttonText);
       myFixButton.addActionListener(e -> fixRunnable.run());
     }
 

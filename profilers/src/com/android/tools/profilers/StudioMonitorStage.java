@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.profiler.proto.Common;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,7 @@ public class StudioMonitorStage extends StreamingStage {
     }
     myMonitors.forEach(ProfilerMonitor::enter);
 
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
   @Override
@@ -63,5 +64,10 @@ public class StudioMonitorStage extends StreamingStage {
     super.setTooltip(tooltip);
     myMonitors.forEach(monitor -> monitor
       .setFocus(getTooltip() instanceof ProfilerMonitorTooltip && ((ProfilerMonitorTooltip)getTooltip()).getMonitor() == monitor));
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.OVERVIEW_STAGE;
   }
 }

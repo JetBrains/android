@@ -47,7 +47,7 @@ public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
   }
 
   private SelectJdkFromFileSystemHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-    super("select.jdk", "Select a JDK from the File System");
+    super("select.jdk", "Select a JDK");
     mySettingsService = settingsService;
   }
 

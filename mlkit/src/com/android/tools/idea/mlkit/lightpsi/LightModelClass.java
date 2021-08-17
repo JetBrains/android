@@ -281,6 +281,7 @@ public class LightModelClass extends AndroidLightClassBase {
     return myClassConfig.myModelMetadata.myModelInfo;
   }
 
+  @SuppressWarnings("EqualsHashCode")  // b/180537631
   @Override
   public boolean equals(@Nullable Object o) {
     return o instanceof LightModelClass && myClassConfig.myModelMetadata.equals(((LightModelClass)o).myClassConfig.myModelMetadata);

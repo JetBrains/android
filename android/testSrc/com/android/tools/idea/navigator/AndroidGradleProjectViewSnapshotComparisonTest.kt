@@ -21,6 +21,8 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -143,7 +145,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk().toFile())
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
@@ -168,12 +170,18 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       // No IML files => no linked gradle projects => gradle import should not be invoked. The test should hang in IDEA (and it does)
       return
     }
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
-    val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
-      project.dumpAndroidProjectView()
-    }
+    addJdk8ToTableButUseCurrent()
+    try {
+      prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
+      val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
+        project.dumpAndroidProjectView()
+      }
 
-    assertIsEqualToSnapshot(text)
+      assertIsEqualToSnapshot(text)
+    }
+    finally {
+      restoreJdk()
+    }
   }
 
   private fun importSyncAndDumpProject(

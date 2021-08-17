@@ -28,9 +28,11 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.FileUtils;
 import com.intellij.execution.ExecutionException;
@@ -38,13 +40,18 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.ide.FeedbackDescriptionProvider;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -53,7 +60,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -61,32 +67,54 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// FIXME-ank2: register service
-public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionProvider {
-  private static final Logger LOG = Logger.getInstance(AndroidFeedbackDescriptionProvider.class);
+/**
+ * This one is inspired by on com.intellij.ide.actions.SendFeedbackAction, however in addition to the basic
+ * IntelliJ / Java / OS information, it enriches the bug template with Android-specific version context we'd like to
+ * see pre-populated in our bug reports.
+ */
+public class SendFeedbackAction extends AnAction implements DumbAware {
+  private static final Logger LOG = Logger.getInstance(SendFeedbackAction.class);
   private static final Pattern CMAKE_VERSION_PATTERN = Pattern.compile("cmake version\\s+(.*)");
 
-  /*
-   FIXME-ank2: Idea's feedback is in foreground
-   Move SendFeedbackAction to the background  getGradlePluginDetails calls into AndroidPluginInfo.find which might block the UI. Move the reporting to the background.  Bug: 128607319 Test: N/A Change-Id: If500ce8f6165564706b00432255828852a01e5a6
-   */
   @Override
-  public String getDescription(@Nullable Project project) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    submit(e.getProject());
+  }
+
+  public static void submit(@Nullable Project project) {
+    submit(project, "");
+  }
+
+  public static void submit(@Nullable Project project, @Nullable String extraDescriptionDetails) {
+    new Task.Modal(project, "Collecting Data", false) {
+      @Override
+      public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
+        indicator.setText("Collecting feedback information");
+        indicator.setIndeterminate(true);
+        String description = getDescription(project);
+        com.intellij.ide.actions.SendFeedbackAction.submit(project, description + extraDescriptionDetails);
+      }
+    }.setCancelText("Cancel").queue();
+  }
+
+  @Slow
+  public static String getDescription(@Nullable Project project) {
     // Use safe call wrapper extensively to make sure that as much as possible version context is collected and
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
     // so let's not make that process prone to exceptions)
     return safeCall(() -> {
-      StringBuilder sb = new StringBuilder();
-      ProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidFeedbackDescriptionProvider.class);
+      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription(null));
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(SendFeedbackAction.class);
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
-      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(() -> getKotlinPluginDetails())));
+      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
       if (project != null) {
         sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
         sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
       }
+      sb.append(String.format("Gradle JDK: %1$s; ", safeCall(() -> getJdkDetails(project))));
       sb.append(String.format("NDK: %1$s; ", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
       sb.append(String.format("LLDB: %1$s; ", safeCall(() -> getLldbDetails(sdkHandler, progress))));
       sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
@@ -155,7 +183,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK, null,false, progress);
     sb.append(String.format("latest from SDK: %1$s",
                             p == null ? "(not found)"
-                                      : getNdkVersion(p.getLocation().getAbsolutePath())));
+                                      : getNdkVersion(p.getLocation().toAbsolutePath().toString())));
     return sb.toString();
   }
 
@@ -195,7 +223,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
       try {
         // NDK 10
         byte[] content = readAllBytes(releaseTxtFile.toPath());
-        return new String(content, StandardCharsets.UTF_8).trim();
+        return new String(content).trim();
       }
       catch (IOException e) {
         LOG.info("Could not read NDK version", e);
@@ -240,7 +268,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_CMAKE, null,false, progress);
     sb.append(String.format("latest from SDK: %1$s, ",
                             p == null ? "(not found)"
-                                      : runAndGetCMakeVersion(getCMakeExecutablePath(p.getLocation().getAbsolutePath()))));
+                                      : runAndGetCMakeVersion(getCMakeExecutablePath(p.getLocation().toAbsolutePath().toString()))));
     // CMake from PATH (if any)
     String cmakeBinFromPath = findOnPath("cmake");
     sb.append(String.format("from PATH: %1$s",
@@ -316,5 +344,48 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
       return "(package not found)";
     }
     return String.format("%1$s (revision: %2$s)", p.getDisplayName() , p.getVersion());
+  }
+
+  private static String getJdkDetails(@Nullable Project project) {
+    if (project == null) {
+      return getDefaultJdkDetails();
+    }
+    return getProjectJdkDetails(project);
+  }
+
+  private static String getDefaultJdkDetails() {
+    Sdk jdk = IdeSdks.getInstance().getJdk();
+    if (jdk == null) {
+      return "(default jdk is not defined)";
+    }
+    return "(default) " + getJdkVersion(jdk.getHomePath());
+  }
+
+  private static String getProjectJdkDetails(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) {
+      return "(cannot find project base path)";
+    }
+    return getJdkVersion(AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, basePath));
+  }
+
+  private static String getJdkVersion(String jdkPath) {
+    if (jdkPath == null) {
+      return "(jdk path not defined)";
+    }
+    JavaSdk sdkType = JavaSdk.getInstance();
+    String version = sdkType.getVersionString(jdkPath);
+    if (version == null) {
+      return "(jdk version not found)";
+    }
+    return version;
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    super.update(e);
+    if (e.getPresentation().isEnabled()) {
+      e.getPresentation().setEnabled(SystemInfo.isMac || SystemInfo.isLinux || SystemInfo.isWindows);
+    }
   }
 }

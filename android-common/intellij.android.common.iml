@@ -8,8 +8,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
@@ -41,5 +41,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="module" module-name="intellij.android.server-flags" />
   </component>
 </module>

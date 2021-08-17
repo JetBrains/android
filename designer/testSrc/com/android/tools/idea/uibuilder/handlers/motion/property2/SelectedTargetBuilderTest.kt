@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2
+package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
-import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
+import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -64,9 +64,9 @@ class SelectedTargetBuilderTest {
     assertThat((first?.getComponent(0) as JLabel).text).isEqualTo("start Constraint Set")
     assertThat((first.getComponent(0) as JLabel).text).isEqualTo("start Constraint Set")
     assertThat(second).isInstanceOf(SelectedTagPanel::class.java)
-    assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("widget")
+    assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("Constraint")
     assertThat((second.getComponent(0) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
-    assertThat((second.getComponent(1) as JLabel).text).isEqualTo("Constraint")
+    assertThat((second.getComponent(1) as JLabel).text).isEqualTo("widget")
   }
 
   @Test
@@ -97,8 +97,8 @@ class SelectedTargetBuilderTest {
     assertThat((first.getComponent(1) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Motion.TRANSITION)
     assertThat((first.getComponent(2) as JLabel).text).isEqualTo("end")
     assertThat(second).isInstanceOf(SelectedTagPanel::class.java)
-    assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("")
+    assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("KeyPosition")
     assertThat((second.getComponent(0) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Motion.KEYFRAME)
-    assertThat((second.getComponent(1) as JLabel).text).isEqualTo("KeyPosition")
+    assertThat((second.getComponent(1) as JLabel).text).isEqualTo("")
   }
 }

@@ -63,7 +63,6 @@ class ImportUtpResultActionTest {
 
   @Test
   fun importUtpResults() {
-
     importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
     val toolWindow = importUtpResultAction.getToolWindow(projectRule.project)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
@@ -88,14 +87,5 @@ class ImportUtpResultActionTest {
                                       ActionManager.getInstance(), 0)
     ImportUtpResultAction().update(anActionEvent)
     assertThat(anActionEvent.presentation.isEnabled).isTrue()
-  }
-
-  @Test
-  fun defaultDisableUtpResultSupport() {
-    val anActionEvent = AnActionEvent(null, DataContext{ projectRule.project },
-                                      ActionPlaces.UNKNOWN, Presentation(),
-                                      ActionManager.getInstance(), 0)
-    ImportUtpResultAction().update(anActionEvent)
-    assertThat(anActionEvent.presentation.isEnabled).isFalse()
   }
 }

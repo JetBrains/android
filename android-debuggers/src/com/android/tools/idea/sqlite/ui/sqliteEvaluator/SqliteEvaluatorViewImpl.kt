@@ -40,13 +40,13 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiManager
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.EditorCustomization
 import com.intellij.ui.EditorTextFieldProvider
 import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -73,9 +73,9 @@ class SqliteEvaluatorViewImpl(
   private val schemaProvider: SchemaProvider
 ) : SqliteEvaluatorView {
 
-  private val threeComponentsSplitter = ThreeComponentsSplitter(project)
+  private val splitterPanel = OnePixelSplitter(true)
   private val bottomPanel = JPanel(BorderLayout())
-  override val component: JComponent = threeComponentsSplitter
+  override val component: JComponent = splitterPanel
 
   private val databaseComboBox = ComboBox<SqliteDatabaseId>()
   private val editorTextField = EditorTextFieldProvider.getInstance().getEditorField(
@@ -103,14 +103,12 @@ class SqliteEvaluatorViewImpl(
 
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents from tabbing
     // across the components.
-    threeComponentsSplitter.apply {
+    splitterPanel.apply {
       focusTraversalPolicy = LayoutFocusTraversalPolicy()
       isFocusCycleRoot = false
-      dividerWidth = 0
-      firstSize = JBUI.scale(100)
-      orientation = true
+      proportion = 0.3f
       firstComponent = topPanel
-      lastComponent = bottomPanel
+      secondComponent = bottomPanel
     }
 
     topPanel.border = JBUI.Borders.empty(6)

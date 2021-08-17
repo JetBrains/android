@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.gradle
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
 import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElement
 import com.android.tools.idea.testartifacts.getPsiElement
@@ -30,16 +29,6 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
  * Tests for {@link AndroidGradleTestTasksProvider} to verify that GRADLE can create the right run configurations when having same name.
  */
 class AndroidGradleTestTasksProviderTest: AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_UNIT_TESTING.override(true)
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.GRADLE_UNIT_TESTING.clearOverride()
-  }
 
   @Throws(Exception::class)
   fun testCanCreateGradleConfigurationFromTestClass() {

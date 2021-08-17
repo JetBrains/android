@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.browsers.OpenUrlHyperlinkInfo
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock

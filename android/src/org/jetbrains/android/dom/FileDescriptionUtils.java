@@ -84,7 +84,7 @@ public final class FileDescriptionUtils {
         return false;
       }
 
-      if (!IdeResourcesUtil.isInResourceSubdirectory(file, folderType.getName())) {
+      if (!IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, folderType.getName())) {
         return false;
       }
 

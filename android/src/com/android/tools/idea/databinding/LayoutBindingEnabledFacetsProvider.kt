@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.google.common.collect.Maps
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
@@ -47,11 +46,13 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   private val dataBindingEnabledModules: CachedValue<List<AndroidFacet>>
   private val viewBindingEnabledModules: CachedValue<List<AndroidFacet>>
 
+  private val moduleManager get() = ModuleManager.getInstance(project)
+  private val facetManager get() = ProjectFacetManager.getInstance(project)
+  private val dataBindingTracker get() = DataBindingUtil.getDataBindingEnabledTracker()
+  private val viewBindingTracker get() = project.getViewBindingEnabledTracker()
+
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val moduleManager = ModuleManager.getInstance(project)
-    val dataBindingTracker = DataBindingUtil.getDataBindingEnabledTracker()
-    val viewBindingTracker = project.getViewBindingEnabledTracker()
     val facetManager = ProjectFacetManager.getInstance(project)
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
@@ -81,5 +82,6 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   fun getDataBindingEnabledFacets(): List<AndroidFacet> = dataBindingEnabledModules.value
   fun getViewBindingEnabledFacets(): List<AndroidFacet> = viewBindingEnabledModules.value
 
-  override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
+  override fun getModificationCount() =
+    dataBindingTracker.modificationCount + viewBindingTracker.modificationCount + moduleManager.modificationCount
 }

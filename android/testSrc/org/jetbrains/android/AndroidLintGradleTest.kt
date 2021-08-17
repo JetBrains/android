@@ -17,17 +17,25 @@ package org.jetbrains.android
 
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
+import com.android.tools.idea.lint.AndroidLintMediaCapabilitiesInspection
 import com.android.tools.idea.lint.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
+import com.intellij.codeInspection.ui.InspectionToolPresentation
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.InspectionTestUtil
+import com.intellij.testFramework.createGlobalContextForTool
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.util.Arrays
 import java.util.Locale
 
 class AndroidLintGradleTest : AndroidGradleTestCase() {
@@ -84,6 +92,68 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
     myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow",
                         "No warnings."
+    )
+  }
+
+  fun testLintMediaCapabilities() {
+    loadProject(TestProjectPaths.MEDIA_USAGE)
+    val inspection = AndroidLintMediaCapabilitiesInspection()
+    myFixture.enableInspections(inspection)
+    val scope = AnalysisScope(myAndroidFacet.module)
+    val wrapper = GlobalInspectionToolWrapper(inspection)
+    val globalContext = createGlobalContextForTool(scope, project, Arrays.asList(wrapper))
+    InspectionTestUtil.runTool(wrapper, scope, globalContext)
+    val presentation: InspectionToolPresentation = globalContext.getPresentation(wrapper)
+    assertSize(1, presentation.problemElements.values)
+    assertEquals("<html>The app accesses 'MediaStore.Video', but is missing a '&lt;property>' " +
+                 "tag with a 'android.content.MEDIA_CAPABILITIES' declaration</html>",
+                 presentation.problemElements.values.first().toString())
+    assertEquals(1, presentation.problemElements.values.first().fixes?.size ?: 0)
+    val fix = presentation.problemElements.values.first().fixes?.first()!!
+    assertEquals(
+      "Add media capabilities property and generate descriptor",
+      fix.name
+    )
+    WriteCommandAction.runWriteCommandAction(project) {
+      fix.applyFix(project, presentation.problemElements.values.first())
+    }
+    val manifest = myFixture.loadFile("src/main/AndroidManifest.xml")
+    assertEquals(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.android.tests.basic">
+          <application android:label="@string/app_name" android:icon="@drawable/icon">
+              <activity android:name=".Main"
+                        android:label="@string/app_name">
+                  <intent-filter>
+                      <action android:name="android.intent.action.MAIN" />
+                      <category android:name="android.intent.category.LAUNCHER" />
+                  </intent-filter>
+              </activity>
+              <property
+                  android:name="android.content.MEDIA_CAPABILITIES"
+                  android:resource="@xml/media_capabilities" />
+          </application>
+      </manifest>""".trimIndent(),
+      manifest.text
+    )
+    val mediaDescriptor = myFixture.loadFile("src/main/res/xml/media_capabilities.xml")
+    assertEquals(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <media-capabilities xmlns:android="http://schemas.android.com/apk/res/android">
+          <!-- TODO Uncomment the following lines to let the Android OS
+                 know that the given media format is not supported by the app
+                 and will need to be transcoded. -->
+          <!--<format android:name="HEVC" supported="false"/>-->
+          <!--<format android:name="HDR10" supported="false"/>-->
+          <!--<format android:name="HDR10Plus" supported="false"/>-->
+          <!--<format android:name="Dolby-Vision" supported="false"/>-->
+          <!--<format android:name="HLG" supported="false"/>-->
+          <!--<format android:name="SlowMotion" supported="false"/>-->
+      </media-capabilities>""".trimIndent(),
+      mediaDescriptor.text
     )
   }
 }

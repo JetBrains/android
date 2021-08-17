@@ -22,7 +22,7 @@ enum class BuildAnalyzerBrowserLinks(
   val analyticsValue: BuildAttributionUiEvent.OutgoingLinkTarget
 ) {
   NON_INCREMENTAL_ANNOTATION_PROCESSORS(
-    "https://d.android.com/r/tools/build-attribution/non-incremental-ap",
+    "https://d.android.com/r/tools/build-attribution/incremental-annotation-processor-support",
     BuildAttributionUiEvent.OutgoingLinkTarget.NON_INCREMENTAL_ANNOTATION_PROCESSORS_HELP
   ),
   CRITICAL_PATH(
@@ -47,7 +47,10 @@ enum class BuildAnalyzerBrowserLinks(
   ),
   CONFIGURE_GC(
     "https://d.android.com/r/tools/build-attribution/configure-gc",
-    // TODO (mlazeba): add event to metrics
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURE_GC
+  ),
+  CONFIGURATION_CACHING(
+    "https://d.android.com/r/tools/build-attribution/configuration-cache",
+    BuildAttributionUiEvent.OutgoingLinkTarget.CONFIGURATION_CACHING
   )
 }

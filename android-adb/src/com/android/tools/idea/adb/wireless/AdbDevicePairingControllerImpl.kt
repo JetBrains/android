@@ -24,23 +24,25 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
 @UiThread
-class AdbDevicePairingControllerImpl(private val project: Project,
-                                     parentDisposable: Disposable,
-                                     edtExecutor: Executor,
-                                     private val pairingService: AdbDevicePairingService,
-                                     private val view: AdbDevicePairingView,
-                                     private val pinCodePairingControllerFactory: (MdnsService) -> PinCodePairingController = {
-                                       createPinCodePairingController(project, edtExecutor, pairingService, it)
+class WiFiPairingControllerImpl(private val project: Project,
+                                parentDisposable: Disposable,
+                                edtExecutor: Executor,
+                                private val pairingService: WiFiPairingService,
+                                private val notificationService: WiFiPairingNotificationService,
+                                private val view: WiFiPairingView,
+                                private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
+                                       createPairingCodePairingController(project, edtExecutor, pairingService, notificationService, it)
                                      }
-) : AdbDevicePairingController {
+) : WiFiPairingController {
   companion object {
-    fun createPinCodePairingController(project: Project,
-                                       edtExecutor: Executor,
-                                       pairingService: AdbDevicePairingService,
-                                       mdnsService: MdnsService): PinCodePairingController {
-      val model = PinCodePairingModel(mdnsService)
-      val view = PinCodePairingViewImpl(project, model)
-      return PinCodePairingController(edtExecutor, pairingService, view)
+    fun createPairingCodePairingController(project: Project,
+                                           edtExecutor: Executor,
+                                           pairingService: WiFiPairingService,
+                                           notificationService: WiFiPairingNotificationService,
+                                           mdnsService: MdnsService): PairingCodePairingController {
+      val model = PairingCodePairingModel(mdnsService)
+      val view = PairingCodePairingViewImpl(project, notificationService, model)
+      return PairingCodePairingController(edtExecutor, pairingService, view)
     }
   }
 
@@ -87,13 +89,13 @@ class AdbDevicePairingControllerImpl(private val project: Project,
     view.showDialog()
   }
 
-  inner class MyViewListener(private val parentDisposable: Disposable) : AdbDevicePairingView.Listener {
+  inner class MyViewListener(private val parentDisposable: Disposable) : WiFiPairingView.Listener {
     override fun onScanAnotherQrCodeDeviceAction() {
       // Ignore
     }
 
-    override fun onPinCodePairAction(mdnsService: MdnsService) {
-      pinCodePairingControllerFactory.invoke(mdnsService).showDialog()
+    override fun onPairingCodePairAction(mdnsService: MdnsService) {
+      pairingCodePairingControllerFactory.invoke(mdnsService).showDialog()
     }
 
     override fun onClose() {

@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
@@ -49,7 +45,11 @@ final class StopAvdAction extends AvdUiAction {
   private final Executor myExecutor;
 
   StopAvdAction(@NotNull AvdInfoProvider provider) {
-    this(provider, StopAvdAction::isAvdRunning, EdtExecutorService.getInstance());
+    this(
+      provider,
+      AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning,
+      EdtExecutorService.getInstance()
+    );
   }
 
   @VisibleForTesting
@@ -62,16 +62,6 @@ final class StopAvdAction extends AvdUiAction {
     myPropertyChangeSupport = new SwingPropertyChangeSupport(this);
     myIsAvdRunning = isAvdRunning;
     myExecutor = executor;
-  }
-
-  @NotNull
-  private static ListenableFuture<Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
-    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
-
-    AvdInfo device = provider.getAvdInfo();
-    assert device != null;
-
-    return service.submit(() -> AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device));
   }
 
   @Override

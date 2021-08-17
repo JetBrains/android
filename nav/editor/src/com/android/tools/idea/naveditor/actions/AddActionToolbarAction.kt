@@ -15,30 +15,49 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
-class AddActionToolbarAction(surface: NavDesignSurface) :
-  ToolbarAction(surface, "Add action", StudioIcons.NavEditor.Toolbar.ACTION) {
+class AddActionToolbarAction private constructor(): AnAction() {
 
-  override fun isEnabled(): Boolean = surface.selectionModel.selection.let {
-    if (it.size != 1) {
-      return false
-    }
+  override fun update(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface
+    val selection = surface?.selectionModel?.selection
 
-    return supportsSubtag(it[0], NavActionElement::class.java)
+    e.presentation.isEnabled = selection?.singleOrNull()?.let { supportsSubtag(selection[0], NavActionElement::class.java) } ?: false
+  }
+
+  private fun supportsSubtag(component: NlComponent, subtag: Class<out AndroidDomElement>): Boolean {
+    val model = component.model
+    val schema = NavigationSchema.get(model.module)
+    return schema.getDestinationSubtags(component.tagName).containsKey(subtag)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
     surface.selectionModel.selection.firstOrNull()?.let {
       val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it, NavEditorEvent.Source.TOOLBAR)
       showAndUpdateFromDialog(dialog, surface, false)
     }
+  }
+
+  companion object {
+    @JvmStatic
+    val instance: AddActionToolbarAction
+      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ADD_ACTION) as AddActionToolbarAction
   }
 }
 

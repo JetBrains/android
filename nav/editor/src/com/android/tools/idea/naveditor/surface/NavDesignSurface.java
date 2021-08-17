@@ -24,6 +24,7 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -31,6 +32,7 @@ import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
@@ -89,7 +91,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
-import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
@@ -113,7 +114,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,7 +162,8 @@ public class NavDesignSurface extends DesignSurface {
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
           true, (surface) -> new SinglePositionableContentLayoutManager(),
-          (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface));
+          (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
+          ZoomControlsPolicy.VISIBLE);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
@@ -330,7 +331,7 @@ public class NavDesignSurface extends DesignSurface {
 
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
-      () -> didAdd.set(DependencyManagementUtil.addDependencies(
+      () -> didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
         facet.getModule(), dependencies, true, false).isEmpty()));
     return didAdd.get();
   }
@@ -477,6 +478,32 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  public boolean setScale(double scale, int x, int y) {
+    SceneView view = getFocusedSceneView();
+    if (view == null) {
+      // There is no scene view. Nothing we can do.
+      return false;
+    }
+
+    Point oldViewPosition = getScrollPosition();
+    if (x < 0 || y < 0) {
+      x = oldViewPosition.x + getViewport().getViewportComponent().getWidth() / 2;
+      y = oldViewPosition.y + getViewport().getViewportComponent().getHeight() / 2;
+    }
+
+    @AndroidDpCoordinate int androidX = Coordinates.getAndroidXDip(view, x);
+    @AndroidDpCoordinate int androidY = Coordinates.getAndroidYDip(view, y);
+
+    boolean ret = super.setScale(scale, x, y);
+
+    @SwingCoordinate int shiftedX = Coordinates.getSwingXDip(view, androidX);
+    @SwingCoordinate int shiftedY = Coordinates.getSwingYDip(view, androidY);
+    getViewport().setViewPosition(new Point(oldViewPosition.x + shiftedX - x, oldViewPosition.y + shiftedY - y));
+
+    return ret;
+  }
+
+  @Override
   protected boolean isKeepingScaleWhenReopen() {
     // TODO: Keeping same scale for Navigation Editor and remove this function from DesignSurface
     // Navigation Editors calls zoom-to-fit automatically when NlModel is set. Some zoom-to-fit functions is called when editor is empty,
@@ -501,7 +528,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected double getFitScale(boolean fitInto) {
+  public double getFitScale(boolean fitInto) {
     return Math.min(super.getFitScale(fitInto), 1.0);
   }
 
@@ -579,8 +606,11 @@ public class NavDesignSurface extends DesignSurface {
     return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
+  @UiThread
   @Override
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    // track user triggered change
+    getAnalyticsManager().trackZoom(type);
     boolean scaled = super.zoom(type, x, y);
     boolean isFitZoom = type == ZoomType.FIT || type == ZoomType.FIT_INTO;
 
@@ -760,7 +790,6 @@ public class NavDesignSurface extends DesignSurface {
                                      NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
     ).collect(Collectors.toList());
   }
-
 
   /*
    * If none of the newly selected item are visible, update the current navigation so that the first one is visible.

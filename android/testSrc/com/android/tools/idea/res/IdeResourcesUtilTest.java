@@ -26,7 +26,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -39,7 +39,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.AndroidModel;

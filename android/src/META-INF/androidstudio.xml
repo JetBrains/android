@@ -44,14 +44,17 @@
     <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
     <postStartupActivity implementation="com.android.tools.idea.stats.AndroidStudioUsageTracker$JetnewsUsageTracker" />
 
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+    <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
+
+    <statusBarWidgetFactory id="UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.PositiveUserSentimentWidgetFactory"/>
+    <statusBarWidgetFactory id="UserSentimentPanelNegative" order="after UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.NegativeUserSentimentWidgetFactory"/>
   </extensions>
 
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
 
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" popup="false" keep-content="true" overrides="true"/>
+    <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" popup="false" keep-content="true" overrides="true"/>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -96,8 +99,8 @@
     </action>
 
     <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-            icon="StudioIcons.Shell.Menu.AVD_MANAGER" text="AVD Manager">
-      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
+      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.RunAndroidSdkManager" anchor="after"/>
     </action>
 
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
@@ -151,12 +154,7 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                     overrides="true"/>
 
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
-                    serviceImplementation="org.jetbrains.android.compose.ComposeSampleResolutionService"
-                    overrides="true"
-    />
-
-    <!-- DO NOT move to oproject-system-gradle-plugin.xml. It should run in Android Studio only. -->
+    <!-- DO NOT move to project-system-gradle-plugin.xml. It should run in Android Studio only. -->
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"
@@ -173,7 +171,8 @@
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
-    <project.converterProvider implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverterProvider"/>
+
+    <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

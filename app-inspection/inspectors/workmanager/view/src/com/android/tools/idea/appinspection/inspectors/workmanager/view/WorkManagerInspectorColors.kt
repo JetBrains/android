@@ -19,8 +19,17 @@ import com.intellij.ui.JBColor
 
 object WorkManagerInspectorColors {
   // TODO (b/166077440) Match text colors with the spec
+  // Details View
   val DATA_VALUE_TEXT_COLOR = JBColor(0x58AB5C, 0x65BB69)
-  val DATA_TEXT_NULL_COLOR = JBColor(0x002FA6, 0x2B7DA2)
-  val DATA_TEXT_AWAITING_COLOR = JBColor(0x787878, 0xC8C8C8);
-  val EMPTY_CONTENT_COLOR = JBColor(0x787878, 0xC8C8C8);
+  val DATA_TEXT_NULL_COLOR = JBColor(0x0033B3, 0xCC7832)
+  val DATA_TEXT_AWAITING_COLOR = JBColor(0x787878, 0xC8C8C8)
+  val EMPTY_CONTENT_COLOR = JBColor(0x787878, 0xC8C8C8)
+
+  // Dependency Graph
+  val DEFAULT_WORK_BORDER_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
+  val SELECTED_WORK_BORDER_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.focusedBorderColor", JBColor(0x1886f7, 0x9ccdff))
+  val GRAPH_LABEL_BACKGROUND_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.background", JBColor(0xfdfdfd, 0x515658))
 }

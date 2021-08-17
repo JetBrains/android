@@ -20,11 +20,12 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
-import com.android.builder.model.TestedTargetVariant;
-import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -127,7 +128,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel == null ||
         !androidModel.getFeatures().isPostBuildSyncSupported() ||
-        androidModel.getAndroidProject().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+        androidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
       return null;
     }
 
@@ -136,7 +137,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    InstantAppProjectBuildOutput projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(myFacet);
+    InstantAppProjectBuildOutput projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(getGradlePath(myFacet.getModule()));
     if (projectBuildOutput == null) {
       return null;
     }
@@ -160,7 +161,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name.
-    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getMergedFlavor().getTestApplicationId();
+    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getTestApplicationId();
     if (testPackageName != null) {
       return testPackageName;
     }

@@ -51,7 +51,8 @@ internal class GroupSwitchAction : DropDownAction(
     val presentation = e.presentation
     val previewManagers = findComposePreviewManagersForContext(e.dataContext)
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
-    presentation.isEnabledAndVisible = availableGroups.isNotEmpty()
+    presentation.isVisible = availableGroups.isNotEmpty()
+    presentation.isEnabled = availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
     if (presentation.isEnabledAndVisible) {
       presentation.text = previewManagers.map { it.groupFilter.displayName }.firstOrNull()
     }

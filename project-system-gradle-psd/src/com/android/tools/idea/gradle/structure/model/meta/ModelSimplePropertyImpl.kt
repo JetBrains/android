@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.util.PatternUtil
@@ -45,6 +46,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   description: String,
   preferredVariableName: ModelT.() -> String = { "var" },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
+  variableScope: (ModelT.() -> PsVariablesScope)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel = {
@@ -64,6 +66,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   description,
   preferredVariableName,
   defaultValueGetter,
+  variableScope,
   resolvedValueGetter,
   parsedPropertyGetter,
   parsedPropertyInitializer,
@@ -126,6 +129,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   override val description: String,
   val preferredVariableName: ModelT.() -> String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
+  val variableScope: ((ModelT) -> PsVariablesScope)?,
   private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   private val parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel,
@@ -175,6 +179,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     }
 
     override val defaultValueGetter: (() -> PropertyT?)? = this@ModelSimplePropertyImpl.defaultValueGetter?.let { { it(model) } }
+    override val variableScope: (() -> PsVariablesScope?)? = this@ModelSimplePropertyImpl.variableScope?.let { { it(model) } }
     override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
       matcher(model, parsedValue, resolvedValue)
 
@@ -232,6 +237,7 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
       override fun getResolvedValue(): ResolvedValue<PropertyT> = ResolvedValue.NotResolved()
 
       override val defaultValueGetter: (() -> PropertyT?)? = null
+      override val variableScope: (() -> PsVariablesScope?)? = null
       override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
         throw UnsupportedOperationException()
 

@@ -35,10 +35,13 @@ import com.android.tools.profiler.proto.Common
  */
 class TestAppInspectorCommandHandler(
   timer: FakeTimer,
-  private val getLibraryVersionsResponse: ((AppInspection.GetLibraryVersionsCommand) -> AppInspection.GetLibraryVersionsResponse)? = null,
-  private val rawInspectorResponse: (() -> AppInspection.AppInspectionResponse)? = null,
-  private val disposeInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_DISPOSE_INSPECTOR_RESPONSE,
-  private val createInspectorResponse: () -> AppInspection.AppInspectionResponse = DEFAULT_CREATE_INSPECTOR_RESPONSE
+  private val getLibraryVersionsResponse: ((AppInspection.GetLibraryCompatibilityInfoCommand) ->
+  AppInspection.GetLibraryCompatibilityInfoResponse)? = null,
+  private val rawInspectorResponse: ((AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder)? = null,
+  private val disposeInspectorResponse: (AppInspection.DisposeInspectorCommand) -> AppInspection.AppInspectionResponse.Builder =
+    DEFAULT_DISPOSE_INSPECTOR_RESPONSE,
+  private val createInspectorResponse: (AppInspection.CreateInspectorCommand) -> AppInspection.AppInspectionResponse.Builder =
+    DEFAULT_CREATE_INSPECTOR_RESPONSE
 ) : CommandHandler(timer) {
   private fun createResponse(command: Commands.Command, appInspectionResponse: AppInspection.AppInspectionResponse) =
     Common.Event.newBuilder()
@@ -54,29 +57,42 @@ class TestAppInspectorCommandHandler(
     when {
       command.appInspectionCommand.hasCreateInspectorCommand() -> {
         events.add(
-          createResponse(command, createInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
+          createResponse(
+            command,
+            createInspectorResponse(command.appInspectionCommand.createInspectorCommand)
+              .setCommandId(command.appInspectionCommand.commandId)
+              .build()
+          )
+        )
       }
       command.appInspectionCommand.hasDisposeInspectorCommand() -> {
         events.add(
-          createResponse(command, disposeInspectorResponse().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()))
+          createResponse(
+            command,
+            disposeInspectorResponse(
+              command.appInspectionCommand.disposeInspectorCommand)
+              .setCommandId(command.appInspectionCommand.commandId)
+              .build()
+          )
+        )
       }
       command.appInspectionCommand.hasRawInspectorCommand() -> {
         events.add(
           createResponse(
             command,
             rawInspectorResponse?.let {
-              it().toBuilder().setCommandId(command.appInspectionCommand.commandId).build()
+              it(command.appInspectionCommand.rawInspectorCommand).setCommandId(command.appInspectionCommand.commandId).build()
             } ?: getDefaultRawResponse(command)
           )
         )
       }
-      command.appInspectionCommand.hasGetLibraryVersionsCommand() -> {
+      command.appInspectionCommand.hasGetLibraryCompatibilityInfoCommand() -> {
         events.add(
           createResponse(command,
                          AppInspection.AppInspectionResponse.newBuilder()
                            .setCommandId(command.appInspectionCommand.commandId)
-                           .setLibraryVersionsResponse(
-                             getLibraryVersionsResponse?.let { it(command.appInspectionCommand.getLibraryVersionsCommand) }
+                           .setGetLibraryCompatibilityResponse(
+                             getLibraryVersionsResponse?.let { it(command.appInspectionCommand.getLibraryCompatibilityInfoCommand) }
                              ?: getDefaultLibraryVersionsResponse(command)
                            )
                            .build()
@@ -84,6 +100,8 @@ class TestAppInspectorCommandHandler(
         )
       }
     }
+
+    timer.currentTimeNs += 1 // Make sure poller sees any newly added events
   }
 }
 
@@ -91,17 +109,17 @@ private val DEFAULT_CREATE_INSPECTOR_RESPONSE = createCreateInspectorResponse(
   AppInspection.AppInspectionResponse.Status.SUCCESS,
   AppInspection.CreateInspectorResponse.Status.SUCCESS)
 
-private val DEFAULT_DISPOSE_INSPECTOR_RESPONSE = {
+private val DEFAULT_DISPOSE_INSPECTOR_RESPONSE = { _: AppInspection.DisposeInspectorCommand ->
   AppInspection.AppInspectionResponse.newBuilder().setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-    .setDisposeInspectorResponse(AppInspection.DisposeInspectorResponse.getDefaultInstance()).build()
+    .setDisposeInspectorResponse(AppInspection.DisposeInspectorResponse.getDefaultInstance())
 }
 
-private fun getDefaultLibraryVersionsResponse(command: Commands.Command): AppInspection.GetLibraryVersionsResponse {
-  val responses = command.appInspectionCommand.getLibraryVersionsCommand.targetVersionsList.map { target ->
-    AppInspection.LibraryVersionResponse.newBuilder().setVersionFileName(target.versionFileName).setVersion(target.minVersion).setStatus(
-      AppInspection.LibraryVersionResponse.Status.COMPATIBLE).build()
+private fun getDefaultLibraryVersionsResponse(command: Commands.Command): AppInspection.GetLibraryCompatibilityInfoResponse {
+  val responses = command.appInspectionCommand.getLibraryCompatibilityInfoCommand.targetLibrariesList.map { target ->
+    AppInspection.LibraryCompatibilityInfo.newBuilder().setTargetLibrary(target).setStatus(
+      AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE).build()
   }
-  return AppInspection.GetLibraryVersionsResponse.newBuilder()
+  return AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
     .addAllResponses(responses).build()
 }
 
@@ -115,9 +133,11 @@ private fun getDefaultRawResponse(command: Commands.Command): AppInspection.AppI
     .build()
 }
 
-fun createCreateInspectorResponse(status: AppInspection.AppInspectionResponse.Status,
-                                  createStatus: AppInspection.CreateInspectorResponse.Status,
-                                  error: String? = null): () -> AppInspection.AppInspectionResponse {
+fun createCreateInspectorResponse(
+  status: AppInspection.AppInspectionResponse.Status,
+  createStatus: AppInspection.CreateInspectorResponse.Status,
+  error: String? = null): (AppInspection.CreateInspectorCommand) -> AppInspection.AppInspectionResponse.Builder {
+
   return {
     val builder = AppInspection.AppInspectionResponse.newBuilder()
       .setCreateInspectorResponse(AppInspection.CreateInspectorResponse.newBuilder()
@@ -127,16 +147,40 @@ fun createCreateInspectorResponse(status: AppInspection.AppInspectionResponse.St
     if (error != null) {
       builder.errorMessage = error
     }
-    builder.build()
+    builder
   }
 }
 
+fun AppInspection.CreateInspectorCommand.createResponse(
+  responseStatus: AppInspection.CreateInspectorResponse.Status,
+  error: String? = null,
+): AppInspection.AppInspectionResponse.Builder {
+  val delegateCreator = if (responseStatus == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
+    DEFAULT_CREATE_INSPECTOR_RESPONSE
+  }
+  else {
+    createCreateInspectorResponse(
+      AppInspection.AppInspectionResponse.Status.ERROR,
+      responseStatus,
+      error
+    )
+  }
+  return delegateCreator(this)
+}
+
 fun createRawResponse(status: AppInspection.AppInspectionResponse.Status,
-                      content: String): () -> AppInspection.AppInspectionResponse {
+                      content: String): (AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder {
   return {
     AppInspection.AppInspectionResponse.newBuilder()
-      .setRawResponse(AppInspection.RawResponse.newBuilder().setContent(ByteString.copyFromUtf8(content)).build())
+      .setRawResponse(AppInspection.RawResponse.newBuilder().setContent(ByteString.copyFromUtf8(content)))
       .setStatus(status)
-      .build()
+  }
+}
+
+fun createRawResponse(payloadId: Long): (AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder {
+  return {
+    AppInspection.AppInspectionResponse.newBuilder()
+      .setRawResponse(AppInspection.RawResponse.newBuilder().setPayloadId(payloadId))
+      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS) // Having a payload ID implies success
   }
 }

@@ -15,11 +15,14 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.shouldShowWarning
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
@@ -39,7 +42,7 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkEvent.EventType
 
 class BuildOverviewPageView(
   val model: BuildAnalyzerViewModel,
@@ -51,15 +54,22 @@ class BuildOverviewPageView(
     layout = VerticalLayout(0, SwingConstants.LEFT)
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
+    val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
+      " - <a href='configuration-cache'>Optimize this</a>."
+    else ""
     val text = """
       <b>Build finished on ${buildFinishedTime}</b><br/>
       Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}.<br/>
       <br/>
       Includes:<br/>
-      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}<br/>
+      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
       Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text))
+    add(htmlTextLabelWithFixedLines(text).apply {
+      addHyperlinkListener {
+        if (it.eventType == EventType.ACTIVATED && it.description == "configuration-cache") actionHandlers.openConfigurationCacheWarnings()
+      }
+    })
   }
 
   private val linksPanel = JPanel().apply {
@@ -86,7 +96,8 @@ class BuildOverviewPageView(
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
     val descriptionText: String = buildString {
-      append("${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
+      append(
+        "${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
       if (model.shouldWarnAboutGC) {
         append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
       }
@@ -104,12 +115,12 @@ class BuildOverviewPageView(
     val defaultGCUsageWarning = htmlTextLabelWithFixedLines("""
       |The default garbage collector was used in this build running with JDK ${model.reportUiData.buildSummary.javaVersionUsed}.<br/>
       |Note that the default GC was changed starting with JDK 9. This could impact your build performance by as much as 10%.<br/>
-      |<b>Recommendation:</b> <a href="${BuildAnalyzerBrowserLinks.CONFIGURE_GC.name}">Fine tune your JVM</a>.<br/>
+      |<b>Recommendation:</b> ${externalLink("Fine tune your JVM", BuildAnalyzerBrowserLinks.CONFIGURE_GC)}.<br/>
       |<a href="suppress">Don't show this again</a>.
     """.trimMargin())
     defaultGCUsageWarning.name = "no-gc-setting-warning"
     defaultGCUsageWarning.addHyperlinkListener { e ->
-      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+      if (e.eventType == EventType.ACTIVATED) {
         if (e.description == "suppress") {
           val confirmationResult = Messages.showOkCancelDialog(
             "Click OK to hide this warning in future builds.",

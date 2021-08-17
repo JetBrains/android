@@ -20,12 +20,14 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.util.Map;
 import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
@@ -115,8 +117,7 @@ public class FlagManager {
   }
 
   public static boolean showFlagsForLanguages() {
-    return false;
-    //return UISettings.getInstance().getState().getLanguageFlags(); // FIXME-ank2: no such method
+    return AndroidEditorAppearanceSettings.Companion.getInstance().getState().getEnableFlagsForLanguages();
   }
 
   /**
@@ -199,7 +200,7 @@ public class FlagManager {
         // or with idea.is.internal=true
       }
       if (flagImage == null) {
-        flagImage = AndroidIcons.Flags.FlagEmpty;
+        flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
       }
       myImageMap.put(base, flagImage);
     }

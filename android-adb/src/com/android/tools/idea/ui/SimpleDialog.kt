@@ -75,6 +75,12 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     set(value) { innerDialogWrapper.cancelButton?.isEnabled = value }
 
   /**
+   * The `OK` button
+   */
+  val okButton: JButton?
+    get() = innerDialogWrapper.okButton
+
+  /**
    * The text of the `OK` button (default is "OK")
    */
   var okButtonText: String

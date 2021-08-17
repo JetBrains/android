@@ -32,6 +32,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.BalloonLayoutData;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.util.ui.PositionTracker;
 import java.awt.*;
 import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
@@ -189,14 +190,15 @@ public class AndroidNotification {
       NotificationsManagerImpl
         .createBalloon(jFrame.getRootPane(), notification, false, true, BalloonLayoutData.fullContent(), project);
 
-    Dimension jFrameSize = jFrame.getSize();
-    Dimension balloonSize = balloon.getPreferredSize();
-
     // bottom-right corner
-    RelativePoint
-      point =
-      new RelativePoint(jFrame, new Point(jFrameSize.width - balloonSize.width / 2, jFrameSize.height - balloonSize.height / 2));
-    balloon.show(point, Balloon.Position.above);
+    balloon.show(new PositionTracker<Balloon>(jFrame.getRootPane()) {
+      @Override
+      public RelativePoint recalculateLocation(@NotNull Balloon balloon) {
+        Dimension jFrameSize = jFrame.getSize();
+        Dimension balloonSize = balloon.getPreferredSize();
+        return new RelativePoint(jFrame, new Point(jFrameSize.width - balloonSize.width / 2, jFrameSize.height - balloonSize.height / 2));
+      }
+    }, Balloon.Position.above);
   }
 
   @Nullable

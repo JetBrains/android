@@ -22,15 +22,15 @@ import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
-import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
   private static final Logger LOG = Logger.getInstance(ResourceContent.class);
@@ -48,29 +48,18 @@ public class ResourceContent implements Function<OutputStream, Exception> {
   @Nullable
   public static File getSampleDataBaseDir() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
-    final String[] paths = {
-      FileUtil.join(homePath, "plugins/android/lib/sampleData"), // Bundled path
-      StudioPathManager.isRunningFromSources()
-      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData")
-      : null, // Development path
-      FileUtil.join(homePath, "/community/android/android/lib/sampleData") // IDEA plugin Development path
-    };
-
-    StringBuilder notFoundPaths = new StringBuilder();
-    for (String jarPath : paths) {
-      if (jarPath == null) continue;
-
-      File rootFile = new File(jarPath);
-      if (rootFile.exists()) {
-        LOG.debug("Sample data base dir found at " + jarPath);
-        return rootFile;
-      }
-      else {
-        notFoundPaths.append(jarPath).append('\n');
-      }
+    String jarPath = FileUtil.join(homePath, "plugins/android/resources/sampleData");
+    if (StudioPathManager.isRunningFromSources()) {
+      jarPath = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData");
     }
 
-    LOG.warn("Unable to sampleData in paths:\n" + notFoundPaths);
+    File rootFile = new File(jarPath);
+    if (rootFile.exists()) {
+      LOG.debug("Sample data base dir found at " + jarPath);
+      return rootFile;
+    }
+
+    LOG.warn("Unable to sampleData in path :" + jarPath);
     return null;
   }
 

@@ -22,16 +22,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
-interface MessageFormatter {
+interface MessageParser {
   Pattern PROCESS_ID = Pattern.compile("\\d+");
   Pattern THREAD_ID = Pattern.compile("\\d+");
   Pattern PACKAGE = Pattern.compile("\\S+");
   Pattern PRIORITY = Pattern.compile("[VDIWEAF]");
   Pattern TAG = Pattern.compile("[^ ]+");
   Pattern MESSAGE = Pattern.compile(".*");
-
-  @NotNull
-  String format(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message);
 
   @Nullable
   LogCatMessage tryParse(@NotNull String message);

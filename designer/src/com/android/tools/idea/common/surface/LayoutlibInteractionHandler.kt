@@ -27,7 +27,7 @@ import java.awt.event.MouseWheelEvent
  */
 class LayoutlibInteractionHandler(private val surface: DesignSurface) : InteractionHandler {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
-    val view = surface.getSceneView(mouseX, mouseY) ?: return null
+    val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
     return LayoutlibInteraction(screenView)
   }

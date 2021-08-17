@@ -26,15 +26,16 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getDeclaringAttributeValue
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.res.resolve
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.ResolveResult
+import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.SearchScope
@@ -42,13 +43,11 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.getDeclaringAttributeValue
-import com.intellij.psi.impl.ResolveScopeManager
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
-    return ResourceRepositoryManager.getInstance(context)
-      ?.allResources
+    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return PsiFile.EMPTY_ARRAY
+    return getRelevantResourceRepository(resourceReference, resourceRepositoryManager)
       ?.getResources(resourceReference)
       ?.filter { it.isFileBased }
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
@@ -109,9 +108,10 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     facet: AndroidFacet,
     includeDynamicFeatures: Boolean = false
   ): Array<out ResolveResult> {
-    val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return ResolveResult.EMPTY_ARRAY
+    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(facet)
+    val resourceRepository = getRelevantResourceRepository(resourceReference, resourceRepositoryManager) ?: return ResolveResult.EMPTY_ARRAY
     val allItems = mutableListOf<ResolveResult>()
-    if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
+    if (resourceRepository.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
       allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
     }
     if (includeDynamicFeatures) {
@@ -147,8 +147,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
-    return ResourceRepositoryManager.getInstance(context)
-      ?.allResources
+    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return emptyList()
+    return getRelevantResourceRepository(resourceReference, resourceRepositoryManager)
       ?.getResources(resourceReference)
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
       .orEmpty()
@@ -204,8 +204,17 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     context: PsiElement,
     configuration: FolderConfiguration
   ): PsiElement? {
-    val resources = ResourceRepositoryManager.getInstance(context)?.allResources?.getResources(resourceReference) ?: return null
+    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return null
+    val resources =
+      getRelevantResourceRepository(resourceReference, resourceRepositoryManager)?.getResources(resourceReference) ?: return null
     val resourceItem = configuration.findMatchingConfigurable(resources) ?: resources.firstOrNull() ?: return null
     return resolveToDeclaration(resourceItem, context.project)
+  }
+
+  private fun getRelevantResourceRepository(
+    resourceReference: ResourceReference,
+    resourceRepositoryManager: ResourceRepositoryManager
+  ): ResourceRepository? {
+    return resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace)
   }
 }

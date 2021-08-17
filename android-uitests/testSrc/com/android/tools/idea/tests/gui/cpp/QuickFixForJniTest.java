@@ -58,13 +58,15 @@ public class QuickFixForJniTest {
    *   4. Move the cursor on the printFromJNI function name, press Alt + Enter to trigger
    *      a quick fix for the missing JNI implementation error, Verify 2
    *   5. Click on the fix for “Create JNI function for …”, Verify 3
-   *   6. Navigate to the external method on the Java/Kotlin side, Verify 4
+   *   6. Click "jni.cpp". Verify 4
+   *   7. Navigate to the external method on the Java/Kotlin side, Verify 5
    *   Verify:
    *   1. The method/function should be highlighted as red due to missing JNI implementation
    *   2. There should be a quick fix for the missing JNI implementation
-   *   3. The editor should navigate to the C/C++ file; a skeleton implementation for
+   *   3. The editor should show a popup asking which native source file to place the JNI stub
+   *   4. The editor should navigate to the C/C++ file; a skeleton implementation for
    *      your native method should be added at the bottom of the C/C++ file
-   *   4. The method should no longer be red
+   *   5. The method should no longer be red
    *   </pre>
    */
   @RunIn(TestGroup.SANITY_BAZEL)
@@ -90,19 +92,36 @@ public class QuickFixForJniTest {
     editor.select("void printFromJNI()")
       .invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
 
-    JBList jbList = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
-                                                        null, new GenericTypeMatcher<JBList>(JBList.class) {
+    JBList quickFixPopup = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
+                                                               null, new GenericTypeMatcher<JBList>(JBList.class) {
         @Override
         protected boolean isMatching(@NotNull JBList list) {
           return list.getClass().getName().equals("com.intellij.ui.popup.list.ListPopupImpl$MyList");
         }
       });
-    JListFixture listFixture = new JListFixture(guiTest.robot(), jbList);
-    listFixture.clickItem("Create JNI function for printFromJNI");
+    JListFixture quickFixPopupFixture = new JListFixture(guiTest.robot(), quickFixPopup);
+    quickFixPopupFixture.clickItem("Create JNI function for printFromJNI");
+
+    // Create fixture for the second popup
+    JBList nativeSourcePopup = GuiTests.waitUntilShowingAndEnabled(guiTest.robot(),
+                                                                   null, new GenericTypeMatcher<JBList>(JBList.class) {
+        @Override
+        protected boolean isMatching(@NotNull JBList list) {
+          return list.getClass().getName().equals(JBList.class.getName());
+        }
+      });
+    JListFixture nativeSourcePopupFixture = new JListFixture(guiTest.robot(), nativeSourcePopup);
+
+    // Verify the content of the popup menu. It should contain both native source files in this project and
+    // place the file that has existing JNI definitions (hello-jni.c) on top.
+    nativeSourcePopupFixture.requireItemCount(2);
+    assertThat(nativeSourcePopupFixture.item(0).value()).isEqualTo("OCFile:hello-jni.c");
+    assertThat(nativeSourcePopupFixture.item(1).value()).isEqualTo("OCFile:jni.cpp");
+    nativeSourcePopupFixture.item(1).click();
 
     // Check skeleton added to C/C++ file.
     Wait.seconds(10).expecting("Native file is opened for navigating to definition")
-      .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
+      .until(() -> "jni.cpp".equals(ideFrame.getEditor().getCurrentFileName()));
 
     String currentLine = ideFrame.getEditor().getCurrentLine();
     assertThat(currentLine.contains("// TODO: implement printFromJNI()")).isTrue();

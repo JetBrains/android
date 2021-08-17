@@ -2,7 +2,9 @@ android {
   buildTypes {
     create("xyz") {
       applicationIdSuffix = "mySuffix"
+      isCrunchPngs = true
       isDebuggable = true
+      isDefault = true
       isEmbedMicroApp = false
       isJniDebuggable = true
       isMinifyEnabled = false
@@ -13,6 +15,7 @@ android {
       isShrinkResources = false
       isTestCoverageEnabled = true
       useJack = false
+      isUseProguard = true
       versionNameSuffix = "abc"
       isZipAlignEnabled = true
     }

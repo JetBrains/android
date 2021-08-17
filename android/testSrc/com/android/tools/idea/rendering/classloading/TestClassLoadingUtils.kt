@@ -15,9 +15,50 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
+import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
+import java.io.PrintWriter
+import java.io.StringWriter
 
 internal fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+}
+
+
+/**
+ * Sets up a new [TestClassLoader].
+ * We take the already compiled classes in the test project, and save it to a byte array, applying the
+ * transformations.
+ */
+internal fun setupTestClassLoaderWithTransformation(
+  classDefinitions: Map<String, Class<*>>,
+  beforeTransformTrace: StringWriter,
+  afterTransformTrace: StringWriter,
+  classTransformation: (ClassVisitor) -> ClassVisitor
+): TestClassLoader {
+  // Create a SimpleRemapper that renames all the classes in `classDefinitions` from their old
+  // names to the new ones.
+  val classNameRemapper = SimpleRemapper(
+    classDefinitions.map { (newClassName, clazz) -> Type.getInternalName(clazz) to newClassName }.toMap())
+  val redefinedClasses = classDefinitions.map { (newClassName, clazz) ->
+    val testClassBytes = loadClassBytes(clazz)
+
+    val classReader = ClassReader(testClassBytes)
+    val classOutputWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+    // Move the class
+    val remapper = ClassRemapper(classTransformation(TraceClassVisitor(classOutputWriter, PrintWriter(afterTransformTrace))),
+                                 classNameRemapper)
+    classReader.accept(TraceClassVisitor(remapper, PrintWriter(beforeTransformTrace)), ClassReader.EXPAND_FRAMES)
+
+    newClassName to classOutputWriter.toByteArray()
+  }.toMap()
+
+  return TestClassLoader(LiveLiteralsTransformTest::class.java.classLoader,
+                         redefinedClasses)
 }

@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
@@ -23,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
@@ -113,6 +118,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
     if (element is ExtDslElement) return getParentPsi(element)
+    if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
     var anchorAfter = element.anchor
@@ -140,13 +146,11 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
     var statementText : String
-    val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
-      null -> element.shouldUseAssignment()
-      else -> !asMethod
-    }
+    val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
+    element.externalSyntax = syntax
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
-    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
+    if (element.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
       statementText = "\"${joinedName}\""
     }
     else if (element is GradleDslNamedDomainElement) {
@@ -179,7 +183,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         statementText += " {\n}"  // Can't create expression with another new line after.
       }
     }
-    else if (useAssignment) {
+    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
@@ -192,7 +196,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           }
         }
         else {
-          statementText += " = \"abc\""
+          when (syntax) {
+            ASSIGNMENT -> statementText += " = \"abc\""
+            AUGMENTED_ASSIGNMENT -> statementText += " += \"abc\""
+          }
         }
       }
       else if (element.elementType == PropertyType.VARIABLE) {
@@ -364,6 +371,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     return when (literal.parent) {
       is GradleDslExpressionList -> createListElement(literal)
       is GradleDslExpressionMap -> createMapElement(literal)
+      is GradleDslInfixExpression -> createInfixElement(literal)
       else -> createDslElement(literal)
     }
   }
@@ -443,9 +451,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
     val fakeElement = FakeMethodElement(methodCall)
+    val methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
 
     val statementText =
-      if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
+      if (!methodCall.nameElement.isEmpty && methodCall.fullName != methodCall.methodName) {
         val externalNameInfo = maybeTrimForParent(methodCall, this)
         var propertyName = externalNameInfo.externalNameParts.joinToString(".")
         // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
@@ -453,18 +462,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         if (propertyName.startsWith("project(':")) {
           propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
         }
-        val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
-          null -> methodCall.shouldUseAssignment()
-          else -> !asMethod
-        }
-        var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
-        if (useAssignment) {
+        val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: methodCall.externalSyntax
+        if (syntax == ASSIGNMENT) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
         else {
           // Ex: implementation(fileTree()), "feature"(fileTree())
-          if (methodCall.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
+          if (methodCall.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
             propertyName = "\"$propertyName\""
           }
           "$propertyName($methodName())"
@@ -472,7 +477,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
-        maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".") + "()"
+        "$methodName()"
       }
     val expression = psiFactory.createExpression(statementText)
 
@@ -569,10 +574,17 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     if (psiElement is KtCallExpression) return psiElement
 
-    val emptyListText = when (expressionList.modelProperty?.type) {
-      MUTABLE_LIST -> "mutableListOf()"
-      MUTABLE_SET -> "mutableSetOf()"
-      else -> "listOf()"
+    val emptyListText = when (expressionList.externalSyntax) {
+      AUGMENTED_ASSIGNMENT -> when (expressionList.modelProperty?.type) {
+        MUTABLE_LIST -> "listOf()"
+        MUTABLE_SET -> "setOf()"
+        else -> "listOf()"
+      }
+      else -> when (expressionList.modelProperty?.type) {
+        MUTABLE_LIST -> "mutableListOf()"
+        MUTABLE_SET -> "mutableSetOf()"
+        else -> "listOf()"
+      }
     }
 
     if (psiElement is KtBinaryExpression) {
@@ -637,6 +649,21 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap) {
     maybeUpdateName(expressionMap, this)
+  }
+
+  fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
+    expression.psiElement?.also { return it }
+
+    val parentPsi = expression.parent?.create() ?: return null
+    val firstLiteral = expression.currentElements[0] as? GradleDslLiteral ?: return null
+
+    expression.psiElement = parentPsi
+    val literalPsi = createDslElement(firstLiteral)
+    expression.psiElement = literalPsi
+    applyDslLiteral(firstLiteral)
+    firstLiteral.reset()
+    firstLiteral.commit()
+    return expression.psiElement
   }
 
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement) {

@@ -19,9 +19,6 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -32,12 +29,9 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
-import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.io.File
-import java.io.FileInputStream
 
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
@@ -68,13 +62,12 @@ class TransportRule(
   private val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).closeServerDuringCleanUp(false),
   private val transportService: FakeTransportService = FakeTransportService(timer),
-  private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService, transportService)
+  private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService)
 ) : TestRule {
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
 
-  private var testDataDir: File? = null
   private val commandHandlers = mutableMapOf<
     LayoutInspectorProto.LayoutInspectorCommand.Type,
     (Commands.Command, MutableList<Common.Event>) -> Unit>()
@@ -100,11 +93,6 @@ class TransportRule(
     }
   }
 
-  private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
-
-  fun withTestData(directory: File) =
-    apply { testDataDir = directory }
-
   /**
    * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    */
@@ -112,9 +100,8 @@ class TransportRule(
                          handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
     apply { commandHandlers[type] = handler }
 
-  fun withFile(id: Int, fileName: String) = apply {
-    val content = FileInputStream(File(testDataDir!!, fileName)).use { ByteString.readFrom(it) }
-    transportService.addFile(id.toString(), content)
+  fun withFile(id: Int, bytes: ByteArray) = apply {
+    transportService.addFile(id.toString(), ByteString.copyFrom(bytes))
   }
 
   fun addEventToStream(device: Common.Device, event: Common.Event) {
@@ -158,12 +145,7 @@ class TransportRule(
       object: Statement() {
         override fun evaluate() {
           before()
-          try {
-            base.evaluate()
-          }
-          finally {
-            after()
-          }
+          base.evaluate()
         }
       }, description
     ), description)
@@ -172,16 +154,8 @@ class TransportRule(
   private fun before() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
-    originalClientFactory = InspectorClient.clientFactory
-    InspectorClient.clientFactory = {
-      model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
-    }
 
     // Start ADB with fake server and its port.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-  }
-
-  private fun after() {
-    InspectorClient.clientFactory = originalClientFactory!!
   }
 }

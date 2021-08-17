@@ -16,11 +16,14 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.StreamingTimeline
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 
 internal class FakeStage(profilers: StudioProfilers) : Stage<StreamingTimeline>(profilers) {
   override fun enter() {}
 
   override fun exit() {}
+
+  override fun getStageType() = AndroidProfilerEvent.Stage.UNKNOWN_STAGE
 
   override fun getTimeline(): StreamingTimeline {
     return studioProfilers.timeline

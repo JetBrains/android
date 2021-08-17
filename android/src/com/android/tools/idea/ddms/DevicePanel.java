@@ -35,6 +35,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NullableLazyValue;
+import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import java.awt.Component;
@@ -185,6 +186,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     });
 
     myProcessComboBox = processComboBox;
+    ComboboxSpeedSearch.installSpeedSearch(processComboBox, client -> client.getClientData().getPackageName());
   }
 
   @NotNull

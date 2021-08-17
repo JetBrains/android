@@ -17,6 +17,8 @@ package com.android.tools.idea.compose
 
 import com.android.tools.idea.compose.preview.PreviewEntryPoint
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.intellij.openapi.application.ApplicationManager
@@ -46,6 +48,9 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
       projectRule.fixture.testRootDisposable)
 
     StudioFlags.COMPOSE_PREVIEW.override(true)
+    (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let {
+      it.usesCompose = true
+    }
     projectRule.fixture.stubComposableAnnotation(composableAnnotationPackage)
     projectRule.fixture.stubPreviewAnnotation(previewAnnotationPackage)
   }

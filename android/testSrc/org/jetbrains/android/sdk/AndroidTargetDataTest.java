@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.google.common.io.Files.asCharSink;
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,17 +26,14 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import net.n3.nanoxml.IXMLBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -55,7 +54,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
   public void testPlatformResourceIdMap() throws Exception {
     final AndroidTargetData.MyPublicResourceCacheBuilder builder = new AndroidTargetData.MyPublicResourceCacheBuilder();
 
-    parseAndClose(new FileInputStream(TestUtils.getPlatformFile("data/res/values/public.xml")), builder);
+    parseAndClose(Files.newInputStream(TestUtils.resolvePlatformPath("data/res/values/public.xml")), builder);
 
     TIntObjectHashMap<String> map = builder.getIdMap();
     assertEquals("@android:transition/move", map.get(0x010f0001));
@@ -93,7 +92,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
                                     "</resources>";
     final AndroidTargetData.MyPublicResourceCacheBuilder builder = new AndroidTargetData.MyPublicResourceCacheBuilder();
 
-    parseAndClose(new ByteArrayInputStream(publicXmlContent.getBytes(Charsets.UTF_8)), builder);
+    parseAndClose(new ByteArrayInputStream(publicXmlContent.getBytes(UTF_8)), builder);
     TIntObjectHashMap<String> map = builder.getIdMap();
 
     // Check that we handle correctly elements before and after a public-group
@@ -114,7 +113,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
     assertTrue(valuesDir.mkdirs());
 
     File attrsXml = new File(valuesDir, "attrs.xml");
-    Files.asCharSink(attrsXml, StandardCharsets.UTF_8).write(
+    asCharSink(attrsXml, UTF_8).write(
       // language=xml
       "<resources>" +
           "<attr name='realAttr' format='string' />" +
@@ -122,14 +121,14 @@ public class AndroidTargetDataTest extends AndroidTestCase {
       "</resources>");
 
     File manifestAttrsXml = new File(valuesDir, "manifest-attrs.xml");
-    Files.asCharSink(manifestAttrsXml, StandardCharsets.UTF_8).write(
+    asCharSink(manifestAttrsXml, UTF_8).write(
       // language=xml
       "<resources>" +
       "</resources>");
 
 
     File publicXml = new File(valuesDir, "public.xml");
-    Files.asCharSink(publicXml, StandardCharsets.UTF_8).write(
+    asCharSink(publicXml, UTF_8).write(
       // language=xml
       "<resources>" +
       "<public type='attr' name='realAttr' />" +
@@ -139,9 +138,9 @@ public class AndroidTargetDataTest extends AndroidTestCase {
     LocalFileSystem.getInstance().refresh(false);
 
     IAndroidTarget target = mock(IAndroidTarget.class);
-    when(target.getPath(eq(IAndroidTarget.ATTRIBUTES))).thenReturn(attrsXml.getPath());
-    when(target.getPath(eq(IAndroidTarget.MANIFEST_ATTRIBUTES))).thenReturn(manifestAttrsXml.getPath());
-    when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.getPath());
+    when(target.getPath(eq(IAndroidTarget.ATTRIBUTES))).thenReturn(attrsXml.toPath());
+    when(target.getPath(eq(IAndroidTarget.MANIFEST_ATTRIBUTES))).thenReturn(manifestAttrsXml.toPath());
+    when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.toPath());
 
     AndroidTargetData targetData = new AndroidTargetData(mock(AndroidSdkData.class), target);
     AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs(getProject());

@@ -16,8 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.api.service.DiskFileService
-import com.android.tools.idea.appinspection.inspector.api.service.FileService
 import com.intellij.openapi.application.PathManager
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -72,12 +70,10 @@ interface AppInspectionIdeServices {
    * the navigation, which is why it is a suspend function and should get launched on a background thread.
    */
   suspend fun navigateTo(codeLocation: CodeLocation)
+}
 
-  /**
-   * Create a service that provides useful file-related utilities.
-   */
-  fun createFileService(): FileService = object : DiskFileService() {
-    override val cacheRoot: Path = Paths.get(PathManager.getSystemPath()).resolve("app-inspection")
-    override val tmpRoot: Path = Paths.get(PathManager.getTempPath())
-  }
+open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
+  override fun showToolWindow(callback: () -> Unit) {}
+  override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, hyperlinkClicked: () -> Unit) {}
+  override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
 }

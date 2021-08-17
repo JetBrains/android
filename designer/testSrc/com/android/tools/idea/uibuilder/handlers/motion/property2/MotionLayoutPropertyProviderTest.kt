@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2
+package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
-import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
+import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt

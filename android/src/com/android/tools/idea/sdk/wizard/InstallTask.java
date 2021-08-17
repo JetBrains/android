@@ -28,7 +28,6 @@ import com.android.repository.api.SettingsController;
 import com.android.repository.api.Uninstaller;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.installer.AbstractPackageOperation;
-import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -51,7 +50,6 @@ import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -71,7 +69,6 @@ class InstallTask extends Task.Backgroundable {
   private Collection<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
   private final RepoManager myRepoManager;
-  private final FileOp myFileOp;
   private final InstallerFactory myInstallerFactory;
   private boolean myBackgrounded;
   @Nullable
@@ -87,7 +84,6 @@ class InstallTask extends Task.Backgroundable {
     super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
     myLogger = logger;
     myRepoManager = sdkHandler.getSdkManager(logger);
-    myFileOp = sdkHandler.getFileOp();
     myInstallerFactory = installerFactory;
     mySettingsController = settings;
   }
@@ -212,10 +208,11 @@ class InstallTask extends Task.Backgroundable {
   private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p) {
     // If there's already an installer in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (op == null || !(op instanceof Installer)) {
+    if (!(op instanceof Installer)) {
       Downloader downloader = new StudioDownloader();
-      downloader.setDownloadIntermediatesLocation(new File(myRepoManager.getLocalPath(), AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader, myFileOp);
+      downloader.setDownloadIntermediatesLocation(
+        myRepoManager.getLocalPath().resolve(AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
+      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader);
     }
     return op;
   }
@@ -224,8 +221,8 @@ class InstallTask extends Task.Backgroundable {
   private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
     // If there's already an uninstaller in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-    if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
-      op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager, myFileOp);
+    if (!(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
+      op = myInstallerFactory.createUninstaller((LocalPackage)p, myRepoManager);
     }
     return op;
   }
@@ -239,7 +236,6 @@ class InstallTask extends Task.Backgroundable {
   void preparePackages(@NotNull Map<RepoPackage, PackageOperation> packageOperationMap,
                        @NotNull List<RepoPackage> failures,
                        @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
-    double progressMax = 0;
     ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(packageOperationMap.keySet());
     double progressIncrement = 1. / (packages.size() * 2.);
     boolean wasBackgrounded = false;
@@ -256,7 +252,7 @@ class InstallTask extends Task.Backgroundable {
         }
         double currentProgress = myLogger.getFraction();
         try {
-          progressMax += progressIncrement;
+          double progressMax = currentProgress + progressIncrement;
           // Allow pausing package preparation when installing.
           // We probably don't want to allow pausing in other cases to minimize the risk of leaving SDK in an inconsistent
           // state - e.g. it's way easier to pause, forget about it and turn off the machine so the cancellation handlers
@@ -288,7 +284,6 @@ class InstallTask extends Task.Backgroundable {
         op = op.getFallbackOperation();
         if (op != null) {
           // We're going to try again, so reset the progress.
-          progressMax -= progressIncrement;
           myLogger.setFraction(currentProgress);
         }
       }

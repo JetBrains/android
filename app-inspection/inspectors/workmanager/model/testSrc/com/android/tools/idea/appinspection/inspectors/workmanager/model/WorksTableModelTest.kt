@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import javax.swing.SwingUtilities
 
 class WorksTableModelTest {
   private lateinit var executor: ExecutorService
@@ -47,11 +48,16 @@ class WorksTableModelTest {
     scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
     messenger = object : AppInspectorMessenger {
       override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-      override val rawEventFlow = emptyFlow<ByteArray>()
+      override val eventFlow = emptyFlow<ByteArray>()
       override val scope = this@WorksTableModelTest.scope
     }
     client = WorkManagerInspectorClient(messenger, scope)
     model = WorksTableModel(client)
+    model.addTableModelListener {
+      // It will cause problems if we ever trigger a listener not on the UI thread,
+      // so we assert here to verify we don't break this in future refactorings.
+      assertThat(SwingUtilities.isEventDispatchThread()).isTrue()
+    }
   }
 
   @After
@@ -63,7 +69,7 @@ class WorksTableModelTest {
   @Test
   fun initializeModel() {
     assertThat(model.columnCount).isEqualTo(6)
-    val columnArray = WorksTableModel.Column.values()
+    val columnArray = Column.values()
     for (index in 0 until 6) {
       assertThat(model.getColumnName(index) == columnArray[index].name)
     }

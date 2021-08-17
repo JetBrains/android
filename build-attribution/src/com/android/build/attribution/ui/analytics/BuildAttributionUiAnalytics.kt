@@ -156,6 +156,28 @@ class BuildAttributionUiAnalytics(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
   )
 
+  fun noGCSettingWarningSuppressed() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.CONFIGURE_GC_WARNING_SUSPEND_CLICKED)
+  )
+
+  fun runAgpUpgradeClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.UPGRADE_AGP_BUTTON_CLICKED)
+  )
+
+  fun rerunBuildWithConfCacheClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.RERUN_BUILD_WITH_CONFIGURATION_CACHE_CLICKED)
+  )
+
+  fun turnConfigurationCacheOnInPropertiesClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.TURN_ON_CONFIGURATION_CACHE_IN_PROPERTIES_LINK_CLICKED)
+  )
+
+  fun updatePluginButtonClicked(duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.UPDATE_PLUGIN_BUTTON_CLICKED)
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
+
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
@@ -266,6 +288,7 @@ class BuildAttributionUiAnalytics(
       }
       if (filter.showAnnotationProcessorWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS)
       if (filter.showNonCriticalPathTasks) add(BuildAttributionUiEvent.FilterItem.SHOW_WARNINGS_FOR_TASK_NOT_FROM_CRITICAL_PATH)
+      if (filter.showConfigurationCacheWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS)
     }.sorted()
   }
 

@@ -198,7 +198,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     if (!DependencyManagementUtil.dependsOn(module, artifact)) {
       // If we don't already depend on constraint layout, try to add it.
       List<GradleCoordinate> notAdded = DependencyManagementUtil
-        .addDependencies(module, Collections.singletonList(artifact.getCoordinate("+")), false);
+        .addDependenciesWithUiConfirmation(module, Collections.singletonList(artifact.getCoordinate("+")), false);
 
       if (!notAdded.isEmpty()) {
         String message = "Converting to ConstraintLayout requires that the '" + module.getName() + "' module\n"

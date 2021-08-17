@@ -34,7 +34,7 @@ import kotlin.text.Charsets.UTF_8
  * @param keysToExtract the keys to be returned together with the corresponding values,
  *     or null to return all keys and values.
  */
-fun readKeyValueFile(file: Path, keysToExtract: Set<String>?): Map<String, String>? {
+fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String>? {
   val result = mutableMapOf<String, String>()
   try {
     for (line in Files.readAllLines(file)) {
@@ -46,12 +46,7 @@ fun readKeyValueFile(file: Path, keysToExtract: Set<String>?): Map<String, Strin
     return result
   }
   catch (e: IOException) {
-    if (e.message == null) {
-      logger().error("Error reading ${file}")
-    }
-    else {
-      logger().error("Error reading ${file} - ${e.message}")
-    }
+    logError("Error reading $file", e)
     return null
   }
 }
@@ -63,7 +58,7 @@ fun readKeyValueFile(file: Path, keysToExtract: Set<String>?): Map<String, Strin
  * @param updates the keys and the corresponding values to update; keys with null values are deleted
  */
 fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
-  val originalContents = readKeyValueFile(file, null) ?: return
+  val originalContents = readKeyValueFile(file) ?: return
   val sortedContents = TreeMap(originalContents)
   sortedContents.putAll(updates)
   val lines = sortedContents.entries.asSequence()
@@ -77,22 +72,19 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
     Files.move(tempFile, file, REPLACE_EXISTING, ATOMIC_MOVE)
   }
   catch (e: IOException) {
-    if (e.message == null) {
-      logger().error("Error writing ${file}")
-    }
-    else {
-      logger().error("Error writing ${file} - ${e.message}")
-    }
     try {
       Files.deleteIfExists(tempFile)
     }
     catch (ignore: IOException) {
     }
+    logError("Error writing $file", e)
   }
+}
+
+private fun logError(message: String, e: IOException) {
+  logger().error(e.message?.let { "$message - $it" } ?: message)
 }
 
 private val KEY_VALUE_SPLITTER = Splitter.on('=').trimResults()
 
-private fun logger() = Logger.getInstance(KeyValueFileUtils::class.java)
-
-private class KeyValueFileUtils
+private fun logger() = Logger.getInstance("#com.android.tools.idea.emulator.KeyValueFileUtils")

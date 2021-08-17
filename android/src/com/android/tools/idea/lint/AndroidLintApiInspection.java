@@ -23,6 +23,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import java.util.ArrayList;
@@ -50,9 +50,8 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    Integer apiLevel = LintFix.getData(fixData, Integer.class);
-    if (apiLevel != null) {
-      int api = apiLevel;
+    int api = LintFix.getInt(fixData, ApiDetector.KEY_REQUIRES_API, -1);
+    if (api != -1) {
       List<LintIdeQuickFix> list = new ArrayList<>();
       PsiFile file = startElement.getContainingFile();
       boolean isXml = false;
@@ -70,22 +69,20 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       }
 
       // Is the API fix limited to applying to (for example) just classes?
-      @SuppressWarnings("unchecked")
-      Class<? extends PsiModifierListOwner> filter = LintFix.getData(fixData, Class.class);
-
-      if (filter == null) {
+      boolean requireClass = LintFix.getBoolean(fixData, ApiDetector.KEY_REQUIRE_CLASS, false);
+      if (!requireClass) {
         list.add(new AddTargetVersionCheckQuickFix(api));
       }
 
       ApplicationManager.getApplication().assertReadAccessAllowed();
       Project project = startElement.getProject();
       if (!isXml && requiresApiAvailable(project)) {
-        list.add(new AddTargetApiQuickFix(api, true, startElement, filter));
+        list.add(new AddTargetApiQuickFix(api, true, startElement, requireClass));
       }
       else {
         // Discourage use of @TargetApi if @RequiresApi is available; see for example
         // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
-        list.add(new AddTargetApiQuickFix(api, false, startElement, filter));
+        list.add(new AddTargetApiQuickFix(api, false, startElement, requireClass));
       }
 
       return list.toArray(LintIdeQuickFix.EMPTY_ARRAY);

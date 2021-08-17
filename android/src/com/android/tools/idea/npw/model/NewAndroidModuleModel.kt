@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericModule
-import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -132,11 +131,13 @@ class NewAndroidModuleModel(
   val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
-    val msg: String = when {
-      isLibrary -> "My Library"
-      else -> "My Application"
+    if (applicationName.isEmpty.get()) {
+      val msg: String = when {
+        isLibrary -> "My Library"
+        else -> "My Application"
+      }
+      applicationName.set(msg)
     }
-    applicationName.set(msg)
   }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
@@ -159,9 +160,6 @@ class NewAndroidModuleModel(
       }
       FormFactor.Tv -> { data: TemplateData ->
         generateTvModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
-      }
-      FormFactor.Things -> { data: TemplateData ->
-        generateThingsModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
       }
       FormFactor.Generic -> { data: TemplateData ->
         generateGenericModule(data as ModuleTemplateData)
@@ -221,13 +219,12 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
   FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
   FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
   FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
-  FormFactor.Things -> RenderLoggingEvent.THINGS_MODULE
   FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
   FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
 }
 
 private fun Project.hasKtsUsage() : Boolean {
-  // TODO(parentej): Check if settings is kts or any module is kts
+  // TODO: b/185269439 - return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
   return false
 }
 

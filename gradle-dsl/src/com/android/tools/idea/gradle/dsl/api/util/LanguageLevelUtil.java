@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.api.util;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.intellij.pom.java.LanguageLevel;
 import java.math.BigDecimal;

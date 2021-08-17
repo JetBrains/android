@@ -23,11 +23,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -91,9 +91,9 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
     assertThat(failure).contains("Sync issues found!");
 
-    Collection<SyncIssueData> syncIssues = SyncIssues.forModule(getModule("app"));
+    Collection<IdeSyncIssue> syncIssues = SyncIssues.forModule(getModule("app"));
     assertThat(syncIssues).hasSize(2);
-    SyncIssueData syncIssue = syncIssues.iterator().next();
+    IdeSyncIssue syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);
     syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);

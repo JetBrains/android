@@ -23,7 +23,7 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutException
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
@@ -33,7 +33,9 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.utils.FileUtils
@@ -43,6 +45,7 @@ import org.junit.rules.ExternalResource
 import java.io.File
 import java.io.IOException
 import java.net.ConnectException
+import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -84,8 +87,8 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
   override fun before() {
     super.before()
 
-    var sdkLocation = TestUtils.getSdk()
-    if (TestUtils.runningFromBazel()) {
+    var sdkLocation = getSdk().toFile()
+    if (runningFromBazel()) {
       // ADB will try to make a .android directory under the user's home directory.
       // Mount a tmpfs on the home directory so ADB will succeed while running in the sandbox
       // Start by checking if we are the (fake) root user:
@@ -121,7 +124,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     // that use the emulator that are not running within Bazel.
     generatedSdkLocation = sdkLocation
 
-    val sdkManager = AndroidSdkHandler.getInstance(sdkLocation)
+    val sdkManager = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val avdMan = AvdManagerConnection.getAvdManagerConnection(sdkManager)
 
     var avd: AvdInfo?
@@ -176,19 +179,14 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
    * Pre-condition: running within Bazel
    */
   private fun copyEmuAndImages(sdkLocation: File) {
-    val workspaceRoot = TestUtils.getWorkspaceRoot()
-    val sysImg = File(workspaceRoot, "external/externsdk/system-images")
-    val emu = File(workspaceRoot, "external/externsdk/emulator")
+    val sysImg = resolveWorkspacePath("external/externsdk/system-images")
+    val emu = resolveWorkspacePath("external/externsdk/emulator")
 
-    if (!sysImg.exists()
-      || !sysImg.isDirectory
-      || !emu.exists()
-      || !emu.isDirectory) {
-      Assert.fail("The system image and emulator directories are not available. Check the workspace!")
-    }
+    Assert.assertTrue(Files.isDirectory(sysImg))
+    Assert.assertTrue(Files.isDirectory(emu))
 
-    FileUtils.copyDirectoryToDirectory(sysImg, sdkLocation)
-    FileUtils.copyDirectoryToDirectory(emu, sdkLocation)
+    FileUtils.copyDirectoryToDirectory(sysImg.toFile(), sdkLocation)
+    FileUtils.copyDirectoryToDirectory(emu.toFile(), sdkLocation)
   }
 
   private fun createAvd(sdkManager: AndroidSdkHandler, avdManager: AvdManagerConnection): AvdInfo? {
@@ -243,10 +241,10 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   private fun startAvd(emulatorBinary: File, avdInfo: AvdInfo): Process {
     val pb = ProcessBuilder()
-    pb.command(listOf(emulatorBinary.absolutePath, "-qt-hide-window", "-avd", avdInfo.name))
+    pb.command(listOf(emulatorBinary.absolutePath, "-no-window", "-avd", avdInfo.name))
     val env = pb.environment()
-    env["HOME"] = AndroidLocation.getUserHomeFolder()
-    env["ANDROID_AVD_HOME"] = AndroidLocation.getAvdFolder()
+    env["HOME"] = AndroidLocationsSingleton.userHomeLocation!!.toString()
+    env["ANDROID_AVD_HOME"] = AndroidLocationsSingleton.avdLocation.toString()
 //    env["DISPLAY"]  = ":0"
     pb.inheritIO()
     return pb.start()
@@ -254,7 +252,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   private fun setupAdb(sdkLocation: File): AndroidDebugBridge {
     AndroidDebugBridge.init(AdbInitOptions.builder()
-                              .withEnv("HOME", AndroidLocation.getUserHomeFolder()!!)
+                              .withEnv("HOME", AndroidLocationsSingleton.userHomeLocation!!.toString())
                               .build())
     val adbBinary = File(sdkLocation, "platform-tools/adb")
 
@@ -358,7 +356,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
       emulatorProcess?.destroy()
       emulatorProcess?.waitFor(30, TimeUnit.SECONDS)
       val mountedHomeDir = homeDirectory
-      if (TestUtils.runningFromBazel() && mountedHomeDir != null) {
+      if (runningFromBazel() && mountedHomeDir != null) {
         ProcessBuilder("umount", mountedHomeDir.canonicalPath).inheritIO().start().waitFor(10, TimeUnit.SECONDS)
       }
     } catch (interrupted: InterruptedException) {

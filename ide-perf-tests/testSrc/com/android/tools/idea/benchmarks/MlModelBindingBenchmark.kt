@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.benchmarks
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -24,8 +24,6 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +43,7 @@ class MlModelBindingBenchmark {
   @Before
   fun setUp() {
     // Load project under mlkit directory.
-    gradleRule.fixture.testDataPath = TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").path
+    gradleRule.fixture.testDataPath = resolveWorkspacePath("prebuilts/tools/common/mlkit/testData").toString()
     gradleRule.load("projects/mlModelBindingApplication")
   }
 

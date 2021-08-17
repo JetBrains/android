@@ -33,7 +33,7 @@ import javax.swing.JCheckBox
 /**
  * Implementation of Settings > Tools > Emulator preference page.
  */
-internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
+class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
   private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
@@ -48,10 +48,7 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
       launchInToolWindowCheckBox =
           checkBox("Launch in a tool window",
                    comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                             "Otherwise the Android Emulator will launch as a standalone application. Some AVDs " +
-                             "will launch as standalone applications regardless of this setting due to their " +
-                             "hardware profiles or system images. The Emulator's extended controls are not " +
-                             "available when launched in a tool window.").component
+                             "Otherwise Android Emulator will launch as a standalone application.").component
     }
     blockRow {} // Visual separator.
     row {

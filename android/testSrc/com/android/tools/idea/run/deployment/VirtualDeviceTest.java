@@ -15,11 +15,37 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static org.junit.Assert.assertTrue;
+import static com.android.ddmlib.IDevice.HardwareFeature.TV;
+import static com.android.ddmlib.IDevice.HardwareFeature.WATCH;
+import static com.intellij.icons.AllIcons.General.WarningDecorator;
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
+import static org.junit.Assert.assertEquals;
 
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
-import java.util.Collection;
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.LayeredIcon;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
+import javax.swing.Icon;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -27,151 +53,169 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTest {
+  private static final Key DEVICE_KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+  private void assertIconSimilar(Icon expectedIcon, Icon actualIcon) throws IOException {
+    BufferedImage expectedIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(expectedIcon, ScaleContext.createIdentity()));
+    BufferedImage actualIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(actualIcon, ScaleContext.createIdentity()));
+    ImageDiffUtil.assertImageSimilar("icon", expectedIconImage, actualIconImage, 0);
+  }
+
+  @Before
+  public void activateIconLoader() {
+    IconManager.activate();
+    IconLoader.activate();
+  }
+
+  @After
+  public void deactivateIconLoader() {
+    IconManager.deactivate();
+    IconLoader.deactivate();
+  }
+
   @Test
-  public void matchesDeviceIsInManagerAndKeyIsVirtualDevicePath() {
+  public void getDefaultTarget() {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .setType(Device.Type.PHONE)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
-    Key key = new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd");
-
     // Act
-    boolean matches = device.matches(key);
+    Object target = device.getDefaultTarget();
 
     // Assert
-    assertTrue(matches);
+    assertEquals(new QuickBootTarget(DEVICE_KEY), target);
   }
 
   @Test
-  public void matchesDeviceIsInManagerAndKeyIsNonprefixedKey() {
+  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsIsntEnabled() {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .setType(Device.Type.PHONE)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
-    Key key = new NonprefixedKey("Pixel_4_API_30");
-
     // Act
-    boolean matches = device.matches(key);
+    Object targets = device.getTargets();
 
     // Assert
-    assertTrue(matches);
+    assertEquals(Collections.singletonList(new QuickBootTarget(DEVICE_KEY)), targets);
   }
 
   @Test
-  public void matchesDeviceIsntInManagerAndKeyIsSerialNumber() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Key key = new SerialNumber("emulator-5554");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
-  public void matchesDeviceIsntInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Key key = new NonprefixedKey("emulator-5554");
-
-    // Act
-    boolean matches = device.matches(key);
-
-    // Assert
-    assertTrue(matches);
-  }
-
-  @Test
-  public void hasKeyContainedByDeviceIsInManagerAndKeyIsVirtualDevicePath() {
+  public void getTargetsIsConnected() {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .setType(Device.Type.PHONE)
       .build();
 
-    Collection<Key> keys = Collections.singleton(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"));
-
     // Act
-    boolean contained = device.hasKeyContainedBy(keys);
+    Object targets = device.getTargets();
 
     // Assert
-    assertTrue(contained);
+    assertEquals(Collections.singletonList(new RunningDeviceTarget(DEVICE_KEY)), targets);
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsInManagerAndKeyIsNonprefixedKey() {
+  public void getTargets() {
     // Arrange
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .setType(Device.Type.PHONE)
+      .addSnapshot(new Snapshot(snapshotKey))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("Pixel_4_API_30"));
-
     // Act
-    boolean contained = device.hasKeyContainedBy(keys);
+    Object actualTargets = device.getTargets();
 
     // Assert
-    assertTrue(contained);
+    Object expectedTargets = Arrays.asList(new ColdBootTarget(DEVICE_KEY),
+                                           new QuickBootTarget(DEVICE_KEY),
+                                           new BootWithSnapshotTarget(DEVICE_KEY, snapshotKey));
+
+    assertEquals(expectedTargets, actualTargets);
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsntInManagerAndKeyIsSerialNumber() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+  public void testGetConnectedPhoneWithoutErrorOrWarningIcon() throws IOException {
+    AndroidDevice phoneAndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    Device connectedPhoneWithoutErrorOrWarning = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(phoneAndroidDevice)
+      .setType(Device.Type.PHONE)
       .build();
 
-    Collection<Key> keys = Collections.singleton(new SerialNumber("emulator-5554"));
-
-    // Act
-    boolean contained = device.hasKeyContainedBy(keys);
-
-    // Assert
-    assertTrue(contained);
+    assertIconSimilar(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_PHONE), connectedPhoneWithoutErrorOrWarning.getIcon());
   }
 
   @Test
-  public void hasKeyContainedByDeviceIsntInManagerAndKeyIsNonprefixedKey() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("emulator-5554")
-      .setKey(new SerialNumber("emulator-5554"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+  public void testGetNotConnectedWearIcon() throws IOException {
+    AndroidDevice wearAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(wearAndroidDevice.supportsFeature(WATCH)).thenReturn(true);
+
+    Device notConnectedWear = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setAndroidDevice(wearAndroidDevice)
+      .setType(Device.Type.WEAR)
       .build();
 
-    Collection<Key> keys = Collections.singleton(new NonprefixedKey("emulator-5554"));
+    assertIconSimilar(VIRTUAL_DEVICE_WEAR, notConnectedWear.getIcon());
+  }
 
-    // Act
-    boolean contained = device.hasKeyContainedBy(keys);
+  @Test
+  public void testGetConnectedWearWithErrorIcon() throws IOException {
+    AndroidDevice wearAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(wearAndroidDevice.supportsFeature(WATCH)).thenReturn(true);
 
-    // Assert
-    assertTrue(contained);
+    Device connectedWearWithError = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(wearAndroidDevice)
+      .setType(Device.Type.WEAR)
+      .setLaunchCompatibility(new LaunchCompatibility(LaunchCompatibility.State.ERROR, "error"))
+      .build();
+
+    assertIconSimilar(
+      new LayeredIcon(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_WEAR), ERROR_DECORATOR),
+      connectedWearWithError.getIcon()
+    );
+  }
+
+  @Test
+  public void testGetNotConnectedTvWithWarningIcon() throws IOException {
+    AndroidDevice tvAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(tvAndroidDevice.supportsFeature(TV)).thenReturn(true);
+
+    Device notConnectedTvWithWarning = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setAndroidDevice(tvAndroidDevice)
+      .setType(Device.Type.TV)
+      .setLaunchCompatibility(new LaunchCompatibility(LaunchCompatibility.State.WARNING, "warning"))
+      .build();
+
+    assertIconSimilar(new LayeredIcon(VIRTUAL_DEVICE_TV, WarningDecorator), notConnectedTvWithWarning.getIcon());
   }
 }

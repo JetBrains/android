@@ -31,25 +31,25 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
-import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.RecordingOptionsModel;
+import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.ReferenceWalker;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -66,11 +66,9 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -79,8 +77,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -95,22 +91,11 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-
-@RunWith(Parameterized.class)
-public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
+public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @NotNull private final FakeMemoryService myService = new FakeMemoryService(myTransportService);
   @Rule
@@ -118,11 +103,6 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
   private StudioProfilersView myProfilersView;
-  private final boolean myUnifiedPipeline;
-
-  public MemoryProfilerStageViewTest(boolean useNewEventPipeline) {
-    myUnifiedPipeline = useNewEventPipeline;
-  }
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -131,25 +111,18 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
     myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-  }
-
-  @Before
-  public void init() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(false);
+    myIdeProfilerServices.enableEventsPipeline(true); // need to be here before `myStage` is initialized
   }
 
   @Test
   public void testCaptureAndHeapView() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
-
     final String sampleClassName1 = "SAMPLE_CLASS1";
     final String sampleClassName2 = "SAMPLE_CLASS2";
 
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
     FakeCaptureObject fakeCapture1 = new FakeCaptureObject.Builder()
       .setCaptureName("SAMPLE_CAPTURE1")
@@ -260,7 +233,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
     FakeCaptureObject fakeCapture1 =
       new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
@@ -359,12 +332,12 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     myTimer.setCurrentTimeNs(TimeUnit.SECONDS.toNanos(startTime));
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, startTimeNs, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, startTimeNs, Status.SUCCESS, true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(0));
 
@@ -374,20 +347,19 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     // Triggering a heap dump should not affect the allocation recording duration
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer.getCurrentTimeNs(),
-                                           Long.MAX_VALUE, Memory.HeapDumpStatus.Status.SUCCESS);
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService, Memory.HeapDumpStatus.Status.SUCCESS);
     myStage.getCaptureSelection().getAspect().changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, startTimeNs, endTimeNs, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, startTimeNs, Status.SUCCESS, true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
 
   @Ignore("b/158253502")
   @Test
   public void testLoadingTooltipViewWithStrongReference() throws Exception {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     myStage.setTooltip(new MemoryUsageTooltip(myStage));
     ReferenceWalker referenceWalker = new ReferenceWalker(stageView);
     referenceWalker.assertReachable(MemoryUsageTooltipView.class);
@@ -426,7 +398,6 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Test
   public void testLoadingNewCaptureWithExistingLoad() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
@@ -458,17 +429,15 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Test
   public void testTooltipComponentIsFirstChild() {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
     Component tooltipComponent = treeWalker.descendantStream().filter(c -> c instanceof RangeTooltipComponent).findFirst().get();
     assertThat(tooltipComponent.getParent().getComponent(0)).isEqualTo(tooltipComponent);
   }
 
+  @Ignore("b/136292864")
   @Test
   public void testLoadHeapDumpFromFile() throws Exception {
-    // TODO b/136292864
-    Assume.assumeFalse(myUnifiedPipeline);
-
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
 
     // Create a temp file
@@ -488,7 +457,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .setStreamId(session.getStreamId())
       .setId(Long.toString(dumpTime))
       .build();
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
     Transport.BytesResponse response = myProfilers.getClient().getTransportClient().getBytes(request);
 
     assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
@@ -498,13 +467,9 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
    * The following is a regression test against implementation where 'myRangeSelectionComponent' in MemoryProfilerStageView is a null
    * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
    */
-  @Ignore("Scenario no longer possible or relevant for separate heap dump stage")
+  @Ignore("Scenario no longer possible or relevant for separate heap dump stage. Also b/136292864")
   @Test
   public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
-    // TODO b/136292864
-    Assume.assumeFalse(myUnifiedPipeline);
-
     // Make sure the second loading runs after the first due to b/151245410
     testFirstLoadsCaptureThenStartSecond(
       () -> {
@@ -519,15 +484,15 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
           // Import heap dump from file
           assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
           assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
-          assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
-          MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+          assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
+          MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
           assertThat(stage.isMemoryCaptureOnly()).isTrue();
         } catch (IOException e) {
           throw new RuntimeException("IO");
         }
       },
       () -> {
-        MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
         // Create a FakeCaptureObject and then call selectCaptureDuration().
         // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will
         // trigger captureObjectChanged().
@@ -545,11 +510,9 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     );
   }
 
+  @Ignore("b/136292864")
   @Test
   public void testLoadHeapDumpFromFileFinishLoadingLegacy() throws Exception {
-    // TODO b/136292864
-    Assume.assumeFalse(myUnifiedPipeline);
-
     // Make sure the second loading runs after the first due to b/151245410
     testFirstLoadsCaptureThenStartSecond(
       () -> {
@@ -564,15 +527,15 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
           // Import heap dump from file
           assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
           assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
-          assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
-          MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+          assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
+          MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
           assertThat(stage.isMemoryCaptureOnly()).isTrue();
         } catch (IOException e) {
           throw new RuntimeException(e.getMessage());
         }
       },
       () -> {
-        MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
         // Create a FakeCaptureObject and then call selectCaptureDuration().
         // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
         // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
@@ -595,7 +558,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.STAGE, () -> {
         myProfilers.removeDependencies(myAspectObserver);
-        MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
         stage.getCaptureSelection().getAspect().addDependency(myAspectObserver)
           .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, () -> {
             try {
@@ -613,127 +576,98 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(secondStarted.await(120, TimeUnit.SECONDS)).isTrue();
   }
 
+  @Ignore("b/136292864")
   @Test
   public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
-    // TODO b/136292864
-    Assume.assumeFalse(myUnifiedPipeline);
-
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
 
     // Create and import a temp allocation records file
     File file = FileUtil.createTempFile("fake_allocation_records", ".alloc", true);
     assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
 
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
-    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
+    MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
     assertThat(stage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
   }
 
   @Test
   public void testContextMenu() {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();
 
     ideProfilerComponents.clearContextMenuItems();
-    new MemoryProfilerStageView(myProfilersView, myStage);
+    new MainMemoryProfilerStageView(myProfilersView, myStage);
     ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
-    assertThat(items.length).isEqualTo(13);
-    assertThat(items[0].getText()).isEqualTo("Export...");
-    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[2].getText()).isEqualTo("Record allocations");
-    assertThat(items[3].getText()).isEqualTo("Stop recording");
-    assertThat(items[4].getText()).isEqualTo("Force garbage collection");
-    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[6].getText()).isEqualTo("Dump Java heap");
-    assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
-    assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
-
-    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
-    }
-    else {
-      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
-    }
-    ideProfilerComponents.clearContextMenuItems();
-    new MemoryProfilerStageView(myProfilersView, myStage);
-    items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
-    assertThat(items.length).isEqualTo(11);
+    assertThat(items.length).isEqualTo(9);
     assertThat(items[0].getText()).isEqualTo("Export...");
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[2].getText()).isEqualTo("Force garbage collection");
     assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[4].getText()).isEqualTo("Dump Java heap");
-    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[6].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
-    assertThat(items[8]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[10].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+
+    ideProfilerComponents.clearContextMenuItems();
+    new MainMemoryProfilerStageView(myProfilersView, myStage);
+    items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
+    assertThat(items.length).isEqualTo(9);
+    assertThat(items[0].getText()).isEqualTo("Export...");
+    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[2].getText()).isEqualTo("Force garbage collection");
+    assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
   }
 
 
   @Test
   public void testNativeAllocationContextMenu() {
-    assumeTrue(myUnifiedPipeline);
     myIdeProfilerServices.enableNativeMemorySampling(true);
-    int deviceId = "Test".hashCode();
     // Setup Q Device.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId(deviceId)
-      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
+    Common.Device device = makeDevice("Test", AndroidVersion.VersionCodes.Q);
     myTransportService.addDevice(device);
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
     myTransportService.addEventToStream(
-      deviceId, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+      device.getDeviceId(), ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
     startSessionHelper(device, FAKE_PROCESS);
 
     // Clear the pre-setup context menu items.
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();
     ideProfilerComponents.clearContextMenuItems();
     // Create a new stage to reinitialize the context menu items.
-    new MemoryProfilerStageView(myProfilersView, myStage);
+    new MainMemoryProfilerStageView(myProfilersView, myStage);
 
     // Validate items are as expected.
     ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
-    assertThat(items.length).isEqualTo(13);
+    assertThat(items.length).isEqualTo(9);
     assertThat(items[0].getText()).isEqualTo("Export...");
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[2].getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
-    assertThat(items[3].getText()).isEqualTo(MemoryProfilerStageView.STOP_NATIVE_TEXT);
-    assertThat(items[4].getText()).isEqualTo("Force garbage collection");
-    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[6].getText()).isEqualTo("Dump Java heap");
-    assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
-    assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+    assertThat(items[2].getText()).isEqualTo("Force garbage collection");
+    assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
   }
 
   @Test
   public void testNativeAllocationTooltipForX86() {
-    assumeTrue(myUnifiedPipeline);
     myIdeProfilerServices.enableNativeMemorySampling(true);
     // Test toolbar configuration for O+;
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
-    }
-    else {
-      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
 
     myProfilers.getSessionsManager().endCurrentSession();
     myTransportService.updateDevice(FAKE_DEVICE, FAKE_DEVICE.toBuilder().setCpuAbi("x86").build());
@@ -742,158 +676,71 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilers.getSessionsManager().beginSession(FAKE_DEVICE.getDeviceId(), FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getProcessAbi()).isEqualTo("x86");
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    assertThat(view.getNativeAllocationButton().getToolTipText()).isEqualTo(view.X86_RECORD_NATIVE_TOOLTIP);
-    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
+    RecordingOptionsModel model = myStage.getRecordingOptionsModel();
+    assertThat(model.getBuiltInOptions().stream()
+                 .anyMatch(option -> option.getTitle().equals(MainMemoryProfilerStage.RECORD_NATIVE_TEXT)))
+      .isFalse();
   }
 
   @Test
-  public void testButtonMashForNativeAllocations() {
-    assumeTrue(myUnifiedPipeline);
+  public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
     myIdeProfilerServices.enableNativeMemorySampling(true);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    view.getNativeAllocationButton().doClick();
-    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
-  }
-  @Test
-  public void testHeapDumpButtonDisabledWhenRecording() {
-    assumeTrue(myUnifiedPipeline);
-    myIdeProfilerServices.enableNativeMemorySampling(true);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    view.getNativeAllocationButton().doClick();
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(view.getHeapDumpButton().isEnabled()).isFalse();
-    view.getNativeAllocationButton().doClick();
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(view.getHeapDumpButton().isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testWhenSessionDiesNativeAllocationButtonIsDisabled() {
-    assumeTrue(myUnifiedPipeline);
-    myIdeProfilerServices.enableNativeMemorySampling(true);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
+    RecordingOptionsView view = new MainMemoryProfilerStageView(myProfilersView, myStage).getRecordingOptionsView();
     myStage.toggleNativeAllocationTracking();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(view.getNativeAllocationButton().isEnabled()).isTrue();
+    assertThat(myStage.isPendingCapture() || view.isEnabled()).isTrue();
     myProfilers.getSessionsManager().endCurrentSession();
     // First tick sends the END_SESSION command and triggers the stop recording
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
+    assertThat(view.isEnabled()).isFalse();
   }
 
   @Test
   public void testToolbarForNativeAllocations() {
-    assumeTrue(myUnifiedPipeline);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     myIdeProfilerServices.enableNativeMemorySampling(true);
-    MemoryProfilerStageView view1 = new MemoryProfilerStageView(myProfilersView, myStage);
+    MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     // Test toolbar configuration for pre-Q (FAKE_DEVICE is O by default).
     assertThat(toolbar.getComponents()).asList().containsExactly(
-      view1.getGarbageCollectionButtion(),
-      view1.getHeapDumpButton(),
-      view1.getAllocationSamplingRateLabel(),
-      view1.getAllocationSamplingRateDropDown()
+      view1.getGarbageCollectionButtion()
     );
 
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId("Test".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
 
-    MemoryProfilerStageView view2 = new MemoryProfilerStageView(myProfilersView, myStage);
+    MainMemoryProfilerStageView view2 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     toolbar = (JPanel)view2.getToolbar().getComponent(0);
 
-    // The separator is not exposed as such we assume its position and validate its existence.
-    assertThat(toolbar.getComponent(4)).isInstanceOf(FlatSeparator.class);
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view2.getGarbageCollectionButtion(),
-      view2.getHeapDumpButton(),
-      view2.getAllocationSamplingRateLabel(),
-      view2.getAllocationSamplingRateDropDown(),
-      toolbar.getComponent(4), // FlatSeparator
-      view2.getNativeAllocationButton(),
-      view2.getAllocationCaptureElaspedTimeLabel()
+      view2.getCaptureElapsedTimeLabel()
     );
   }
 
   @Test
   public void testToolbar() {
-    assumeTrue(myUnifiedPipeline);
     myIdeProfilerServices.enableLiveAllocationTracking(true);
 
     // Test toolbar configuration for pre-O.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId("PreO".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.N)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
-    MemoryProfilerStageView view1 = new MemoryProfilerStageView(myProfilersView, myStage);
+    startWithNewDevice("PreO", AndroidVersion.VersionCodes.N);
+    MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view1.getGarbageCollectionButtion(),
-      view1.getHeapDumpButton(),
-      view1.getAllocationButton(),
-      view1.getAllocationCaptureElaspedTimeLabel()
+        view1.getCaptureElapsedTimeLabel()
     );
 
     // Test toolbar configuration for O+;
-    device = Common.Device.newBuilder()
-      .setDeviceId("OPlus".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.O)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
-    MemoryProfilerStageView view2 = new MemoryProfilerStageView(myProfilersView, myStage);
+    startWithNewDevice("OPlus", AndroidVersion.VersionCodes.O);
+    MainMemoryProfilerStageView view2 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     toolbar = (JPanel)view2.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
-      view2.getGarbageCollectionButtion(),
-      view2.getHeapDumpButton(),
-      view2.getAllocationSamplingRateLabel(),
-      view2.getAllocationSamplingRateDropDown()
+      view2.getGarbageCollectionButtion()
     );
 
-  }
-
-  @Test
-  public void testAllocationSamplingRateDropdownEnabledByData() {
-    assumeTrue(myUnifiedPipeline);
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
-    startSessionHelper(FAKE_DEVICE, FAKE_PROCESS);
-    // We need to build a new stage to recognize the session is alive.
-    myStage = new MemoryProfilerStage(myProfilers);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    JPanel toolbar = (JPanel)view.getToolbar().getComponent(0);
-    assertThat(toolbar.getComponents()).asList().containsExactly(
-      view.getGarbageCollectionButtion(),
-      view.getHeapDumpButton(),
-      view.getAllocationSamplingRateLabel(),
-      view.getAllocationSamplingRateDropDown()
-    );
-    assertThat(view.getAllocationSamplingRateLabel().isEnabled()).isFalse();
-    assertThat(view.getAllocationSamplingRateDropDown().isEnabled()).isFalse();
-
-    // Adding AllocationSamplingRateEvent to fire the aspect and make getStage().isLiveAllocationTrackingReady()
-    // return true;
-    long timestampUs = (long)myProfilers.getTimeline().getDataRange().getMax();
-    myTransportService.addEventToStream(
-      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), timestampUs, 0)
-        .build());
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(view.getAllocationSamplingRateLabel().isEnabled()).isTrue();
-    assertThat(view.getAllocationSamplingRateDropDown().isEnabled()).isTrue();
   }
 
   @Test
@@ -903,71 +750,36 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     Common.Process process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build();
 
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 0, 0).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 10, 100).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 0, 0).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 10, 100).build());
 
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 1, Memory.MemoryGcData.newBuilder()
-          .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 6, Memory.MemoryGcData.newBuilder()
-          .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 8, Memory.MemoryGcData.newBuilder()
-          .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 10, Memory.MemoryGcData.newBuilder()
-          .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 1, Memory.MemoryGcData.newBuilder()
+        .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 6, Memory.MemoryGcData.newBuilder()
+        .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 8, Memory.MemoryGcData.newBuilder()
+        .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData.generateMemoryGcData(process.getPid(), 10, Memory.MemoryGcData.newBuilder()
+        .setDuration(TimeUnit.MICROSECONDS.toNanos(1)).build()).build());
 
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 1, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 5, MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 8, MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 10, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
-    }
-    else {
-      MemoryData data = MemoryData.newBuilder()
-        .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
-                                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
-        .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
-                                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
-        .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(1000).setEndTime(2000))
-        .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(6000).setEndTime(7000))
-        .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
-        .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(10000).setEndTime(11000))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(1000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(5000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(8000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(10000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
-        .build();
-      myService.setMemoryData(data);
-    }
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocSamplingData(process.getPid(), 1, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocSamplingData(process.getPid(), 5, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocSamplingData(process.getPid(), 8, MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build());
+    myTransportService.addEventToStream(
+      device.getDeviceId(), ProfilersTestData
+        .generateMemoryAllocSamplingData(process.getPid(), 10, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
     myTransportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
@@ -976,7 +788,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Reset the timeline so that both data range and view range stays at (0,10) on the next tick.
     myStage.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
     myStage.getTimeline().getViewRange().set(0, 10);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    MainMemoryProfilerStageView view = new MainMemoryProfilerStageView(myProfilersView, myStage);
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
@@ -996,91 +808,8 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testAllocationSamplingRateAttachment() {
-    Common.Device device =
-      Common.Device.newBuilder().setDeviceId(1).setFeatureLevel(AndroidVersion.VersionCodes.O).setState(Common.Device.State.ONLINE).build();
-    Common.Process process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build();
-
-    // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 0, 0).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData.generateMemoryAllocStatsData(process.getPid(), 10, 100).build());
-
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 1, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 5, MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 8, MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build());
-      myTransportService.addEventToStream(
-        device.getDeviceId(), ProfilersTestData
-          .generateMemoryAllocSamplingData(process.getPid(), 10, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build());
-    }
-    else {
-      MemoryData data = MemoryData.newBuilder()
-        .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
-                                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
-        .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
-                                .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(1000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(5000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(8000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
-        .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-                                      .setTimestamp(10000)
-                                      .setSamplingRate(MemoryAllocSamplingData.newBuilder()
-                                                         .setSamplingNumInterval(
-                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
-        .build();
-      myService.setMemoryData(data);
-    }
-
-    // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
-    myTransportService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
-    startSessionHelper(device, process);
-
-    // Reset the timeline so that both data range and view range stays at (0,10) on the next tick.
-    myStage.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
-    myStage.getTimeline().getViewRange().set(0, 10);
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    // Tick a large enough time so that the renders interpolates to the final positions
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
-
-    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer =
-      view.getTimelineComponent().getAllocationSamplingRateRenderer();
-    java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
-    assertThat(renderedRegions.size()).isEqualTo(4);
-    int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth();
-    int iconHeight = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconHeight();
-    // Point should be attached due to start of FULL mode
-    validateRegion(renderedRegions.get(0), 0.1f, 0.9f, iconWidth, iconHeight);
-    // Point should be attached due to end of FULL mode
-    validateRegion(renderedRegions.get(1), 0.5f, 0.5f, iconWidth, iconHeight);
-    // Point should be detached because it's between SAMPLED and NONE modes
-    validateRegion(renderedRegions.get(2), 0.8f, 1f, iconWidth, iconHeight);
-    // Point should be attached due to start of FULL mode
-    validateRegion(renderedRegions.get(3), 1f, 0f, iconWidth, iconHeight);
-  }
-
-  @Test
   public void testCaptureInfoMessage_showsWhenLoadingCaptureWithMessage_hiddenWhenLoadingHeapDump() {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
     Executor joiner = MoreExecutors.directExecutor();
     myMockLoader.setReturnImmediateFuture(true);
 
@@ -1110,32 +839,61 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void buttonTextChangesWhenAllocationTrackingChanges() {
-    assumeTrue(myUnifiedPipeline);
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
-    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
-    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
-      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
-    myStage.toggleNativeAllocationTracking();
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.STOP_NATIVE_TEXT);
-    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
-      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
-    myStage.toggleNativeAllocationTracking();
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
-    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
-      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
-  }
-
-  @Test
   public void loadingPanelAvailabilityAndVisibility() {
-    MemoryProfilerStageLayout layout = ((MemoryProfilerStageView)myProfilersView.getStageView()).getLayout();
+    MemoryProfilerStageLayout layout = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getLayout();
     layout.setLoadingUiVisible(true);
     assertThat(layout.getLoadingPanel()).isNotNull();
     assertThat(layout.getLoadingPanel().getComponent().isVisible()).isTrue();
     layout.setLoadingUiVisible(false);
     assertThat(layout.getLoadingPanel()).isNull();
+  }
+
+  @Test
+  public void heapDumpOptionIsNotUserStoppable() {
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    // First option is heap dump. Might change in the future
+    view.getBuiltInRadios().get(0).doClick();
+    view.getStartStopButton().doClick();
+    assertThat(view.getStartStopButton().isEnabled()).isFalse();
+    assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.RECORDING);
+  }
+
+  @Test
+  public void legacyAllocationRecordingIsStoppableInMainTimeline() {
+    assumeTrue(!myStage.isLiveAllocationTrackingSupported());
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    // Last option is JVM allocs. Might change in the future
+    view.getBuiltInRadios().get(myStage.getRecordingOptionsModel().getBuiltInOptions().size() - 1).doClick();
+    view.getStartStopButton().doClick();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(view.getStartStopButton().isEnabled()).isTrue();
+    assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.STOP);
+  }
+
+  @Test
+  public void recordingsDisabledWhenVisitingDeadSession() {
+    myProfilers.setStage(new NullMonitorStage(myProfilers));
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    assertThat(view.getStartStopButton().isEnabled()).isFalse();
+    view.getAllRadios().forEach(btn -> assertThat(btn.isEnabled()).isFalse());
+  }
+
+  @Test
+  public void uiInSyncWithStartupNativeRecording() {
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
+    assertThat(myStage.isNativeAllocationSamplingEnabled()).isTrue();
+    myStage.nativeAllocationTrackingStart(Memory.MemoryNativeTrackingData.newBuilder()
+                                            .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
+                                            .build());
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.STOP);
+    assertThat(view.getStartStopButton().isEnabled()).isTrue();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isNotNull();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption().getTitle()).isEqualTo(MainMemoryProfilerStage.RECORD_NATIVE_TEXT);
   }
 
   private static void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
@@ -1162,7 +920,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                           @Nullable ClassSet expectedClassSet,
                           @Nullable InstanceObject expectedInstanceObject,
                           boolean isCaptureLoading) {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
     ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
     MemoryProfilerStageLayout layout = stageView.getLayout();
@@ -1235,7 +993,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                                 @Nullable ClassSet expectedClassSet,
                                 @Nullable InstanceObject expectedInstanceObject,
                                 boolean isCaptureLoading) {
-    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
     ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
 
@@ -1311,5 +1069,20 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilers.getSessionsManager().beginSession(device.getDeviceId(), device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.setStage(myStage);
+  }
+
+  private void startWithNewDevice(String name, int versionCode) {
+    Common.Device device = makeDevice(name, versionCode);
+    myTransportService.addDevice(device);
+    startSessionHelper(device, FAKE_PROCESS);
+  }
+
+  private Common.Device makeDevice(String name, int versionCode) {
+    return Common.Device.newBuilder()
+      .setDeviceId(name.hashCode())
+      .setFeatureLevel(versionCode)
+      .setSerial("Test")
+      .setState(Common.Device.State.ONLINE)
+      .build();
   }
 }

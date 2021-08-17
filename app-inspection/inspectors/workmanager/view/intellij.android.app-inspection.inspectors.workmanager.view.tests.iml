@@ -18,10 +18,9 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="workmanager-inspector-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:27.2.0.0" />
+      <library name="workmanager-inspector-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/27.2.0.0/workmanager_inspector_proto-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/work/workmanager_inspector_proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -35,5 +34,6 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.view" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
   </component>
 </module>

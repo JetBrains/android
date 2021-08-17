@@ -17,19 +17,26 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.tools.idea.common.editor.DesignerEditorProvider
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
+import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
+import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
 import com.android.tools.idea.uibuilder.type.FontFileType
 import com.android.tools.idea.uibuilder.type.StateListFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Register and accepts types supported by [DesignFilesPreviewEditor].
  */
-class DesignFilesPreviewEditorProvider : DesignerEditorProvider(
-  ImmutableList.of(AdaptiveIconFileType, StateListFileType, AnimatedVectorFileType, FontFileType, ZoomableDrawableFileType)) {
+class DesignFilesPreviewEditorProvider : DesignerEditorProvider(listOf(AdaptiveIconFileType,
+                                                                       StateListFileType,
+                                                                       AnimatedStateListFileType,
+                                                                       AnimatedStateListTempFile,
+                                                                       AnimatedVectorFileType,
+                                                                       FontFileType,
+                                                                       ZoomableDrawableFileType))
+{
 
   override fun createDesignEditor(project: Project, file: VirtualFile) = DesignFilesPreviewEditor(file, project)
 

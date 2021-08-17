@@ -273,7 +273,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   @NotNull
   private static PathString getResourcesRoot(@NotNull IAndroidTarget target) {
-    String targetResources = target.getPath(IAndroidTarget.RESOURCES);
+    String targetResources = target.getPath(IAndroidTarget.RESOURCES).toString();
     if (SdkUtils.endsWithIgnoreCase(targetResources, DOT_JAR)) {
       return new PathString(JAR_PROTOCOL, targetResources + URLUtil.JAR_SEPARATOR);
     }

@@ -61,6 +61,7 @@ import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.module
 import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 
 /**
@@ -148,7 +149,7 @@ class MigrateToResourceNamespacesProcessor(
   private val invokingFacet: AndroidFacet
 ) : BaseRefactoringProcessor(invokingFacet.module.project) {
 
-  public override fun getCommandName() = "Migrate to resource namespaces"
+  public override fun getCommandName() = AndroidBundle.message("android.refactoring.migrateto.namespaces.title")
 
   private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
 
@@ -157,17 +158,17 @@ class MigrateToResourceNamespacesProcessor(
   override fun findUsages(): Array<out UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
 
-    progressIndicator.text = "Analyzing XML resource files..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.analyze.xml")
     val result = mutableListOf<ResourceUsageInfo>()
     result += findResUsages()
 
-    progressIndicator.text = "Analyzing manifest files..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.analyze.manifest")
     result += findManifestUsages()
 
-    progressIndicator.text = "Analyzing code files..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.analyze.code")
     result += findUsagesOfRClassesFromModule(invokingFacet)
 
-    progressIndicator.text = "Inferring namespaces..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.inferring")
     progressIndicator.text2 = null
 
     inferPackageNames(result, progressIndicator)
@@ -303,7 +304,7 @@ class MigrateToResourceNamespacesProcessor(
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = false
 
-    progressIndicator.text = "Rewriting resource references..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.rewriting")
     val psiMigration = PsiMigrationManager.getInstance(myProject).startMigration()
     try {
       val totalUsages = usages.size.toDouble()
@@ -375,7 +376,7 @@ class MigrateToResourceNamespacesProcessor(
       progressIndicator.fraction = (index + 1) / totalFacets
     }
 
-    syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
+    syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, null)
   }
 
   /**
@@ -412,14 +413,18 @@ class MigrateToResourceNamespacesProcessor(
       true
     }
     else {
-      Messages.showInfoMessage(myProject, "No cross-namespace resource references found", "Migrate to resource namespaces")
+      Messages.showInfoMessage(
+        myProject,
+        "No cross-namespace resource references found",
+        AndroidBundle.message("android.refactoring.migrateto.namespaces.title"))
       false
     }
   }
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
-    override fun getProcessedElementsHeader() = "Resource references to migrate"
+    override fun getProcessedElementsHeader() =
+      AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
   }
 }
 

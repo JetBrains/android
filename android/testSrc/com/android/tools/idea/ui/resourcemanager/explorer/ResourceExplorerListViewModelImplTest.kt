@@ -21,21 +21,21 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
-import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.TypeFiltersModel
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
@@ -127,7 +127,7 @@ class ResourceExplorerListViewModelImplTest {
 
     val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
-    ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
+    ImageDiffUtil.assertImageSimilar(getPNGFile().toPath(), image, 0.05)
 
     // Clear the image cache for the resource
     latch = CountDownLatch(1)

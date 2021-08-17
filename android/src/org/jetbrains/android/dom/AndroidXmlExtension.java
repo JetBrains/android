@@ -100,7 +100,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
         @Override
         public Boolean compute() {
           if (AndroidFacet.getInstance(file) != null) {
-            if (IdeResourcesUtil.isInResourceSubdirectory(file, null)) {
+            if (IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, null)) {
               return true;
             }
 

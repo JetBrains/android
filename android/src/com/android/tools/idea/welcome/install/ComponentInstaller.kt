@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.install
 
+import com.android.annotations.concurrency.Slow
 import com.android.repository.api.Downloader
 import com.android.repository.api.InstallerFactory
 import com.android.repository.api.LocalPackage
@@ -41,6 +42,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     return SdkQuickfixUtils.resolve(requests, sdkManager.packages).map { it.remote!! }
   }
 
+  @Slow
   fun installPackages(packages: List<RemotePackage>, downloader: Downloader, progress: ProgressIndicator) {
     val throttledProgress = ThrottledProgressWrapper(progress)
     val sdkManager = sdkHandler.getSdkManager(throttledProgress)
@@ -49,7 +51,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     val factory = BasicInstallerFactory()
 
     packages.map {
-      factory.createInstaller(it, sdkManager, downloader, sdkHandler.fileOp)
+      factory.createInstaller(it, sdkManager, downloader)
     }.forEach { installer ->
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
@@ -64,6 +66,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, throttledProgress.createSubProgress(1.0), null, null)
   }
 
+  @Slow
   fun ensureSdkPackagesUninstalled(packageNames: Collection<String>, progress: ProgressIndicator) {
     val sdkManager = sdkHandler.getSdkManager(progress)
     val localPackages = sdkManager.packages.localPackages
@@ -92,7 +95,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     // is executed unconditionally, whereas in most cases it should be dependent on the next operation success status -
     // like stack unwinding after an exception.
     packagesToUninstall.map {
-      factory.createUninstaller(it, sdkManager, sdkHandler.fileOp)
+      factory.createUninstaller(it, sdkManager)
     }.forEach { uninstaller ->
       progressMax += progressIncrement
       if (uninstaller.prepare(progress.createSubProgress(progressMax))) {

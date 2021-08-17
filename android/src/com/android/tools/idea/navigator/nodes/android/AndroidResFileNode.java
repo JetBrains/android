@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
+@SuppressWarnings("ComparableType")  // b/180537631
 public class AndroidResFileNode extends PsiFileNode implements Comparable {
   private final AndroidFacet myFacet;
 

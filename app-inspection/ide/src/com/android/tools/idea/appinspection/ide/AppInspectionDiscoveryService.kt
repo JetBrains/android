@@ -21,11 +21,13 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.transport.*
 import com.android.tools.idea.transport.manager.TransportStreamManager
-import com.android.tools.profiler.proto.Common
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -34,8 +36,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 
 /**
@@ -51,7 +53,7 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   private val client = TransportClient(TransportService.CHANNEL_NAME)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
@@ -60,7 +62,8 @@ class AppInspectionDiscoveryService : Disposable {
   val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
     client, streamManager,
     scope,
-    AndroidDispatchers.workerThread) { device ->
+    // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
+    MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor).asCoroutineDispatcher()) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
       logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
@@ -99,7 +102,7 @@ class AppInspectionDiscoveryService : Disposable {
    * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return value is null if bridge is not available,
    * bridge does not detect any devices, or if the provided [device] does not match any of the devices the bridge is aware of.
    */
-  private fun findDevice(device: Common.Device): IDevice? {
+  private fun findDevice(device: DeviceDescriptor): IDevice? {
     return AndroidDebugBridge.getBridge()?.devices?.find {
       device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it)
       && device.model == TransportServiceProxy.getDeviceModel(it)

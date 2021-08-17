@@ -3,6 +3,10 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.isInsideComposableCode
+import com.android.tools.idea.res.createValueResource
+import com.android.tools.idea.res.getRJavaFieldName
 import com.intellij.CommonBundle
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
@@ -23,13 +27,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
-import org.jetbrains.android.compose.isInsideComposableCode
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import com.android.tools.idea.res.createValueResource
-import com.android.tools.idea.res.getRJavaFieldName
 import org.jetbrains.kotlin.builtins.isExtensionFunctionType
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -76,7 +77,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
 
         // Should not be available to strings with template expressions
         // only to strings with single KtLiteralStringTemplateEntry inside
-        return element.parent.children.size == 1 && !element.isInsideComposableCode()
+        return element.parent.children.size == 1
     }
 
   override fun applyTo(element: KtLiteralStringTemplateEntry, editor: Editor?) {
@@ -152,7 +153,10 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         val fieldName = "$aPackage.R.$resType.$rFieldName"
 
         val template: TemplateImpl
-        if (!needContextReceiver(element)) {
+        if (element.isInsideComposableCode()) {
+            template = TemplateImpl("", "${ComposeLibraryNamespace.ANDROIDX_COMPOSE.stringResourceFunctionFqName}($fieldName)", "")
+        }
+        else if (!needContextReceiver(element)) {
             template = TemplateImpl("", "$GET_STRING_METHOD($fieldName)", "")
         }
         else {

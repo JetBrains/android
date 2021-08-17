@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.BUTTON
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil.checkSection
-import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.testutils.EnumValueUtil.checkSection
+import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -51,7 +51,7 @@ class StyleEnumSupportTest {
     Dependencies.add(myProjectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
     myProjectRule.fixture.addFileToProject("res/values/project_styles.xml", PROJECT_STYLES)
     val util = SupportTestUtil(myProjectRule, BUTTON)
-    val property = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
+    val property = util.makeProperty("", ATTR_STYLE, NlPropertyType.STYLE)
     val support = StyleEnumSupport(property)
 
     val values = support.values

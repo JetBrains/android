@@ -19,23 +19,25 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.recordTestLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.execution.ExecutionListener
-import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
-import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
+import java.io.File
 
 /**
  * Listener that listens to all test runs, recognizes "Android unit tests" and records them as [AndroidStudioEvent] events.
@@ -49,50 +51,21 @@ class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsA
   }
 
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
-    val runConfiguration = env.runProfile as? AndroidJUnitConfiguration ?: return
+    val runConfiguration = env.runProfile as? GradleRunConfiguration ?: return
+
+    // filter only Gradle test run configuration.
+    // Gradle test run configuration always have a 'test' Task. Filter out all GradleRunConfiguration without such task.
+    // We can also check that the scriptParameters starts with --tests, but taskNames are more deterministic of the behaviour.
+    if (!runConfiguration.settings.taskNames.any{ it.split(":").lastOrNull()?.startsWith("test") == true }) return
 
     val testRunProtoBuilder = TestRun.newBuilder().apply {
-      testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
+      // Now unit tests are executed through GRADLE from the Android Studio UI.
+      testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_THROUGH_GRADLE_TEST
       testKind = TestRun.TestKind.UNIT_TEST
     }
 
-    val testLibraries = TestLibraries.newBuilder()
-    runReadAction {
-      val configurationModule = runConfiguration.configurationModule.module
-      if (configurationModule != null) {
-        // That's the common case when a single class or package is run with right click etc.
-        findTestLibraries(configurationModule, testLibraries)
-      } else {
-        // This can happen when creating a run configuration for e.g. "all tests in package". In this case the classpath is taken from
-        // every module in the project. See com.intellij.execution.JavaTestFrameworkRunnableState#configureClasspath.
-        for (module in runConfiguration.allModules) {
-          findTestLibraries(module, testLibraries)
-        }
-      }
-    }
-    testRunProtoBuilder.testLibraries = testLibraries.build()
-
+    // TODO(b/175102450): Consider recording unit test libraries on AGP side.
     handler.putUserData(TEST_RUN_KEY, testRunProtoBuilder)
-  }
-
-  private fun findTestLibraries(module: Module, testLibraries: TestLibraries.Builder) {
-    val androidFacet = module.androidFacet
-    if (androidFacet != null) {
-      recordTestLibraries(
-        testLibraries,
-        AndroidModuleModel.get(androidFacet)?.selectedVariant?.unitTestArtifact ?: return
-      )
-    } else {
-      val dependencies = JavaModuleModel.get(module)?.jarLibraryDependencies?.mapNotNull { it.moduleVersion }
-      if (dependencies != null) {
-        for (dependency in dependencies) {
-          val group = dependency.group ?: continue
-          val artifact = dependency.name ?: continue
-          val version = dependency.version ?: continue
-          testLibraries.recordTestLibrary(group, artifact, version)
-        }
-      }
-    }
   }
 
   override fun processTerminated(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler, exitCode: Int) {

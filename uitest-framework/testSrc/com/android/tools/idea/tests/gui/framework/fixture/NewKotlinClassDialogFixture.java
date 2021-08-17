@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class NewKotlinClassDialogFixture extends ComponentFixture<NewKotlinClassDialogFixture, JRootPane> implements ContainerFixture<JRootPane> {
 
   public static NewKotlinClassDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    JLabel titleField = waitUntilShowing(ideFrameFixture.robot(), JLabelMatcher.withText("New Kotlin File/Class"));
+    JLabel titleField = waitUntilShowing(ideFrameFixture.robot(), JLabelMatcher.withText("New Kotlin Class/File"));
     return new NewKotlinClassDialogFixture(ideFrameFixture, titleField.getRootPane());
   }
 

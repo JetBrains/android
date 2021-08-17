@@ -150,7 +150,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     overridesManifestPackage = ${overridesManifestPackage()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
-    flavorSourceProviders = ${flavorSourceProviders.format()}
     classJarProvider = $classJarProvider
     namespacing = $namespacing
     desugaring = $desugaring

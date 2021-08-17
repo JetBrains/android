@@ -33,9 +33,11 @@ import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.JBIterable
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.annotations.VisibleForTesting
 
 
 /**
@@ -135,8 +137,9 @@ private val FRESHNESS_EXECUTOR = AppExecutorUtil.createBoundedApplicationPoolExe
  * resources, possibly including this module itself (i.e. if nothing depends on this module for
  * resources then the iterator will yield only this module).
  */
-private fun Module.getTopLevelResourceDependents() = TOP_LEVEL_RESOURCE_DEPENDENTS.`fun`(this)
+@VisibleForTesting
+fun Module.getTopLevelResourceDependents(): JBIterable<Module> = TOP_LEVEL_RESOURCE_DEPENDENTS.`fun`(this).unique()
 
-private val TOP_LEVEL_RESOURCE_DEPENDENTS = TreeTraversal.LEAVES_DFS.unique().traversal<Module> {
+private val TOP_LEVEL_RESOURCE_DEPENDENTS = TreeTraversal.LEAVES_DFS.traversal<Module> {
   it.getModuleSystem().getDirectResourceModuleDependents()
 }

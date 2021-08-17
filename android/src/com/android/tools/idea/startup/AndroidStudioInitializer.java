@@ -23,29 +23,20 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
 import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
+import com.android.tools.idea.serverflags.ServerFlagDownloader;
+import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-//import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.execution.actions.RunConfigurationProducer;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.junit.JUnitConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -67,11 +58,9 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AppUIUtil;
 import java.io.File;
-import java.util.Arrays;
+import java.util.concurrent.ScheduledExecutorService;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.gradle.kapt.idea.KaptProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -81,15 +70,6 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtensi
  * </p>
  */
 public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
-
-  public static class AndroidStudioLoadListener implements ApplicationLoadListener {
-
-    @Override
-    public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
-      //AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
-      StudioProgressManagerAdapter.initialize();
-    }
-  }
 
   @Override
   public void customize(@NotNull ActionManager actionManager) {
@@ -102,9 +82,11 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       replaceNewClassDialog(actionManager);
     }
 
+    ServerFlagInitializer.initializeService();
+    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
+    scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
+
     setupAnalytics();
-    disableIdeaJUnitConfigurations(actionManager);
-    disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
@@ -161,24 +143,12 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.setVersion(application.getStrictVersion());
-    UsageTracker.setIdeBrand(getIdeBrand());
+    UsageTracker.setIdeBrand(IdeBrandProviderKt.currentIdeBrand());
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     new GcPauseWatcher();
-  }
-
-  private static AndroidStudioEvent.IdeBrand getIdeBrand() {
-    if (IdeInfo.isGameTool()) {
-      return AndroidStudioEvent.IdeBrand.GAME_TOOLS;
-    }
-    // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
-    // builds, it is just "G3Plugins"
-    boolean isAswb = Arrays.stream(PluginManagerCore.getPlugins())
-      .filter(plugin -> plugin.isBundled())
-      .anyMatch(plugin -> plugin.getName().contains("G3Plugins") || plugin.getName().contains("Blaze"));
-    return isAswb ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {
@@ -242,6 +212,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     // 'Build' > 'Compile Modules' action
     Actions.hideAction(actionManager, ACTION_COMPILE);
+
+    // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
+    Actions.hideAction(actionManager, "Build");
   }
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624
@@ -271,39 +244,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }
-  }
-
-  private static void disableKaptImportHandlers() {
-    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
-    resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
-  }
-
-  // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
-  private static void disableIdeaJUnitConfigurations(ActionManager actionManager) {
-    // First we unregister the ConfigurationProducers, and after the ConfigurationType
-
-    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
-    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
-      if (runConfigurationProducer instanceof JUnitConfigurationProducer
-          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
-        // In AndroidStudio these ConfigurationProducer s are replaced
-        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer.getClass());
-      }
-    }
-
-    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint = ConfigurationType.CONFIGURATION_TYPE_EP.getPoint();
-    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
-      if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
-        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-        configurationTypeExtensionPoint.unregisterExtension(configurationType.getClass());
-      }
-    }
-
-    // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
-    Actions.hideAction(actionManager, "excludeFromSuite");
-    Actions.hideAction(actionManager, "AddToISuite");
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {

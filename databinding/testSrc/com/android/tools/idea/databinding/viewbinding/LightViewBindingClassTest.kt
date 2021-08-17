@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
@@ -28,8 +28,6 @@ import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.facet.FacetManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -42,7 +40,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class LightViewBindingClassTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!

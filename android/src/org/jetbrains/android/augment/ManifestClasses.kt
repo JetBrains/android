@@ -21,7 +21,6 @@ import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.android.tools.idea.res.getFieldNameByResourceName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.util.text.StringUtil.getShortName
 import com.intellij.psi.JavaPsiFacade
@@ -43,8 +42,7 @@ import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
-
-private val LOG: Logger get() = Logger.getInstance(ManifestClass::class.java)
+private val LOG: Logger get() = Logger.getInstance("ManifestClasses.kt")
 
 /**
  * Manifest class for a given module.

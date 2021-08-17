@@ -17,145 +17,125 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.ValidatorData
-import com.android.tools.idea.validator.ValidatorResult
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.ApplyAtfFixEvent
 import com.google.wireless.android.sdk.stats.AtfAuditResult
-import com.google.wireless.android.sdk.stats.AtfAuditResult.AtfResultCount.CheckResultType
+import com.google.wireless.android.sdk.stats.AtfFixDetail
+import com.google.wireless.android.sdk.stats.AtfResultDetail
+import com.google.wireless.android.sdk.stats.IgnoreAtfResultEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
-import java.util.function.Consumer
-import java.util.stream.Stream
+import com.intellij.lang.annotation.HighlightSeverity
 
-/**
- * Metric tracker for results from accessibility testing framework
- */
-class NlLayoutScannerMetricTracker(
-  private val surface: NlDesignSurface) {
+/** Metric tracker for results from accessibility testing framework */
+class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
+
+  /** Track expanded issues so we don't log them multiple times */
   @VisibleForTesting
-  val metric = ScannerMetrics()
-  @VisibleForTesting
-  val expandedTracker = IssueExpansionMetric()
+  val expanded = HashSet<Issue>()
 
-  /** Tracks who triggered the scanner */
-  fun trackTrigger(trigger: AtfAuditResult.Trigger) {
-    metric.trigger = trigger
-  }
+  /** Tracks all issues created by atf. */
+  fun trackIssues(issues: Set<Issue>, renderMetric: RenderResultMetricData) {
+    val atfIssues = issues
+      .filterIsInstance<NlAtfIssue>()
+      .filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }
+    if (atfIssues.isEmpty()) {
+      return
+    }
 
-  /** Tracks scanning result */
-  fun trackResult(result: RenderResult) {
-    val validatorResult = result.validatorResult as ValidatorResult?
-
-    metric.renderMs = result.renderDuration
-    metric.scanMs = validatorResult?.metric?.mElapsedMs ?: 0
-    metric.componentCount = result.rootViews.stream().flatMap {
-      Stream.concat(it.children.stream(), Stream.of(it)) }.count().toInt()
-    metric.errorCounts = surface.issueModel.issueCount
-    metric.isRenderResultSuccess = result.renderResult.isSuccess
-  }
-
-  /** Log all metrics gathered */
-  fun logEvents() {
-    metric.logEvent(CommonUsageTracker.getInstance(surface))
-  }
-
-  /** Tracks issues expanded */
-  fun trackIssueExpanded(issue: Issue?, expanded: Boolean) {
-    if (issue is NlAtfIssue && expanded) {
-      expandedTracker.opened.add(issue.srcClass)
+    CommonUsageTracker.getInstance(surface).logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT) { event ->
+      val atfResultBuilder = AtfAuditResult.newBuilder()
+      atfIssues.forEach { issue ->
+        atfResultBuilder.addCounts(atfResultCountBuilder(issue))
+      }
+      atfResultBuilder
+        .setAuditDurationMs(renderMetric.scanMs)
+        .setTotalRenderTimeMs(renderMetric.renderMs)
+        .setComponentCount(renderMetric.componentCount)
+        .setRenderResult(renderMetric.isRenderResultSuccess)
+      event.setAtfAuditResult(atfResultBuilder)
     }
   }
 
-  fun trackIssuePanelClosed() {
-    expandedTracker.logEvent(CommonUsageTracker.getInstance(surface))
-  }
-
-  /** Tracks individual issue */
-  fun trackIssue(issue: ValidatorData.Issue) {
-    val countBuilder = AtfAuditResult.AtfResultCount.newBuilder()
-      .setResultType(convert(issue.mLevel))
-      .setCheckName(issue.mSourceClass)
-    metric.counts.add(countBuilder)
-  }
-
-  /** Convert from layoutlib understood level to proto understood level */
-  private fun convert(level: ValidatorData.Level): CheckResultType {
-    return when(level) {
-      ValidatorData.Level.ERROR -> CheckResultType.ERROR
-      ValidatorData.Level.WARNING -> CheckResultType.WARNING
-      ValidatorData.Level.INFO -> CheckResultType.INFO
-      ValidatorData.Level.VERBOSE -> CheckResultType.NOT_RUN
+  /** Track the first time the issue is expanded by user. */
+  fun trackFirstExpanded(issue: Issue) {
+    if (issue !is NlAtfIssue || expanded.contains(issue)) {
+      return
     }
+
+    expanded.add(issue)
+
+    CommonUsageTracker.getInstance(surface).logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT) { event ->
+      val atfResultBuilder = AtfAuditResult.newBuilder()
+      atfResultBuilder.addCounts(atfResultCountBuilder(issue).setErrorExpanded(true))
+      event.setAtfAuditResult(atfResultBuilder)
+    }
+  }
+
+  /** Track the ignore button is clicked by user. */
+  fun trackIgnoreButtonClicked(issue: ValidatorData.Issue) {
+    CommonUsageTracker.getInstance(surface).logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT) { event ->
+      event.setIgnoreAtfResultEvent(
+        IgnoreAtfResultEvent.newBuilder().setAtfResult(atfResultDetailBuilder(issue)))
+    }
+  }
+
+  /** Track the fix button is clicked by user. */
+  fun trackApplyFixButtonClicked(issue: ValidatorData.Issue) {
+    CommonUsageTracker.getInstance(surface).logStudioEvent(
+      LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX) { event ->
+      val applyAtfFixBuilder = ApplyAtfFixEvent.newBuilder()
+      applyAtfFixBuilder.setAtfResult(atfResultDetailBuilder(issue))
+      issue.mFix?.let {
+        applyAtfFixBuilder.setAtfFix(atfFixDetailBuilder(it))
+      }
+      event.setApplyAtfFixEvent(applyAtfFixBuilder)
+    }
+  }
+
+  fun clear() {
+    expanded.clear()
+  }
+
+  private fun atfResultDetailBuilder(issue: ValidatorData.Issue): AtfResultDetail.Builder {
+    val resultType =  when (issue.mLevel) {
+      ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
+      ValidatorData.Level.WARNING -> AtfAuditResult.AtfResultCount.CheckResultType.WARNING
+      ValidatorData.Level.INFO -> AtfAuditResult.AtfResultCount.CheckResultType.INFO
+      else -> AtfAuditResult.AtfResultCount.CheckResultType.UNKNOWN
+    }
+    return AtfResultDetail.newBuilder().setCheckName(issue.mSourceClass).setResultType(resultType)
+  }
+
+  private fun atfFixDetailBuilder(fix: ValidatorData.Fix): AtfFixDetail.Builder {
+    return AtfFixDetail.newBuilder().setFixType(getAtfFixType(fix))
+  }
+
+  private fun getAtfFixType(fix: ValidatorData.Fix):AtfFixDetail.AtfFixType {
+    return when(fix) {
+      is ValidatorData.SetViewAttributeFix -> AtfFixDetail.AtfFixType.SET_VIEW_ATTRIBUTE
+      is ValidatorData.RemoveViewAttributeFix -> AtfFixDetail.AtfFixType.REMOVE_VIEW_ATTRIBUTE
+      is ValidatorData.CompoundFix -> AtfFixDetail.AtfFixType.COMPOUND
+      else -> AtfFixDetail.AtfFixType.UNKNOWN
+    }
+  }
+
+  private fun atfResultCountBuilder(issue: NlAtfIssue): AtfAuditResult.AtfResultCount.Builder {
+    val atfResultCountBuilder = AtfAuditResult.AtfResultCount.newBuilder().setCheckName(issue.srcClass)
+    issue.result.mFix?.let {
+      atfResultCountBuilder.addFixes(atfFixDetailBuilder(it))
+    }
+    return atfResultCountBuilder
   }
 }
 
-data class IssueExpansionMetric(val opened: MutableList<String> = ArrayList()) {
-
-  /** Logs events using the usage tracker passed, and clear. */
-  fun logEvent(usageTracker: CommonUsageTracker) {
-    val counts = opened.stream().flatMap {
-      val builder = AtfAuditResult.AtfResultCount.newBuilder()
-          .setCheckName(it)
-          .setErrorExpanded(true)
-      Stream.of(builder)
-    }
-    usageTracker.logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
-      Consumer<LayoutEditorEvent.Builder> { event ->
-        val atfResultBuilder = AtfAuditResult.newBuilder()
-        counts.forEach { countBuilder ->
-          atfResultBuilder.addCounts(countBuilder)
-        }
-        event.setAtfAuditResult(atfResultBuilder)
-      })
-
-    opened.clear()
-  }
-}
-
-/** Data class for all scanner related metrics */
-data class ScannerMetrics(
-  var trigger: AtfAuditResult.Trigger = AtfAuditResult.Trigger.UNKNOWN_TRIGGER,
-  var scanMs: Long = 0,
-  var renderMs: Long = 0,
-  var errorCounts: Int = 0,
-  var isRenderResultSuccess: Boolean = true,
-  var componentCount: Int = 0
-) {
-  val counts = ArrayList<AtfAuditResult.AtfResultCount.Builder>()
-
-  /** Fire all the locally logged events to the server, then clear any local remains. */
-  fun logEvent(usageTracker: CommonUsageTracker) {
-    usageTracker.logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
-      Consumer<LayoutEditorEvent.Builder> { event ->
-        val atfResultBuilder = AtfAuditResult.newBuilder()
-        counts.forEach { countBuilder ->
-          atfResultBuilder.addCounts(countBuilder)
-        }
-        atfResultBuilder
-          .setTrigger(trigger)
-          .setComponentCount(componentCount)
-          .setRenderResult(isRenderResultSuccess)
-          .setAuditDurationMs(scanMs)
-          .setTotalRenderTimeMs(renderMs)
-          .setErrorCount(errorCounts)
-
-        event.setAtfAuditResult(atfResultBuilder)
-      })
-
-    clear()
-  }
-
-  /** Remove any previous events */
-  private fun clear() {
-    trigger = AtfAuditResult.Trigger.UNKNOWN_TRIGGER
-    scanMs = 0
-    renderMs = 0
-    errorCounts = 0
-    isRenderResultSuccess = true
-    componentCount = 0
-    counts.clear()
-  }
+/** Metric metadata related to render results. */
+data class RenderResultMetricData(
+  var scanMs: Long = -1,
+  var renderMs: Long = -1,
+  var componentCount: Int = -1,
+  var isRenderResultSuccess: Boolean = false) {
 }

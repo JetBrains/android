@@ -22,14 +22,9 @@ import java.io.FileOutputStream
 object HProfTestUtils {
   fun createHProfOnFile(file: File,
                   scenario: HProfBuilder.() -> Unit,
-                  classNameMapping: ((Class<*>) -> String)? = null) {
+                  classNameMapping: ((Class<*>) -> String)) {
     FileOutputStream(file).use { fos ->
-      // Simplify inner class names
-      val regex = Regex("^com\\.android\\.tools\\.idea\\.diagnostics\\.hprof\\..*\\\$.*\\\$")
-      val defaultClassNameMapping: (Class<*>) -> String = { c ->
-        c.name.replace(regex, "")
-      }
-      HProfBuilder(DataOutputStream(fos), classNameMapping ?: defaultClassNameMapping).apply(scenario).create()
+      HProfBuilder(DataOutputStream(fos), classNameMapping).apply(scenario).create()
     }
   }
 

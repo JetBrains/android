@@ -19,10 +19,10 @@ import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerAction;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.icons.AllIcons;
 import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
@@ -71,19 +71,18 @@ class CpuProfilerContextMenuInstaller {
   private void installCaptureNavigationMenuItems() {
     int shortcutModifier = AdtUiUtils.getActionMask() | SHIFT_DOWN_MASK;
 
-    ProfilerAction navigateNext =
-      new ProfilerAction.Builder("Next capture")
+    DefaultContextMenuItem navigateNext =
+      new DefaultContextMenuItem.Builder("Next capture")
         .setContainerComponent(myContainerComponent)
         .setActionRunnable(() -> myStage.navigateNext())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode() && myStage.getTraceIdsIterator().hasNext())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasNext())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
 
-    ProfilerAction navigatePrevious =
-      new ProfilerAction.Builder("Previous capture")
+    DefaultContextMenuItem navigatePrevious =
+      new DefaultContextMenuItem.Builder("Previous capture")
         .setContainerComponent(myContainerComponent)
         .setActionRunnable(() -> myStage.navigatePrevious())
-        .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode()
-                                        && myStage.getTraceIdsIterator().hasPrevious())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasPrevious())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
 
     myInstaller.installGenericContextMenu(myComponent, navigateNext);
@@ -96,9 +95,8 @@ class CpuProfilerContextMenuInstaller {
    */
   private void installExportTraceMenuItem() {
     // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
-    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(AllIcons.ToolbarDecorator.Export)
+    DefaultContextMenuItem exportTrace = new DefaultContextMenuItem.Builder("Export trace...").setIcon(AllIcons.ToolbarDecorator.Export)
       .setContainerComponent(myContainerComponent)
-      .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
       .build();
     myInstaller.installGenericContextMenu(
       myComponent, exportTrace,
@@ -118,15 +116,16 @@ class CpuProfilerContextMenuInstaller {
    * Install the {@link ContextMenuItem} corresponding to the Start/Stop recording action on {@link #myComponent}.
    */
   private void installRecordMenuItem() {
-    ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                                             ? "Stop recording" : "Record CPU trace")
-      .setContainerComponent(myContainerComponent)
-      .setEnableBooleanSupplier(() -> shouldEnableCaptureButton() && !myStage.isImportTraceMode()
-                                      && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
-                                          || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
-      .setActionRunnable(() -> myStage.toggleCapturing())
-      .build();
+    DefaultContextMenuItem record =
+      new DefaultContextMenuItem.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                               ? "Stop recording" : "Record CPU trace")
+        .setContainerComponent(myContainerComponent)
+        .setEnableBooleanSupplier(() -> shouldEnableCaptureButton()
+                                        && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                            || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
+        .setActionRunnable(() -> myStage.toggleCapturing())
+        .build();
 
     myInstaller.installGenericContextMenu(myComponent, record);
     myInstaller.installGenericContextMenu(myComponent, ContextMenuItem.SEPARATOR);

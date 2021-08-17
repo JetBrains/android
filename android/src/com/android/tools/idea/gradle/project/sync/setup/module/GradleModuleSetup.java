@@ -39,6 +39,7 @@ public class GradleModuleSetup {
       ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
       GradleFacetType facetType = GradleFacet.getFacetType();
       facet = facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
+      //noinspection UnstableApiUsage
       facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
     }
     facet.setGradleModuleModel(model);

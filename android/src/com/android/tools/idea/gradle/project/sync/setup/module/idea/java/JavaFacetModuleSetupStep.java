@@ -30,9 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
   @Override
@@ -48,10 +48,7 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
       facet.setJavaModuleModel(javaModuleModel);
     }
 
-    File buildFolderPath = javaModuleModel.getBuildFolderPath();
-
     JavaFacetConfiguration facetProperties = facet.getConfiguration();
-    facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
     facetProperties.BUILDABLE = javaModuleModel.isBuildable();
   }
 
@@ -65,6 +62,7 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
     FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
     facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
+    //noinspection UnstableApiUsage
     model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
     return facet;
   }

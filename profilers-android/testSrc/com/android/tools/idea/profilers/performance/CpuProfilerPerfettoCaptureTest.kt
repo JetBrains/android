@@ -44,9 +44,32 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   }
 
   @Test
-  fun measureMemoryOfImportPerfettoWithTPD() {
+  fun measureMemoryOfImportPerfettoWithTPD_10s() {
     myIdeServices.enableUseTraceProcessor(true)
-    loadCaptureAndReport("Perfetto-TPD-10-sec", getTraceFile("performance/perfetto_10s_tanks.trace"))
+    loadCaptureAndReport(
+      "Perfetto-TPD-10-sec",
+      getTraceFile("performance/perfetto_10s_tanks.trace"),
+      "com.google.android.tanks", 7366)
+  }
+
+  @Test
+  fun measureMemoryOfImportPerfettoWithTPD_60s() {
+    myIdeServices.enableUseTraceProcessor(true)
+    myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
+    loadCaptureAndReport(
+      "Perfetto-TPD-60-sec",
+      getTraceFile("performance/perfetto_60s_tanks.trace"),
+      "com.google.android.tanks", 9796)
+  }
+
+  @Test
+  fun measureMemoryOfImportPerfettoWithTPD_120s() {
+    myIdeServices.enableUseTraceProcessor(true)
+    myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
+    loadCaptureAndReport(
+      "Perfetto-TPD-120-sec",
+      getTraceFile("performance/perfetto_120s_tanks.trace"),
+      "com.google.android.tanks", 10679)
   }
 }
 

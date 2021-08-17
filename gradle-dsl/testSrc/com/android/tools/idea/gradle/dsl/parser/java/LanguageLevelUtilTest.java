@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parse
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.intellij.pom.java.LanguageLevel;
 import java.math.BigDecimal;

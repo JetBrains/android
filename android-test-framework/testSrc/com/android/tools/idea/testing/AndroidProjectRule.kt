@@ -20,6 +20,7 @@ import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
+import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
@@ -69,39 +70,40 @@ import java.io.File
  * the [AndroidProjectRule.Factory.inMemory()] method.
  */
 class AndroidProjectRule private constructor(
-    /**
-     * true iff the default module should be a valid Android module
-     * (if it should have an Android manifest and the Android facet attached).
-     */
-    private var initAndroid: Boolean = true,
+  /**
+   * true iff the default module should be a valid Android module
+   * (if it should have an Android manifest and the Android facet attached).
+   */
+  private var initAndroid: Boolean = true,
 
-    /**
-     * True if this rule should use a [LightTempDirTestFixtureImpl] and create
-     * file in memory.
-     */
-    private var lightFixture: Boolean = true,
+  /**
+   * True if this rule should use a [LightTempDirTestFixtureImpl] and create
+   * file in memory.
+   */
+  private var lightFixture: Boolean = true,
 
-    /**
-     * True if this rule should include an Android SDK.
-     */
-    private var withAndroidSdk: Boolean = false,
+  /**
+   * True if this rule should include an Android SDK.
+   */
+  private var withAndroidSdk: Boolean = false,
 
-    /**
-     * Not null if the project should be initialized from an instance of [AndroidModel].
-     *
-     * See also: [withAndroidModels].
-     */
+  /**
+   * Not null if the project should be initialized from an instance of [AndroidModel].
+   *
+   * See also: [withAndroidModels].
+   */
   private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
 
-    /**
-     * Name of the fixture used to create the project directory when not
-     * using a light fixture.
-     *
-     * Default is the test class' short name.
-     */
-    private var fixtureName: String? = null)
-  : NamedExternalResource() {
+  /**
+   * Name of the fixture used to create the project directory when not
+   * using a light fixture.
+   *
+   * Default is the test class' short name.
+   */
+  private var fixtureName: String? = null
+) : NamedExternalResource() {
 
+  private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
   val mockitoCleaner = MockitoThreadLocalsCleaner()
 
@@ -214,6 +216,12 @@ class AndroidProjectRule private constructor(
     else {
       createJavaCodeInsightTestFixture(description)
     }
+
+    userHome = System.getProperty("user.home")
+    val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
+    // Reset user home directory.
+    System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
+
     fixture.setUp()
     // Initialize an Android manifest
     if (initAndroid) {
@@ -222,7 +230,7 @@ class AndroidProjectRule private constructor(
     if (projectModuleBuilders != null) {
       if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
         println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
-        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
+        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile())
       }
       ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
@@ -333,6 +341,7 @@ class AndroidProjectRule private constructor(
       }
     }
     fixture.tearDown()
+    userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     mockitoCleaner.cleanupAndTearDown()
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }

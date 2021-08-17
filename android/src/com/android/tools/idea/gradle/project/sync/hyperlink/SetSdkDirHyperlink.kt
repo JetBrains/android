@@ -67,7 +67,7 @@ class SetSdkDirHyperlink(
         if (sdkPath != null && sdkPath.exists()) {
           changeHistory[it] = it.androidSdkPath?.absolutePath
         }
-        it.setAndroidSdkPath(sdkData.location.absolutePath)
+        it.setAndroidSdkPath(sdkData.location.toString())
         it.save()
       }
     }

@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.StatLabel
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
@@ -35,12 +34,9 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
-import com.google.common.util.concurrent.ListenableFutureTask
-import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBTabbedPane
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBEmptyBorder
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -62,7 +58,7 @@ class CapturePanel(profilersView: StudioProfilersView,
   val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(selection)
   val classifierView = MemoryClassifierView(selection, ideComponents)
-  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline, isFullScreenHeapDumpUi)
+  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline)
   val instanceDetailsView = MemoryInstanceDetailsView(selection, ideComponents, timeline)
 
   val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {
@@ -89,53 +85,8 @@ class CapturePanel(profilersView: StudioProfilersView,
       border = JBEmptyBorder(0, 4, 0, 0)
     }
 
-  val component =
-    if (selection.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
-      CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
-    else LegacyCapturePanelUi(selection, selectionTimeLabel,
-                              captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
-}
-
-private class LegacyCapturePanelUi(selection: MemoryCaptureSelection,
-                                   selectionTimeLabel: JLabel?,
-                                   captureView: MemoryCaptureView,
-                                   heapView: MemoryHeapView,
-                                   classGrouping: MemoryClassGrouping,
-                                   classifierView: MemoryClassifierView,
-                                   filterComponent: FilterComponent,
-                                   captureInfoMessage: JLabel)
-  : JPanel(BorderLayout()) {
-  private val instanceFilterView = MemoryInstanceFilterView(selection)
-  init {
-    val toolbar = JPanel(createToolbarLayout()).apply {
-      add(captureView.component)
-      add(heapView.component)
-      add(classGrouping.component)
-      add(instanceFilterView.filterToolbar)
-      if (selection.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
-        add(captureInfoMessage)
-      }
-    }
-
-    filterComponent.isVisible = false
-    val button = FilterComponent.createFilterToggleButton()
-    FilterComponent.configureKeyBindingAndFocusBehaviors(this, filterComponent, button)
-    val buttonToolbar = JPanel(createToolbarLayout()).apply {
-      border = JBEmptyBorder(3, 0, 0, 0)
-      selectionTimeLabel?.let { add(it) }
-      add(FlatSeparator())
-      add(button)
-    }
-    val headingPanel = JPanel(TabularLayout("Fit,*,Fit")).apply {
-      add(filterComponent, TabularLayout.Constraint(2, 0, 3))
-      add(buttonToolbar, TabularLayout.Constraint(0, 2))
-      add(toolbar, TabularLayout.Constraint(0, 0))
-      add(instanceFilterView.filterDescription, TabularLayout.Constraint(1, 0, 3))
-    }
-
-    add(headingPanel, BorderLayout.PAGE_START)
-    add(classifierView.component, BorderLayout.CENTER)
-  }
+  val component: JPanel =
+    CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
 }
 
 /**
@@ -216,7 +167,9 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private fun addTab(tabPane: JBTabbedPane, name: String, tabContainer: CapturePanelTabContainer, toolbarComponents: List<Component>) {
     toolbarTabPanels[name] = ToolbarComponents(JPanel(createToolbarLayout()), toolbarComponents)
     tabListeners.add(tabContainer)
-    tabPane.add(name, buildNonTabPanel(toolbarTabPanels[name]!!.toolbarPanel, tabContainer.component))
+    val body = buildNonTabPanel(toolbarTabPanels[name]!!.toolbarPanel, tabContainer.component)
+    tabPane.add(name, body)
+    body.border = JBUI.Borders.empty() // undo insets added by `JBTabbedPane.addTab`
   }
 
   private fun toolbarDefaults() = mutableListOf<Component>().apply {

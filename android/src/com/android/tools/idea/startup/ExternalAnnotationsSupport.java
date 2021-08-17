@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
@@ -147,7 +148,7 @@ public class ExternalAnnotationsSupport {
           File sdkRoot = new File(sdkRootPath);
           if (sdkRoot.isDirectory()) {
             ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
-            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(sdkRoot);
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot.toPath());
             LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
             if (info != null) {
               Revision revision = info.getVersion();
@@ -155,7 +156,7 @@ public class ExternalAnnotationsSupport {
                 DetailsTypes.PlatformDetailsType details = (DetailsTypes.PlatformDetailsType)info.getTypeDetails();
                 if (details.getApiLevel() >= 29 || details.getApiLevel() == 28 && revision.getMajor() >= 5) {
                   // Yes, you're using Android P, DP5 or later: The best annotations are bundled with the SDK
-                  String releaseLocation = info.getLocation().getPath() + separator + FD_DATA + separator + FN_ANNOTATIONS_ZIP;
+                  String releaseLocation = info.getLocation().toString() + separator + FD_DATA + separator + FN_ANNOTATIONS_ZIP;
                   root = fileManager.findFileByUrl("jar://" + FileUtil.toSystemIndependentName(releaseLocation) + "!/");
                 }
               }
@@ -169,7 +170,7 @@ public class ExternalAnnotationsSupport {
       String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
       // release build? If so the jar file is bundled under android/lib..
-      String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
+      String releaseLocation = homePath + "/plugins/android/resources/androidAnnotations.jar";
       root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
 
       if (root == null) {

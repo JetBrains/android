@@ -212,13 +212,13 @@ public class AndroidPositionManager extends PositionManagerImpl {
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
-        LOG.warn("Unable to get type details for source package @ " + sourcePackage.getLocation().getPath());
+        LOG.warn("Unable to get type details for source package @ " + sourcePackage.getLocation().toString());
         continue;
       }
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
       AndroidVersion version = details.getAndroidVersion();
-      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), false);
+      VirtualFile sourceFolder = VfsUtil.findFile(sourcePackage.getLocation(), false);
       if (sourceFolder != null && sourceFolder.isValid()) {
         sourcesByApi.put(version, sourceFolder);
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.profilers.TraceSignatureConverter;
+import com.android.tools.inspectors.common.api.TraceSignatureConverter;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
-import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.base.Strings;
 import com.intellij.build.FileNavigatable;
 import com.intellij.build.FilePosition;
@@ -51,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
  */
-public final class IntellijCodeNavigator extends CodeNavigator {
+public class IntellijCodeNavigator extends CodeNavigator {
   @NotNull
   private final Project myProject;
   @NotNull
@@ -66,9 +65,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   @NotNull private Supplier<String> myCpuAbiArchSupplier;
 
   public IntellijCodeNavigator(@NotNull Project project,
-                               @NotNull NativeSymbolizer nativeSymbolizer,
-                               @NotNull FeatureTracker featureTracker) {
-    super(featureTracker);
+                               @NotNull NativeSymbolizer nativeSymbolizer) {
     myProject = project;
     myNativeSymbolizer = nativeSymbolizer;
     myApkSrcDirMap = getApkSourceDirMap();

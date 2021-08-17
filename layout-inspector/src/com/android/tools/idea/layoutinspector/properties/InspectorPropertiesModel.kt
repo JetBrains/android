@@ -17,13 +17,15 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.annotations.VisibleForTesting
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
@@ -42,7 +44,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     private set
 
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
-    private set
+    @VisibleForTesting set
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   var layoutInspector: LayoutInspector? by Delegates.observable(null, ::inspectorChanged)
@@ -70,7 +72,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?) {
+  private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     val currentProvider = provider
     if (newView != null && currentProvider != null) {
       currentProvider.requestProperties(newView)
@@ -86,7 +88,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     if (structuralChange) {
       structuralUpdates++
     }
-    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection)
+    handleNewSelection(null, layoutInspector?.layoutInspectorModel?.selection, SelectionOrigin.INTERNAL)
   }
 
   private fun handleConnectionChange(client: InspectorClient?) {

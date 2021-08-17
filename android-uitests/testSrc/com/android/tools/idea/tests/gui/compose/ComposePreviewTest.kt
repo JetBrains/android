@@ -20,6 +20,8 @@ import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -35,18 +37,19 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
-import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.junit.After
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -88,41 +91,40 @@ class ComposePreviewTest {
     StudioFlags.COMPOSE_ANIMATION_INSPECTOR.clearOverride()
   }
 
-  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"): SplitEditorFixture {
+  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt", assertNoNotifications: Boolean = true):
+    SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
-    editor.open(file)
 
     fixture.invokeAndWaitForBuildAction("Build", "Make Project")
 
-    return editor.getSplitEditorFixture()
+    editor.open(file)
+
+    return editor.getSplitEditorFixture().waitForRenderToFinish().apply {
+      if (assertNoNotifications) {
+        getNotificationsFixture().waitForNotificationsToDisappear()
+      }
+    }
   }
+
+  private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
+                                                                                             null,
+                                                                                             null,
+                                                                                             "1.4.32",
+                                                                                             GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
   @Test
   @Throws(Exception::class)
   fun testOpenAndClosePreview() {
-    openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
-                                                                           null,
-                                                                           null,
-                                                                           "1.4.0",
-                                                                           GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT))
+    openAndClosePreview(getSyncedProjectFixture())
   }
 
   @Test
   @Throws(Exception::class)
   fun testCopyPreviewImage() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
-                                                                     null,
-                                                                     null,
-                                                                     "1.4.0",
-                                                                     GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
@@ -172,18 +174,13 @@ class ComposePreviewTest {
   @RunIn(TestGroup.PERFORMANCE)
   @Throws(Exception::class)
   fun testOpenAndClosePreviewWithBleak() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     guiTest.runWithBleak { openAndClosePreview(fixture) }
   }
 
   @Throws(Exception::class)
   private fun openAndClosePreview(fixture: IdeFrameFixture) {
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
@@ -202,7 +199,7 @@ class ComposePreviewTest {
 
     composePreview
       .getNotificationsFixture()
-      .waitForNotificationContains("out of date")
+      .waitForNotificationContains("syntax errors")
 
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
@@ -213,13 +210,8 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testRemoveExistingPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
@@ -236,20 +228,15 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/149464527
+  @Ignore("b/149464527")
   @Throws(Exception::class)
   fun testAddAdditionalPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
 
     // Commented until b/156216008 is solved
     //assertFalse(composePreview.hasRenderErrors())
-    assertEquals(1, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(1)
 
     val editor = fixture.editor
     editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
@@ -278,7 +265,7 @@ class ComposePreviewTest {
     composePreview.waitForRenderToFinish()
 
     // Check the new preview has been added
-    assertEquals(2, composePreview.designSurface.allSceneViews.count())
+    composePreview.waitForSceneViewsCount(2)
 
     editor.close()
   }
@@ -286,47 +273,26 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testInteractiveSwitch() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
-
-    var animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-    assertTrue(animButton.isEnabled)
+    composePreview.waitForSceneViewsCount(3)
 
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
 
     composePreview
       .waitForRenderToFinish()
 
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(1)
 
-    animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-    // Animation inspector can't be open for a preview if it's in interactive mode.
-    assertFalse(animButton.isEnabled)
+    val animationInspectorButton = composePreview
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    // There are no animations, so it's disabled
+    assertFalse(animationInspectorButton.isEnabled)
 
     composePreview
       .findActionButtonByText("Stop Interactive Preview")
@@ -335,18 +301,7 @@ class ComposePreviewTest {
     composePreview
       .waitForRenderToFinish()
 
-    animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-    // Animation inspector can be open again after exiting interactive mode.
-    assertTrue(animButton.isEnabled)
-
-    assertEquals(3, composePreview.designSurface
-      .allSceneViews
-      .size)
+    composePreview.waitForSceneViewsCount(3)
 
     fixture.editor.close()
   }
@@ -363,164 +318,136 @@ class ComposePreviewTest {
         null
       }
 
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
-    assertEquals(2, composePreview.designSurface
+    val fixture = getSyncedProjectFixture()
+    val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
+    // Last preview does not have an animation
+    noAnimationsComposePreview.designSurface
       .allSceneViews
-      .size)
+      .first()
+      .toolbar()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
+    val animationPreviewButton =
+      noAnimationsComposePreview
+        .waitForRenderToFinish()
+        .waitForSceneViewsCount(1)
+        .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    // Button should be disabled since there are no animations in this preview
+    assertFalse(animationPreviewButton.isEnabled)
+
+    noAnimationsComposePreview
+      .findActionButtonByText("Stop Interactive Mode")
+      .click()
+    noAnimationsComposePreview.waitForRenderToFinish()
+
+    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/MultipleComposePreviews.kt")
+
+    val composePreview = openComposePreview(fixture, "Animations.kt").waitForSceneViewsCount(2)
+    // First preview have an animation
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
     composePreview
       .waitForRenderToFinish()
-
-    assertEquals(1, composePreview.designSurface
-      .allSceneViews
-      .size)
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
     assertNotNull(composePreview.findAnimationInspector())
 
-    composePreview.designSurface
+    // Open the animation inspector in another file
+    val otherComposePreview = openComposePreview(fixture, "Animations2.kt", false)
+    otherComposePreview
+      .designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
-    composePreview
+    otherComposePreview
       .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
-    assertEquals(2, composePreview.designSurface
-      .allSceneViews
-      .size)
+    assertNotNull(otherComposePreview.findAnimationInspector())
 
+    val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
+    fixture.editor.open(animations1Relative)
+    // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
     assertNull(composePreview.findAnimationInspector())
 
-    fixture.editor.close()
-  }
-
-  @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/160776556
-  @Throws(Exception::class)
-  fun testOnlyOneAnimationInspectorCanBeOpen() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    composePreview
-      .waitForRenderToFinish()
-      .getNotificationsFixture()
-      .assertNoNotifications()
-
-    var animButton =
-      composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-
-    var interactivePreviewButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-    assertTrue(interactivePreviewButton.isEnabled)
-
-    guiTest.robot().click(animButton)
-    composePreview.waitForRenderToFinish()
-
-    // The button should be enabled, so we can close the animation inspector
-    animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-    assertTrue(animButton.isEnabled)
-
-    interactivePreviewButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-    // We can't enter interactive mode for a preview being inspected in the animation inspector
-    assertFalse(interactivePreviewButton.isEnabled)
-
-    val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
-
-    animButton =
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-
-    // The button should be disabled, as the animation inspector is open in Animations.kt
-    assertFalse(animButton.isEnabled)
-
-    // We can enter interactive mode for a preview even if another preview is being inspected in the animation inspector
-    assertTrue(
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-        .isEnabled
-    )
-
-    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations.kt")
+    // Return to Animations2.kt, where the Animation Preview should still be open
+    fixture.editor.closeFile(animations1Relative)
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
+    assertNotNull(otherComposePreview.findAnimationInspector())
 
-    Wait.seconds(3).expecting("Animation Inspection toolbar button to be enabled.").until {
-      // The button should now be enabled again, since the animation inspector was closed after closing Animations.kt
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
-        .isEnabled
-    }
+    // Clicking on the animation preview button should close the animation preview panel (and go to interactive mode)
+    otherComposePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
+    assertNull(otherComposePreview.findAnimationInspector())
 
-    fixture.editor.close()
+    otherComposePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
+    assertNotNull(otherComposePreview.findAnimationInspector())
+
+    // Clicking on "Stop Interactive Mode" should also close the animation preview panel (going directly to static preview)
+    otherComposePreview
+      .findActionButtonByText("Stop Interactive Mode")
+      .click()
+
+    assertNull(otherComposePreview.findAnimationInspector())
+
+    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations2.kt")
   }
 
   @Test
   @RunIn(TestGroup.UNRELIABLE) // b/155879999
   @Throws(Exception::class)
   fun testDeployPreview() {
-    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val fixture = getSyncedProjectFixture()
+
+    val previewActivityName = fixture.project.allModules()
+      .map { it.findComposeToolingNamespace() }
+      .distinct()
+      .single()
+      .previewActivityName
 
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
     adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
 
-    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
+    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
     commandHandler.composablePackageName = "google.simpleapplication"
     commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+    commandHandler.previewActivityName = previewActivityName
 
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE).click()
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
     // We should display "Launching '<Compose Preview Configuration Name>' on <Device>"
     val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
-    // We should display the adb shell command containing androidx.ui.tooling.preview.PreviewActivity, which wraps the @Composable
-    val previewActivity = Pattern.compile(".*androidx\\.ui\\.tooling\\.preview\\.PreviewActivity.*", Pattern.DOTALL)
+    // We should display the adb shell command containing androidx.compose.ui.tooling.preview.PreviewActivity, which wraps the @Composable
+    val previewActivityPattern = previewActivityName.replace(".", "\\.")
+    val previewActivity = Pattern.compile(".*${previewActivityPattern}.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 
     guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")
@@ -530,9 +457,10 @@ class ComposePreviewTest {
   private class DeployPreviewCommandHandler : DeviceCommandHandler("shell") {
     var composablePackageName: String = "com.example"
     var composableFqn: String = "com.example.MyComposable"
+    var previewActivityName: String = "Activity"
 
     override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-      val deployArgs = "am start -n \"$composablePackageName/androidx.ui.tooling.preview.PreviewActivity\"" +
+      val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
       when (args) {

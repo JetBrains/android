@@ -15,13 +15,33 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibility.State;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import java.util.Arrays;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.LayeredIcon;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,64 +50,76 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class SnapshotActionGroupTest {
-  private Presentation myPresentation;
-  private AnActionEvent myEvent;
+  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
 
   @Before
-  public void mockEvent() {
-    myPresentation = new Presentation();
+  public void activateIconLoader()  {
+    IconManager.activate();
+    IconLoader.activate();
+  }
 
-    myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
+  @After
+  public void deactivateIconLoader()  {
+    IconManager.deactivate();
+    IconLoader.deactivate();
   }
 
   @Test
-  public void update() {
+  public void getChildren() {
     // Arrange
-    Device device1 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
+      .addSnapshot(new Snapshot(snapshotKey))
       .build();
 
-    Device device2 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
+    ActionGroup group = new SnapshotActionGroup(device, myComboBoxAction);
 
     // Act
-    action.update(myEvent);
+    Object[] actualChildren = group.getChildren(null);
 
     // Assert
-    assertEquals("Pixel 3 API 29", myPresentation.getText());
+    Object[] expectedChildren = {
+      new SelectTargetAction(new ColdBootTarget(deviceKey), device, myComboBoxAction),
+      new SelectTargetAction(new QuickBootTarget(deviceKey), device, myComboBoxAction),
+      new SelectTargetAction(new BootWithSnapshotTarget(deviceKey, snapshotKey), device, myComboBoxAction)};
+
+    assertArrayEquals(expectedChildren, actualChildren);
   }
 
   @Test
-  public void updateDevicesHaveValidityReasons() {
+  public void update() throws IOException {
     // Arrange
-    Device device1 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setValidityReason("Missing system image")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
-    Device device2 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setValidityReason("Missing system image")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
+    AnAction action = new SnapshotActionGroup(device, myComboBoxAction);
 
-    AnAction action = new SnapshotActionGroup(Arrays.asList(device1, device2));
+    Presentation presentation = new Presentation();
+
+    AnActionEvent event = Mockito.mock(AnActionEvent.class);
+    Mockito.when(event.getPresentation()).thenReturn(presentation);
 
     // Act
-    action.update(myEvent);
+    action.update(event);
 
+    BufferedImage expectedIcon =
+      ImageUtil.toBufferedImage(IconUtil.toImage(new LayeredIcon(VIRTUAL_DEVICE_PHONE, ERROR_DECORATOR), ScaleContext.createIdentity()));
+    BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(presentation.getIcon(), ScaleContext.createIdentity()));
     // Assert
-    assertEquals("Pixel 3 API 29 (Missing system image)", myPresentation.getText());
+    ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);
+    assertEquals("Pixel_4_API_30", presentation.getText());
   }
 }

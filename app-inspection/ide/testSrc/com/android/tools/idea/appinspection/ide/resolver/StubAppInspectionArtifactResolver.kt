@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.ide.resolver.AppInspectionArtifactResolver
-import com.android.tools.idea.appinspection.test.TEST_JAR
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
+import java.nio.file.Path
 
-class StubAppInspectionArtifactResolver : AppInspectionArtifactResolver {
-  override suspend fun resolveArtifacts(artifactIdList: List<ArtifactCoordinate>,
-                                        project: Project): Map<ArtifactCoordinate, AppInspectorJar> {
-    return artifactIdList.associateWith { TEST_JAR }
+/**
+ * A test artifact resolver.
+ *
+ * It uses the provided lambda to determine what to return. The default is [TEST_JAR_PATH].
+ */
+class TestArtifactResolver(private val function: (ArtifactCoordinate) -> Path? = { TEST_JAR_PATH }) : ArtifactResolver {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
+    return function(artifactCoordinate)
   }
 }

@@ -19,7 +19,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.project.DumbService;
@@ -35,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.android.AndroidFindUsagesTest;
+import org.jetbrains.android.AndroidResourcesFindUsagesTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
@@ -170,7 +169,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     refreshProjectFiles();
 
     DumbService.getInstance(getProject()).runReadActionInSmartMode(() -> {
-      Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
+      Collection<UsageInfo> usages = AndroidResourcesFindUsagesTest.findUsages(file, myFixture);
       List<UsageInfo> result = new ArrayList<>();
       for (UsageInfo usage : usages) {
         if (!usage.isNonCodeUsage) {
@@ -182,9 +181,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
                                                          "res/values/styles.xml",
                                                          "additionalModules/lib/src/p1/p2/lib/FindUsagesClass.java",
                                                          "src/p1/p2/FindUsagesClass.java"));
-      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-        files.add(resourceDeclarationFilePath);
-      }
+      files.add(resourceDeclarationFilePath);
       assertThat(buildFileList(result)).containsExactlyElementsIn(files);
     });
 

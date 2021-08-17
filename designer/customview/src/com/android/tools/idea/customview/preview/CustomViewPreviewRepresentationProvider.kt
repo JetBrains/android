@@ -49,9 +49,10 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
     DesignerTypeRegistrar.register(CustomViewEditorFileType)
   }
   /**
-   * Checks if the input [virtualFile] contains custom views and therefore can be provided with the [PreviewRepresentation] of them.
+   * Checks if the input [psiFile] contains custom views and therefore can be provided with the [PreviewRepresentation] of them.
    */
-  override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
+  override fun accept(project: Project, psiFile: PsiFile): Boolean {
+    val virtualFile = psiFile.virtualFile
     if (!virtualFile.hasSourceFileExtension()) {
       return false
     }

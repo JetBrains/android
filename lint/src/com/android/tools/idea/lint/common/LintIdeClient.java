@@ -18,6 +18,14 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.ConfigurationHierarchy;
@@ -26,11 +34,15 @@ import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
+import com.android.tools.lint.detector.api.Constraint;
 import com.android.tools.lint.detector.api.Context;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.LintMap;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Severity;
@@ -40,21 +52,25 @@ import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.tools.lint.model.LintModelLintOptions;
 import com.android.tools.lint.model.LintModelModule;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -66,10 +82,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
@@ -113,7 +127,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   protected final LintResult myLintResult;
 
-  public LintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
+  public LintIdeClient(@NonNull Project project, @NonNull LintResult lintResult) {
     super(CLIENT_STUDIO);
     myProject = project;
     myLintResult = lintResult;
@@ -145,6 +159,46 @@ public class LintIdeClient extends LintClient implements Disposable {
     return driver;
   }
 
+  @NonNull
+  @Override
+  public ResourceRepository getResources(@NonNull com.android.tools.lint.detector.api.Project project,
+                                         @NonNull ResourceRepositoryScope scope) {
+    // Non-Android: Empty repository
+    return new AbstractResourceRepository() {
+      @NonNull
+      @Override
+      protected ListMultimap<String, ResourceItem> getResourcesInternal(@NonNull ResourceNamespace namespace,
+                                                                        @NonNull ResourceType resourceType) {
+        return ImmutableListMultimap.of();
+      }
+
+      @NonNull
+      @Override
+      public ResourceVisitor.VisitResult accept(@NonNull ResourceVisitor visitor) {
+        return ResourceVisitor.VisitResult.ABORT;
+      }
+
+      @NonNull
+      @Override
+      public Collection<ResourceItem> getPublicResources(@NonNull ResourceNamespace namespace,
+                                                         @NonNull ResourceType type) {
+        return Collections.emptyList();
+      }
+
+      @NonNull
+      @Override
+      public Set<ResourceNamespace> getNamespaces() {
+        return Collections.emptySet();
+      }
+
+      @NonNull
+      @Override
+      public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
+        return Collections.emptyList();
+      }
+    };
+  }
+
   /**
    * Returns an {@link ApiLookup} service.
    *
@@ -152,7 +206,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    * @return an API lookup if one can be found
    */
   @Nullable
-  public static ApiLookup getApiLookup(@NotNull Project project) {
+  public static ApiLookup getApiLookup(@NonNull Project project) {
     return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintIgnoredResult()));
   }
 
@@ -176,59 +230,15 @@ public class LintIdeClient extends LintClient implements Disposable {
       return;
     }
 
-    // We use a custom progress indicator to track action cancellation latency,
-    // and to collect a stack dump at the time of cancellation.
-    class ProgressIndicatorWithCancellationInfo extends AbstractProgressIndicatorExBase {
+    long startMs = System.currentTimeMillis();
+    boolean success = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable);
 
-      final Thread readActionThread;
-
-      // These fields are marked volatile since they will be accessed by two threads (the EDT and the read action thread).
-      // Notice that they are set before the progress indicator is marked as cancelled; this establishes a happens-before
-      // relationship with myCanceled (also volatile), thereby ensuring that the new values are visible
-      // to threads which have detected cancellation.
-      volatile StackTraceElement[] cancelStackDump;
-      volatile long cancelStartTimeMs = -1;
-
-      ProgressIndicatorWithCancellationInfo(Thread readActionThread) {
-        this.readActionThread = readActionThread;
-      }
-
-      @Override
-      public void cancel() {
-        if (!isCanceled()) {
-          cancelStartTimeMs = System.currentTimeMillis();
-          cancelStackDump = readActionThread.getStackTrace();
-        }
-        super.cancel();
-      }
+    long elapsedMs = System.currentTimeMillis() - startMs;
+    if (elapsedMs >= 20000) {
+      LOG.warn("Android Lint took a long time to run a read action (" + elapsedMs + " ms)");
     }
 
-    ProgressIndicatorWithCancellationInfo progressIndicator = new ProgressIndicatorWithCancellationInfo(Thread.currentThread());
-    long actionStartTimeMs = System.currentTimeMillis();
-    boolean successful = ProgressIndicatorUtils.runInReadActionWithWriteActionPriority(runnable, progressIndicator);
-
-    if (!successful) {
-      LOG.info("Android Lint read action canceled due to pending write action");
-
-      StackTraceElement[] stackDumpRaw = progressIndicator.cancelStackDump;
-      if (stackDumpRaw != null) {
-
-        // If the read action was canceled *after* being started, then the EDT still has to wait
-        // for the read action to check for cancellation and throw a ProcessCanceledException.
-        // If this takes a while, it will freeze the UI. We want to know about that.
-        long currTimeMs = System.currentTimeMillis();
-        long cancelTimeMs = currTimeMs - progressIndicator.cancelStartTimeMs;
-
-        // Even if the read action was quick to cancel, we still want to report long-running
-        // read actions because those could lead to frequent cancellations or Lint never finishing.
-        long actionTimeMs = currTimeMs - actionStartTimeMs;
-
-        // Report both in the same crash report so that one does not get discarded by the crash report rate limiter.
-        if (cancelTimeMs > 200 || actionTimeMs > 1000) {
-          notifyReadCanceled(stackDumpRaw, cancelTimeMs, actionTimeMs);
-        }
-      }
-
+    if (!success) {
       throw new ProcessCanceledException();
     }
   }
@@ -252,8 +262,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Nullable
-  protected Module findModuleForLintProject(@NotNull Project project,
-                                            @NotNull com.android.tools.lint.detector.api.Project lintProject) {
+  protected Module findModuleForLintProject(@NonNull Project project,
+                                            @NonNull com.android.tools.lint.detector.api.Project lintProject) {
     if (myModuleMap != null) {
       Module module = myModuleMap.get(lintProject);
       if (module != null) {
@@ -293,36 +303,47 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  public void report(@NonNull Context context,
-                     @NonNull Issue issue,
-                     @NonNull Severity severity,
-                     @NonNull Location location,
-                     @NonNull String message,
-                     @NonNull TextFormat format,
-                     @Nullable LintFix extraData) {
+  public void report(@NotNull Context context, @NotNull Incident incident, @NotNull Constraint constraint) {
+    // We don't support (or need!) partial analysis from the IDE
+    assert false;
+  }
+
+  @Override
+  public void report(@NotNull Context context, @NotNull Incident incident, @NotNull LintMap map) {
+    // We don't support (or need!) partial analysis from the IDE
+    assert false;
+  }
+
+  @Override
+  public void report(@NotNull Context context,
+                     @NotNull Incident incident,
+                     @NotNull TextFormat format) {
     if (myLintResult instanceof LintEditorResult) {
-      report((LintEditorResult)myLintResult, context, issue, severity, location, message, format, extraData);
+      report((LintEditorResult)myLintResult, context, incident, format);
     }
     else if (myLintResult instanceof LintBatchResult) {
-      report((LintBatchResult)myLintResult, context, issue, severity, location, message, format, extraData);
+      report((LintBatchResult)myLintResult, context, incident, format);
     }
     else if (myLintResult instanceof LintIgnoredResult) {
       // Ignore
     }
     else {
-      assert false : message;
+      assert false : incident.getMessage();
     }
   }
 
   public void report(
     @NonNull LintEditorResult lintResult,
     @NonNull Context context,
-    @NonNull Issue issue,
-    @NonNull Severity severity,
-    @NonNull Location location,
-    @NonNull String message,
-    @NonNull TextFormat format,
-    @Nullable LintFix quickfixData) {
+    @NonNull Incident incident,
+    @NonNull TextFormat format
+  ) {
+    Issue issue = incident.getIssue();
+    Severity severity = incident.getSeverity();
+    Location location = incident.getLocation();
+    String message = incident.getMessage();
+    LintFix quickfixData = incident.getFix();
+
     File file = location.getFile();
     VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
@@ -348,12 +369,14 @@ public class LintIdeClient extends LintClient implements Disposable {
   public void report(
     @NonNull LintBatchResult state,
     @NonNull Context context,
-    @NonNull Issue issue,
-    @NonNull Severity severity,
-    @NonNull Location location,
-    @NonNull String message,
-    @NonNull TextFormat format,
-    @Nullable LintFix quickfixData) {
+    @NonNull Incident incident,
+    @NonNull TextFormat format
+  ) {
+    Issue issue = incident.getIssue();
+    Severity severity = incident.getSeverity();
+    Location location = incident.getLocation();
+    String message = incident.getMessage();
+    LintFix quickfixData = incident.getFix();
 
     AnalysisScope scope = state.getScope();
     Map<Issue, Map<File, List<LintProblemData>>> myProblemMap = state.getProblemMap();
@@ -482,13 +505,13 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
   }
 
-  @NotNull
+  @NonNull
   @Override
   public XmlParser getXmlParser() {
     return new DomPsiParser(this);
   }
 
-  @NotNull
+  @NonNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new DefaultUastParser(project, myProject) {
@@ -515,7 +538,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     };
   }
 
-  @NotNull
+  @NonNull
   @Override
   public GradleVisitor getGradleVisitor() {
     return new LintIdeGradleVisitor();
@@ -544,6 +567,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public String readFile(@NonNull File file) {
+    ProgressManager.checkCanceled();
+
     if (myLintResult instanceof LintEditorResult) {
       return readFile((LintEditorResult)myLintResult, file);
     }
@@ -555,18 +580,18 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(vFile);
-      if (psiFile == null) {
-        LOG.info("Cannot find file " + file.getPath() + " in the PSI");
+      Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
+        LOG.info("Cannot create document for file " + file.getPath());
         return null;
       }
       else {
-        return psiFile.getText();
+        return document.getText();
       }
     });
   }
 
-  @NotNull
+  @NonNull
   private String readFile(@NonNull LintEditorResult lintEditorResult, @NonNull File file) {
     final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
@@ -588,6 +613,18 @@ public class LintIdeClient extends LintClient implements Disposable {
     return content;
   }
 
+  @Override
+  public byte @NotNull [] readBytes(@NotNull File file) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(file);
+  }
+
+  @Override
+  public byte @NotNull [] readBytes(@NotNull PathString resourcePath) throws IOException {
+    ProgressManager.checkCanceled();
+    return super.readBytes(resourcePath);
+  }
+
   @Nullable
   private String getFileContent(@NonNull LintEditorResult lintResult, final VirtualFile vFile) {
     if (Objects.equals(lintResult.getMainFile(), vFile)) {
@@ -595,25 +632,20 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return runReadAction(() -> {
-      final Module module = lintResult.getModule();
-      final Project project = module.getProject();
-      final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-
-      if (psiFile == null) {
+      final Document document = FileDocumentManager.getInstance().getDocument(vFile);
+      if (document == null) {
         return null;
       }
-      final Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
 
-      if (document != null) {
-        final DocumentListener listener = new DocumentListener() {
-          @Override
-          public void documentChanged(@NotNull DocumentEvent event) {
-            lintResult.markDirty();
-          }
-        };
-        document.addDocumentListener(listener, this);
-      }
-      return psiFile.getText();
+      final DocumentListener listener = new DocumentListener() {
+        @Override
+        public void documentChanged(@NotNull DocumentEvent event) {
+          lintResult.markDirty();
+        }
+      };
+      document.addDocumentListener(listener, this);
+
+      return document.getText();
     });
   }
 
@@ -633,6 +665,14 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public String getClientRevision() {
     return ApplicationInfoEx.getInstanceEx().getStrictVersion();
+  }
+
+  @NonNull
+  @Override
+  public String getClientDisplayName() {
+    // Returns for example "Android Studio" (but isn't hardcoded such that
+    // it does the right thing as the Android plugin in IntelliJ IDEA)
+    return ApplicationNamesInfo.getInstance().getFullProductName();
   }
 
   @Nullable private static volatile String ourSystemPath;
@@ -667,11 +707,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     return FileUtilRt.getRelativePath(baseFile, file);
   }
 
-  protected void notifyReadCanceled(StackTraceElement[] stackDumpRaw, long cancelTimeMs, long actionTimeMs) {
-    LOG.info("Android Lint either took too long to run a read action (" + actionTimeMs + "ms),\n" +
-             "or took too long to cancel and yield to a pending write action (" + cancelTimeMs + "ms)");
-  }
-
   @NonNull
   @Override
   public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
@@ -689,11 +724,6 @@ public class LintIdeClient extends LintClient implements Disposable {
       result.add(new File(root.getPath()));
     }
     return result;
-  }
-
-  @Override
-  public boolean supportsProjectResources() {
-    return true;
   }
 
   @Nullable
@@ -714,7 +744,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  @NotNull
+  @NonNull
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
     //noinspection SSBasedInspection
     return UrlClassLoader.build()

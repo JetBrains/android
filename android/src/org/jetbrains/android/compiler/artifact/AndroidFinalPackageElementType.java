@@ -9,7 +9,7 @@ import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElement;
 import com.intellij.packaging.elements.PackagingElementType;
 import com.intellij.packaging.ui.ArtifactEditorContext;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +23,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
   @NonNls public static final String TYPE_ID = "android-final-package";
 
   protected AndroidFinalPackageElementType() {
-    super(TYPE_ID, AndroidBundle.messagePointer("android.final.package.element.type.name"));
+    super(TYPE_ID, AndroidBundle.message("android.final.package.element.type.name"));
   }
 
   public static AndroidFinalPackageElementType getInstance() {
@@ -32,7 +32,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
 
   @Override
   public Icon getCreateElementIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Override

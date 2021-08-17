@@ -16,14 +16,14 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -263,7 +263,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
     if (ndkModuleModel != null) {
-      return containedInIncludeFolders(myProject, ndkModuleModel, file);
+      return containedByNativeNodes(myProject, ndkModuleModel, file);
     }
     return false;
   }

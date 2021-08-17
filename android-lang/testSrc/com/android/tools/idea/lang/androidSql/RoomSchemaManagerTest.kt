@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.lang.androidSql
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
-import com.android.tools.idea.lang.androidSql.room.*
+import com.android.tools.idea.lang.androidSql.room.Dao
+import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
+import com.android.tools.idea.lang.androidSql.room.RoomDatabase
+import com.android.tools.idea.lang.androidSql.room.RoomFtsTableColumn
+import com.android.tools.idea.lang.androidSql.room.RoomMemberColumn
+import com.android.tools.idea.lang.androidSql.room.RoomRowidColumn
+import com.android.tools.idea.lang.androidSql.room.RoomSchema
+import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
+import com.android.tools.idea.lang.androidSql.room.RoomTable
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.ENTITY
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.VIEW
 import com.android.tools.idea.testing.moveCaret
@@ -268,7 +275,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {User.class, Address.class}, version = 1)
+        @Database(entities  = {User.class, Address.class}, version = 1)
         public class AppDatabase {}
         """.trimIndent())
 
@@ -296,7 +303,10 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             myFixture.classPointer("com.example.AppDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User")))),
+              myFixture.classPointer("com.example.User")),
+            daos = emptySet(),
+            views = emptySet(),
+          )),
         daos = emptySet()))
   }
 
@@ -311,7 +321,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {User.class, Address.class}, version = 1)
+        @Database(entities  = {User.class, Address.class}, version = 1)
         public class UserDatabase {}
         """.trimIndent())
 
@@ -321,7 +331,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {Order.class, Address.class}, version = 1)
+        @Database(entities  = {Order.class, Address.class}, version = 1)
         public class OrderDatabase {}
         """.trimIndent())
 
@@ -350,12 +360,18 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             myFixture.classPointer("com.example.UserDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User"))),
+              myFixture.classPointer("com.example.User")),
+            daos = emptySet(),
+            views = emptySet(),
+          ),
           RoomDatabase(
             myFixture.classPointer("com.example.OrderDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.Order")))),
+              myFixture.classPointer("com.example.Order")),
+            daos = emptySet(),
+            views = emptySet(),
+          )),
         daos = emptySet()))
   }
 
@@ -417,8 +433,8 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             columns = setOf(
               RoomRowidColumn(
                 PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
-              RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
-              RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
         databases = emptySet(),
         daos = emptySet()))
   }
@@ -446,7 +462,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             name = "User",
             type = ENTITY,
             columns = setOf(
-              RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
               RoomRowidColumn(
                 PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
             )
@@ -479,7 +495,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             name = "User",
             type = ENTITY,
             columns = setOf(
-              RoomFieldColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
               RoomRowidColumn(
                 PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
             ))),
@@ -521,9 +537,9 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             columns = setOf(
               RoomRowidColumn(
                 PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
-              RoomFieldColumn(
+              RoomMemberColumn(
                 myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
-              RoomFieldColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
         databases = emptySet(),
         daos = emptySet()))
   }
@@ -552,11 +568,57 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             name = "Mail",
             type = ENTITY,
             columns = setOf(
-              RoomFieldColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
+              RoomMemberColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
               RoomFtsTableColumn(myFixture.classPointer("com.example.Mail").element!!, "Mail"),
               RoomRowidColumn(
                 PsiElementForFakeColumn(myFixture.classPointer("com.example.Mail").element!!),
                 PRIMARY_KEY_NAMES_FOR_FTS)
+            )
+          )),
+        databases = emptySet(),
+        daos = emptySet()
+      )
+    )
+  }
+
+  fun testAutoValue() {
+    myFixture.addFileToProject(
+      "/src/com/google/auto/value/AutoValue.java",
+      //language=JAVA
+    """
+      package com.google.auto.value;
+
+      @interface AutoValue {}
+    """.trimIndent())
+
+    val psiClass = myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import com.google.auto.value.AutoValue;
+
+      @AutoValue
+      @Entity
+      public class User {
+        public abstract String getFirstName();
+
+        public abstract String getLastName();
+      }
+      """.trimIndent()
+    )
+
+    assertThat(getSchema(psiClass)).isEqualTo(
+      RoomSchema(
+        tables = setOf(
+          RoomTable(
+            myFixture.classPointer("com.example.User"),
+            name = "User",
+            type = ENTITY,
+            columns = setOf(
+              RoomMemberColumn(myFixture.methodPointer("com.example.User", "getFirstName"), "firstName"),
+              RoomMemberColumn(myFixture.methodPointer("com.example.User", "getLastName"), "lastName"),
+              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!) )
             )
           )),
         databases = emptySet(),

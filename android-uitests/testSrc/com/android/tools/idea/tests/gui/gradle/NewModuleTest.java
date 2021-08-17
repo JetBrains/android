@@ -44,12 +44,10 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Rule public final RestoreFlagRule<Boolean> restoreNpwSidebarFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR);
   @Rule public final RestoreFlagRule<Boolean> restoreNpwNativeModuleFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_NATIVE_MODULE);
 
   @Before
   public void setup() {
-    StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.override(true);
     StudioFlags.NPW_NEW_NATIVE_MODULE.override(true);
   }
 
@@ -185,6 +183,7 @@ public class NewModuleTest {
 
     String manifestContents = guiTest.getProjectFileText(moduleName + "/src/main/AndroidManifest.xml");
     assertThat(manifestContents).contains("android:name=\"android.hardware.type.automotive\"");
+    assertThat(manifestContents).contains("android:appCategory=\"audio\"");
   }
 
   @Test

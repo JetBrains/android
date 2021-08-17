@@ -32,8 +32,7 @@ private const val UNNAMED_COMPONENT = "<unnamed>"
 class SelectedViewModel(name: InspectorPropertyItem, id: InspectorPropertyItem?) : SelectedComponentModel {
   private val unqualifiedName = name.value?.substringAfterLast('.') ?: ""
 
-  override val icon: Icon? = unqualifiedName?.let { AndroidDomElementDescriptorProvider.getIconForViewTag(it) }
-                             ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
+  override val icon: Icon = IconProvider.getIconForView(unqualifiedName, id?.value?.isEmpty() == true)
 
   override val id: String = id?.value ?: UNNAMED_COMPONENT
 

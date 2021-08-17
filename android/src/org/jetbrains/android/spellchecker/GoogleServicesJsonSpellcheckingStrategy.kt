@@ -17,7 +17,6 @@ package org.jetbrains.android.spellchecker
 
 import com.intellij.json.psi.JsonProperty
 import com.intellij.json.psi.JsonStringLiteral
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.spellchecker.inspections.PlainTextSplitter

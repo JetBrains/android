@@ -19,11 +19,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.BaseMemoryProfilerStage;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
@@ -58,7 +59,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   private final long myEndTimeNs;
   private final List<HeapSet> myHeapSets;
   private final NativeMemoryHeapSet myDefaultHeapSet;
-  private final MemoryProfilerStage myStage;
+  private final BaseMemoryProfilerStage myStage;
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
@@ -67,7 +68,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
                                              @NotNull Memory.MemoryNativeSampleData info,
-                                             @NotNull MemoryProfilerStage stage) {
+                                             @NotNull BaseMemoryProfilerStage stage) {
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
@@ -167,11 +168,10 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
     String abi = myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
     TraceProcessorService service = myStage.getStudioProfilers().getIdeServices().getTraceProcessorService();
-    FeatureTracker tracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    IdeProfilerServices profilerServices = myStage.getStudioProfilers().getIdeServices();
     long traceId = myStartTimeNs;
-    service.loadTrace(traceId, trace.getAbsoluteFile(), tracker);
-    service.loadMemoryData(
-      traceId, abi, myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer(), myDefaultHeapSet, tracker);
+    service.loadTrace(traceId, trace.getAbsoluteFile(), profilerServices);
+    service.loadMemoryData(traceId, abi, myDefaultHeapSet, profilerServices);
     myIsDoneLoading = true;
     return true;
   }

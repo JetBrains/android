@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
@@ -24,7 +24,7 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
+import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt

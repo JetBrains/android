@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +52,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, danglingThreads, cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -85,7 +87,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -124,7 +126,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -154,22 +156,58 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getMemoryCounters()).hasSize(2)
     assertThat(systemTraceData.getMemoryCounters()).containsExactly(
       "mem.locked", listOf(
-        SeriesData(1, 1L),
-        SeriesData(4, 2L),
-        SeriesData(7, 1L)),
+      SeriesData(1, 1L),
+      SeriesData(4, 2L),
+      SeriesData(7, 1L)),
       "mem.rss", listOf(
-        SeriesData(1, 5L),
-        SeriesData(4, 6L),
-        SeriesData(7, 4L)))
+      SeriesData(1, 5L),
+      SeriesData(4, 6L),
+      SeriesData(7, 4L)))
       .inOrder()
 
     assertThat(systemTraceData.getMemoryCounters()).doesNotContainKey("non-memory")
+  }
+
+  @Test
+  fun buildBlastBufferQueueCounterData() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf("QueuedBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
+                                                                                 sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
+    val model = TestModel(processes, emptyMap(), listOf())
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range())
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.getBufferQueueCounterValues()).containsExactly(
+      SeriesData(1, 1L),
+      SeriesData(4, 2L),
+      SeriesData(7, 3L)
+    ).inOrder()
+  }
+
+  @Test
+  fun viewRangeOnTimelineIsSet() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val model = TestModel(processes, emptyMap(), listOf())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range(1.0,2.0))
+    assertThat(capture.timeline.viewRange.min).isEqualTo(1.0)
+    assertThat(capture.timeline.viewRange.max).isEqualTo(2.0)
   }
 
   private class TestModel(
@@ -186,5 +224,6 @@ class SystemTraceCpuCaptureBuilderTest {
 
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
+    override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
   }
 }

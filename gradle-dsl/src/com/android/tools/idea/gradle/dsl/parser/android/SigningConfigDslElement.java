@@ -33,9 +33,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +43,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public static final PropertiesElementDescription<SigningConfigDslElement> SIGNING_CONFIG =
     new PropertiesElementDescription<>(null, SigningConfigDslElement.class, SigningConfigDslElement::new);
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
     {"setKeyAlias", exactly(1), KEY_ALIAS, SET},
     {"keyPassword", property, KEY_PASSWORD, VAR},
@@ -57,8 +56,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     {"setStoreType", exactly(1), STORE_TYPE, SET},
   }).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
     {"keyAlias", exactly(1), KEY_ALIAS, SET},
     {"keyPassword", property, KEY_PASSWORD, VAR},
@@ -72,8 +70,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   }).collect(toModelMap());
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter.isKotlin()) {
       return ktsToModelNameMap;
     }

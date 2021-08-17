@@ -42,6 +42,7 @@ private val SUPPORTED_DRAWABLE_TAG = arrayOf(
   SdkConstants.TAG_BITMAP,
   SdkConstants.TAG_INSET,
   SdkConstants.TAG_LAYER_LIST,
+  SdkConstants.TAG_NINE_PATCH,
   SdkConstants.TAG_RIPPLE,
   SdkConstants.TAG_ROTATE,
   SdkConstants.TAG_SELECTOR,

@@ -21,8 +21,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.TAG_USES_PERMISSION;
 import static com.android.tools.lint.checks.ManifestDetector.MOCK_LOCATION_PERMISSION;
 
-import com.android.ide.common.gradle.model.IdeBuildType;
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.tools.idea.gradle.model.IdeBuildType;
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;

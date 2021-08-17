@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -28,10 +29,16 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.util.Locale
 
 class HeapProfdSessionArtifactTest {
 
@@ -60,8 +67,7 @@ class HeapProfdSessionArtifactTest {
     )
   }
 
-  @Test
-  fun testGetSessionArtifacts() {
+  fun generateSessionArtifacts() : List<SessionArtifact<*>> {
     val nativeHeapTimestamp = 30L
     val nativeHeapInfo = MemoryNativeSampleData.newBuilder().setStartTime(
       nativeHeapTimestamp).setEndTime(nativeHeapTimestamp + 1).build()
@@ -69,11 +75,43 @@ class HeapProfdSessionArtifactTest {
       nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
       .setPid(ProfilersTestData.SESSION_DATA.pid).build()
     transportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId, nativeHeapData)
-    val artifacts = HeapProfdSessionArtifact.getSessionArtifacts(profilers, ProfilersTestData.SESSION_DATA,
+    return HeapProfdSessionArtifact.getSessionArtifacts(profilers, ProfilersTestData.SESSION_DATA,
                                                                  Common.SessionMetaData.getDefaultInstance())
+  }
+
+  @Test
+  fun testGetSessionArtifacts() {
+    val artifacts = generateSessionArtifacts()
     assertThat(artifacts).hasSize(1)
     assertThat(artifacts[0].name).isEqualTo("Native Sampled")
     assertThat(artifacts[0].isOngoing).isFalse()
     assertThat(artifacts[0].session).isEqualTo(ProfilersTestData.SESSION_DATA)
+  }
+
+  @Test
+  fun testExportAppendsSymbols() {
+    val artifact = generateSessionArtifacts()[0] as HeapProfdSessionArtifact
+    val stream = ByteArrayOutputStream()
+    val contents = ByteString.copyFromUtf8("TestData")
+    transportService.addFile(artifact.startTime.toString(), contents)
+    val symbolData = ByteString.copyFromUtf8("SymbolData");
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}${artifact.startTime}.symbols")
+    symbolsFile.deleteOnExit()
+    val outputStream = FileOutputStream(symbolsFile)
+    outputStream.write(symbolData.toByteArray())
+    outputStream.close()
+    artifact.export(stream)
+    val output = contents.concat(symbolData)
+    assertThat(stream.toByteArray()).isEqualTo(output.toByteArray())
+  }
+
+  @Test
+  fun testExportWithoutSymbols() {
+    val artifact = generateSessionArtifacts()[0] as HeapProfdSessionArtifact
+    val stream = ByteArrayOutputStream()
+    val contents = ByteString.copyFromUtf8("TestData")
+    transportService.addFile(artifact.startTime.toString(), contents)
+    artifact.export(stream)
+    assertThat(stream.toByteArray()).isEqualTo(contents.toByteArray())
   }
 }

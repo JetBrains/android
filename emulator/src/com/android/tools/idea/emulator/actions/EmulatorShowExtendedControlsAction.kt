@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.emulator.actions
 
+import com.android.emulator.control.PaneEntry
+import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.WindowPosition
 import com.android.tools.idea.emulator.EmptyStreamObserver
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.WindowManager
 import com.intellij.util.ui.StartupUiUtil
 
 /**
@@ -29,16 +34,25 @@ class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-    emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
-      override fun onCompleted() {
-        emulatorController.showExtendedControls()
-      }
-    })
+    showExtendedControls(emulatorController, getProject(event))
   }
+}
 
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isVisible = StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()
-  }
+internal fun showExtendedControls(emulatorController: EmulatorController, project: Project, paneIndex: PaneIndex = PaneIndex.KEEP_CURRENT) {
+  val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+  emulatorController.setUiTheme(style, object : EmptyStreamObserver<Empty>() {
+    override fun onCompleted() {
+      val pane = PaneEntry.newBuilder().setIndex(paneIndex)
+      val frame = WindowManager.getInstance().getFrame(project)
+      if (frame != null) {
+        // Position the extended controls window at the center of the project window.
+        pane.positionBuilder
+          .setHorizontalAnchor(WindowPosition.HorizontalAnchor.HCENTER)
+          .setVerticalAnchor(WindowPosition.VerticalAnchor.VCENTER)
+          .setX(frame.x + frame.width / 2)
+          .setY(frame.y + frame.height / 2)
+      }
+      emulatorController.showExtendedControls(pane.build())
+    }
+  })
 }

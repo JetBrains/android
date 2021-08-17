@@ -5,25 +5,32 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
-import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
+import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
+import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
+import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
-import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
+import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
+import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -36,21 +43,32 @@ import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -58,14 +76,13 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class ModuleClassLoader extends RenderClassLoader {
+public final class ModuleClassLoader extends RenderClassLoader implements ModuleProvider, Disposable {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
   /**
@@ -103,22 +120,27 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
-    visitor -> new ViewMethodWrapperTransform(visitor),
+  static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = toClassTransform(
+    ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    visitor -> new ThreadLocalRenameTransform(visitor),
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
 
-  static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
-    visitor -> new ViewMethodWrapperTransform(visitor),
+  static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = toClassTransform(
+    ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    visitor -> new ThreadLocalRenameTransform(visitor),
-    visitor -> new PreviewAnimationClockMethodTransform(visitor),
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
+    PreviewAnimationClockMethodTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
+
+  private static final ExecutorService ourDisposeService =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("ModuleClassLoader Dispose Thread", 1);
 
   /**
    * The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
@@ -132,49 +154,70 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private final long myConstantRemapperModificationCount;
 
   /**
+   * Interface for reporting load times and general diagnostics.
+   */
+  @NotNull
+  private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
+
+  /**
+   * Holds the provider that allows finding the {@link PsiFile}
+   */
+  private final Supplier<PsiFile> myPsiFileProvider;
+  /**
+   * Holds the provider that allows finding the source file that originated this
+   * {@link ModuleClassLoader}. It allows for scoping the search of .class files.
+   */
+  private final Supplier<VirtualFile> mySourceFileProvider;
+
+  /**
    * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
    */
-  private Map<String, VirtualFile> myClassFiles;
+  private final Map<String, VirtualFile> myClassFiles = new ConcurrentHashMap<>();
   /**
    * Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader
    */
-  private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
+  private final Map<String, ClassModificationTimestamp> myClassFilesLastModified = new ConcurrentHashMap<>();
 
   private final List<Path> mAdditionalLibraries;
-
-  private static class ClassModificationTimestamp {
-    public final long timestamp;
-    public final long length;
-
-    ClassModificationTimestamp(long timestamp, long length) {
-      this.timestamp = timestamp;
-      this.length = length;
-    }
-  }
-
 
   /**
    * Method uses to remap type names using {@link ModuleClassLoader#INTERNAL_PACKAGE} as prefix to its original name so they original
    * class can be loaded from the file system correctly.
    */
   @NotNull
-  private static String nonProjectClassNameLookup(@NotNull String name) {
+  private static String onDiskClassNameLookup(@NotNull String name) {
     return StringUtil.trimStart(name, INTERNAL_PACKAGE);
   }
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
-                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
-                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations) {
-    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup);
-    myModuleReference = new WeakReference<>(module);
-    mAdditionalLibraries = getAdditionalLibraries();
-    myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
-
-    registerResources(module);
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+                    @NotNull ClassTransform projectTransformations,
+                    @NotNull ClassTransform nonProjectTransformations,
+                    @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+    this(parent, renderContext, projectTransformations, nonProjectTransformations,
+         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule()) : ClassBinaryCache.NO_CACHE,
+         diagnostics);
   }
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    this(parent, module, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS);
+  private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+                    @NotNull ClassTransform projectTransformations,
+                    @NotNull ClassTransform nonProjectTransformations,
+                    @NotNull ClassBinaryCache cache,
+                    @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache, !SystemInfo.isWindows);
+    Disposer.register(renderContext.getModule(), this);
+    myModuleReference = new WeakReference<>(renderContext.getModule());
+    // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
+    myPsiFileProvider = renderContext.getFileProvider();
+    mySourceFileProvider = () -> {
+      PsiFile file = myPsiFileProvider.get();
+      return file != null ? file.getVirtualFile() : null;
+    };
+    mAdditionalLibraries = getAdditionalLibraries();
+    myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(renderContext.getProject()).getModificationCount();
+    myDiagnostics = diagnostics;
+
+    registerResources(renderContext.getModule());
+    cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
   }
 
   @NotNull
@@ -201,6 +244,19 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Override
+  protected byte[] rewriteClass(@NotNull String fqcn,
+                                @NotNull byte[] classData,
+                                @NotNull ClassTransform transformations,
+                                int flags) {
+    long startTimeMs = System.currentTimeMillis();
+    try {
+      return super.rewriteClass(fqcn, classData, transformations, flags);
+    } finally {
+      myDiagnostics.classRewritten(fqcn, classData.length, System.currentTimeMillis() - startTimeMs);
+    }
+  }
+
+  @Override
   public Class<?> loadClass(String name) throws ClassNotFoundException {
     if ("kotlinx.coroutines.android.AndroidDispatcherFactory".equals(name)) {
       // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
@@ -211,14 +267,26 @@ public final class ModuleClassLoader extends RenderClassLoader {
       throw new IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
     }
 
-    if (isRepackagedClass(name)) {
-      // This should not happen for "regularly" loaded classes. It will happen for classes loaded using
-      // reflection like Class.forName("kotlin.a.b.c"). In this case, we need to redirect the loading to the right
-      // class by injecting the correct name.
-      name = INTERNAL_PACKAGE + name;
-    }
+    long startTimeMs = System.currentTimeMillis();
+    myDiagnostics.classLoadStart(name);
+    boolean classLoaded = true;
+    try {
+      if (isRepackagedClass(name)) {
+        // This should not happen for "regularly" loaded classes. It will happen for classes loaded using
+        // reflection like Class.forName("kotlin.a.b.c"). In this case, we need to redirect the loading to the right
+        // class by injecting the correct name.
+        name = INTERNAL_PACKAGE + name;
+      }
 
-    return super.loadClass(name);
+      return super.loadClass(name);
+    } catch (ClassNotFoundException e) {
+      classLoaded = false;
+      throw e;
+    } finally {
+      if (classLoaded) {
+        myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
+      }
+    }
   }
 
   @Override
@@ -229,6 +297,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     Module module = myModuleReference.get();
+    long startTimeMs = System.currentTimeMillis();
+    boolean classFound = true;
+    myDiagnostics.classFindStart(name);
     try {
       if (!myInsideJarClassLoader) {
         if (module != null) {
@@ -273,7 +344,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
         return defineClassAndPackage(name, clazz, 0, clazz.length);
       }
       LOG.debug(e);
+      classFound = false;
       throw e;
+    } finally {
+      myDiagnostics.classFindEnd(name, classFound, System.currentTimeMillis() - startTimeMs);
     }
   }
 
@@ -299,6 +373,40 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return loadClassFromNonProjectDependency(name);
   }
 
+  @NotNull
+  @Override
+  public PseudoClass locatePseudoClass(@NotNull String classFqn) {
+    String diskLookupName = onDiskClassNameLookup(classFqn);
+    PseudoClass pseudoClass = super.locatePseudoClass(diskLookupName);
+
+    if (!pseudoClass.getName().equals(diskLookupName)) {
+      Module module = myModuleReference.get();
+      if (module == null || module.isDisposed()) {
+        return PseudoClass.Companion.objectPseudoClass();
+      }
+
+      VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
+        .getClassFileFinderForSourceFile(mySourceFileProvider.get())
+        .findClassFile(diskLookupName);
+      if (classFile != null) {
+        try {
+          return PseudoClass.Companion.fromByteArray(classFile.contentsToByteArray(), this);
+        }
+        catch (IOException e) {
+          LOG.debug(e);
+        }
+      }
+    }
+
+    if (isRepackagedClass(classFqn)) {
+      // If this is one of the repackaged classes, we have to restore the name. This will be usually the case when we are, for example,
+      // looking for a super class of a repackaged class. For example _layoutlib_._internal_.repackagedname.classB will have a as super
+      // repackagename.classA. We need to make sure that class is resolved as _layoutlib_._internal_.repackagedname.classA.
+      classFqn = INTERNAL_PACKAGE + classFqn;
+    }
+    return pseudoClass.withNewName(classFqn);
+  }
+
   /**
    * Loads a class from the project, either from the given module or one of the source code dependencies. If the class
    * is in a library dependency, like a jar file, this method will not find the class.
@@ -309,7 +417,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return null;
     }
 
-    VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module).findClassFile(name);
+    VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
+      .getClassFileFinderForSourceFile(mySourceFileProvider.get())
+      .findClassFile(onDiskClassNameLookup(name));
 
     if (classFile == null) {
       return null;
@@ -371,12 +481,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Override
   @Nullable
   protected Class<?> loadClassFile(@NotNull String name, @NotNull VirtualFile classFile) {
-    if (myClassFiles == null) {
-      myClassFiles = new ConcurrentHashMap<>();
-      myClassFilesLastModified = new ConcurrentHashMap<>();
-    }
     myClassFiles.put(name, classFile);
-    myClassFilesLastModified.put(name, new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
+    myClassFilesLastModified.put(name, ClassModificationTimestamp.fromVirtualFile(classFile));
 
     return super.loadClassFile(name, classFile);
   }
@@ -407,14 +513,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
+    for (ExternalAndroidLibrary library : moduleSystem.getAndroidLibraryDependencies()) {
       if (library.getHasResources()) {
         registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
   }
 
-  private static void registerLibraryResources(@NotNull ExternalLibrary library,
+  private static void registerLibraryResources(@NotNull ExternalAndroidLibrary library,
                                                @NotNull ResourceRepositoryManager repositoryManager,
                                                @NotNull ResourceClassRegistry classRegistry,
                                                @NotNull ResourceIdManager idManager) {
@@ -447,7 +553,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Nullable
-  private static String getPackageName(@NotNull ExternalLibrary library) {
+  private static String getPackageName(@NotNull ExternalAndroidLibrary library) {
     if (library.getPackageName() != null) {
       return library.getPackageName();
     }
@@ -490,9 +596,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
    */
   @Nullable
   private VirtualFile getClassFile(@NotNull String className) {
-    if (myClassFiles == null) {
-      return null;
-    }
     VirtualFile file = myClassFiles.get(className);
     if (file == null) {
       return null;
@@ -503,32 +606,102 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
    */
-  boolean isUpToDate() {
-    if (myClassFiles != null) {
-      for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
-        String className = entry.getKey();
-        VirtualFile classFile = entry.getValue();
-        if (!classFile.isValid()) {
-          return false;
-        }
-        ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
-        if (lastModifiedStamp != null) {
-          long loadedModifiedTime = lastModifiedStamp.timestamp;
-          long loadedModifiedLength = lastModifiedStamp.length;
-          long classFileModifiedTime = classFile.getTimeStamp();
-          long classFileModifiedLength = classFile.getLength();
-          if ((classFileModifiedTime > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModifiedTime)
-              || loadedModifiedLength != classFileModifiedLength) {
-            return false;
-          }
-        }
+  boolean isUserCodeUpToDate() {
+    for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
+      VirtualFile classFile = entry.getValue();
+      if (!classFile.isValid()) {
+        return false;
+      }
+
+      String className = entry.getKey();
+      ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
+      if (lastModifiedStamp != null && !lastModifiedStamp.isUpToDate(classFile)) {
+        return false;
       }
     }
 
-    return areDependenciesUpToDate();
+    return true;
   }
 
   public boolean isClassLoaded(@NotNull String className) {
     return findLoadedClass(className) != null;
+  }
+
+  @Override
+  @Nullable
+  public Module getModule() {
+    return myModuleReference.get();
+  }
+
+  @NotNull
+  public ModuleClassLoaderDiagnosticsRead getStats() {
+    return myDiagnostics;
+  }
+
+  @Nullable
+  public ModuleRenderContext getModuleContext() {
+    Module module = myModuleReference.get();
+    return module == null ? null : ModuleRenderContext.forFile(module, myPsiFileProvider);
+  }
+
+  /**
+   * If coroutine DefaultExecutor exists, waits for the its thread to stop or 1.1s whichever is faster, otherwise returns instantly.
+   */
+  private void waitForCoroutineThreadToStop() {
+    try {
+      Class<?> defaultExecutorClass = findLoadedClass(INTERNAL_PACKAGE + "kotlinx.coroutines.DefaultExecutor");
+      if (defaultExecutorClass == null) {
+        return;
+      }
+      // Kotlin bytecode generation converts isThreadPresent property into isThreadPresent$kotlinx_coroutines_core() method
+      Method isThreadPresentMethod = findMethodLike(defaultExecutorClass, "isThreadPresent");
+      if (isThreadPresentMethod == null) {
+        LOG.warn("Method to check coroutine thread existence is not found.");
+        return;
+      }
+      Field instanceField = defaultExecutorClass.getDeclaredField("INSTANCE");
+      Object defaultExecutorObj = instanceField.get(null);
+
+      isThreadPresentMethod.setAccessible(true);
+      // DefaultExecutor thread has DEFAULT_KEEP_ALIVE of 1000ms. We expect it to disappear after at most of 1100ms waiting.
+      final int ITERATIONS = 11;
+      for (int i = 0; i <= ITERATIONS; ++i) {
+        if (!(Boolean)isThreadPresentMethod.invoke(defaultExecutorObj)) {
+          return;
+        }
+        if (i != ITERATIONS) {
+          Thread.sleep(100);
+        }
+      }
+      LOG.warn("DefaultExecutor thread is still running");
+    } catch (Throwable t) {
+      LOG.warn(t);
+    }
+  }
+
+  @Override
+  public void dispose() {
+    myClassFiles.clear();
+    myClassFilesLastModified.clear();
+
+    ourDisposeService.submit(() -> {
+      waitForCoroutineThreadToStop();
+
+      Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
+      if (threadLocals == null || threadLocals.isEmpty()) {
+        return;
+      }
+
+      // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        for (ThreadLocal<?> threadLocal: threadLocals) {
+          try {
+            threadLocal.remove();
+          } catch (Exception e) {
+            LOG.warn(e); // Failure detected here will most probably cause a memory leak
+          }
+        }
+      });
+    });
   }
 }

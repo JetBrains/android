@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.Uninstaller;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.io.FileUtilKt;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
 
 /**
  * Factory for installers/uninstallers that use the IntelliJ Updater mechanism to update the SDK.
@@ -60,13 +66,12 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
   @Override
   protected Installer doCreateInstaller(@NotNull RemotePackage remote,
                                         @NotNull RepoManager mgr,
-                                        @NotNull Downloader downloader,
-                                        @NotNull FileOp fop) {
+                                        @NotNull Downloader downloader) {
     LocalPackage local = mgr.getPackages().getLocalPackages().get(remote.getPath());
     if (hasPatch(local, remote)) {
-      return new PatchInstaller(local, remote, downloader, mgr, fop);
+      return new PatchInstaller(local, remote, downloader, mgr);
     }
-    return new FullInstaller(local, remote, mgr, downloader, fop);
+    return new FullInstaller(local, remote, mgr, downloader);
   }
 
   private static boolean hasPatch(@Nullable LocalPackage local, @NotNull RemotePackage remote) {
@@ -77,21 +82,21 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
   @NotNull
   @Override
-  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage local, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-    return new PatchUninstaller(local, mgr, fop);
+  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage local, @NotNull RepoManager mgr) {
+    return new PatchUninstaller(local, mgr);
   }
 
   /**
    * Check whether we can create an installer for this package.
    */
   @Override
-  protected boolean canHandlePackage(@NotNull RepoPackage p, @NotNull RepoManager manager, @NotNull FileOp fop) {
+  protected boolean canHandlePackage(@NotNull RepoPackage p, @NotNull RepoManager manager) {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
     if (p instanceof LocalPackage) {
       // Uninstall case. Only useful on windows, since it locks in-use files.
-      if (fop.isWindows()) {
+      if (FileOpUtils.isWindows()) {
         try {
-          if (FileUtilKt.recursiveSize(fop.toPath(((LocalPackage)p).getLocation())) >= PSEUDO_PATCH_CUTOFF) {
+          if (FileUtilKt.recursiveSize(((LocalPackage)p).getLocation()) >= PSEUDO_PATCH_CUTOFF) {
             // Don't pseudo-patch if the file is too big.
             return false;
           }
@@ -112,7 +117,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
     LocalPackage local = manager.getPackages().getLocalPackages().get(p.getPath());
     RemotePackage remote = (RemotePackage)p;
-    if (local == null || (!fop.isWindows() && !hasPatch(local, remote))) {
+    if (local == null || (!FileOpUtils.isWindows() && !hasPatch(local, remote))) {
       // If this isn't an update, or if we're not on windows and there's no patch, there's no reason to use the patcher.
       return false;
     }
@@ -120,7 +125,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     if (hasPatch(local, remote)) {
       // If a patch is available, make sure we can get the patcher itself
       LocalPackage patcher = PatchInstallerUtil.getDependantPatcher((RemotePackage)p, manager);
-      if (patcher != null && myPatchRunnerFactory.getPatchRunner(patcher, progress, fop) != null) {
+      if (patcher != null && myPatchRunnerFactory.getPatchRunner(patcher, progress) != null) {
         return true;
       }
 
@@ -130,7 +135,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       }
 
       // We don't have the right patcher. Give up unless we're on Windows.
-      if (!fop.isWindows()) {
+      if (!FileOpUtils.isWindows()) {
         return false;
       }
     }

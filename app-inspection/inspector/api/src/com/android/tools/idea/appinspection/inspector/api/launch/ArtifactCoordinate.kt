@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.launch
 
+import com.android.tools.app.inspection.AppInspection
+
 /**
  * Contains information that uniquely identifies the library.
  *
@@ -37,10 +39,11 @@ data class ArtifactCoordinate(
   /**
    * The coordinate for this library, i.e. how it would appear in a Gradle dependencies block.
    */
-  override fun toString() = "${groupId}:${artifactId}:${version}@${type}"
+  override fun toString() = "${groupId}:${artifactId}:${version}"
 
-  /**
-   * The file name of the artifact in question.
-   */
-  val fileName = "${artifactId}-${version}.${type}"
+  fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate = AppInspection.ArtifactCoordinate.newBuilder()
+    .setGroupId(groupId)
+    .setArtifactId(artifactId)
+    .setVersion(version)
+    .build()
 }

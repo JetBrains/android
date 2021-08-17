@@ -24,7 +24,6 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LeakHunter
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
@@ -32,7 +31,6 @@ import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 
 class DesignToolsSplitEditorTest : AndroidTestCase() {
 
@@ -47,15 +45,14 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
-    val textEditorComponent = mock(JComponent::class.java)
+    val textEditorComponent = object: JComponent() {}
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val editor = mock(Editor::class.java)
     `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
-    val component = mock(JComponent::class.java)
-    `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
+    val component = object: JComponent() {}
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
       // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
@@ -88,13 +85,17 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
     triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+    // We don't track mode selection when it's redundant, i.e trying to select the mode that is already selected
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isNull()
 
     splitEditor.selectDesignMode(triggerExplicitly)
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
 
     splitEditor.selectSplitMode(triggerExplicitly)
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+
+    splitEditor.selectTextMode(triggerExplicitly)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   fun testModeChange() {

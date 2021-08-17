@@ -51,6 +51,7 @@ public final class SizeOnDiskTest {
     myTable = Mockito.mock(TableView.class);
   }
 
+  @SuppressWarnings("DoNotMock")  // b/180537631
   @Before
   public void mockNotDoneFuture() {
     // noinspection unchecked

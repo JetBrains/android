@@ -15,21 +15,23 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.prefs.AndroidLocation
+import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
+import com.intellij.util.lang.JavaVersion
 import org.apache.log4j.Level
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
@@ -63,9 +65,7 @@ object GuiTestLauncher {
 
   init {
     LOG.setLevel(Level.INFO)
-    if (!GuiTestOptions.isRunningOnRelease()) {
-      buildClasspathJar()
-    }
+    buildClasspathJar()
   }
 
   fun runIde (port: Int) {
@@ -84,6 +84,10 @@ object GuiTestLauncher {
     val processBuilder = ProcessBuilder().inheritIO().command(args)
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
+    }
+    /* Force headful execution in Mac OS b/175816469 */
+    if (SystemInfo.isMac) {
+      processBuilder.environment()["AWT_FORCE_HEADFUL"] = "true"
     }
     setAspectsAgentEnv(processBuilder)
     process = processBuilder.start()
@@ -108,12 +112,7 @@ object GuiTestLauncher {
     FileUtil.createTempFile("studio_uitests.vmoptions", "", true).apply {
       FileUtil.writeToFile(this, """${originalFile.readText()}
 -Didea.gui.test.port=$port
--Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}
--Didea.gui.test.remote.ide.path=${GuiTestOptions.getRemoteIdePath()}
--Didea.gui.test.running.on.release=true
--Didea.gui.test.from.standalone.runner=${GuiTestOptions.isStandaloneMode()}
--Didea.config.path=${GuiTests.getConfigDirPath()}
--Didea.system.path=${GuiTests.getSystemDirPath()}""" + if (GuiTestOptions.isDebug()) """
+-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}""" + if (GuiTestOptions.isDebug()) """
 -Didea.debug.mode=true
 -Xdebug
 -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}""" else "" )
@@ -168,8 +167,12 @@ object GuiTestLauncher {
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port"
     )
+    /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
+    if (SystemInfo.isMac) {
+      options += "-Dapple.laf.useScreenMenuBar=false"
+    }
     /* aspects agent options */
-    if (!SystemInfoRt.IS_AT_LEAST_JAVA9) {  // b/134524025
+    if (JavaVersion.current().feature < 9) {  // b/134524025
       options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
       options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
     }
@@ -177,10 +180,10 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
-      val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
-                            "bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
-      if (jvmtiAgent.exists()) {
-        options += "-agentpath:${jvmtiAgent.absolutePath}"
+      val jvmtiAgent =
+          getWorkspaceRoot().resolve("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+      if (Files.exists(jvmtiAgent)) {
+        options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
         options += "-Djava.library.path=${System.getProperty("java.library.path")}:${jvmtiAgent.parent}"
       } else {
@@ -193,14 +196,18 @@ object GuiTestLauncher {
       options += "-Xdebug"
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
+    /* options for tests with native libraries */
+    if (!options.contains("-Djava.library.path=")) {
+      options += "-Djava.library.path=${System.getProperty("java.library.path")}"
+    }
     if (TestUtils.runningFromBazel()) {
       if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
-        options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+        options += "-Didea.home.path=${resolveWorkspacePath("tools/idea").toFile()}"
       }
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
-      options += "-D${AndroidLocation.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
+      options += "-D${AbstractAndroidLocations.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
       options += "-Dresolve.descriptors.in.resources=true"
       options += "-Dstudio.dev.jdk=${getJdkPathForGradle()}"
@@ -209,7 +216,7 @@ object GuiTestLauncher {
   }
 
   private fun getJdkPathForGradle(): String? {
-    val jdk = File(getWorkspaceRoot(), "prebuilts/studio/jdk")
+    val jdk = File(getWorkspaceRoot().toFile(), "prebuilts/studio/jdk")
     if (jdk.exists()) {
       return File(jdk, "BUILD").toPath().toRealPath().toFile().getParentFile().absolutePath
     }
@@ -218,7 +225,7 @@ object GuiTestLauncher {
 
   private fun getCurrentJavaExec(): String {
     val homeDir = File(System.getProperty("java.home"))
-    val binDir = File(if (SystemInfoRt.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
+    val binDir = File(if (JavaVersion.current().feature >= 9) homeDir else homeDir.parentFile, "bin")
     val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }

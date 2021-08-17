@@ -33,7 +33,6 @@ import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -53,9 +52,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
@@ -90,7 +90,6 @@ import org.jetbrains.annotations.NotNull;
  *   <li>replacement {@link LookupElement}s for deprecated layout attributes
  *   <li>combinations of flag values to be used with attr's with {@code format="flags"}
  * </ul>
- *
  */
 public class AndroidXmlCompletionContributor extends CompletionContributor {
 
@@ -150,13 +149,24 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       final XmlAttribute attribute = (XmlAttribute)parent;
       final String namespace = attribute.getNamespace();
 
+      final XmlTag tag = attribute.getParent();
+      final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+
+      if (!(element instanceof AndroidDomElement)) {
+        return;
+      }
+
       // We want to show completion variants for designtime attributes only if "tools:" prefix
       // has already been typed
       if (SdkConstants.TOOLS_URI.equals(namespace)) {
         addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       }
-      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, parameters, resultSet);
-      customizeAddedAttributes(facet, parameters, attribute, resultSet);
+
+      addDataBindingAttributes(position, facet, attribute, resultSet, (AndroidDomElement)element);
+
+      if (element instanceof LayoutElement) {
+        addAndCustomizeAttributesForLayoutElement(facet, parameters, attribute, resultSet);
+      }
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
@@ -249,21 +259,12 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
   }
 
-  private static void customizeAddedAttributes(final AndroidFacet facet,
-                                               CompletionParameters parameters,
-                                               final XmlAttribute attribute,
-                                               final CompletionResultSet resultSet) {
-    final PsiElement gp = attribute.getParent();
+  private static void addAndCustomizeAttributesForLayoutElement(final AndroidFacet facet,
+                                                                CompletionParameters parameters,
+                                                                final XmlAttribute attribute,
+                                                                final CompletionResultSet resultSet) {
+    final XmlTag tag = attribute.getParent();
 
-    if (gp == null) {
-      return;
-    }
-    final XmlTag tag = (XmlTag)gp;
-    final DomElement element = DomManager.getDomManager(gp.getProject()).getDomElement(tag);
-
-    if (!(element instanceof LayoutElement)) {
-      return;
-    }
     final boolean localNameCompletion;
 
     if (attribute.getName().contains(":")) {
@@ -370,12 +371,11 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
   /**
    * Adds the XML attributes that come from {@code @BindingAdapter} annotations
    */
-  private static void addDataBindingAttributes(@NotNull String prefix,
-                                               @NotNull PsiElement position,
+  private static void addDataBindingAttributes(@NotNull PsiElement position,
                                                @NotNull AndroidFacet facet,
                                                @NotNull XmlAttribute attribute,
-                                               @NotNull CompletionParameters parameters,
-                                               @NotNull CompletionResultSet resultSet) {
+                                               @NotNull CompletionResultSet resultSet,
+                                               AndroidDomElement element) {
     PsiFile containingFile = attribute.getContainingFile();
     if (!(containingFile instanceof XmlFile) || !DataBindingDomFileDescription.hasDataBindingRootTag((XmlFile)containingFile)) {
       // Not a databinding XML layout
@@ -384,18 +384,16 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
 
     DataBindingAnnotationsService bindingAnnotationsService = DataBindingAnnotationsService.getInstance(facet);
     /*
-     * Avoid offering completion for already existing attributes. We only want to add those attributes that are only added via
+     * Avoid offering completion for already existing in attr.xml attributes. We only want to add those attributes that are only added via
      * @BindingAdapter.
      */
-    Set<String> alreadyDeclared = resultSet.runRemainingContributors(parameters, true).stream()
-      .map(CompletionResult::getLookupElement)
-      .map(LookupElement::getLookupString)
-      .collect(Collectors.toSet());
+    final LinkedHashSet<String> alreadyDeclared = new LinkedHashSet<>();
+    AttributeProcessingUtil.processAttributes(element, facet, true, (xmlName, attrDef, parentStyleableName) -> {
+      alreadyDeclared.add(xmlName.getLocalName());
+      return null;
+    });
 
     bindingAnnotationsService.getBindingAdapterAttributes().forEach((dataBindingAttribute) -> {
-      if (!prefix.isEmpty()) {
-        dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
-      }
       if (!alreadyDeclared.contains(dataBindingAttribute)) {
         resultSet.addElement(LookupElementBuilder.create(position, dataBindingAttribute)
                                .withInsertHandler(XmlAttributeInsertHandler.INSTANCE));

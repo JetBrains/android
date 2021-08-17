@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
@@ -20,7 +21,6 @@ import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,23 +81,13 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     return myInnerClasses;
   }
 
-  @Override
-  @Nullable
-  public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    for (PsiClass aClass : getInnerClasses()) {
-      if (name.equals(aClass.getName())) {
-        return aClass;
-      }
-    }
-    return null;
-  }
-
   private class MyInnerClass extends InnerRClassBase {
 
     private MyInnerClass(@NotNull ResourceType resourceType) {
       super(AndroidInternalRClass.this, resourceType);
     }
 
+    @Slow
     @Override
     @NotNull
     protected PsiField[] doGetFields() {
@@ -106,11 +96,11 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       if (repository == null) {
         return PsiField.EMPTY_ARRAY;
       }
-      return buildResourceFields(repository,
-                                 ResourceNamespace.ANDROID,
+      return buildResourceFields(repository, ResourceNamespace.ANDROID, null,
                                  FieldModifier.FINAL,
-                                 (type, s) -> true,
-                                 myResourceType, AndroidInternalRClass.this);
+                                 (resource) -> true,
+                                 myResourceType,
+                                 AndroidInternalRClass.this);
     }
 
     @Override

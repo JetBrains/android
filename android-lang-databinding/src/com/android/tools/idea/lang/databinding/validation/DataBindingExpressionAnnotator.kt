@@ -185,7 +185,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   private fun findAssignableTypeToBindingExpression(dbExpr: PsiElement, invertibleMethodNames: Set<String>): PsiModelClass? {
     val type = dbExpr.references.firstNotNullResult { (it as? ModelClassResolvable)?.resolvedType } ?: return null
     // Observable types can be assigned to its unwrapped directly.
-    if (type.isLiveData || type.isObservableField) {
+    if (type.isLiveData || type.isObservableField || type.isStateFlow) {
       return type.unwrapped
     }
     // Return dbExpr's resolved type when it can be resolved to setter, field or variable.

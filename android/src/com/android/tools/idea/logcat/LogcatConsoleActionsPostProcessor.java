@@ -21,6 +21,7 @@ import com.intellij.execution.actions.ConsoleActionsPostProcessor;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -104,7 +105,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
 
     // add logcat specific actions
-    actionList.add(0, new ClearLogCatAction(console));
+    actionList.add(0, AndroidLogConsole.registerAction(ActionManager.getInstance(), new ClearLogCatAction(console)));
 
     return actionList.toArray(AnAction.EMPTY_ARRAY);
   }

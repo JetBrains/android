@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import java.util.Objects;
@@ -39,30 +37,9 @@ final class NameGetter implements Function<ConnectedDevice, String> {
     assert device.isPhysicalDevice();
 
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      return "Physical Device";
+      return "Device";
     }
 
-    return getName(myProvider.get(Objects.requireNonNull(device.getDdmlibDevice())));
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static String getName(@NotNull DeviceNameProperties properties) {
-    String manufacturer = properties.getManufacturer();
-    String model = properties.getModel();
-
-    if (manufacturer == null && model == null) {
-      return "Physical Device";
-    }
-
-    if (manufacturer == null) {
-      return model;
-    }
-
-    if (model == null) {
-      return manufacturer + " Device";
-    }
-
-    return manufacturer + ' ' + model;
+    return myProvider.get(Objects.requireNonNull(device.getDdmlibDevice())).getName();
   }
 }

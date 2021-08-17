@@ -58,14 +58,31 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   private final ValidatorFactory myValidatorFactory;
   private final PsiDirectory myResDirectory;
   private final DataContext myDataContext;
+  private final boolean myForceDirectoryDoesNotExist;
 
+  /**
+   * A dialog to create a variant resource folder. It doesn't allow to create an existing folder and shows the alert message.
+   * @see #CreateResourceDirectoryDialog(Project, Module, ResourceFolderType, PsiDirectory, DataContext, ValidatorFactory, boolean)
+   */
   public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable Module module, @Nullable ResourceFolderType resType,
                                        @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
                                        @NotNull ValidatorFactory validatorFactory) {
+    this(project,module, resType, resDirectory, dataContext, validatorFactory, false);
+  }
+
+  /**
+   * A dialog to create a variant resource folder for the given resource type. The forceDirectoryDoesNotExist indicates if it can create
+   * existing directory (in that case, it does nothing and close the dialog.). When forceDirectoryDoesNotExist is false, it doesn't allow to
+   * create an existing folder and shows the alert message.
+   */
+  public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable Module module, @Nullable ResourceFolderType resType,
+                                       @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
+                                       @NotNull ValidatorFactory validatorFactory, boolean forceDirectoryDoesNotExist) {
     super(project);
     myResDirectory = resDirectory;
     myDataContext = dataContext;
     myValidatorFactory = validatorFactory;
+    myForceDirectoryDoesNotExist = forceDirectoryDoesNotExist;
     myResourceTypeComboBox.setModel(new EnumComboBoxModel<>(ResourceFolderType.class));
     myResourceTypeComboBox.setRenderer(SimpleListCellRenderer.create("", ResourceFolderType::getName));
 
@@ -102,7 +119,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
 
     PsiFileSystemItem subdirectory = directory.findSubdirectory(myDirectoryNameTextField.getText());
 
-    if (subdirectory != null) {
+    if (subdirectory != null && !myForceDirectoryDoesNotExist) {
       return new ValidationInfo(subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.");
     }
 

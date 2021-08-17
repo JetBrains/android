@@ -109,6 +109,7 @@
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
@@ -117,9 +118,19 @@
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module-library">
       <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha04" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha04/core-proto-0.0.8-alpha04.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
+    <orderEntry type="module-library">
+      <library name="libandroid-core-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -134,5 +145,36 @@
     <orderEntry type="library" scope="TEST" name="Velocity" level="project" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="CGLIB" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="libandroid-core-proto-test">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto-test.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-ide-customization" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-i18n" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="module-library">
+      <library name="libstudio.android-test-plugin-host-retention-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
+    <orderEntry type="module" module-name="utp" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
   </component>
 </module>

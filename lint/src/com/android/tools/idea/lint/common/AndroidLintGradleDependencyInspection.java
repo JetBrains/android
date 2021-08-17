@@ -16,63 +16,10 @@
  */
 package com.android.tools.idea.lint.common;
 
-import static com.android.tools.lint.checks.ConstraintLayoutDetector.LATEST_KNOWN_VERSION;
-
-import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.android.tools.lint.checks.GradleDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.psi.PsiElement;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDependencyInspection() {
     super(LintBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
-  }
-
-  public static void upgrade(@Nullable Module module) {
-    if (module != null) {
-      LintIdeSupport.get().updateToLatest(module, LATEST_KNOWN_VERSION);
-    }
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    Class<?> detector = LintFix.getData(fixData, Class.class);
-    if (Objects.equals(detector, ConstraintLayoutDetector.class)) {
-      // Is this an upgrade message from the ConstraintLayoutDetector instead?
-      return new LintIdeQuickFix[]{new UpgradeConstraintLayoutFix()};
-    }
-    return super.getQuickFixes(startElement, endElement, message, fixData);
-  }
-
-  public static class UpgradeConstraintLayoutFix implements LintIdeQuickFix {
-    @Override
-    public void apply(@NotNull PsiElement startElement,
-                      @NotNull PsiElement endElement,
-                      @NotNull AndroidQuickfixContexts.Context context) {
-      Module module = ModuleUtilCore.findModuleForPsiElement(startElement);
-      upgrade(module);
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull PsiElement startElement,
-                                @NotNull PsiElement endElement,
-                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return "Upgrade to recommended version";
-    }
   }
 }

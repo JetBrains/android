@@ -44,8 +44,8 @@ import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
 import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryDataSeries
-import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
@@ -74,7 +74,7 @@ class DataSeriesPerformanceTest {
 
   @Before
   fun setup() {
-    service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().absolutePath,
+    service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().toString(),
                                Consumer<Runnable> { ticker.run(it) }, FakeLogService())
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
@@ -175,7 +175,7 @@ class DataSeriesPerformanceTest {
     val liveAllocation: LiveAllocationCaptureObject
 
     init {
-      val stage = MemoryProfilerStage(profilers)
+      val stage = MainMemoryProfilerStage(profilers)
       liveAllocation = LiveAllocationCaptureObject(profilers.client, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }

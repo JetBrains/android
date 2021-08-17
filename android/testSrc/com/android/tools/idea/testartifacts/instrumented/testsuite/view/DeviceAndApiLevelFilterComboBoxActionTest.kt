@@ -68,9 +68,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   @Test
   fun createActionGroup() {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction().apply {
-      addDevice(AndroidDevice("id1", "Z-device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
-      addDevice(AndroidDevice("id2", "A-device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29)))
-      addDevice(AndroidDevice("id3", "B-device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+      addDevice(AndroidDevice("id1", "Z-device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
+      addDevice(AndroidDevice("id2", "A-device2", "A-device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29)))
+      addDevice(AndroidDevice("id3", "B-device3", "B-device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     }
 
     val actions = comboBox.createActionGroup().getChildren(null)
@@ -94,9 +94,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   fun filterDeviceByName() {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction()
     val filter = comboBox.filter
-    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
-    val device2 = AndroidDevice("id2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
-    val device3 = AndroidDevice("id3", "device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
+    val device1 = AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+    val device2 = AndroidDevice("id2", "device2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    val device3 = AndroidDevice("id3", "device3", "device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
 
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
@@ -117,9 +117,9 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   fun filterDeviceByApiLevel() {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction()
     val filter = comboBox.filter
-    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
-    val device2 = AndroidDevice("id2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
-    val device3 = AndroidDevice("id3", "device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
+    val device1 = AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+    val device2 = AndroidDevice("id2", "device2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    val device3 = AndroidDevice("id3", "device3", "device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
 
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
@@ -137,10 +137,41 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   }
 
   @Test
+  fun filterDeviceByApiLevelWithCodename() {
+    val comboBox = DeviceAndApiLevelFilterComboBoxAction()
+    val filter = comboBox.filter
+    val device1 = AndroidDevice("id1", "device1", "device1", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(30))
+    val device2 = AndroidDevice("id2", "device2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(30, "S"))
+
+    // Filter by API S
+    comboBox.addDevice(device1)
+    comboBox.addDevice(device2)
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API S" }.actionPerformed(TestActionEvent())
+
+    val actionEvent = TestActionEvent()
+    comboBox.update(actionEvent)
+
+    assertThat(actionEvent.presentation.text).isEqualTo("API S")
+    assertThat(actionEvent.presentation.icon).isNull()
+    assertThat(filter(device1)).isFalse()
+    assertThat(filter(device2)).isTrue()
+
+    // Filter by API 30
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 30" }.actionPerformed(TestActionEvent())
+    val secondActionEvent = TestActionEvent()
+    comboBox.update(secondActionEvent)
+
+    assertThat(secondActionEvent.presentation.text).isEqualTo("API 30")
+    assertThat(secondActionEvent.presentation.icon).isNull()
+    assertThat(filter(device1)).isTrue()
+    assertThat(filter(device2)).isFalse()
+  }
+
+  @Test
   fun listenerIsInvokedUponSelection() {
     val mockListener = mock<DeviceAndApiLevelFilterComboBoxActionListener>()
     val comboBox = DeviceAndApiLevelFilterComboBoxAction().apply {
-      addDevice(AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
+      addDevice(AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
       listener = mockListener
     }
     comboBox.createActionGroup().flattenedActions().first { it.templateText == "device1" }.actionPerformed(TestActionEvent())
@@ -151,7 +182,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   @Test
   fun selectorIsInvisibleWhenSingleDevice() {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction()
-    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+    val device1 = AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
 
     comboBox.addDevice(device1)
 
@@ -164,8 +195,8 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   @Test
   fun selectorIsVisibleWhenMultipleDevices() {
     val comboBox = DeviceAndApiLevelFilterComboBoxAction()
-    val device1 = AndroidDevice("id1", "device1", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
-    val device2 = AndroidDevice("id2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    val device1 = AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28))
+    val device2 = AndroidDevice("id2", "device2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
 
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)

@@ -1,6 +1,5 @@
 package org.jetbrains.android.augment;
 
-import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.base.MoreObjects;
@@ -67,7 +66,6 @@ import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
-  private static final boolean KOTLIN_PLUGIN_AVAILABLE = AndroidStudioKotlinPluginUtils.isKotlinPluginAvailable();
   private static final Key<Library> LIBRARY = Key.create(AndroidLightClassBase.class.getName() + ".LIBRARY");
 
   private final LightModifierList myPsiModifierList;
@@ -90,9 +88,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
     PsiFile containingFile = getContainingFile();
     if (containingFile != null) {
       containingFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
-      if (KOTLIN_PLUGIN_AVAILABLE) {
-        KotlinRegistrationHelper.setModuleInfo(containingFile, isTest);
-      }
+      KotlinRegistrationHelper.setModuleInfo(containingFile, isTest);
     }
   }
 
@@ -103,11 +99,9 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   protected void setModuleInfo(@NotNull Library library) {
     putUserData(LIBRARY, library);
 
-    if (KOTLIN_PLUGIN_AVAILABLE) {
-      PsiFile containingFile = getContainingFile();
-      if (containingFile != null) {
-        KotlinRegistrationHelper.setModuleInfo(containingFile, library);
-      }
+    PsiFile containingFile = getContainingFile();
+    if (containingFile != null) {
+      KotlinRegistrationHelper.setModuleInfo(containingFile, library);
     }
   }
 
@@ -116,11 +110,9 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
    * plugin knows how to handle this light class.
    */
   protected void setModuleInfo(@NotNull Sdk sdk) {
-    if (KOTLIN_PLUGIN_AVAILABLE) {
-      PsiFile containingFile = getContainingFile();
-      if (containingFile != null) {
-        KotlinRegistrationHelper.setModelInfo(containingFile, sdk);
-      }
+    PsiFile containingFile = getContainingFile();
+    if (containingFile != null) {
+      KotlinRegistrationHelper.setModelInfo(containingFile, sdk);
     }
   }
 
@@ -298,6 +290,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
 
   @Override
   public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
+    for (PsiClass aClass : getInnerClasses()) {
+      if (name.equals(aClass.getName())) {
+        return aClass;
+      }
+    }
     return null;
   }
 

@@ -29,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @State(name = "VisualizationTool", storages = @Storage("visualizationTool.xml"))
 public class VisualizationToolSettings implements PersistentStateComponent<VisualizationToolSettings.MyState> {
-  private static final ConfigurationSet DEFAULT_CONFIGURATION_SET = ConfigurationSet.PIXEL_DEVICES;
-
   private GlobalState myGlobalState = new GlobalState();
 
   public static VisualizationToolSettings getInstance() {
@@ -70,7 +68,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
     private boolean myFirstTimeOpen = true;
     private boolean myVisible = false;
     private boolean myShowDecoration = false;
-    @NotNull private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
+    @NotNull private String myConfigurationSetId = ConfigurationSetProvider.defaultSet.getId();
     @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
 
     public boolean isFirstTimeOpen() {
@@ -106,8 +104,8 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
      */
     @SuppressWarnings("unused") // Used by JavaBeans
     @NotNull
-    public String getConfigurationSetName() {
-      return myConfigurationSetName;
+    public String getConfigurationSetId() {
+      return myConfigurationSetId;
     }
 
     /**
@@ -115,8 +113,8 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
      * Do not use this function; For setting {@link ConfigurationSet}, use {@link #setConfigurationSet(ConfigurationSet)} instead.
      */
     @SuppressWarnings("unused") // Used by JavaBeans
-    public void setConfigurationSetName(@NotNull String configurationSetName) {
-      myConfigurationSetName = configurationSetName;
+    public void setConfigurationSetId(@NotNull String configurationSetId) {
+      myConfigurationSetId = configurationSetId;
     }
 
     @NotNull
@@ -135,19 +133,13 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
     @Transient
     @NotNull
     public ConfigurationSet getConfigurationSet() {
-      try {
-        ConfigurationSet set = ConfigurationSet.valueOf(myConfigurationSetName);
-        if (!set.getVisible()) {
-          set = DEFAULT_CONFIGURATION_SET;
-          myConfigurationSetName = DEFAULT_CONFIGURATION_SET.name();
-        }
-        return set;
-      }
-      catch (IllegalArgumentException e) {
+      ConfigurationSet set = ConfigurationSetProvider.getConfigurationById(myConfigurationSetId);
+      if (set == null || !set.getVisible()) {
         // The saved configuration set may be renamed or deleted, use default one instead.
-        myConfigurationSetName = DEFAULT_CONFIGURATION_SET.name();
-        return DEFAULT_CONFIGURATION_SET;
+        set = ConfigurationSetProvider.defaultSet;
+        myConfigurationSetId = ConfigurationSetProvider.defaultSet.getId();
       }
+      return set;
     }
 
     /**
@@ -155,7 +147,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
      */
     @Transient
     public void setConfigurationSet(@NotNull ConfigurationSet configurationSet) {
-      myConfigurationSetName = configurationSet.name();
+      myConfigurationSetId = configurationSet.getId();
     }
   }
 }

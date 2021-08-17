@@ -18,8 +18,7 @@ package com.android.tools.idea.compose.integration
 import ANDROIDX_SNAPSHOT_REPO_PATH
 import SIMPLE_COMPOSE_PROJECT_PATH
 import TEST_DATA_PATH
-import com.android.testutils.TestUtils
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.onEdt
@@ -50,7 +49,7 @@ class StudioComposeBuildCheck : GradleIntegrationTest {
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf(
-    TestUtils.getWorkspaceFile(ANDROIDX_SNAPSHOT_REPO_PATH)
+    resolveWorkspacePath(ANDROIDX_SNAPSHOT_REPO_PATH).toFile()
   )
 
 }

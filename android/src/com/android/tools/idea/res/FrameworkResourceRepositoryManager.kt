@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants.DOT_JAR
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
@@ -24,11 +25,11 @@ import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import org.jetbrains.annotations.TestOnly
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 
 /**
  * Application service for caching and reusing instances of [FrameworkResourceRepository].
@@ -43,26 +44,28 @@ class FrameworkResourceRepositoryManager {
   private val cache = ConcurrentHashMap<CacheKey, FrameworkResourceRepository>()
 
   /**
-   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The `languages` parameter
+   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The [languages] parameter
    * determines a subset of framework resources to be loaded. The returned repository is guaranteed to contain
    * resources for the given set of languages plus the language-neutral ones, but may contain resources for more
    * languages than was requested. The repository loads faster if the set of languages is smaller.
    *
    * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
    * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
-   * @param languages the set of ISO 639 language codes that the repository should contain. The returned repository may contain data for
-   *                  more languages.
+   * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository
+   *     may contain data for more languages.
+   * @return the repository of Android framework resources
    */
+  @Slow
   fun getFrameworkResources(
-    resourceDirectoryOrFile: File,
+    resourceDirectoryOrFile: Path,
     useCompiled9Patches: Boolean,
     languages: Set<String>
   ): FrameworkResourceRepository {
-    val path = resourceDirectoryOrFile.toPath()
+    val path = resourceDirectoryOrFile
     val cacheKey = CacheKey(path, useCompiled9Patches)
     val cachingData = createCachingData(path)
     val cached = cache.computeIfAbsent(cacheKey) {
-       FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
+      FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
     }
     if (languages.isEmpty()) {
       return cached
@@ -73,6 +76,28 @@ class FrameworkResourceRepositoryManager {
       cache[cacheKey] = repository
     }
     return repository
+  }
+
+  /**
+   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file, if it has been loaded
+   * already. The [languages] parameter determines a subset of framework resources the repository should contain.
+   * The returned repository, if not null, is guaranteed to contain resources for the given set of languages plus
+   * the language-neutral ones, but may contain resources for more languages than was requested.
+   *
+   * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
+   * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
+   * @param languages a set of ISO 639 language codes that the repository should contain. The returned repository
+   *     may contain data for more languages.
+   * @return the repository of Android framework resources, or null if not loaded yet
+   */
+  fun getCachedFrameworkResources(
+    resourceDirectoryOrFile: Path,
+    useCompiled9Patches: Boolean,
+    languages: Set<String>
+  ): FrameworkResourceRepository? {
+    val cacheKey = CacheKey(resourceDirectoryOrFile, useCompiled9Patches)
+    val repository = cache[cacheKey] ?: return null
+    return if (repository.containsLanguages(languages)) repository else null
   }
 
   private fun createCachingData(resFolderOrJar: Path): CachingData? {
@@ -88,10 +113,13 @@ class FrameworkResourceRepositoryManager {
     }
 
     val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
-    val prefix = resFolderOrJar.parent?.parent?.fileName.toString() ?: "framework"
+    val prefix = resFolderOrJar.parent?.parent?.fileName?.toString() ?: "framework"
     val filename = String.format("%s_%s.dat", prefix, pathHash)
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
-    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
+                   else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+    return CachingData(cacheFile, contentVersion, codeVersion, executor)
   }
 
   @TestOnly

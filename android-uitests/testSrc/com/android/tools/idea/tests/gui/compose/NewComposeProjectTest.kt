@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.util.WizardUtils
 import com.android.tools.idea.wizard.template.Language
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -51,8 +50,9 @@ class NewComposeProjectTest {
    * Test steps:
    * 1. Create new default "Empty Compose Activity" Project
    * Verify:
-   * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
+   * 1. Check that app/build.gradle has dependencies for "androidx.compose.ui:ui-framework" and "androidx.compose.ui:ui-tooling"
    * 2. Check that the main activity has functions annotated with @Composable and @Preview
+   * 3. Check Gradle Sync to success
    */
   @Test
   fun newComposeProject() {
@@ -61,11 +61,14 @@ class NewComposeProjectTest {
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
       assertThat(this).contains("implementation \"androidx.compose.material:material:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling-preview:")
+      assertThat(this).contains("debugImplementation \"androidx.compose.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
       assertThat(this).contains("@Preview")
     }
+
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish()
   }
 }

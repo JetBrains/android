@@ -13,18 +13,16 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.api.ext;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a property or variable declared or referenced by the ExtraPropertiesExtension
@@ -40,7 +38,7 @@ import java.util.Map;
  *   <li>{@link #toMap()}<li/>
  * <ul/>
  */
-public interface GradlePropertyModel extends PsiElementHolder {
+public interface GradlePropertyModel extends DeletablePsiElementHolder {
   @NotNull
   String DOUBLE_QUOTES = "\"";
 
@@ -73,22 +71,15 @@ public interface GradlePropertyModel extends PsiElementHolder {
   }
 
   // The following are TypeReferences used in calls to getValue and getRawValue.
-  TypeReference<String> STRING_TYPE = new TypeReference<>() {
-  };
-  TypeReference<Integer> INTEGER_TYPE = new TypeReference<>() {
-  };
-  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<>() {
-  };
-  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<>() {
-  };
-  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<>() {
-  };
-  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<>() {
-  };
-  TypeReference<Object> OBJECT_TYPE = new TypeReference<>() {
-  };
-  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<>() {
-  };
+  TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
+  TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
+  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<BigDecimal>() {};
+  TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
+  TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
+  TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
+  TypeReference<Object> OBJECT_TYPE = new TypeReference<Object>() {};
+  TypeReference<ReferenceTo> REFERENCE_TO_TYPE = new TypeReference<ReferenceTo>() {};
+  TypeReference<InterpolatedText> INTERPOLATED_TEXT_TYPE = new TypeReference<InterpolatedText>() {};
 
   /**
    * Represents the type of the value stored by this property, or when a type can't be found
@@ -106,6 +97,8 @@ public interface GradlePropertyModel extends PsiElementHolder {
    *   <li>{@code NONE} - This property currently has no value, any call to {@link #getValue(TypeReference)} will return null.</>
    *   <li>{@code UNKNOWN} - No guarantees about the type of this element can be made}</li>
    *   <li>{@code CUSTOM} - Returned by subclasses, they should provide an alternate method to get the value.</li>
+   *   <li>{@code INTERPOLATED} - This property is a quoted text with interpolations. Pass {@link #INTERPOLATED} to
+   *                              {@link #getValue(TypeReference)}</li>
    * </ul>
    */
   enum ValueType {
@@ -119,6 +112,7 @@ public interface GradlePropertyModel extends PsiElementHolder {
     NONE,
     UNKNOWN,
     CUSTOM,
+    INTERPOLATED
   }
 
   /**
@@ -186,7 +180,7 @@ public interface GradlePropertyModel extends PsiElementHolder {
 
   /**
    * Sets the value on this property to the given {@code value}.
-   * Note: Does not work for Maps, Lists and References. TODO: Fix this
+   * Note: Does not work for Maps, Lists and References. TODO(b/181748057): Fix this
    */
   void setValue(@NotNull Object value);
 
@@ -238,12 +232,6 @@ public interface GradlePropertyModel extends PsiElementHolder {
    */
   @Nullable
   GradlePropertyModel getListValue(@NotNull Object value);
-
-  /**
-   * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
-   * from the file. Any call to {@link #setValue(Object)} will recreate the property and add it back to the file.
-   */
-  void delete();
 
   /**
    * @return a resolved model representing this property.

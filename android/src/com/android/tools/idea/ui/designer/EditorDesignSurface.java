@@ -41,7 +41,7 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
    */
   @Deprecated
   @Nullable
-  public final Configuration getConfiguration() {
+  public Configuration getConfiguration() {
     return Iterables.getFirst(getConfigurations(), null);
   }
 

@@ -16,31 +16,24 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.swing.*;
-import org.jetbrains.annotations.NotNull;
 
 public class StateChartVisualTest extends VisualTest {
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.adb.wireless.UIColors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -28,7 +27,6 @@ import com.android.tools.idea.npw.project.TABLE_CELL_LEFT_PADDING
 import com.android.tools.idea.npw.project.TABLE_CELL_WIDTH
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -60,7 +58,6 @@ import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.SwingConstants
-import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep as DeprecatedChooseModuleTypeStep
 
 
 /**
@@ -228,12 +225,12 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
   val orderedNames = arrayOf(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.library"),
+    message("android.wizard.module.new.native.library"),
     message("android.wizard.module.new.dynamic.module"),
     message("android.wizard.module.new.dynamic.module.instant"),
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.tv"),
-    message("android.wizard.module.new.things"),
     message("android.wizard.module.import.gradle.title"),
     message("android.wizard.module.import.eclipse.title"),
     message("android.wizard.module.new.java.or.kotlin.library"),
@@ -247,12 +244,5 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
 
 fun showDefaultWizard(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) {
   val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
-  if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-    ChooseModuleTypeWizard(project, moduleParent, moduleDescriptions, projectSyncInvoker).show()
-    return
-  }
-
-  val chooseModuleTypeStep = DeprecatedChooseModuleTypeStep(project, moduleParent, moduleDescriptions, projectSyncInvoker)
-  val wizard = ModelWizard.Builder().addStep(chooseModuleTypeStep).build()
-  StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).build().show()
+  ChooseModuleTypeWizard(project, moduleParent, moduleDescriptions, projectSyncInvoker).show()
 }

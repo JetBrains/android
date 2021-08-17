@@ -1,0 +1,9 @@
+android {
+  packagingOptions {
+    resources {
+      excludes += ['foo']
+      pickFirsts += ['bar', 'baz']
+      merges += ['a', 'b', 'c']
+    }
+  }
+}

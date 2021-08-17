@@ -26,6 +26,9 @@ import org.junit.Test
 class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
   fun measureMemoryOfImportATrace() {
-    loadCaptureAndReport("Atrace-10-sec", CpuProfilerTestUtils.getTraceFile("performance/atrace_10s_tanks.trace"))
+    loadCaptureAndReport(
+      "Atrace-10-sec",
+      CpuProfilerTestUtils.getTraceFile("performance/atrace_10s_tanks.trace"),
+      "com.google.android.tanks", 7366)
   }
 }

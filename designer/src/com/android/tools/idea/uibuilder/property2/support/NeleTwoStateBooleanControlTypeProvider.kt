@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EnumSupportProvider
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-class NeleTwoStateBooleanControlTypeProvider(enumSupportProvider: EnumSupportProvider<NelePropertyItem>)
-  : NeleControlTypeProvider(enumSupportProvider) {
+class NlTwoStateBooleanControlTypeProvider(enumSupportProvider: EnumSupportProvider<NlPropertyItem>)
+  : NlControlTypeProvider(enumSupportProvider) {
 
-  override fun invoke(actual: NelePropertyItem): ControlType {
+  override fun invoke(actual: NlPropertyItem): ControlType {
     val type = super.invoke(actual)
     return if (type != ControlType.THREE_STATE_BOOLEAN) type else ControlType.BOOLEAN
   }

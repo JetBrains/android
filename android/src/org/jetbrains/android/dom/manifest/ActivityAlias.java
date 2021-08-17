@@ -51,4 +51,6 @@ public interface ActivityAlias extends ManifestElementWithRequiredName {
   IntentFilter addIntentFilter();
 
   List<MetaData> getMetaDatas();
+
+  List<Property> getProperties();
 }

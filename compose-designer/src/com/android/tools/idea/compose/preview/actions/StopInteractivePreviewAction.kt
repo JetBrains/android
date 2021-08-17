@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 /**
- * Action to stop the interactive preview. Only visible when it's already running and if the preview is not
+ * Action to stop the interactive preview (including animation inspection). Only visible when it's already running and if the preview is not
  * refreshing.
  */
 class StopInteractivePreviewAction: AnActionButton(message("action.stop.interactive.title"),
@@ -32,13 +34,22 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    e.presentation.isEnabled = true
+    e.presentation.isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
+      // The action should be disabled when refreshing.
+      !it.status().isRefreshing &&
+      (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY ||
+       StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null)
+    }
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY
+      it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED ||
+      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.setInteractivePreviewElementInstance(null) }
+    findComposePreviewManagersForContext(e.dataContext).forEach {
+      it.interactivePreviewElementInstance = null
+      it.animationInspectionPreviewElementInstance = null
+    }
   }
 }

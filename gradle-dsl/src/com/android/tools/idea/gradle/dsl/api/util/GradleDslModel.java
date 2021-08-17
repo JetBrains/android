@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ import java.util.Map;
  * Interface for common functionality for the Dsl models. This interface will be implemented by
  * the model classes as needed.
  */
-public interface GradleDslModel extends PsiElementHolder {
+public interface GradleDslModel extends DeletablePsiElementHolder {
   /**
    * @return a map containing all of the GradlePropertyModels that are in scope in this model. Note: for block
    * elements this method should include all of the containing properties.

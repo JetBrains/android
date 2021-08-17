@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import org.fest.swing.timing.Wait
 
-internal fun prepareAdbInstall(adb: File, vararg apkFiles: File) =
-  ProcessBuilder(listOf(adb.absolutePath, "install-multiple", "-t", "-r", "--ephemeral") + apkFiles.map { it.absolutePath })
+internal fun prepareAdbInstall(adbPath: String, vararg apkFiles: File) =
+  ProcessBuilder(listOf(adbPath, "install-multiple", "-t", "-r", "--ephemeral") + apkFiles.map { it.absolutePath })
 
 internal fun waitForAppInstalled(device: IDevice, appId: String) {
   val exec = Executors.newSingleThreadExecutor()
@@ -53,8 +53,8 @@ internal fun waitForAppInstalled(device: IDevice, appId: String) {
 }
 
 // Intent.FLAG_ACTIVITY_MATCH_EXTERNAL is required to launch in P+; ignored in pre-O.
-internal fun prepareAdbInstantAppLaunchIntent(adb: File) = ProcessBuilder(
-  listOf(adb.absolutePath, "shell", "am", "start", "-f", "0x00000800", "-n", "com.google.samples.apps.topeka/.activity.SignInActivity"))
+internal fun prepareAdbInstantAppLaunchIntent(adbPath: String) = ProcessBuilder(
+  listOf(adbPath, "shell", "am", "start", "-f", "0x00000800", "-n", "com.google.samples.apps.topeka/.activity.SignInActivity"))
 
 internal fun isActivityWindowOnTop(dev: IDevice, activityComponentName: String): Boolean {
   val expectedComp = Component.fromString(activityComponentName)

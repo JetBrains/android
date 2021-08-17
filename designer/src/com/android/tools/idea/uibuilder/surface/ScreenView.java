@@ -55,18 +55,26 @@ public class ScreenView extends ScreenViewBase {
      * @param outDimension A {@link Dimension} to return the size.
      */
     void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension);
+
+    /**
+     * Called by the {@link ScreenView} when it needs to check the content size.
+     * @return true if content size is determined.
+     */
+    default boolean hasContentSize(@NotNull ScreenView screenView) {
+      RenderResult result = screenView.getSceneManager().getRenderResult();
+      return result != null && !isErrorResult(result);
+    }
   }
 
   /**
    * {@link ContentSizePolicy} that uses the device configuration size.
    */
-  public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = new ContentSizePolicy() {
-    @Override
-    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
-      Configuration configuration = screenView.getConfiguration();
-      Device device = configuration.getCachedDevice();
+  public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = (screenView, outDimension) -> {
+    Configuration configuration = screenView.getConfiguration();
+    Device device = configuration.getCachedDevice();
+    if (device != null) {
       State state = configuration.getDeviceState();
-      if (device != null && state != null) {
+      if (state != null) {
         HardwareConfig config =
           new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
@@ -104,7 +112,7 @@ public class ScreenView extends ScreenViewBase {
             cachedDimension.setSize(outDimension);
           }
           return;
-        } catch (AssertionError e) {
+        } catch (AssertionError ignored) {
         }
       }
 
@@ -348,9 +356,8 @@ public class ScreenView extends ScreenViewBase {
   }
 
   @Override
-  public boolean hasContent() {
-    RenderResult result = getSceneManager().getRenderResult();
-    return result != null && !isErrorResult(result);
+  public boolean hasContentSize() {
+    return myContentSizePolicy.hasContentSize(this);
   }
 
   @Override

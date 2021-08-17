@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
+import com.android.tools.mlkit.TfliteModelException;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
@@ -61,10 +62,13 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
           ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(bytes));
           return ImmutableMap.of(modelFile.getUrl(), new MlModelMetadata(modelFile.getUrl(), modelInfo));
         }
+        catch (TfliteModelException e) {
+          Logger.getInstance(MlModelFileIndex.class).warn("Failed to index " + modelFile.getUrl());
+        }
         catch (Exception e) {
           Logger.getInstance(MlModelFileIndex.class).warn("Failed to index " + modelFile.getUrl(), e);
-          return Collections.emptyMap();
         }
+        return Collections.emptyMap();
       }
     };
   }

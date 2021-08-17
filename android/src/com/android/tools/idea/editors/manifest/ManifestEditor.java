@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.utils.concurrency.AsyncSupplier;
@@ -34,19 +34,21 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeAdapter;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.awt.BorderLayout;
+import java.beans.PropertyChangeListener;
 import java.util.concurrent.ExecutionException;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.beans.PropertyChangeListener;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   private volatile boolean showingStaleManifest;

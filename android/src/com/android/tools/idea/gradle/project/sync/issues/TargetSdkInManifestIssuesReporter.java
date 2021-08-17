@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.ide.common.gradle.model.IdeSyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST;
 import static com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty.TARGET;
 
 public class TargetSdkInManifestIssuesReporter extends SdkInManifestIssuesReporter {

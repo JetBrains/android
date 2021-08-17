@@ -35,6 +35,8 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.updatePrimaryManifest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
@@ -55,6 +57,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
+import org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -76,6 +79,52 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
     // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
     return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
+  }
+
+  companion object {
+    val JAVA_RESOURCES_FILE =
+      // language=Java
+      """
+        package p1.p2;
+
+        class RClassAndroidTest {
+            public static void useResources() {
+                // Both main R class references will contain all innner R class types, and all fields in completion
+                int a = com.example.mylib.R.string.;
+                int b = p1.p2.R.string.;
+                int c = R.string.anotherLib;
+                int d = Nothing.Inner.number;
+            }
+        }
+        public class Nothing() {
+            static class Inner() {
+                public static int number = 0;
+            }
+        }""".trimIndent()
+
+    val KOTLIN_RESOURCE_FILE =
+      // language=kotlin
+      """
+        package p1.p2
+
+        class RClassAndroidTest {
+            fun useResources() {
+                listOf(
+                    // Both main R class references will contain all innner R class types, and all fields in completion
+                    com.example.mylib.R.string.,
+                    p1.p2.R.string.,
+                    R.string.anotherLib,
+                    Nothing.Inner.number
+                )
+            }
+        }
+        class Nothing() {
+            class Inner() {
+                companion object {
+                    val number = 0
+                }
+            }
+        }""".trimIndent()
   }
 
   open class SingleModule : LightClassesTestBase() {
@@ -592,6 +641,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """
         <resources>
           <string name="appString">Hello from app</string>
+          <string name="app.String">Hello from app</string>
           <string name="anotherAppString">Hello from app</string>
           <id name="basicID"/>
         </resources>
@@ -614,10 +664,88 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """
         <resources>
           <string name="libString">Hello from app</string>
+          <string name="lib.String">Hello from app</string>
+          <string name="lib.String_Foo">Hello from app</string>
+          <string name="lib.String.Bar">Hello from app</string>
           <string name="anotherLibString">Hello from app</string>
         </resources>
         """.trimIndent()
       )
+    }
+
+    /**
+     *  Regression test for b/191952219.
+     */
+    fun testKotlinFlattenedResources() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                R.string.appString
+                R.string.app_String
+                R.string.libString
+                com.example.mylib.R.string.libString
+                R.string.lib_String
+                com.example.mylib.R.string.lib_String
+                R.string.lib_String_Bar
+                com.example.mylib.R.string.<caret>lib_String_Bar
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+
+      myFixture.completeBasic()
+      val lookupStrings = myFixture.lookupElementStrings
+      assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
+    }
+
+    /**
+     *  Regression test for b/191952219. In Java, fully qualified resources did not resolve from library modules.
+     */
+    fun testJavaFlattenedResources() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int a = R.string.appString;
+                a = R.string.app_String;
+                a = R.string.libString;
+                a = com.example.mylib.R.string.libString;
+                a = R.string.lib_String;
+                a = com.example.mylib.R.string.lib_String;
+                a = R.string.lib_String_Bar;
+                a = com.example.mylib.R.string.<caret>lib_String_Bar;
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+
+      myFixture.completeBasic()
+      val lookupStrings = myFixture.lookupElementStrings
+      assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
     }
 
     /**
@@ -626,32 +754,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     fun testNonTransitiveKotlinCompletion() {
       (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
 
-      val androidTest = createFile(
-        project.guessProjectDir()!!,
-        "/src/p1/p2/RClassAndroidTest.kt",
-        // language=kotlin
-        """
-        package p1.p2
-
-        class RClassAndroidTest {
-            fun useResources() {
-                listOf(
-                    // Both main R class references will contain all innner R class types, and all fields in completion
-                    com.example.mylib.R.string.,
-                    p1.p2.R.string.,
-                    R.string.anotherLib,
-                    Nothing.Inner.number
-                )
-            }
-        }
-        class Nothing() {
-            class Inner() {
-                companion object {
-                    val number = 0
-                }
-            }
-        }""".trimIndent()
-      )
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.kt", KOTLIN_RESOURCE_FILE)
 
       myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -675,7 +778,12 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.moveCaret("R.string.|anotherLib,")
       myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+      assertThat(myFixture.lookupElements!!.map { it.toPresentableText() })
+        .containsAllIn(arrayOf(
+          "anotherLibString  (com.example.mylib) Int",
+          "libString  (com.example.mylib) Int",
+          "anotherAppString null Int",
+          "appString null Int"))
 
       // Check insert handler works correctly
       myFixture.moveCaret("R.string.anotherLib|,")
@@ -774,6 +882,159 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         }""".trimIndent(), true)
     }
 
+    /**
+     * Testing completion elements provided via [AndroidNonTransitiveRClassJavaCompletionContributor]
+     */
+
+    fun testNonTransitiveJavaCompletionWithPrefix() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      // R class references with package prefix only get resources in original R class
+      myFixture.moveCaret("p1.p2.R.string.|;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
+
+      myFixture.moveCaret("p1.p2.R.|string.;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
+    }
+
+    fun testNonTransitiveJavaCompletionLibraryResources() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      // Check that the lib class reference only contains library resources
+      myFixture.moveCaret("com.example.mylib.R.string.|;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
+    }
+
+    fun testNonTransitiveJavaCompletionExtraElements() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      myFixture.moveCaret("R.string.|anotherLib;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElements!!.map { it.toPresentableText() })
+        .containsAllIn(arrayOf("anotherLibString  (com.example.mylib) Int", "libString  (com.example.mylib) Int"))
+      assertThat(myFixture.lookupElementStrings)
+        .containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+    }
+
+    fun testNonTransitiveJavaCompletionInsertHandler() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      // Check insert handler works correctly
+      myFixture.moveCaret("R.string.anotherLib|;")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("p1.p2.R.string.|;")
+      myFixture.type("anotherApp")
+      myFixture.completeBasic()
+
+      myFixture.checkResult(
+        "/src/p1/p2/RClassAndroidTest.java",
+        // language=Java
+        """
+          package p1.p2;
+
+          class RClassAndroidTest {
+              public static void useResources() {
+                  // Both main R class references will contain all innner R class types, and all fields in completion
+                  int a = com.example.mylib.R.string.;
+                  int b = R.string.anotherAppString;
+                  int c = com.example.mylib.R.string.anotherLibString;
+                  int d = Nothing.Inner.number;
+              }
+          }
+          public class Nothing() {
+              static class Inner() {
+                  public static int number = 0;
+              }
+          }
+        """.trimIndent(), true)
+
+
+    }
+
+    fun testNonTransitiveJavaCompletionDifferentPackage() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      // Test for same module, different package
+      val otherPackage = createFile(
+        project.guessProjectDir()!!,
+        "/src/p3/p4/RClassAndroidTest.java",
+        // language=Java
+        """
+        package p3.p4;
+
+        import com.example.mylib.R;
+
+        class RClassAndroidTest {
+            public static void foo() {
+                int a = R.string.;
+                int b = p1.p2.R.string.;
+                int c = R.string.anotherApp;
+                int d = 0;
+            }
+        }""".trimIndent())
+      myFixture.configureFromExistingVirtualFile(otherPackage)
+
+      // R class references with package prefix only get resources in original R class
+      myFixture.moveCaret("R.string.|;")
+      myFixture.completeBasic()
+      myFixture.type("anotherLib")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("p1.p2.R.string.|;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
+      myFixture.type("anotherApp")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("R.string.|anotherApp;")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+
+      myFixture.moveCaret("R.string.anotherApp|;")
+      myFixture.completeBasic()
+
+      myFixture.checkResult(
+        "/src/p3/p4/RClassAndroidTest.java",
+        // language=Java
+        """
+        package p3.p4;
+
+        import com.example.mylib.R;
+
+        class RClassAndroidTest {
+            public static void foo() {
+                int a = R.string.anotherLibString;
+                int b = p1.p2.R.string.anotherAppString;
+                int c = p1.p2.R.string.anotherAppString;
+                int d = 0;
+            }
+        }""".trimIndent(), true)
+    }
+
     fun testNonTransitive() {
       (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
 
@@ -801,11 +1062,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.moveCaret("(R.string.|libString")
       myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
+      assertThat(myFixture.lookupElementStrings).containsAllOf("appString", "anotherAppString", "class")
 
       myFixture.moveCaret("mylib.R.string.|libString")
       myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
+      assertThat(myFixture.lookupElementStrings).containsAllOf("libString", "anotherLibString", "class")
     }
 
     fun testNonFinalResourceIds() {
@@ -1553,7 +1814,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     modifyGradleFiles(projectRoot)
-    importProject(null)
+    importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
   }
@@ -1608,10 +1869,14 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
     File(projectRoot, "gradle.properties").appendText("android.nonTransitiveRClass=true")
     requestSyncAndWait()
 
-    // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is not present.
+    // Verifies that the AndroidResolveScopeEnlarger cache has been updated, support_simple_spinner_dropdown_item is present but only as
+    // part of a NonTransitiveResourceFieldLookupElement, with a package name.
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly("activity_main", "fragment_foo", "fragment_main",
-                                                               "fragment_navigation_drawer", "class")
+    assertThat(myFixture.lookupElements!!.firstOrNull {
+      it.toPresentableText() == "support_simple_spinner_dropdown_item  (android.support.v7.appcompat) Int"
+    }).isNotNull()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("activity_main", "fragment_foo",
+                                                             "fragment_main", "fragment_navigation_drawer", "class")
   }
 }
 
@@ -1932,12 +2197,12 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
 
     AndroidProjectRootListener.ensureSubscribed(project)
     assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
-                 .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
+                 .getResources(RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
     generateSources()
 
     assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
-                 .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
+                 .getResources(RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
 
     myFixture.openFileInEditor(
       project.guessProjectDir()!!
@@ -1949,4 +2214,17 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly("sample_raw_resource", "class")
   }
+}
+
+/**
+ * The default lookup string from CodeInsightTestFixture, only includes the item text, and not other aspects of the lookup element such
+ * as tail text and type text. We want to verify certain aspects are present in the lookup elements.
+ *
+ * Be careful using this on Java elements such as resource fields, as the int constant value in the tail text is not always the same on
+ * repeated test runs.
+ */
+private fun LookupElement.toPresentableText(): String {
+  val presentation = LookupElementPresentation()
+  renderElement(presentation)
+  return "${presentation.itemText} ${presentation.tailText} ${presentation.typeText}"
 }

@@ -22,7 +22,6 @@ import com.android.SdkConstants.DOT_AAR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.util.toPathString
-import com.android.projectmodel.SelectiveResourceFolder
 import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
@@ -119,7 +118,8 @@ private fun createZipEntry(name: String, content: ByteArray, zip: ZipOutputStrea
 fun getTestAarRepositoryWithResourceFolders(libraryDirName: String, vararg resources: String): AarSourceResourceRepository {
   val root = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", EXPLODED_AAR, libraryDirName, "res").toPathString()
   return AarSourceResourceRepository.create(
-    SelectiveResourceFolder(root, resources.map { resource -> root.resolve(resource) }),
+    root,
+    resources.map { resource -> root.resolve(resource) },
     AAR_LIBRARY_NAME,
     null
   )
@@ -183,7 +183,7 @@ private fun createAndroidManifest(dir: File, packageName: String) {
  * Adds a library dependency to the given module and runs the given function to add resources to it.
  *
  * [ResourceRepositoryManager] will find the newly added library and create a separate repository for it when
- * [ResourceRepositoryManager.getExistingAppResources] is called.
+ * [ResourceRepositoryManager.getCachedAppResources] is called.
  *
  * @param module module to add the dependency to.
  * @param libraryName name of the newly created [LibraryOrderEntry].
@@ -245,9 +245,12 @@ fun addBinaryAarDependency(module: Module) {
 }
 
 /**
- * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
+ * Exposes the package-private method [LocalResourceRepository.isScanPending] for usage in tests.
  */
-fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)
+fun LocalResourceRepository.isScanPending(psiFile: PsiFile): Boolean {
+  val file = psiFile.virtualFile ?: return false
+  return isScanPending(file)
+}
 
 fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
@@ -261,7 +264,7 @@ fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: 
   var found: ResourceItem? = null
   for (item in list) {
     if (filter.test(item)) {
-      assertThat(found).isNull();
+      assertThat(found).isNull()
       found = item
     }
   }

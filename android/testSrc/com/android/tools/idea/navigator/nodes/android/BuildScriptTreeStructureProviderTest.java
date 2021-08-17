@@ -16,7 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
-import static org.gradle.internal.impldep.org.testng.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;

@@ -5,11 +5,12 @@ import com.intellij.analysis.AnalysisScope
 import com.intellij.javadoc.JavadocGenerationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.WaitFor
-import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class JavadocGenerationManagerTest {
   @get:Rule
@@ -46,11 +47,19 @@ class JavadocGenerationManagerTest {
 
     // The Javadoc is generated in the background by the javadoc command line. Wait until it gets generated.
     // Verify that there is an output.
-    val waitFor = object : WaitFor(TimeUnit.SECONDS.toMillis(10).toInt()) {
-      override fun condition(): Boolean =
-        outputDirectory.list()?.isNotEmpty() ?: false
+    val latch = CountDownLatch(1)
+    val thread = thread(start = true) {
+      repeat(10) {
+        if (outputDirectory.list()?.isNotEmpty() == true) {
+          latch.countDown()
+          return@thread
+        }
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+      }
     }
-    waitFor.join()
-    assertTrue("Output directory does not contain any output", waitFor.isConditionRealized)
+    if (!latch.await(10, TimeUnit.SECONDS)) {
+      fail("Output directory does not contain any output")
+    }
+    thread.interrupt()
   }
 }

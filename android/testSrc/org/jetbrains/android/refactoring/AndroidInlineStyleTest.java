@@ -3,7 +3,6 @@ package org.jetbrains.android.refactoring;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -83,19 +82,8 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     doTestErrorMessageShown(true, true, true);
   }
 
-  public void test14() {
-    // Having the same resource name as in a library is no longer a conflict
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
-    final String libStylesPath = getAdditionalModulePath("lib") + "/res/values/styles.xml";
-    final String stylesLocalPath = BASE_PATH + getTestName(true) + "_styles.xml";
-    myFixture.copyFileToProject(stylesLocalPath, libStylesPath);
-    doTestErrorMessageShown(true, true, true);
-    myFixture.checkResultByFile(libStylesPath, stylesLocalPath, true);
-  }
-
   public void test15() {
     // Having the same resource name as in a library is no longer a conflict
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
     final String libModuleDir = getAdditionalModulePath("lib");
     final String libStylesPath = libModuleDir + "/res/values/styles.xml";
     final String appStylePath = "/res/values/styles.xml";
@@ -107,9 +95,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject(stylesLocalPath, appStylePath);
     myFixture.copyFileToProject(appLayoutLocalPath, appLayoutPath);
 
-    final MultiMap<PsiElement,String> conflicts = performAction(false, libModuleDir + "/res/layout").getSecond().getConflicts();
-    assertEquals(1, conflicts.keySet().size());
-    assertEquals(1, conflicts.values().size());
+    performAction(false, libModuleDir + "/res/layout");
 
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
     myFixture.checkResultByFile(libStylesPath, BASE_PATH + getTestName(true) + "_styles_after.xml", true);
@@ -282,11 +268,6 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
 
   public void test29() {
     doTestCommonInlineInValues(false);
-  }
-
-  public void test30() {
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
-    doTestCommonInlineConflicts();
   }
 
   public void test31() {

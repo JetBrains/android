@@ -23,7 +23,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -40,23 +39,19 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
+import com.android.tools.idea.run.tasks.StartLiveLiteralMonitoringTask;
 import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -172,11 +167,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
-    ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
-    for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
-      packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
-    }
-    Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
+    List<ApkInfo> packages = myApkProvider.getApks(device).stream()
+      .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
+      .collect(Collectors.toList());
     switch (getDeployType()) {
       case RUN_INSTANT_APP:
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
@@ -187,27 +180,30 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       case APPLY_CHANGES:
         tasks.add(new ApplyChangesTask(
           myProject,
-          packages.build(),
+          packages,
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
           myProject,
-          packages.build(),
+          packages,
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         break;
       case DEPLOY:
         tasks.add(new DeployTask(
           myProject,
-          packages.build(),
+          packages,
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
@@ -235,14 +231,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @NotNull
-  private static List<File> getFilteredFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
+  private static ApkInfo filterDisabledFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
     if (apkInfo.getFiles().size() > 1) {
-      return apkInfo.getFiles().stream()
+      List<ApkFileUnit> filtered = apkInfo.getFiles().stream()
         .filter(feature -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature))
-        .map(file -> file.getApkFile())
         .collect(Collectors.toList());
+      return new ApkInfo(filtered, apkInfo.getApplicationId());
     } else {
-      return ImmutableList.of(apkInfo.getFile());
+      return apkInfo;
     }
   }
 
@@ -253,28 +249,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return null;
     }
     Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
-
-    Set<String> packageIds = new HashSet<String>();
-    String packageName = null;
-    try {
-      packageName = myApplicationIdProvider.getPackageName();
-      packageIds.add(packageName);
-    }
-    catch (ApkProvisionException e) {
-      logger.error(e);
-    }
-
-    try {
-      String testPackageName = myApplicationIdProvider.getTestPackageName();
-      if (testPackageName != null) {
-        packageIds.add(testPackageName);
-      }
-    }
-    catch (ApkProvisionException e) {
-      // not as severe as failing to obtain package id for main application
-      logger
-        .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
-    }
 
     AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
     AndroidDebugger debugger = androidDebuggerContext.getAndroidDebugger();
@@ -289,11 +263,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv,
                                              version,
-                                             packageIds,
+                                             myApplicationIdProvider,
                                              myFacet,
                                              androidDebuggerState,
-                                             myRunConfig.getType().getId(),
-                                             packageName);
+                                             myRunConfig.getType().getId());
     }
 
     return null;

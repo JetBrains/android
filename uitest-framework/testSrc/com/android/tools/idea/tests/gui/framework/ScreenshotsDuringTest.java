@@ -16,7 +16,9 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.util.io.FileUtilRt;
-import org.fest.swing.image.ScreenshotTaker;
+import java.util.function.Supplier;
+import org.fest.swing.core.Robot;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -29,16 +31,16 @@ import java.util.concurrent.TimeUnit;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 /**
- * Rule that takes a screenshot every second.
+ * Rule that takes a screenshot at certain intervals (default 100ms)
  */
 public class ScreenshotsDuringTest extends TestWatcher {
-  private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
-  private final ScheduledExecutorService myExecutorService;
+  private final @NotNull Supplier<Robot> myRobotSupplier;
+  private final @NotNull ScheduledExecutorService myExecutorService;
   private final int myPeriod;
   private File myFolder;
 
-  public ScreenshotsDuringTest() {
-    this(100);
+  public ScreenshotsDuringTest(@NotNull Supplier<Robot> robotSupplier) {
+    this(robotSupplier, 100);
   }
 
   /**
@@ -48,7 +50,8 @@ public class ScreenshotsDuringTest extends TestWatcher {
    *
    * @param period time to wait between screenshots in milliseconds
    */
-  public ScreenshotsDuringTest(int period) {
+  public ScreenshotsDuringTest(@NotNull Supplier<Robot> robotSupplier, int period) {
+    myRobotSupplier = robotSupplier;
     myPeriod = period;
     myExecutorService = Executors.newScheduledThreadPool(1);
   }
@@ -63,9 +66,11 @@ public class ScreenshotsDuringTest extends TestWatcher {
     catch (IOException e) {
       System.out.println("Could not create folder " + folderName);
     }
+
+    ScreenshotTaker screenshotTaker = new ScreenshotTaker(myRobotSupplier.get());
     myExecutorService.scheduleAtFixedRate(() -> {
       try {
-        myScreenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
+        screenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
       }
       catch (Throwable e) {
         // Do nothing

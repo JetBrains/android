@@ -147,7 +147,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   private Section getSdkFolderSection() {
     File location = getSdkDirectory();
 
-    String text = SdkLocationUtils.isWritable(FileOpUtils.create(), location)
+    String text = SdkLocationUtils.isWritable(location.toPath())
                   ? location.getAbsolutePath()
                   : location.getAbsolutePath() + " (read-only)";
 

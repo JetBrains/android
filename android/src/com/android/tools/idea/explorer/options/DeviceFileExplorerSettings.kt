@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.explorer.options
 
-import com.google.common.base.Strings
+import com.android.tools.idea.io.IdeFileService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.xmlb.XmlSerializerUtil
-import java.nio.file.Paths
-import javax.swing.filechooser.FileSystemView
 
 /**
  * Persistent Device File Explorer settings
@@ -49,20 +45,5 @@ class DeviceFileExplorerSettings : PersistentStateComponent<DeviceFileExplorerSe
   }
 
   /** Get default path for Device File Explorer downloaded files, originally in DeviceExplorerFileManagerImpl */
-  private fun getDefaultDownloadLocation(): String {
-    val userHome: String = System.getProperty("user.home")
-    var path: String? = null
-
-    when {
-      SystemInfo.isWindows -> path = FileSystemView.getFileSystemView().defaultDirectory.path
-      SystemInfo.isMac -> path = FileUtil.join(userHome, "Documents")
-      SystemInfo.isLinux -> path = userHome
-    }
-
-    if (Strings.isNullOrEmpty(path)) {
-      throw RuntimeException("Platform is not supported")
-    }
-
-    return Paths.get(path, "AndroidStudio", "DeviceExplorer").toString()
-  }
+  private fun getDefaultDownloadLocation(): String = IdeFileService("device-explorer").cacheRoot.toString()
 }

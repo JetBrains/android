@@ -35,7 +35,7 @@ class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintIn
   }
 
   private fun generateMotionSceneFix(fixData: LintFix?): Array<LintIdeQuickFix>? {
-    val urlString = LintFix.getData(fixData, String::class.java) ?: return null
+    val urlString = LintFix.getString(fixData, MotionLayoutDetector.KEY_URL, null) ?: return null
     val url = ResourceUrl.parse(urlString) ?: return null
     return arrayOf(GenerateMotionSceneFix(url))
   }

@@ -35,15 +35,15 @@ def generate_searchable_options(work_dir, out_dir):
     for info in zip_file.infolist():
       extract_file(zip_file, info, work_dir)
 
-  properties_file = "%s/studio.properties" % work_dir
-  with open(properties_file, "w") as props:
+  vmoptions_file = "%s/studio.vmoptions" % work_dir
+  with open(vmoptions_file, "w") as props:
     props.writelines([
-        "idea.config.path=%s/config\n" % work_dir,
-        "idea.system.path=%s/system\n" % work_dir,
-        "user.home=%s/home\n" % work_dir])
+        "-Didea.config.path=%s/config\n" % work_dir,
+        "-Didea.system.path=%s/system\n" % work_dir,
+        "-Duser.home=%s/home\n" % work_dir])
 
   env = {
-      "STUDIO_PROPERTIES": properties_file,
+      "STUDIO_VM_OPTIONS": vmoptions_file,
       "XDG_DATA_HOME": "%s/data" % work_dir,
       "SHELL": os.getenv("SHELL")
   }
@@ -52,9 +52,10 @@ def generate_searchable_options(work_dir, out_dir):
   studio_bin = {
     "Windows": "/android-studio/bin/studio.cmd",
     "Linux": "/android-studio/bin/studio.sh",
-    "Darwin": "/Android Studio.app/Contents/MacOS/studio",
+    "Darwin": "/Android Studio*.app/Contents/MacOS/studio",
   }
-  subprocess.call([work_dir + studio_bin[platform.system()], "traverseUI", options_dir, "true"], env=env)
+  [bin_path] = glob.glob(work_dir + studio_bin[platform.system()])
+  subprocess.call([bin_path, "traverseUI", options_dir, "true"], env=env)
 
   plugin_list = []
   with open("tools/adt/idea/studio/android-studio.plugin.lst", "r") as list_file:
@@ -85,7 +86,7 @@ def remove_empty(path, remove):
 
 
 def update_searchable_options(work_dir, workspace_dir):
-  so_dir = os.path.join(workspace_dir, "tools/adt/idea/studio/searchable-options")
+  so_dir = os.path.join(workspace_dir, "tools/adt/idea/searchable-options")
   files = glob.glob(os.path.join(so_dir, "**/*" + SEARCHABLE_OPTIONS_SUFFIX), recursive=True)
   for file in files:
     os.remove(file)

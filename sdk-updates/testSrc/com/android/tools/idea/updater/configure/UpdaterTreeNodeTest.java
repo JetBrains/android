@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.annotations.Nullable;
 import com.android.repository.Revision;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.TypeDetails;
@@ -191,7 +192,7 @@ public class UpdaterTreeNodeTest {
     List<DetailsTreeNode> children = getMultiVersionChildren();
     MultiVersionTreeNode node = new MultiVersionTreeNode(children);
     children.forEach(node::add);
-    validateText(node, "Foo", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    validateText(node, "Foo", null);
   }
 
   @Test
@@ -257,7 +258,7 @@ public class UpdaterTreeNodeTest {
 
     element.setIncludeInSummary(true);
     node = SummaryTreeNode.createNode(new AndroidVersion(17, null), ImmutableSet.of(element));
-    validateText(node, "Android 4.2 (Jelly Bean)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    validateText(node, "Android 4.2 (Jelly Bean)", null);
   }
 
   @Test
@@ -366,13 +367,18 @@ public class UpdaterTreeNodeTest {
     assertEquals("Installed", node.getStatusString());
   }
 
-  private static void validateText(@NotNull UpdaterTreeNode node, @NotNull String text, @NotNull SimpleTextAttributes attributes) {
+  private static void validateText(@NotNull UpdaterTreeNode node, @NotNull String text, @Nullable SimpleTextAttributes attributes) {
     UpdaterTreeNode.Renderer renderer = Mockito.mock(UpdaterTreeNode.Renderer.class);
     ColoredTreeCellRenderer cellRenderer = Mockito.mock(ColoredTreeCellRenderer.class);
     Mockito.when(renderer.getTextRenderer()).thenReturn(cellRenderer);
 
     node.customizeRenderer(renderer, null, false, false, false, 0, false);
-    Mockito.verify(cellRenderer).append(text, attributes);
+    if (attributes != null) {
+      Mockito.verify(cellRenderer).append(text, attributes);
+    }
+    else {
+      Mockito.verify(cellRenderer).append(text);
+    }
   }
 
   private static void validateState(@NotNull UpdaterTreeNode node,
@@ -388,10 +394,7 @@ public class UpdaterTreeNodeTest {
     assertEquals(currentState, node.getCurrentState());
     assertEquals(initialState, node.getInitialState());
     Iterator<PackageNodeModel.SelectedState> childStateIter = childStates.iterator();
-    // In JDK 8 DefaultMutableTreeNode.children() returns a raw Enumeration
-    // but as of JDK 11 the generic type matches and this assignment is no longer unchecked.
-    @SuppressWarnings("unchecked")
-    Enumeration<TreeNode> children = (Enumeration)node.children();
+    Enumeration<TreeNode> children = node.children();
     while (children.hasMoreElements()) {
       UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
       assertEquals(childStateIter.next(), child.getCurrentState());

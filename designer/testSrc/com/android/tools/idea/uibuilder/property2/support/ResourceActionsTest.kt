@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
-import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.support.PropertiesTableImpl
@@ -59,8 +59,8 @@ class ResourceActionsTest {
   fun testOpenResourceActionWithInvalidXmlTag() {
     val action = OpenResourceManagerAction
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NelePropertyType.STRING)
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
+    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     deleteXmlTag(property)
 
@@ -73,7 +73,7 @@ class ResourceActionsTest {
   fun testUseColorPicker() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NelePropertyType.COLOR)
+    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
 
     // Verify that the textColor is not set:
     assertThat(property.value).isNull()
@@ -96,10 +96,10 @@ class ResourceActionsTest {
   fun testUseColorPickerWithNewProperty() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val actualProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NelePropertyType.COLOR)
-    val properties: PropertiesTable<NelePropertyItem> =
-      PropertiesTableImpl<NelePropertyItem>(HashBasedTable.create()).also { it.put(actualProperty) }
-    val property = NeleNewPropertyItem(util.model, properties)
+    val actualProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
+    val properties: PropertiesTable<NlPropertyItem> =
+      PropertiesTableImpl<NlPropertyItem>(HashBasedTable.create()).also { it.put(actualProperty) }
+    val property = NlNewPropertyItem(util.model, properties)
     property.name = "${SdkConstants.PREFIX_ANDROID}${SdkConstants.ATTR_TEXT_COLOR}"
 
     // Verify that the textColor is not set:
@@ -123,7 +123,7 @@ class ResourceActionsTest {
     assertThat(actualProperty.value).isEqualTo("#00FFFF")
   }
 
-  private fun deleteXmlTag(property: NelePropertyItem) {
+  private fun deleteXmlTag(property: NlPropertyItem) {
     val tag = property.components.first().backend.getTagPointer().element!!
     WriteCommandAction.writeCommandAction(projectRule.project).run<Throwable> {
       tag.delete()

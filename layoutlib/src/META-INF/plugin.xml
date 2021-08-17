@@ -14,12 +14,19 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <id>com.android.layoutlib.standard</id>
-  <name>Layoutlib Standard</name>
+  <id>com.android.layoutlib</id>
+  <name>Layoutlib</name>
   <version>1.0</version>
   <vendor>Google</vendor>
   <category>Android</category>
 
   <description>Provides a library for rendering Android resources</description>
+
+  <application-components>
+    <component>
+      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>
+      <headless-implementation-class/>
+    </component>
+  </application-components>
 
 </idea-plugin>

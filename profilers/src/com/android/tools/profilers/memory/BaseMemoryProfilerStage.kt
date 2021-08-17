@@ -21,13 +21,14 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
-import javax.swing.SwingUtilities
 
 
 abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val loader: CaptureObjectLoader)
@@ -36,6 +37,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
   val captureSelection = MemoryCaptureSelection(profilers.ideServices)
   protected var pendingCaptureStartTime = INVALID_START_TIME
   protected var updateCaptureOnSelection = true
+  val isPendingCapture get() = pendingCaptureStartTime != INVALID_START_TIME
 
   companion object {
     const val INVALID_START_TIME = -1L
@@ -43,6 +45,8 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
     private val logger
       get() = Logger.getInstance(BaseMemoryProfilerStage::class.java)
   }
+
+  override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_STAGE
 
   protected fun doSelectCaptureDuration(durationData: CaptureDurationData<out CaptureObject?>?, joiner: Executor?) {
     pendingCaptureStartTime = INVALID_START_TIME
@@ -123,7 +127,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
           load.run()
         }
         else {
-          SwingUtilities.invokeAndWait {
+          ApplicationManager.getApplication().invokeAndWait {
             studioProfilers.ideServices
               .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
                                "it parses the data and afterwards. Do you want to continue?",

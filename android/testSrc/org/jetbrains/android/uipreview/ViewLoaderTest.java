@@ -62,7 +62,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ConfigurationManager manager = new ConfigurationManager(module);
     myLayoutLib = RenderService.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
-    myClassLoader = ModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), myModule, this);
+    myClassLoader = ModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
   }
 
   @Override
@@ -108,7 +108,7 @@ public class ViewLoaderTest extends AndroidTestCase {
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNull(facet != null ? ResourceRepositoryManager.getInstance(facet).getExistingAppResources() : null);
+    assertNull(facet != null ? ResourceRepositoryManager.getInstance(facet).getCachedAppResources() : null);
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
 
     ResourceIdManager idManager = ResourceIdManager.get(myModule);

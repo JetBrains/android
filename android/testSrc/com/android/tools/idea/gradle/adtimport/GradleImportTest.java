@@ -41,11 +41,11 @@ import static org.junit.Assert.assertNotEquals;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.prefs.AndroidLocation;
+import com.android.prefs.AbstractAndroidLocations;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.testing.AndroidGradleTests;
@@ -515,7 +515,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testImportAndroidSample() throws Exception {
-    File samples = new File(getSdk().getPath(), "samples");
+    File samples = getSdk().resolve("samples").toFile();
     if (!samples.exists()) {
       return;
     }
@@ -3311,7 +3311,7 @@ public class GradleImportTest extends AndroidTestCase {
       gradleProjectDir = destDir;
     }
 
-    importer.setSdkLocation(getSdk());
+    importer.setSdkLocation(getSdk().toFile());
 
     if (customizer != null) {
       customizer.customize(importer);
@@ -3332,7 +3332,7 @@ public class GradleImportTest extends AndroidTestCase {
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
-    summary = summary.replace(getSdk().getPath(), "$ANDROID_SDK_ROOT");
+    summary = summary.replace(getSdk().toString(), "$ANDROID_SDK_ROOT");
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
@@ -3395,12 +3395,11 @@ public class GradleImportTest extends AndroidTestCase {
       args.add(customizedGradleHome);
     }
     args.add("assembleDebug");
-    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
-    cmdLine.withEnvironment(AndroidLocation.ANDROID_PREFS_ROOT, AndroidLocation.getFolder());
+    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
+    cmdLine.withEnvironment(AbstractAndroidLocations.ANDROID_PREFS_ROOT, AndroidLocationsSingleton.INSTANCE.getPrefsLocation().toAbsolutePath().toString());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
@@ -3810,7 +3809,7 @@ public class GradleImportTest extends AndroidTestCase {
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(getSdk());
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, getSdk());
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     if (buildTool != null) {
       candidate = buildTool.getRevision().toString();

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.ui
+package com.android.tools.idea.uibuilder.property.ui
 
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.ptable2.PFormTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -41,7 +41,7 @@ import javax.swing.table.AbstractTableModel
  */
 class ReferencesIdsPanel : JPanel(BorderLayout()) {
   private var table: PFormTable // supports keyboard navigation
-  private lateinit var referencesIds: NelePropertyItem
+  private lateinit var referencesIds: NlPropertyItem
 
   private val dataModel = DataModel(this)
 
@@ -243,7 +243,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
   // Dealing with NelePropertyItem
   //////////////////////////////////////////////////////
 
-  fun setProperty(property: NelePropertyItem) {
+  fun setProperty(property: NlPropertyItem) {
     referencesIds = property
     dataModel.updateModel(referencesIds.value)
   }

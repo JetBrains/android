@@ -18,9 +18,8 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployable.Deployable;
-import com.intellij.openapi.project.Project;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -33,10 +32,10 @@ public abstract class Device {
   @NotNull
   private final String myName;
 
-  private final boolean myValid;
+  private final @NotNull Type myType;
 
-  @Nullable
-  private final String myValidityReason;
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
 
   @NotNull
   private final Key myKey;
@@ -51,10 +50,7 @@ public abstract class Device {
     @Nullable
     String myName;
 
-    boolean myValid;
-
-    @Nullable
-    String myValidityReason;
+    @Nullable LaunchCompatibility myLaunchCompatibility;
 
     @Nullable
     Key myKey;
@@ -65,8 +61,10 @@ public abstract class Device {
     @Nullable
     AndroidDevice myAndroidDevice;
 
+    @Nullable Type myType;
+
     Builder() {
-      myValid = true;
+      myLaunchCompatibility = LaunchCompatibility.YES;
     }
 
     @NotNull
@@ -76,9 +74,9 @@ public abstract class Device {
   Device(@NotNull Builder builder) {
     assert builder.myName != null;
     myName = builder.myName;
+    myType = builder.myType;
 
-    myValid = builder.myValid;
-    myValidityReason = builder.myValidityReason;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -87,6 +85,10 @@ public abstract class Device {
 
     assert builder.myAndroidDevice != null;
     myAndroidDevice = builder.myAndroidDevice;
+  }
+
+  final @NotNull LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
   }
 
   @NotNull
@@ -99,31 +101,27 @@ public abstract class Device {
     return myName;
   }
 
-  final boolean isValid() {
-    return myValid;
-  }
+  abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();
 
-  @Nullable
-  final String getValidityReason() {
-    return myValidityReason;
-  }
-
-  @Nullable
-  abstract Snapshot getSnapshot();
-
+  /**
+   * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
+   * know about the virtual device (it's outside the scope of the AVD Manager because it uses a locally built system image, for example) it
+   * can return a virtual device path (probably not but I'm not going to assume), virtual device name, or serial number depending on what
+   * the IDevice returned.
+   */
   @NotNull
   public final Key getKey() {
     return myKey;
   }
 
-  abstract boolean matches(@NotNull Key key);
-
-  abstract boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys);
-
   @Nullable
   final Instant getConnectionTime() {
     return myConnectionTime;
   }
+
+  abstract @NotNull Target getDefaultTarget();
+
+  abstract @NotNull Collection<@NotNull Target> getTargets();
 
   @NotNull
   final AndroidDevice getAndroidDevice() {
@@ -164,11 +162,19 @@ public abstract class Device {
     }
   }
 
-  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project);
-
   @NotNull
   @Override
   public final String toString() {
     return myName;
+  }
+
+  @NotNull Type getType() {
+    return myType;
+  }
+
+  enum Type {
+    PHONE,
+    WEAR,
+    TV
   }
 }

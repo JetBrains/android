@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.intellij.openapi.module.Module
 import com.intellij.serialization.PropertyMapping
@@ -30,9 +30,11 @@ import java.io.File
 private const val NDK_MODULE_MODEL_SYNC_VERSION = "2020-06-30/4"
 
 data class NdkModuleModel
-@PropertyMapping("moduleName", "rootDirPath", "ndkModel", "syncVersion") private constructor(
+@PropertyMapping("moduleName", "rootDirPath", "selectedVariant", "selectedAbi", "ndkModel", "syncVersion") private constructor(
   private val moduleName: String,
   val rootDirPath: File,
+  val selectedVariant: String,
+  val selectedAbi: String,
   val ndkModel: NdkModel,
   private val syncVersion: String
 ) : ModuleModel, INdkModel by ndkModel {
@@ -43,16 +45,20 @@ data class NdkModuleModel
   constructor(
     moduleName: String,
     rootDirPath: File,
+    selectedVariant: String,
+    selectedAbi: String,
     androidProject: IdeNativeAndroidProject,
     variantAbi: List<IdeNativeVariantAbi>
-  ) : this(moduleName, rootDirPath, V1NdkModel(androidProject, variantAbi), NDK_MODULE_MODEL_SYNC_VERSION)
+  ) : this(moduleName, rootDirPath, selectedVariant, selectedAbi, V1NdkModel(androidProject, variantAbi), NDK_MODULE_MODEL_SYNC_VERSION)
 
   /** Creates an [NdkModuleModel] from V2 Android Gradle Plugin models. See [V2NdkModel] for more details. */
   constructor(
     moduleName: String,
     rootDirPath: File,
+    selectedVariant: String,
+    selectedAbi: String,
     ndkModel: V2NdkModel
-  ) : this(moduleName, rootDirPath, ndkModel, NDK_MODULE_MODEL_SYNC_VERSION)
+  ) : this(moduleName, rootDirPath, selectedVariant, selectedAbi, ndkModel, NDK_MODULE_MODEL_SYNC_VERSION)
 
   init {
     // If the serialization version does not match, this aborts the deserialization process and the IDE will just function as if no value
@@ -65,7 +71,7 @@ data class NdkModuleModel
   override fun getModuleName() = moduleName
 
   fun getDefaultVariantAbi(): VariantAbi? =
-    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && abi == "x86" } ?: allVariantAbis.firstOrNull()
+    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && (abi == "x86" || abi == "x86_64") } ?: allVariantAbis.firstOrNull()
 
   companion object {
     @JvmStatic

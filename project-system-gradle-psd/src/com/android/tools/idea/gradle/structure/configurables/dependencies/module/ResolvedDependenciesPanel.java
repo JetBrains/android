@@ -46,7 +46,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection,
                                    @Nullable ToolWindowAnchor anchor) {
-    super(title, AndroidIcons.Variant, anchor);
+    super(title, StudioIcons.Misc.PROJECT_SYSTEM_VARIANT, anchor);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

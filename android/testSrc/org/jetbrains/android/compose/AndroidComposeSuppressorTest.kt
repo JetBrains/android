@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
-class AndroidComposeSuppressorTest : AndroidTestCase() {
+/**
+ * Test for [ComposeSuppressor].
+ */
+class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
   override fun setUp() {
     super.setUp()
@@ -33,14 +37,14 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)
-    stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
+    stubComposableAnnotation(ComposeFqNames.root)
 
     val file = addFileToProject(
       "src/com/example/views.kt",
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun MyView() {}

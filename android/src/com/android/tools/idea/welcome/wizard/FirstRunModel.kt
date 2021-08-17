@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.RepoManager
-import com.android.repository.io.FileOp
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -55,16 +54,14 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
   val customInstall: Boolean get() = installationType.get() == InstallationType.CUSTOM
   val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
   val sdkExists = if (sdkLocation.isDirectory) {
-    val sdkHandler = AndroidSdkHandler.getInstance(sdkLocation)
+    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val progress = StudioLoggerProgressIndicator(javaClass)
     sdkHandler.getSdkManager(progress).packages.localPackages.isNotEmpty()
   } else {
     false
   }
 
-  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(sdkLocation)
-
-  private val fileOp: FileOp = FileOpUtils.create()
+  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
 
   // FIXME (why always true?)
   /**
@@ -89,9 +86,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     val components: MutableList<ComponentTreeNode> = mutableListOf(AndroidSdk(installUpdates))
 
     val sdkManager = localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
-      load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+      loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
            StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-           StudioDownloader(), StudioSettingsController.getInstance(), true)
+           StudioDownloader(), StudioSettingsController.getInstance())
     }
 
     val remotePackages = sdkManager.packages.remotePackages
@@ -108,7 +105,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
       components.add(Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }
     if (createAvd) {
-      components.add(AndroidVirtualDevice(remotePackages, installUpdates, fileOp))
+      components.add(AndroidVirtualDevice(remotePackages, installUpdates))
     }
     return ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components)
   }

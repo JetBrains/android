@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.configurations.ConfigurationFactory;
 
@@ -24,23 +23,9 @@ public abstract class AndroidRunConfigurationGradleTestCase extends AndroidGradl
 
   @Override
   public void setUp() throws Exception {
-    // Flag has to be overridden as early as possible, since the run configuration type is initialized
-    // during test setup (see org.jetbrains.android.AndroidPlugin).
-    StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.override(true);
-
     super.setUp();
 
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -57,41 +56,24 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
     val outData = (postImage.raster.dataBuffer as DataBufferInt).data
 
     for (i in inData.indices) {
-      outData[i] = 0xff shl 24 or cbmCLut!!.interpolate(prepare(inData[i]))
+      outData[i] = 0xff shl 24 or cbmCLut!!.interpolate(alphaCorrect(inData[i]))
     }
 
     return true
   }
 
   /**
-   * Slightly reduce the colour domain as per the paper
-   * "Digital Vido Colourmaps for Checking the Legibility of Displays by Dichromats"
-   * Also strip alpha value so we can continue working with RGB.
-   * We assume white background (since layoutlib works with single bitmap).
+   * Corrects alpha value assuming background is white
+   * @param color int containing rgb color (e.g. 0xFFFFFF)
+   * @param alpha value from [1,255]
    */
-  private fun prepare(color: Int): Int {
+  private fun alphaCorrect(color: Int): Int {
     val a = a(color).toDouble() / 255.0
-    var r = r(color).toDouble() * a
-    var g = g(color).toDouble() * a
-    var b = b(color).toDouble() * a
+    val whiteBg = (1 - a) * 255
 
-    return when (mode) {
-      ColorBlindMode.PROTANOMALY,
-      ColorBlindMode.PROTANOPES -> {
-        r = 0.992052 * r + 0.003974
-        g = 0.992052 * g + 0.003974
-        b = 0.992052 * b + 0.003974
-        combine(r, g, b)
-      }
-      ColorBlindMode.DEUTERANOMALY,
-      ColorBlindMode.DEUTERANOPES-> {
-        r = 0.957237 * r + 0.0213814
-        g = 0.957237 * g + 0.0213814
-        b = 0.957237 * b + 0.0213814
-        combine(r, g, b)
-      }
-      else -> combine(r, g, b)
-    }
+    return combine(a * r(color).toDouble() + whiteBg,
+                   a * g(color).toDouble() + whiteBg,
+                   a * b(color).toDouble() + whiteBg)
   }
 
   override fun dispose() {

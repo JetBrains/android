@@ -30,8 +30,7 @@
     <projectService
         serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTrackerImpl" />
-
-    <notificationGroup id="Database Inspector" displayType="BALLOON"/>
+    <notificationGroup id="Sqlite Viewer" displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang">

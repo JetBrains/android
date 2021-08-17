@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
+
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,13 +89,29 @@ public interface GradleDslNameConverter {
    * @param modelName the canonical model namestring for this name
    * @param context the parent element of the element whose name this is
    * @return an instance of {@link ExternalNameInfo} whose {@link ExternalNameInfo#externalNameParts} field is the string containing a
-   * dotted-hierarchy of external names, and whose {@link ExternalNameInfo#asMethod} field indicates whether that name is to be used as a
+   * dotted-hierarchy of external names, and whose {@link ExternalNameInfo#syntax} field indicates whether that name is to be used as a
    * setter method (true) or in a property assignment (false), or we don't know (null).
    */
   @NotNull
   default ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
-    return new ExternalNameInfo("", null);
+    return new ExternalNameInfo("", UNKNOWN);
   }
+
+  /**
+   * Returns the regex pattern for the syntax allowed in injections without the need of {} when injected.
+   */
+  // TODO(b/173698662): improve the regexp patterns for complex injections.
+  default @Nullable Pattern getPatternForUnwrappedVariables() {
+    return null;
+  };
+
+  /**
+   * Returns the regex pattern for the syntax needing to be wrapped by {}  when injected.
+   */
+  // TODO(b/173698662): improve the regexp patterns for complex injections.
+  default @Nullable Pattern getPatternForWrappedVariables() {
+    return null;
+  };
 
   /**
    * Converts a single external name part to a description of the Model property it is associated with.

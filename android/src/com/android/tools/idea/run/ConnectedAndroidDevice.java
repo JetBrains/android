@@ -26,15 +26,11 @@ import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.Function;
-import icons.StudioIcons;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -49,23 +45,22 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   @Nullable private final String myAvdName;
   @Nullable private final DeviceNameRendererEx myDeviceNameRenderer;
   private volatile String myDeviceManufacturer;
-  private volatile String myDeviceBuild;
   private volatile String myDeviceModel;
 
-  public ConnectedAndroidDevice(@NotNull IDevice device, @Nullable List<AvdInfo> avdInfos) {
+  public ConnectedAndroidDevice(@NotNull IDevice device, @Nullable List<AvdInfo> avds) {
     myDevice = device;
 
-    AvdInfo avdInfo = getAvdInfo(device, avdInfos);
-    myAvdName = avdInfo == null ? null : avdInfo.getDisplayName();
+    AvdInfo avd = getAvdInfo(device, avds);
+    myAvdName = avd == null ? null : avd.getDisplayName();
     myDeviceNameRenderer = getRendererExtension(device);
   }
 
   @Nullable
-  private static AvdInfo getAvdInfo(@NotNull IDevice device, @Nullable List<AvdInfo> avdInfos) {
-    if (avdInfos != null && device.isEmulator()) {
-      for (AvdInfo info : avdInfos) {
-        if (info.getName().equals(device.getAvdName())) {
-          return info;
+  private static AvdInfo getAvdInfo(@NotNull IDevice device, @Nullable List<AvdInfo> avds) {
+    if (avds != null && device.isEmulator()) {
+      for (AvdInfo avd : avds) {
+        if (avd.getName().equals(device.getAvdName())) {
+          return avd;
         }
       }
     }
@@ -148,48 +143,6 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     return getDeviceName();
   }
 
-  @Override
-  public boolean renderLabel(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
-    if (myDeviceNameRenderer != null) {
-      myDeviceNameRenderer.render(myDevice, renderer);
-      return true;
-    }
-
-    renderer
-      .setIcon(myDevice.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-
-    IDevice.DeviceState state = myDevice.getState();
-    if (state != IDevice.DeviceState.ONLINE) {
-      StringBuilder buf = new StringBuilder();
-      buf.append(String.format("%1$s [%2$s", myDevice.getSerialNumber(), state));
-      if (state == IDevice.DeviceState.UNAUTHORIZED) {
-        buf.append(" - Press 'OK' in the 'Allow USB Debugging' dialog on your device");
-      }
-      buf.append("] ");
-      renderer.append(buf.toString(), SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      return true;
-    }
-
-    if (myDeviceManufacturer != null && myDeviceModel != null && myDeviceBuild != null) {
-      SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
-      String name = getName();
-      if (name.isEmpty()) {
-        name = "Unknown";
-      }
-      SearchUtil.appendFragments(searchPrefix, name, attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
-
-      String build = getDeviceBuild();
-      if (!build.isEmpty()) {
-        renderer.append(" (" + build + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      }
-      return true;
-    }
-    else {
-      renderer.append("...");
-      return false;
-    }
-  }
-
   @NotNull
   private String getDeviceName() {
     StringBuilder name = new StringBuilder(20);
@@ -201,21 +154,10 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     return name.toString();
   }
 
-  /**
-   * Obtains manufacturer, model, and build from the device. This operation is potentially slow and should not be called on the UI thread.
-   */
-  @Override
-  public void prepareToRenderLabel() {
-    assert !isDispatchThread();
-    getDeviceManufacturer();
-    getDeviceModel();
-    getDeviceBuild();
-  }
-
   @NotNull
   private String getDeviceManufacturer() {
     if (myDeviceManufacturer == null) {
-      assert !isDispatchThread();
+      assert isNotDispatchThread();
       myDeviceManufacturer = DevicePropertyUtil.getManufacturer(myDevice, "");
     }
     return myDeviceManufacturer;
@@ -224,19 +166,10 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   private String getDeviceModel() {
     if (myDeviceModel == null) {
-      assert !isDispatchThread();
+      assert isNotDispatchThread();
       myDeviceModel = DevicePropertyUtil.getModel(myDevice, "");
     }
     return myDeviceModel;
-  }
-
-  @NotNull
-  private String getDeviceBuild() {
-    if (myDeviceBuild == null) {
-      assert !isDispatchThread();
-      myDeviceBuild = DevicePropertyUtil.getBuild(myDevice);
-    }
-    return myDeviceBuild;
   }
 
   @NotNull
@@ -247,19 +180,8 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
 
   @NotNull
   @Override
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments) {
-    return getLaunchedDevice();
-  }
-
-  @NotNull
-  @Override
   public ListenableFuture<IDevice> getLaunchedDevice() {
     return Futures.immediateFuture(myDevice);
-  }
-
-  @NotNull
-  public IDevice getDevice() {
-    return myDevice;
   }
 
   @Nullable
@@ -286,9 +208,9 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this);
   }
 
-  private boolean isDispatchThread() {
+  private boolean isNotDispatchThread() {
     Application application = ApplicationManager.getApplication();
-    return application != null && application.isDispatchThread();
+    return application == null || !application.isDispatchThread();
   }
 
   @Override

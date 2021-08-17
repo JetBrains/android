@@ -35,10 +35,10 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
-import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -141,7 +141,7 @@ class RenderTemplateModel private constructor(
         )
 
         projectTemplateDataBuilder.language = language.value
-        projectTemplateDataBuilder.addJetifierSupport = newTemplate.constraints.contains(TemplateConstraint.Jetifier)
+
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
         if (androidFacet == null) {
@@ -190,6 +190,11 @@ class RenderTemplateModel private constructor(
       dryRun: Boolean, project: Project, paths: AndroidModulePaths
     ): Boolean {
       paths.moduleRoot ?: return false
+
+      if (newTemplate.category == Category.Compose) {
+        // b/187726308 HACK - Compose only supports Kotlin 1.5.10 - This only works for new projects
+        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.5.10"
+      }
 
       val context = RenderingContext(
         project = project,

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -23,6 +26,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JComponent;
 import org.fest.swing.core.Robot;
@@ -32,8 +36,6 @@ import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 public abstract class ToolWindowFixture {
 
@@ -58,10 +60,20 @@ public abstract class ToolWindowFixture {
     myToolWindow = toolWindowRef.get();
   }
 
-  @Nullable
-  protected Content getContent(@NotNull final String displayName) {
+  public void showOptionsMenu() {
     activate();
     waitUntilIsVisible();
+    ActionButton optionsButton =
+      myRobot.finder().find(myToolWindow.getComponent().getParent(), Matchers.buttonWithIcon(AllIcons.General.GearPlain));
+    myRobot.click(optionsButton);
+  }
+
+  @Nullable
+  protected Content getContent(@NotNull final String displayName) {
+    if (!isVisible()) {  // No need to activate to get the content. The activation may fail if focus is removed for some reason...
+      activate();
+      waitUntilIsVisible();
+    }
     final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(120).expecting("content '" + displayName + "' to be found")
       .until(() -> {

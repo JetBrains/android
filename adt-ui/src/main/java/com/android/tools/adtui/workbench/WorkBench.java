@@ -19,6 +19,8 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
 
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.stdui.ActionData;
+import com.android.tools.adtui.stdui.UrlData;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.annotations.VisibleForTesting;
@@ -53,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.swing.AbstractButton;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -165,11 +168,31 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.stopLoading();
   }
 
+  /**
+   * Shows the default empty content panel with the given message and a warning icon.
+   * The message can contain multiple lines.
+   */
   public void loadingStopped(@NotNull String message) {
+    loadingStopped(message, null);
+  }
+
+  /**
+   * Shows the default empty content panel with the given message, a warning icon and the optional {@link ActionData}.
+   * The message can contain multiple lines.
+   */
+  public void loadingStopped(@NotNull String message, @Nullable ActionData actionData) {
+    loadingStopped(message, AllIcons.General.Warning, null, actionData);
+  }
+
+  /**
+   * Shows the default empty content panel with the given message and optionals icon and {@link ActionData}.
+   * The message can contain multiple lines.
+   */
+  public void loadingStopped(@NotNull String message, @Nullable Icon icon, @Nullable UrlData urlData, @Nullable ActionData actionData) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("loadingStopped " + message);
     }
-    myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
+    myLoadingPanel.abortLoading(message, icon, urlData, actionData);
   }
 
   /**
@@ -532,10 +555,15 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   /**
    * Show the content in WorkBench. This also hide the loading icon and message if they are showing.
+   *
+   * @return true if the content panel was not visible before.
    */
-  public void showContent() {
+  public boolean showContent() {
     hideLoading();
+    boolean wasVisible = myMainPanel.isVisible();
     myMainPanel.setVisible(true);
+
+    return !wasVisible;
   }
 
   @TestOnly

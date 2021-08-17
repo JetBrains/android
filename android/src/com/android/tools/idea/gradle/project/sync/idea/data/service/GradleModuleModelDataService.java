@@ -19,8 +19,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EXTRA_BUILD_PARTICIPANT_FROM_BUILD_SRC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
-import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
-import static org.jetbrains.plugins.gradle.service.project.GradleBuildSrcProjectsResolver.BUILD_SRC_MODULE_PROPERTY;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.BUILD_SRC_NAME;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -28,7 +26,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -38,9 +35,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,11 +68,11 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
   protected void importData(@NotNull Collection<? extends DataNode<GradleModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, GradleModuleModel> modelsByModuleName) {
+                            @NotNull Map<String, DataNode<GradleModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      GradleModuleModel gradleModuleModel = modelsByModuleName.get(module.getName());
+      DataNode<GradleModuleModel> gradleModuleModel = modelsByModuleName.get(module.getName());
       if (gradleModuleModel != null) {
-        myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
+        myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel.getData());
       }
     }
     // Create extra build participant for modules from build src. This will be used to locate the IDE module from dependency module in ModuleFinder.

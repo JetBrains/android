@@ -35,7 +35,7 @@ import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.ArrayList;
@@ -53,8 +53,7 @@ public final class ProfilersTestData {
   private ProfilersTestData() {
   }
 
-  public static final ProfilingConfiguration DEFAULT_CONFIG =
-    new PerfettoConfiguration("Test");
+  public static final ProfilingConfiguration DEFAULT_CONFIG = new ImportedConfiguration();
 
   public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
     .setSessionId(4321)
@@ -76,10 +75,10 @@ public final class ProfilersTestData {
   public static final int ALLOC_SIZE = 1;
   // For live allocation tracking tests - class names that gets cycled/reused every |ALLOC_CONTEXT_NUM| us.
   public static final List<String> CONTEXT_CLASS_NAMES = Arrays.asList(
-    "This.Is.Foo",
-    "That.Is.Bar",
-    "This.Also.Foo",
-    "That.Also.Bar"
+    "LThis/Is/Foo;",
+    "LThat/Is/Bar;",
+    "LThis/Also/Foo;",
+    "LThat/Also/Bar;"
   );
   // For live allocation tracking tests - method names that gets cycled/reused every |ALLOC_CONTEXT_NUM| us.
   public static final List<String> CONTEXT_METHOD_NAMES = Arrays.asList(
@@ -122,10 +121,12 @@ public final class ProfilersTestData {
   public static Common.Event.Builder generateSessionStartEvent(long streamId,
                                                                long sessionId,
                                                                long timestampNs,
-                                                               Common.SessionData.SessionStarted.SessionType type) {
+                                                               Common.SessionData.SessionStarted.SessionType type,
+                                                               long startTimestampEpochMs) {
     return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION)
       .setSession(Common.SessionData.newBuilder().setSessionStarted(
-        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)));
+        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)
+          .setStartTimestampEpochMs(startTimestampEpochMs)));
   }
 
   @NotNull

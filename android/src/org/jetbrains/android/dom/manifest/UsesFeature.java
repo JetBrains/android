@@ -16,16 +16,21 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.converters.values.BooleanValueConverter;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
+import org.jetbrains.android.dom.converters.AndroidUsesFeatureNameConverter;
 
 @Styleable("AndroidManifestUsesFeature")
 public interface UsesFeature extends ManifestElementWithName {
   String HARDWARE_TYPE_WATCH = "android.hardware.type.watch";
 
   @Attribute("name")
+  @Convert(AndroidUsesFeatureNameConverter.class)
   AndroidAttributeValue<String> getName();
 
   @Attribute("required")
+  @Convert(BooleanValueConverter.class)
   AndroidAttributeValue<Boolean> getRequired();
 }

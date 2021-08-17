@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.module.Module
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.uast.UAnnotation
 
 private const val UI_PACKAGE = "androidx.ui"
-private const val COMPOSE_PACKAGE = "androidx.compose"
+private const val COMPOSE_PACKAGE = "androidx.compose.ui"
 
 /** Preview element name */
 const val COMPOSE_PREVIEW_ANNOTATION_NAME = "Preview"
 
 const val COMPOSABLE_ANNOTATION_NAME = "Composable"
 
+const val COMPOSE_ALIGNMENT = "${COMPOSE_PACKAGE}.Alignment"
+const val COMPOSE_ALIGNMENT_HORIZONTAL = "${COMPOSE_ALIGNMENT}.Horizontal"
+const val COMPOSE_ALIGNMENT_VERTICAL = "${COMPOSE_ALIGNMENT}.Vertical"
+
+const val COMPOSE_ARRANGEMENT = "androidx.compose.foundation.layout.Arrangement"
+const val COMPOSE_ARRANGEMENT_HORIZONTAL = "${COMPOSE_ARRANGEMENT}.Horizontal"
+const val COMPOSE_ARRANGEMENT_VERTICAL = "${COMPOSE_ARRANGEMENT}.Vertical"
 
 val COMPOSABLE_FQ_NAMES = setOf(
   "androidx.compose.$COMPOSABLE_ANNOTATION_NAME",
@@ -36,48 +50,73 @@ val COMPOSABLE_FQ_NAMES = setOf(
  * Represents the Jetpack Compose library package name. The compose libraries will move from
  * `androidx.ui` to `androidx.compose` and this enum encapsulates the naming for the uses in tools.
  */
-enum class ComposeLibraryNamespace(val packageName: String) {
-  ANDROIDX_UI(UI_PACKAGE),
-  ANDROIDX_COMPOSE(COMPOSE_PACKAGE);
+enum class ComposeLibraryNamespace(
+  val packageName: String,
+  /** Package containing the API preview definitions. Elements here will be referenced by the user. */
+  val apiPreviewPackage: String = "$packageName.tooling.preview",
+  /** Package containing the preview implementation. Elements in this package are for use of tooling only. */
+  val implementationPreviewPackage: String = apiPreviewPackage
+) {
+  ANDROIDX_COMPOSE(COMPOSE_PACKAGE),
 
-  /** Package containing the preview definitions */
-  val previewPackage: String = "$packageName.tooling.preview"
+  /** New namespace where the API and implementation are split in two separate packages */
+  ANDROIDX_COMPOSE_WITH_API(COMPOSE_PACKAGE, implementationPreviewPackage = "${COMPOSE_PACKAGE}.tooling");
 
   /**
    * Name of the `ComposeViewAdapter` object that is used by the preview surface to hold
    * the previewed `@Composable`s.
    */
-  val composableAdapterName: String = "$previewPackage.ComposeViewAdapter"
+  val composableAdapterName: String = "$implementationPreviewPackage.ComposeViewAdapter"
+
+  val composeModifierClassName: String = "$packageName.Modifier"
 
   /** Only composables with this annotations will be rendered to the surface. */
-  val previewAnnotationName = "$previewPackage.$COMPOSE_PREVIEW_ANNOTATION_NAME"
+  val previewAnnotationName = "$apiPreviewPackage.$COMPOSE_PREVIEW_ANNOTATION_NAME"
 
   /** Same as [previewAnnotationName] but in [FqName] form. */
   val previewAnnotationNameFqName = FqName(previewAnnotationName)
 
   /** Annotation FQN for `Preview` annotated parameters. */
-  val previewParameterAnnotationName = "$previewPackage.PreviewParameter"
+  val previewParameterAnnotationName = "$apiPreviewPackage.PreviewParameter"
+
+  /** FqName of @Composable function that loads a string resource. **/
+  val stringResourceFunctionFqName = "$packageName.res.stringResource"
+
+  /** FqName of the Devices class for its corresponding `@Preview` parameter. */
+  val composeDevicesClassName = "$apiPreviewPackage.Devices"
+
+  val previewActivityName = "$implementationPreviewPackage.PreviewActivity"
 }
 
 /** Only composables with this annotations will be rendered to the surface. */
-val COMPOSE_VIEW_ADAPTER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.composableAdapterName,
-                                      ComposeLibraryNamespace.ANDROIDX_COMPOSE.composableAdapterName)
+@JvmField
+val COMPOSE_VIEW_ADAPTER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.composableAdapterName,
+                                      ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.composableAdapterName)
 
 /** FQNs for the `@Preview` annotation. Only composables with this annotations will be rendered to the surface. */
-val PREVIEW_ANNOTATION_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.previewAnnotationName,
-                                    ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName)
+@JvmField
+val PREVIEW_ANNOTATION_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewAnnotationName,
+                                    ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.previewAnnotationName)
 
 /** Annotations FQNs for `Preview` annotated parameters. */
-val PREVIEW_PARAMETER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_UI.previewParameterAnnotationName,
-                                   ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewParameterAnnotationName)
+@JvmField
+val PREVIEW_PARAMETER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.previewParameterAnnotationName,
+                                   ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.previewParameterAnnotationName)
+
+private val UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT = GoogleMavenArtifactId.COMPOSE_TOOLING_PREVIEW.getCoordinate("+")
 
 /**
- * Utility method to find the [ComposeLibraryNamespace] for a given annotation.
+ * Returns if the given [Module] imports the [UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT]. This means that the API and implementation
+ * of the preview will be in separate artifacts.
  */
-fun UAnnotation.findComposeLibraryNamespace(): ComposeLibraryNamespace =
-  if (qualifiedName?.startsWith(UI_PACKAGE) == true) {
-    ComposeLibraryNamespace.ANDROIDX_UI
+private fun Module.hasUiPreviewArtifacts(): Boolean =
+  CachedValuesManager.getManager(project).getCachedValue(this) {
+    val hasArtifact = runReadAction { getModuleSystem().getResolvedDependency(UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT) != null }
+    // Cached value until there's been a sync.
+    CachedValueProvider.Result.create(hasArtifact, ProjectSyncModificationTracker.getInstance(project))
   }
-  else {
+
+fun Module?.findComposeToolingNamespace(): ComposeLibraryNamespace =
+  if (this?.hasUiPreviewArtifacts() == false)
     ComposeLibraryNamespace.ANDROIDX_COMPOSE
-  }
+  else ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API

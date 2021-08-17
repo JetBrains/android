@@ -21,15 +21,14 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.Update;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -49,13 +48,11 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       model,
       model.getSurface(),
       EdtExecutorService.getInstance(),
-      d -> new RenderingQueue() {
-        @Override
-        public void queue(@NotNull Update update) { update.run(); }
-      },
+      d -> Runnable::run,
       new LayoutlibSceneManagerHierarchyProvider(),
       null,
-      LayoutScannerConfiguration.getDISABLED());
+      LayoutScannerConfiguration.getDISABLED(),
+      RealTimeSessionClock::new);
     myDefaultProperties = new HashMap<>();
   }
 
@@ -82,8 +79,9 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     return CompletableFuture.completedFuture(super.requestRender().join());
   }
 
+  @NotNull
   @Override
-  protected CompletableFuture<Void> updateModel() {
+  public CompletableFuture<Void> updateModel() {
     return CompletableFuture.completedFuture(super.updateModel().join());
   }
 

@@ -28,6 +28,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -39,14 +40,14 @@ import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
-import com.android.tools.profilers.memory.HeapDumpStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryCaptureStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
@@ -139,7 +140,7 @@ public class StudioProfilersViewTest {
     myUi.layout();
     // Test the second monitor goes to memory profiler
     myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
     myUi.layout();
@@ -223,7 +224,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testMemoryStage() throws Exception {
-    transitionStage(new MemoryProfilerStage(myProfilers));
+    transitionStage(new MainMemoryProfilerStage(myProfilers));
   }
 
   @Test
@@ -518,10 +519,10 @@ public class StudioProfilersViewTest {
 
   @Test
   public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() {
-    myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
+    myProfilers.setStage(new MemoryCaptureStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
     assertThat(myView.getRightToolbar().isVisible()).isFalse();
 
-    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
     assertThat(myView.getRightToolbar().isVisible()).isTrue();
   }
 
@@ -529,7 +530,7 @@ public class StudioProfilersViewTest {
   public void captureCpuStageGoesBackToCpuStageThenBackToMonitorStage() {
     myProfilers.setStage(CpuCaptureStage.create(myProfilers,
                                                 ProfilersTestData.DEFAULT_CONFIG,
-                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH),
+                                                TestUtils.resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(),
                                                 ProfilersTestData.SESSION_DATA.getSessionId()));
     myView.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
@@ -576,6 +577,11 @@ public class StudioProfilersViewTest {
 
     @Override
     public void exit() { }
+
+    @Override
+    public AndroidProfilerEvent.Stage getStageType() {
+      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
+    }
 
     @Nullable
     @Override

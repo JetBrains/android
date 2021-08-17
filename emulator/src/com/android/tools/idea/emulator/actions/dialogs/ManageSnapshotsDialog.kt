@@ -13,33 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator.actions.dialogs
+package com.android.tools.idea.emulator.dialogs
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.emulator.EmulatorView
-import com.android.tools.idea.emulator.logger
 import com.google.common.html.HtmlEscapers
+import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.CommonBundle
+import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
+import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.util.DimensionService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.AnActionButton
@@ -69,11 +76,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.EventQueue
 import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
@@ -82,7 +89,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.text.Collator
 import java.text.SimpleDateFormat
-import java.util.Comparator
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Callable
@@ -115,9 +121,9 @@ import kotlin.math.max
 /**
  * Dialog for managing emulator snapshots.
  */
-class ManageSnapshotsDialog(
+internal class ManageSnapshotsDialog(
   private val emulator: EmulatorController,
-  private val emulatorView: EmulatorView?
+  private val emulatorView: EmulatorView
 ) {
 
   private val snapshotTableModel = SnapshotTableModel()
@@ -135,9 +141,7 @@ class ManageSnapshotsDialog(
     verticalTextPosition = SwingConstants.CENTER
     horizontalAlignment = SwingConstants.CENTER
   }
-  private val previewPanel = BorderLayoutPanel().apply {
-    preferredSize = JBUI.size(270, 100)
-  }
+  private val previewPanel = BorderLayoutPanelWithPreferredSize(270, 100)
   private val snapshotInfoPanel = htmlComponent(lineWrap = true)
   private val coldBootCheckBox = JBCheckBox("Start without using a snapshot (cold boot)").apply {
     addItemListener {
@@ -241,9 +245,9 @@ class ManageSnapshotsDialog(
     val size = getHumanizedSize(snapshot.sizeOnDisk)
     val creationTime = JBDateFormat.getFormatter().formatDateTime(snapshot.creationTime).replace(",", "")
     val folderName = htmlEscaper.escape(snapshot.snapshotFolder.fileName.toString())
-    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created ${creationTime}, ${size}"
-    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: ${folderName}"
-    val errorSection = if (snapshot.isValid) ""
+    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created $creationTime, $size"
+    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: $folderName"
+    val errorSection = if (snapshot.isCompatible) ""
         else "<br><font color = ${JBColor.RED.toHtmlString()}>Incompatible with the current configuration</font>"
     val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
     snapshotInfoPanel.apply {
@@ -273,7 +277,7 @@ class ManageSnapshotsDialog(
   }
 
   private fun createTablePanel(): JPanel {
-    return BorderLayoutPanel().apply {
+    return BorderLayoutPanelWithPreferredSize(500, 450).apply {
       add(
         ToolbarDecorator.createDecorator(snapshotTable)
           .setEditAction {
@@ -288,10 +292,9 @@ class ManageSnapshotsDialog(
           .addExtraAction(LoadSnapshotAction())
           .setEditActionUpdater {
             !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) &&
-            snapshotTable.selectedObject?.isValid ?: false
+            snapshotTable.selectedObject?.isCompatible ?: false
           }
           .setRemoveActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
-          .setPreferredSize(JBUI.size(500, 450))
           .setToolbarPosition(ActionToolbarPosition.BOTTOM)
           .setButtonComparator("Load Snapshot", "Edit", "Remove")
           .createPanel()
@@ -308,18 +311,19 @@ class ManageSnapshotsDialog(
         takeSnapshotButton.transferFocusBackward() // Transfer focus to the table.
         takeSnapshotButton.isEnabled = false // Disable the button temporarily.
         startLongOperation("Saving snapshot...")
-        emulatorView?.showLongRunningOperationIndicator("Saving state...")
+        emulatorView.showLongRunningOperationIndicator("Saving state...")
       }
 
       override fun onCompleted() {
-        finished()
+        invokeLaterWhileDialogIsShowing {
+          finished()
+        }
         backgroundExecutor.submit {
           val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
           invokeLaterWhileDialogIsShowing {
             if (snapshot == null) {
               showError()
-            }
-            else {
+            } else {
               snapshotTableModel.addRow(snapshot)
               snapshotTable.selection = listOf(snapshot)
               TableUtil.scrollSelectionToVisible(snapshotTable)
@@ -329,18 +333,20 @@ class ManageSnapshotsDialog(
       }
 
       override fun onError(t: Throwable) {
-        showError()
-        finished()
-      }
-
-      private fun finished() {
         invokeLaterWhileDialogIsShowing {
-          emulatorView?.hideLongRunningOperationIndicator()
-          takeSnapshotButton.isEnabled = true // Re-enable the button.
-          endLongOperation()
+          showError()
+          finished()
         }
       }
 
+      @UiThread
+      private fun finished() {
+        emulatorView.hideLongRunningOperationIndicator()
+        takeSnapshotButton.isEnabled = true // Re-enable the button.
+        endLongOperation()
+      }
+
+      @UiThread
       private fun showError() {
         showError("Unable to create a snapshot")
       }
@@ -351,20 +357,26 @@ class ManageSnapshotsDialog(
 
   private fun loadSnapshot() {
     clearError()
-    val snapshot = snapshotTable.selectedObject ?: return
+    val snapshotToLoad = snapshotTable.selectedObject ?: return
+    val selectedRow = snapshotTable.selectedRow
     val errorHandler = object : EmptyStreamObserver<SnapshotPackage>() {
 
       init {
         startLongOperation("Loading snapshot...")
-        emulatorView?.showLongRunningOperationIndicator("Loading snapshot...")
+        emulatorView.showLongRunningOperationIndicator("Loading snapshot...")
       }
 
       override fun onNext(response: SnapshotPackage) {
-        if (!response.success) {
+        if (response.success) {
+          invokeLaterWhileDialogIsShowing {
+            snapshotTableModel.setLoadedLastSnapshot(snapshotTable.convertRowIndexToModel(selectedRow))
+          }
+        }
+        else {
           val error = response.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterWhileDialogIsShowing {
-            showError("""Error loading snapshot "${snapshot.displayName}"${detail}""")
+            showError("""Error loading snapshot "${snapshotToLoad.displayName}"$detail""")
           }
         }
       }
@@ -383,12 +395,12 @@ class ManageSnapshotsDialog(
       private fun finished() {
         invokeLaterWhileDialogIsShowing {
           endLongOperation()
-          emulatorView?.hideLongRunningOperationIndicator()
+          emulatorView.hideLongRunningOperationIndicator()
         }
       }
     }
 
-    emulator.loadSnapshot(snapshot.snapshotId, errorHandler)
+    emulator.loadSnapshot(snapshotToLoad.snapshotId, errorHandler)
   }
 
   private fun editSnapshot() {
@@ -399,17 +411,13 @@ class ManageSnapshotsDialog(
       return
     }
     val snapshot = snapshotTable.selectedObject ?: return
-    if (snapshot.isQuickBoot || !snapshot.isValid) {
+    if (snapshot.isQuickBoot || !snapshot.isCompatible) {
       return
     }
     val dialog = EditSnapshotDialog(snapshot.displayName, snapshot.description, snapshot == snapshotTableModel.bootSnapshot)
     if (dialog.createWrapper(parent = snapshotTable).showAndGet()) {
       if (dialog.snapshotName != snapshot.displayName || dialog.snapshotDescription != snapshot.description) {
-        val proto = snapshot.snapshot.toBuilder().apply {
-          logicalName = if (dialog.snapshotName == snapshot.snapshotId) "" else dialog.snapshotName
-          description = dialog.snapshotDescription
-        }.build()
-        val updatedSnapshot = SnapshotInfo(snapshot.snapshotFolder, proto, snapshot.sizeOnDisk)
+        val updatedSnapshot = SnapshotInfo(snapshot, dialog.snapshotName, dialog.snapshotDescription)
         val selectionState = SelectionState(snapshotTable)
         snapshotTableModel.removeRow(selectedIndex)
         snapshotTableModel.insertRow(selectedIndex, updatedSnapshot)
@@ -461,9 +469,8 @@ class ManageSnapshotsDialog(
       for (folder in foldersToDelete) {
         try {
           snapshotIoLock.write { FileUtil.delete(folder) }
-        }
-        catch (e: IOException) {
-          logger.error(e)
+        } catch (e: IOException) {
+          thisLogger().error(e)
           errors = true
         }
       }
@@ -524,18 +531,39 @@ class ManageSnapshotsDialog(
    */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
-      title = "Manage Snapshots",
+      title = "Manage Snapshots (${emulator.emulatorId.avdName})",
       resizable = true,
       panel = createPanel(),
       project = project,
       parent = parent,
+      modality = IdeModalityType.MODELESS,
       createActions = { listOf(CloseDialogAction()) })
-      .also {
+      .apply {
+        dialogManager = this
+
         backgroundExecutor.submit {
           readBootModeAndSnapshotList()
         }
-        dialogManager = it
-        Disposer.register(it.disposable) {
+
+        setInitialLocationCallback {
+          val dimensionService = DimensionService.getInstance()
+          val savedSize = dimensionService.getSize(DIMENSION_SERVICE_KEY, project)
+          if (savedSize != null) {
+            setSize(savedSize.width, savedSize.width)
+          }
+          return@setInitialLocationCallback dimensionService.getLocation(DIMENSION_SERVICE_KEY, project)
+        }
+
+        val connection = ApplicationManager.getApplication().messageBus.connect(disposable)
+        connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+          updateSelectionState()
+        })
+
+        Disposer.register(disposable) {
+          val dimensionService = DimensionService.getInstance()
+          dimensionService.setLocation(DIMENSION_SERVICE_KEY, location, project)
+          dimensionService.setSize(DIMENSION_SERVICE_KEY, size, project)
+
           // The dialog is closing but we still need to wait for all background operations to finish.
           dialogManager = null
           // Cancel unfinished icon loading.
@@ -543,21 +571,15 @@ class ManageSnapshotsDialog(
             future.cancel(true)
           }
 
-          EventQueue.invokeLater {
-            backgroundExecutor.shutdown()
-            ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Saving changes", false) {
-              override fun run(indicator: ProgressIndicator) {
-                // Wait for all icon futures to complete.
-                for (future in snapshotTableModel.snapshotIconMap.values) {
-                  try {
-                    future.get()
-                  }
-                  catch (ignore: Exception) {}
-                }
-                backgroundExecutor.awaitTermination(2, TimeUnit.SECONDS)
+          backgroundExecutor.shutdown()
+          ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Saving changes", false) {
+            override fun run(indicator: ProgressIndicator) {
+              if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                thisLogger().warn("Background activity is still running after 5 seconds")
               }
-            })
-          }
+              snapshotIoLock.write {} // Wait for all file read operations to complete.
+            }
+          })
         }
       }
   }
@@ -578,54 +600,54 @@ class ManageSnapshotsDialog(
     val bootSnapshot = when (bootMode.bootType) {
       BootType.COLD -> null
       BootType.QUICK -> snapshots[QUICK_BOOT_SNAPSHOT_MODEL_ROW]
-      else -> snapshots.find { it.snapshotId == bootMode.bootSnapshotId && it.isValid }
+      else -> snapshots.find { it.snapshotId == bootMode.bootSnapshotId && it.isCompatible }
     }
 
     val snapshotAutoDeletionPolicy = EmulatorSettings.getInstance().snapshotAutoDeletionPolicy
-    var invalidSnapshotCount = 0
-    var invalidSnapshotSize = 0L
+    var incompatibleSnapshotsCount = 0
+    var incompatibleSnapshotsSize = 0L
     if (snapshotAutoDeletionPolicy != SnapshotAutoDeletionPolicy.DO_NOT_DELETE) {
       for (snapshot in snapshots) {
-        if (!snapshot.isValid) {
-          invalidSnapshotCount++
-          invalidSnapshotSize += snapshot.sizeOnDisk
+        if (!snapshot.isCompatible) {
+          incompatibleSnapshotsCount++
+          incompatibleSnapshotsSize += snapshot.sizeOnDisk
         }
       }
 
-      if (invalidSnapshotCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY) {
-        deleteInvalidSnapshots(snapshots)
+      if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY) {
+        deleteIncompatibleSnapshots(snapshots)
       }
     }
 
     invokeLaterWhileDialogIsShowing {
       snapshotTableModel.update(snapshots, bootSnapshot)
-      if (invalidSnapshotCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
-          confirmInvalidSnapshotDeletion(invalidSnapshotCount, invalidSnapshotSize)) {
-        deleteInvalidSnapshots(snapshots)
+      if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
+          confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
+        deleteIncompatibleSnapshots(snapshots)
         snapshotTableModel.update(snapshots, bootSnapshot)
       }
     }
   }
 
-  private fun deleteInvalidSnapshots(snapshots: MutableList<SnapshotInfo>) {
-    val foldersToDelete = snapshots.filter { !it.isValid }.map { it.snapshotFolder }
-    snapshots.removeIf { !it.isValid }
+  private fun deleteIncompatibleSnapshots(snapshots: MutableList<SnapshotInfo>) {
+    val foldersToDelete = snapshots.filter { !it.isCompatible }.map { it.snapshotFolder }
+    snapshots.removeIf { !it.isCompatible }
     deleteSnapshotFolders(foldersToDelete)
   }
 
-  private fun confirmInvalidSnapshotDeletion(invalidSnapshotCount: Int, invalidSnapshotSize: Long): Boolean {
-    val dialog = InvalidSnapshotDeletionConfirmationDialog(invalidSnapshotCount, invalidSnapshotSize)
-    val exitCode = dialog.createWrapper(parent = snapshotTable).apply { show() }.exitCode
-    when (exitCode) {
-      InvalidSnapshotDeletionConfirmationDialog.DELETE_EXIT_CODE -> {
-        if (dialog.dontAskAgain) {
+  private fun confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount: Int, incompatibleSnapshotsSize: Long): Boolean {
+    val dialog = IncompatibleSnapshotsDeletionConfirmationDialog(incompatibleSnapshotsCount, incompatibleSnapshotsSize)
+    val dialogWrapper = dialog.createWrapper(parent = snapshotTable).apply { show() }
+    when (dialogWrapper.exitCode) {
+      IncompatibleSnapshotsDeletionConfirmationDialog.DELETE_EXIT_CODE -> {
+        if (dialog.doNotAskAgain) {
           EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
         }
         return true
       }
 
-      InvalidSnapshotDeletionConfirmationDialog.KEEP_EXIT_CODE -> {
-        if (dialog.dontAskAgain) {
+      IncompatibleSnapshotsDeletionConfirmationDialog.KEEP_EXIT_CODE -> {
+        if (dialog.doNotAskAgain) {
           EmulatorSettings.getInstance().snapshotAutoDeletionPolicy = SnapshotAutoDeletionPolicy.DO_NOT_DELETE
         }
       }
@@ -634,7 +656,7 @@ class ManageSnapshotsDialog(
   }
 
   private fun invokeLaterWhileDialogIsShowing(runnable: () -> Unit) {
-    ApplicationManager.getApplication().invokeLater(Runnable { runnable() }, ModalityState.any()) { dialogManager == null }
+    ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any()) { dialogManager == null }
   }
 
   private inner class SnapshotTableModel : ListTableModel<SnapshotInfo>() {
@@ -687,12 +709,12 @@ class ManageSnapshotsDialog(
         return snapshot == bootSnapshot
       }
 
-      override fun getColumnClass(): Class<*>? {
+      override fun getColumnClass(): Class<*> {
         return java.lang.Boolean::class.java
       }
 
       override fun isCellEditable(snapshot: SnapshotInfo): Boolean {
-        return snapshot.isValid
+        return snapshot.isCompatible
       }
 
       override fun getEditor(snapshot: SnapshotInfo): TableCellEditor {
@@ -752,6 +774,26 @@ class ManageSnapshotsDialog(
 
     fun bootSnapshotIndex() = bootSnapshot?.let { indexOf(it) } ?: -1
 
+    fun setLoadedLastSnapshot(row: Int) {
+      for ((index, snapshot) in items.withIndex()) {
+        val isLoadedLast = index == row
+        if (snapshot.isLoadedLast != isLoadedLast) {
+          snapshot.isLoadedLast = isLoadedLast
+          val iconFuture = snapshotIconMap.remove(snapshot)
+          if (iconFuture != null) {
+            val baseIcon = (iconFuture.getDoneOrNull() as LayeredIcon?)?.getIcon(0)
+            if (baseIcon != null) {
+              snapshotIconMap[snapshot] = immediateFuture(createDecoratedIcon(snapshot, baseIcon))
+            }
+            else {
+              iconFuture.cancel(true)
+            }
+          }
+          snapshotTableModel.fireTableCellUpdated(index, nameColumnIndex)
+        }
+      }
+    }
+
     private fun saveBootMode(bootSnapshot: SnapshotInfo?) {
       val bootMode = createBootMode((bootSnapshot))
       backgroundExecutor.submit {
@@ -760,7 +802,7 @@ class ManageSnapshotsDialog(
     }
 
     private fun invalidColumn(columnIndex: Int): Nothing {
-      throw IllegalArgumentException("Invalid column ${columnIndex}")
+      throw IllegalArgumentException("Invalid column $columnIndex")
     }
 
     fun update(snapshots: List<SnapshotInfo>, newBootSnapshot: SnapshotInfo?) {
@@ -771,18 +813,18 @@ class ManageSnapshotsDialog(
     fun update(snapshots: List<SnapshotInfo>) {
       val savedSelection = SelectionState(snapshotTable)
       items = snapshots
-      snapshotIconMap.keys.retainAll(HashSet(snapshots)) // Cleanup snapshotIconMap
+      snapshotIconMap.keys.retainAll(HashSet(snapshots)) // Clean up snapshotIconMap.
       savedSelection.restoreSelection()
       if (snapshotTable.selectedRowCount == 0 && snapshots.isNotEmpty()) {
         snapshotTable.selectionModel.addSelectionInterval(QUICK_BOOT_SNAPSHOT_MODEL_ROW, QUICK_BOOT_SNAPSHOT_MODEL_ROW)
       }
     }
 
-    override fun getDefaultSortKey(): RowSorter.SortKey? {
+    override fun getDefaultSortKey(): RowSorter.SortKey {
       return RowSorter.SortKey(nameColumnIndex, SortOrder.ASCENDING)
     }
 
-    fun getIcon(snapshot: SnapshotInfo): Icon? {
+    fun getIcon(snapshot: SnapshotInfo): Icon {
       val iconFuture = snapshotIconMap.computeIfAbsent(snapshot, ::createSnapshotIcon)
 
       if (iconFuture.isDone) {
@@ -797,10 +839,8 @@ class ManageSnapshotsDialog(
 
     private fun createSnapshotIcon(snapshot: SnapshotInfo): Future<Icon?> {
       return AndroidIoManager.getInstance().getBackgroundDiskIoExecutor().submit(Callable<Icon> {
-        val snapshotImageIcon = createBaseSnapshotIcon(snapshot)
-        val decorator = if (snapshot.isValid) EmptyIcon.ICON_16
-        else IconUtil.toSize(StudioIcons.Emulator.INVALID_SNAPSHOT_DECORATOR, snapshotImageIcon.iconWidth, snapshotImageIcon.iconHeight)
-        val icon = createDecoratedIcon(snapshotImageIcon, decorator)
+        val baseIcon = createBaseSnapshotIcon(snapshot)
+        val icon = createDecoratedIcon(snapshot, baseIcon)
 
         // Schedule a table cell update on the UI thread.
         invokeLaterWhileDialogIsShowing {
@@ -813,13 +853,21 @@ class ManageSnapshotsDialog(
       })
     }
 
+    private fun createDecoratedIcon(snapshot: SnapshotInfo, baseIcon: Icon): LayeredIcon {
+      val decorator = when {
+        snapshot.isLoadedLast -> getLiveIndicator(EmptyIcon.ICON_16)
+        snapshot.isCompatible -> EmptyIcon.ICON_16
+        else -> IconUtil.toSize(StudioIcons.Emulator.Snapshots.INVALID_SNAPSHOT_DECORATOR, baseIcon.iconWidth, baseIcon.iconHeight)
+      }
+      return createDecoratedIcon(baseIcon, decorator)
+    }
+
     @Slow
     private fun createBaseSnapshotIcon(snapshot: SnapshotInfo): Icon {
       try {
-        val image = ImageIO.read(snapshot.screenshotFile.toFile()) ?: return EmptyIcon.ICON_16
-        if (Thread.interrupted()) {
-          return EmptyIcon.ICON_16
-        }
+        val image = snapshotIoLock.read {
+          if (Thread.interrupted()) null else ImageIO.read(snapshot.screenshotFile.toFile())
+        } ?: return EmptyIcon.ICON_16
         val imageScale = 16 * JBUIScale.sysScale(snapshotTable).toDouble() / max(image.width, image.height)
         val iconImage = ImageUtils.scale(image, imageScale)
         val iconSize = JBUIScale.scale(16)
@@ -839,7 +887,7 @@ class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.LOAD_SNAPSHOT) {
+  private inner class LoadSnapshotAction : AnActionButton("Load Snapshot", StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
 
     override fun actionPerformed(event: AnActionEvent) {
       loadSnapshot()
@@ -847,7 +895,7 @@ class ManageSnapshotsDialog(
 
     override fun isEnabled(): Boolean {
       return super.isEnabled() && snapshotTable.selectionModel.isSingleItemSelected &&
-             snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isValid
+             snapshotTable.selectedObject!!.isCreated && snapshotTable.selectedObject!!.isCompatible
     }
   }
 
@@ -924,7 +972,7 @@ class ManageSnapshotsDialog(
     private fun getColumnHeaderWidth(column: Int): Int {
       val tableHeader: JTableHeader = getTableHeader()
       val headerFontMetrics = tableHeader.getFontMetrics(tableHeader.font)
-      return headerFontMetrics.stringWidth(getColumnName(column) + JBUIScale.scale(HEADER_GAP))
+      return headerFontMetrics.stringWidth(getColumnName(column)) + JBUIScale.scale(HEADER_GAP)
     }
 
     private fun getColumnDataWidth(column: Int): Int {
@@ -940,13 +988,13 @@ class ManageSnapshotsDialog(
     private class SnapshotRowSorter(model: SnapshotTableModel) : DefaultColumnInfoBasedRowSorter(model) {
 
       override fun getComparator(column: Int): Comparator<*> {
-        // Make sure that the QuickBoot snapshot is always at the top and invalid snapshots are
+        // Make sure that the QuickBoot snapshot is always at the top and incompatible snapshots are
         // always at the bottom of the list.
         val quickBootComparator = if (sortKeys.firstOrNull()?.sortOrder == SortOrder.ASCENDING) {
-          compareByDescending(SnapshotInfo::isQuickBoot).thenByDescending(SnapshotInfo::isValid)
+          compareByDescending(SnapshotInfo::isQuickBoot).thenByDescending(SnapshotInfo::isCompatible)
         }
         else {
-          compareBy(SnapshotInfo::isQuickBoot).thenBy(SnapshotInfo::isValid)
+          compareBy(SnapshotInfo::isQuickBoot).thenBy(SnapshotInfo::isCompatible)
         }
         @Suppress("UNCHECKED_CAST")
         return quickBootComparator.then(super.getComparator(column) as Comparator<SnapshotInfo>)
@@ -966,7 +1014,7 @@ class ManageSnapshotsDialog(
         if ((snapshot as SnapshotInfo).isQuickBoot) {
           font = font.deriveFont(Font.ITALIC)
         }
-        if (!snapshot.isValid) {
+        if (!snapshot.isCompatible) {
           toolTipText = "The snapshot is incompatible with the current configuration"
         }
       }
@@ -1053,6 +1101,16 @@ class ManageSnapshotsDialog(
     }
   }
 
+  private class BorderLayoutPanelWithPreferredSize(
+    private val preferredWidth: Int,
+    private val preferredHeight: Int
+  ) : BorderLayoutPanel() {
+
+    override fun getPreferredSize(): Dimension? {
+      return if (isPreferredSizeSet) super.getPreferredSize() else JBUI.size(preferredWidth, preferredHeight)
+    }
+  }
+
   private class CloseDialogAction : AbstractAction(CommonBundle.getCloseButtonText()) {
 
     init {
@@ -1092,6 +1150,9 @@ private val ListSelectionModel.isSingleItemSelected: Boolean
 private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
 
 /** Text offset in the table header. */
-private const val HEADER_GAP = 20
+private const val HEADER_GAP = 17
 
 private const val QUICK_BOOT_SNAPSHOT_MODEL_ROW = 0 // The QuickBoot snapshot is always first in the list.
+
+@NonNls
+private val DIMENSION_SERVICE_KEY = "#${ManageSnapshotsDialog::class.qualifiedName}"

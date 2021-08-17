@@ -18,8 +18,8 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 
 @UiThread
-interface PinCodePairingView {
-  val model: PinCodePairingModel
+interface PairingCodePairingView {
+  val model: PairingCodePairingModel
 
   fun showDialog()
 
@@ -34,7 +34,7 @@ interface PinCodePairingView {
   @UiThread
   interface Listener {
     /**
-     * The pin code value is in [PinCodePairingModel.pinCode]
+     * The pairing code value is in [PairingCodePairingModel.pairingCode]
      */
     fun onPairInvoked()
   }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
@@ -22,8 +22,6 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -36,15 +34,15 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
-open class NeleIdPropertyItem(
-  model: NelePropertiesModel,
+open class NlIdPropertyItem(
+  model: NlPropertiesModel,
   definition: AttributeDefinition?,
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-) : NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model,
-                     listOf(components.first()), optionalValue1, optionalValue2) {
+) : NlPropertyItem(ANDROID_URI, ATTR_ID, NlPropertyType.ID, definition, componentName, "", model,
+                   listOf(components.first()), optionalValue1, optionalValue2) {
 
   // TODO(b/120919869): The snapshot value in NlComponent may be stale.
   // The snapshot stored in an NlComponent can get stale when something else
@@ -106,21 +104,15 @@ open class NeleIdPropertyItem(
       return false
     }
 
-    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-      val action = RenameElementAction()
-      val simpleContext = SimpleDataContext.builder()
+    val action = RenameElementAction()
+    val simpleContext = SimpleDataContext.builder()
         .add(NEW_NAME_RESOURCE, newId)
         .add(CommonDataKeys.PSI_FILE, value.containingFile)
         .add(CommonDataKeys.PSI_ELEMENT, value)
         .add(CommonDataKeys.PROJECT, value.project)
-        .build()
-      ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
-    } else {
-      // Exact replace only
-      val project = model.facet.module.project
-      val processor = NeleIdRenameProcessor(project, value, newValue)
-      processor.run()
-    }
+      .build()
+    ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
+
 
     // The RenameProcessor will change the value of the ID here (may happen later if previewing first).
     return true

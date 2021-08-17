@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose.code.completion
 
+import com.android.tools.compose.ComposeFqNames
+import com.android.tools.compose.ComposeSettings
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.uipreview.AndroidEditorSettings
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.android.compose.stubComposableAnnotation
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class AndroidComposeCompletionContributorTest : AndroidTestCase() {
+/**
+ * Tests for [ComposeCompletionContributor].
+ */
+class ComposeCompletionContributorTest {
 
-  public override fun setUp() {
-    super.setUp()
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+
+  @Before
+  fun setUp() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_COMPLETION_PRESENTATION.override(true)
     StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
     StudioFlags.COMPOSE_COMPLETION_WEIGHER.override(true)
-    (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
+    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    myFixture.stubComposableAnnotation(ComposeFqNames.root)
   }
 
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    StudioFlags.COMPOSE_COMPLETION_PRESENTATION.clearOverride()
-    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.clearOverride()
-    StudioFlags.COMPOSE_COMPLETION_WEIGHER.clearOverride()
-    super.tearDown()
-  }
-
+  @Test
   fun testSignatures() {
     myFixture.addFileToProject(
       "src/com/example/MyViews.kt",
@@ -53,7 +59,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       // "Foobar" is a unique prefix that no other lookup elements will match.
 
@@ -89,7 +95,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -111,7 +117,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       fun setContent(content: @Composable() () -> Unit) { TODO() }
 
@@ -132,6 +138,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
+  @Test
   fun testInsertHandler() {
     // Given:
     myFixture.addFileToProject(
@@ -140,7 +147,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -154,7 +161,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -173,7 +180,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -183,6 +190,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testInsertHandler_dont_insert_before_parenthesis() {
     // Given:
     myFixture.addFileToProject(
@@ -191,7 +199,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -205,7 +213,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -224,7 +232,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -241,7 +249,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -261,7 +269,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -271,6 +279,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testInsertHandler_lambda() {
     // Given:
     myFixture.addFileToProject(
@@ -279,10 +288,13 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
+
+      @Composable
+      fun FoobarTwo(children: () -> Unit) {}
 
       """.trimIndent()
     )
@@ -293,11 +305,11 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
-        Foobar${caret}
+        FoobarO${caret}
       }
       """.trimIndent()
     )
@@ -312,7 +324,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -322,8 +334,45 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       }
       """.trimIndent()
       , true)
+
+    val file2 = myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarT${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file2.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarTwo {
+          
+        }
+      }
+      """.trimIndent()
+      , true)
   }
 
+  @Test
   fun testInsertHandler_lambda_before_curly_braces() {
     // Given:
     myFixture.addFileToProject(
@@ -332,7 +381,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
@@ -346,7 +395,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -369,7 +418,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -388,7 +437,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -411,7 +460,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -424,6 +473,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       , true)
   }
 
+  @Test
   fun testInsertHandler_lambdaWithOptional() {
     // Given:
     myFixture.addFileToProject(
@@ -432,7 +482,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(optional: String? = null, children: @Composable() () -> Unit) {}
@@ -446,7 +496,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -465,7 +515,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -477,6 +527,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       , true)
   }
 
+  @Test
   fun testInsertHandler_onClick() {
     // Given:
     myFixture.addFileToProject(
@@ -485,7 +536,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun AppBarIcon(icon: String, onClick: () -> Unit) {}
@@ -499,7 +550,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -518,16 +569,71 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
-        AppBarIcon(icon = , onClick = )
+        AppBarIcon(icon = ) {
+          
+        }
       }
       """.trimIndent()
       , true)
   }
 
+  @Test
+  fun testInsertHandler_onClick_lastParameterIsNotLambdaOrRequired() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun RadioButton(text: String, onClick: () -> Unit, label: String = "label") {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        RadioButton${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        RadioButton(text = , onClick = { /*TODO*/ })
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  @Test
   fun testInsertHandler_disabledThroughSettings() {
     // Given:
     myFixture.addFileToProject(
@@ -536,7 +642,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
@@ -550,7 +656,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -560,7 +666,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
 
     // When:
-    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = false
+    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = false
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.completeBasic()
 
@@ -570,7 +676,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       fun HomeScreen() {
@@ -579,10 +685,10 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = true
+    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
   }
 
-  private val JavaCodeInsightTestFixture.renderedLookupElements: Collection<String>
+  private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return lookupElements.orEmpty().map { lookupElement ->
         val presentation = LookupElementPresentation()

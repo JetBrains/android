@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.gradle.dsl.GradleUtil.getBaseDirPath;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
@@ -28,14 +32,8 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtil.saveText;
-import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
@@ -51,6 +49,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
@@ -59,7 +58,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -75,7 +73,8 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.OpenProjectTaskBuilder;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
@@ -98,19 +97,22 @@ import org.junit.runners.Parameterized;
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized.class)
-public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
-  public static final String FN_BUILD_GRADLE = "build.gradle";
-  public static final String FN_BUILD_GRADLE_KTS = "build.gradle.kts";
-  public static final String FN_SETTINGS_GRADLE = "settings.gradle";
-  public static final String FN_SETTINGS_GRADLE_KTS = "settings.gradle.kts";
-  public static final String FN_GRADLE_PROPERTIES = "gradle.properties";
+public abstract class GradleFileModelTestCase extends PlatformTestCase {
+  protected GradleFileModelTestCase() {
+    super();
+    myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser";
+  }
 
-  public static final ProjectSystemId GRADLE_SYSTEM_ID = new ProjectSystemId("GRADLE");
+  protected GradleFileModelTestCase(@NotNull String testDataRelativePath) {
+    super();
+    myTestDataRelativePath = testDataRelativePath;
+  }
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
-  protected String myTestDataPath;
+  protected String myTestDataRelativePath;
+  protected String myTestDataResolvedPath;
 
   @Parameter
   public String myTestDataExtension;
@@ -196,14 +198,20 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     });
   }
 
+  @Override
+  @NotNull
+  public OpenProjectTaskBuilder getOpenProjectOptions() {
+    return super.getOpenProjectOptions().runPostStartUpActivities(false);
+  }
+
   @Before
   public void before() throws Exception {
+    IdeSdks.removeJdksOn(getTestRootDisposable());
 
     Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();
     Files.createDirectories(basePath);
     LocalFileSystem fs = LocalFileSystem.getInstance();
     myProjectBasePath = fs.refreshAndFindFileByNioFile(basePath);
-    assertTrue(myProjectBasePath.isDirectory());
 
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
@@ -243,7 +251,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       return null;
     });
 
-    myTestDataPath = getTestDataPath() + "/parser";
+    myTestDataResolvedPath = TestUtils.resolveWorkspacePath(myTestDataRelativePath).toString();
   }
 
   private String getTestDataPath() {
@@ -269,7 +277,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     return mainModule;
   }
 
-  private @NotNull Module createSubModule(@NotNull String name) {
+  @NotNull
+  private Module createSubModule(String name) {
     Path moduleFile = ProjectKt.getStateStore(myProject).getProjectBasePath().resolve(name).resolve(name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     return WriteAction.compute(() -> {
       return ModuleManager.getInstance(myProject).newModule(moduleFile, getModuleType().getId());
@@ -278,8 +287,8 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
-    final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
-    VirtualFile virtualTestFile = VfsUtil.findFileByIoFile(testFile, true);
+    final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
+    VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
     saveFileUnderWrite(destination, VfsUtilCore.loadText(virtualTestFile));
     injectTestInformation(destination);
@@ -306,7 +315,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
-    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    final File testFile = fileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     assumeTrue(testFile.exists());
     return FileUtil.loadFile(testFile);
   }
@@ -443,7 +452,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
-    verifyFileContents(file, FileUtil.loadFile(expected.toFile(myTestDataPath, myTestDataExtension)));
+    verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, myTestDataExtension)));
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {
@@ -527,7 +536,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     assertTrue(model.hasValidPsiElement());
   }
 
-  public static <T> void checkForInValidPsiElement(@NotNull T object, @NotNull Class<? extends GradleDslBlockModel> clazz) {
+  public static <T> void checkForInvalidPsiElement(@NotNull T object, @NotNull Class<? extends GradleDslBlockModel> clazz) {
     assertThat(object).isInstanceOf(clazz);
     GradleDslBlockModel model = clazz.cast(object);
     assertFalse(model.hasValidPsiElement());
@@ -588,7 +597,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       case BOOLEAN:
         assertEquals(message, expected, model.getValue(BOOLEAN_TYPE));
         break;
-      case REFERENCE:
+      case REFERENCE: case INTERPOLATED:
         if (resolve) {
           GradlePropertyModel resultModel = model.resolve().getResultModel();
           if (resultModel != model) {
@@ -762,6 +771,24 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
     List<String> actualNames = PluginModel.extractNames(models);
     assertSameElements(actualNames, names);
+  }
+
+  public static void verifyPlugins(@NotNull Map<String, Map<String,Object>> infos, @NotNull List<PluginModel> models) {
+    HashMap<String, Map<String,Object>> mutableInfos = new HashMap<>(infos);
+    for (PluginModel model : models) {
+      Map<String,Object> info = mutableInfos.get(model.name().forceString());
+      assertNotNull(info);
+      String expectedVersion = (String) info.get("version");
+      if (expectedVersion != null) {
+        assertEquals(expectedVersion, model.version().forceString());
+      }
+      Boolean expectedApply = (Boolean) info.get("apply");
+      if (expectedApply != null) {
+        assertEquals(expectedApply, model.apply().toBoolean());
+      }
+      mutableInfos.remove(model.name().forceString());
+    }
+    assertEmpty(mutableInfos.entrySet());
   }
 
   @NotNull

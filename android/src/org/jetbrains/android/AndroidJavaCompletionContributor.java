@@ -2,8 +2,8 @@ package org.jetbrains.android;
 
 import static com.android.SdkConstants.R_CLASS;
 
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
@@ -23,7 +23,6 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.AndroidDeprecationInspection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaCompletionContributor extends CompletionContributor {
   private static final String[] EXCLUDED_PACKAGES = new String[]{"javax.swing", "javafx"};
@@ -39,12 +38,11 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
     }
 
     boolean filterPrivateResources = shouldFilterPrivateResources(position, facet);
-    ResourceVisibilityLookup lookup = filterPrivateResources ? getResourcesLookup(facet) : null;
 
     resultSet.runRemainingContributors(parameters, result -> {
       CompletionResult modifiedResult = result;
       if (filterPrivateResources) {
-        if (lookup != null && isForPrivateResource(modifiedResult, lookup)) {
+        if (isForPrivateResource(modifiedResult, facet)) {
           modifiedResult = null;
         }
       }
@@ -107,16 +105,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
     return result;
   }
 
-  @Nullable
-  private static ResourceVisibilityLookup getResourcesLookup(AndroidFacet facet) {
-    ResourceVisibilityLookup lookup = ResourceRepositoryManager.getInstance(facet).getResourceVisibility();
-    if (lookup.isEmpty()) {
-      return null;
-    }
-    return lookup;
-  }
-
-  public static boolean isForPrivateResource(@NotNull CompletionResult result, @NotNull ResourceVisibilityLookup lookup) {
+  public static boolean isForPrivateResource(@NotNull CompletionResult result, @NotNull AndroidFacet facet) {
     Object obj = result.getLookupElement().getObject();
     if (!(obj instanceof PsiField)) {
       return false;
@@ -133,9 +122,8 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         }
 
         ResourceType type = ResourceType.fromClassName(containingClass.getName());
-        if (type != null && lookup.isPrivate(type, psiField.getName())) {
-          return true;
-        }
+        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+        return type != null && !IdeResourcesUtil.isAccessible(repositoryManager.getNamespace(), type, psiField.getName(), facet);
       }
     }
     return false;

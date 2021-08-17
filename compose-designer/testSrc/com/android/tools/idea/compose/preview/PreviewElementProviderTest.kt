@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.util.SimpleModificationTracker
 import org.junit.Assert.assertEquals
@@ -24,7 +25,7 @@ import org.junit.Test
 class PreviewElementProviderTest {
   @Test
   fun testFilteredProvider() {
-    val staticPreviewProvider = StaticPreviewProvider(listOf(
+    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
       SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
@@ -47,15 +48,15 @@ class PreviewElementProviderTest {
 
   @Test
   fun testMemoized() {
-    var staticPreviewProvider = StaticPreviewProvider(listOf(
+    var staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
       SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     val modificationTracker = SimpleModificationTracker()
-    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider {
-      override val previewElements: Sequence<PreviewElement>
+    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<PreviewElementInstance> {
+      override val previewElements: Sequence<PreviewElementInstance>
         get() = staticPreviewProvider.previewElements
     }, modificationTracker)
 

@@ -172,5 +172,11 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     public String suggestNewProjectLocation() {
       return "";
     }
+
+    @NotNull
+    @Override
+    public String suggestNewProjectLocation() {
+      return "";
+    }
   }
 }

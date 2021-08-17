@@ -32,8 +32,8 @@ import java.util.concurrent.Executor
  * Handles the QR Code pairing aspect of the "Pair device over Wi-FI" dialog
  */
 @UiThread
-class QrCodeScanningController(private val service: AdbDevicePairingService,
-                               private val view: AdbDevicePairingView,
+class QrCodeScanningController(private val service: WiFiPairingService,
+                               private val view: WiFiPairingView,
                                edtExecutor: Executor,
                                parentDisposable: Disposable) : Disposable {
   private val LOG = logger<QrCodeScanningController>()
@@ -63,7 +63,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
     pollMdnsServices()
   }
 
-  private fun generateQrCode(model: AdbDevicePairingModel) {
+  private fun generateQrCode(model: WiFiPairingModel) {
     val futureQrCode = service.generateQrCode(UIColors.QR_CODE_BACKGROUND, UIColors.QR_CODE_FOREGROUND)
     edtExecutor.transform(futureQrCode) {
       model.qrCodeImage = it
@@ -87,6 +87,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
       view.showQrCodePairingSuccess(mdnsService, device)
     }.catching(edtExecutor, Throwable::class.java) { error ->
       if (!isCancelled(error)) {
+        LOG.warn("Error pairing device ${mdnsService}", error)
         state = State.PairingError
         view.showQrCodePairingError(mdnsService, error)
       }
@@ -111,7 +112,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
 
     val futureServices = service.scanMdnsServices()
     edtExecutor.transform(futureServices) { services ->
-      view.model.pinCodeServices = services.filter { it.serviceType == ServiceType.PinCode }
+      view.model.pairingCodeServices = services.filter { it.serviceType == ServiceType.PairingCode }
       view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
     }.catching(edtExecutor, Throwable::class.java) {
       //TODO: Display/log error
@@ -133,7 +134,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
   }
 
   @UiThread
-  inner class MyViewListener : AdbDevicePairingView.Listener {
+  inner class MyViewListener : WiFiPairingView.Listener {
     override fun onScanAnotherQrCodeDeviceAction() {
       when(state) {
         State.PairingError, State.PairingSuccess -> {
@@ -145,7 +146,7 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
       }
     }
 
-    override fun onPinCodePairAction(mdnsService: MdnsService) {
+    override fun onPairingCodePairAction(mdnsService: MdnsService) {
       // Ignore
     }
 
@@ -175,10 +176,10 @@ class QrCodeScanningController(private val service: AdbDevicePairingService,
       }
     }
 
-    override fun pinCodeServicesDiscovered(services: List<MdnsService>) {
-      LOG.info("${services.size} Pin code pairing services discovered")
+    override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
+      LOG.info("${services.size} pairing code pairing services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info("  Pin code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
+        LOG.info("  Pairing code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
       }
     }
   }

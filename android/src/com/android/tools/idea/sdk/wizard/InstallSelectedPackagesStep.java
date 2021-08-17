@@ -55,6 +55,7 @@ import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -145,12 +146,13 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onEntering() {
     mySdkManagerOutput.setText("");
-    File path = myRepoManager.getLocalPath();
+    Path path = myRepoManager.getLocalPath();
     if (path == null) {
-      path = IdeSdks.getInstance().getAndroidSdkPath();
+      File defaultPath = IdeSdks.getInstance().getAndroidSdkPath();
+      path = defaultPath == null ? null : mySdkHandler.toCompatiblePath(defaultPath);
       myRepoManager.setLocalPath(path);
     }
-    myLabelSdkPath.setText(path.getPath());
+    myLabelSdkPath.setText(path.toString());
 
     myInstallationFinished.set(false);
     startSdkInstall();

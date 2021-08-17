@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2
+package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.argumentName
-import com.android.tools.idea.naveditor.property2.inspector.ActionListInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.ArgumentInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.DeepLinkInspectorBuilder
-import com.android.tools.idea.naveditor.property2.ui.ComponentList
+import com.android.tools.idea.naveditor.property.inspector.ActionListInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.ArgumentInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.DeepLinkInspectorBuilder
+import com.android.tools.idea.naveditor.property.ui.ComponentList
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
@@ -49,7 +49,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("action2", "action3", "action1").mapNotNull(model::find)
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
 
@@ -66,7 +66,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("argument2", "argument3", "argument1").map { name -> fragment1.children.first { it.argumentName == name } }
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
@@ -83,13 +83,13 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull(model::find)
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }
 
-  private fun verifyPanel(component: NlComponent, propertiesModel: NelePropertiesModel,
-                          builder: InspectorBuilder<NelePropertyItem>, expected: List<NlComponent>) {
-    val provider = NelePropertiesProvider(myFacet)
+  private fun verifyPanel(component: NlComponent, propertiesModel: NlPropertiesModel,
+                          builder: InspectorBuilder<NlPropertyItem>, expected: List<NlComponent>) {
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(component))
     val panel = FakeInspectorPanel()
 
@@ -121,8 +121,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
     val panel = FakeInspectorPanel()
     val builder = ActionListInspectorBuilder(propertiesModel)
@@ -155,8 +155,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
     val panel = FakeInspectorPanel()
     val builder = ActionListInspectorBuilder(propertiesModel)

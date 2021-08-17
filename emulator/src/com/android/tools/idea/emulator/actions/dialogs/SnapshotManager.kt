@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator.actions.dialogs
+package com.android.tools.idea.emulator.dialogs
 
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.emulator.readKeyValueFile
 import com.android.tools.idea.emulator.updateKeyValueFile
-import com.intellij.util.text.nullize
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.konan.file.use
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.streams.asSequence
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ExecutionException
 
 /**
  * Manages emulator snapshots and boot mode.
@@ -48,50 +48,34 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     get() = emulatorController.emulatorId.avdId
 
   /**
-   * Fetches and returns a list of snapshots by reading the "snapshots" subfolder of the AVD folder.
-   *
-   * @param excludeQuickBoot if true, the quick boot snapshot is not included in the returned list
+   * Obtains and returns a list of snapshots by querying the emulator.
    */
   @Slow
-  fun fetchSnapshotList(excludeQuickBoot: Boolean = false): List<SnapshotInfo> {
-    val validSnapshotsReady = CountDownLatch(1)
-    val validSnapshotIds = hashSetOf<String>()
-    emulatorController.listSnapshots(object : EmptyStreamObserver<SnapshotList>() {
+  fun fetchSnapshotList(): List<SnapshotInfo> {
+    val snapshotsFuture = SettableFuture.create<List<SnapshotInfo>>()
+    val snapshotFilter = SnapshotFilter.newBuilder().setStatusFilter(SnapshotFilter.LoadStatus.All).build()
+    emulatorController.listSnapshots(snapshotFilter, object : EmptyStreamObserver<SnapshotList>() {
       override fun onNext(response: SnapshotList) {
-        for (snapshot in response.snapshotsList) {
-          validSnapshotIds.add(snapshot.snapshotId)
+        val snapshots = response.snapshotsList.map {
+          SnapshotInfo(snapshotsFolder, it)
         }
+        snapshotsFuture.set(snapshots)
       }
 
       override fun onError(t: Throwable) {
-        validSnapshotsReady.countDown()
-      }
-
-      override fun onCompleted() {
-        validSnapshotsReady.countDown()
+        snapshotsFuture.setException(t)
       }
     })
 
     try {
-      val snapshots = Files.list(snapshotsFolder).use { stream ->
-        stream.asSequence()
-          .mapNotNull { folder ->
-            if (excludeQuickBoot && folder.fileName.toString() == QUICK_BOOT_SNAPSHOT_ID) null else readSnapshotInfo(folder)
-          }
-          .toList()
-      }
-
-      validSnapshotsReady.await()
-      for (snapshot in snapshots) {
-        snapshot.isValid = validSnapshotIds.contains(snapshot.snapshotId) || snapshot.isQuickBoot && !snapshot.isCreated
-      }
-      return snapshots
+      return snapshotsFuture.get()
     }
-    catch (_: NoSuchFileException) {
-      // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
+    catch (_: ExecutionException) {
+      // The error is already logged by EmulatorController.
     }
-    catch (e: IOException) {
-      logger.warn("Error reading ${snapshotsFolder} - ${e.localizedMessage}")
+    catch (_: InterruptedException) {
+    }
+    catch (_: CancellationException) {
     }
     return emptyList()
   }
@@ -103,13 +87,12 @@ class SnapshotManager(val emulatorController: EmulatorController) {
       val snapshot = Files.newInputStream(snapshotProtoFile).use {
         Snapshot.parseFrom(it)
       }
-      return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder))
+      return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder), isCompatible = true, isLoadedLast = false)
     }
     catch (_: NoSuchFileException) {
       // The "snapshot.pb" file is missing. Skip the incomplete snapshot.
-    }
-    catch (e: IOException) {
-      logger.warn("Error reading ${snapshotProtoFile} - ${e.localizedMessage}")
+    } catch (e: IOException) {
+      thisLogger().warn("Error reading $snapshotProtoFile - ${e.localizedMessage}")
     }
     return null
   }
@@ -132,9 +115,8 @@ class SnapshotManager(val emulatorController: EmulatorController) {
       Files.newOutputStream(protoFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { stream->
         snapshotProto.writeTo(stream)
       }
-    }
-    catch (e: IOException) {
-      logger.warn("Error writing ${protoFile} - ${e.localizedMessage}")
+    } catch (e: IOException) {
+      thisLogger().warn("Error writing $protoFile - ${e.localizedMessage}")
     }
   }
 
@@ -189,78 +171,6 @@ class SnapshotManager(val emulatorController: EmulatorController) {
 
   private fun toYesNo(value: Boolean) =
     if (value) "yes" else "no"
-}
-
-/**
- * Information about an Emulator snapshot.
- */
-class SnapshotInfo(val snapshotFolder: Path, val snapshot: Snapshot, val sizeOnDisk: Long) {
-
-  /**
-   * Creates a placeholder for a non-existent snapshot.
-   */
-  constructor(snapshotFolder: Path) : this(snapshotFolder, Snapshot.getDefaultInstance(), 0)
-
-  /**
-   * The ID of the snapshot.
-   */
-  val snapshotId = snapshotFolder.fileName.toString()
-
-  /**
-   * True if the snapshot was created automatically when the emulator shut down.
-   */
-  val isQuickBoot = snapshotId == QUICK_BOOT_SNAPSHOT_ID
-
-  /**
-   * The name of the snapshot to be used in the UI. May be different from the name of the snapshot folder.
-   */
-  val displayName: String
-    get() = if (isQuickBoot) "Quickboot (auto-saved)" else snapshot.logicalName.nullize() ?: snapshotId
-
-  /**
-   * The screenshot file containing an image of the device screen when the snapshot was taken.
-   */
-  val screenshotFile: Path
-    get() = snapshotFolder.resolve("screenshot.png")
-
-  /**
-   * Returns the creation time in milliseconds since epoch.
-   */
-  val creationTime: Long
-    get() = TimeUnit.SECONDS.toMillis(snapshot.creationTime)
-
-  /**
-   * Returns the description of the snapshot.
-   */
-  val description: String
-    get() = snapshot.description
-
-  /**
-   * True if the snapshot is compatible with the current emulator configuration.
-   */
-  val isCreated: Boolean
-    get() = snapshot.creationTime != 0L
-
-  /**
-   * True if the snapshot is compatible with the current emulator configuration.
-   */
-  var isValid: Boolean = true
-
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as SnapshotInfo
-
-    if (snapshotFolder != other.snapshotFolder) return false
-
-    return true
-  }
-
-  override fun hashCode(): Int {
-    return snapshotFolder.hashCode()
-  }
 }
 
 /**

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.intellij.psi.XmlElementFactory
+import com.intellij.testFramework.PlatformTestUtil
 
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
@@ -32,6 +33,7 @@ class SceneComponentOrderTest : SceneTest() {
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, textView, InsertType.CREATE, myModel.surface)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
 
@@ -48,6 +50,7 @@ class SceneComponentOrderTest : SceneTest() {
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE, myModel.surface)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
 
@@ -63,6 +66,7 @@ class SceneComponentOrderTest : SceneTest() {
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, null, InsertType.CREATE, myModel.surface)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
 
@@ -77,7 +81,8 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE_WITHIN, myModel.surface)
+    myModel.addComponents(listOf(textView), constraintLayout, null, InsertType.MOVE, myModel.surface)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
 
@@ -91,7 +96,8 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
     val button = myModel.find("button")!!
 
-    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE_WITHIN, myModel.surface)
+    myModel.addComponents(listOf(button), constraintLayout, textView, InsertType.MOVE, myModel.surface)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
 

@@ -58,7 +58,7 @@ public class ImportMlModelTest {
 
   private void testImportMlModel(String flavor) throws IOException {
     String modelFilePath =
-      TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite").getAbsolutePath();
+      TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite").toString();
 
     guiTest.importSimpleApplication()
       .getProjectView()

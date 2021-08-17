@@ -44,8 +44,8 @@ import java.util.Map;
  * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
 public class LayoutLibrary implements Disposable {
-    public static final String LAYOUTLIB_NATIVE_PLUGIN = "com.android.layoutlib.native";
-    public static final String LAYOUTLIB_STANDARD_PLUGIN = "com.android.layoutlib.standard";
+    public static final String LAYOUTLIB_NATIVE_PLUGIN = "com.android.layoutlib";
+    public static final String LAYOUTLIB_STANDARD_PLUGIN = "com.android.layoutlib.legacy";
 
     /** Link to the layout bridge */
     private final Bridge mBridge;

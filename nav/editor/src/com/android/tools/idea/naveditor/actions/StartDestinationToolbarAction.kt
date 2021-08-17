@@ -15,33 +15,45 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.naveditor.model.isActivity
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons
 
-class StartDestinationToolbarAction(surface: NavDesignSurface) :
-  ToolbarAction(surface, "Assign start destination", StudioIcons.NavEditor.Toolbar.ASSIGN_START) {
+class StartDestinationToolbarAction private constructor(): AnAction() {
 
-  override fun isEnabled(): Boolean = surface.selectionModel.selection.let {
-    if (it.size != 1) {
-      return false
-    }
-
-    val component = it[0]
-    return !component.id.isNullOrEmpty() && component.isDestination && component != surface.currentNavigation
-           && !component.isActivity && !component.isStartDestination
+  override fun update(e: AnActionEvent) {
+    // FIXME: This action should be disabled when the selected component cannot be a start destination
+    //        But the toolbar of navigation editor is not updated after disable it.
+    //        Thus we keep it enabled in navigation editor and do nothing when selected component is not illegible.
+    e.presentation.isEnabled = (e.getData(DESIGN_SURFACE) as? NavDesignSurface != null)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    surface.selectionModel.selection.firstOrNull()?.let {
-      WriteCommandAction.runWriteCommandAction(it.model.project) {
-        it.setAsStartDestination()
+    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
+    val component = surface.selectionModel.selection.singleOrNull() ?: return
+    if (!component.id.isNullOrEmpty() &&
+        component.isDestination && component != surface.currentNavigation &&
+        !component.isActivity && !component.isStartDestination) {
+      surface.selectionModel.selection.firstOrNull()?.let {
+        WriteCommandAction.runWriteCommandAction(it.model.project) {
+          it.setAsStartDestination()
+        }
       }
     }
+  }
+
+  companion object {
+    @JvmStatic
+    val instance: StartDestinationToolbarAction
+      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ASSIGN_START_DESTINATION) as StartDestinationToolbarAction
   }
 }

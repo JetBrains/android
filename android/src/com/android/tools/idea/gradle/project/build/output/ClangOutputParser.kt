@@ -52,17 +52,17 @@ private enum class ClangDiagnosticClass(val tag: String) {
  *
  * > Task :app:externalNativeBuildDebug
  */
-private val nativeBuildTaskPattern = Regex("> Task ((?::[^:]+)*):externalNativeBuild([^ ]+)(?: [-A-Z]+)?")
+private val nativeBuildTaskPattern = Regex("> Task ((?::[^:]+)*):(?:buildCMake|buildNdkBuild|externalNativeBuild)([^ ]+)(?: [-A-Z]+)?")
 
 /**
  * Pattern matching a line output by ninja when it changes the working directory.
  */
-private val ninjaEnterDirectoryPattern = Regex("ninja: Entering directory `([^']+)'")
+private val ninjaEnterDirectoryPattern = Regex("(?:C/C\\+\\+: )?ninja: Entering directory `([^']+)'")
 
 /**
  * Pattern matching a line output by NDK build which declares what it is about to do.
  */
-private val ndkBuildAbiAnnouncementPattern = Regex("\\[(arm64-v8a|armeabi-v7a|x86|x86_64)] .+")
+private val ndkBuildAbiAnnouncementPattern = Regex("(?:C/C\\+\\+: )?\\[(arm64-v8a|armeabi-v7a|x86|x86_64)] .+")
 
 /**
  * Regex matching the diagnostic line from Clang compiler. For example
@@ -75,7 +75,7 @@ private val ndkBuildAbiAnnouncementPattern = Regex("\\[(arm64-v8a|armeabi-v7a|x8
  * indented by two spaces.
  */
 private val diagnosticMessagePattern = Regex(
-  "((?:[A-Z]:)?[^\\s][^:]+):(\\d+):(\\d+): (${ClangDiagnosticClass.values().joinToString("|") { it.tag }}): (.*)")
+  "(?:C/C\\+\\+: )?((?:[A-Z]:)?[^\\s][^:]+):(\\d+):(\\d+): (${ClangDiagnosticClass.values().joinToString("|") { it.tag }}): (.*)")
 
 /**
  * For files included by another file, clang outputs the including files. For example, assuming common.h is included by feature.h, which
@@ -87,11 +87,11 @@ private val diagnosticMessagePattern = Regex(
  * /path/to/common.h:3:4: error: something is wrong
  * ```
  */
-private val fileInclusionPattern = Regex("In file included from (.+):(\\d+):")
+private val fileInclusionPattern = Regex("(?:C/C\\+\\+: )?In file included from (.+):(\\d+):")
 
-private val linkerErrorPattern = Regex("clang(\\+\\+)?(\\.exe)?: error: linker command failed with exit code 1.*")
+private val linkerErrorPattern = Regex("(?:C/C\\+\\+: )?clang(\\+\\+)?(\\.exe)?: error: linker command failed with exit code 1.*")
 private val linkerErrorDiagnosticPattern = Regex(
-  "((?:[A-Z]:)?[^\\s][^:]+)(?::(\\d+))?: (${ClangDiagnosticClass.values().joinToString("|") { it.tag }})?: (.+)")
+  "(?:C/C\\+\\+: )?((?:[A-Z]:)?[^\\s][^:]+)(?::(\\d+))?: (${ClangDiagnosticClass.values().joinToString("|") { it.tag }})?: (.+)")
 
 const val CLANG_COMPILER_MESSAGES_GROUP_PREFIX = "Clang Compiler"
 fun compilerMessageGroup(gradleProject: String, variant: String, abi: String?) =

@@ -23,10 +23,10 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -197,7 +197,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null,
                     ImmutableList.of(onComplete),
                     ImmutableList.of(onError), progressRunner,
-                    StudioDownloader(), StudioSettingsController.getInstance(), false)
+                    StudioDownloader(), StudioSettingsController.getInstance())
 
     return future
   }

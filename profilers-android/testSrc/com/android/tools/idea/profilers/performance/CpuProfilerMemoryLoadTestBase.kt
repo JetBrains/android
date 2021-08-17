@@ -77,12 +77,12 @@ open class CpuProfilerMemoryLoadTestBase {
    * The name is used as a prefix for the metrics to be recorded. The format is as follows
    *  [name]-Load-Capture-Used
    */
-  protected fun loadCaptureAndReport(name:String, traceFile:File) {
+  protected fun loadCaptureAndReport(name:String, traceFile:File, processNameHint: String, processIdHint: Int) {
     // Start as clean as we can.
     val before = getMemoryUsed()
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    val stage = CpuCaptureStage(profilers, ImportedConfiguration(), traceFile, 1, "system_server", 1193)
+    val stage = CpuCaptureStage(profilers, ImportedConfiguration(), traceFile, 1, processNameHint, processIdHint)
     var cpuCaptureView: CpuCaptureStageView? = null
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -93,7 +93,7 @@ open class CpuProfilerMemoryLoadTestBase {
       cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)
     })
     val after = getMemoryUsed()
-    myMemoryBenchmark.log(name + "-Load-Capture" + "-Used", (after - before) / 1024)
+    myMemoryBenchmark.log("$name-Load-Capture-Used", (after - before) / 1024)
     // Test the stage view just to hold a reference in case the compiler attempts to be smart.
     assertThat(cpuCaptureView).isNotNull()
   }

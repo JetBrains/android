@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -145,6 +143,10 @@ public class EmbeddedDistributionPaths {
     return AndroidProfilerDownloader.getInstance().getHostDir(path);
   }
 
+  /**
+   * @return the directory in the source repository that contains the checked-in Gradle distributions. In Android Studio production builds,
+   * it returns null.
+   */
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
     //noinspection IfStatementWithIdenticalBranches
@@ -157,33 +159,18 @@ public class EmbeddedDistributionPaths {
         return distributionPath;
       }
 
-      // Development build.
-      String localDistributionPath = System.getProperty("local.gradle.distribution.path");
-      if (localDistributionPath != null) {
-        distributionPath = new File(toCanonicalPath(localDistributionPath));
-        if (distributionPath.isDirectory()) {
-          return distributionPath;
-        }
-      }
-
       return null;
     } else {
-      // Release build
-      Logger log = getLog();
-      File distributionPath = getDefaultRootDirPath();
-      if (distributionPath == null) {
-        File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
-        log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-        if (embeddedPath.isDirectory()) {
-          log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
-          return embeddedPath;
-        }
-      }
-      log.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
+      // Release build.
       return null;
     }
   }
 
+  /**
+   * @param gradleVersion the version of Gradle to search for
+   * @return The archive file for the requested Gradle distribution, if exists, that is checked into the source repository. In Android
+   * Studio production builds, this method always returns null.
+   */
   @Nullable
   public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
     File distributionPath = findEmbeddedGradleDistributionPath();
@@ -238,10 +225,7 @@ public class EmbeddedDistributionPaths {
       String sourcesRoot = StudioPathManager.getSourcesRoot();
       String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
       String relativePath = toSystemDependentName(jdkDevPath);
-      Path jdkRootPath = Paths.get(toCanonicalPath(relativePath));
-      if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
-        jdkRootPath = jdkRootPath.resolve("jdk11");
-      }
+      File jdkRootPath = new File(toCanonicalPath(relativePath), "jdk11");
       if (SystemInfo.isWindows) {
         jdkRootPath = jdkRootPath.resolve("win");
       }
@@ -255,7 +239,7 @@ public class EmbeddedDistributionPaths {
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      Path jdkRootPath = Paths.get(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
+      File jdkRootPath = new File(ideHomePath, "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }

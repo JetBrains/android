@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2.support
+package com.android.tools.idea.naveditor.property.support
 
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.ATTR_MODULE_NAME
@@ -23,7 +23,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.openapi.application.ApplicationManager
@@ -42,7 +42,7 @@ data class ClassEnumValue(override val value: String,
   override fun withIndentation() = this
 
   override fun select(property: PropertyItem): Boolean {
-    if (property !is NelePropertyItem) {
+    if (property !is NlPropertyItem) {
       return false
     }
 

@@ -18,18 +18,26 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.ClipData
+import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.Notification
+import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.RotationRadian
+import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
+import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
@@ -44,6 +52,7 @@ import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
@@ -184,8 +193,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     emulatorConfig = config
     skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
 
-    // TODO: Change 4 to 3 after b/150494232 is fixed.
-    maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
+    maxInboundMessageSize = config.displayWidth * config.displayHeight * 3 + 100 // Three bytes per pixel.
 
     connectGrpc(maxInboundMessageSize)
     sendKeepAlive()
@@ -247,7 +255,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setClipboard(${shortDebugString(clipData)})")
+      // Don't log the actual clipboard contents to protect user privacy.
+      val clipDataForLogging = shortDebugString(clipData.toBuilder().setText("<clipboard contents>").build())
+      LOG.info("setClipboard($clipDataForLogging)")
     }
     emulatorController.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
   }
@@ -287,6 +297,33 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
     }
     emulatorController.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
+  }
+
+  /**
+   * Sends a [TouchEvent] to the Emulator.
+   */
+  fun sendTouch(touchEvent: TouchEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
+      LOG.info("sendTouch(${shortDebugString(touchEvent)})")
+    }
+    emulatorController.sendTouch(touchEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendTouchMethod()))
+  }
+
+  /**
+   * Streams emulator notifications.
+   */
+  fun streamNotification(streamObserver: StreamObserver<Notification>): Cancelable {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("streamNotification()")
+    }
+    val method = EmulatorControllerGrpc.getStreamNotificationMethod()
+    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, EMPTY_PROTO, DelegatingStreamObserver(streamObserver, method))
+    return object : Cancelable {
+      override fun cancel() {
+        call.cancel("Canceled by consumer", null)
+      }
+    }
   }
 
   /**
@@ -362,15 +399,61 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Retrieves configurations of all displays.
+   */
+  fun getDisplayConfigurations(streamObserver: StreamObserver<DisplayConfigurations>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getDisplayConfigurations()")
+    }
+    emulatorController.getDisplayConfigurations(
+        EMPTY_PROTO, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetDisplayConfigurationsMethod()))
+  }
+
+  /**
+   * Creates, modifies, or deletes configurable secondary displays.
+   */
+  fun setDisplayConfigurations(displayConfigurations: DisplayConfigurations,
+                               streamObserver: StreamObserver<DisplayConfigurations> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setDisplayConfigurations(${shortDebugString(displayConfigurations)})")
+    }
+    emulatorController.setDisplayConfigurations(
+        displayConfigurations, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetDisplayConfigurationsMethod()))
+  }
+
+  /**
+   * Changes orientation of the virtual scene camera.
+   */
+  fun rotateVirtualSceneCamera(cameraRotation: RotationRadian, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("rotateVirtualSceneCamera(${shortDebugString(cameraRotation)})")
+    }
+    emulatorController.rotateVirtualSceneCamera(
+        cameraRotation, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getRotateVirtualSceneCameraMethod()))
+  }
+
+  /**
+   * Changes velocity of the virtual scene camera.
+   */
+  fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setVirtualSceneCameraVelocity(${shortDebugString(cameraVelocity)})")
+    }
+    emulatorController.setVirtualSceneCameraVelocity(
+        cameraVelocity, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVirtualSceneCameraVelocityMethod()))
+  }
+
+  /**
    * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
    *
+   * @param snapshotFilter determines whether all or only compatible snapshots are returned
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun listSnapshots(streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
+  fun listSnapshots(snapshotFilter: SnapshotFilter, streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("listSnapshots()")
     }
-    snapshotService.listSnapshots(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getListSnapshotsMethod()))
+    snapshotService.listSnapshots(snapshotFilter, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getListSnapshotsMethod()))
   }
 
   /**
@@ -420,24 +503,38 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Delete a snapshot in the emulator.
+   *
+   * @param snapshotId the ID of the snapshot to delete
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
+   */
+  fun deleteSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("deleteSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.deleteSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
+  }
+
+  /**
    * Shows the extended controls of the emulator.
    *
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param pane identifies the window position and the pane to open
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun showExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun showExtendedControls(pane: PaneEntry, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("showExtendedControls()")
+      LOG.info("showExtendedControls(${shortDebugString(pane)})")
     }
-    uiController.showExtendedControls(EMPTY_PROTO,
-                                      DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
+    uiController.showExtendedControls(pane, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
   }
 
   /**
    * Closes the extended controls of the emulator.
    *
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun closeExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("closeExtendedControls()")
     }
@@ -449,7 +546,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sets the UI style for the extended controls of the emulator.
    *
    * @param style the style to set
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
   fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()
@@ -467,7 +564,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           sendShutdown()
         }
         else {
-          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+          alarm.addRequest(::sendKeepAlive, KEEP_ALIVE_INTERVAL_MILLIS)
         }
       }
 
@@ -579,6 +676,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           applier.apply(headers)
         }
         catch (e: Throwable) {
+          thisLogger().error(e)
           applier.fail(Status.UNAUTHENTICATED.withCause(e))
         }
       }
@@ -629,7 +727,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
         while (remaining > 0) {
           val position = size - remaining
           val count = stream.read(buf, position, remaining)
-          if (count == -1) {
+          if (count < 0) {
             break
           }
           remaining -= count
@@ -649,7 +747,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
     catch (e: IOException) {
       throw InvalidProtocolBufferException(e)
     }
-    // Pre-create the CodedInputStream so that we can remove the size limit restriction when parsing.
+    // Remove the size limit restriction for parsing since the CodedInputStream is pre-created.
     codedStream.setSizeLimit(Int.MAX_VALUE)
     return codedStream
   }
@@ -665,6 +763,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
           FORMAT_FIELD_TAG -> builder.format = input.readMessage(ImageFormat.parser(), EMPTY_REGISTRY) as ImageFormat
           IMAGE_FIELD_TAG -> builder.image = input.readBytes()
           SEQ_FIELD_TAG-> builder.seq = input.readUInt32()
+          TIMESTAMPUS_FIELD_TAG -> builder.timestampUs = input.readUInt64()
           else -> if (!input.skipField(tag)) break
         }
       }
@@ -683,6 +782,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
 private const val FORMAT_FIELD_TAG = Image.FORMAT_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
 private const val IMAGE_FIELD_TAG = Image.IMAGE_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
 private const val SEQ_FIELD_TAG = Image.SEQ_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
+private const val TIMESTAMPUS_FIELD_TAG = Image.TIMESTAMPUS_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
 
 private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 

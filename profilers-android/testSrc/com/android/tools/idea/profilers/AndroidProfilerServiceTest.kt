@@ -22,7 +22,7 @@ import com.android.tools.idea.transport.TransportDeviceManager
 import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -33,7 +33,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -56,18 +55,6 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     // We should do this during tear down, in case any test case fails or throws an exception.
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride()
     StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.clearOverride()
-  }
-
-  fun testProfilerServiceNotStartedWhenInUnifiedPipeline() {
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
-    val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManager.getInstance(myProject)
-    val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
-    val factory = AndroidProfilerToolWindowFactory()
-    factory.init(toolWindow)
-
-    ApplicationManager.getApplication().messageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
-    verify(mockProxy, never()).registerProxyService(any())
   }
 
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
@@ -107,12 +94,12 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     val state = ProfilerState();
     `when`(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
 
     state.STARTUP_PROFILING_ENABLED = true;
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
   }
 

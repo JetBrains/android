@@ -19,49 +19,65 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
+import com.intellij.testFramework.LightPlatformTestCase
 import java.util.*
 
 /**
  * Tests for [DependencyManagement].
  */
-class DependencyManagementTest : PlatformTestCase() {
+class DependencyManagementTest : LightPlatformTestCase() {
 
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var syncManager: ProjectSystemSyncManager
+  private val dialogMessages = mutableListOf<String>()
+  private var dialogAnswer = Messages.OK
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
-                                      lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
+                                       lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN)
     projectSystem.useInTests()
     syncManager = projectSystem.getSyncManager()
+
+    val testDialog = TestDialog { message: String ->
+      dialogMessages.add(message.trim()) // Remove line break in the end of the message.
+      dialogAnswer
+    }
+    TestDialogManager.setTestDialog(testDialog)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
   fun testDependsOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOnAndroidx()).isTrue()
+    Truth.assertThat(module.dependsOnAndroidx()).isTrue()
   }
 
   fun testDependsOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOnOldSupportLib()).isTrue()
+    Truth.assertThat(module.dependsOnOldSupportLib()).isTrue()
   }
 
   fun testDoesNotDependOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOnAndroidx()).isFalse()
+    Truth.assertThat(module.dependsOnAndroidx()).isFalse()
   }
 
   fun testDoesNotDependOnOldSupportLib() {
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOnOldSupportLib()).isFalse()
+    Truth.assertThat(module.dependsOnOldSupportLib()).isFalse()
   }
 
   fun testUserConfirmationMultipleArtifactsMessage() {
@@ -103,8 +119,8 @@ class DependencyManagementTest : PlatformTestCase() {
 
   fun testUserConfirmationSingleArtifactMessageWithWarning() {
     val artifacts = listOf(GoogleMavenArtifactId.DESIGN.getCoordinate("25.2.1"))
-    val warning =  "Inconsistencies in the existing project dependencies found.\n" +
-                   "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
+    val warning = "Inconsistencies in the existing project dependencies found.\n" +
+                  "Version incompatibility between: com.android.support:design:25.2.1 and: com.android.support::appcompat-v7:26.0.1"
 
     val correctMessage = """
       This operation requires the library com.android.support:design:25.2.1.
@@ -119,109 +135,211 @@ class DependencyManagementTest : PlatformTestCase() {
   }
 
   fun testDependsOnWhenDependencyExists() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)).isTrue()
+    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)).isTrue()
   }
 
   fun testDependsOnWhenDependencyDoesNotExist() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    Truth.assertThat(myModule.dependsOn(GoogleMavenArtifactId.DESIGN)).isFalse()
+    Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.DESIGN)).isFalse()
   }
 
   fun testAddEmptyListOfDependencies() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
-    val dependenciesNotAdded = myModule.addDependencies(Collections.emptyList(), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.emptyList(), false)
 
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddDependency() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddMultipleDependencies() {
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(constraintLayout, appCompat), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddSingleUnavailableDependencies() {
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(playServices), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(playServices), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
   }
 
   fun testAddMultipleUnavailableDependencies() {
     // Note that during setup PLAY_SERVICES and PLAY_SERVICES_MAPS are not included in the list of available dependencies.
     val playServicesMaps = GoogleMavenArtifactId.PLAY_SERVICES_MAPS.getCoordinate("+")
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(playServicesMaps, playServices), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(playServicesMaps, playServices), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServicesMaps)).isNull()
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServicesMaps)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices, playServicesMaps)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      Can't find com.google.android.gms:play-services-maps:+
+      Can't find com.google.android.gms:play-services:+
+      """.trimIndent())
   }
 
   fun testAddMultipleDependenciesWithSomeUnavailable() {
     // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(appCompat, playServices), false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(appCompat, playServices), false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).containsExactly("Can't find com.google.android.gms:play-services:+")
   }
 
   fun testAddDependenciesWithoutTriggeringSync() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), false, false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), false, false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
     Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).isEmpty()
   }
 
   fun testAddDependenciesWithoutUserApproval() {
-    DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = false
-    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependenciesNotAdded = myModule.addDependencies(Collections.singletonList(constraintLayout), true, false)
+    dialogAnswer = Messages.CANCEL
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(Collections.singletonList(constraintLayout), true, false)
+
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      This operation requires the library com.android.support.constraint:constraint-layout:+.
+
+      Would you like to add this now?
+      """.trimIndent())
   }
 
-  fun testAddSomeInvalidDependenciesWithoutUserApproval() {
-    DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = false
+  fun testAddSomeNonExistentDependenciesWithoutUserApproval() {
+    dialogAnswer = Messages.CANCEL
+
     // Here CONSTRAINT_LAYOUT is valid but bad:worse:1.2.3 is not. If the user rejects the adding of dependencies then the resulting list
     // should contain both dependencies because none of them were added.
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
     val badNonExistentDependency = GradleCoordinate("bad", "worse", "1.2.3")
-    val dependenciesNotAdded = myModule.addDependencies(listOf(constraintLayout, badNonExistentDependency), true, false)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, badNonExistentDependency), true, false)
 
-    Truth.assertThat(myModule.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
     Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout, badNonExistentDependency)
     Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      This operation requires the libraries com.android.support.constraint:constraint-layout:+, bad:worse:1.2.3.
+
+      Problem: Can't find bad:worse:1.2.3
+
+
+      The project may not compile after adding these libraries.
+      Would you like to add them anyway?""".trimIndent())
+  }
+
+  fun testAddDependenciesWithSomeErrorDuringRegistration() {
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
+
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat)
+    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      The following dependencies could not be added:
+      com.android.support:appcompat-v7:+ Reason: Can't add appcompat because reasons.
+
+      A sync will be still be performed to resolve the dependencies that were added successfully.""".trimIndent())
+  }
+
+  fun testAddDependenciesAllWillErrorDuringRegistration() {
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    projectSystem.addFakeErrorForRegisteringDependency(constraintLayout, "Can't add constraintLayout because reasons.")
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), false)
+
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isNull()
+    Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, constraintLayout)
+    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.UNKNOWN)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      The following dependencies could not be added:
+      com.android.support.constraint:constraint-layout:+ Reason: Can't add constraintLayout because reasons.
+      com.android.support:appcompat-v7:+ Reason: Can't add appcompat because reasons.
+      """.trimIndent())
+  }
+
+  fun testAddDependenciesWithUnavailableDependenciesAndSomeErrorDuringRegistration() {
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    projectSystem.addFakeErrorForRegisteringDependency(appCompat, "Can't add appcompat because reasons.")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    // Note that during setup PLAY_SERVICES is not included in the list of available dependencies.
+    val playServices = GoogleMavenArtifactId.PLAY_SERVICES.getCoordinate("+")
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat, playServices), false)
+
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices)).isNull()
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, playServices)
+    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).containsExactly(
+      "Can't find com.google.android.gms:play-services:+",
+      """
+      The following dependencies could not be added:
+      com.android.support:appcompat-v7:+ Reason: Can't add appcompat because reasons.
+
+      A sync will be still be performed to resolve the dependencies that were added successfully.""".trimIndent())
+  }
+
+  fun testAddMultipleDependenciesWithCompatibilityError() {
+    val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+    val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    projectSystem.addIncompatibleDependencyPair(appCompat, constraintLayout)
+    val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(listOf(constraintLayout, appCompat), true)
+
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat)).isEqualTo(appCompat)
+    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout)).isEqualTo(constraintLayout)
+    Truth.assertThat(dependenciesNotAdded.isEmpty()).isTrue()
+    Truth.assertThat(syncManager.getLastSyncResult()).isSameAs(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    Truth.assertThat(dialogMessages).containsExactly("""
+      This operation requires the libraries com.android.support.constraint:constraint-layout:+, com.android.support:appcompat-v7:+.
+
+      Problem: com.android.support:appcompat-v7:+ is not compatible with com.android.support.constraint:constraint-layout:+
+
+
+      The project may not compile after adding these libraries.
+      Would you like to add them anyway?""".trimIndent())
   }
 }

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.quickfix
 
+import com.android.SdkConstants
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -28,12 +29,15 @@ import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.idea.quickfix.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
+import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.psi.psiUtil.getSuperNames
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 
@@ -52,17 +56,34 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
 
         val factory = KtPsiFactory(element)
 
-        val newPrimaryConstructor = factory.createPrimaryConstructor(
-            """(
-            context: android.content.Context, attrs: android.util.AttributeSet? = null, defStyleAttr: Int = 0
-            )""".trimIndent()
-        )
+        val bindingContext = ktClass.analyze(BodyResolveMode.PARTIAL)
+
+        // For supertypes that are not android.view.View, we will default to the two parameter constructor.
+        // The reason is avoiding passing 0 as defStyleAttr which causes the component default theme to be
+        // removed. For example, a new class with android.widget.Button as a supertype, would cause the custom
+        // Button not to have a theme.
+        val useThreeParametersConstructor = ktClass.superTypeListEntries
+          .mapNotNull { bindingContext[BindingContext.TYPE, it.typeReference]?.fqName?.asString() }
+          // Check if the super is android.view.View to use the three parameters constructors
+          .any { it == SdkConstants.CLASS_VIEW || it == SdkConstants.CLASS_VIEWGROUP }
+
+        val (constructorSignature, superCallSignature) = if (useThreeParametersConstructor) {
+          """(
+          context: android.content.Context, attrs: android.util.AttributeSet? = null, defStyleAttr: Int = 0
+          )""".trimIndent() to "(context, attrs, defStyleAttr)"
+        }
+        else {
+          """(
+          context: android.content.Context, attrs: android.util.AttributeSet? = null
+          )""".trimIndent() to "(context, attrs)"
+        }
+        val newPrimaryConstructor = factory.createPrimaryConstructor(constructorSignature)
 
         val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)
         primaryConstructor.valueParameterList?.let { ShortenReferences.DEFAULT.process(it) }
         primaryConstructor.addAnnotation(fqNameAnnotation)
 
-        element.replace(factory.createSuperTypeCallEntry(element.text + "(context, attrs, defStyleAttr)"))
+        element.replace(factory.createSuperTypeCallEntry(element.text + superCallSignature))
     }
 
     companion object Factory : KotlinSingleIntentionActionFactory() {

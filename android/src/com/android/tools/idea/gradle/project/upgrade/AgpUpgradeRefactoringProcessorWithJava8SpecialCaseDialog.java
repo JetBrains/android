@@ -49,6 +49,7 @@ import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -64,13 +65,24 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
     boolean hasChangedBuildFiles
   ) {
-    this(processor, java8Processor, hasChangedBuildFiles, false);
+    this(processor, java8Processor, hasChangedBuildFiles, false, false);
   }
 
   AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
     @NotNull AgpUpgradeRefactoringProcessor processor,
     @NotNull Java8DefaultRefactoringProcessor java8Processor,
     boolean hasChangedBuildFiles,
+    boolean preserveComponentProcessorConfigurations
+  ) {
+    this(processor, java8Processor, hasChangedBuildFiles, preserveComponentProcessorConfigurations, false);
+  }
+
+  @VisibleForTesting
+  AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
+    @NotNull AgpUpgradeRefactoringProcessor processor,
+    @NotNull Java8DefaultRefactoringProcessor java8Processor,
+    boolean hasChangedBuildFiles,
+    boolean preserveComponentProcessorConfigurations,
     boolean processorAlreadyConfiguredForJava8Dialog
   ) {
     super(processor.getProject());
@@ -89,7 +101,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     });
 
     NoLanguageLevelAction initialNoLanguageLevelAction;
-    if (processorAlreadyConfiguredForJava8Dialog) {
+    if (preserveComponentProcessorConfigurations) {
       initialNoLanguageLevelAction = myJava8Processor.getNoLanguageLevelAction();
     }
     else {
@@ -98,6 +110,9 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
         AgpUpgradeComponentNecessity necessity = p.necessity();
         p.setEnabled(necessity == MANDATORY_CODEPENDENT || necessity == MANDATORY_INDEPENDENT);
       }
+    }
+
+    if (!processorAlreadyConfiguredForJava8Dialog) {
       Action backAction = new AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -106,7 +121,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
             NON_MODAL,
             () -> {
               DialogWrapper dialog = new AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(
-                myProcessor, myJava8Processor, hasChangesInBuildFiles, true);
+                myProcessor, myJava8Processor, hasChangesInBuildFiles, true, true);
               return dialog.showAndGet();
             });
             if (runProcessor) {
@@ -121,8 +136,12 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
     }
 
     StringBuilder sb = new StringBuilder();
-    sb.append("<p>The following commands will be executed to upgrade your project from Android Gradle Plugin version ")
-      .append(myProcessor.getCurrent()).append(" to version ").append(myProcessor.getNew()).append(":</p>");
+    sb.append("<p>The following commands will be executed to upgrade your project");
+    if (myProcessor.getClasspathRefactoringProcessor().isEnabled()) {
+      sb.append(" from Android Gradle Plugin version ").append(myProcessor.getCurrent())
+        .append(" to version ").append(myProcessor.getNew());
+    }
+    sb.append(":</p>");
     sb.append("<br/><ul>");
     for (AgpUpgradeComponentRefactoringProcessor p : myProcessor.getComponentRefactoringProcessors()) {
       if (p.isEnabled() && !p.isAlwaysNoOpForProject()) {
@@ -207,7 +226,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   private class PreviewRefactoringAction extends DialogWrapperAction {
     protected PreviewRefactoringAction() {
-      super("Preview");
+      super("Show Usages");
     }
 
     @Override

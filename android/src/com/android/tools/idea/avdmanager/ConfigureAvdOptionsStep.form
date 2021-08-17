@@ -686,15 +686,6 @@
                           <visible value="true"/>
                         </properties>
                       </component>
-                      <component id="8c4c7" class="com.android.tools.idea.avdmanager.SkinChooser" binding="mySkinComboBox" custom-create="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <toolTipText value="&lt;html&gt;A collection of images and configuration data that indicates how to populate the window. Each skin can have several &quot;layouts&quot; (e.g. &quot;landscape&quot; and &quot;portrait&quot;) corresponding to different orientation / physical configurations of the emulated device.&lt;/html&gt;"/>
-                          <visible value="true"/>
-                        </properties>
-                      </component>
                     </children>
                   </grid>
                 </children>

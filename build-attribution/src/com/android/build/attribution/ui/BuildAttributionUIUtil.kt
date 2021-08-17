@@ -21,7 +21,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.JEditorPane
 
 
@@ -29,7 +28,11 @@ fun TimeWithPercentage.durationString() = durationString(timeMs)
 
 fun TimeWithPercentage.durationStringHtml() = durationStringHtml(timeMs)
 
-fun TimeWithPercentage.percentageString() = if (percentage >= 0.1) "%.1f%%".format(percentage) else "<0.1%"
+fun TimeWithPercentage.percentageString() = when {
+  percentage < 0.1 -> "<0.1%"
+  percentage > 99.9 -> ">99.9%"
+  else -> "%.1f%%".format(percentage)
+}
 
 fun TimeWithPercentage.percentageStringHtml() = StringUtil.escapeXmlEntities(percentageString())
 
@@ -56,12 +59,14 @@ fun warningIcon(): Icon = AllIcons.General.BalloonWarning
 fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(false, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
@@ -69,3 +74,7 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
  * Wraps long path to spans to make it possible to auto-wrap to a new line
  */
 fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
+fun String.insertBRTags(): String = replace("\n", "<br/>\n")
+fun externalLink(text: String, link: BuildAnalyzerBrowserLinks) =
+  "<a href='${link.name}'>$text</a><icon src='ide/external_link_arrow.svg'>"
+fun helpIcon(text: String): String = "<icon alt='$text' src='AllIcons.General.ContextHelp'>"

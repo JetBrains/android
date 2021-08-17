@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
@@ -51,8 +50,7 @@ import org.jetbrains.annotations.TestOnly;
  * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
  * repositories.
  */
-public class DynamicValueResourceRepository extends LocalResourceRepository
-  implements Disposable, SingleNamespaceResourceRepository {
+public class DynamicValueResourceRepository extends LocalResourceRepository implements Disposable, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @SuppressWarnings("InstanceGuardedByStatic")
@@ -179,7 +177,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
 
   @SuppressWarnings("InstanceGuardedByStatic")
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull
+  @NotNull
   private Map<ResourceType, ListMultimap<String, ResourceItem>> getResourceTable() {
     if (myResourceTable.isEmpty()) {
       AndroidModel androidModel = AndroidModel.get(myFacet.getModule());

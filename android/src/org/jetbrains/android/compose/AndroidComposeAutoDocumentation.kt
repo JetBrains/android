@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_EDITOR_SUPPORT
@@ -74,7 +74,7 @@ internal class AndroidComposeAutoDocumentation(private val project: Project) {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): AndroidComposeAutoDocumentation = project.getService(AndroidComposeAutoDocumentation::class.java)
+    fun getInstance(project: Project): ComposeAutoDocumentation = project.getService(ComposeAutoDocumentation::class.java)
   }
 
   private fun showJavaDoc(lookup: Lookup) {

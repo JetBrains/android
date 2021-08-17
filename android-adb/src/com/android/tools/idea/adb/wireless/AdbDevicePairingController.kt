@@ -22,9 +22,9 @@ import com.intellij.openapi.Disposable
  * Interface definition of the ADB device pairing controller.
  */
 @UiThread
-interface AdbDevicePairingController : Disposable {
+interface WiFiPairingController : Disposable {
   /**
-   * Starts the modal dialog allowing pairing devices using QR codes and pin codes.
+   * Starts the modal dialog allowing pairing devices using QR and pairing codes.
    * The newly paired devices are added to the underlying adb service implementation.
    */
   fun showDialog()

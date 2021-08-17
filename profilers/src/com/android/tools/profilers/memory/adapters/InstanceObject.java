@@ -15,15 +15,14 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.ThreadId;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface InstanceObject extends ValueObject {
   int getHeapId();

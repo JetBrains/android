@@ -28,6 +28,7 @@ public class EnergyUsage extends LineChartModel {
   @NotNull private final Range myUsageRange;
 
   public EnergyUsage(@NotNull StudioProfilers profilers) {
+    super(profilers.getIdeServices().getPoolExecutor());
     myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
     DataSeries<Long> dataSeries;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {

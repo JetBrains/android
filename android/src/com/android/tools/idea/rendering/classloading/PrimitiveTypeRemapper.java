@@ -16,33 +16,89 @@
 package com.android.tools.idea.rendering.classloading;
 
 /**
- * Utility class used by the {@link LiveLiteralsMethodVisitor} to handle the auto-boxing of primitives.
+ * Utility class used by the {@link LiveLiteralsTransformKt} to handle the auto-boxing of primitives.
  * Constants are always primitives but both ASM and our constant management use boxed types. This class defines a number
  * of methods that allow to do the unboxing correctly when called from user code.
  */
 @SuppressWarnings("ConstantConditions")
 public class PrimitiveTypeRemapper {
-  public static float remapFloat(Object source, boolean isStatic, String methodName, float value) {
-    return (Float)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static float remapFloat(Object source, String fileName, int offset, float value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).floatValue();
+    }
+
+    // Return default value
+    return value;
   }
 
-  public static double remapDouble(Object source, boolean isStatic, String methodName, double value) {
-    return (Double)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static double remapDouble(Object source, String fileName, int offset, double value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).doubleValue();
+    }
+
+    // Return default value
+    return value;
   }
 
-  public static short remapShort(Object source, boolean isStatic, String methodName, short value) {
-    return (Short)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static short remapShort(Object source, String fileName, int offset, short value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).shortValue();
+    }
+
+    // Return default value
+    return value;
   }
 
-  public static int remapInt(Object source, boolean isStatic, String methodName, int value) {
-    return (Integer)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static int remapInt(Object source, String fileName, int offset, int value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).intValue();
+    }
+
+    // Return default value
+    return value;
   }
 
-  public static long remapLong(Object source, boolean isStatic, String methodName, long value) {
-    return (Long)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static long remapLong(Object source, String fileName, int offset, long value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).longValue();
+    }
+
+    // Return default value
+    return value;
   }
 
-  public static char remapChar(Object source, boolean isStatic, String methodName, char value) {
-    return (Character)ConstantRemapperManager.remapAny(source, isStatic, methodName, value);
+  public static byte remapByte(Object source, String fileName, int offset, byte value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Number) {
+      return ((Number)constant).byteValue();
+    }
+
+    // Return default value
+    return value;
+  }
+
+  public static char remapChar(Object source, String fileName, int offset, char value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Character) {
+      return (Character)constant;
+    }
+
+    // Return default value
+    return value;
+  }
+
+  public static boolean remapBoolean(Object source, String fileName, int offset, boolean value) {
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
+    if (constant instanceof Boolean) {
+      return (Boolean)constant;
+    }
+
+    // Return default value
+    return value;
   }
 }

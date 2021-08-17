@@ -54,7 +54,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
       })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
-    localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
+    localPath = tmpDir.resolve("local-3.3.0.xml")
     `when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 

@@ -35,6 +35,12 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
  * Represents a literal element.
  */
 public final class GradleDslLiteral extends GradleDslSettableExpression {
+  public enum LiteralType {
+    INTERPOLATION,
+    LITERAL,
+    REFERENCE
+  }
+
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
     // Will be set in the call to #setValue
@@ -45,9 +51,12 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
                           @NotNull PsiElement psiElement,
                           @NotNull GradleNameElement name,
                           @NotNull PsiElement literal,
-                          boolean isReference) {
+                          @NotNull LiteralType literalType) {
     super(parent, psiElement, name, literal);
-    setReference(isReference);
+    if (literalType == LiteralType.REFERENCE) {
+      setReference(true);
+    } else if (literalType == LiteralType.INTERPOLATION)
+    setInterpolated(true);
   }
 
   @Override
@@ -164,7 +173,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   @Nullable
   public String getReferenceText() {
-    if (!isReference()) {
+    if (!isReference() && !isInterpolated()) {
       return null;
     }
 

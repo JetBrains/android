@@ -29,6 +29,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -82,7 +83,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInGradleProject() throws IOException {
-    VirtualFile rootFolder = getOrCreateProjectBaseDir();
+    VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
 
@@ -93,7 +94,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInNonGradleProject() throws IOException {
-    VirtualFile rootFolder = getOrCreateProjectBaseDir();
+    VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
 
@@ -114,7 +115,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileOutsideBuildFolderInGradleProject() throws IOException {
-    VirtualFile rootFolder = getOrCreateProjectBaseDir();
+    VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile target = createFile(rootFolder, "foo.txt");
 
     when(myProjectInfo.findAndroidModelInModule(target)).thenReturn(null); // Android model not found.

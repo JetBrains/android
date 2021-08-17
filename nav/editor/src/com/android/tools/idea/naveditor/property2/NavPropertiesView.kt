@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2
+package com.android.tools.idea.naveditor.property
 
-import com.android.tools.idea.naveditor.property2.inspector.ActionInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.ActionListInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.ActivityInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.AnimationInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.ArgumentInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.DeepLinkInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.DefaultValueInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.DestinationInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.GraphInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.LabelInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.NameInspectorBuilder
-import com.android.tools.idea.naveditor.property2.inspector.StartDestinationInspectorBuilder
-import com.android.tools.idea.naveditor.property2.support.NavEnumSupportProvider
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.naveditor.property.inspector.ActionInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.ActionListInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.ActivityInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.AnimationInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.ArgumentInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.DeepLinkInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.DefaultValueInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.DestinationInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.GraphInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.LabelInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.NameInspectorBuilder
+import com.android.tools.idea.naveditor.property.inspector.StartDestinationInspectorBuilder
+import com.android.tools.idea.naveditor.property.support.NavEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.inspector.IdInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.SelectedComponentBuilder
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
@@ -41,9 +41,9 @@ private const val VIEW_NAME = "NavEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a destination or action on the Design surface."
 
-class NavPropertiesView(model: NelePropertiesModel) : PropertiesView<NelePropertyItem>(VIEW_NAME, model) {
+class NavPropertiesView(model: NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
   private val enumSupportProvider = NavEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
   init {

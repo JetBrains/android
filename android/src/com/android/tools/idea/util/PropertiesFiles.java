@@ -32,8 +32,8 @@ public final class PropertiesFiles {
 
   @NotNull
   public static Properties getProperties(@NotNull File filePath) throws IOException {
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, true); // Must set refreshIfNeeded=true, see bug 176220349
     return ReadAction.compute(() -> {
-      VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, false);
       if (virtualFile == null) {
         return new Properties();
       }

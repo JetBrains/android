@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>10.4.2</version>
+  <version>2020.3.1 Final</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java-capable</depends>
@@ -16,7 +16,7 @@
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/emulator.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/database-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -45,4 +45,8 @@
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/network-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

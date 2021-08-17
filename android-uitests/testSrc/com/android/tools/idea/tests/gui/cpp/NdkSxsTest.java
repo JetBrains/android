@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.dualView.TreeTableView;
 import java.util.Collection;
@@ -29,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,9 +63,8 @@ public class NdkSxsTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void checkMultiNdkVersions() {
-    WelcomeFrameFixture welcomeFrame = guiTest.welcomeFrame();
-    JListFixture listFixture = welcomeFrame.clickConfigure();
-    welcomeFrame.openSdkManager(listFixture);
+    guiTest.welcomeFrame()
+      .openSdkManager();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = IdeSettingsDialogFixture.find(guiTest.robot());
     findAndClickLabel(ideSettingsDialogFixture, "SDK Tools");

@@ -37,11 +37,13 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -292,6 +294,54 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
     assertThat(myProfilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds + 5));
   }
+
+  @Test
+  public void TestDiscoverProfileableCommand() {
+    Assume.assumeTrue(myNewEventPipeline);
+    myIdeProfilerServices.enableProfileable(true);
+    myIdeProfilerServices.enableProfileableInQr(true);
+    // Devices that have executed the DISCOVER_PROFILEABLE command.
+    List<Long> discoveringStreamIds = myTransportService.getDiscoveringProfileableStreamIds();
+    assertThat(discoveringStreamIds).isEmpty();
+
+    // DISCOVER_PROFILEABLE command should NOT be called on S devices.
+    Common.Device deviceS = createDevice(AndroidVersion.VersionCodes.S, "FakeDeviceS", Common.Device.State.ONLINE);
+    myTransportService.addDevice(deviceS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(discoveringStreamIds).isEmpty();
+
+    // DISCOVER_PROFILEABLE command should be called on R devices.
+    Common.Device deviceR = createDevice(AndroidVersion.VersionCodes.R, "FakeDeviceR", Common.Device.State.ONLINE);
+    myTransportService.addDevice(deviceR);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(discoveringStreamIds).containsExactly(deviceR.getDeviceId());
+
+    // DISCOVER_PROFILEABLE command should be called on Q devices.
+    // It's OK if multiple devices are connected at the same time.
+    Common.Device deviceQ1 = createDevice(AndroidVersion.VersionCodes.Q, "FakeDeviceQ1", Common.Device.State.ONLINE);
+    myTransportService.addDevice(deviceQ1);
+    Common.Device deviceQ2 = createDevice(AndroidVersion.VersionCodes.Q, "FakeDeviceQ2", Common.Device.State.ONLINE);
+    myTransportService.addDevice(deviceQ2);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(discoveringStreamIds.subList(1, 3)).containsExactly(deviceQ1.getDeviceId(), deviceQ2.getDeviceId());
+
+    // DISCOVER_PROFILEABLE command should NOT be called on P devices.
+    Common.Device deviceP = createDevice(AndroidVersion.VersionCodes.P, "FakeDeviceP", Common.Device.State.ONLINE);
+    myTransportService.addDevice(deviceP);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(discoveringStreamIds).hasSize(3);
+
+    // DISCOVER_PROFILEABLE command should be called if a supported device is disconnected and then connected again.
+    deviceQ1 = deviceQ1.toBuilder().setState(Common.Device.State.DISCONNECTED).build();
+    myTransportService.addDevice(deviceQ1);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    deviceQ1 = deviceQ1.toBuilder().setState(Common.Device.State.ONLINE).build();
+    myTransportService.addDevice(deviceQ1);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(discoveringStreamIds).hasSize(4);
+    assertThat(discoveringStreamIds.get(3)).isEqualTo(deviceQ1.getDeviceId());
+  }
+
 
   @Test
   public void testAgentUnattachableAfterMaxRetries() {
@@ -560,7 +610,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getProcess().getPid()).isEqualTo(20);
     assertThat(myProfilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
   }
 
   @Test
@@ -1210,7 +1260,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When energy flag is enabled and device is O, GetDirectStages returns Energy stage.
@@ -1222,7 +1272,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
@@ -1232,7 +1282,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
@@ -1241,7 +1291,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       CustomEventProfilerStage.class).inOrder();
 
@@ -1251,7 +1301,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
   }
 
@@ -1276,7 +1326,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
 
     // When energy flag is enabled and the session is O, GetDirectStages returns Energy stage.
@@ -1296,7 +1346,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class,
       EnergyProfilerStage.class).inOrder();
 
@@ -1305,7 +1355,7 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
-      MemoryProfilerStage.class,
+      MainMemoryProfilerStage.class,
       NetworkProfilerStage.class).inOrder();
   }
 
@@ -1548,6 +1598,11 @@ public final class StudioProfilersTest {
 
     @Override
     public void exit() {
+    }
+
+    @Override
+    public AndroidProfilerEvent.Stage getStageType() {
+      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
     }
   }
 }

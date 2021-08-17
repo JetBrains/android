@@ -25,6 +25,7 @@ import com.android.ide.common.symbols.SymbolTable
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.roots.libraries.Library
@@ -36,7 +37,6 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_K
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
-import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import java.io.File
 import java.io.IOException
@@ -58,7 +58,7 @@ import kotlin.concurrent.withLock
 class SmallAarRClass(
   psiManager: PsiManager,
   library: Library,
-  private val packageName: String,
+  packageName: String,
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace,
   aarAddress: String
@@ -96,8 +96,9 @@ private class SmallAarInnerRClass(
     return buildResourceFields(
       aarResources,
       resourceNamespace,
+      null,
       FieldModifier.NON_FINAL,
-      { _, _ -> true},
+      { true},
       resourceType,
       this
     )
@@ -121,7 +122,7 @@ private class SmallAarInnerRClass(
 class TransitiveAarRClass(
   psiManager: PsiManager,
   library: Library,
-  private val packageName: String,
+  packageName: String,
   private val symbolFile: File,
   aarAddress: String
 ) : AndroidRClassBase(psiManager, packageName) {
@@ -185,19 +186,19 @@ private class TransitiveAarInnerRClass(
   symbolTable: SymbolTable
 ) : InnerRClassBase(parent, resourceType) {
 
-  private val otherFields: ImmutableList<Pair<String, ResourceVisibility>>
-  private val styleableFields: ImmutableList<Pair<String, ResourceVisibility>>
-  private val styleableAttrFields: ImmutableList<StyleableAttrFieldUrl>
+  private val otherFields: Map<String, ResourceVisibility>
+  private val styleableFields: Map<String, ResourceVisibility>
+  private val styleableAttrFields: List<StyleableAttrFieldUrl>
 
   init {
-    val otherFieldsBuilder = ImmutableList.builder<Pair<String, ResourceVisibility>>()
-    val styleableFieldsBuilder = ImmutableList.builder<Pair<String, ResourceVisibility>>()
+    val otherFieldsBuilder = ImmutableMap.builder<String, ResourceVisibility>()
+    val styleableFieldsBuilder = ImmutableMap.builder<String, ResourceVisibility>()
     val styleableAttrFieldsBuilder = ImmutableList.builder<StyleableAttrFieldUrl>()
     for (symbol in symbolTable.getSymbolByResourceType(resourceType)) {
       when (symbol.javaType) {
-        SymbolJavaType.INT -> otherFieldsBuilder.add(Pair(symbol.canonicalName, symbol.resourceVisibility))
+        SymbolJavaType.INT -> otherFieldsBuilder.put(symbol.canonicalName, symbol.resourceVisibility)
         SymbolJavaType.INT_LIST -> {
-          styleableFieldsBuilder.add(Pair(symbol.canonicalName, symbol.resourceVisibility))
+          styleableFieldsBuilder.put(symbol.canonicalName, symbol.resourceVisibility)
           (symbol as? Symbol.StyleableSymbol)?.children?.forEach {
             val (packageName, attrName) = getNameComponents(it)
             val attrNamespace = if (packageName.isNullOrEmpty()) {

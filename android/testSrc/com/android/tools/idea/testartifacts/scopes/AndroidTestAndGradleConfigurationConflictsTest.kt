@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -28,18 +27,7 @@ import junit.framework.TestCase
  * Tests for verifying that there is no conflict creating an instrumented test after a Gradle unit test.
  */
 class AndroidTestAndGradleConfigurationConflictsTest : AndroidGradleTestCase() {
-  // See: http://b.android.com/173106394
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_UNIT_TESTING.override(true)
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.GRADLE_UNIT_TESTING.clearOverride()
-  }
-
+  // See: http://b/173106394
   @Throws(Exception::class)
   fun testCanCreateInstrumentedTestConfiguration() {
     loadSimpleApplication()

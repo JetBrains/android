@@ -21,8 +21,8 @@ import com.android.annotations.concurrency.UiThread
  * Definition of the view (in the context of a Model-View-Controller pattern) used to pair devices
  */
 @UiThread
-interface AdbDevicePairingView {
-  val model: AdbDevicePairingModel
+interface WiFiPairingView {
+  val model: WiFiPairingModel
 
   fun showDialog()
 
@@ -46,7 +46,7 @@ interface AdbDevicePairingView {
   @UiThread
   interface Listener {
     fun onScanAnotherQrCodeDeviceAction()
-    fun onPinCodePairAction(mdnsService: MdnsService)
+    fun onPairingCodePairAction(mdnsService: MdnsService)
     fun onClose()
   }
 }

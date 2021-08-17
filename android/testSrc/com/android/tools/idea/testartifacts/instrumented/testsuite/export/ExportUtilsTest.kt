@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
@@ -111,11 +112,11 @@ class ExportUtilsTest {
 
   private fun createDevicesAndResultsNode(): Pair<List<AndroidDevice>, AndroidTestResultsTreeNode> {
     val device1 = AndroidDevice(
-      "testDeviceId1", "testDeviceName1",
+      "testDeviceId1", "testDeviceName1", "testDeviceName1",
       AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(23),
       mutableMapOf("processorName" to "testProcessorName1"))
     val device2 = AndroidDevice(
-      "testDeviceId2", "testDeviceName2",
+      "testDeviceId2", "testDeviceName2", "testDeviceName1",
       AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(24),
       mutableMapOf("processorName" to "testProcessorName2"))
 
@@ -149,13 +150,13 @@ class ExportUtilsTest {
       `when`(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
       `when`(getLogcat(MockitoKt.eq(device1))).thenReturn("")
       `when`(getErrorStackTrace(MockitoKt.eq(device1))).thenReturn("")
-      `when`(getBenchmark(MockitoKt.eq(device1))).thenReturn("")
+      `when`(getBenchmark(MockitoKt.eq(device1))).thenReturn(BenchmarkOutput.Empty)
 
       `when`(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
       `when`(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
       `when`(getLogcat(MockitoKt.eq(device2))).thenReturn("")
       `when`(getErrorStackTrace(MockitoKt.eq(device2))).thenReturn("")
-      `when`(getBenchmark(MockitoKt.eq(device2))).thenReturn("")
+      `when`(getBenchmark(MockitoKt.eq(device2))).thenReturn(BenchmarkOutput.Empty)
     }
 
     return Pair(listOf(device1, device2), AndroidTestResultsTreeNode(

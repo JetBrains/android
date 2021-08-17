@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
@@ -41,8 +41,6 @@ private const val VERTICAL_BORDER_SIZE = 3
  * A banner for showing notifications in the Layout Inspector.
  */
 class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
-  private val bannerBackground = JBColor.namedColor("Notification.background", JBColor(0xfff8d1, 0x1d3857))
-  private val bannerForeground = JBColor.namedColor("Notification.foreground", JBColor(0x555555, 0xaaaaaa))
   @VisibleForTesting
   val text = JLabel()
   private val actionLayout = FlowLayout(FlowLayout.CENTER, JBUI.scale(
@@ -52,9 +50,6 @@ class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
 
   init {
     isVisible = false
-    background = bannerBackground
-    text.foreground = bannerForeground
-    actionPanel.background = bannerBackground
     add(text, BorderLayout.WEST)
     add(actionPanel, BorderLayout.EAST)
     applyUISettings()
@@ -67,6 +62,9 @@ class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
     actionPanel.border = borderSpacing
     actionLayout.hgap = JBUI.scale(VERTICAL_BORDER_SIZE)
     text.border = borderSpacing
+    val globalScheme = EditorColorsManager.getInstance().globalScheme
+    background = globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND)
+    actionPanel.background = background
   }
 
   override fun updateUI() {

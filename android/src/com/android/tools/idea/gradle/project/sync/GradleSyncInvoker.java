@@ -37,7 +37,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;

@@ -21,6 +21,19 @@ import com.intellij.openapi.fileEditor.FileEditor
 import javax.swing.JComponent
 
 /**
+ * Preferred visibility of a representation. When the container supports it, this will indicate to it whether this representation prefers
+ * to be shown (in split mode or not) or hidden on initialization.
+ */
+enum class PreferredVisibility {
+  /** If the representation would prefer to be hidden on initialization. Use this if for example, it is not expected to have content. */
+  HIDDEN,
+  /** If the representation would prefer to be visible in split mode on initialization. */
+  SPLIT,
+  /** If the representation would prefer to be visible in design mode on initialization. */
+  FULL
+}
+
+/**
  * An interface for a generic representation of a preview for a case where a preview part of [com.intellij.openapi.fileEditor.TextEditor]
  * with preview can have several representations.
  *
@@ -31,6 +44,12 @@ interface PreviewRepresentation : Disposable {
    * Provides a [JComponent] to be displayed in the parent [MultiRepresentationPreview] if this representation is selected.
    */
   val component: JComponent
+
+  /**
+   * Optional preferred initial visibility of this editor when opening this representation. If null, the container of this representation
+   * will decide.
+   */
+  val preferredInitialVisibility: PreferredVisibility?
 
   /**
    * Used for propagating notification updates events down to the [PreviewRepresentation] from the parent [MultiRepresentationPreview].
@@ -77,7 +96,11 @@ interface PreviewRepresentation : Disposable {
   // region Text editor caret handling
   /**
    * Called when the caret position changes. This method must return ASAP and not block.
+   *
+   * @param event the [CaretEvent] being handled.
+   * @param isModificationTriggered true if the caret moved because the user modified the file, as opposed to just navigating with arrows
+   * or the mouse.
    */
-  fun onCaretPositionChanged(event: CaretEvent) {}
+  fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {}
   // endregion
 }

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
-import com.android.tools.idea.common.actions.LayoutlibSceneManagerRefreshIconAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -42,10 +43,11 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
         return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
       }
 
-      // If no model is selected, copy the image under the mouse
-      val mouseLocation = surface.getMousePosition(true) ?: return@CopyResultImageAction null
-      surface.getHoverSceneView(mouseLocation.x, mouseLocation.y)?.sceneManager as? LayoutlibSceneManager
-    })
+      surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+    },
+    message("copy.result.image.action.title"),
+    message("copy.result.image.action.done.text")
+  )
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
@@ -64,12 +66,15 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       DefaultActionGroup(
         listOfNotNull(
           Separator(),
-          LayoutlibSceneManagerRefreshIconAction(sceneView.scene.sceneManager as LayoutlibSceneManager).visibleOnlyInComposeStaticPreview(),
-          StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
-            ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
+          StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
+            StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
+              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            }
           },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled {
+              AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+            }
           },
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()

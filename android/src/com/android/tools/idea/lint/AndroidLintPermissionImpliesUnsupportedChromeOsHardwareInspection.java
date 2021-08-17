@@ -36,7 +36,7 @@ public class AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection e
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    String hardwareFeatureName = LintFix.getData(fixData, String.class);
+    String hardwareFeatureName = LintFix.getString(fixData, ChromeOsDetector.KEY_FEATURE_NAME, null);
     if (hardwareFeatureName != null) {
       return new LintIdeQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
     }

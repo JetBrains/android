@@ -39,13 +39,13 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
    */
-  @Ignore // TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.
+  @Ignore("TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.")
   private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
     override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
 
-    fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
-      return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
+    fun invokeTasks(project: Project, timeoutMillis: Long?, vararg tasks: String): GradleInvocationResult {
+      return invokeGradleTasks(project, timeoutMillis, *tasks)
     }
 
     public override fun generateSources() { // Changes visibility only.
@@ -62,8 +62,8 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
-  fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName);
-  fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName);
+  fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName)
+  fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName)
 
   override fun before(description: Description) {
     delegateTestCase.name = description.methodName ?: description.displayName
@@ -86,19 +86,18 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     projectPath: String,
     kotlinVersion: String? = null,
     gradleVersion: String? = null,
-    issueFilter: AndroidGradleTests.SyncIssueFilter? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, null, kotlinVersion)
 
       preLoad(rootFile)
-      delegateTestCase.importProject(issueFilter)
+      delegateTestCase.importProject()
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
       delegateTestCase.loadProject(
-        projectPath, null, gradleVersion, null, kotlinVersion, issueFilter)
+        projectPath, null, gradleVersion, null, kotlinVersion)
     }
   }
 
@@ -112,17 +111,17 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    */
   @JvmOverloads
   fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, null)
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
   }
 
   @JvmOverloads
-  fun requestSyncAndWait(issueFilter: AndroidGradleTests.SyncIssueFilter? = null) {
-    delegateTestCase.requestSyncAndWait(issueFilter)
+  fun requestSyncAndWait() {
+    delegateTestCase.requestSyncAndWait()
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(project, syncListener, null)
+    AndroidGradleTests.checkSyncStatus(project, syncListener)
   }
 
   fun generateSources() {
@@ -133,7 +132,11 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    * Invoke one or more tasks, e.g. "assembleDebug"
    */
   fun invokeTasks(vararg tasks: String): GradleInvocationResult {
-    return delegateTestCase.invokeTasks(project, *tasks)
+    return invokeTasks(null, *tasks)
+  }
+
+  fun invokeTasks(timeoutMillis: Long?, vararg tasks: String): GradleInvocationResult {
+    return delegateTestCase.invokeTasks(project, timeoutMillis, *tasks)
   }
 
   fun resolveTestDataPath(relativePath: String): File = delegateTestCase.resolveTestDataPath(relativePath)

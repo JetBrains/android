@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -27,6 +28,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
+import com.intellij.util.containers.OrderedSet;
+import java.nio.file.Paths;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -425,7 +428,7 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdk.getHomePath()));
+    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, Paths.get(sdk.getHomePath()));
 
     RepoLogger log = new RepoLogger();
     final IAndroidTarget target = sdkHandler.getAndroidTargetManager(log).getTargetFromHashString(targetHashString, log);

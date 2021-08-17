@@ -29,6 +29,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.StubProcessDescriptor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
@@ -100,7 +101,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verifyZeroInteractions
 import java.util.concurrent.Executor
 import javax.swing.Icon
@@ -205,14 +205,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, databaseFileData.mainFile, FutureCallbackExecutor.wrap(taskExecutor))
     )
 
-    processDescriptor = object : ProcessDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "model"
-      override val serial = "serial"
-      override val processName = "processName"
-      override val isEmulator = false
-      override val isRunning = false
-    }
+    processDescriptor = StubProcessDescriptor()
 
     databaseInspectorController = DatabaseInspectorControllerImpl(
       project,
@@ -266,10 +259,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
     assertThat(result.exceptionOrNull()).hasMessageThat().isEqualTo("expected")
+
     runDispatching { orderVerifier.verify(databaseRepository).fetchSchema(databaseId1) }
     orderVerifier.verify(databaseInspectorView).reportError(eq("Error reading Sqlite database"), any(IllegalStateException::class.java))
-    assertEquals("expected", databaseInspectorView.errorInvocations.first().second?.message)
     orderVerifier.verifyNoMoreInteractions()
+
+    assertEquals("expected", databaseInspectorView.errorInvocations.first().second?.message)
   }
 
   fun testDisplayResultSetIsCalledForTable() {
@@ -682,7 +677,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun testAlterTableRenameTableUpdatesSchema() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun ignore_testAlterTableRenameTableUpdatesSchema() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
@@ -737,7 +733,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun `ignore_test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
@@ -813,7 +810,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun `ignore_test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
@@ -883,7 +881,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     verify(databaseInspectorView).updateDatabaseSchema(
       ViewDatabase(databaseId, true),
-      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 0)), table2))
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 2)), table2))
     )
   }
 
@@ -1308,12 +1306,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testKeepConnectionOpenUpdatesSuccessfully() {
     // Prepare
     val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
-      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-        return Futures.immediateFuture(true)
-      }
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(true)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1326,12 +1324,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testKeepConnectionOpenDoesNotUpdateIfOperationFails() {
     // Prepare
     val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
-      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-        return Futures.immediateFuture(null)
-      }
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1355,10 +1353,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         invocations.add(keepOpen)
         return Futures.immediateFuture(keepOpen)
       }
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     // Act
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Assert
     assertEquals(listOf(false), invocations)
@@ -1543,7 +1543,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       inOrderVerifier.verify(fileDatabaseManager).loadDatabaseFileData("processName", processDescriptor, databaseId4)
       inOrderVerifier.verify(projectService, times(3)).openSqliteDatabase(any())
     }
-    verifyNoMoreInteractions(fileDatabaseManager)
+    inOrderVerifier.verifyNoMoreInteractions()
 
     verify(databaseInspectorView).showEnterOfflineModePanel(0, 3)
     verify(databaseInspectorView).showEnterOfflineModePanel(1, 3)
@@ -1672,5 +1672,18 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
 
     DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
+  }
+
+  fun testDatabaseNotAddedIfNotFoundInRepository() {
+    val newDatabaseId = SqliteDatabaseId.fromLiveDatabase("new-db", 99)
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(newDatabaseId)
+    }
+
+    assertFalse(databaseRepository.openDatabases.contains(newDatabaseId))
+
+    // `updateDatabases` is invoked once with empty list when the controller adds the listener to the view.
+    // here we are testing that it is not invoked more then once.
+    verify(databaseInspectorView, times(1)).updateDatabases(any())
   }
 }

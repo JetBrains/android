@@ -23,7 +23,6 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/aspects-agent:aspects_agent",
-    "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
     "//prebuilts/tools:bazel-dist",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
@@ -31,14 +30,11 @@ COMMON_DATA = [
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
-    "//tools/idea/bin:log.xml",
-    "//tools/idea/plugins/webp/lib/libwebp",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 
 COMMON_TAGS = [
     "block-network",
-    "no_mac",
     "no_windows",
     "cpu:3",
 ]
@@ -47,78 +43,21 @@ COMMON_TAGS = [
 iml_module(
     name = "intellij.android.guiTests",
     iml_files = ["intellij.android.guiTests.iml"],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea:intellij.java.ui.tests",
-        "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/platform/platform-main:intellij.platform.main",
-        "//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.20.1:jar",
-        "//tools/idea/plugins/github:intellij.vcs.github",
-        "//tools/idea/plugins/properties/properties-resource-bundle-editor:intellij.properties.resource.bundle.editor",
-        "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
-        "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
-        "//tools/vendor/intellij/cidr/cidr-workspaceModelBridge:intellij.cidr.workspaceModelBridge",
-        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/8.4.0:jar",
-        "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
-        "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
-        "//tools/idea/plugins/editorconfig:intellij.editorconfig",
-        "//tools/idea/plugins/changeReminder:intellij.vcs.changeReminder",
-        "//tools/idea/plugins/sh:intellij.sh",
-        "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
-        "//tools/idea/plugins/filePrediction:intellij.filePrediction",
-        "//tools/idea/.idea/libraries:jgoodies-common",
-        "//tools/idea/.idea/libraries:commons-net",
-    ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
-        "//tools/idea/.idea/libraries:rhino",
-        "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
-        "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
-        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
-        "//tools/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
-    ],
-    # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:JUnit4[test]",
-        "//tools/idea/.idea/libraries:truth[test]",
-        "//tools/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/idea/.idea/libraries:jna[test]",
-        "//tools/idea/.idea/libraries:emulator-proto[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/idea:intellij.idea.community.main[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/swing-testing/fest-swing[module, test]",
-        "//tools/idea/java/debugger/openapi:intellij.java.debugger[module, test]",
-        "//tools/idea/platform/analysis-api:intellij.platform.analysis[module, test]",
-        "//tools/idea/platform/platform-api:intellij.platform.ide[module, test]",
-        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
-        "//tools/idea/java/openapi:intellij.java[module, test]",
-        "//tools/idea/plugins/gradle/java:intellij.gradle.java[module, test]",
-        "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
-        "//tools/idea:intellij.java.impl[module, test]",
-        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
-        "//tools/idea:intellij.platform.debugger.impl_and_others[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module]",
@@ -127,11 +66,9 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
         "//tools/adt/idea/bleak:intellij.android.bleak[module, test]",
-        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
@@ -140,22 +77,174 @@ iml_module(
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
+        "//tools/adt/idea/.idea/libraries:layoutlib[test]",
+        "//tools/adt/idea/android-uitests:native_artifacts",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
-        "//tools/idea/.idea/libraries:transport-proto[test]",
-        "//tools/idea/.idea/libraries:protobuf[test]",
-        "//tools/idea/.idea/libraries:layoutinspector-proto[test]",
-        "//tools/idea/.idea/libraries:studio-proto[test]",
-        "//tools/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:transport-proto[test]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
-        "//tools/idea/plugins/webp:intellij.webp[module, test]",
+        "//tools/adt/idea/studio[module, test]",
+        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/intellij.android.compose-common[module, test]",
     ],
+)
+
+filegroup(
+    name = "native_artifacts",
+    srcs = ["//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so"],
+)
+
+java_test(
+    name = "LayoutEditorMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "InspectionsMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "GradleSyncMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "FindInPathMemoryLeakTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "EditorTabsMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.EditorTabsMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddResourceMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddAssetMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "NavEditorMemoryUseTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/Navigation/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "VisualizationTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "ComposePreviewTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "CustomViewPreviewTest",
+    size = "large",
+    data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -166,6 +255,20 @@ java_test(
     tags = COMMON_TAGS + ["manual"],  # b/110178024
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "BasicLayoutInspectorUITest",
+    size = "large",
+    data = COMMON_DATA + ["//prebuilts/studio/layoutlib/data:framework_res.jar"] + glob(["testData/LayoutTest/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.BasicLayoutInspectorUITest"],
+    tags = COMMON_TAGS + ["manual"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [
+        ":intellij.android.guiTests_testlib",
+        "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
+        "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
+    ],
 )
 
 java_test(
@@ -367,7 +470,10 @@ java_test(
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
+    tags = COMMON_TAGS + [
+        "no_mac",
+        "ui_test",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -461,7 +567,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -488,7 +593,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -500,10 +604,11 @@ java_test(
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
+    flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
     tags = COMMON_TAGS + [
-        "qa_sanity",  # fails 2 out of 3000 runs
-        "no_crostini",
+        "no_mac",
+        "ui_test",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -521,7 +626,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -585,9 +689,10 @@ java_test(
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
+    flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
-        "qa_sanity",
+        "ui_test",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -608,7 +713,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -664,7 +768,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -698,7 +801,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",  # fails 1 out of 3000 runs
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -716,7 +818,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -732,7 +833,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
     tags = COMMON_TAGS + [
         "qa_sanity",  # fails 1 out of 3000 runs
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -779,7 +879,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -789,14 +888,16 @@ java_test(
 java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
+    timeout = "moderate",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
         "testData/CppKotlin/**",
     ]),
+    flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
-        "qa_sanity",
+        "ui_test",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -845,6 +946,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1143,6 +1245,66 @@ java_test(
     size = "large",
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "CodeGenerationTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/CodeGeneration/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.CodeGenerationTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "GotoDeclarationTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/CodeGeneration/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "AddInstantModuleTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/MinSdk24App/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "BuildInstantAppTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.BuildInstantAppTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
     ],
@@ -1516,6 +1678,19 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "ShowFilesUnknownToCMakeActionTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+        "no_crostini",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "CLionIntegrationTest",
@@ -1646,6 +1821,7 @@ java_test(
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
+        "qa_fast_unreliable_emu",
         "requires-fakeroot",
         "requires_emulator",
     ],
@@ -1706,9 +1882,7 @@ java_test(
         "no_mac",
         "no_windows",
         "qa_fast",
-        "qa_fast_emu",
         "qa_fast_unreliable_emu",
-        "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
     ],
@@ -2223,61 +2397,4 @@ java_test(
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "intellij.android.guiTests",
-    iml_files = ["intellij.android.guiTests.iml"],
-    project = "unb",
-    test_srcs = ["testSrc"],
-    test_tags = ["manual"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
-        "//tools/adt/idea/.idea/libraries:unb.emulator-proto[test]",
-        "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
-        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/swing-testing/fest-swing[module, test]",
-        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
-        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
-        "//tools/analytics-library/shared:analytics-shared[module]",
-        "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
-        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
-        "//tools/adt/idea/bleak:intellij.android.bleak[module, test]",
-        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
-        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
-        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
-        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
-        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native[test]",
-        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
-        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
-        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
-        "//tools/adt/idea/.idea/libraries:unb.transport-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
-        "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
-        "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
-        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
-        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
-        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
-        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
-    ],
 )

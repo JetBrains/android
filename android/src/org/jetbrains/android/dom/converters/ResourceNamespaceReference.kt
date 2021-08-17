@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveResourceNamespace
 import com.intellij.openapi.util.TextRange
@@ -31,7 +32,10 @@ import com.intellij.util.text.nullize
 import com.intellij.util.xml.DomUtil
 import com.intellij.util.xml.GenericDomValue
 import com.intellij.xml.XmlExtension
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceValue
+import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.util.module
 
 /**
  * PSI Reference to a resource namespace, created in the namespace part of an XML resource reference (e.g. `@com.example:string/foo`).
@@ -84,7 +88,15 @@ class ResourceNamespaceFakePsiElement(
   private val parent: XmlElement
 ) : FakePsiElement(), NavigatablePsiElement {
   override fun getParent(): PsiElement? = parent
-  override fun canNavigate(): Boolean = false // TODO(namespaces): navigate to package attribute of the right manifest
+  override fun canNavigate(): Boolean = true
+
+  override fun getNavigationElement(): PsiElement {
+    val module = parent.module ?: return this
+    val androidDependencies = AndroidUtils.getAllAndroidDependencies(module, true)
+    val androidFacet =
+      androidDependencies.firstOrNull { it.module.getModuleSystem().getPackageName() == resourceNamespace.packageName } ?: return this
+    return Manifest.getMainManifest(androidFacet)?.`package`?.xmlAttribute ?: this
+  }
 
   override fun getName(): String? {
     // An empty name makes the presentable text appear in the hover popup.

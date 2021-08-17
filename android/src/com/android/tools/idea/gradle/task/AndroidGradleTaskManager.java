@@ -19,7 +19,6 @@ import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.append
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.setupDebuggerDispatchPort;
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.setupGradleScriptDebugging;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;

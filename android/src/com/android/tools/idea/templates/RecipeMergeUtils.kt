@@ -49,8 +49,7 @@ import java.io.InputStream
  * Utility methods to support the recipe.xml merge instruction.
  */
 
-private val LOG: Logger
-  get() = Logger.getInstance("#com.android.tools.idea.templates.RecipeMergeUtils")
+private val LOG: Logger get() = Logger.getInstance("RecipeMergeUtils.kt")
 
 private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"

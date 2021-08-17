@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import static com.android.utils.FileUtils.join;
-
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -25,6 +23,8 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -32,14 +32,11 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
@@ -68,6 +65,17 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   private ConsolePrinter myConsolePrinter;
   private FakeAdbServer myServer;
   private DeviceState myDeviceState;
+  private final ApplicationIdProvider myApplicationIdProvider = new ApplicationIdProvider() {
+    @Override
+    public @NotNull String getPackageName() {
+      return TEST_APP_ID;
+    }
+
+    @Override
+    public @Nullable String getTestPackageName() throws ApkProvisionException {
+      throw new ApkProvisionException("no test package");
+    }
+  };
 
   @Override
   public void setUp() throws Exception {
@@ -86,7 +94,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     AndroidDebugBridge.enableFakeAdbServerMode(myServer.getPort());
     AndroidDebugBridge.initIfNeeded(true);
     AndroidDebugBridge bridge =
-      AndroidDebugBridge.createBridge(new File(TestUtils.getSdk(), join("platform-tools", "adb")).getCanonicalPath(), false);
+        AndroidDebugBridge.createBridge(TestUtils.getSdk().resolve("platform-tools/adb").toRealPath().toString(), false);
     assertNotNull("Failed to create debug bridge", bridge);
 
     // Connect a fake test device
@@ -234,10 +242,9 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
 
   @NotNull
   private TestConnectDebuggerTask getConnectDebuggerTask(boolean attachToRunningProcess, @NotNull Tickable onTick) {
-    return new TestConnectDebuggerTask(ImmutableSet.of(TEST_APP_ID),
+    return new TestConnectDebuggerTask(myApplicationIdProvider,
                                        new AndroidJavaDebugger(),
                                        getProject(),
-                                       false,
                                        attachToRunningProcess,
                                        onTick);
   }
@@ -248,13 +255,12 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     private int myTickCount = 0;
     @NotNull private final Tickable myOnTick;
 
-    public TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
+    public TestConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                    @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
-                                   boolean monitorRemoteProcess,
                                    boolean attachToRunningProcess,
                                    @NotNull Tickable onTick) {
-      super(applicationIds, debugger, project, monitorRemoteProcess, attachToRunningProcess);
+      super(applicationIdProvider, debugger, project, attachToRunningProcess);
       myOnTick = onTick;
     }
 

@@ -24,8 +24,6 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerCompone
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
-import java.awt.Component
-import javax.swing.JComponent
 
 class MaterialColorPaletteTest : PlatformTestCase() {
 

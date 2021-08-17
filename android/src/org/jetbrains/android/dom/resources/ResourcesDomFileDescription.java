@@ -38,7 +38,7 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        return IdeResourcesUtil.isInResourceSubdirectory(file, "values");
+        return IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, "values");
       }
     });
   }

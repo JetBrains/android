@@ -33,6 +33,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +111,8 @@ public class RunOnEmulatorTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void runOnEmulator() throws Exception {
-    guiTest.importSimpleApplication();
+    // Wait 2 minutes for import instead of the usual 1 minute, since projects are taking longer to import and initialize now.
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(2 * 60));
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -120,7 +122,7 @@ public class RunOnEmulatorTest {
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidLogcatToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
+    ideFrameFixture.getAndroidLogcatToolWindow().show().selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();
   }
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.adtimport.actions;
 
-import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.adtimport.AdtModuleImporter.isAdtProjectLocation;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.adtimport.AdtImportProvider;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -53,16 +52,15 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
-import javax.swing.Icon;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -87,19 +85,10 @@ public final class AndroidImportProjectAction extends AnAction {
   private static final String WIZARD_DESCRIPTION = "Select your Eclipse project folder, build.gradle or settings.gradle";
   @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
 
-  public AndroidImportProjectAction() {
-    this("Import Project...");
-  }
-
-  public AndroidImportProjectAction(@NotNull String text) {
-    super(text);
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
-      e.getPresentation().setIcon(AllIcons.ToolbarDecorator.Import);
-    }
+  public AndroidImportProjectAction(@Nullable @NlsActions.ActionText String text,
+                                    @Nullable @NlsActions.ActionDescription String description,
+                                    @Nullable Icon icon) {
+    super(text, description, icon);
   }
 
   @Override

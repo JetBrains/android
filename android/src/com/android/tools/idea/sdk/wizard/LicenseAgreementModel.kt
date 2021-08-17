@@ -16,11 +16,9 @@
 package com.android.tools.idea.sdk.wizard
 
 import com.android.repository.api.License
-import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.logger
-
 import java.io.File
 
 private val log get() = logger<LicenseAgreementModel>()
@@ -49,7 +47,7 @@ class LicenseAgreementModel(sdkLocation: File?) : WizardModel() {
     }
 
     licenses.forEach {
-      it.setAccepted(sdkRoot.value, FileOpUtils.create())
+      it.setAccepted(sdkRoot.value.toPath())
     }
   }
 }

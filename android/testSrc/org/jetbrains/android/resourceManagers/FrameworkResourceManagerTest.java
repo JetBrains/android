@@ -25,14 +25,14 @@ import org.jetbrains.android.AndroidTestCase;
 public class FrameworkResourceManagerTest extends AndroidTestCase {
 
   public void testDisposedModule() {
-    FrameworkResourceManager manager = new FrameworkResourceManager(myFacet.getModule(), true);
+    FrameworkResourceManager manager = new FrameworkResourceManager(myFacet.getModule());
     // Check that the FrameworkResourceManagerTest.getLeafResourceRepositories method returns a single resource repository.
     assertThat(manager.getLeafResourceRepositories()).hasSize(1);
 
     Module disposedModule = mock(Module.class);
     when(disposedModule.isDisposed()).thenReturn(true);
     when(disposedModule.getProject()).thenReturn(getProject());
-    manager = new FrameworkResourceManager(disposedModule, true);
+    manager = new FrameworkResourceManager(disposedModule);
     // Check that the FrameworkResourceManagerTest.getLeafResourceRepositories method gracefully handles a disposed module.
     assertThat(manager.getLeafResourceRepositories()).isEmpty();
   }

@@ -182,7 +182,7 @@ public class DragDropInteraction extends Interaction {
       Point location = dragEvent.getLocation();
       NlDropEvent nlDropEvent = new NlDropEvent(dragEvent);
 
-      SceneView sceneView = myDesignSurface.getSceneView(location.x, location.y);
+      SceneView sceneView = myDesignSurface.getSceneViewAtOrPrimary(location.x, location.y);
       if (sceneView == null) {
         nlDropEvent.reject();
         return;
@@ -247,7 +247,7 @@ public class DragDropInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     moveTo(x, y, modifiersEx, true);
     boolean hasDragHandler = myDragHandler != null;
-    mySceneView = myDesignSurface.getSceneView(x, y);
+    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
 
@@ -276,7 +276,7 @@ public class DragDropInteraction extends Interaction {
   @Override
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     moveTo(x, y, modifiersEx, false);
-    mySceneView = myDesignSurface.getSceneView(x, y);
+    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     if (myDragHandler != null) {
       myDragHandler.cancel();
     }
@@ -290,7 +290,7 @@ public class DragDropInteraction extends Interaction {
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
-    mySceneView = myDesignSurface.getSceneView(x, y);
+    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     if (mySceneView == null) {
       return;
     }
@@ -427,7 +427,7 @@ public class DragDropInteraction extends Interaction {
 
   @Nullable
   private ViewGroupHandler findViewGroupHandlerAt(@SwingCoordinate int x, @SwingCoordinate int y) {
-    final SceneView sceneView = myDesignSurface.getSceneView(x, y);
+    final SceneView sceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     if (sceneView == null) {
       return null;
     }
@@ -479,7 +479,7 @@ public class DragDropInteraction extends Interaction {
                               @NotNull ViewGroupHandler parentHandler,
                               @SwingCoordinate int x,
                               @SwingCoordinate int y) {
-    SceneView view = myDesignSurface.getSceneView(x, y);
+    SceneView view = myDesignSurface.getSceneViewAtOrPrimary(x, y);
     assert view != null;
 
     ViewHandlerManager manager = ViewHandlerManager.get(view.getModel().getFacet());
@@ -516,7 +516,7 @@ public class DragDropInteraction extends Interaction {
     if (item == null) {
       return null;
     }
-    SceneView sceneView = myDesignSurface.getSceneView(mouseX, mouseY);
+    SceneView sceneView = myDesignSurface.getSceneViewAtOrPrimary(mouseX, mouseY);
     if (sceneView == null) {
       return null;
     }
@@ -530,7 +530,7 @@ public class DragDropInteraction extends Interaction {
 
     List<NlComponent> dragged = getDraggedComponents();
     List<NlComponent> components;
-    if (insertType.isMove()) {
+    if (insertType == InsertType.MOVE) {
       components = myDesignSurface.getSelectionModel().getSelection();
     }
     else {

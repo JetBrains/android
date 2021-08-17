@@ -46,4 +46,19 @@ Another option is to run a server first like this:
 
 And set the argument `--test_env=DISPLAY=:1234` to tell the test to use that one. Then you can connect to it as described above.
 
+## Running through remote desktop
 
+If the test is running through remote desktop, the main display of remote desktop may not be ":0".
+If this is the case, run the following to get the main display's string:
+
+    ps -u $(id -u) -o pid= \
+        | xargs -I PID -r cat /proc/PID/environ 2> /dev/null \
+        | tr '\0' '\n' \
+        | grep ^DISPLAY=: \
+        | sort -u
+
+(Courtesy of: https://superuser.com/questions/647464/how-to-get-the-display-number-i-was-assigned-by-x)
+
+Then use the result of the above query in the command earlier. I.e.:
+
+    bazel test //tools/adt/idea/android-uitests:GuiTestRuleTest --spawn_strategy=standalone --test_env=DISPLAY=<insert_display_string_here>

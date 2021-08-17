@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,7 @@ public class InstantAppSdks {
    * If the SDK is missing, it will trigger an install. Failing that, it will throw an exception.
    */
   @NotNull
-  public File getOrInstallInstantAppSdk() {
+  public Path getOrInstallInstantAppSdk() {
     LocalPackage localPackage = getInstantAppLocalPackage();
     if (localPackage == null) {
       return ensureSdkInstalled().getLocation();
@@ -120,9 +121,9 @@ public class InstantAppSdks {
   @VisibleForTesting
   ExtendedSdk loadLibrary(boolean attemptUpgrades) {
     if (cachedSdkLib == null) {
-      File sdkRoot = getOrInstallInstantAppSdk();
+      Path sdkRoot = getOrInstallInstantAppSdk();
 
-      File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
+      File jar = sdkRoot.resolve(SDK_LIB_JAR_PATH).toFile();
 
       if (!jar.exists()) {
         // This SDK is too old and is lacking the library JAR

@@ -24,12 +24,10 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.npw.model.render
-import com.android.tools.idea.npw.model.titleToTemplateRenderer
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
-import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
@@ -51,10 +49,8 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
-import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
-import com.google.common.base.Charsets.UTF_8
-import com.google.common.io.Files
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -102,7 +98,7 @@ data class ProjectChecker(
   private fun createProject(fixture: JavaCodeInsightTestFixture, moduleName: String) {
     val project = fixture.project!!
     IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java))
-    AndroidGradleTests.setUpSdks(fixture, getSdk())
+    AndroidGradleTests.setUpSdks(fixture, getSdk().toFile())
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")
     project.create()
@@ -121,18 +117,34 @@ data class ProjectChecker(
   private fun Project.updateGradleAndSyncIfNeeded(projectRoot: File) {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
     val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
-    val origContent = Files.asCharSource(gradleFile, UTF_8).read()
+    val origContent = gradleFile.readText()
     val newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy())
-    if (newContent != origContent) {
-      Files.asCharSink(gradleFile, UTF_8).write(newContent)
-    }
-    // Bug 146077926
-    val gradleDocument = FileDocumentManager.getInstance().getDocument(gradleFile.toVirtualFile()!!)!!
-    FileDocumentManager.getInstance().reloadFromDisk(gradleDocument)
+    gradleFile.writeText(origContent, newContent)
+
+    val settingsFile = File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE)
+    val settingsOrigContent = settingsFile.readText()
+    val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
+    settingsFile.writeText(settingsOrigContent, settingsNewContent)
+
     refreshProjectFiles()
     if (syncProject) {
       assertEquals(projectRoot, getBaseDirPath(this))
-      AndroidGradleTests.importProject(this, Request.testRequest(), null)
+      AndroidGradleTests.importProject(this, Request.testRequest())
+    }
+  }
+
+  private fun File.readText(): String {
+    val fileDocument = FileDocumentManager.getInstance().getDocument(this.toVirtualFile()!!)!!
+    return fileDocument.text
+  }
+
+  private fun File.writeText(origContent: String, newContent: String) {
+    if (newContent != origContent) {
+      WriteAction.runAndWait<RuntimeException> {
+        val fileDocument = FileDocumentManager.getInstance().getDocument(this.toVirtualFile()!!)!!
+        fileDocument.setText(newContent)
+        FileDocumentManager.getInstance().saveDocument(fileDocument)
+      }
     }
   }
 
@@ -152,11 +164,10 @@ data class ProjectChecker(
     val appTitle = "Template Test App Title"
 
     val language = moduleState.projectTemplateDataBuilder.language
-    val addJetifierSupport = moduleState.projectTemplateDataBuilder.addJetifierSupport
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
         data as ProjectTemplateData, "Template Test project",
-        language!!, true, addJetifierSupport, false
+        language!!, true, false, forceNonTransitiveRClass = true
       )
     }
 
@@ -168,7 +179,6 @@ data class ProjectChecker(
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
     }
 

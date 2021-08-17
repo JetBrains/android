@@ -16,7 +16,6 @@
 package org.jetbrains.android.quickDefinitions
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -51,13 +50,7 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.RESOLVE_USING_REPOS.override(true)
     myFixture.addClass(constraintLayout)
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
   }
 
   private val KOTLIN_ACTIVITY =

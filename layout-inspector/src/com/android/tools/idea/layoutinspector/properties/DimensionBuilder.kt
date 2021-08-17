@@ -17,25 +17,17 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_HEIGHT
 import com.android.SdkConstants.ATTR_WIDTH
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
-import com.intellij.ui.SimpleColoredRenderer
-import com.intellij.util.ui.EmptyIcon
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import java.awt.Rectangle
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JTable
 
 /**
  * Adds the bounds of a view to the layout inspectors property table.
@@ -46,26 +38,18 @@ import javax.swing.JTable
 object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val table = PTable.create(DimensionTableModel(properties), null, RendererProvider())
-    table.component.addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        scrollSelectedRowIntoView(table)
-      }
-    })
-    inspector.addComponent(table.component)
-  }
-
-  private fun scrollSelectedRowIntoView(pTable: PTable) {
-    pTable.component.scrollRectToVisible(findSelectedRect(pTable))
-  }
-
-  private fun findSelectedRect(pTable: PTable): Rectangle {
-    val table = pTable.component as? JTable ?: return pTable.component.bounds
-    val row = table.selectedRow
-    if (row < 0) {
-      return table.bounds
+    val tableModel = DimensionTableModel(properties)
+    val enumSupportProvider = object : EnumSupportProvider<InspectorPropertyItem> {
+      // TODO: Make this a 1 liner
+      override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
     }
-    return table.getCellRect(row, 1, true)
+    val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
+      // TODO: Make this a 1 liner
+      override fun invoke(property: InspectorPropertyItem): ControlType = ControlType.TEXT_EDITOR
+    }
+    val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+    val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
+    inspector.addTable(tableModel, true, uiProvider)
   }
 
   private class DimensionTableModel(properties: PropertiesTable<InspectorPropertyItem>): PTableModel {
@@ -88,52 +72,5 @@ object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
     override fun removeItem(item: PTableItem) {
       // Not supported
     }
-  }
-
-  private class RendererProvider : PTableCellRendererProvider {
-    private val renderer = Renderer()
-
-    override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {
-      return renderer
-    }
-  }
-
-  private class Renderer: PTableCellRenderer {
-    private val textRenderer = SimpleColoredRenderer()
-    private var emptyIconCache = EmptyIcon.create(UIUtil.getTreeCollapsedIcon())
-
-    override fun getEditorComponent(table: PTable,
-                                    item: PTableItem,
-                                    column: PTableColumn,
-                                    depth: Int,
-                                    isSelected: Boolean,
-                                    hasFocus: Boolean,
-                                    isExpanded: Boolean): JComponent? {
-      textRenderer.clear()
-      if (column == PTableColumn.NAME) {
-        textRenderer.border = JBUI.Borders.empty()
-        textRenderer.ipad = JBUI.insets(0, 3)
-        textRenderer.icon = emptyIcon
-        textRenderer.font = UIUtil.getFont(UIUtil.FontSize.SMALL, UIUtil.getLabelFont())
-        textRenderer.append(item.name)
-      }
-      else {
-        textRenderer.border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
-        textRenderer.ipad = JBUI.insets(0, 3)
-        textRenderer.font = UIUtil.getLabelFont()
-        textRenderer.append(item.value ?: "")
-      }
-      textRenderer.foreground = if (isSelected && hasFocus) UIUtil.getTableSelectionForeground(true) else table.foregroundColor
-      textRenderer.background = if (isSelected && hasFocus) UIUtil.getTableSelectionBackground(true) else table.backgroundColor
-      return textRenderer
-    }
-
-    private val emptyIcon: Icon
-      get() {
-        if (emptyIconCache.iconWidth != UIUtil.getTreeCollapsedIcon().iconWidth) {
-          emptyIconCache = EmptyIcon.create(UIUtil.getTreeCollapsedIcon())
-        }
-        return emptyIconCache
-      }
   }
 }

@@ -17,6 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
@@ -27,9 +31,12 @@ import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import java.util.regex.Pattern
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
 
@@ -82,14 +89,18 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
-    val defaultResult = ExternalNameInfo(modelName, null)
+    val defaultResult = ExternalNameInfo(modelName, UNKNOWN)
     var result : ExternalNameInfo? = null
     for (e in map.entries) {
       if (e.value.property.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.semantics) {
-          VAR, VWO -> return ExternalNameInfo(e.key.first, false)
-          SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
+          VAR, VWO -> return ExternalNameInfo(e.key.name, ASSIGNMENT)
+          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.name, METHOD)
+          VAL -> when (e.value.property.type) {
+            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.key.name, AUGMENTED_ASSIGNMENT)
+            else -> Unit
+          }
           else -> Unit
         }
       }
@@ -97,11 +108,19 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     return result ?: defaultResult
   }
 
+  override fun getPatternForUnwrappedVariables(): Pattern {
+    return Pattern.compile("(([a-zA-Z0-9_]\\w*))")
+  }
+
+  override fun getPatternForWrappedVariables(): Pattern {
+    return Pattern.compile("\\$\\{([^}]*)}")
+  }
+
   @JvmDefault
   override fun modelDescriptionForParent(externalName: String, context: GradleDslElement): ModelPropertyDescription? {
     val map = context.getExternalToModelMap(this)
     for (e in map.entries) {
-      if (e.key.first == externalName) return e.value.property
+      if (e.key.name == externalName) return e.value.property
     }
     return null
   }

@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.StudioProfilersView
@@ -35,7 +36,6 @@ import com.android.tools.profilers.memory.MemoryCaptureSelection
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
-import com.android.tools.profilers.stacktrace.CodeLocation
 import com.google.common.base.Strings
 import java.awt.BorderLayout
 import java.awt.Component
@@ -43,7 +43,6 @@ import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel

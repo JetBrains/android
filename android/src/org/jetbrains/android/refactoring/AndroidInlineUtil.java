@@ -16,20 +16,18 @@ import com.intellij.util.containers.MultiMap;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.ErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Map;
 
 class AndroidInlineUtil {
   private AndroidInlineUtil() {
@@ -147,9 +145,6 @@ class AndroidInlineUtil {
 
   @Nullable
   static MyStyleData getInlinableStyleDataFromContext(@Nullable PsiElement context) {
-    if (context instanceof LazyValueResourceElementWrapper) {
-      context = ((LazyValueResourceElementWrapper)context).computeElement();
-    }
     if (context == null || !context.getManager().isInProject(context)) {
       return null;
     }

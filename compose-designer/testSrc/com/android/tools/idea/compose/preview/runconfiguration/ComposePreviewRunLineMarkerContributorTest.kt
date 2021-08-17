@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -59,11 +60,11 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   fun testGetInfo() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -80,11 +81,11 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   fun testGetInfoLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -99,12 +100,12 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   fun testGetInfoInvalidComposePreview() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestNotPreview.kt",
       // language=kotlin
       """
         import androidx.compose.Composable
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
 
         @Preview
         @Composable

@@ -24,7 +24,7 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import java.awt.*;
 import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,7 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
   private JLabel myStepIcon;
 
   public StudioWizardLayout() {
-    Icon icon = AndroidIcons.Wizards.StudioProduct;
+    Icon icon = StudioIllustrations.Common.PRODUCT_ICON;
     myIcon.setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
     myIcon.setIcon(icon);
 

@@ -29,6 +29,7 @@ object DesignerActions {
   const val GROUP_TOOLS = "$PREFIX.ToolsActions"
 
   const val GROUP_LAYOUT_EDITOR = "$PREFIX.LayoutEditorActions"
+  const val GROUP_NAV_EDITOR = "$PREFIX.NavEditorActions"
 
   //<editor-fold desc="Common Actions">
   const val ACTION_FORCE_REFRESH_PREVIEW = "$PREFIX.ForceRefreshPreview"
@@ -42,5 +43,12 @@ object DesignerActions {
   const val ACTION_TOGGLE_DEVICE_NIGHT_MODE = "$PREFIX.ToggleDeviceNightMode"
   const val ACTION_NEXT_DEVICE = "$PREFIX.NextDevice"
   const val ACTION_PREVIOUS_DEVICE = "$PREFIX.PreviousDevice"
+  //</editor-fold>
+
+  //<editor-fold desc="Navigation Editor Actions">
+  const val ACTION_ASSIGN_START_DESTINATION = "$PREFIX.AssignStartDestination"
+  const val ACTION_ADD_DEEP_LINK = "$PREFIX.AddDeepLink"
+  const val ACTION_ADD_ACTION = "$PREFIX.AddAction"
+  const val ACTION_AUTO_ARRANGE = "$PREFIX.AutoArrange"
   //</editor-fold>
 }

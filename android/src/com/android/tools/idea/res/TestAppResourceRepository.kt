@@ -17,7 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.util.PathString
-import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel

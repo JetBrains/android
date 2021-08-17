@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import java.io.Serializable
@@ -35,7 +36,7 @@ interface SystemTraceModelAdapter {
   fun getProcesses(): List<ProcessModel>
 
   /**
-   * Return a ThreadModel if we have information for a possible dangling thread with that thread id,
+   * @return a ThreadModel if we have information for a possible dangling thread with that thread id,
    * which is a thread that we don't have the information about which process they belong to.
    */
   fun getDanglingThread(tid: Int): ThreadModel?
@@ -45,10 +46,15 @@ interface SystemTraceModelAdapter {
   fun getSystemTraceTechnology(): Cpu.CpuTraceType
 
   /**
-   * Returns true if there is potentially missing data from the capture.
+   * @return true if there is potentially missing data from the capture.
    * It's hard to guarantee if data is missing or not, so this is a best guess.
    */
   fun isCapturePossibleCorrupted(): Boolean
+
+  /**
+   * @return Android frame events by layer. Supported since Android R.
+   */
+  fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer>
 }
 
 data class ProcessModel(

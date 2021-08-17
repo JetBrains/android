@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -25,14 +26,19 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class PinCodeDevicePanel {
+/**
+ * Form that displays a single device ready to be paired via pairing code.
+ * Next to the device info, a "Pair" button is displayed.
+ */
+@UiThread
+public class PairingCodeDevicePanel {
   @NotNull private final MdnsService myMdnsService;
   @NotNull private JButton myPairButton;
   @NotNull private JBLabel myDeviceIpLabel;
   @NotNull private JPanel myRootContainer;
   @NotNull private JBLabel myAvailableToPairLabel;
 
-  public PinCodeDevicePanel(@NotNull MdnsService mdnsService, @NotNull Runnable pairActionRunnable) {
+  public PairingCodeDevicePanel(@NotNull MdnsService mdnsService, @NotNull Runnable pairActionRunnable) {
     myMdnsService = mdnsService;
     myRootContainer.setBorder(JBUI.Borders.empty(5, 10));
     myRootContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);

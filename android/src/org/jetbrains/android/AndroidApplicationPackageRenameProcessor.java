@@ -5,9 +5,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
@@ -17,11 +19,13 @@ import com.intellij.refactoring.rename.RenameXmlAttributeProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
+import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +40,45 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
       // possibly renaming application package
       return ProjectFacetManager.getInstance(element.getProject()).hasFacets(AndroidFacet.ID);
     }
-    return AndroidRenameHandler.isPackageAttributeInManifest(element.getProject(), element);
+    return isPackageAttributeInManifest(element.getProject(), element);
   }
+
+  private static boolean isPackageAttributeInManifest(@NotNull Project project, @Nullable PsiElement element) {
+    if (element == null) {
+      return false;
+    }
+    PsiFile psiFile = element.getContainingFile();
+
+    if (!(psiFile instanceof XmlFile)) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+
+    if (facet == null) {
+      return false;
+    }
+    VirtualFile vFile = psiFile.getVirtualFile();
+
+    if (vFile == null || !vFile.equals(AndroidRootUtil.getPrimaryManifestFile(facet))) {
+      return false;
+    }
+    if (!(element instanceof XmlAttributeValue)) {
+      return false;
+    }
+    PsiElement parent = element.getParent();
+
+    if (!(parent instanceof XmlAttribute)) {
+      return false;
+    }
+    GenericAttributeValue attrValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)parent);
+
+    if (attrValue == null) {
+      return false;
+    }
+    DomElement parentDomElement = attrValue.getParent();
+    return parentDomElement instanceof Manifest && attrValue.equals(((Manifest)parentDomElement).getPackage());
+  }
+
 
   @Override
   public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)

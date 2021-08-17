@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -137,7 +137,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-        return containedInIncludeFolders(myProject, ndkFacet.getNdkModuleModel(), file);
+        return containedByNativeNodes(myProject, ndkFacet.getNdkModuleModel(), file);
       }
     }
     return false;

@@ -27,13 +27,13 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
-      ("3.6.0" to "4.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("4.0.0" to "4.2.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+      ("3.1.0" to "3.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+      ("3.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("4.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      Assert.assertEquals(processor.necessity(), u)
+      Assert.assertEquals(u, processor.necessity())
     }
   }
 

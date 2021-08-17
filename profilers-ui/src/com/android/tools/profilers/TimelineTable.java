@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.stdui;
+
+import static com.android.tools.adtui.stdui.StandardColors.AXIS_MARKER_COLOR;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.HoverRowTable;
@@ -34,6 +36,7 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -116,7 +119,7 @@ public final class TimelineTable {
 
     AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
     axis.setShowAxisLine(false);
-    axis.setMarkerColor(ProfilerColors.AXIS_MARKER_COLOR);
+    axis.setMarkerColor(AXIS_MARKER_COLOR);
 
     return axis;
   }
@@ -143,7 +146,7 @@ public final class TimelineTable {
         (JComponent)myDelegateRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
       if (headerComponent instanceof JLabel) {
-        headerComponent.setBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
+        headerComponent.setBorder(JBUI.Borders.empty(3, 10, 3, 0));
         ((JLabel)headerComponent).setHorizontalAlignment(SwingConstants.LEFT);
       }
 
@@ -152,12 +155,12 @@ public final class TimelineTable {
       }
 
       JPanel rendererPanel = new JPanel(
-        new TabularLayout("*", String.format("%dpx,%dpx", HEADER_HEIGHT, TIMELINE_HEIGHT)));
+        new TabularLayout("*", String.format(Locale.getDefault(), "%dpx,%dpx", HEADER_HEIGHT, TIMELINE_HEIGHT)));
       rendererPanel.setOpaque(false); // If opaque, myDelegateRenderer component's border doesn't render
       headerComponent.setOpaque(false);
 
       JPanel axisPanel = new JPanel(new BorderLayout());
-      axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+      axisPanel.setBackground(StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR);
 
       if (column == myTimelineColumn) {
         // Only show the timeline axis if we also show at least one timeline row below

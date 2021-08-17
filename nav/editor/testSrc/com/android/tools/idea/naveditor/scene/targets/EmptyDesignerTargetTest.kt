@@ -37,7 +37,6 @@ class EmptyDesignerTargetTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
-    `when`<SceneView>(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(view)
 
     val actionManager = mock(NavActionManager::class.java)
     val menu = mock(AddDestinationMenu::class.java)

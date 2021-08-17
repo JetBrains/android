@@ -18,10 +18,11 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
+import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.io.Images;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.google.common.base.Joiner;
@@ -45,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.imageio.ImageIO;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,7 +150,7 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
                        ((GeneratedXmlResource)icon).getXmlText());
         }
         else {
-          BufferedImage goldenImage = ImageIO.read(goldenFile.toFile());
+          BufferedImage goldenImage = Images.readImage(goldenFile);
           assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), imageDiffThresholdPercent);
         }
       }
@@ -177,7 +177,7 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
       }
     } else {
       BufferedImage image = ((GeneratedImageIcon)icon).getImage();
-      ImageIO.write(image, "PNG", file.toFile());
+      Images.writeImage(image, "PNG", file);
     }
   }
 

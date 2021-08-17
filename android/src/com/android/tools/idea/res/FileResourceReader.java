@@ -33,11 +33,11 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ public class FileResourceReader {
     .build(new CacheLoader<String, ZipMap>() {
       @Override
       public ZipMap load(@NotNull String path) throws IOException {
-        return ZipMap.from(new File(path));
+        return ZipMap.from(Paths.get(path));
       }
     });
 

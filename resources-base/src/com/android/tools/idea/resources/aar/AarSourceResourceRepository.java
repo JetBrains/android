@@ -24,10 +24,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.symbols.Symbol;
 import com.android.ide.common.symbols.SymbolIo;
 import com.android.ide.common.symbols.SymbolTable;
 import com.android.ide.common.util.PathString;
-import com.android.projectmodel.ResourceFolder;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.base.Base128InputStream;
@@ -99,7 +99,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   /** The package name read on-demand from the manifest. */
   @NotNull private final NullableLazyValue<String> myManifestPackageName;
 
-  protected AarSourceResourceRepository(@NotNull RepositoryLoader loader, @Nullable String libraryName) {
+  protected AarSourceResourceRepository(@NotNull RepositoryLoader<? extends AarSourceResourceRepository> loader,
+                                        @Nullable String libraryName) {
     super(loader.getNamespace(), libraryName);
     myResourceDirectoryOrFile = loader.getResourceDirectoryOrFile();
     mySourceFileProtocol = loader.getSourceFileProtocol();
@@ -153,19 +154,22 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * Creates and loads a resource repository without using a persistent cache. Consider calling
    * AarResourceRepositoryCache.getSourceRepository instead of this method.
    *
-   * @param resourceFolder specifies the resource files to be loaded. It contains a root resource directory and an optional
-   *     list of files and subdirectories that should be loaded. A null {@code resourceFolder.getResources()} list indicates
-   *     that all files contained in {@code resourceFolder.getRoot()} should be loaded.
+   * @param resourceFolderRoot specifies the resource files to be loaded. The list of files to be loaded can be restricted by providing
+   *     a not null {@code resourceFolderResources} list of files and subdirectories that should be loaded.
+   * @param resourceFolderResources A null value indicates that all files and subdirectories in {@code resourceFolderRoot} should be loaded.
+   *     Otherwise files and subdirectories specified in {@code resourceFolderResources} are loaded.
    * @param libraryName the name of the library
    * @param cachingData data used to validate and create a persistent cache file
    * @return the created resource repository
    */
   @NotNull
-  public static AarSourceResourceRepository create(@NotNull ResourceFolder resourceFolder, @NotNull String libraryName,
+  public static AarSourceResourceRepository create(@NotNull PathString resourceFolderRoot,
+                                                   @Nullable Collection<PathString> resourceFolderResources,
+                                                   @NotNull String libraryName,
                                                    @Nullable CachingData cachingData) {
-    Path resDir = resourceFolder.getRoot().toPath();
+    Path resDir = resourceFolderRoot.toPath();
     Preconditions.checkArgument(resDir != null);
-    return create(resDir, resourceFolder.getResources(), ResourceNamespace.RES_AUTO, libraryName, cachingData);
+    return create(resDir, resourceFolderResources, ResourceNamespace.RES_AUTO, libraryName, cachingData);
   }
 
   @NotNull
@@ -260,7 +264,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    * Loads contents the repository from a cache file on disk.
    * @see ResourceSerializationUtil#createPersistentCache
    */
-  private boolean loadFromPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader) {
+  private boolean loadFromPersistentCache(@NotNull Path cacheFile, byte @NotNull [] fileHeader) {
     try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
       if (!stream.validateContents(fileHeader)) {
         return false; // Cache file header doesn't match.
@@ -310,7 +314,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   protected void loadFromStream(@NotNull Base128InputStream stream,
                                 @NotNull Map<String, String> stringCache,
                                 @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) throws IOException {
-    ResourceSerializationUtil.readResourcesFromStream(stream, stringCache, namespaceResolverCache, this, item -> addResourceItem(item));
+    ResourceSerializationUtil.readResourcesFromStream(stream, stringCache, namespaceResolverCache, this, this::addResourceItem);
   }
 
   @TestOnly
@@ -396,7 +400,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         .row(ResourceType.ID)
         .values()
         .stream()
-        .map(s -> s.getCanonicalName())
+        .map(Symbol::getCanonicalName)
         .collect(Collectors.toSet());
     }
 

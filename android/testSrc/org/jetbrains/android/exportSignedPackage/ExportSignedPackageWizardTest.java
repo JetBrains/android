@@ -22,7 +22,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.getTaskNamesFromSelectedVariant;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import java.util.List;

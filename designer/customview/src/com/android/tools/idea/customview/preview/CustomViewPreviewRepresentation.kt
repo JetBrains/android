@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.customview.preview
 
+import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -24,19 +24,21 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.util.BuildListener
-import com.android.tools.idea.common.util.setupBuildListener
-import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.projectsystem.BuildListener
+import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -90,6 +92,9 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }
 }
+
+private val CUSTOM_VIEW_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
+
 /**
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
@@ -107,12 +112,12 @@ class CustomViewPreviewRepresentation(
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
-  private var configurationListener = ConfigurationListener { true }
 
   private val uniqueTaskLauncher = UniqueTaskCoroutineLauncher(this, "Custom view preview update thread")
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
+  override val preferredInitialVisibility: PreferredVisibility? = null
   private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
   private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
   private fun wrapContentHeightPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_H"
@@ -173,12 +178,12 @@ class CustomViewPreviewRepresentation(
       "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
-    .setOnConfigurationChangedZoom(ZoomType.FIT)
     .setSceneManagerProvider { surface, model ->
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         setShrinkRendering(true)
       }
-    }.build().apply {
+    }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+    .build().apply {
       setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
     }
 
@@ -293,6 +298,10 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
+    if (Bridge.hasNativeCrash()) {
+      workbench.handleLayoutlibNativeCrash { refresh() }
+      return
+    }
     val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("refresh with invalid PsiFile")
       return
@@ -307,15 +316,6 @@ class CustomViewPreviewRepresentation(
       return
     }
     updateModel()
-  }
-
-  private fun createConfigurationListener(configuration: Configuration, className: String) = ConfigurationListener { flags ->
-    if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
-      val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setValues(
-        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
-    }
-    true
   }
 
   private fun updateModel() {
@@ -355,7 +355,6 @@ class CustomViewPreviewRepresentation(
         surface.deactivate()
         surface.models.first().let { model ->
           (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
-          model.configuration.removeListener(configurationListener)
           model.updateFileContentBlocking(fileContent)
         }
       }
@@ -372,14 +371,22 @@ class CustomViewPreviewRepresentation(
         surface.addAndRenderModel(model)
       }
       addModelFuture.await()
-      withContext(uiThread) {
-        surface.zoomToFit()
-      }
       surface.activate()
-      configurationListener = createConfigurationListener(configuration, className)
-      configuration.addListener(configurationListener)
 
       stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
+    }
+  }
+
+  override fun onDeactivate() {
+    super.onDeactivate()
+
+    // Persist the current dimensions
+    surface.models.firstOrNull()?.configuration?.let { configuration ->
+      val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
+      val className = fqcn2name(selectedClass)
+      val screen = configuration.device!!.defaultHardware.screen
+      persistenceManager.setValues(
+        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 

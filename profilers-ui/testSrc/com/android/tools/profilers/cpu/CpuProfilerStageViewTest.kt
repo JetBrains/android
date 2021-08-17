@@ -15,14 +15,14 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.instructions.InstructionsPanel
-import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.ContextMenuItem
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -33,13 +33,12 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
+import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
-import com.android.tools.profilers.stacktrace.CodeLocation
-import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -47,37 +46,21 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
-import java.io.File
 import javax.swing.JButton
-import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
 @RunsInEdt
-@RunWith(Parameterized::class)
-class CpuProfilerStageViewTest(newPipeline: Boolean) {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun data(): Collection<Boolean> {
-      return listOf(false, true)
-    }
-  }
-
+class CpuProfilerStageViewTest() {
   private val myTimer = FakeTimer()
-
   private val myComponents = FakeIdeProfilerComponents()
-
   private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(newPipeline)
+    enableEventsPipeline(true)
   }
 
   private val myCpuService = FakeCpuService()
@@ -156,41 +139,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
   }
 
   @Test
-  fun importTraceModeShouldShowSelectedProcessName() {
-    // Generates a capture
-    myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
-                                             CpuProfilerTestUtils.traceFileToByteString(
-                                               TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
-
-    myIdeServices.enableCpuCaptureStage(false)
-    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
-    myStage.enter()
-
-    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(cpuStageView.supportsStreaming()).isFalse()
-    assertThat(cpuStageView.supportsStageNavigation()).isFalse()
-    // Selecting the capture automatically selects the first process in the capture.
-    myStage.setAndSelectCapture(0)
-    val processLabel = TreeWalker(cpuStageView.toolbar).descendants().filterIsInstance<JLabel>()[0]
-    // Verify the label is set properly in the toolbar.
-    assertThat(processLabel.text).isEqualTo("Process: init")
-  }
-
-  @Test
-  fun importTraceModeShouldShowCpuCaptureView() {
-    myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
-    myStage.enter()
-
-    val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
-    val treeWalker = TreeWalker(cpuStageView.component)
-    // CpuStageView layout is a based on a splitter. The first component contains the usage chart, threads list, and kernel list. The second
-    // component contains the CpuCaptureView and is set to null when it's not displayed.
-    val captureViewComponent = treeWalker.descendants().filterIsInstance<JBSplitter>().first().secondComponent
-    assertThat(captureViewComponent).isNotNull()
-  }
-
-  @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
     myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
@@ -198,7 +146,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
       myStage,
       myCpuService,
       myTransportService,
-      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
     val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -206,53 +154,39 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     // Re-create the stage so that the capture is not cached
     myStage = CpuProfilerStage(myStage.studioProfilers)
     myStage.studioProfilers.stage = myStage
+    myStage.studioProfilers.sessionsManager.endCurrentSession()
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerToolbar.RECORD_TEXT
+    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
+      it.text == RecordingOptionsView.START
     }
     // When creating the stage view, the record button should be disabled as the current session is dead.
-    assertThat(recordButton.isEnabled).isFalse()
-
-    // Set and select a capture, which will trigger capture parsing.
-    val observer = AspectObserver()
-    val parsingLatch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer)
-    myStage.setAndSelectCapture(captureId)
-    parsingLatch.await()
-
-    // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()
   }
 
   @Test
   fun stoppingAndStartingDisableRecordButton() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerToolbar.RECORD_TEXT
+    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
+      it.text == RecordingOptionsView.START
     }
 
-    myStage.captureState = CpuProfilerStage.CaptureState.STARTING
+    myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
     // Setting the state to STARTING should disable the recording button
-    assertThat(recordButton.isEnabled).isFalse()
+    assertThat(recordButton.text).isEqualTo(RecordingOptionsView.STOP)
 
-    myStage.captureState = CpuProfilerStage.CaptureState.IDLE
-    assertThat(recordButton.isEnabled).isTrue() // Check the record button is now enabled again
-
-    myStage.captureState = CpuProfilerStage.CaptureState.STOPPING
-    // Setting the state to STOPPING should disable the recording button
-    assertThat(recordButton.isEnabled).isFalse()
   }
 
   @Test
   fun recordButtonShouldntHaveTooltip() {
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerToolbar.RECORD_TEXT
+    val recordButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
+      it.text == RecordingOptionsView.START
     }
     assertThat(recordButton.toolTipText).isNull()
 
     myStage.captureState = CpuProfilerStage.CaptureState.CAPTURING
-    val stopButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerToolbar.STOP_TEXT
+    val stopButton = TreeWalker(stageView.component).descendants().filterIsInstance<JButton>().first {
+      it.text == RecordingOptionsView.STOP
     }
     assertThat(stopButton.toolTipText).isNull()
   }
@@ -350,31 +284,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
 
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
-    assertThat(splitter.secondComponent).isNotNull()
-    assertThat(splitter.secondComponent.isVisible).isTrue()
-  }
-
-  @Test
-  fun dontHideDetailsPanelWhenGoingBackToNormalMode() {
-    myIdeServices.enableCpuNewRecordingWorkflow(false)
-
-    val stageView = CpuProfilerStageView(myProfilersView, myStage)
-
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
-    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
-    assertThat(splitter.secondComponent).isNull()
-
-    // As we don't have an access to change the mode directly, we're changing it indirectly by setting a capture.
-    myStage.capture = CpuProfilerUITestUtils.validCapture()
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
-    // CpuCaptureView should not be null now and should also be visible.
-    assertThat(splitter.secondComponent).isNotNull()
-    assertThat(splitter.secondComponent.isVisible).isTrue()
-
-    // As we don't have an access to change the mode directly, we're changing it indirectly by simulating a code navigation.
-    myStage.onNavigated(CodeLocation.stub())
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
-    // Even though we went back to NORMAL (non maximized) mode so the user can view the code editor, we keep displaying the CpuCaptureView.
     assertThat(splitter.secondComponent).isNotNull()
     assertThat(splitter.secondComponent.isVisible).isTrue()
   }

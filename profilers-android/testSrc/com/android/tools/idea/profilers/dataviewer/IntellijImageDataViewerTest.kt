@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.dataviewer
+package com.android.tools.inspectors.common.ui.dataviewer
 
-import com.android.tools.profilers.dataviewer.DataViewer
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 
-class IntellijImageDataViewerTest : PlatformTestCase() {
+class IntellijImageDataViewerTest : LightPlatformTestCase() {
   fun testCanCreateImageViewer() {
     val viewer = IntellijImageDataViewer.createImageViewer(
       IntellijImageDataViewerTest::class.java.getResource("/image.png").readBytes())!!

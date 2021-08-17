@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.Collection;

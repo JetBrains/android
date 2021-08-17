@@ -13,15 +13,6 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="layoutlib_native" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.2.0.1" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.2.0.1/jb-layoutlib-native-jdk11-27.2.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
   </component>
 </module>

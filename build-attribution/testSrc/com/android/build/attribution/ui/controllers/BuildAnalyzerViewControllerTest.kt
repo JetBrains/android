@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
@@ -70,10 +71,10 @@ class BuildAnalyzerViewControllerTest {
 
   val warningSuppressions = BuildAttributionWarningsFilter()
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), warningSuppressions = warningSuppressions)
-  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
   lateinit var showSettingsUtilMock: ShowSettingsUtil
+  lateinit var analytics: BuildAttributionUiAnalytics
 
   @Before
   fun setUp() {
@@ -81,6 +82,7 @@ class BuildAnalyzerViewControllerTest {
     showSettingsUtilMock = ideComponents.mockApplicationService(ShowSettingsUtil::class.java)
     ideComponents.replaceProjectService(BuildAttributionWarningsFilter::class.java, warningSuppressions)
     UsageTracker.setWriterForTest(tracker)
+    analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
     analytics.newReportSessionId(buildSessionId)
   }
 
@@ -329,6 +331,24 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testOpenConfigurationCacheWarnings() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.openConfigurationCacheWarnings()
+
+    // Verify
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+    assertThat(model.warningsPageModel.selectedNode?.descriptor).isInstanceOf(ConfigurationCachingRootNodeDescriptor::class.java)
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CONFIGURATION_CACHE_ROOT)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testGenerateReportClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     // Prepare: Select first node
@@ -394,7 +414,7 @@ class BuildAnalyzerViewControllerTest {
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
-      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.CONFIGURE_GC_WARNING_SUSPEND_CLICKED)
     }
   }
 

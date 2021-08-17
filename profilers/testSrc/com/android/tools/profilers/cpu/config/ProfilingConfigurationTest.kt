@@ -44,14 +44,12 @@ class ProfilingConfigurationTest {
     assertThat(config.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
-    assertThat(config.isDisableLiveAllocation).isTrue()
   }
 
   @Test
   fun toProto() {
     val configuration = SimpleperfConfiguration("MyConfiguration").apply {
       profilingSamplingIntervalUs = 1234
-      isDisableLiveAllocation = true
     }
     val proto = configuration.toProto()
 

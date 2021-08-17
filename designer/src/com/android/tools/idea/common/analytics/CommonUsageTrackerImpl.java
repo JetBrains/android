@@ -43,16 +43,6 @@ import org.jetbrains.annotations.Nullable;
  * Manages anonymous stats logging for design tools. No stats will be logged if global stats logging is disabled (see {@link UsageTracker}).
  */
 public class CommonUsageTrackerImpl implements CommonUsageTracker {
-
-  /**
-   * Sampling percentage for render events, this corresponds to 1%
-   */
-  private static final int LOG_RENDER_PERCENT = 1;
-  /**
-   * Sampling percentage for inflate events, this corresponds to 10%
-   */
-  private static final int LOG_INFLATE_PERCENT = 10;
-
   private static final Random sRandom = new Random();
 
   private final Executor myExecutor;
@@ -167,18 +157,16 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
   @Override
   public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger,
                               @NotNull RenderResult result,
-                              boolean wasInflated) {
+                              @NotNull RenderResultType type) {
     // Renders are a quite common event so we sample them
-    if (!shouldLog(wasInflated ? LOG_INFLATE_PERCENT : LOG_RENDER_PERCENT)) {
+    if (!shouldLog(type.getLogPercent())) {
       return;
     }
 
-    LayoutEditorEvent.LayoutEditorEventType eventType =
-      wasInflated ? LayoutEditorEvent.LayoutEditorEventType.INFLATE_ONLY : LayoutEditorEvent.LayoutEditorEventType.RENDER_ONLY;
-    logStudioEvent(eventType, (event) -> {
+    logStudioEvent(type.getLoggingType(), (event) -> {
       LayoutEditorRenderResult.Builder builder = LayoutEditorRenderResult.newBuilder()
         .setResultCode(result.getRenderResult().getStatus().ordinal())
-        .setTotalRenderTimeMs(result.getRenderDuration());
+        .setTotalRenderTimeMs(type.getDurationProvider().apply(result));
 
       if (trigger != null) {
         builder.setTrigger(trigger);

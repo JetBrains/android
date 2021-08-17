@@ -15,25 +15,48 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
-  static final Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS =
-    Key.create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
+  static final @NotNull Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS = Key
+    .create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
+
+  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+  private final @NotNull DialogSupplier myNewSelectMultipleDevicesDialog;
+  private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
+
+  // TODO This should not be used in tests
+  public DeviceAndSnapshotComboBoxTargetProvider() {
+    this(DeviceAndSnapshotComboBoxAction::getInstance, SelectMultipleDevicesDialog::new, SelectedDevicesErrorDialog::new);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
+                                          @NotNull DialogSupplier newSelectMultipleDevicesDialog,
+                                          @NotNull DialogSupplier selectedDevicesErrorDialog) {
+    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
+    myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
+    mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
+  }
 
   @NotNull
   @Override
@@ -61,28 +84,60 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     return DeployTargetConfigurable.DEFAULT_CONFIGURABLE;
   }
 
-  // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
   @Override
   public boolean requiresRuntimePrompt(@NotNull Project project) {
-    return MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
+    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
+    Boolean showRunMultipleDeviceDialog = MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
+    if (showRunMultipleDeviceDialog) {
+      return true;
+    }
+
+    List<Device> devicesWithError = selectedDevicesWithError(project);
+    if (devicesWithError.isEmpty()) {
+      return false;
+    }
+
+    boolean anyDeviceHasError = devicesWithError.stream().anyMatch(d -> d.getLaunchCompatibility().getState() == State.ERROR);
+    // Show dialog if any device has an error or if DO_NOT_SHOW_WARNING_ON_DEPLOYMENT is not true (null or false).
+    return anyDeviceHasError || !Objects.equals(project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT), true);
   }
 
-  // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
+  @NotNull
+  private List<Device> selectedDevicesWithError(@NotNull Project project) {
+    List<Device> selectedDevices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project);
+    return selectedDevices.stream().filter(d -> !d.getLaunchCompatibility().getState().equals(State.OK)).collect(Collectors.toList());
+  }
+
   @Override
   public @Nullable DeployTarget showPrompt(@NotNull AndroidFacet facet) {
+    DeviceAndSnapshotComboBoxAction action = myDeviceAndSnapshotComboBoxActionGetInstance.get();
     Project project = facet.getModule().getProject();
-    List<Device> devices = AsyncDevicesGetter.getInstance(project).get().orElse(Collections.emptyList());
+    List<Device> devices = action.getDevices(project).orElse(Collections.emptyList());
 
-    if (!new SelectMultipleDevicesDialog(project, devices).showAndGet()) {
+    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
+    Boolean showRunMultipleDeviceDialog = MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
+    if (showRunMultipleDeviceDialog && !myNewSelectMultipleDevicesDialog.get(project, devices).showAndGet()) {
       return null;
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(DevicesSelectedService.getInstance(project).getDevicesSelectedWithDialog(devices));
+    List<Device> devicesWithError = selectedDevicesWithError(project);
+    if (!devicesWithError.isEmpty()) {
+      if (!mySelectedDevicesErrorDialog.get(project, devicesWithError).showAndGet()) {
+        return null;
+      }
+    }
+
+    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
+    if (showRunMultipleDeviceDialog) {
+      return new DeviceAndSnapshotComboBoxTarget(action::getTargetsSelectedWithDialog);
+    }
+
+    return new DeviceAndSnapshotComboBoxTarget(action::getSelectedTargets);
   }
 
   @NotNull
   @Override
   public DeployTarget getDeployTarget(@NotNull Project project) {
-    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project));
+    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
   }
 }

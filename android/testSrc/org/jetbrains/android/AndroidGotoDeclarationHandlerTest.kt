@@ -19,7 +19,6 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.addAarDependency
@@ -62,6 +61,20 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                                           modules: List<MyAdditionalModuleData>) {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY)
   }
+
+  companion object {
+    @JvmStatic
+    fun navigateToElementAtCaretFromDifferentFile(myFixture: JavaCodeInsightTestFixture) = with(myFixture) {
+      val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
+      val destinationFile = element!!.navigationElement.containingFile.virtualFile
+      assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
+
+      openFileInEditor(destinationFile)
+      (element as Navigatable).navigate(true)
+    }
+  }
+
+  protected val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!
 
   override fun setUp() {
     super.setUp()
@@ -416,26 +429,12 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
         """.trimIndent()
     ).virtualFile
     val expectedResult =
-      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-        // In the new pipeline, the declare styleable name resolves to a ResourceReferencePsiElement. And the GotoDeclarationHandler can
-        // decide which element to point to, currently the declare-styleable name.
         """
           values/styles.xml:2:
             <declare-styleable name="MyView">
                                     ~|~~~~~~~
 
         """.trimIndent()
-      }
-      else {
-        // In the old pipeline, the declare styleable name does not resolve to a ResourceReferencePsiElement, instead to the corresponding
-        // class of the same name that extends View.java, if it exists, otherwise nothing.
-        """
-          MyView.java:8:
-            @SuppressWarnings("UnusedDeclaration")
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        """.trimIndent()
-      }
     assertEquals(expectedResult,
                  describeElements(getDeclarationsFrom(file)))
 
@@ -525,6 +524,29 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                               ~|~~~~~~~           
 
                   """.trimIndent(),
+                 describeElements(getDeclarationsFrom(file.virtualFile)))
+  }
+
+  fun testGotoFrameworkResourceKotlin() {
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+
+        import android.app.Activity
+
+        class ExampleActivity: Activity() {
+            fun resource() {
+                android.R.color.backg${caret}round_dark
+            }
+        }
+      """.trimIndent())
+    assertEquals("""
+                  values/colors.xml:44:
+                    <color name="background_dark">#ff000000</color>
+                                ~|~~~~~~~~~~~~~~~~                 
+
+                 """.trimIndent(),
                  describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
@@ -828,7 +850,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       ).virtualFile
     )
 
-    navigateToElementAtCaretFromDifferentFile()
+    navigateToElementAtCaretFromDifferentFile(myFixture)
     assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
     assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
       .isEqualTo("""
@@ -869,7 +891,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       ).virtualFile
     )
 
-    navigateToElementAtCaretFromDifferentFile()
+    navigateToElementAtCaretFromDifferentFile(myFixture)
     assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.InputMethod")
     editor.caretModel.moveToOffset(editor.caretModel.offset + 35)
     assertThat(elementAtCurrentOffset.text).isEqualTo("Theme.Panel")
@@ -877,17 +899,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     goToElementAtCaret()
     assertThat(elementAtCurrentOffset.parentOfType<XmlAttribute>()!!.text).isEqualTo("name=\"Theme.Panel\"")
   }
-
-  private fun navigateToElementAtCaretFromDifferentFile() = with(myFixture) {
-    val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
-    val destinationFile = element!!.navigationElement.containingFile.virtualFile
-    assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
-
-    openFileInEditor(destinationFile)
-    (element as Navigatable).navigate(true)
-  }
-
-  private val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!
 }
 
 class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandlerTestBase() {

@@ -16,35 +16,45 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_12;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_14;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -52,12 +62,17 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -81,7 +96,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = getSdk();
+    myAndroidSdkPath = getSdk().toFile();
 
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
@@ -126,8 +141,9 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
   }
 
   public void testGetAndroidNdkPath() {
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
-    setupSdkData(ImmutableList.of(value));
+    FileOp fop = FileOpUtils.create();
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
     String osPrefix = SystemInfo.isWindows ? "C:" : "";
@@ -136,8 +152,9 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
   }
 
   public void testGetAndroidNdkPathWithPredicate() {
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
-    setupSdkData(ImmutableList.of(value));
+    FileOp fop = FileOpUtils.create();
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
     assertThat(ndkPath).isNull();
@@ -271,12 +288,86 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     assertThat(jdkFile).isEqualTo(expectedFile);
   }
 
-  private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
+  private void setupSdkData(ImmutableList<LocalPackage> localPackages, FileOp fop) {
     RepositoryPackages packages = new RepositoryPackages(localPackages, Collections.emptyList());
     RepoManager repoManager = new FakeRepoManager(packages);
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, new MockFileOp(), repoManager);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, fop, repoManager);
     AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
     doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
     myAndroidSdks.setSdkData(androidSdkData);
+  }
+
+  public void testIsJdkVersionCompatible() {
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_7)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_8)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_9)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isFalse();
+  }
+
+  public void testExistingJdkIsNotDuplicated() {
+    Jdks spyJdks = spy(Jdks.getInstance());
+    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    Sdk currentJdk = ideSdks.getJdk();
+    assertThat(currentJdk).isNotNull();
+    String homePath = currentJdk.getHomePath();
+    assertThat(homePath).isNotNull();
+    assertThat(homePath).isNotEqualTo("");
+    AtomicReference<Sdk> newJdk = new AtomicReference<>(null);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ideSdks.overrideJdkEnvVariable(homePath);
+      newJdk.set(ideSdks.getJdk());
+    });
+    verify(spyJdks, never()).createJdk(any());
+    assertThat(newJdk.get()).isSameAs(currentJdk);
+  }
+
+  /**
+   * Confirm that the default JDK is used when it is in the JDK table
+   */
+  public void testDefaultJdkIsUsed() throws IOException {
+    Sdk currentJdk = myIdeSdks.getJdk();
+    assertThat(currentJdk).isNotNull();
+    String homePath = currentJdk.getHomePath();
+    assertThat(homePath).isNotNull();
+    assertThat(homePath).isNotEqualTo("");
+
+    Sdk jdk8 = IdeSdks.findOrCreateJdk(AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME,
+                                       new File(getEmbeddedJdk8Path()));
+    assertThat(jdk8).isNotNull();
+    Sdk newJdk = myIdeSdks.getJdk();
+    assertThat(newJdk).isSameAs(jdk8);
+  }
+
+  /**
+   * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
+   * If this test fails, we need to confirm the changes are included as needed in
+   * {@link IdeSdks#jdksWithDifferentSettings(ProjectJdkImpl, ProjectJdkImpl)}..
+   */
+  public void testProjectJdkImplFieldsAndMethods() {
+    List<String> expectedFieldNames = Arrays.asList("ATTRIBUTE_VALUE", "ELEMENT_ADDITIONAL", "ELEMENT_NAME", "ELEMENT_TYPE");
+    List<String> currentFieldNames = Arrays.stream(ProjectJdkImpl.class.getFields())
+      .map(Field::getName)
+      .distinct()
+      .sorted()
+      .collect(Collectors.toList());
+    assertThat(currentFieldNames).isEqualTo(expectedFieldNames);
+
+    List<String> expectedMethodNames = Arrays.asList(
+      "addRoot", "changeType", "clone", "commitChanges", "copyCopyableDataTo", "copyUserDataTo", "dispose", "equals", "getClass",
+      "getCopyableUserData", "getGlobalVirtualFilePointerListener", "getHomeDirectory", "getHomePath", "getName", "getRootProvider",
+      "getRoots", "getSdkAdditionalData", "getSdkModificator", "getSdkType", "getUrls", "getUserData", "getUserDataString",
+      "getVersionString", "hashCode", "isUserDataEmpty", "isWritable", "notify", "notifyAll", "putCopyableUserData", "putUserData",
+      "putUserDataIfAbsent", "readExternal", "removeAllRoots", "removeRoot", "removeRoots", "replace", "resetVersionString", "setHomePath",
+      "setName", "setSdkAdditionalData", "setVersionString", "toString", "wait", "writeExternal"
+    );
+    List<String> currentMethodNames = Arrays.stream(ProjectJdkImpl.class.getMethods())
+      .map(Method::getName)
+      .distinct()
+      .sorted()
+      .collect(Collectors.toList());
+    assertThat(currentMethodNames).isEqualTo(expectedMethodNames);
   }
 }

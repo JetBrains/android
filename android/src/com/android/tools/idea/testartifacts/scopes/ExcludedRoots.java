@@ -21,11 +21,12 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeSourceProvider;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -149,7 +150,7 @@ class ExcludedRoots {
       action.accept(file);
     }
 
-    String artifactName = artifact.getName();
+    IdeArtifactName artifactName = artifact.getName();
     List<IdeSourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
     for (IdeSourceProvider sourceProvider : testSourceProviders) {
       for (File file : getAllSourceFolders(sourceProvider)) {
@@ -160,9 +161,6 @@ class ExcludedRoots {
 
   /**
    * Returns folders which are used for unit testing and stored in the model, but not represented in the IntelliJ project structure.
-   *
-   * <p>These folders are added to the classpath by {@link AndroidJunitPatcher} and potentially filtered out by this class via
-   * {@link GradleTestArtifactSearchScopes}.
    */
   public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
     return ImmutableList.<File>builder()
@@ -213,7 +211,8 @@ class ExcludedRoots {
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
-      for (String path : library.getLocalJars()) {
+      // This loop relies on the implementation details of compileJarFiles, and the code is expected to be removed soon anyway.
+      for (String path : library.getCompileJarFiles().stream().skip(1).collect(Collectors.toList())) {
         File file = new File(path);
         if (!isAlreadyIncluded(file)) {
           myExcludedRoots.add(file);
@@ -238,7 +237,9 @@ class ExcludedRoots {
   private void removeLibraryPaths(@NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
-      for (String path : library.getLocalJars()) {
+      for (String path : library.getCompileJarFiles().stream().filter(
+        it -> (it.lastIndexOf('/') + 1 < it.length()) && !it.substring(it.lastIndexOf('/') + 1).equals("api.jar"))
+        .collect(Collectors.toList())) {
         myExcludedRoots.remove(new File(path));
       }
     });
@@ -255,12 +256,11 @@ class ExcludedRoots {
   public static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {
     return Stream.of(
       provider.getJavaDirectories(),
+      provider.getKotlinDirectories(),
       provider.getResDirectories(),
       provider.getAidlDirectories(),
       provider.getRenderscriptDirectories(),
       provider.getAssetsDirectories(),
-      provider.getCDirectories(),
-      provider.getCppDirectories(),
       provider.getJniLibsDirectories()
     ).flatMap(it -> it.stream()).collect(Collectors.toList());
   }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
@@ -27,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -60,8 +59,8 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
       getProject(),
       new File(getProject().getBasePath()),
       getRootModuleBuilder(),
-      new AndroidModuleModelBuilder(":app1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_APP)),
-      new AndroidModuleModelBuilder(":app2", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_APP))
+      new AndroidModuleModelBuilder(":app1", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)),
+      new AndroidModuleModelBuilder(":app2", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP))
     );
     Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
     assume().that(appModules).asList().doesNotContain(null);
@@ -81,10 +80,10 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
       new AndroidModuleModelBuilder(
         ":app", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
       ),
-      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_DYNAMIC_FEATURE))
+      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
     );
     Module[] allModules = new Module[]{gradleModule(getProject(), ":app"), gradleModule(getProject(), ":feature1")};
     assume().that(allModules).asList().doesNotContain(null);

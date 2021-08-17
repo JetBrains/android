@@ -17,12 +17,11 @@
 package org.jetbrains.android.sdk;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
@@ -42,6 +41,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.reference.SoftReference;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class AndroidSdkData {
   private final int myPlatformToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
-  private AndroidSdkHandler mySdkHandler;
+  private final AndroidSdkHandler mySdkHandler;
 
 
   @Nullable
@@ -133,27 +133,30 @@ public class AndroidSdkData {
   }
 
   private AndroidSdkData(@NotNull File localSdk) {
-    mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
-    File location = getLocation();
-    String locationPath = location.getPath();
+    mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
+    String locationPath = getLocation().toString();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
     myDeviceManager = DeviceManager.createInstance(mySdkHandler, new MessageBuildingSdkLog());
   }
 
   @NotNull
-  public File getLocation() {
-    File location = mySdkHandler.getLocation();
-
-    // The LocalSdk should always have been initialized.
+  public Path getLocation() {
+    Path location = mySdkHandler.getLocation();
+    // We only construct AndroidSdkData when we have a local SDK, which means location must not be null.
     assert location != null;
     return location;
+  }
+
+  @NotNull
+  public File getLocationFile() {
+    return mySdkHandler.getLocation().toFile();
   }
 
   @Deprecated
   @NotNull
   public String getPath() {
-    return getLocation().getPath();
+    return getLocation().toString();
   }
 
   /**
@@ -224,12 +227,12 @@ public class AndroidSdkData {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return filesEqual(getLocation(), sdkData.getLocation());
+    return pathsEqual(getLocation().toString(), sdkData.getLocation().toString());
   }
 
   @Override
   public int hashCode() {
-    return fileHashCode(getLocation());
+    return pathHashCode(getLocation().toString());
   }
 
   @NotNull
@@ -284,7 +287,7 @@ public class AndroidSdkData {
       }
       else {
         mySdkData = null;
-        mySdkHandler = AndroidSdkHandler.getInstance(null);
+        mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, null);
       }
     }
 

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import icons.AndroidIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -25,23 +28,27 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class PinCodeContentPanel {
+/**
+ * Form that displays the list of devices available to pair via pairing code.
+ * If there are no devices available, a custom icon and text are displayed.
+ */
+@UiThread
+public class PairingCodeContentPanel {
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myEmptyPanel;
   @NotNull private JPanel myDevicesPanel;
-  @NotNull private JPanel myDevicesHeaderPanel;
   @NotNull private JPanel myDeviceList;
   @NotNull private JBScrollPane myDeviceListScrollPane;
-  @NotNull List<PinCodeDevicePanel> myPanels = new ArrayList<>();
+  private JBLabel myDeviceLineupLabel;
+  @NotNull List<PairingCodeDevicePanel> myPanels = new ArrayList<>();
 
-  public PinCodeContentPanel() {
+  public PairingCodeContentPanel() {
     myDeviceList.setLayout(new VerticalFlowLayout());
 
     myEmptyPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    myDevicesHeaderPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myDeviceListScrollPane.setBorder(JBUI.Borders.empty());
     myDeviceList.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    EditorPaneUtils.setTitlePanelBorder(myDevicesHeaderPanel);
+    myDeviceLineupLabel.setIcon(AndroidIcons.DeviceExplorer.DevicesLineup);
   }
 
   @NotNull
@@ -49,7 +56,7 @@ public class PinCodeContentPanel {
     return myRootComponent;
   }
 
-  public void showDevices(@NotNull List<@NotNull MdnsService> services, @NotNull Consumer<MdnsService> pinCodePairInvoked) {
+  public void showDevices(@NotNull List<@NotNull MdnsService> services, @NotNull Consumer<MdnsService> pairingCodePairInvoked) {
     if (services.isEmpty()) {
       myEmptyPanel.setVisible(true);
       myDevicesPanel.setVisible(false);
@@ -67,7 +74,7 @@ public class PinCodeContentPanel {
         if (isPanelPresent(myPanels, service)) {
           continue;
         }
-        PinCodeDevicePanel devicePanel = new PinCodeDevicePanel(service, () -> pinCodePairInvoked.accept(service));
+        PairingCodeDevicePanel devicePanel = new PairingCodeDevicePanel(service, () -> pairingCodePairInvoked.accept(service));
         myDeviceList.add(devicePanel.getComponent());
         myPanels.add(devicePanel);
         needRepaint = true;
@@ -76,7 +83,7 @@ public class PinCodeContentPanel {
       // Remove panels for devices that are gone
       List<Integer> indicesToRemove = new ArrayList<>();
       int index = 0;
-      for (PinCodeDevicePanel panel : myPanels) {
+      for (PairingCodeDevicePanel panel : myPanels) {
         if (isPanelDeleted(services, panel)) {
           indicesToRemove.add(index);
         }
@@ -106,12 +113,12 @@ public class PinCodeContentPanel {
     }
   }
 
-  private static boolean isPanelDeleted(@NotNull List<MdnsService> services, @NotNull PinCodeDevicePanel panel) {
+  private static boolean isPanelDeleted(@NotNull List<MdnsService> services, @NotNull PairingCodeDevicePanel panel) {
     //TODO: Add test that MdnsService implements value equality
     return services.stream().noneMatch(service -> service.equals(panel.getMdnsService()));
   }
 
-  private static boolean isPanelPresent(@NotNull List<PinCodeDevicePanel> panels,
+  private static boolean isPanelPresent(@NotNull List<PairingCodeDevicePanel> panels,
                                         @NotNull MdnsService device) {
     //TODO: Add test that MdnsService implements value equality
     return panels.stream().anyMatch(panel -> panel.getMdnsService().equals(device));

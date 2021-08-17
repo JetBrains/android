@@ -20,15 +20,15 @@ import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_BACKGROUND_TINT
 import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.panel.impl.model.util.FakePTableModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
+import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 class InspectorPanelModelTest {
@@ -60,8 +60,8 @@ class InspectorPanelModelTest {
     val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
     val otherItem = CollapsibleLabelModel("other", otherEditor, false, properties)
     val genericLine = GenericInspectorLineModel()
-    val tableLineModel1 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), true)
-    val tableLineModel2 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), false)
+    val tableLineModel1 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), true)
+    val tableLineModel2 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), false)
 
     init {
       outerGroup.makeExpandable(true)
@@ -143,7 +143,7 @@ class InspectorPanelModelTest {
   fun testFilterCausesValueChangeNotification() {
     // setup
     val inspector = Inspector()
-    val listener = mock(ValueChangedListener::class.java)
+    val listener = mock<ValueChangedListener>()
     inspector.model.addValueChangedListener(listener)
 
     // test

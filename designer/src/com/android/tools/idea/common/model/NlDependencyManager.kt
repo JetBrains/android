@@ -22,16 +22,13 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.util.addDependencies
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -47,73 +44,47 @@ class NlDependencyManager private constructor() {
     fun getInstance(): NlDependencyManager = ApplicationManager.getApplication().getService(NlDependencyManager::class.java)
   }
 
-  data class AddDependenciesResult(val hadMissingDependencies: Boolean, val dependenciesPresent: Boolean)
-
   /**
    * Makes sure the dependencies of the components being added are present and resolved in the module.
-   * If they are not: ask the user if they can be added now.
    *
-   * Returns an instance of [AddDependenciesResult] with hadMissingDependencies set to true if some dependencies were not yet present, and
-   * dependenciesPresent set to true if all dependencies were already present or if they were added (i.e. the user chose to install them).
+   * If they are not: ask the user if they can be added. Setting [promptUserBeforeAdding] to false will skip prompting the user and
+   * immediately try to add the dependencies.
+   *
+   * If a callback is given, the callback will be called if all dependencies were already present or if they were added (i.e. the user chose
+   * to install them). The callback may be called on the current thread of no sync is needed or it maybe called on another thread after the
+   * sync is finished.
+   *
+   * Returns true if all dependencies were added successfully.
    */
   @JvmOverloads
   fun addDependencies(
     components: Iterable<NlComponent>,
     facet: AndroidFacet,
-    syncDoneCallback: (() -> Unit)? = null
-  ): AddDependenciesResult {
+    promptUserBeforeAdding: Boolean,
+    dependenciesPresentCallback: Runnable? = null
+  ): Boolean {
     val moduleSystem = facet.module.getModuleSystem()
     val missingDependencies = collectDependencies(components).filter { moduleSystem.getRegisteredDependency(it) == null }
     if (missingDependencies.isEmpty()) {
       // We don't have any missing dependencies, therefore they're all present.
-      return AddDependenciesResult(hadMissingDependencies = false, dependenciesPresent = true)
+      dependenciesPresentCallback?.run()
+      return true
     }
 
-    if (facet.module.addDependencies(missingDependencies, false, requestSync = false).isNotEmpty()) {
-      // User clicked "No" when asked to install the missing dependencies, so they won't be present.
-      return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = false)
+    if (facet.module.addDependenciesWithUiConfirmation(missingDependencies, promptUserBeforeAdding, requestSync = false).isNotEmpty()) {
+      // Not all dependencies were added successfully because the list of un-added dependencies isn't empty.
+      return false
     }
 
     // When the user clicks "Yes" to install the missing dependencies, sync the project so they'll effectively be present.
     val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
       facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
 
-    if (syncDoneCallback != null) {
-      syncResult.addCallback(directExecutor(), success = { syncDoneCallback() }, failure = { syncDoneCallback() })
+    if (dependenciesPresentCallback != null) {
+      syncResult.addCallback(directExecutor(), success = { dependenciesPresentCallback.run() },
+                             failure = { dependenciesPresentCallback.run() })
     }
-
-    return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = true)
-  }
-
-  /**
-   * Adds the dependencies in a separate thread backed by a [ProgressIndicator] since this method might end up making network operations to
-   * add missing dependencies. Receives an optional callback to be called if there were no missing dependencies and to be passed to
-   * [addDependencies], which will set is as the callback of SyncManager#syncProject.
-   *
-   * @see addDependencies
-   */
-  fun addDependenciesAsync(
-    components: Iterable<NlComponent>,
-    facet: AndroidFacet,
-    progressIndicatorTitle: String,
-    callback: Runnable
-  ) {
-    ProgressManager.getInstance().run(object : Task.Backgroundable(facet.module.project, progressIndicatorTitle) {
-
-      private var hadMissingDependencies: Boolean = false
-
-      override fun run(indicator: ProgressIndicator) {
-        hadMissingDependencies = addDependencies(components, facet) { callback.run() }.hadMissingDependencies
-      }
-
-      override fun onSuccess() {
-        if (!hadMissingDependencies) {
-          // Only invoke the callback if there were no missing dependencies. If missing dependencies were installed later, the callback will
-          // be invoked by SyncManager#syncProject callback (see addDependencies).
-          callback.run()
-        }
-      }
-    })
+    return true
   }
 
   /**

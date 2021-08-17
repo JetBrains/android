@@ -26,7 +26,7 @@ import java.net.InetAddress
  * return [ListenableFuture] for completion.
  */
 @UiThread
-interface AdbDevicePairingService {
+interface WiFiPairingService {
   /**
    * Returns a [MdnsSupportState] for the current platform and current ADB version.
    *
@@ -100,7 +100,7 @@ data class MdnsService(val serviceName: String, val serviceType: ServiceType, va
 
 enum class ServiceType {
   QrCode,
-  PinCode
+  PairingCode
 }
 
 /**

@@ -31,14 +31,15 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
@@ -49,6 +50,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -60,7 +62,6 @@ import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,6 +69,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +94,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
                                             ChangeType.RESOURCE));
 
   @NotNull private final Project myProject;
-  @NotNull private final Map<String, List<File>> myPackages;
+  @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
@@ -101,7 +103,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   public AbstractDeployTask(
-      @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
+      @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
                             Computable<String> installPathProvider) {
     myProject = project;
     myPackages = packages;
@@ -155,20 +157,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
         .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
         .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
         .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
+        .enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
         .build();
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
-    for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
-      String applicationId = entry.getKey();
-      List<File> apkFiles = entry.getValue();
+    for (ApkInfo apkInfo : myPackages) {
       try {
         launchContext.setLaunchApp(shouldTaskLaunchApp());
-        Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
-        addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
-        logAgentFailures(metrics.getAgentFailures());
+        Deployer.Result result = perform(device, deployer, apkInfo);
+
         if (result.skippedInstall) {
-          idsSkippedInstall.add(applicationId);
+          idsSkippedInstall.add(apkInfo.getApplicationId());
         }
         if (result.needsRestart) {
           // TODO: fall back to using the suggested action, rather than blindly rerun
@@ -182,6 +182,9 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
     }
 
+    addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
+    logAgentFailures(metrics.getAgentFailures());
+
     stopwatch.stop();
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     if (idsSkippedInstall.isEmpty()) {
@@ -193,6 +196,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
       printer.stdout(content);
       logger.info("%s. %s", title, content);
+      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
     }
 
     return new LaunchResult();
@@ -202,15 +206,22 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   abstract protected boolean shouldTaskLaunchApp();
 
-  abstract protected Deployer.Result perform(
-    IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
+  abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo) throws DeployerException;
 
   private String getLocalInstaller() {
+    File path;
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development mode
+      path = new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer");
+    } else {
+      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+    }
+    return path.getAbsolutePath();
     return myInstallPathProvider.compute();
   }
 
-  protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {
-    return ContainerUtil.map(apkFiles, File::getPath);
+  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
+    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkFile).map(File::getPath).collect(Collectors.toList());
   }
 
   @NotNull
@@ -323,7 +334,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
   }
 
-  private class DeploymentHyperlinkInfo implements HyperlinkInfo {
+  private static class DeploymentHyperlinkInfo implements HyperlinkInfo {
     private final @Nullable String myActionId;
     @NotNull
     private final ConsolePrinter myPrinter;
@@ -379,8 +390,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   @Override
   public Collection<ApkInfo> getApkInfos() {
-    return myPackages.entrySet().stream().map((eachPackage) ->
-                                                ContainerUtil.map(eachPackage.getValue(), file -> new ApkInfo(file, eachPackage.getKey())))
-      .flatMap(List::stream).collect(ImmutableList.toImmutableList());
+    return myPackages;
   }
 }

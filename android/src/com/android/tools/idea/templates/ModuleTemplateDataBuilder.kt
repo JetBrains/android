@@ -81,7 +81,6 @@ class ModuleTemplateDataBuilder(
   var unitTestDir: File? = null
   var aidlDir: File? = null
   var rootDir: File? = null
-  var hasApplicationTheme: Boolean = true
   var name: String? = null
   var isLibrary: Boolean? = null
   var packageName: PackageName? = null
@@ -135,9 +134,6 @@ class ModuleTemplateDataBuilder(
 
     isLibrary = facet.configuration.isLibraryProject
 
-    val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now
-    hasApplicationTheme = appTheme != null
-
     setApplicationTheme(facet)
 
     if (facet.configuration.projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
@@ -174,7 +170,7 @@ class ModuleTemplateDataBuilder(
    * @param project      Used to find the Gradle Dependencies versions.
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
-    projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
+    projectTemplateDataBuilder.setEssentials(project)
     themesData = ThemesData(appName = getAppNameForTheme(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
@@ -231,7 +227,6 @@ class ModuleTemplateDataBuilder(
     aidlDir!!,
     rootDir!!,
     isNewModule,
-    hasApplicationTheme,
     name!!,
     isLibrary!!,
     packageName!!,
@@ -249,7 +244,6 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     setProjectDefaults(project)
     language = if (module.hasKotlinFacet()) Language.Kotlin else Language.Java
     topOut = project.guessProjectDir()!!.toIoFile()
-    debugKeyStoreSha1 = KeystoreUtils.getSha1DebugKeystoreSilently(null)
     applicationPackage = ""
     overridePathCheck = false
   }

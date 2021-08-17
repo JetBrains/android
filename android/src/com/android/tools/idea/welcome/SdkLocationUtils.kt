@@ -18,21 +18,21 @@
 
 package com.android.tools.idea.welcome
 
-import com.android.repository.io.FileOp
-import java.io.File
+import com.android.io.CancellableFileIo
+import java.nio.file.Path
 
 /**
  * Returns true if the SDK wizards will write into the SDK location. If the location exists and is a directory, returns true if the
  * directory is writable. If the location doesn't exist, returns true if one of the parent directories is writable.
  */
-fun isWritable(fileOp: FileOp, sdkLocation: File?): Boolean = when {
+fun isWritable(sdkLocation: Path?): Boolean = when {
   sdkLocation == null -> false
-  fileOp.exists(sdkLocation) -> fileOp.isDirectory(sdkLocation) && fileOp.canWrite(sdkLocation)
+  CancellableFileIo.exists(sdkLocation) -> CancellableFileIo.isDirectory(sdkLocation) && CancellableFileIo.isWritable(sdkLocation)
   else -> {
-    val parent = getFirstExistentParent(fileOp, sdkLocation)
-    parent != null && fileOp.canWrite(parent)
+    val parent = getFirstExistentParent(sdkLocation)
+    parent != null && CancellableFileIo.isWritable(parent)
   }
 }
 
-private fun getFirstExistentParent(fileOp: FileOp, file: File): File? =
-  generateSequence(file.parentFile) { it.parentFile }.firstOrNull { fileOp.exists(it)}
+private fun getFirstExistentParent(file: Path): Path? =
+  generateSequence(file.parent) { it.parent }.firstOrNull { CancellableFileIo.exists(it)}

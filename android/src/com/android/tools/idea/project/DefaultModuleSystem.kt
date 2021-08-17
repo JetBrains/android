@@ -18,12 +18,10 @@ package com.android.tools.idea.project
 import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.*
@@ -61,23 +59,20 @@ import org.jetbrains.android.util.AndroidUtils
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
+import java.nio.file.Path
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME_KEY = Key.create<CachedValue<String?>>("main.manifest.package.name")
 private val LOG: Logger get() = Logger.getInstance("DefaultModuleSystem.kt")
 
-/** Creates a map for the given pairs, filtering out null values. */
-private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
-  return pairs.asSequence()
-    .filter { it.second != null }
-    .toMap() as Map<K, V>
-}
-
 class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
-  ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+
+  private val registeredDependencies = mutableListOf<GradleCoordinate>()
+
+  override val moduleClassFileFinder: ClassFileFinder = ModuleBasedClassFileFinder(module)
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
     return CapabilityNotSupported()
@@ -88,11 +83,12 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
+    registeredDependencies.add(coordinate)
   }
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
     // The following if / else if chain maintains previous support for supportlib and appcompat until
     // we can determine it's safe to take away.
@@ -126,8 +122,16 @@ class DefaultModuleSystem(override val module: Module) :
       }
     }
 
+    for (dependency in registeredDependencies) {
+      if (dependency.isSameArtifact(coordinate)) {
+        return dependency
+      }
+    }
+
     return null
   }
+
+  override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
@@ -140,8 +144,8 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<ExternalLibrary> {
-    val libraries = mutableListOf<ExternalLibrary>()
+  override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
+    val libraries = mutableListOf<ExternalAndroidLibrary>()
 
     val orderEnumerator = ModuleRootManager.getInstance(module)
       .orderEntries()
@@ -176,7 +180,6 @@ class DefaultModuleSystem(override val module: Module) :
         libraries.add(ExternalLibraryImpl(
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
-          classJars = if (classesJar == null) emptyList() else listOf(classesJar),
           resFolder = RecursiveResourceFolder(resFolder),
           symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
           resApkFile = resApk
@@ -206,14 +209,7 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getManifestOverrides(): ManifestOverrides {
-    val androidModel = module.androidFacet?.let(AndroidModel::get) ?: return ManifestOverrides()
-    val directOverrides = notNullMapOf(
-      ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
-      ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
-      ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
-      ManifestSystemProperty.PACKAGE to androidModel.applicationId
-    )
-    return ManifestOverrides(directOverrides)
+    return ManifestOverrides()
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {

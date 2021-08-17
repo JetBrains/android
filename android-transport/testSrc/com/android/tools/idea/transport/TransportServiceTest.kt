@@ -22,6 +22,8 @@ import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import org.junit.Rule
+import org.junit.rules.Timeout
 import java.io.IOException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
@@ -31,21 +33,16 @@ import java.util.concurrent.CountDownLatch
  */
 class TransportServiceTest : LightPlatformTestCase() {
 
-  private lateinit var myService: TransportService
-  private var myClient: TransportClient? = null
+  private lateinit var service: TransportService
+
+  @get:Rule
+  val timeout: Timeout = Timeout.seconds(10)
 
   @Throws(Exception::class)
   override fun setUp() {
-
     super.setUp()
-    myService = TransportService()
-    Disposer.register(testRootDisposable, myService)
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    myClient?.shutdown()
-    super.tearDown()
+    service = TransportServiceImpl()
+    Disposer.register(testRootDisposable, service)
   }
 
   /**
@@ -76,11 +73,11 @@ class TransportServiceTest : LightPlatformTestCase() {
     catch (ignored: IOException) {
     }
 
-    val stream = myService.registerStreamServer(Common.Stream.Type.FILE, testStreamServer)
+    val stream = service.registerStreamServer(Common.Stream.Type.FILE, testStreamServer)
     waitForQueueDrained(testStreamServer.eventDeque)
 
     // Validates that we can query all events from the database.
-    myClient = TransportClient(TransportService.CHANNEL_NAME)
+    val client = TransportClient(TransportService.CHANNEL_NAME)
     val request = Transport.GetEventGroupsRequest.newBuilder().apply {
       streamId = stream.streamId
       kind = Common.Event.Kind.ECHO
@@ -90,7 +87,7 @@ class TransportServiceTest : LightPlatformTestCase() {
     val retryCount = 10
     var eventsFound = false
     for (i in 1..retryCount) {
-      val response = myClient!!.transportStub.getEventGroups(request)
+      val response = client.transportStub.getEventGroups(request)
       eventsFound = response.groupsList.flatMap { group -> group.eventsList }.containsAll(listOf(event1))
       if (eventsFound) {
         break
@@ -109,7 +106,7 @@ class TransportServiceTest : LightPlatformTestCase() {
     waitForQueueDrained(testStreamServer.eventDeque)
     eventsFound = false
     for (i in 1..retryCount) {
-      val response = myClient!!.transportStub.getEventGroups(request)
+      val response = client.transportStub.getEventGroups(request)
       eventsFound = response.groupsList.flatMap { group -> group.eventsList }.containsAll(listOf(event1, event2, event3))
       if (eventsFound) {
         break
@@ -125,21 +122,22 @@ class TransportServiceTest : LightPlatformTestCase() {
     // Validates that bytes can be queried from the custom stream as well.
     val testBytes = ByteString.copyFrom("DeadBeef".toByteArray())
     testStreamServer.byteCacheMap["test"] = testBytes
-    assertThat(myClient!!.transportStub
+    assertThat(client.transportStub
                  .getBytes(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test").build())
                  .contents)
       .isEqualTo(testBytes)
 
     // Validates that bytes can't be queried after server stopped.
-    myService.unregisterStreamServer(stream.streamId)
+    service.unregisterStreamServer(stream.streamId)
     testStreamServer.byteCacheMap["test2"] = ByteString.copyFrom("DeadBeef2".toByteArray())
-    assertThat(myClient!!.transportStub
+    assertThat(client.transportStub
                  .getBytes(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build()))
       .isEqualTo(Transport.BytesResponse.getDefaultInstance())
+    client.shutdown()
   }
 
   // Wait for the events to be drained from the deque. This ensures that they are in the database ready to be queried.
-  fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
+  private fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
     val doneLatch = CountDownLatch(1)
     Thread {
       while (!deque.isEmpty()) {

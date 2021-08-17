@@ -43,50 +43,36 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull private final DurationDataModel<GcDurationData> myGcDurations;
   @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
 
-  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull MemoryProfilerStage memoryProfilerStage) {
+  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull BaseStreamingMemoryProfilerStage memoryProfilerStage) {
     super(profilers);
 
     myProfilers = profilers;
     myObjectsRange = new Range(0, 0);
 
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myJavaSeries = createRangedSeries(profilers, JAVA_MEM, getMemoryRange(),
+    myJavaSeries = createRangedSeries(profilers, JAVA_MEM, getMemoryRange(),
+                                      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                      UnifiedEventDataSeries
+                                        .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getJavaMem() * KB_TO_B));
+    myNativeSeries = createRangedSeries(profilers, NATIVE_MEM, getMemoryRange(),
                                         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
                                         UnifiedEventDataSeries
-                                          .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getJavaMem() * KB_TO_B));
-      myNativeSeries = createRangedSeries(profilers, NATIVE_MEM, getMemoryRange(),
+                                          .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getNativeMem() * KB_TO_B));
+    myGraphicsSeries = createRangedSeries(profilers, GRAPHICS_MEM, getMemoryRange(),
                                           UnifiedEventDataSeries.DEFAULT_GROUP_ID,
                                           UnifiedEventDataSeries
-                                            .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getNativeMem() * KB_TO_B));
-      myGraphicsSeries = createRangedSeries(profilers, GRAPHICS_MEM, getMemoryRange(),
-                                            UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                            UnifiedEventDataSeries
-                                              .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getGraphicsMem() * KB_TO_B));
-      myStackSeries = createRangedSeries(profilers, STACK_MEM, getMemoryRange(),
-                                         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                         UnifiedEventDataSeries
-                                           .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getStackMem() * KB_TO_B));
-      myCodeSeries = createRangedSeries(profilers, CODE_MEM, getMemoryRange(),
-                                        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                        UnifiedEventDataSeries
-                                          .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getCodeMem() * KB_TO_B));
-      myOtherSeries = createRangedSeries(profilers, OTHERS_MEM, getMemoryRange(),
-                                         UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                         UnifiedEventDataSeries
-                                           .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getOthersMem() * KB_TO_B));
-    }
-    else {
-      myJavaSeries = createLegacyRangedSeries(profilers, JAVA_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getJavaMem());
-      myNativeSeries =
-        createLegacyRangedSeries(profilers, NATIVE_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getNativeMem());
-      myGraphicsSeries =
-        createLegacyRangedSeries(profilers, GRAPHICS_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getGraphicsMem());
-      myStackSeries =
-        createLegacyRangedSeries(profilers, STACK_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getStackMem());
-      myCodeSeries = createLegacyRangedSeries(profilers, CODE_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getCodeMem());
-      myOtherSeries =
-        createLegacyRangedSeries(profilers, OTHERS_MEM, getMemoryRange(), sample -> (long)sample.getMemoryUsage().getOthersMem());
-    }
+                                            .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getGraphicsMem() * KB_TO_B));
+    myStackSeries = createRangedSeries(profilers, STACK_MEM, getMemoryRange(),
+                                       UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                       UnifiedEventDataSeries
+                                         .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getStackMem() * KB_TO_B));
+    myCodeSeries = createRangedSeries(profilers, CODE_MEM, getMemoryRange(),
+                                      UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                      UnifiedEventDataSeries
+                                        .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getCodeMem() * KB_TO_B));
+    myOtherSeries = createRangedSeries(profilers, OTHERS_MEM, getMemoryRange(),
+                                       UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                       UnifiedEventDataSeries
+                                         .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getOthersMem() * KB_TO_B));
 
     AllocStatsDataSeries series = new AllocStatsDataSeries(myProfilers,
                                                            sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));

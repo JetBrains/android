@@ -15,38 +15,35 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
-import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
+enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
+
 class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
-  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
+  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
   /** Callback taking (oldWindow, newWindow, isStructuralChange */
   val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  val stats = SessionStatistics()
   var lastGeneration = 0
   var updating = false
 
-  @Suppress("unused")
-  private val memoryProbe = InspectorMemoryProbe(this)
+  private val idLookup = mutableMapOf<Long, ViewNode>()
 
-  var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
-    if (new != old) {
-      selectionListeners.forEach { it(old, new) }
-    }
-  }
+  override var selection: ViewNode? = null
+    private set
 
   val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   var hoveredNode: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
@@ -57,19 +54,39 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, null, "", 0)
-
-  val hasSubImages
-    get() = windows.values.any { it.hasSubImages }
+  val root = ViewNode("root - hide")
 
   /** Whether there are currently any views in this model */
   val isEmpty
     get() = windows.isEmpty()
 
+  val pictureType
+    get() =
+      when {
+        windows.values.any { it.imageType == AndroidWindow.ImageType.BITMAP_AS_REQUESTED } -> {
+          // If we find that we've requested and received a png, that's what we'll use first
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+        }
+        windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
+          // If all windows are SKP, use that
+          AndroidWindow.ImageType.SKP
+        }
+        else -> {
+          AndroidWindow.ImageType.UNKNOWN
+        }
+      }
+
+  private val hiddenNodes = mutableSetOf<ViewNode>()
+
   /**
    * Get a ViewNode by drawId
    */
-  override operator fun get(id: Long) = root.flatten().find { it.drawId == id }
+  override operator fun get(id: Long): ViewNode? {
+    if (idLookup.isEmpty()) {
+      root.flatten().forEach { idLookup[it.drawId] = it }
+    }
+    return idLookup[id]
+  }
 
   /**
    * Get a ViewNode by viewId name
@@ -77,10 +94,24 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   operator fun get(id: String) = root.flatten().find { it.viewId?.name == id }
 
   /**
+   * Get the root of the view tree that the view parameter lives in.
+   *
+   * This could be null if the view isn't in the model for any reason.
+   */
+   fun rootFor(view: ViewNode): ViewNode? {
+    return view.parentSequence.firstOrNull { it.parent === root }
+  }
+
+  fun rootFor(viewId: Long): ViewNode? {
+    return this[viewId]?.let { rootFor(it) }
+  }
+
+  /**
    * Update [root]'s bounds and children based on any updates to [windows]
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */
   private fun updateRoot(allIds: List<*>) {
+    root.children.forEach { it.parent = null }
     root.children.clear()
     ViewNode.writeDrawChildren { drawChildren ->
       root.drawChildren().clear()
@@ -100,22 +131,21 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
   }
 
+  fun setSelection(new: ViewNode?, origin: SelectionOrigin) {
+    val old = selection
+    selection = new
+    selectionListeners.forEach { it(old, new, origin) }
+  }
+
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
     updateConnectionNotification(client)
-    updateStats(client)
   }
 
   private fun updateConnectionNotification(client: InspectorClient) {
-    InspectorBannerService.getInstance(project).notification =
-      if (client is LegacyClient && client.selectedStream.device.apiLevel >= 29)
-        StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
-      else null
-  }
-
-  private fun updateStats(client: InspectorClient) {
-    if (client != DisconnectedClient) {
-      stats.start(client.isCapturing)
+    if (client.isConnected && !client.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE) && client.process.device.apiLevel >= 29) {
+      InspectorBannerService.getInstance(project).notification = StatusNotificationImpl(
+        AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
     }
   }
 
@@ -137,28 +167,93 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
         windows[newWindow.id] = newWindow
         structuralChange = true
+        if (oldWindow == null) {
+          // build draw tree on initial load of the window, so we can scale and scroll correctly.
+          // We only want to do this on initial load since otherwise there'll be flickering between when the tree is updated and when
+          // the images are loaded.
+          ViewNode.writeDrawChildren { drawChildren -> buildDrawTree(newWindow.root, drawChildren) }
+        }
       }
       else {
-        oldWindow.imageType = newWindow.imageType
-        oldWindow.payloadId = newWindow.payloadId
+        oldWindow.copyFrom(newWindow)
         val updater = Updater(oldWindow.root, newWindow.root)
         structuralChange = updater.update() || structuralChange
       }
     }
 
     updateRoot(allIds)
+    if (selection?.parentSequence?.last() !== root) {
+      selection = null
+    }
+    if (hoveredNode?.parentSequence?.last() !== root) {
+      hoveredNode = null
+    }
     lastGeneration = generation
+    idLookup.clear()
+    val allNodes = root.flatten().toSet()
+    hiddenNodes.removeIf { !allNodes.contains(it) }
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
 
-  fun notifyModified() = modificationListeners.forEach { it(null, null, false) }
+  private fun buildDrawTree(node: ViewNode, drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
+    if (node.drawChildren().isEmpty()) {
+      node.children.forEach {
+        node.drawChildren().add(DrawViewChild(it))
+        buildDrawTree(it, drawChildren)
+      }
+    }
+  }
+
+  fun notifyModified() =
+    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
+    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+
+  fun clear() {
+    update(null, listOf<Nothing>(), 0)
+  }
+
+  fun setProcessModel(processes: ProcessesModel) {
+    processes.addSelectedProcessListeners(newSingleThreadExecutor()) {
+      clear()
+    }
+  }
+
+  fun showAll() {
+    hiddenNodes.clear()
+    notifyModified()
+  }
+
+  fun hideSubtree(node: ViewNode) {
+    hiddenNodes.addAll(node.flatten())
+    notifyModified()
+  }
+
+  fun showOnlySubtree(subtreeRoot: ViewNode) {
+    hiddenNodes.clear()
+    lateinit var findNodes: (ViewNode) -> Sequence<ViewNode>
+    findNodes = { node -> node.children.asSequence().filter { it != subtreeRoot }.flatMap { findNodes(it) }.plus(node) }
+    hiddenNodes.addAll(findNodes(root).plus(root))
+    notifyModified()
+  }
+
+  fun showOnlyParents(node: ViewNode) {
+    hiddenNodes.clear()
+    hiddenNodes.addAll(root.flatten().minus(node.parentSequence))
+    notifyModified()
+  }
+
+  fun isVisible(node: ViewNode) = !hiddenNodes.contains(node)
+
+  fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
+    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
 
     fun update(): Boolean {
-      return update(oldRoot, oldRoot.parent, newRoot)
+      val modified = update(oldRoot, oldRoot.parent, newRoot)
+      oldNodes.values.forEach { it.parent = null }
+      return modified
     }
 
     private fun update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
@@ -179,15 +274,19 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composePackageHash = newNode.composePackageHash
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
+        oldNode.composeFlags = newNode.composeFlags
       }
 
       oldNode.children.clear()
-      ViewNode.writeDrawChildren { drawChildren -> oldNode.drawChildren().clear() }
+      // Don't update or clear the drawChildren at this point. They will be refreshed by a listener after the update is complete,
+      // and we can continue using the old ones for view sizing calculations until that happens.
+
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
+          oldNodes.remove(newChild.drawId)
         } else {
           modified = true
           oldNode.children.add(newChild)

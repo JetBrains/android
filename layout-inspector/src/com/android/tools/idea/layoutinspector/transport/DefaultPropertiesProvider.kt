@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.transport
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -52,7 +53,7 @@ private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
 private val DOUBLE_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.DOUBLE_VALUE_FIELD_NUMBER)
 private val FLOAT_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.FLOAT_VALUE_FIELD_NUMBER)
-private val EMPTY_PROPERTIES_DATA = DefaultPropertiesProvider.PropertiesData(
+private val EMPTY_PROPERTIES_DATA = TransportPropertiesProvider.PropertiesData(
   PropertiesTable.emptyTable(), ImmutableTable.of(), ImmutableTable.of())
 
 private const val SOME_UNKNOWN_ANIM_VALUE = "@anim/?"
@@ -62,8 +63,8 @@ private const val SOME_UNKNOWN_INTERPOLATOR_VALUE = "@interpolator/?"
 private const val ANIMATION_PACKAGE = "android.view.animation"
 private const val FRAMEWORK_INTERPOLATOR_PREFIX = "@android:interpolator"
 
-class DefaultPropertiesProvider(
-  private val client: InspectorClient,
+class TransportPropertiesProvider(
+  private val client: TransportInspectorClient,
   private val model: InspectorModel
 ): PropertiesProvider {
 
@@ -150,13 +151,15 @@ class DefaultPropertiesProvider(
    */
   private fun completeProperties(view: ViewNode, propertiesData: PropertiesData): PropertiesTable<InspectorPropertyItem> {
     val properties = propertiesData.properties
-    if (properties.isEmpty || properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) {
+    if (propertiesData == EMPTY_PROPERTIES_DATA || properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) {
       return properties
     }
+    var attrId: String? = ""
     if (view !is ComposeViewNode) {
       properties.values.forEach { it.resolveDimensionType(view) }
+      attrId = properties.getOrNull(ANDROID_URI, ATTR_ID)?.value
     }
-    addInternalProperties(properties, view, model)
+    addInternalProperties(properties, view, attrId, model)
     ReadAction.run<Exception> {
       propertiesData.classNames.cellSet().mapNotNull { cell ->
         properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
@@ -181,7 +184,7 @@ class DefaultPropertiesProvider(
   ): InspectorPropertyItem? {
     val classLocation = model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
     return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                      item.group, item.source, item.viewId, item.lookup, emptyList())
+                                      item.section, item.source, item.viewId, item.lookup, emptyList())
   }
 
   /**
@@ -216,7 +219,7 @@ class DefaultPropertiesProvider(
       // Make this item a group item such that the details are hidden until the item is expanded.
       // Note that there doesn't have to be sub items in the group. A source location or class location is enough to trigger this.
       return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                        item.group, item.source, item.viewId, item.lookup, map)
+                                        item.section, item.source, item.viewId, item.lookup, map)
     }
     return null
   }
@@ -283,9 +286,11 @@ class DefaultPropertiesProvider(
         Type.ANIM,
         Type.ANIMATOR,
         Type.INTERPOLATOR -> fromKnownObjectType(property)
+        Type.FUNCTION_REFERENCE,
+        Type.LAMBDA -> return fromLambda(property)
         else -> ""
       }
-      val type = property.type
+      val type = property.type.convert()
       if (property.elementList.isEmpty()) {
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
         return InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, viewId, lookup)
@@ -331,6 +336,17 @@ class DefaultPropertiesProvider(
         Type.INTERPOLATOR -> valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
         else -> null
       }
+    }
+
+    private fun fromLambda(property: Property): InspectorPropertyItem {
+      val name = stringTable[property.name]
+      val lambda = property.lambdaValue
+      val packageName = stringTable[lambda.packageName]
+      val lambdaName = stringTable[lambda.lambdaName]
+      val functionName = stringTable[lambda.functionName]
+      val fileName = stringTable[lambda.fileName]
+      return LambdaPropertyItem(
+        name, viewId, packageName, fileName, lambdaName, functionName, lambda.startLineNumber, lambda.endLineNumber, lookup)
     }
 
     private fun fromResource(property: Property, layout: ResourceReference?): String {

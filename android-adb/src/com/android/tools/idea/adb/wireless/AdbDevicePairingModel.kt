@@ -22,17 +22,17 @@ import java.util.ArrayList
  * Model used for pairing devices
  */
 @UiThread
-open class AdbDevicePairingModel {
+open class WiFiPairingModel {
   open var qrCodeServices: List<MdnsService> = emptyList()
     set(value) {
       field = value
       listeners.forEach { it.qrCodeServicesDiscovered(value) }
     }
 
-  open var pinCodeServices: List<MdnsService> = emptyList()
+  open var pairingCodeServices: List<MdnsService> = emptyList()
     set(value) {
       field = value
-      listeners.forEach { it.pinCodeServicesDiscovered(value) }
+      listeners.forEach { it.pairingCodeServicesDiscovered(value) }
     }
 
   /** The list of listeners */
@@ -73,5 +73,5 @@ interface AdbDevicePairingModelListener {
   /**
    * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
    */
-  fun pinCodeServicesDiscovered(services: List<MdnsService>)
+  fun pairingCodeServicesDiscovered(services: List<MdnsService>)
 }

@@ -21,19 +21,18 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.mock.MockVirtualFile
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
-import java.nio.file.Paths
 
 class FileDatabaseManagerTest : LightPlatformTestCase() {
 
@@ -50,14 +49,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    processDescriptor = object : ProcessDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "model"
-      override val serial = "serial"
-      override val processName = "processName"
-      override val isEmulator = false
-      override val isRunning = true
-    }
+    processDescriptor = StubProcessDescriptor()
 
     liveDatabaseId = SqliteDatabaseId.fromLiveDatabase(
       "/data/user/0/com.example.package/databases/db-file", 0
@@ -104,7 +96,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
         "/data/data/com.example.package/databases/db-file-wal"
       )),
       any(DownloadProgress::class.java),
-      eq(Paths.get(PathManager.getSystemPath(), "database-inspector"))
+      eq(IdeFileService("database-inspector").cacheRoot)
     )
 
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)

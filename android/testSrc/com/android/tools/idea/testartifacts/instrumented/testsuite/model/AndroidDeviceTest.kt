@@ -30,15 +30,16 @@ class AndroidDeviceTest {
   @Test
   fun getName() {
     // Use "id" as name if no other information is available.
-    assertThat(AndroidDevice("id", "", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)).getName()).isEqualTo("id")
+    assertThat(AndroidDevice("id", "", "", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)).getName())
+      .isEqualTo("id")
     // Use manufacturer and model name if available.
     assertThat(
-      AndroidDevice("id", "", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28),
+      AndroidDevice("id", "", "", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28),
                     mutableMapOf("Manufacturer" to "Google",
                                  "Model" to "Pixel 4")).getName()).isEqualTo("Google Pixel 4")
     // If device name is given by the constructor, always use it.
     assertThat(
-      AndroidDevice("id", "device name", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28),
+      AndroidDevice("id", "device name", "", LOCAL_PHYSICAL_DEVICE, AndroidVersion(28),
                     mutableMapOf("Manufacturer" to "Google",
                                  "Model" to "Pixel 4")).getName()).isEqualTo("device name")
   }

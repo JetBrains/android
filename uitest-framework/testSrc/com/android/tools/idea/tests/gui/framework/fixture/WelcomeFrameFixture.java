@@ -23,14 +23,25 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizar
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.options.newEditor.SettingsTreeView;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
-import java.awt.Component;
-import java.awt.Point;
+import com.intellij.ui.components.JBOptionButton;
+import com.intellij.ui.components.labels.LinkLabel;
+import java.io.File;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTree;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,40 +64,29 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   public SdkProblemDialogFixture createNewProjectWhenSdkIsInvalid() {
-    findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
+    findAndClickButton("New Project");
     return SdkProblemDialogFixture.find(this);
   }
 
   @NotNull
   public NewProjectWizardFixture createNewProject() {
-    // Need to press on top of text, otherwise click is ignored.
-    Component actionLink = findActionLinkByActionId("WelcomeScreen.CreateNewProject").target();
-    robot().click(actionLink, new Point(actionLink.getWidth()/4, actionLink.getHeight()/2));
-
+    findAndClickButton("New Project");
     return NewProjectWizardFixture.find(robot());
   }
 
   @NotNull
-  public FileChooserDialogFixture openProject() {
-    findActionLinkByActionId("WelcomeScreen.OpenProject").click();
-    return FileChooserDialogFixture.findDialog(robot(), "Open File or Project");
-  }
+  public FileChooserDialogFixture profileOrDebugApk(@NotNull File apk) {
+    // The file chooser is quite slow and we don't have a good way to find when loading finished (there used to be
+    // a loading spinner, but was removed from the platform). To make sure we don't have to wait, we pre-inject the path.
+    PropertiesComponent.getInstance().setValue("last.apk.imported.location", FileUtil.toSystemDependentName(apk.getPath()));
 
-  @NotNull
-  public WelcomeFrameFixture importProject() {
-    findActionLinkByActionId("WelcomeScreen.ImportProject").click();
-    return this;
-  }
-
-  @NotNull
-  public FileChooserDialogFixture profileOrDebugApk() {
-    findActionLinkByActionId("WelcomeScreen.AndroidStudio.apkProfilingAndDebugging").click();
+    clickMoreOptionsItem("Profile or Debug APK");
     return FileChooserDialogFixture.findDialog(robot(), "Select APK File");
   }
 
   @NotNull
   public BrowseSamplesWizardFixture importCodeSample() {
-    findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
+    clickMoreOptionsItem("Import an Android Code Sample");
     return BrowseSamplesWizardFixture.find(robot());
   }
 
@@ -108,18 +108,55 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     return guiTestRule.ideFrame();
   }
 
-  @NotNull
-  public JListFixture clickConfigure() {
-    ActionLinkFixture.findByActionText("Configure", robot(), target()).click();
-    return new JListFixture(robot(), waitForPopup(robot()));
+  public void openSdkManager() {
+    JBList jbList = robot().finder().findByType(target(), JBList.class, true);
+    new JListFixture(robot(), jbList).clickItem(1);
+
+    findAndClickButton("All settings\u2026");
+
+    SettingsTreeView settingsTreeView = robot().finder().findByType(SettingsTreeView.class);
+    JTree settingsList = robot().finder().findByType(settingsTreeView, JTree.class, true);
+
+    new JTreeFixture(robot(), settingsList)
+      .expandPath("Appearance & Behavior")
+      .expandPath("Appearance & Behavior/System Settings")
+      .clickPath("Appearance & Behavior/System Settings/Android SDK");
   }
 
-  public void openSdkManager(@NotNull JListFixture listFixture) {
-    listFixture.clickItem("SDK Manager");
+  private void findAndClickButton(@NotNull String text) {
+    JComponent buttonLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
+      @Override
+      protected boolean isMatching(@NotNull JComponent comp) {
+        // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
+        return (comp instanceof JBOptionButton && text.equals(((JButton) comp).getText())) ||
+               (comp instanceof JLabel && text.equals(((JLabel) comp).getText()));
+      }
+    });
+
+    if (buttonLabel instanceof JButton) {
+      robot().click(buttonLabel);
+    }
+    else if (buttonLabel instanceof LinkLabel) {
+      robot().click(buttonLabel, ((LinkLabel<?>) buttonLabel).getTextRectangleCenter());
+    }
+    else {
+      robot().click(buttonLabel.getParent());
+    }
   }
 
-  @NotNull
-  private ActionLinkFixture findActionLinkByActionId(String actionId) {
-    return ActionLinkFixture.findByActionId(actionId, robot(), target());
+  private void clickMoreOptionsItem(@NotNull String text) {
+    JComponent moreActionsLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
+      @Override
+      protected boolean isMatching(@NotNull JComponent comp) {
+        // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
+        return (comp instanceof JButton && "More Actions".equals(((JButton) comp).getText())) ||
+               (comp instanceof ActionButton && "More Actions".equals(((ActionButton)comp).getAction().getTemplateText()));
+      }
+    });
+
+    robot().click(moreActionsLabel);
+
+    // Mouse needs to "move over" the menu item for it to be selected/focused. Call drag() to simulate that.
+    new JListFixture(robot(), waitForPopup(robot())).item(text).drag().click();
   }
 }

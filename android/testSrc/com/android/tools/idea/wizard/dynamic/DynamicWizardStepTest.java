@@ -16,7 +16,7 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -137,7 +137,7 @@ public class DynamicWizardStepTest extends TestCase {
     @Nullable
     @Override
     public Icon getIcon() {
-      return AndroidIcons.Wizards.AndroidModule;
+      return StudioIllustrations.Wizards.ANDROID_MODULE;
     }
 
     @Override

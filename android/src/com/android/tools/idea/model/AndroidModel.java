@@ -34,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AndroidModel {
 
+  String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
+
   Key<AndroidModel> KEY = Key.create(AndroidModel.class.getName());
 
   @Nullable
@@ -69,6 +71,8 @@ public interface AndroidModel {
 
   /**
    * @return the current application ID.
+   *
+   * NOTE: Some implementations may return {@link #UNINITIALIZED_APPLICATION_ID} when unable to get the application id.
    */
   @NotNull
   String getApplicationId();
@@ -113,12 +117,6 @@ public interface AndroidModel {
   AndroidVersion getTargetSdkVersion();
 
   /**
-   * @return the internal version number of the Android application.
-   */
-  @Nullable
-  Integer getVersionCode();
-
-  /**
    * Indicates whether the given file or directory is generated.
    *
    * @param file the file or directory.
@@ -154,4 +152,7 @@ public interface AndroidModel {
   default Map<String, DynamicResourceValue> getResValues() {
     return Collections.emptyMap();
   }
+
+  @Nullable
+  default TestExecutionOption getTestExecutionOption() { return null; }
 }

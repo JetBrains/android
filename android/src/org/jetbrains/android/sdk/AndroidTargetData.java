@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -36,6 +37,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -47,7 +49,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public class AndroidTargetData {
   @GuardedBy("myAttrDefsLock")
   private AttributeDefinitions myAttrDefs;
 
-  private volatile LayoutLibrary myLayoutLibrary;
+  private LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
   @GuardedBy("myPublicResourceCacheLock")
@@ -102,8 +104,8 @@ public class AndroidTargetData {
   public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
-        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
+        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES).toString());
         myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
       }
       return myAttrDefs;
@@ -141,9 +143,9 @@ public class AndroidTargetData {
   }
 
   private void parsePublicResCache() {
-    String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
-    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
+    Path resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
+    Path publicXmlPath = resDirPath.resolve(SdkConstants.FD_RES_VALUES).resolve("public.xml");
+    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByNioFile(publicXmlPath);
 
     if (publicXml != null) {
       try {
@@ -161,8 +163,9 @@ public class AndroidTargetData {
     }
   }
 
+  @Slow
   @NotNull
-  public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
+  public LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
@@ -177,7 +180,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
-      Disposer.register(project, myLayoutLibrary);
+      Disposer.register(((ProjectEx)project).getEarlyDisposable(), myLayoutLibrary);
     }
 
     return myLayoutLibrary;
@@ -186,6 +189,7 @@ public class AndroidTargetData {
   /**
    * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
    */
+  @Slow
   @NotNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
     ResourceRepository resources = getFrameworkResources(ImmutableSet.of());
@@ -257,18 +261,44 @@ public class AndroidTargetData {
    * to contain resources for the given set of languages plus the language-neutral ones, but may contain resources
    * for more languages than was requested. The repository loads faster if the set of languages is smaller.
    *
-   * @param languages the set of ISO 639 language codes
-   * @return the repository of Android framework resources
+   * @param languages a set of ISO 639 language codes
+   * @return the repository of Android framework resources, or null if the resources directory or file
+   *     does not exist on disk
    */
+  @Slow
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
-    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
-    if (!resFolderOrJar.exists()) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
+    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
+    if (!Files.exists(resFolderOrJar)) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
+      resFolderOrJar,
+      myTarget instanceof CompatibilityRenderTarget,
+      languages);
+  }
+
+  /**
+   * Returns a repository of framework resources for the Android target if it has been loaded already.
+   * The returned repository, if not null, is guaranteed to contain resources for the given set of languages
+   * plus the language-neutral ones, but may contain resources for more languages than was requested.
+   *
+   * @param languages a set of ISO 639 language codes
+   * @return the repository of Android framework resources, or null if not loaded yet
+   */
+  @Slow
+  @Nullable
+  public synchronized ResourceRepository getCachedFrameworkResources(@NotNull Set<String> languages) {
+    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
+    if (!Files.exists(resFolderOrJar)) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.toString()));
+      return null;
+    }
+
+    return FrameworkResourceRepositoryManager.getInstance().getCachedFrameworkResources(
+      resFolderOrJar,
                                                                                   // FIXME-ank3: false should be replaced with isLayoutLibNative
                                                                                   false &&
                                                                                   myTarget instanceof CompatibilityRenderTarget,
@@ -310,12 +340,7 @@ public class AndroidTargetData {
     @Override
     public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
       if ("public".equals(name) && myName != null && myType != null) {
-        Set<String> set = myResult.get(myType);
-
-        if (set == null) {
-          set = new HashSet<>();
-          myResult.put(myType, set);
-        }
+        Set<String> set = myResult.computeIfAbsent(myType, k -> new HashSet<>());
         set.add(myName);
 
         if (myId != 0) {
@@ -415,7 +440,7 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      try (BufferedReader reader = Files.newBufferedReader(Paths.get(myTarget.getPath(pathId)))) {
+      try (BufferedReader reader = Files.newBufferedReader(myTarget.getPath(pathId))) {
         Set<String> result = new HashSet<>();
         String line;
         while ((line = reader.readLine()) != null) {

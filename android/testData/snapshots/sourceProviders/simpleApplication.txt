@@ -19,6 +19,11 @@ MODULE: testSimpleApplication.app
                 file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            KotlinDirectoryUrls:
+                file://./app/src/main/java
+                file://./app/src/main/kotlin
+            KotlinDirectories:
+                file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -41,12 +46,11 @@ MODULE: testSimpleApplication.app
                 ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
             JavaDirectories:
                 ./app/src/main/java
+            KotlinDirectories:
+                ./app/src/main/java
+                ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -67,12 +71,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -92,12 +95,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -118,12 +120,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
-                CDirectories:
-                    ./app/src/main/jni
-                CppDirectories:
-                    ./app/src/main/jni
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -143,12 +144,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
-                CDirectories:
-                    ./app/src/debug/jni
-                CppDirectories:
-                    ./app/src/debug/jni
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -168,12 +168,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
-                CDirectories:
-                    ./app/src/release/jni
-                CppDirectories:
-                    ./app/src/release/jni
                 JavaDirectories:
                     ./app/src/release/java
+                KotlinDirectories:
+                    ./app/src/release/java
+                    ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 RenderscriptDirectories:
@@ -194,12 +193,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
-                CDirectories:
-                    ./app/src/test/jni
-                CppDirectories:
-                    ./app/src/test/jni
                 JavaDirectories:
                     ./app/src/test/java
+                KotlinDirectories:
+                    ./app/src/test/java
+                    ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -219,12 +217,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
-                CDirectories:
-                    ./app/src/testDebug/jni
-                CppDirectories:
-                    ./app/src/testDebug/jni
                 JavaDirectories:
                     ./app/src/testDebug/java
+                KotlinDirectories:
+                    ./app/src/testDebug/java
+                    ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -245,12 +242,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
                 JavaDirectories:
                     ./app/src/androidTest/java
+                KotlinDirectories:
+                    ./app/src/androidTest/java
+                    ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -270,12 +266,11 @@ MODULE: testSimpleApplication.app
                     ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestDebug/java
+                    ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -314,6 +309,13 @@ MODULE: testSimpleApplication.app
                     file://./app/src/main/java
                     file://./app/src/debug/java
                 JavaDirectories:
+                    file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
@@ -357,6 +359,13 @@ MODULE: testSimpleApplication.app
                     file://./app/src/testDebug/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testDebug/jniLibs
@@ -397,6 +406,13 @@ MODULE: testSimpleApplication.app
                     file://./app/src/androidTestDebug/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
@@ -434,6 +450,11 @@ MODULE: testSimpleApplication.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -460,6 +481,9 @@ MODULE: testSimpleApplication.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -484,6 +508,9 @@ MODULE: testSimpleApplication.app
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
                     file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -515,6 +542,11 @@ MODULE: testSimpleApplication.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -541,6 +573,9 @@ MODULE: testSimpleApplication.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -570,6 +605,11 @@ MODULE: testSimpleApplication.app
                     file://./app/src/test/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -594,6 +634,9 @@ MODULE: testSimpleApplication.app
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -623,6 +666,11 @@ MODULE: testSimpleApplication.app
                     file://./app/src/androidTest/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -647,6 +695,9 @@ MODULE: testSimpleApplication.app
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:

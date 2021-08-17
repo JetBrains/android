@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2
+package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
-import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
+import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.property.panel.api.TableLineModel
 import com.google.common.truth.Truth.assertThat

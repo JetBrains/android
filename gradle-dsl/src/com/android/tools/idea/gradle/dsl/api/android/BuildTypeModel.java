@@ -21,10 +21,16 @@ import org.jetbrains.annotations.NotNull;
 
 public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
+  ResolvedPropertyModel crunchPngs();
+
+  @NotNull
   ResolvedPropertyModel debuggable();
 
   @NotNull
   ResolvedPropertyModel embedMicroApp();
+
+  @NotNull
+  ResolvedPropertyModel isDefault();
 
   @NotNull
   ResolvedPropertyModel jniDebuggable();
@@ -46,6 +52,9 @@ public interface BuildTypeModel extends FlavorTypeModel {
 
   @NotNull
   ResolvedPropertyModel testCoverageEnabled();
+
+  @NotNull
+  ResolvedPropertyModel useProguard();
 
   @NotNull
   ResolvedPropertyModel zipAlignEnabled();

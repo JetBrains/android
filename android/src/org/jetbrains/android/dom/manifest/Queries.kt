@@ -37,6 +37,7 @@ interface Queries: ManifestElement {
   interface Intent: AndroidDomElement {
     fun getAction(): Action
     fun getData(): Data
+    fun getCategory(): Category
   }
 
   interface Provider: AndroidDomElement {

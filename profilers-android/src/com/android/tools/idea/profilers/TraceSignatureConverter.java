@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.inspectors.common.api;
 
 import com.google.common.collect.ImmutableMap;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.util.TypeConversionUtil;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
-public class TraceSignatureConverter  {
+public class TraceSignatureConverter {
   /**
    * Mapping from java primitive type encoding to PsiPrimitiveType
    * More about java primitive type encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
@@ -42,7 +46,7 @@ public class TraceSignatureConverter  {
 
   /**
    * @return - java encoding of the given PsiType.
-   *
+   * <p>
    * For example:
    * byte => "B"
    * String[][][] => "[[[Ljava/lang/String;"
@@ -65,7 +69,7 @@ public class TraceSignatureConverter  {
 
   /**
    * @return - signature of the given method encoded by java encoding and by applying type erasure.
-   *
+   * <p>
    * For example:
    * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
    * returns (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I

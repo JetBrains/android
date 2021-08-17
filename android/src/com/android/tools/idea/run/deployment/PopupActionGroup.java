@@ -18,9 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -28,9 +25,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.BooleanSupplier;
-import java.util.stream.Collector;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +62,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     add(manager.getAction(id));
 
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
+    add(manager.getAction(WearDevicePairingAction.ID));
     add(manager.getAction(RunAndroidAvdManagerAction.ID));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -79,41 +75,55 @@ final class PopupActionGroup extends DefaultActionGroup {
     add(action);
   }
 
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
-    @SuppressWarnings("UnstableApiUsage")
-    Collector<Device, ?, ListMultimap<String, Device>> collector = Multimaps.toMultimap(device -> device.getKey().getDeviceKey(),
-                                                                                        device -> device,
-                                                                                        this::buildListMultimap);
+  private @NotNull Collection<@NotNull AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
+    int size = myDevices.size();
+    Collection<Device> runningDevices = new ArrayList<>(size);
+    Collection<Device> availableDevices = new ArrayList<>(size);
 
-    ListMultimap<String, Device> multimap = myDevices.stream().collect(collector);
+    for (Device device : myDevices) {
+      if (device.isConnected()) {
+        runningDevices.add(device);
+        continue;
+      }
 
-    Collection<String> deviceKeys = multimap.keySet();
-    Collection<AnAction> actions = new ArrayList<>(1 + deviceKeys.size());
-
-    if (!deviceKeys.isEmpty()) {
-      actions.add(ActionManager.getInstance().getAction(Heading.AVAILABLE_DEVICES_ID));
+      availableDevices.add(device);
     }
 
-    deviceKeys.stream()
-      .map(multimap::get)
+    boolean runningDevicesPresent = !runningDevices.isEmpty();
+    Collection<AnAction> actions = new ArrayList<>(3 + size);
+    ActionManager manager = ActionManager.getInstance();
+
+    if (runningDevicesPresent) {
+      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
+    }
+
+    runningDevices.stream()
+      .map(this::newSelectDeviceAction)
+      .forEach(actions::add);
+
+    boolean availableDevicesPresent = !availableDevices.isEmpty();
+
+    if (runningDevicesPresent && availableDevicesPresent) {
+      actions.add(Separator.create());
+    }
+
+    if (availableDevicesPresent) {
+      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
+    }
+
+    availableDevices.stream()
       .map(this::newSelectDeviceActionOrSnapshotActionGroup)
       .forEach(actions::add);
 
     return actions;
   }
 
-  @NotNull
-  private ListMultimap<String, Device> buildListMultimap() {
-    return MultimapBuilder
-      .hashKeys(myDevices.size())
-      .arrayListValues()
-      .build();
-  }
+  private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
+    if (!device.getSnapshots().isEmpty()) {
+      return new SnapshotActionGroup(device, myComboBoxAction);
+    }
 
-  @NotNull
-  private AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull List<Device> devices) {
-    return devices.size() == 1 ? newSelectDeviceAction(devices.get(0)) : new SnapshotActionGroup(devices);
+    return newSelectDeviceAction(device);
   }
 
   @NotNull
@@ -152,6 +162,6 @@ final class PopupActionGroup extends DefaultActionGroup {
 
   @NotNull
   private AnAction newSelectDeviceAction(@NotNull Device device) {
-    return SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
+    return new SelectDeviceAction(device, myComboBoxAction);
   }
 }

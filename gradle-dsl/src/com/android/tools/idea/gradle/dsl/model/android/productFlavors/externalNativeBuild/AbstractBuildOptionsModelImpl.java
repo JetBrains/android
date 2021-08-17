@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.AbstractBuildOptionsModel;
@@ -28,9 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBuildOptionsModelImpl extends GradleDslBlockModel implements AbstractBuildOptionsModel {
   @NonNls public static final ModelPropertyDescription ABI_FILTERS = new ModelPropertyDescription("mAbiFilters", MUTABLE_SET);
-  @NonNls public static final String ARGUMENTS = "mArguments";
-  @NonNls public static final String C_FLAGS = "mcFlags";
-  @NonNls public static final String CPP_FLAGS = "mCppFlags";
+  @NonNls public static final ModelPropertyDescription ARGUMENTS = new ModelPropertyDescription("mArguments", MUTABLE_LIST);
+  @NonNls public static final ModelPropertyDescription C_FLAGS = new ModelPropertyDescription("mcFlags", MUTABLE_LIST);
+  @NonNls public static final ModelPropertyDescription CPP_FLAGS = new ModelPropertyDescription("mCppFlags", MUTABLE_LIST);
   @NonNls public static final ModelPropertyDescription TARGETS = new ModelPropertyDescription("mTargets", MUTABLE_SET);
 
   protected AbstractBuildOptionsModelImpl(@NotNull GradlePropertiesDslElement dslElement) {

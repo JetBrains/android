@@ -6,10 +6,12 @@ import sys
 import zipfile
 import tarfile
 import re
+import glob
 import shutil
+import xml.etree.ElementTree as ET
 
-# A list of files not included in the SDK because they are maked by files in the root lib directory
-# This should be sorted out at a different leve, but for now removing them here
+# A list of files not included in the SDK because they are made by files in the root lib directory
+# This should be sorted out at a different level, but for now removing them here
 HIDDEN = [
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib.jar",
@@ -74,17 +76,20 @@ def list_plugin_jars(sdk):
   plugin_jars[WIN] = {}
   plugin_jars[LINUX] = {}
   for p in plugins:
-    common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    if p in all[LINUX] and p in all[MAC] and p in all[WIN]:
+      common = all[LINUX][p] & all[MAC][p] & all[WIN][p]
+    else:
+      common = set()
     plugin_jars[ALL][p] = sorted(common)
-    plugin_jars[MAC][p] = sorted(all[MAC][p] - common)
-    plugin_jars[WIN][p] = sorted(all[WIN][p] - common)
-    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common)
+    plugin_jars[MAC][p] = sorted(all[MAC][p] - common) if p in all[MAC] else []
+    plugin_jars[WIN][p] = sorted(all[WIN][p] - common) if p in all[WIN] else []
+    plugin_jars[LINUX][p] = sorted(all[LINUX][p] - common) if p in all[LINUX] else []
 
   return plugin_jars
 
 
-def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
- 
+def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bundle_name):
+
   suffix = {
     ALL: "",
     MAC: "_darwin",
@@ -111,7 +116,18 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars):
             file.write("            \"" + os.path.basename(jar) + "\",\n")
           file.write("        ],\n")
       file.write("    },\n")
+
+    file.write(f"    mac_bundle_name = \"{mac_bundle_name}\",\n")
     file.write(")\n")
+
+
+# When running in --existing_version mode, the mac bundle name must be extracted
+# from the preexisting spec.bzl file (since the original mac bundle artifact
+# has already been renamed by this point).
+def extract_preexisting_mac_bundle_name(workspace, version):
+  with open(workspace + "/prebuilts/studio/intellij-sdk/" + version + "/spec.bzl", "r") as spec:
+    search = re.search(r"mac_bundle_name = \"(.*)\"", spec.read())
+    return search.group(1) if search else sys.exit("Failed to find existing mac bundle name")
 
 
 def gen_lib(project_dir, name, jars, srcs):
@@ -156,14 +172,14 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
     gen_lib(project_dir, "intellij-updater", [updater_jar], [workspace + sdk + "/android-studio-sources.zip"])
 
 
-def update_files(workspace, version):
+def update_files(workspace, version, mac_bundle_name):
   sdk = "/prebuilts/studio/intellij-sdk/" + version
 
   sdk_jars = list_sdk_jars(workspace + sdk)
   plugin_jars = list_plugin_jars(workspace + sdk)
 
   write_xml_files(workspace, sdk, sdk_jars, plugin_jars)
-  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars)
+  write_spec_file(workspace, sdk, version, sdk_jars, plugin_jars, mac_bundle_name)
 
 
 def check_artifacts(dir):
@@ -192,21 +208,37 @@ def check_artifacts(dir):
     print(files)
     sys.exit("Unexpected artifacts in " + dir)
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4]
+  manifest = None
+  manifests = glob.glob(dir + "/manifest_*.xml")
+  if len(manifests) == 1:
+    manifest = os.path.basename(manifests[0])
+
+  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], manifest
 
 
 def download(workspace, bid):
-  ret = os.system("prodcertstatus")
-  if ret:
-    sys.exit("You need prodaccess to download artifacts")
+  fetch_artifact = "/google/data/ro/projects/android/fetch_artifact"
+  auth_flag = ""
+  if os.path.exists("/usr/bin/prodcertstatus"):
+    if os.system("prodcertstatus"):
+      sys.exit("You need prodaccess to download artifacts")
+  else:
+    fetch_artifact = "/usr/bin/fetch_artifact"
+    auth_flag = "--use_oauth2"
+    if not os.path.exists(fetch_artifact):
+      sys.exit("""You need to install fetch_artifact:
+sudo glinux-add-repo android stable && \\
+sudo apt update && \\
+sudo apt install android-fetch-artifact""")
+
   if not bid:
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar"]:
+  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
-        "/google/data/ro/projects/android/fetch_artifact --bid %s --target studio-sdk '%s' %s"
-        % (bid, artifact, dir))
+        "%s %s --bid %s --target IntelliJ '%s' %s"
+        % (fetch_artifact, auth_flag, bid, artifact, dir))
 
   return dir
 
@@ -214,8 +246,9 @@ def download(workspace, bid):
 def compatible(old_file, new_file):
   if not os.path.isfile(old_file) or not os.path.isfile(new_file):
     return False
-  if not old_file.endswith(".jar") or not new_file.endswith(".jar"):
-    return False
+  for file in [old_file, new_file]:
+    if not (file.endswith(".jar") or file.endswith(".zip")):
+      return False
   old_files = []
   new_files = []
   with zipfile.ZipFile(old_file) as old_zip:
@@ -242,9 +275,13 @@ def preserve_old(old_path, new_path):
       if compatible(old_file, new_file):
         os.replace(old_file, new_file)
 
+def write_metadata(path, data):
+  with open(os.path.join(path, "METADATA"), "w") as file:
+    for k, v in data.items():
+      file.write(k + ": " + str(v) + "\n")
 
-def extract(workspace, dir, delete_after):
-  version, sources, mac, linux, win, updater = check_artifacts(dir)
+def extract(workspace, dir, delete_after, metadata):
+  version, sources, mac, linux, win, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   # Don't delete yet, use for a timestamp-less diff of jars, to reduce git/review pressure
@@ -265,6 +302,7 @@ def extract(workspace, dir, delete_after):
   if len(apps) != 1:
     sys.exit("Only one directory starting with Android Studio expected for Mac")
   os.rename(path + apps[0], path + "/darwin/android-studio")
+  mac_bundle_name = os.path.basename(apps[0])
 
   print("Unzipping windows distribution...")
   with zipfile.ZipFile(dir + "/" + win, "r") as zip:
@@ -277,24 +315,42 @@ def extract(workspace, dir, delete_after):
   if old_path:
     preserve_old(old_path, path)
 
+  if manifest:
+    xml = ET.parse(dir + "/" + manifest)
+    for project in xml.getroot().findall("project"):
+      metadata[project.get("path")] = project.get("revision")
+
   if delete_after:
     shutil.rmtree(dir)
   if old_path:
     shutil.rmtree(old_path)
-  return version
+
+  write_metadata(path, metadata)
+
+  return version, mac_bundle_name
 
 def main(workspace, args):
+  metadata = {}
+  mac_bundle_name = None
   version = args.version
   path = args.path
   bid = args.download
   delete_path = False
-  if bid:
-    path = download(workspace, bid)
-    delete_path = True
   if path:
-    version = extract(workspace, path, delete_path)
-  
-  update_files(workspace, version)
+    metadata["path"] = path
+  if bid:
+    metadata["build_id"] = bid
+    path = download(workspace, bid)
+    delete_path = not args.debug_download
+  if path:
+    version, mac_bundle_name = extract(workspace, path, delete_path, metadata)
+    if args.debug_download:
+      print("Dowloaded artifacts kept at " + path)
+  else:
+    mac_bundle_name = extract_preexisting_mac_bundle_name(workspace, version)
+
+
+  update_files(workspace, version, mac_bundle_name)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
@@ -313,6 +369,11 @@ if __name__ == "__main__":
       default="",
       dest="version",
       help="The version of an SDK already in prebuilts to update the project's xmls")
+  parser.add_argument(
+      "--debug_download",
+      action="store_true",
+      dest="debug_download",
+      help="Keeps the downloaded artifacts for debugging")
   workspace = os.path.join(
       os.path.dirname(os.path.realpath(__file__)), "../../../..")
   args = parser.parse_args()

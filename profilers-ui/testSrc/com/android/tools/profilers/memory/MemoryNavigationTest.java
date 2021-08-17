@@ -23,8 +23,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -38,8 +40,6 @@ import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collections;
 import java.util.List;
@@ -55,8 +55,8 @@ public class MemoryNavigationTest {
     new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService());
 
-  private MemoryProfilerStage myStage;
-  private MemoryProfilerStageView myStageView;
+  private MainMemoryProfilerStage myStage;
+  private MainMemoryProfilerStageView myStageView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
 
   @Before
@@ -68,8 +68,8 @@ public class MemoryNavigationTest {
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(profilers, loader);
-    myStageView = new MemoryProfilerStageView(profilersView, myStage);
+    myStage = new MainMemoryProfilerStage(profilers, loader);
+    myStageView = new MainMemoryProfilerStageView(profilersView, myStage);
   }
 
   @Test
@@ -91,8 +91,8 @@ public class MemoryNavigationTest {
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), instance);
     myStage.getCaptureSelection().selectClassSet(instanceClassSet);
 
-    MemoryClassSetView view = myStageView.getClassSetView();
-    JTree classSetTree = view.getTree();
+    myStage.getCaptureSelection().selectInstanceObject(instance);
+    JTree classSetTree = myStageView.getInstanceDetailsView().getFieldTree();
     assertNotNull(classSetTree);
 
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator.actions.dialogs
+package com.android.tools.idea.emulator.dialogs
 
 import com.android.tools.adtui.util.getHumanizedSize
 import com.intellij.openapi.project.Project
@@ -26,12 +26,14 @@ import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 
 /**
- * Dialog for specifying snapshot name and use at boot time.
+ * Dialog asking for confirmation before deletion of incompatible emulator snapshots.
  */
-internal class InvalidSnapshotDeletionConfirmationDialog(private val invalidSnapshotCount: Int, private val invalidSnapshotSize: Long) {
+internal class IncompatibleSnapshotsDeletionConfirmationDialog(
+  private val incompatibleSnapshotsCount: Int,
+  private val incompatibleSnapshotsSize: Long
+) {
 
-  var dontAskAgain: Boolean = false
-    private set
+  var doNotAskAgain: Boolean = false
 
   /**
    * Creates contents of the dialog.
@@ -39,14 +41,15 @@ internal class InvalidSnapshotDeletionConfirmationDialog(private val invalidSnap
   private fun createPanel(): DialogPanel {
     return panel {
       row {
-        val snapshotsClause = if (invalidSnapshotCount == 1) "There is 1 snapshot" else "There are ${invalidSnapshotCount} snapshots"
-        val pronoun = if (invalidSnapshotCount == 1) "it" else "them"
-        label("""${snapshotsClause} incompatible with the current configuration occupying
-|                ${getHumanizedSize(invalidSnapshotSize)} of disk space. Do you want to permanently delete ${pronoun}?
+        val snapshotsClause = if (incompatibleSnapshotsCount == 1) "There is 1 snapshot"
+                              else "There are $incompatibleSnapshotsCount snapshots"
+        val pronoun = if (incompatibleSnapshotsCount == 1) "it" else "them"
+        label("""$snapshotsClause incompatible with the current configuration occupying
+|                ${getHumanizedSize(incompatibleSnapshotsSize)} of disk space. Do you want to permanently delete $pronoun?
 |             """.trimMargin())
       }
       row {
-        checkBox("Do this from now on without asking", ::dontAskAgain)
+        checkBox("Do this from now on without asking", ::doNotAskAgain)
       }
     }
   }
@@ -57,7 +60,7 @@ internal class InvalidSnapshotDeletionConfirmationDialog(private val invalidSnap
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
-      title = "Delete incompatible snapshots?",
+      title = "Incompatible Snapshots Detected",
       resizable = true,
       panel = dialogPanel,
       project = project,
@@ -86,4 +89,3 @@ internal class InvalidSnapshotDeletionConfirmationDialog(private val invalidSnap
     const val KEEP_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE
   }
 }
-

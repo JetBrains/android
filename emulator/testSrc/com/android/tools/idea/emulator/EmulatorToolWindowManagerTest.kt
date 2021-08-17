@@ -17,6 +17,8 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.PaneEntry
+import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
@@ -78,10 +80,10 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
+    val tempFolder = emulatorRule.root
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), standalone = true)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
@@ -102,7 +104,7 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
+    emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) { true } // Wait for the initial "getVmState" call.
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
@@ -138,7 +140,8 @@ class EmulatorToolWindowManagerTest {
 
     // Close the panel corresponding to emulator1.
     contentManager.removeContent(contentManager.contents[0], true)
-    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
+    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS,
+                                         FakeEmulator.defaultCallFilter.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
@@ -155,8 +158,8 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root.toPath()
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val tempFolder = emulatorRule.root
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
 
     toolWindow.show()
 
@@ -175,13 +178,57 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents[0].displayName == "No Running Emulators" }
   }
 
+  @Test
+  fun testUiStatePreservation() {
+    val factory = EmulatorToolWindowFactory()
+    assertThat(factory.shouldBeAvailable(project)).isTrue()
+    factory.createToolWindowContent(project, toolWindow)
+    val contentManager = toolWindow.contentManager
+    assertThat(contentManager.contents).isEmpty()
+
+    val tempFolder = emulatorRule.root
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+
+    toolWindow.show()
+
+    // Start the emulator.
+    emulator.start()
+
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    assertThat(contentManager.contents).hasLength(1)
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
+    waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
+
+    assertThat(emulator.extendedControlsVisible).isFalse()
+    emulatorController.showExtendedControls(PaneEntry.newBuilder().setIndex(PaneIndex.KEEP_CURRENT).build())
+    // Wait for the extended controls to show.
+    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+
+    val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
+
+    toolWindow.hide()
+
+    // Wait for the extended controls to close.
+    waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
+    // Wait for the prior visibility state of the extended controls to propagate to Studio.
+    waitForCondition(2, TimeUnit.SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
+
+    toolWindow.show()
+
+    // Wait for the extended controls to show.
+    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+  }
+
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
     var toolWindow = TestToolWindow(project, this)
 
-    override fun getToolWindow(id: String?): ToolWindow? {
+    override fun getToolWindow(id: String?): ToolWindow {
       assertThat(id).isEqualTo(EMULATOR_TOOL_WINDOW_ID)
       return toolWindow
     }

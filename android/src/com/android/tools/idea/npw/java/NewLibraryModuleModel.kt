@@ -62,15 +62,5 @@ class NewLibraryModuleModel(
     override val recipe: Recipe get() = { td: TemplateData ->
       generatePureLibrary(td as ModuleTemplateData, className.get(), useGradleKts.get())
     }
-
-    override fun init() {
-      super.init()
-
-      moduleTemplateDataBuilder.apply {
-        projectTemplateDataBuilder.apply {
-          javaVersion = JavaVersion.parse("1.7")
-        }
-      }
-    }
   }
 }

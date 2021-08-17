@@ -15,36 +15,39 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
-import com.android.annotations.concurrency.WorkerThread
-import com.android.ddmlib.CollectingOutputReceiver
+import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.IInstrumentationResultParser.StatusKeys.DDMLIB_LOGCAT
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.ClassUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import java.util.Collections
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.io.File
 
 /**
- * An adapter to translate [ITestRunListener] callback methods into [AndroidTestResultListener].
+ * An adapter to translate [ITestRunListener] and [ProcessListener] callback methods into [AndroidTestResultListener].
  */
-class DdmlibTestRunListenerAdapter(device: IDevice,
-                                   private val listener: AndroidTestResultListener) : ITestRunListener {
+class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
+                                   private val listener: AndroidTestResultListener) : ITestRunListener, ProcessListener {
 
   companion object {
+    private val logger = Logger.getInstance(DdmlibTestRunListenerAdapter::class.java)
     const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
+    const val BENCHMARK_V2_TEST_METRICS_KEY = "android.studio.v2display.benchmark"
+    const val BENCHMARK_PATH_TEST_METRICS_KEY = "android.studio.v2display.benchmark.outputDirPath"
     private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
@@ -52,72 +55,17 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
      */
     private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>): String {
       // Workaround solution for b/154322086.
-      return benchmarkPrefixRegex
-        .replace(testMetrics.getOrDefault(BENCHMARK_TEST_METRICS_KEY, ""), "")
-    }
-
-    /**
-     * Executes a given shell command on a given device. This function blocks caller
-     * until the command finishes or times out and returns output in string.
-     *
-     * @param device a target device to run a command
-     * @param command a command to be executed
-     * @param postProcessOutput a function which post processes the command output
-     */
-    @WorkerThread
-    private fun executeShellCommandSync(device: IDevice, command: String,
-                                        postProcessOutput: (output: String) -> String? = { it }): String? {
-      val latch = CountDownLatch(1)
-      val receiver = CollectingOutputReceiver(latch)
-      device.executeShellCommand(command, receiver, 10, TimeUnit.SECONDS)
-      latch.await(10, TimeUnit.SECONDS)
-      return postProcessOutput(receiver.output)
+      // Newer libraries output strings on both BENCHMARK_TEST_METRICS_KEY and BENCHMARK_V2_OUTPUT_TEST_METRICS_KEY.
+      // The V2 supports linking while the V1 does not. This is done to maintain backward compatibility with older versions of studio.
+      var key = BENCHMARK_TEST_METRICS_KEY
+      if (testMetrics.containsKey(BENCHMARK_V2_TEST_METRICS_KEY)) {
+        key = BENCHMARK_V2_TEST_METRICS_KEY
+      }
+      return benchmarkPrefixRegex.replace(testMetrics.getOrDefault(key, ""), "")
     }
   }
 
-  private val myDevice = AndroidDevice(device.serialNumber,
-                                       device.avdName ?: "",
-                                       if (device.isEmulator) { AndroidDeviceType.LOCAL_EMULATOR }
-                                       else { AndroidDeviceType.LOCAL_PHYSICAL_DEVICE },
-                                       device.version,
-                                       Collections.synchronizedMap(LinkedHashMap())).apply {
-    CoroutineScope(AndroidDispatchers.workerThread + androidCoroutineExceptionHandler).launch {
-      executeShellCommandSync(device, "cat /proc/meminfo") { output ->
-        output.lineSequence().map {
-          val (key, value) = it.split(':', ignoreCase=true, limit=2) + listOf("", "")
-          if (key.trim() == "MemTotal") {
-            val (ramSize, unit) = value.trim().split(' ', ignoreCase=true, limit=2)
-            val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
-            when (unit) {
-              "kB" -> String.format("%.1f GB", ramSizeFloat / 1000 / 1000)
-              else -> null
-            }
-          } else {
-            null
-          }
-        }.filterNotNull().firstOrNull()
-      } ?.let { additionalInfo["RAM"] = it }
-
-      executeShellCommandSync(device, "cat /proc/cpuinfo") { output ->
-        val cpus = output.lineSequence().map {
-          val (key, value) = it.split(':', ignoreCase=true, limit=2) + listOf("", "")
-          if (key.trim() == "model name") {
-            value.trim()
-          } else {
-            null
-          }
-        }.filterNotNull().toSet()
-        if (cpus.isEmpty()) {
-          null
-        } else {
-          cpus.joinToString("\n")
-        }
-      }?.let { additionalInfo["Processor"] = it }
-
-      executeShellCommandSync(device, "getprop ro.product.manufacturer")?.let { additionalInfo["Manufacturer"] = it }
-      executeShellCommandSync(device, "getprop ro.product.model")?.let { additionalInfo["Model"] = it }
-    }
-  }
+  private val myDevice = convertIDeviceToAndroidDevice(myIDevice)
 
   private lateinit var myTestSuite: AndroidTestSuite
   private val myTestCases = mutableMapOf<TestIdentifier, AndroidTestCase>()
@@ -131,11 +79,15 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     listener.onTestSuiteScheduled(myDevice)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunStarted(runName: String, testCount: Int) {
     myTestSuite = AndroidTestSuite(runName, runName, testCount)
     listener.onTestSuiteStarted(myDevice, myTestSuite)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testStarted(testId: TestIdentifier) {
     val fullyQualifiedTestMethodName = "${testId.className}#${testId.testName}"
     val testCaseRunCount = myTestCaseRunCount.compute(fullyQualifiedTestMethodName) { _, currentValue ->
@@ -151,6 +103,8 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testFailed(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.FAILED
@@ -158,17 +112,23 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testAssumptionFailure(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.SKIPPED
     testCase.errorStackTrace = trace
   }
 
+  @Synchronized
+  @AnyThread
   override fun testIgnored(testId: TestIdentifier) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.SKIPPED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testEnded(testId: TestIdentifier, testMetrics: MutableMap<String, String>) {
     val testCase = myTestCases.getValue(testId)
     if (!testCase.result.isTerminalState) {
@@ -177,22 +137,33 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
     testCase.benchmark = getBenchmarkOutput(testMetrics)
     testCase.endTimestampMillis = System.currentTimeMillis()
+    copyBenchmarkFilesIfNeeded(testCase.benchmark, testMetrics.getOrDefault(BENCHMARK_PATH_TEST_METRICS_KEY, ""))
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunFailed(errorMessage: String) {
     myTestSuite.result = AndroidTestSuiteResult.ABORTED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunStopped(elapsedTime: Long) {
     myTestSuite.result = AndroidTestSuiteResult.CANCELLED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>) {
     // Ddmlib calls testRunEnded() callback if the target app process has crashed or
     // killed manually. (For example, if you click "stop" run button from Android Studio,
     // it kills the app process. Thus, we update test results to cancelled for all
     // pending tests.)
+    if (!this::myTestSuite.isInitialized) {
+      myTestSuite = AndroidTestSuite("", "", 0, AndroidTestSuiteResult.CANCELLED)
+    }
+
     for (testCase in myTestCases.values) {
       if (!testCase.result.isTerminalState) {
         testCase.result = AndroidTestCaseResult.CANCELLED
@@ -203,5 +174,56 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
 
     myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.PASSED
     listener.onTestSuiteFinished(myDevice, myTestSuite)
+  }
+
+  private fun copyBenchmarkFilesIfNeeded(benchmark: String, deviceRoot: String) {
+    if (benchmark.isBlank() || deviceRoot.isBlank()) {
+      return;
+    }
+    val benchmarkOutput = BenchmarkOutput(benchmark)
+    for (line in benchmarkOutput.lines) {
+      var match = line.matches
+      while (match != null) {
+        val link = match.groups[BenchmarkOutput.LINK_GROUP]?.value ?: ""
+        if (link.startsWith(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX)) {
+          val task = object : Task.Backgroundable(null, "Pulling: $link", true) {
+            override fun run(indicator: ProgressIndicator) {
+              val relativeFilePath = link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, "")
+              val localFilePath = FileUtil.getTempDirectory() + File.separator + relativeFilePath
+              val localFile = File(localFilePath)
+              localFile.deleteOnExit()
+              if (!localFile.exists() && (localFile.parentFile.exists() || localFile.parentFile.mkdirs())) {
+                myIDevice.pullFile("$deviceRoot/$relativeFilePath", localFile.absolutePath)
+              } else {
+                logger.warn("Unable to copy latest trace file ($relativeFilePath) from device (${myIDevice.serialNumber})")
+              }
+            }
+          }
+          ProgressManager.getInstance().run(task)
+        }
+        match = match.next()
+      }
+    }
+  }
+
+  @Synchronized
+  @AnyThread
+  override fun startNotified(event: ProcessEvent) {}
+
+  @Synchronized
+  @AnyThread
+  override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {}
+
+  @Synchronized
+  @AnyThread
+  override fun processTerminated(event: ProcessEvent) {
+    event.processHandler.removeProcessListener(this)
+
+    // If the process is terminated even before "am instrument" command is issued,
+    // call testRunEnded callback manually here to notify TestMatrix view that
+    // this scheduled test execution has been cancelled.
+    if (!this::myTestSuite.isInitialized) {
+      testRunEnded(0, mutableMapOf())
+    }
   }
 }

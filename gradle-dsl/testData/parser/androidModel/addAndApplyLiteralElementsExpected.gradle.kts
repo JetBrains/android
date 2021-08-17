@@ -5,4 +5,5 @@ android {
   generatePureSplits = false
   setPublishNonDefault(true)
   resourcePrefix("efgh")
+  targetProjectPath = ":tpp"
 }

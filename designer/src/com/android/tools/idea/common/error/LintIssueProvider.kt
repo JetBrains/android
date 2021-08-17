@@ -28,7 +28,6 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
 import java.awt.Desktop
-import java.net.URL
 import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkEvent
@@ -78,6 +77,12 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       }
       builder.newline()
 
+      val vendor = issue.vendor ?: issue.registry?.vendor
+      vendor?.let {
+        builder.addHtml(vendor.describe(TextFormat.HTML))
+        builder.newline()
+      }
+
       return builder.html
     }
 
@@ -114,9 +119,9 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
-    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix(fix.name, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix("Fix", fix.name, createQuickFixRunnable(fix))
 
-    private fun createQuickFixPair(fix: IntentionAction) = Fix(fix.text, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: IntentionAction) = Fix("Fix", fix.text, createQuickFixRunnable(fix))
 
     override fun equals(other: Any?): Boolean {
       if (other !is LintIssueWrapper) {

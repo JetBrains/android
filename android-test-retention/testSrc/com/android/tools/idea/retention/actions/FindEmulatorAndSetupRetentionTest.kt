@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.retention.actions
 
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
+import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
@@ -40,7 +42,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -53,7 +55,7 @@ class FindEmulatorAndSetupRetentionTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
   lateinit var tempFolder: Path
-  lateinit var snapshotFile: File
+  lateinit var snapshotFile: Path
   lateinit var emulator: FakeEmulator
   lateinit var dataContext: DataContext
   lateinit var parentDataContext : DataContext
@@ -62,10 +64,10 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Before
   fun setUp() {
-    tempFolder = emulatorRule.root.toPath()
-    snapshotFile = emulatorRule.newFile()
-    snapshotFile.writeText("file content")
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
+    tempFolder = emulatorRule.root
+    snapshotFile = emulatorRule.newPath()
+    Files.writeString(snapshotFile, "file content")
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     parentDataContext = DataContext { projectRule.project }
     dataContext = object : DataContext {
@@ -74,30 +76,43 @@ class FindEmulatorAndSetupRetentionTest {
           return snapshotId
         }
         if (EMULATOR_SNAPSHOT_FILE_KEY.`is`(dataId)) {
-          assertThat(snapshotFile.exists()).isTrue()
-          assertThat(snapshotFile.canRead()).isTrue()
+          assertThat(snapshotFile).exists()
+          assertThat(snapshotFile).isReadable()
           return snapshotFile
         }
         if (dataId == PACKAGE_NAME_KEY.name) {
           return projectRule.project.name
         }
         if (dataId == RETENTION_ON_FINISH_KEY.name) {
-          return object: Runnable {
-            override fun run() {
-              retentionDoneSignal.countDown()
-            }
-          }
+          return Runnable { retentionDoneSignal.countDown() }
         }
         if (dataId == RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name) {
           return false
         }
-        if (dataId == DEVICE_NAME_KEY.name) {
+        if (dataId == AVD_NAME_KEY.name) {
           return emulator.avdId
+        }
+        if (dataId == IS_MANAGED_DEVICE.name) {
+          return false
         }
         return parentDataContext.getData(dataId)
       }
     }
     retentionDoneSignal = CountDownLatch(1)
+  }
+
+  @Test
+  fun filterBootParameters1() {
+    val parameters = listOf("./emulator", "-netdelay", "123", "-netspeed", "456", "-avd", "abc", "-grpc-use-token", "-feature", "Vulkan")
+    val filtered = filterEmulatorBootParameters(parameters)
+    assertThat(filtered).isEqualTo(listOf("-feature", "Vulkan"))
+  }
+
+  @Test
+  fun filterBootParameters2() {
+    val parameters = listOf("./emulator", "@abc", "-feature", "Vulkan")
+    val filtered = filterEmulatorBootParameters(parameters)
+    assertThat(filtered).isEqualTo(listOf("-feature", "Vulkan"))
   }
 
   @Test
@@ -137,7 +152,7 @@ class FindEmulatorAndSetupRetentionTest {
   fun actionDisabled() {
     val noSnapshotDataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
-        if (EMULATOR_SNAPSHOT_FILE_KEY.`is`(dataId)) {
+        if (EMULATOR_SNAPSHOT_ID_KEY.`is`(dataId) || EMULATOR_SNAPSHOT_FILE_KEY.`is`(dataId)) {
           return null
         }
         return parentDataContext.getData(dataId)

@@ -16,9 +16,9 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.chart.hchart.HTreeChart;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.ui.DoubleClickListener;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;

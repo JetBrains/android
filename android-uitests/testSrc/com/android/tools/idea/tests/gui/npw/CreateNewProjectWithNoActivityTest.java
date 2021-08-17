@@ -31,7 +31,7 @@ public class CreateNewProjectWithNoActivityTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void activityTemplate() throws IOException {
+  public void activityTemplate() {
     guiTest.welcomeFrame().createNewProject()
       .getChooseAndroidProjectStep()
       .chooseActivity("No Activity")
@@ -40,6 +40,7 @@ public class CreateNewProjectWithNoActivityTest {
       .getConfigureNewAndroidProjectStep()
       .enterName("NoActivityApp")
       .enterPackageName("dev.tools")
+      .addSeparatorToLocation()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
 

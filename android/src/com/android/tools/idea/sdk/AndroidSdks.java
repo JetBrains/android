@@ -40,6 +40,7 @@ import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
 import com.android.annotations.NonNull;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -67,6 +68,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,7 +130,7 @@ public class AndroidSdks {
   @NotNull
   public AndroidSdkHandler tryToChooseSdkHandler() {
     AndroidSdkData data = tryToChooseAndroidSdk();
-    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(null);
+    return data != null ? data.getSdkHandler() : AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, null);
   }
 
   /**
@@ -140,7 +142,7 @@ public class AndroidSdks {
   @Nullable
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
-      if (myIdeInfo.isAndroidStudio()) {
+      if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
         // TODO fix circular dependency between IdeSdks and AndroidSdks
         File path = IdeSdks.getInstance().getAndroidSdkPath();
         if (path != null) {
@@ -168,7 +170,7 @@ public class AndroidSdks {
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
-        File sdkPath = androidPlatform.getSdkData().getLocation();
+        File sdkPath = androidPlatform.getSdkData().getLocationFile();
         if (result.contains(sdkPath)) {
           continue;
         }
@@ -195,7 +197,7 @@ public class AndroidSdks {
       sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
-        return create(target, sdkData.getLocation(), true /* add roots */);
+        return create(target, sdkData.getLocationFile(), true /* add roots */);
       }
     }
     return null;
@@ -308,7 +310,7 @@ public class AndroidSdks {
    */
   @Nullable
   public File findPlatformSources(@NotNull IAndroidTarget target) {
-    String path = target.getPath(IAndroidTarget.SOURCES);
+    String path = target.getPath(IAndroidTarget.SOURCES).toString();
     if (path != null) {
       File platformSource = new File(path);
       if (platformSource.isDirectory()) {
@@ -366,7 +368,7 @@ public class AndroidSdks {
       }
     }
 
-    String resFolderPath = target.getPath(RESOURCES);
+    String resFolderPath = target.getPath(RESOURCES).toString();
     VirtualFile resFolder = findFileInLocalFileSystem(resFolderPath);
     if (resFolder != null) {
       result.add(new OrderRoot(resFolder, CLASSES));
@@ -423,10 +425,10 @@ public class AndroidSdks {
   }
 
   @Nullable
-  private static VirtualFile getRoot(@NotNull OptionalLibrary library) {
-    File jar = library.getJar();
+  private VirtualFile getRoot(@NotNull OptionalLibrary library) {
+    Path jar = library.getJar();
     if (jar != null) {
-      return findFileInJarFileSystem(jar);
+      return findFileInJarFileSystem(mySdkData.getSdkHandler().getFileOp().toFile(jar));
     }
     return null;
   }

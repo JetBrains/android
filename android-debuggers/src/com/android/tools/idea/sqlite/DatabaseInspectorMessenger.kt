@@ -56,4 +56,10 @@ class DatabaseInspectorMessenger(
   fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> = scope.future { sendCommand(command) }
 }
 
+// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling convention
+suspend fun DatabaseInspectorMessenger.sendCommand(commandBuilder: Command.Builder) = sendCommand(commandBuilder.build())
+
+// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling convention
+fun DatabaseInspectorMessenger.sendCommandAsync(commandBuilder: Command.Builder) = sendCommandAsync(commandBuilder.build())
+
 typealias ErrorsSideChannel = (Command, SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit

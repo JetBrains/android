@@ -19,14 +19,12 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.ASGallery;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.components.JBList;
 import javax.swing.JDialog;
-import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -76,12 +74,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidThingsModule() {
-    clickNextToStep(message("android.wizard.module.new.things"), message("android.wizard.module.new.things"));
-    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
-  }
-
-  @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
     return new ConfigureDynamicFeatureStepFixture<>(this, target().getRootPane());
@@ -127,13 +119,6 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), JBList.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(moduleName);
-
-    if (!StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      clickNext();
-
-      Wait.seconds(5).expecting("next step to appear").until(
-        () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
-    }
   }
 
   private void clickFinish() {

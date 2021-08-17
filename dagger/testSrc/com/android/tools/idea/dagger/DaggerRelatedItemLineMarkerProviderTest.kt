@@ -188,15 +188,17 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     )
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(1)
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods).hasSize(4)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
+    assertThat(trackerService.calledMethods[2]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[3]).isEqualTo("trackClickOnGutter PROVIDER")
   }
 
   fun testComponentMethodsForProvider() {
     // Provider
-    val providerFile = myFixture.configureByText(
+    val providerFile = myFixture.addClass(
       //language=JAVA
-      JavaFileType.INSTANCE,
       """
         package test;
         import dagger.Provides;
@@ -209,7 +211,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           }
         }
       """.trimIndent()
-    ).virtualFile
+    ).containingFile.virtualFile
 
     val componentFile = myFixture.addClass(
       //language=JAVA
@@ -250,9 +252,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.customName).isEqualTo("MyComponent")
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
+    assertThat(trackerService.calledMethods).hasSize(6)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
+    assertThat(trackerService.calledMethods[2]).startsWith("trackGutterWasDisplayed owner: MODULE time: ")
+    assertThat(trackerService.calledMethods[3]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[4]).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods[5]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentMethodsForProvider_kotlin() {
@@ -312,9 +318,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.customName).isEqualTo("MyComponent")
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
+    assertThat(trackerService.calledMethods).hasSize(4)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[1].removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods[2]).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods[3]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentForModules() {
@@ -368,8 +378,9 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(result).containsAllOf("Included in components: MyComponent", "Included in modules: MyModule2")
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(1)
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter MODULE")
+    assertThat(trackerService.calledMethods).hasSize(2)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: MODULE time: ")
+    assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter MODULE")
 
     gotoRelatedItems.find { it.group == "Included in components" }!!.navigate()
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER MODULE COMPONENT")
@@ -416,9 +427,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter COMPONENT")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER COMPONENT COMPONENT")
+    assertThat(trackerService.calledMethods).hasSize(3)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: COMPONENT time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter COMPONENT")
+    assertThat(trackerService.calledMethods[2]).isEqualTo("trackNavigation CONTEXT_GUTTER COMPONENT COMPONENT")
   }
 
   fun testParentsForSubcomponent() {
@@ -654,9 +667,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(result).containsExactly("Consumers: injectedStringWithQualifier")
 
     clickOnIcon(icon)
-    assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
+    assertThat(trackerService.calledMethods).hasSize(3)
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods[2]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
   }
 
   fun testModulesForSubcomponent() {
@@ -817,6 +832,6 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.customName).isEqualTo("MyEntryPoint")
 
     method.navigate()
-    assertThat(trackerService.calledMethods.single()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 }

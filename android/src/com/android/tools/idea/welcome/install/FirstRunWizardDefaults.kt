@@ -21,15 +21,11 @@
 
 package com.android.tools.idea.welcome.install
 
-import com.android.SdkConstants
 import com.android.sdklib.devices.Storage
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.startup.AndroidSdkInitializer
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
-
 import java.io.File
 import kotlin.math.min
 
@@ -37,30 +33,6 @@ const val HAXM_DOCUMENTATION_URL = "https://github.com/intel/haxm"
 const val HAXM_WINDOWS_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-Windows"
 const val HAXM_MAC_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-macOS"
 const val GVM_WINDOWS_INSTALL_URL = "https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors"
-
-/**
- * Returns the default Android SDK install location.
- */
-private val defaultSdkLocation: File
-  get() {
-    var path = System.getenv(SdkConstants.ANDROID_HOME_ENV) ?: System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV)
-
-    if (path.isNullOrEmpty()) {
-      val userHome = System.getProperty("user.home")
-      path = when {
-        SystemInfo.isWindows -> FileUtil.join(userHome, "AppData", "Local", "Android", "Sdk")
-        SystemInfo.isMac -> FileUtil.join(userHome, "Library", "Android", "sdk")
-        SystemInfo.isLinux -> FileUtil.join(userHome, "Android", "Sdk")
-        else -> {
-          Messages.showErrorDialog(
-            "Your OS is not officially supported.\nYou can continue, but it is likely you will encounter further problems.",
-            "Unsupported OS")
-          ""
-        }
-      }
-    }
-    return File(path)
-  }
 
 /**
  * Returns recommended memory allocation given the computer RAM size.
@@ -93,4 +65,4 @@ fun getMaxHaxmMemory(memorySize: Long): Int {
 fun getInitialSdkLocation(mode: FirstRunWizardMode): File =
   mode.sdkLocation
   ?: AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()
-  ?: defaultSdkLocation
+  ?: AndroidSdkInitializer.getAndroidSdkPathOrDefault()

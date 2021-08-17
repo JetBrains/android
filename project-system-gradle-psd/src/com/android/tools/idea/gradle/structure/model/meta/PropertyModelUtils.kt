@@ -31,6 +31,7 @@ fun ResolvedPropertyModel.asAny(): Any? = when (valueType) {
   ValueType.BOOLEAN -> getValue(GradlePropertyModel.BOOLEAN_TYPE)
   ValueType.LIST -> getValue(GradlePropertyModel.LIST_TYPE)?.map { it.resolve().getParsedValue { asAny() }.value }
   ValueType.MAP -> getValue(GradlePropertyModel.MAP_TYPE)?.mapValues { it.value.resolve().getParsedValue { asAny() }.value }
+  ValueType.INTERPOLATED -> getValue(GradlePropertyModel.STRING_TYPE)
 
   ValueType.REFERENCE,
   ValueType.CUSTOM,
@@ -44,6 +45,8 @@ fun ResolvedPropertyModel.asString(): String? = when (valueType) {
 // and the only risk is accidental replacement of an Integer constant with the equivalent
 // String constant where both are acceptable.
   ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
+  // For INTERPOLATED values, get the property resolved value as a String value.
+  ValueType.INTERPOLATED -> getValue(GradlePropertyModel.STRING_TYPE)?.toString()
   else -> null
 }
 
@@ -89,6 +92,11 @@ fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslT
       throw IllegalStateException(
         "The raw value of property '${unresolvedModel.fullyQualifiedName}' is null while its type is: ${unresolvedModel.valueType}")
 
+    // TODO(solodkyy): do we want to allow unresolved InterpolatedText.
+    unresolvedModel.valueType == ValueType.INTERPOLATED ->
+      DslText.InterpolatedString(text).annotated()
+
+    // TODO(solodkyy): Do we want to continue allowing this ?
     unresolvedModel.valueType == ValueType.REFERENCE && (dependencies.isEmpty() && effectiveValueIsNull) ->
       DslText.Reference(text).annotateWithError("Unresolved reference: $text")
 
@@ -104,7 +112,7 @@ fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslT
       DslText.Literal.annotated()
 
     unresolvedModel.valueType == ValueType.STRING ->
-      DslText.InterpolatedString(text).annotated()
+      DslText.OtherUnparsedDslText(text).annotated()
 
     else -> throw IllegalStateException(
       "Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")

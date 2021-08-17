@@ -34,16 +34,15 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
+import javax.swing.tree.TreePath
 
 class ComponentTreeModelImplTest {
 
   @get:Rule
-  val appRule = ApplicationRule()
-
-  @get:Rule
-  val edtRule = EdtRule()
+  val ruleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule())!!
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -137,18 +136,52 @@ class ComponentTreeModelImplTest {
     // setup
     var selectionChangeCount = 0
     var treeSelectionChangeCount = 0
+    var autoScrollCount = 0
     model.treeRoot = item1
     UIUtil.dispatchAllInvocationEvents()
     model.addTreeModelListener(count)
     selectionModel.addSelectionListener { selectionChangeCount++ }
     selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
+    selectionModel.addAutoScrollListener { autoScrollCount++ }
 
     // test
     selectionModel.currentSelection = listOf(item2)
     assertThat(selectionChangeCount).isEqualTo(0)
     assertThat(treeSelectionChangeCount).isEqualTo(1)
+    assertThat(autoScrollCount).isEqualTo(1)
     assertThat(count.anyChanges()).isFalse()
     assertThat(selectionModel.currentSelection).containsExactly(item2)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectionNotificationFromTree() {
+    var selectionChangeCount = 0
+    var treeSelectionChangeCount = 0
+    var autoScrollCount = 0
+    model.treeRoot = item1
+    UIUtil.dispatchAllInvocationEvents()
+    model.addTreeModelListener(count)
+    selectionModel.addSelectionListener { selectionChangeCount++ }
+    selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
+    selectionModel.addAutoScrollListener { autoScrollCount++ }
+
+    // test
+    selectionModel.selectionPath = TreePath(arrayOf(item1, item2, style1))
+    assertThat(selectionChangeCount).isEqualTo(1)
+    assertThat(treeSelectionChangeCount).isEqualTo(1)
+    assertThat(autoScrollCount).isEqualTo(0)
+    assertThat(count.anyChanges()).isFalse()
+    assertThat(selectionModel.currentSelection).containsExactly(style1)
+  }
+
+  @Test
+  fun testComputeDepth() {
+    assertThat(model.computeDepth(item1)).isEqualTo(1)
+    assertThat(model.computeDepth(item2)).isEqualTo(2)
+    assertThat(model.computeDepth(item3)).isEqualTo(2)
+    assertThat(model.computeDepth(style1)).isEqualTo(3)
+    assertThat(model.computeDepth(style2)).isEqualTo(4)
   }
 
   private class NotificationCount : ComponentTreeModelListener {

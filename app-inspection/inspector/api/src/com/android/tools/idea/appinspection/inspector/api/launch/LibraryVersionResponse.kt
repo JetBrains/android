@@ -16,13 +16,13 @@
 package com.android.tools.idea.appinspection.inspector.api.launch
 
 /**
- * Response from a GetLibraryVersions call.
+ * Response from a GetLibraryCompatibilityInfo call.
  *
  * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is populated if the check resulted in
  * failure.
  */
-data class LibraryVersionResponse(
-  val targetLibrary: ArtifactCoordinate,
+data class LibraryCompatbilityInfo(
+  val libraryCoordinate: ArtifactCoordinate,
   val status: Status,
   /**
    * This version string follows the gradle version format. See https://docs.gradle.org/current/userguide/single_versions.html
@@ -48,8 +48,18 @@ data class LibraryVersionResponse(
     LIBRARY_MISSING,
 
     /**
+     * Application was proguarded.
+     */
+    APP_PROGUARDED,
+    /**
      * An error was encountered in finding and reading the version of the library.
      */
     ERROR
   }
+
+  /**
+   * Gets the target library coordinate with the version set to the version of the library in the app.
+   */
+  fun getTargetLibraryCoordinate() = ArtifactCoordinate(libraryCoordinate.groupId, libraryCoordinate.artifactId, version,
+                                                        libraryCoordinate.type)
 }

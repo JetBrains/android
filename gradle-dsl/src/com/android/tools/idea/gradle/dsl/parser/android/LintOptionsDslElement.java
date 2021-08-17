@@ -42,7 +42,6 @@ import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelIm
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
@@ -54,14 +53,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isAbortOnError", property, ABORT_ON_ERROR, VAR},
     {"isAbsolutePaths", property, ABSOLUTE_PATHS, VAR},
     {"isCheckAllWarnings", property, CHECK_ALL_WARNINGS, VAR},
@@ -89,18 +87,17 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"xmlReport", property, XML_REPORT, VAR},
 
     // There are also exactly(1) variants of these with the same name, but they are redundant for our purposes
-    {"check", atLeast(0), CHECK, OTHER},
-    {"disable", atLeast(0), DISABLE, OTHER},
-    {"enable", atLeast(0), ENABLE, OTHER},
-    {"error", atLeast(0), ERROR, OTHER},
-    {"fatal", atLeast(0), FATAL, OTHER},
-    {"ignore", atLeast(0), IGNORE, OTHER},
-    // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
-    {"warning", atLeast(0), WARNING, OTHER},
+    {"check", atLeast(0), CHECK, AUGMENT_LIST},
+    {"disable", atLeast(0), DISABLE, AUGMENT_LIST},
+    {"enable", atLeast(0), ENABLE, AUGMENT_LIST},
+    {"error", atLeast(0), ERROR, AUGMENT_LIST},
+    {"fatal", atLeast(0), FATAL, AUGMENT_LIST},
+    {"ignore", atLeast(0), IGNORE, AUGMENT_LIST},
+    {"informational", atLeast(0), INFORMATIONAL, AUGMENT_LIST},
+    {"warning", atLeast(0), WARNING, AUGMENT_LIST},
   }).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"abortOnError", property, ABORT_ON_ERROR, VAR},
     {"abortOnError", exactly(1), ABORT_ON_ERROR, SET},
     {"absolutePaths", property, ABSOLUTE_PATHS, VAR},
@@ -141,21 +138,20 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"xmlReport", exactly(1), XML_REPORT, SET},
 
     // There are also exactly(1) variants of these with the same name, but they are redundant for our purposes
-    {"check", atLeast(0), CHECK, OTHER},
-    {"disable", atLeast(0), DISABLE, OTHER},
-    {"enable", atLeast(0), ENABLE, OTHER},
-    {"error", atLeast(0), ERROR, OTHER},
-    {"fatal", atLeast(0), FATAL, OTHER},
-    {"ignore", atLeast(0), IGNORE, OTHER},
-    // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
-    {"warning", atLeast(0), WARNING, OTHER},
+    {"check", atLeast(0), CHECK, AUGMENT_LIST},
+    {"disable", atLeast(0), DISABLE, AUGMENT_LIST},
+    {"enable", atLeast(0), ENABLE, AUGMENT_LIST},
+    {"error", atLeast(0), ERROR, AUGMENT_LIST},
+    {"fatal", atLeast(0), FATAL, AUGMENT_LIST},
+    {"ignore", atLeast(0), IGNORE, AUGMENT_LIST},
+    {"informational", atLeast(0), INFORMATIONAL, AUGMENT_LIST},
+    {"warning", atLeast(0), WARNING, AUGMENT_LIST},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
     new PropertiesElementDescription<>("lintOptions", LintOptionsDslElement.class, LintOptionsDslElement::new);
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter.isKotlin()) {
       return ktsToModelNameMap;
     }
@@ -170,36 +166,6 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
 
   public LintOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    // TODO(xof): implementing ADD_TO_SET method semantics would be a nice win here
-    if (property.equals("check")) {
-      addToParsedExpressionList(CHECK, element); return;
-    }
-    else if (property.equals("disable")) {
-      addToParsedExpressionList(DISABLE, element); return;
-    }
-    else if (property.equals("enable")) {
-      addToParsedExpressionList(ENABLE, element); return;
-    }
-    else if (property.equals("error")) {
-      addToParsedExpressionList(ERROR, element); return;
-    }
-    else if (property.equals("fatal")) {
-      addToParsedExpressionList(FATAL, element); return;
-    }
-    else if (property.equals("ignore")) {
-      addToParsedExpressionList(IGNORE, element); return;
-    }
-    // TODO(b/144403889): informational
-    else if (property.equals("warning")) {
-      addToParsedExpressionList(WARNING, element); return;
-    }
-
-    super.addParsedElement(element);
   }
 
   @Override

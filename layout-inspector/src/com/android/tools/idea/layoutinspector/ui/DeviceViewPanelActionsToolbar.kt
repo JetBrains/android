@@ -21,24 +21,42 @@ import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.editor.EditorActionsFloatingToolbar
+import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
+import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
+import org.jetbrains.annotations.VisibleForTesting
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.Timer
+
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
+
+private const val ROTATION_DURATION = 300L
+private const val ROTATION_TIMEOUT = 10_000L
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
-class DeviceViewPanelActionsToolbar(
+class DeviceViewPanelActionsToolbarProvider(
   deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbar(deviceViewPanel, parentDisposable) {
+) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
+
+  val toggle3dActionButton: ActionButton
+    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)!!
 
   init {
     updateToolbar()
@@ -47,35 +65,86 @@ class DeviceViewPanelActionsToolbar(
   override fun getActionGroups() = LayoutInspectorToolbarGroups
 }
 
-object Toggle3dAction : AnAction(MODE_3D) {
+object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    val inspector = LayoutInspector.get(event)
+    val client = inspector?.currentClient
+
     if (model.isRotated) {
       model.resetRotation()
     }
     else {
-      model.rotate(0.45, 0.06)
+      client?.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+      var rotationStart = 0L
+      val timerStart = System.currentTimeMillis()
+      val timer = Timer(10, null)
+      timer.addActionListener {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - timerStart > ROTATION_TIMEOUT) {
+          // We weren't able to get the SKP in a reasonable amount of time, so stop waiting.
+          timer.stop()
+        }
+        // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
+        val inspectorModel = inspector?.layoutInspectorModel
+        if (inspectorModel?.pictureType != AndroidWindow.ImageType.SKP) {
+          return@addActionListener
+        }
+        if (rotationStart == 0L) {
+          rotationStart = currentTime
+        }
+        val elapsed = currentTime - rotationStart
+        if (elapsed > ROTATION_DURATION) {
+          timer.stop()
+        }
+        model.xOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.45 / ROTATION_DURATION
+        model.yOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.06 / ROTATION_DURATION
+        model.refresh()
+      }
+      timer.start()
     }
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
+    val inspector = LayoutInspector.get(event)
+    val client = inspector?.currentClient
+    val inspectorModel = inspector?.layoutInspectorModel
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
-    if (model?.rotatable == true) {
+    if (model != null && model.overlay == null &&
+        client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
+        (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)) {
       event.presentation.isEnabled = true
-      event.presentation.text = if (model.isRotated) "Reset View" else "Rotate View"
+      if (model.isRotated) {
+        event.presentation.text = "2D Mode"
+        event.presentation.description =
+          "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
+      }
+      else {
+        event.presentation.text = "3D Mode"
+        event.presentation.description =
+          "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this mode consumes more device " +
+          "resources and might impact runtime performance."
+      }
     }
     else {
       event.presentation.isEnabled = false
+      val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel < 29
+      @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
-          model?.pictureType == PNG_SKP_TOO_LARGE -> "Device image too large, rotation not available"
-          model?.pictureType == PNG_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
-          else -> "Rotation not available for devices below API 29"
+          isLowerThenApi29 -> "Rotation not available for devices below API 29"
+          else -> "Error while rendering device image, rotation not available"
         }
     }
+  }
+
+  @Suppress("DialogTitleCapitalization")
+  override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
+    // TODO: link for performance issue
+    BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode")
   }
 }
 
@@ -85,12 +154,13 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
     add(ZoomResetAction())
   }
 
-  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
-                                                       DefaultActionGroup().apply { add(Toggle3dAction) })
+  val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
+
+  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomInAction())
-    add(ZoomOutAction())
-    add(ZoomToFitAction())
+    add(ZoomInAction.getInstance())
+    add(ZoomOutAction.getInstance())
+    add(ZoomToFitAction.getInstance())
   }
 }

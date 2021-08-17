@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
@@ -38,7 +38,7 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         val checkManifest = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// CHECK_MANIFEST")
 
         try {
-            val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+            val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
             val compilerLib = "$kotlinPlugin/kotlinc/lib"
             ConfigLibraryUtil.addLibrary(myModule, "parcelizeCompiler", compilerLib, arrayOf("parcelize-compiler.jar"))
             ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))

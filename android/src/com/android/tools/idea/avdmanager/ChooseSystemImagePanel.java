@@ -15,41 +15,46 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.repository.Revision;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.sdklib.devices.Abi;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
-import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.Consumer;
-import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.ListTableModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+
+import com.android.repository.Revision;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.analytics.CommonMetricsData;
+import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.ProductDetails;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.Consumer;
+import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.ListTableModel;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.RowFilter;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * UI panel that presents the user with a list of {@link SystemImageDescription}s to choose from.
@@ -59,6 +64,9 @@ import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
  */
 public class ChooseSystemImagePanel extends JPanel
   implements SystemImageList.SystemImageSelectionListener, SystemImageListModel.StatusIndicator, Disposable {
+
+  private static final boolean IS_ARM64_HOST_OS = SystemInfo.isArm64 ||
+                                                  CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM;
 
   private final List<Consumer<SystemImageDescription>> mySystemImageListeners = Lists.newArrayListWithExpectedSize(1);
 
@@ -116,18 +124,21 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   @VisibleForTesting
-  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice) {
+  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice,
+                                                              boolean isArm64HostOs) {
 
-    SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
+    Abi abi = Abi.getEnum(image.getAbiType());
+    SystemImageClassification classification = getClassificationFromParts(abi,
                                                                           image.getVersion().getApiLevel(),
-                                                                          image.getTag());
+                                                                          image.getTag(),
+                                                                          isArm64HostOs);
 
     if (theDevice != null && !image.getTag().equals(SystemImage.WEAR_TAG)) {
       // For non-Wear devices, adjust the recommendation based on Play Store
       if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
         if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
-          classification = SystemImageClassification.X86;
+          classification = (abi == Abi.X86 || abi == Abi.X86_64) ? SystemImageClassification.X86 : SystemImageClassification.OTHER;
         }
       }
       else {
@@ -142,27 +153,51 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
-    return getClassificationForDevice(image, myDevice);
+    return getClassificationForDevice(image, myDevice, IS_ARM64_HOST_OS);
   }
 
   @NotNull
   @VisibleForTesting
-  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag) {
+  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag, boolean isArm64HostOs) {
     boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-    if (!isAvdIntel) {
+
+    if (isArm64HostOs) {
+      // Recommend only arm64 images.
+      // TODO(joshuaduong): For Arm hosts, we should remove the x86 tab and consider renaming the "other" tab to Arm. Also for M1 chips,
+      // arm32 may not be supported, so we could just have one list of arm64 images.
+      if (isAvdIntel) {
+        return SystemImageClassification.X86;
+      }
+
+      if (tag.equals(SystemImage.WEAR_TAG)) {
+        // For Wear, recommend based on API level (all Wear have Google APIs)
+        return (abi == Abi.ARM64_V8A && apiLevel >= MIN_RECOMMENDED_WEAR_API) ?
+               SystemImageClassification.RECOMMENDED : SystemImageClassification.OTHER;
+      }
+      if (apiLevel < MIN_RECOMMENDED_API) {
+        return SystemImageClassification.OTHER;
+      }
+      if (abi == Abi.ARM64_V8A && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
+        return SystemImageClassification.RECOMMENDED;
+      }
       return SystemImageClassification.OTHER;
-    }
-    if (tag.equals(SystemImage.WEAR_TAG)) {
+    } else {
+      if (!isAvdIntel) {
+        return SystemImageClassification.OTHER;
+      }
+
+      if (tag.equals(SystemImage.WEAR_TAG)) {
         // For Wear, recommend based on API level (all Wear have Google APIs)
         return (apiLevel >= MIN_RECOMMENDED_WEAR_API) ? SystemImageClassification.RECOMMENDED : SystemImageClassification.X86;
-    }
-    if (apiLevel < MIN_RECOMMENDED_API) {
+      }
+      if (apiLevel < MIN_RECOMMENDED_API) {
+        return SystemImageClassification.X86;
+      }
+      if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
+        return SystemImageClassification.RECOMMENDED;
+      }
       return SystemImageClassification.X86;
     }
-    if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
-      return SystemImageClassification.RECOMMENDED;
-    }
-    return SystemImageClassification.X86;
   }
 
   public static boolean systemImageMatchesDevice(@Nullable SystemImageDescription image, @Nullable Device device) {
@@ -193,9 +228,10 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // hinge foldable device requires API30 and above
-    if (deviceId.equals("7.3in Foldable") ||
+    if (deviceId.equals("7.6in Foldable") ||
         deviceId.equals("8in Foldable") ||
-        deviceId.equals("6.7in Foldable")) {
+        deviceId.equals("6.7in Foldable") ||
+        deviceId.equals("7.4in Rollable")) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
         return false;
       }
@@ -214,9 +250,16 @@ public class ChooseSystemImagePanel extends JPanel
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG) &&
-          !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
+      return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
+             !imageTag.equals(SystemImage.WEAR_TAG) &&
+             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
     }
+
+    // Android TV / Google TV and vice versa
+    if (deviceTagId.equals(SystemImage.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImage.GOOGLE_TV_TAG.getId())) {
+      return imageTag.equals(SystemImage.ANDROID_TV_TAG) || imageTag.equals(SystemImage.GOOGLE_TV_TAG);
+    }
+
     return deviceTagId.equals(imageTag.getId());
   }
 

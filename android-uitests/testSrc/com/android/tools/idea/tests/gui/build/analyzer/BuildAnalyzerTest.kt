@@ -40,13 +40,11 @@ class BuildAnalyzerTest {
   @Before
   fun setUp() {
     StudioFlags.BUILD_ATTRIBUTION_ENABLED.override(true)
-    StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.override(true)
   }
 
   @After
   fun tearDown() {
     StudioFlags.BUILD_ATTRIBUTION_ENABLED.clearOverride()
-    StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.clearOverride()
   }
 
   /**

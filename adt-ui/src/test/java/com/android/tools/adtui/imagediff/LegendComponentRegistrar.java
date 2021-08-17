@@ -75,7 +75,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       myRange = new Range();
       myLegendModel = new LegendComponentModel(myRange);
       myLegend = new LegendComponent(myLegendModel);
-      myLegend.setFont(ImageDiffUtil.getDefaultFont());
+      myLegend.setFont(ImageDiffTestUtil.getDefaultFont());
       myContentPane.add(myLegend, BorderLayout.CENTER);
       myContentPane.setSize(COMPONENT_WIDTH_PX, COMPONENT_HEIGHT_PX);
     }

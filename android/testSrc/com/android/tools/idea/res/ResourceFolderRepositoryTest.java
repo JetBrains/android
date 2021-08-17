@@ -1014,7 +1014,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
@@ -1030,7 +1030,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.insertString(tag1.getTextOffset() - 1, elementDeclaration2);
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
     assertTrue(resources.getModificationCount() > generation);
@@ -1043,7 +1043,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     resetCounters();
     getApplication().invokeLater(() -> {
       ensureSingleScan();
@@ -1122,7 +1122,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(initial < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid1"));
@@ -1139,7 +1139,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
                             "<LinearLayout android:id=\"@+id/newid3\"><Child android:id=\"@+id/newid4\"/></LinearLayout>");
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid1"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
@@ -1170,7 +1170,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note2Area");
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
@@ -1231,7 +1231,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
@@ -1303,7 +1303,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     resetCounters();
@@ -1320,7 +1320,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "dd");
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "dddefault_state"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "default_state"));
     drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
@@ -1359,7 +1359,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     // The change does not need a rescan
-    assertFalse(resources.isScanPending(psiFiles));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFiles));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
   }
@@ -1393,7 +1393,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     // The change does not need a rescan
-    assertFalse(resources.isScanPending(psiFiles));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFiles));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
   }
@@ -1419,7 +1419,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // The change does not need a rescan
     UIUtil.dispatchAllInvocationEvents();
-    assertFalse(resources.isScanPending(file));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, file));
     assertTrue(generation != resources.getModificationCount());
   }
 
@@ -1449,7 +1449,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     resetCounters();
@@ -1517,7 +1517,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     // Because of the file -> psi transition, we can't rely on the old ResourceItem references (replaced).
@@ -1579,7 +1579,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "tap_name"));
@@ -1633,7 +1633,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // This currently doesn't work incrementally because we get psi events that do not contain
     // enough info to be handled incrementally, so instead we do an asynchronous update (such that
     // we can do a single update rather than rescanning the file 20 times).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -1668,7 +1668,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -1713,7 +1713,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
@@ -1757,7 +1757,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
@@ -1798,7 +1798,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.replaceString(offset, offset + 2, "dimen");
       documentManager.commitDocument(document);
     });
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -1828,7 +1828,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -1853,7 +1853,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(null, () -> {
       tag.setName("dimen"); // Change <integer> to <dimen>
     });
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -1887,7 +1887,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
@@ -1934,7 +1934,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -1959,7 +1959,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -2004,7 +2004,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
@@ -2065,7 +2065,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
@@ -2131,7 +2131,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
@@ -2200,7 +2200,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
@@ -2273,7 +2273,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     type("MyCustom|View", "r");
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomrView"));
@@ -2348,7 +2348,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
@@ -2363,7 +2363,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
@@ -2389,7 +2389,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "<attr name=\"newcrash\" format=\"integer\" />");
       documentManager.commitDocument(document);
     });
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -2449,7 +2449,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.insertString(offset + 1, "l");
       documentManager.commitDocument(document);
     });
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -2530,7 +2530,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
     resourceValue = plural.getResourceValue();
@@ -2586,7 +2586,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
     resourceValue = plural.getResourceValue();
@@ -2649,7 +2649,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
     resourceValue = plural.getResourceValue();
@@ -2715,7 +2715,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
@@ -2772,7 +2772,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
@@ -2840,7 +2840,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
@@ -2902,7 +2902,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
@@ -2970,7 +2970,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
@@ -3031,7 +3031,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "my_colors"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
@@ -3126,7 +3126,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       });
     }
 
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       ensureSingleScan();
@@ -3287,7 +3287,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -3305,7 +3305,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "action_settings"));
@@ -3339,7 +3339,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edits in XML processing instructions have no effect on the resource repository
     assertEquals(generation, resources.getModificationCount());
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
   }
 
@@ -3368,7 +3368,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edits in XML processing instructions have no effect on the resource repository.
     assertEquals(generation, resources.getModificationCount());
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
   }
 
@@ -3410,7 +3410,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -3436,7 +3436,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation3 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
@@ -3453,7 +3453,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.replaceString(startOffset, startOffset + "app_name".length(), "new_name2");
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation4 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
@@ -3496,7 +3496,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "dupe_name"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -3571,7 +3571,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.replaceString(offset, offset + origString.length(), newString);
       documentManager.commitDocument(document);
     });
-    assertThat(resources.isScanPending(psiFile)).isTrue();
+    assertThat(ResourcesTestsUtil.isScanPending(resources, psiFile)).isTrue();
     assertThat(resources.getModificationCount()).isEqualTo(generation);
     UIUtil.dispatchAllInvocationEvents();
     List<ResourceItem> items = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
@@ -3648,7 +3648,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       // We've manually deleted the hello_world string. We now check that app_name remains
       // in the resource set, and that hello_world is removed. (We check that hello_world
       // is there before the sync, and gone after.)
-      assertTrue(resources.isScanPending(psiFile1));
+      assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
@@ -3657,7 +3657,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertTrue(generation < resources.getModificationCount());
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
       assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
-      assertFalse(resources.isScanPending(psiFile1));
+      assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     });
   }
 
@@ -3755,7 +3755,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
@@ -3770,7 +3770,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "__app_name"));
     generation2 = resources.getModificationCount();
@@ -3782,7 +3782,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.deleteString(offset, offset + "Zoom".length());
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
 
     // Inserting spaces in the middle of a tag shouldn't trigger a rescan or even change the modification count
@@ -3792,7 +3792,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "   ");
       documentManager.commitDocument(document);
     });
-    assertFalse(resources.isScanPending(psiFile1));
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, psiFile1));
     assertEquals(generation2, resources.getModificationCount());
 
     ensureIncremental();
@@ -4094,7 +4094,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
-    assertTrue(resources.isScanPending(psiFile));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiFile));
     UIUtil.dispatchAllInvocationEvents();
 
     ResourceItem item = resources.getResources(RES_AUTO, ResourceType.STYLE, "GreyTheme").get(0);
@@ -4120,7 +4120,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     long timestamp = resources.getModificationCount();
 
     type("@|id/aaa", "+");
-    assertTrue(resources.isScanPending(layout));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, layout));
     UIUtil.dispatchAllInvocationEvents();
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
@@ -4130,7 +4130,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     timestamp = resources.getModificationCount();
     type("@|id/bbb", "+");
-    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, layout)); // Should be incremental
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
@@ -4143,7 +4143,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       cccTag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/ccc");
     });
 
-    assertFalse(resources.isScanPending(layout)); // Should be incremental
+    assertFalse(ResourcesTestsUtil.isScanPending(resources, layout)); // Should be incremental
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "aaa"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "bbb"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "ccc"));
@@ -4245,10 +4245,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   /**
-   * Simulates what our templates do, modififying Documents that have no PSI (yet). Since PSI can be garbage-collected at any point, this
-   * is possible in other cases as well.
-   *
-   * @see com.android.tools.idea.templates.TemplateUtils#writeTextFile(Object, String, File)
+   * Simulates what project templates do, modififying Documents that have no PSI (yet). Since PSI can
+   * be garbage-collected at any point, this is possible in other cases as well.
    */
   public void testFileWithNoPsi() throws Exception {
     VirtualFile valuesXml = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -4369,18 +4367,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     moveCaret(myFixture, "@+id|/a");
     myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
 
     myFixture.type('x');
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
 
     myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
     myFixture.type('x');
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     // Check the edit above is what we wanted.
     assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText()).isEqualTo("android:ixd");
@@ -4411,18 +4409,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     moveCaret(myFixture, "@+id|/a");
     myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
 
     myFixture.type('x');
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
 
     myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
     myFixture.type('x');
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     // Check the edit above is what we wanted.
     assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText())
@@ -4452,7 +4450,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     moveCaret(myFixture, "@+id|/a");
     myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
     PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
-    assertTrue(repository.isScanPending(layout));
+    assertTrue(ResourcesTestsUtil.isScanPending(repository, layout));
     runListeners();
     assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
     assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "b")))
@@ -4475,7 +4473,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository repository = createRegisteredRepository();
     myFixture.openFileInEditor(layout.getVirtualFile());
     type("@+id/b' |/>", "foo='bar'");
-    assertFalse(repository.isScanPending(layout));
+    assertFalse(ResourcesTestsUtil.isScanPending(repository, layout));
   }
 
   public void testFontChanged() throws Exception {

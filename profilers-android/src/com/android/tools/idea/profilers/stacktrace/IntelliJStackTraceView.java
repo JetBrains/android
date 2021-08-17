@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.StackElement;
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
+import com.android.tools.inspectors.common.api.stacktrace.ThreadElement;
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
@@ -36,11 +42,8 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
+import com.intellij.util.ui.JBUI;
+import java.awt.Insets;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -50,10 +53,19 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-
-import static com.intellij.ui.SimpleTextAttributes.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IntelliJStackTraceView extends AspectObserver implements StackTraceView, DataProvider, CopyProvider {
+  private static final Insets LIST_ROW_INSETS = JBUI.insets(2, 10, 0, 0);
+
   @NotNull
   private final Project myProject;
 
@@ -90,7 +102,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListModel = new DefaultListModel<>();
     myListView = new JBList(myListModel);
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myListView.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myListView.setBackground(StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR);
     myRenderer = new StackElementRenderer();
     myListView.setCellRenderer(myRenderer);
     myScrollPane = new JBScrollPane(myListView);
@@ -252,7 +264,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
   @VisibleForTesting
   @NotNull
-  JBList getListView() {
+  public JBList getListView() {
     return myListView;
   }
 
@@ -270,27 +282,28 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
-      setIpad(ProfilerLayout.LIST_ROW_INSETS);
+      setIpad(LIST_ROW_INSETS);
       if (value instanceof CodeElement) {
         CodeElement element = (CodeElement)value;
         if (element.getCodeLocation().isNativeCode()) {
           renderNativeStackFrame(element, selected);
-        } else {
+        }
+        else {
           renderJavaStackFrame(element, selected);
         }
-
       }
       else if (value instanceof ThreadElement) {
         renderThreadElement((ThreadElement)value, selected);
       }
       else {
-        append(value.toString(), ERROR_ATTRIBUTES);
+        append(value.toString(), SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
 
     private void renderJavaStackFrame(@NotNull CodeElement codeElement, boolean selected) {
       setIcon(PlatformIcons.METHOD_ICON);
-      SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
+      SimpleTextAttributes textAttribute =
+        selected || codeElement.isInUserCode() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
       CodeLocation location = codeElement.getCodeLocation();
       StringBuilder methodBuilder = new StringBuilder(codeElement.getMethodName());
       if (location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
@@ -302,7 +315,8 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       String methodName = methodBuilder.toString();
       append(methodName, textAttribute, methodName);
       String packageName = " (" + codeElement.getPackageName() + ")";
-      append(packageName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, packageName);
+      append(packageName, selected ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES,
+             packageName);
     }
 
     private void renderNativeStackFrame(@NotNull CodeElement codeElement, boolean selected) {
@@ -318,7 +332,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       methodBuilder.append(location.getMethodName());
       methodBuilder.append("(" + String.join(",", location.getMethodParameters()) + ") ");
       String methodName = methodBuilder.toString();
-      append(methodName, REGULAR_ATTRIBUTES, methodName);
+      append(methodName, SimpleTextAttributes.REGULAR_ATTRIBUTES, methodName);
 
       if (!Strings.isNullOrEmpty(location.getFileName())) {
         String sourceLocation = Paths.get(location.getFileName()).getFileName().toString();
@@ -326,17 +340,18 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
           sourceLocation += ":" + String.valueOf(location.getLineNumber() + 1);
         }
 
-        append(sourceLocation, REGULAR_ATTRIBUTES, sourceLocation);
+        append(sourceLocation, SimpleTextAttributes.REGULAR_ATTRIBUTES, sourceLocation);
       }
 
       String moduleName = " " + Paths.get(location.getNativeModuleName()).getFileName().toString();
-      append(moduleName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, moduleName);
+      append(moduleName, selected ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES,
+             moduleName);
     }
 
     private void renderThreadElement(@NotNull ThreadElement threadElement, boolean selected) {
       setIcon(AllIcons.Debugger.ThreadSuspended);
       String text = threadElement.getThreadId().toString();
-      append(text, selected ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES, text);
+      append(text, selected ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES, text);
     }
   }
 }

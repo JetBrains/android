@@ -10,6 +10,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.base.bazel.repolinker" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="jna" level="project" />

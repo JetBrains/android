@@ -192,6 +192,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
+  "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
   "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
   "Watch Face" -> TemplateRenderer.WATCH_FACE
   "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
@@ -289,6 +290,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.THINGS_ACTIVITY -> TemplateType.THINGS_EMPTY_ACTIVITY
     TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY -> TemplateType.WEAR_GOOGLE_MAPS_ACTIVITY
     TemplateRenderer.WATCH_FACE -> TemplateType.WEAR_FACE_ACTIVITY
+    TemplateRenderer.RESPONSIVE_ACTIVITY -> TemplateType.RESPONSIVE_ACTIVITY
 
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,
@@ -302,6 +304,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT,
     TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE,
     TemplateRenderer.BENCHMARK_LIBRARY_MODULE,
+    TemplateRenderer.MACROBENCHMARK_LIBRARY_MODULE,
     TemplateRenderer.ANDROID_LIBRARY,
     TemplateRenderer.DYNAMIC_FEATURE_MODULE,
     TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE,

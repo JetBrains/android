@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.ide
+package com.android.tools.idea.appinspection.api.process
 
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -24,12 +23,13 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class AppInspectionProcessesModelTest {
+class ProcessesModelTest {
   private fun createFakeStream(): Common.Stream {
     return Common.Stream.newBuilder()
       .setDevice(FakeTransportService.FAKE_DEVICE)
       .build()
   }
+
   private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
     return TransportProcessDescriptor(this, FakeTransportService.FAKE_PROCESS.toBuilder()
       .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
@@ -40,7 +40,7 @@ class AppInspectionProcessesModelTest {
   @Test
   fun processConnectedDisconnected_modelUpdatesProperly() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf(FakeTransportService.FAKE_PROCESS.name) }
+    val model = ProcessesModel(testNotifier) { listOf(FakeTransportService.FAKE_PROCESS.name) }
 
     val fakeStream = createFakeStream()
     val fakeProcess = fakeStream.createFakeProcess()
@@ -49,10 +49,10 @@ class AppInspectionProcessesModelTest {
     // Verify the added target.
     assertThat(model.processes.size).isEqualTo(1)
     with(model.processes.first()) {
-      assertThat(this.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-      assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+      assertThat(this.device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+      assertThat(this.name).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
-    val selectedName = model.selectedProcess!!.processName
+    val selectedName = model.selectedProcess!!.name
     model.selectedProcess!!.let { selectedProcess ->
       assertThat(selectedProcess.isRunning).isTrue()
       assertThat(model.isProcessPreferred(selectedProcess)).isTrue()
@@ -63,21 +63,21 @@ class AppInspectionProcessesModelTest {
     // Once disconnected, the process remains but in a terminated state
     assertThat(model.processes.size).isEqualTo(1)
     model.selectedProcess!!.let { selectedProcess ->
-      assertThat(selectedProcess.processName).isEqualTo(selectedName)
+      assertThat(selectedProcess.name).isEqualTo(selectedName)
       assertThat(selectedProcess.isRunning).isFalse()
       assertThat(model.isProcessPreferred(selectedProcess)).isFalse()
       assertThat(model.isProcessPreferred(selectedProcess, includeDead = true)).isTrue()
     }
 
     // Updating the selected process removes any dead processes
-    model.setSelectedProcess(null)
+    model.selectedProcess = null
     assertThat(model.processes).isEmpty()
   }
 
   @Test
   fun canSetSelectedProcessDirectly() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("A") }
+    val model = ProcessesModel(testNotifier) { listOf("A") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -87,14 +87,14 @@ class AppInspectionProcessesModelTest {
     testNotifier.fireConnected(fakeProcessB)
     assertThat(model.selectedProcess).isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
 
-    model.setSelectedProcess(fakeProcessB)
+    model.selectedProcess = fakeProcessB
     assertThat(model.selectedProcess).isSameAs(fakeProcessB)
   }
 
   @Test
   fun modelListenerFiredOnProcessChanged() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -121,7 +121,7 @@ class AppInspectionProcessesModelTest {
   @Test
   fun modelPrioritizesPreferredProcess() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("preferred") }
+    val model = ProcessesModel(testNotifier) { listOf("preferred") }
 
     val fakeStream = createFakeStream()
 
@@ -139,7 +139,7 @@ class AppInspectionProcessesModelTest {
   @Test
   fun newProcessDoesNotCauseSelectionToChange() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -155,7 +155,7 @@ class AppInspectionProcessesModelTest {
   @Test
   fun noPreferredProcesses_noSelection() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { emptyList() }
+    val model = ProcessesModel(testNotifier) { emptyList() }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A")
@@ -167,9 +167,9 @@ class AppInspectionProcessesModelTest {
   }
 
   @Test
-  fun stopAndStartInspection() {
+  fun stop() {
     val testNotifier = TestProcessNotifier()
-    val model = AppInspectionProcessModel(testNotifier) { listOf("A", "B") }
+    val model = ProcessesModel(testNotifier) { listOf("A", "B") }
 
     val fakeStream = createFakeStream()
     val fakeProcessA = fakeStream.createFakeProcess("A", 100)
@@ -179,20 +179,48 @@ class AppInspectionProcessesModelTest {
     testNotifier.fireConnected(fakeProcessB)
 
     // Select a process normally
-    model.setSelectedProcess(fakeProcessB)
+    model.selectedProcess = fakeProcessB
     assertThat(model.selectedProcess).isSameAs(fakeProcessB)
 
     // Stop inspection and check the new selected process is dead
-    model.stopInspection(fakeProcessB)
-    val deadProcess = model.selectedProcess
-    assertThat(deadProcess!!.isRunning).isFalse()
+    model.stop()
+    val deadProcess = model.selectedProcess!!
+    assertThat(deadProcess.name).isEqualTo(fakeProcessB.name)
+    assertThat(deadProcess.isRunning).isFalse()
 
-    // Try to set selected process with isUserAction=false. Check selected process doesn't change.
-    model.setSelectedProcess(fakeProcessA)
-    assertThat(model.selectedProcess).isSameAs(deadProcess)
+    // Restart a new process by changing the selected process
+    model.selectedProcess = fakeProcessB
+    assertThat(model.selectedProcess).isNotSameAs(deadProcess)
+    assertThat(model.selectedProcess).isSameAs(fakeProcessB)
+  }
 
-    // Set selected process with isUserAction=true. Check selected process changed.
-    model.setSelectedProcess(fakeProcessA, isUserAction = true)
-    assertThat(model.selectedProcess).isSameAs(fakeProcessA)
+  @Test
+  fun processFilteringWorks() {
+    val testNotifier = TestProcessNotifier()
+
+    val fakeStream = createFakeStream()
+    val fakeProcessA = fakeStream.createFakeProcess("A")
+    val fakeProcessB = fakeStream.createFakeProcess("B")
+    val fakeProcessC = fakeStream.createFakeProcess("C")
+    val fakeProcessD = fakeStream.createFakeProcess("D")
+
+    val model = ProcessesModel(testNotifier, { it === fakeProcessB || it === fakeProcessD }) {
+      listOf(FakeTransportService.FAKE_PROCESS.name)
+    }
+
+    testNotifier.fireConnected(fakeProcessA)
+    testNotifier.fireConnected(fakeProcessB)
+    testNotifier.fireConnected(fakeProcessC)
+    testNotifier.fireConnected(fakeProcessD)
+    assertThat(model.processes.map { it.name }).containsExactly("B", "D")
+
+    testNotifier.fireDisconnected(fakeProcessA)
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("B", "D")
+    testNotifier.fireDisconnected(fakeProcessB)
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("D")
+    testNotifier.fireDisconnected(fakeProcessC)
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).containsExactly("D")
+    testNotifier.fireDisconnected(fakeProcessD)
+    assertThat(model.processes.filter { it.isRunning }.map { it.name }).isEmpty()
   }
 }

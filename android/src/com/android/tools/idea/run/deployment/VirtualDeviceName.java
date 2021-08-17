@@ -19,24 +19,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A virtual device name returned by AvdInfo.getName and IDevice.getAvdName
+ * A virtual device name returned by AvdInfo.getName and IDevice.getAvdName. Paths became the primary virtual device identifiers in Commit
+ * d87dc6db6e7f366507eed0912b96d88f0d282f5a but this class can only be deleted when enough users upgrade their emulator to (or past) Version
+ * 30.0.18.
  */
 final class VirtualDeviceName extends Key {
-  static final String PREFIX = "VirtualDeviceName@";
   private final @NotNull String myValue;
 
   VirtualDeviceName(@NotNull String value) {
     myValue = value;
-  }
-
-  @Override
-  @NotNull NonprefixedKey asNonprefixedKey() {
-    return new NonprefixedKey(myValue);
-  }
-
-  @Override
-  @NotNull String getDeviceKey() {
-    return myValue;
   }
 
   @Override
@@ -51,6 +42,6 @@ final class VirtualDeviceName extends Key {
 
   @Override
   public @NotNull String toString() {
-    return PREFIX + myValue;
+    return myValue;
   }
 }

@@ -153,6 +153,12 @@ fun createAndShowColorPickerPopup(
       .addTab("Resources", resourcePicker)
       .addTab("Custom", colorPicker)
       .setDefaultPage(if (initialColorResource != null) 0 else 1)
+      .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
+        override fun actionPerformed(event: ActionEvent) {
+          popupDialog.close()
+          restoreFocusComponent?.let(::restoreFocus)
+        }
+      })
       .build()
   }
   else colorPicker ?: resourcePicker!!

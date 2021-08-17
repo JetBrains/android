@@ -1,5 +1,7 @@
 android {
   packagingOptions {
+    doNotStrip = ['doNotStrip1', 'doNotStrip2']
+    doNotStrip 'doNotStrip3'
     excludes = ['exclude1', 'exclude2']
     exclude 'exclude3'
     merges = ['merge1', 'merge2']

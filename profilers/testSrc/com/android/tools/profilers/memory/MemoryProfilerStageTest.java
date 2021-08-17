@@ -20,58 +20,54 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
-import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
+public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final ByteBuffer FAKE_ALLOC_BUFFER = AllocationsParserTest.putAllocationInfo(
     ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, new int[0][], new short[0][][]
   );
@@ -84,11 +80,9 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
-  private final boolean myUnifiedPipeline = true;
-
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
+    myIdeProfilerServices.enableEventsPipeline(true);
   }
 
   @Override
@@ -105,13 +99,13 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, Status.NOT_ENABLED, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, -1, Status.NOT_ENABLED, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, -1, Status.FAILURE_UNKNOWN, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, -1, Status.FAILURE_UNKNOWN, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
@@ -126,7 +120,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -134,7 +128,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Attempting to start a in-progress session
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.IN_PROGRESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.IN_PROGRESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -143,7 +137,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Stops the tracking session.
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
@@ -183,12 +177,12 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Stopping tracking should not cause streaming.
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, -1, Status.NOT_ENABLED, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, -1, Status.NOT_ENABLED, true);
     assertThat(myStage.getTimeline().isStreaming()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.getTimeline().isStreaming()).isTrue();
   }
 
@@ -200,14 +194,14 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isTrue();
     myStage.exit();
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isTrue();
 
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     myStage.exit();
     myStage.enter();
@@ -220,17 +214,17 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Bypass the load mechanism in HeapDumpCaptureObject.
     myMockLoader.setReturnImmediateFuture(true);
     // Test the no-action cases
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.IN_PROGRESS);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
-    MemoryProfilerTestUtils.heapDumpHelper(myStage, myUnifiedPipeline, myTransportService, myService, -1, -1,
+    MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.UNSPECIFIED);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -533,7 +527,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 0, 100).build());
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData
-        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
         .build());
     MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getTimeline().getTooltipRange().set(time, time);
@@ -545,21 +539,21 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 1, 200).build());
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData
-        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
         .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Now change sampling mode to none, the Allocated legend should still show "N/A"
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData
-        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 2, MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 2, MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())
         .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Value should update once sampling mode is set back to full.
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData
-        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 3, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 3, MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
         .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("200");
   }
@@ -591,9 +585,9 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
@@ -616,10 +610,10 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
     MemoryProfilerTestUtils
-      .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, infoEnd, Status.SUCCESS, true);
+      .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
@@ -629,28 +623,23 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testHasUserUsedCaptureViaHeapDump() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
     myStage.requestHeapDump();
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 
   @Test
   public void testHasUserUsedCaptureViaLegacyTracking() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
-      .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+      .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 
   @Test
   public void testHasUserUsedCaptureViaSelection() {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedMemoryCapture()).isFalse();
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
@@ -659,7 +648,6 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(infoStart, FAKE_PROCESS.getPid(), info).build());
     myStage.getRangeSelectionModel().set(5, 10);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
 
@@ -669,25 +657,25 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
                                                                  () -> samplingAspectChange[0]++);
 
-    // Ensure that the default is sampled.
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    // Ensure that the default is none.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     // Ensure that advancing the timer does not change the mode if there are no AllocationSamplingRange.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 1).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL);
     assertThat(samplingAspectChange[0]).isEqualTo(1);
 
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 0).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(2);
   }
 
@@ -696,22 +684,22 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // If the sampling mode is already available from the memory service, make sure the memory stage is correctly initialized to that value.
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 1).build());
-    MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
-    assertThat(stage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(stage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL);
   }
 
   @Test
   public void testAllocationSamplingModePersistsAcrossStages() {
-    // Ensure that the default is sampled.
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
-    myStage.requestLiveAllocationSamplingModeUpdate(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    // Ensure that the default is none.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    myStage.requestLiveAllocationSamplingModeUpdate(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL);
 
-    MemoryProfilerStage newStage1 = new MemoryProfilerStage(myProfilers, myMockLoader);
-    assertThat(newStage1.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
-    newStage1.requestLiveAllocationSamplingModeUpdate(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    MainMemoryProfilerStage newStage1 = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(newStage1.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    newStage1.requestLiveAllocationSamplingModeUpdate(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
 
-    MemoryProfilerStage newStage2 = new MemoryProfilerStage(myProfilers, myMockLoader);
-    assertThat(newStage2.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+    MainMemoryProfilerStage newStage2 = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(newStage2.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
   }
 
   @Test
@@ -747,7 +735,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
                                        .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
                                        .build())
       .build());
-    MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
     assertThat(stage.isTrackingAllocations()).isFalse();
     stage.enter();
     assertThat(stage.isTrackingAllocations()).isTrue();
@@ -769,5 +757,35 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
+  }
+
+  @Test
+  public void selectingHeapDumpGoesToSeparateStage() {
+    myIdeProfilerServices.enableEventsPipeline(true);
+
+    HeapDumpInfo info = HeapDumpInfo.newBuilder().build();
+
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryHeapDumpData(info.getStartTime(), info.getStartTime(), info)
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
+      CaptureDataSeries.ofHeapDumpSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                          myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE);
+  }
+
+  @Test
+  public void selectingFinishedAllocationSessionSwitchesToAllocationStage() {
+    CaptureObject obj = new FakeCaptureObject.Builder().build();
+    CaptureEntry<CaptureObject> entry = new CaptureEntry<>(0, () -> obj);
+    AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);
+    myStage.selectCaptureDuration(data, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(AllocationStage.class);
   }
 }

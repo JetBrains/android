@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,6 +63,6 @@ public class CreateBasicKotlinProjectTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
 
-    assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
   }
 }

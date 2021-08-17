@@ -225,16 +225,16 @@ public class AttributesTransaction implements NlAttributesHolder {
   public boolean commit() {
     apply();
 
+    if (!ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      return ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
+    }
+
     myLock.writeLock().lock();
     try {
       assert isValid;
 
       if (!myComponent.getBackend().isValid()) {
         return finishTransaction();
-      }
-
-      if (!ApplicationManager.getApplication().isWriteAccessAllowed()) {
-        return ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
       }
 
       boolean modified = false;

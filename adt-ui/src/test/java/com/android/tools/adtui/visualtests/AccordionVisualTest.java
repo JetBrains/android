@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui.visualtests;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -201,7 +203,7 @@ public class AccordionVisualTest extends VisualTest {
   private LineChart generateChart(AccordionLayout layout, AccordionLayout.Orientation direction,
                                   int minSize, int preferredSize, int maxSize) {
     ArrayList<RangedContinuousSeries> data = mRangedData;
-    LineChartModel model = new LineChartModel();
+    LineChartModel model = new LineChartModel(newDirectExecutorService());
     model.addAll(data);
     LineChart chart = new LineChart(model);
     if (direction == AccordionLayout.Orientation.VERTICAL) {

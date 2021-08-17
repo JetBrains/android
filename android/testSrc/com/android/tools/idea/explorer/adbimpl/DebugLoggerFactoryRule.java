@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.testing;
 
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
+import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.rules.ExternalResource;
-
-import java.lang.reflect.Field;
 
 /**
  * JUnit4 rule that enables debug logging from the default {@link Logger}.
@@ -33,13 +32,13 @@ import java.lang.reflect.Field;
  * <pre>
  * public class MyTest {
  *  &#064;ClassRule
- *  public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
+ *  public static DebugLoggerRule ourDebugLoggerRule = new DebugLoggerRule();
  *
  *  // Tests that depend on Logger.debug() to output messages to {@link System#out}
  * }
  * </pre>
  */
-public class DebugLoggerFactoryRule extends ExternalResource {
+public class DebugLoggerRule extends ExternalResource {
   @Nullable private Logger.Factory myOriginalFactory;
 
   @Override
@@ -52,9 +51,8 @@ public class DebugLoggerFactoryRule extends ExternalResource {
       myOriginalFactory = (Logger.Factory)factoryField.get(null);
       factoryField.setAccessible(false);
     }
-    catch (IllegalAccessException | NoSuchFieldException ignore) {
-      System.err.println("Error injecting custom logger factory");
-      System.err.println("Error: " + ignore);
+    catch (IllegalAccessException | NoSuchFieldException e) {
+      System.err.println("Error injecting custom logger factory: " + e);
     }
     Logger.setFactory(MyDebugLoggerFactory.class);
   }
@@ -89,6 +87,19 @@ public class DebugLoggerFactoryRule extends ExternalResource {
         @Override
         public void debug(String message) {
           System.out.println(message);
+        }
+
+        @Override
+        public void debug(@Nullable Throwable t) {
+          if (t != null) {
+            t.printStackTrace(System.out);
+          }
+        }
+
+        @Override
+        public void debug(String message, @Nullable Throwable t) {
+          debug(message);
+          debug(t);
         }
 
         @Override

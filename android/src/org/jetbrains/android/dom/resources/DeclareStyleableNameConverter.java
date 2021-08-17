@@ -3,7 +3,6 @@ package org.jetbrains.android.dom.resources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
@@ -12,12 +11,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiPolyVariantReferenceBase;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.Processor;
 import java.util.HashSet;
@@ -71,7 +68,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
 
     @Override
     public boolean isReferenceTo(@NotNull PsiElement element) {
-      if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+      if (element instanceof ResourceReferencePsiElement) {
         if (((ResourceReferencePsiElement)element).getResourceReference().getResourceType().equals(ResourceType.STYLEABLE)) {
           return ((ResourceReferencePsiElement)element).getResourceReference().getName().equals(myValue.getValue());
         }
@@ -97,24 +94,10 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
       if (value == null) {
         return ResolveResult.EMPTY_ARRAY;
       }
-      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-        // In the new pipeline the declare styleable name will point to the ResourceReferencePsiElement, similar to the corresponding field.
-        ResourceNamespace resourceNamespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
-        return ResourceRepositoryToPsiResolver.INSTANCE.resolveReference(
-          new ResourceReference(resourceNamespace, ResourceType.STYLEABLE, value), myElement, myFacet);
-      }
-      // Search for custom views with the same name as the declare styleable, such that
-      // you can navigate from the XML styleable declaration to the corresponding custom view
-      final PsiClass[] classes = PsiShortNamesCache.getInstance(myElement.getProject())
-        .getClassesByName(value, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
-      if (classes.length == 0) {
-        return ResolveResult.EMPTY_ARRAY;
-      }
-      final ResolveResult[] result = new ResolveResult[classes.length];
-      for (int i = 0; i < result.length; i++) {
-        result[i] = new PsiElementResolveResult(classes[i]);
-      }
-      return result;
+      // Declare styleable name will point to the ResourceReferencePsiElement.
+      ResourceNamespace resourceNamespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
+      return ResourceRepositoryToPsiResolver.INSTANCE.resolveReference(
+        new ResourceReference(resourceNamespace, ResourceType.STYLEABLE, value), myElement, myFacet);
     }
 
     @NotNull

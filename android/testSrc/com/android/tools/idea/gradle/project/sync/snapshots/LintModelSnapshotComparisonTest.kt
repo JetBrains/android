@@ -72,6 +72,7 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
       TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
+      TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR), // TODO(b/178796251): The snaphot does not include `proguardFiles`.
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),

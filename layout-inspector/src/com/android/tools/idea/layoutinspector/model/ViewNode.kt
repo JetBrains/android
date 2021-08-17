@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -58,9 +62,48 @@ open class ViewNode(
   var textValue: String,
   var layoutFlags: Int
 ) {
+  /** constructor for synthetic nodes */
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, 0, 0, 0, 0, null, null, "", 0)
+
   /** The bounds used by android for layout. Always a rectangle. */
   val layoutBounds: Rectangle
     get() = Rectangle(x, y, width, height)
+
+  @Suppress("LeakingThis")
+  val treeNode = TreeViewNode(this)
+
+  /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
+  open val isSystemNode: Boolean
+    get() =
+      layout == null ||
+      layout?.namespace == ResourceNamespace.ANDROID ||
+      layout?.name?.startsWith("abc_") == true
+
+  /** Returns true if this [ViewNode] has merged semantics */
+  open val hasMergedSemantics: Boolean
+    get() = false
+
+  /** Returns true if this [ViewNode] has unmerged semantics */
+  open val hasUnmergedSemantics: Boolean
+    get() = false
+
+  /**
+   * Return the closest unfiltered node
+   *
+   * This will either be:
+   * - the node itself
+   * - the closest ancestor that is not filtered out of the component tree
+   * - null
+   */
+  fun findClosestUnfilteredNode(treeSettings: TreeSettings): ViewNode? =
+    if (treeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
+
+  /** Returns true if the node appears in the component tree. False if it currently filtered out */
+  fun isInComponentTree(treeSettings: TreeSettings): Boolean =
+    treeSettings.isInComponentTree(this)
+
+  /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
+  open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
 
   private var _transformedBounds = bounds
 
@@ -80,12 +123,8 @@ open class ViewNode(
     get() = generateSequence(this) { it.parent }
 
   // Views and images that will be drawn.
-  // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
+  // The order here and in children can be different at least due to how compose->view transitions are grafted in.
   private val drawChildren = mutableListOf<DrawViewNode>()
-    get(): MutableList<DrawViewNode> {
-
-      return field
-    }
 
   var tag: XmlTag?
     get() = tagPointer?.element
@@ -96,14 +135,15 @@ open class ViewNode(
   val unqualifiedName: String
     get() = qualifiedName.substringAfterLast('.')
 
-  // TODO: move to draw node
-  var visible = true
-
   val isDimBehind: Boolean
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
   fun flatten(): Sequence<ViewNode> {
     return children.asSequence().flatMap { it.flatten() }.plus(this)
+  }
+
+  fun preOrderFlatten(): Sequence<ViewNode> {
+    return sequenceOf(this).plus(children.asSequence().flatMap { it.flatten() })
   }
 
   companion object {

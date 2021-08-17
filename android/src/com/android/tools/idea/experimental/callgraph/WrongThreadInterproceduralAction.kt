@@ -20,6 +20,7 @@ import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.client.api.Vendor
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
@@ -62,6 +63,7 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
             val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
             request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
             val issue = object : IssueRegistry() {
+              override val vendor: Vendor = AOSP_VENDOR
               override val issues: List<Issue>
                 get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
             }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
+package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
@@ -21,10 +21,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.LayoutTestCase.getDesignerPluginHome
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.PropertiesTable
@@ -80,7 +80,7 @@ class MotionAttributeRule(
     select(selectionFactory!!.createKeyFrame(start, end, keyType, framePosition, target))
   }
 
-  fun property(namespace: String, name: String, subTag: String = ""): NelePropertyItem {
+  fun property(namespace: String, name: String, subTag: String = ""): NlPropertyItem {
     return model!!.allProperties!![subTag]!![namespace, name]
   }
 
@@ -88,7 +88,7 @@ class MotionAttributeRule(
     selectionFactory = MotionSelectionFactory(nlModel!!, sceneFile!!)
   }
 
-  val properties: Map<String, PropertiesTable<NelePropertyItem>>
+  val properties: Map<String, PropertiesTable<NlPropertyItem>>
     get() = model!!.allProperties!!
 
   val attributesModel: MotionLayoutAttributesModel
@@ -101,7 +101,9 @@ class MotionAttributeRule(
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+    Mockito.`when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    Mockito.`when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 
@@ -173,7 +175,7 @@ class MotionAttributeRule(
 
   private fun select(selection: MotionSelection) {
     timeline!!.select(selection)
-    runInEdtAndWait { NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!) }
+    runInEdtAndWait { NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!) }
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import com.android.prefs.AndroidLocationsException;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -24,18 +29,23 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.meta.RepoFactory;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.adtui.device.DeviceArtDescriptor;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +89,9 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     return builder.build();
   }
 
+  private AndroidSdkHandler sdkHandler;
+  private MockFileOp fop;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -88,6 +101,20 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+    fop = new MockFileOp();
+    recordPlatform23(fop);
+    recordGoogleApisAddon23(fop);
+    recordGoogleApisSysImg23(fop);
+    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
+    Path sdkPath = fop.toPath("/sdk");
+    sdkHandler = new AndroidSdkHandler(sdkPath, fop.toPath("/android-home"), fop);
+
+    IdeSdks ideSdks = spy(IdeSdks.getInstance());
+    when(ideSdks.getAndroidSdkPath()).thenReturn(fop.toFile(sdkPath));
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, ideSdks, getTestRootDisposable());
+    AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
+    when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, getTestRootDisposable());
   }
 
   @Override
@@ -101,13 +128,6 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
   }
 
   public void testCreateDevice() throws Exception {
-    MockFileOp fop = new MockFileOp();
-    recordPlatform23(fop);
-    recordGoogleApisAddon23(fop);
-    recordGoogleApisSysImg23(fop);
-    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
-
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
@@ -117,7 +137,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
     Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true, fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
     final AvdInfo avdInfo = createAvd(avd, sdkHandler);
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
@@ -130,12 +150,26 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     assertEquals(DEVICE_ID, skin.getName());
   }
 
+  public void testRequiredSysimgPath() {
+
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+
+    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(23);
+    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+
+    Map<String, RemotePackage> remotes = new HashMap<>();
+    remotes.put("platforms;android-23", remotePlatform);
+
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    avd.sdkHandler = sdkHandler;
+
+    assertEquals("system-images;android-23;google_apis;x86", avd.getRequiredSysimgPath(false));
+    assertEquals("system-images;android-23;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
+  }
+
   public void testSelectedByDefault() throws Exception {
-    MockFileOp fop = new MockFileOp();
-    recordPlatform23(fop);
-    recordGoogleApisAddon23(fop);
-    recordGoogleApisSysImg23(fop);
-    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
@@ -146,8 +180,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     Map<String, RemotePackage> remotes = Maps.newHashMap();
 
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true, fop);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
@@ -158,7 +191,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     // SDK installed, System image, but no AVD -> Selected by default
     remotes.put("platforms;android-23", remotePlatform);
-    avd = new AndroidVirtualDevice(remotes, true, fop);
+    avd = new AndroidVirtualDevice(remotes, true);
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 
@@ -305,8 +338,10 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
   }
 
   @NotNull
-  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws WizardException {
-    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
+  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws WizardException,
+                                                                                                             AndroidLocationsException {
+    Path avdFolder = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
+    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
     disposeOnTearDown(() -> connection.deleteAvd(avdInfo));

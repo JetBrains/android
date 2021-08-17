@@ -17,20 +17,32 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.SCHEMA_TREE_CONTEXT_MENU
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.SCHEMA_TREE_EXPORT_BUTTON
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
@@ -58,6 +70,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val refreshSchemaButton = CommonButton(AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton(StudioIcons.DatabaseInspector.NEW_QUERY)
   private val keepConnectionsOpenButton = CommonButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
+  private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
   val component = rootPanel
   val databasesCount: Int get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
@@ -210,8 +223,47 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     keepConnectionsOpenButton.addActionListener { mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() } }
 
+    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
+      exportButton.name = "export-button"
+      exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
+      HelpTooltip()
+        .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
+        .installOn(exportButton)
+      northPanel.add(exportButton)
+
+      exportButton.addActionListener {
+        val exportParams =
+          createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON)
+          ?: return@addActionListener // TODO(161081452): log an error / show to user
+        mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
+      }
+      updateExportButtonEnabledState()
+      tree.addTreeSelectionListener {
+        updateExportButtonEnabledState()
+      }
+    }
+
     return northPanel
   }
+
+  private fun updateExportButtonEnabledState() {
+    exportButton.isEnabled = createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON) != null
+  }
+
+  /** Tries to create an [ExportDialogParams] object based on the currently selected schema tree element */
+  private fun createExportDialogParams(actionOrigin: Origin): ExportDialogParams? {
+      val selectedNode = tree.selectedNode
+      val selected = selectedNode?.userObject
+      val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
+      return when {
+        selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
+        selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
+        else -> null
+      }
+    }
+
+  private val Tree.selectedNode: DefaultMutableTreeNode?
+    get() = selectionPath?.lastPathComponent as? DefaultMutableTreeNode
 
   private fun createCenterPanel(): JPanel {
     val centerPanel = JPanel(BorderLayout())
@@ -236,7 +288,28 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     tree.name = "left-panel-tree"
 
+    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
+      setUpExportPopUp(tree)
+    }
     setUpSchemaTreeListeners(tree)
+  }
+
+  private fun setUpExportPopUp(tree: Tree) {
+    val exportAction = object : AnAction(DatabaseInspectorBundle.message("action.export.button.tooltip.title")) {
+      override fun actionPerformed(e: AnActionEvent) {
+        val exportParams = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) ?: return  // TODO(161081452): log an error
+        mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
+      }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) != null
+        super.update(e)
+      }
+    }
+
+    PopupHandler.installFollowingSelectionTreePopup(
+      tree, DefaultActionGroup(exportAction), ActionPlaces.UNKNOWN, ActionManager.getInstance()
+    )
   }
 
   private fun setUpSchemaTreeListeners(tree: Tree) {
@@ -261,17 +334,17 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   private fun fireAction(tree: Tree, e: InputEvent) {
-    val lastPathComponent = tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode ?: return
+    val selectedNode = tree.selectedNode ?: return
 
-    val sqliteTable = lastPathComponent.userObject
+    val sqliteTable = selectedNode.userObject
     if (sqliteTable is SqliteTable) {
-      val parentNode = lastPathComponent.parent as DefaultMutableTreeNode
+      val parentNode = selectedNode.parent as DefaultMutableTreeNode
       val viewDatabase = parentNode.userObject as ViewDatabase
       mainView.listeners.forEach { l -> l.tableNodeActionInvoked(viewDatabase.databaseId, sqliteTable) }
       e.consume()
     }
     else {
-      val path = TreePath(lastPathComponent.path)
+      val path = TreePath(selectedNode.path)
       if (tree.isExpanded(path)) {
         tree.collapsePath(path)
       }

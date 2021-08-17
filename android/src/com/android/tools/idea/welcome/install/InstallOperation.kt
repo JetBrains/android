@@ -53,7 +53,7 @@ abstract class InstallOperation<Return, Argument>(
     }
     else {
       try {
-        context.run(ThrowableComputable<Return, Exception> {
+        context.run(ThrowableComputable {
           val indicator = ProgressManager.getInstance().progressIndicator ?: EmptyProgressIndicator()
           perform(indicator, argument)
         }, progressRatio)
@@ -71,7 +71,7 @@ abstract class InstallOperation<Return, Argument>(
   /**
    * Shows a retry prompt. Throws an exception to stop the setup process if the user preses cancel or returns normally otherwise.
    */
-  @Throws(WizardException::class)
+  @Throws(InstallationCancelledException::class)
   protected fun promptToRetry(prompt: String, failureDescription: String, e: Exception?) {
     val response = AtomicBoolean(false)
     val application = ApplicationManager.getApplication()
@@ -91,7 +91,7 @@ abstract class InstallOperation<Return, Argument>(
       if (e != null) {
         Throwables.throwIfInstanceOf(e, WizardException::class.java)
       }
-      throw WizardException(failureDescription, e)
+      throw InstallationCancelledException()
     }
     else {
       context.print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT)

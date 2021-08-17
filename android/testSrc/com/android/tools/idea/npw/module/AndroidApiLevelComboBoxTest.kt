@@ -16,6 +16,9 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
+import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
@@ -74,6 +77,18 @@ class AndroidApiLevelComboBoxTest {
     apiComboBox.selectedIndex = 2
     val savedApi = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none")
     assertEquals(items[2].minApiLevelStr, savedApi)
+
+    // Makes sure that if you already have a previously saved API level, we force it up to at least the recommended
+    // API level
+    PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), LOWEST_ACTIVE_API.toString())
+    ensureDefaultApiLevelAtLeastRecommended()
+    val apiLevelItems = mutableListOf<VersionItem>()
+    for (level in LOWEST_ACTIVE_API..HIGHEST_KNOWN_API) {
+      apiLevelItems.add(createMockVersionItem(level))
+    }
+    val comboBox = AndroidApiLevelComboBox()
+    comboBox.init(formFactor, apiLevelItems)
+    assertEquals(RECOMMENDED_MIN_SDK_VERSION - LOWEST_ACTIVE_API, comboBox.selectedIndex)
   }
 }
 

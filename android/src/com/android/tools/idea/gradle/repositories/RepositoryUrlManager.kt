@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.repositories
 import com.android.ide.common.repository.*
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER
+import com.android.io.CancellableFileIo
 import com.android.repository.io.FileOp
 import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -38,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 
@@ -101,7 +103,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
         .filter { it?.isDirectory == true }
         .firstNotNullResult {
-          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, it, filter, includePreviews, fileOp)
+          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileOp.toPath(it), filter, includePreviews)
         }?.version
     }
     return null
@@ -133,16 +135,17 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   fun getArchiveForCoordinate(gradleCoordinate: GradleCoordinate, sdkLocation: File, fileOp: FileOp): File? {
     val groupId = gradleCoordinate.groupId
     val artifactId = gradleCoordinate.artifactId
-    val repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp) ?: return null
-    val repositoryLocation = repository.getRepositoryLocation(sdkLocation, true, fileOp) ?: return null
-    val artifactDirectory: File? = MavenRepositories.getArtifactDirectory(repositoryLocation, gradleCoordinate)
-    if (!fileOp.isDirectory(artifactDirectory!!)) {
+    val sdkPath = fileOp.toPath(sdkLocation)
+    val repository = SdkMavenRepository.find(sdkPath, groupId, artifactId) ?: return null
+    val repositoryLocation = repository.getRepositoryLocation(sdkPath, true) ?: return null
+    val artifactDirectory: Path? = MavenRepositories.getArtifactDirectory(repositoryLocation, gradleCoordinate)
+    if (!CancellableFileIo.isDirectory(artifactDirectory!!)) {
       return null
     }
     for (artifactType in ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
-      val archive = File(artifactDirectory, ("$artifactId-${gradleCoordinate.revision}.$artifactType"))
-      if (fileOp.isFile(archive)) {
-        return archive
+      val archive = artifactDirectory.resolve("$artifactId-${gradleCoordinate.revision}.$artifactType")
+      if (CancellableFileIo.isRegularFile(archive)) {
+        return fileOp.toFile(archive)
       }
     }
     return null

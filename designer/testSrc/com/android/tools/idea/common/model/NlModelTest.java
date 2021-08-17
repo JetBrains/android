@@ -67,6 +67,9 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
@@ -100,6 +103,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlModelTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper();
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    TestDialogManager.setTestDialog(message -> Messages.OK);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT);
+  }
 
   @SuppressWarnings("ConstantConditions")
   public void testSync() {
@@ -511,7 +526,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, model.getSurface());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
@@ -877,11 +892,6 @@ public class NlModelTest extends LayoutTestCase {
     DesignSurface surface = createSurface(NlDesignSurface.class);
     when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
     return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {

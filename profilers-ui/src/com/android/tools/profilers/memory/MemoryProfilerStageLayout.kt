@@ -17,8 +17,11 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.JBPanel
+import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -28,6 +31,7 @@ import javax.swing.JPanel
  */
 class MemoryProfilerStageLayout(private val timelineView: JComponent?,
                                 val capturePanel: CapturePanel,
+                                recordPanel: RecordingOptionsView,
                                 private val makeLoadingPanel: () -> LoadingPanel) {
   val toolbar = JPanel(createToolbarLayout())
 
@@ -69,8 +73,11 @@ class MemoryProfilerStageLayout(private val timelineView: JComponent?,
     proportion = .6f
   }
 
-  val component: JComponent
-    get() = mainSplitter
+  val component = JBSplitter(false).apply {
+    firstComponent = recordPanel
+    secondComponent = mainSplitter
+    proportion = .35f
+  }
 
   var isShowingCaptureUi = false
     set(isShown) {

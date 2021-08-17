@@ -15,24 +15,15 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.ConstantSourceProvider;
+import static com.android.testutils.file.InMemoryFileSystems.getPlatformSpecificPath;
+
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.Repository;
-import com.android.repository.api.SchemaModule;
-import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
-import com.google.common.collect.ImmutableList;
-import com.intellij.util.PathUtil;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
-import javax.xml.bind.JAXBException;
+import java.nio.file.Path;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link PatchInstallerFactory}.
@@ -46,80 +37,17 @@ public class PatchInstallerTest extends TestCase {
     ourFileOp = new MockFileOp();
   }
 
-  private static final String PATCHER_V1 =
-    "<sdk:repository\n" +
-    "        xmlns:sdk=\"http://schemas.android.com/repository/android/generic/01\"\n" +
-    "        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
-    "    <localPackage path=\"patcher;v1\">\n" +
-    "        <type-details xsi:type=\"sdk:genericDetailsType\"/>\n" +
-    "        <revision>\n" +
-    "            <major>1</major>\n" +
-    "        </revision>\n" +
-    "        <display-name>patcher v1</display-name>\n" +
-    "    </localPackage>\n" +
-    "</sdk:repository>";
-
-  private static final String PKG_V2 =
-    "<sdk:repository\n" +
-    "        xmlns:sdk=\"http://schemas.android.com/repository/android/generic/01\"\n" +
-    "        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
-    "    <localPackage path=\"pkg\">\n" +
-    "        <type-details xsi:type=\"sdk:genericDetailsType\"/>\n" +
-    "        <revision>\n" +
-    "            <major>2</major>\n" +
-    "        </revision>\n" +
-    "        <display-name>test pkg</display-name>\n" +
-    "    </localPackage>\n" +
-    "</sdk:repository>";
-
-  private static final String REMOTE =
-    "<sdk:repository\n" +
-    "        xmlns:sdk=\"http://schemas.android.com/repository/android/generic/01\"\n" +
-    "        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
-    "    <remotePackage path=\"pkg\">\n" +
-    "        <type-details xsi:type=\"sdk:genericDetailsType\"/>\n" +
-    "        <revision>\n" +
-    "            <major>5</major>\n" +
-    "        </revision>\n" +
-    "        <display-name>test pkg</display-name>\n" +
-    "        <dependencies>\n" +
-    "            <dependency path=\"patcher;v1\"/>\n" +
-    "        </dependencies>\n" +
-    "        <archives>\n" +
-    "            <archive>\n" +
-    "                <complete>\n" +
-    "                    <size>65536</size>\n" +
-    "                    <checksum>2822ae37115ebf13412bbef91339ee0d9454525e</checksum>\n" +
-    "                    <url>http://example.com/2/arch1</url>\n" +
-    "                </complete>\n" +
-    "            </archive>\n" +
-    "        </archives>\n" +
-    "    </remotePackage>\n" +
-    "</sdk:repository>\n";
-
-  public void testRunInstaller() throws Exception {
+  public void testRunInstaller() {
     FakeProgressIndicator progress = new FakeProgressIndicator(true);
-    File localPackageLocation = new File("/sdk/pkg");
-    ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(new File(localPackageLocation.getPath(), "sourceFile")),
-                           "the source to which the diff will be applied");
-    File patchFile = new File("/patchfile");
-    ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(patchFile), "the patch contents");
-    PatchRunner runner = new PatchRunner(new File("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
-    boolean result = runner.run(localPackageLocation, patchFile, progress);
+    Path sourceFile = ourFileOp.toPath(getPlatformSpecificPath("/sdk/pkg/sourceFile"));
+    ourFileOp.recordExistingFile(sourceFile, 0, "the source to which the diff will be applied".getBytes());
+    Path patchFile = ourFileOp.toPath(getPlatformSpecificPath("/patchfile"));
+    ourFileOp.recordExistingFile(patchFile, 0, "the patch contents".getBytes());
+    PatchRunner runner = new PatchRunner(ourFileOp.toPath("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
+    boolean result = runner.run(sourceFile.getParent(), patchFile, progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
     assertTrue(FakeRunner.ourDidRun);
-  }
-
-  private static RemotePackage getRemotePackage(@NotNull RepoManager repoManager, @NotNull ProgressIndicator progress)
-    throws JAXBException {
-    InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes());
-    ImmutableList<SchemaModule<?>> modules = ImmutableList.of(RepoManager.getGenericModule());
-    Repository r = (Repository) SchemaModuleUtil.unmarshal(remoteInput, modules, true, progress);
-    RemotePackage p = r.getRemotePackage().get(0);
-    ConstantSourceProvider provider = new ConstantSourceProvider("http://example.com", "dummy", modules);
-    p.setSource(provider.getSources(null, progress, false).get(0));
-    return p;
   }
 
   private static class FakeRunner {
@@ -130,8 +58,9 @@ public class PatchInstallerTest extends TestCase {
       ourLoggerInitted = true;
     }
 
+    @SuppressWarnings("unused") // invoked by reflection
     public static boolean doInstall(String patchPath, FakeUIBase ui, String sourcePath) {
-      assertEquals("/patchfile", PathUtil.toSystemIndependentName(patchPath));
+      assertEquals(ourFileOp.getPlatformSpecificPath("/patchfile"), patchPath);
       assertTrue(ourFileOp.exists(new File(sourcePath, "sourceFile")));
       assertTrue(ui instanceof FakeUI);
       ourDidRun = true;

@@ -36,7 +36,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 public class AddGradleDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
+  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest(guiTest::robot);
 
   @Test
   public void testNoModuleDependencyQuickfixFromJavaToAndroid() throws IOException {

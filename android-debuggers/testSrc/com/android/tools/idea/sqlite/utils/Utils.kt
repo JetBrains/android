@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.sqlite.utils
 
+import com.android.SdkConstants
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.TestUtils
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -53,4 +56,11 @@ internal fun initProjectSystemService(project: Project, disposable: Disposable, 
     androidProjectSystem.getAndroidFacetsWithPackageName(project, "processName", GlobalSearchScope.projectScope(project))
   ).thenReturn(androidFacets)
   `when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
+}
+
+/** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
+internal fun initAdbFileProvider(project: Project) {
+  AdbFileProvider {
+    TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile()
+  }.storeInProject(project)
 }

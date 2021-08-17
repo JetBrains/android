@@ -16,7 +16,7 @@
 package com.android.tools.idea.project.messages;
 
 import com.android.ide.common.blame.Message;
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.util.ui.MessageCategory;
 import org.intellij.lang.annotations.MagicConstant;

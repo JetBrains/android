@@ -27,7 +27,7 @@
   <actions>
     <action id="Android.AdbDevicePairing"
             class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"
-            icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
+            icon="StudioIcons.Avd.PAIR_OVER_WIFI"
             text="Pair Devices Using Wi-Fi"
             description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
   </actions>

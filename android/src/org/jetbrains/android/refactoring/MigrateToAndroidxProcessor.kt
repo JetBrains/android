@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.ide.common.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
@@ -272,7 +272,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
     if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleUsageInfo }) {
       // If we modified gradle entries, request sync.
-      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX)
+      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX, null)
     }
   }
 

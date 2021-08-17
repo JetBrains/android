@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.model
+package com.android.tools.idea.uibuilder.property.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.verify
 
 class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
 
   private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
-    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NelePropertyType.STRING, createTextView(propertyValue))
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NlPropertyType.STRING, createTextView(propertyValue))
     return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property)
   }
 

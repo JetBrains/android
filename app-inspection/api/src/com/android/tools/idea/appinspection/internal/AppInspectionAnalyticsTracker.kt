@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.appinspection.internal
 
-import com.android.tools.profiler.proto.Common
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
 interface AppInspectionAnalyticsTracker {
   fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind)
   fun trackToolWindowOpened()
   fun trackToolWindowHidden()
-  fun trackProcessSelected(device: Common.Device, numDevices: Int, numProcesses: Int)
+  fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int)
   fun trackInspectionStopped()
   fun trackInspectionRestarted()
 }
@@ -31,7 +31,7 @@ val STUB_TRACKER = object : AppInspectionAnalyticsTracker {
   override fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind) {}
   override fun trackToolWindowOpened() {}
   override fun trackToolWindowHidden() {}
-  override fun trackProcessSelected(device: Common.Device, numDevices: Int, numProcesses: Int) {}
+  override fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int) {}
   override fun trackInspectionStopped() {}
   override fun trackInspectionRestarted() {}
 }

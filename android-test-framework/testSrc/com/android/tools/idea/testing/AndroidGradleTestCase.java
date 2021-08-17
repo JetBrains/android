@@ -20,7 +20,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.shouldUseRemoteRepositories;
@@ -33,16 +32,17 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
-import com.android.tools.idea.util.AndroidTestPaths;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -71,12 +71,15 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -169,13 +172,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(AndroidTestPaths.adtSources().resolve(getTestDataDirectoryAdtIdeaRelativePath()).toAbsolutePath().toString());
+    fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
     ensureSdkManagerAvailable();
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
     LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
-    AndroidGradleTests.setUpSdks(fixture, getSdk());
+    AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk().toFile());
     myFixture = fixture;
   }
 
@@ -214,7 +217,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       }
       finally {
         //noinspection ThrowFromFinallyBlock
-        super.tearDown();
+        // Added more logging because of http://b/184293946
+          try {
+            super.tearDown();
+          } catch (DirectoryNotEmptyException ex) {
+            String allPaths = Joiner.on(",").join(Files.walk(Paths.get(ex.getFile())).collect(Collectors.toList()));
+            System.err.println("Failed to delete dir as it contains files: " + allPaths);
+            throw ex;
+          }
       }
     }
   }
@@ -236,23 +246,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected final void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null, null, null);
+    loadProject(relativePath, null, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName) throws Exception {
-    loadProject(relativePath, chosenModuleName, null, null, null);
-  }
-
-  protected final void loadProject(@NotNull String relativePath, @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    loadProject(relativePath, null, null, null, issueFilter);
+    loadProject(relativePath, chosenModuleName, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion
-                                   ) throws Exception {
+                                   @Nullable String gradlePluginVersion) throws Exception {
     loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null);
   }
 
@@ -260,18 +265,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
-                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, issueFilter);
-  }
-
-  protected final void loadProject(@NotNull String relativePath,
-                                   @Nullable String chosenModuleName,
-                                   @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion,
-                                   @Nullable String kotlinVersion,
-                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
+                                   @Nullable String kotlinVersion) throws Exception {
     prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
-    importProject(issueFilter);
+    importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
   }
@@ -360,17 +356,30 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
+    return invokeGradleTasks(project, null, tasks);
+  }
+
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @Nullable Long timeoutMillis, @NotNull String... tasks)
+    throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
     return invokeGradle(project, gradleInvoker ->
       gradleInvoker.executeTasks(projectDir, Arrays.asList(tasks),
-                                 shouldUseRemoteRepositories() ? Collections.emptyList() : Collections.singletonList("--offline")));
+                                 shouldUseRemoteRepositories() ? Collections.emptyList() : Collections.singletonList("--offline")), timeoutMillis);
   }
 
   @NotNull
   protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
     throws InterruptedException {
+    return invokeGradle(project, gradleInvocationTask, null);
+  }
+
+  @NotNull
+  protected static GradleInvocationResult invokeGradle(@NotNull Project project,
+                                                       @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask,
+                                                       @Nullable Long sourceFolderTimeoutMillis
+  ) throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
@@ -394,7 +403,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     refreshProjectFiles();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {
-        waitForSourceFolderManagerToProcessUpdates(project);
+        waitForSourceFolderManagerToProcessUpdates(project, sourceFolderTimeoutMillis);
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -409,12 +418,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected void importProject() throws Exception {
-    importProject(null);
-  }
-
-  protected void importProject(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
     Project project = getProject();
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(), issueFilter);
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest());
   }
 
   @NotNull
@@ -449,17 +454,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener, null);
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
   protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
-    AndroidGradleTests.SyncIssueFilter issueFilter = null;
-    requestSyncAndWait(issueFilter);
-  }
-
-  protected void requestSyncAndWait(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws SyncIssuesPresentError, Exception {
     TestGradleSyncListener syncListener = requestSync(GradleSyncInvoker.Request.testRequest());
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener, issueFilter);
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
   @NotNull
@@ -468,7 +468,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected List<SyncIssueData> requestSyncAndGetExpectedSyncIssueErrors() throws Exception {
+  protected List<IdeSyncIssue> requestSyncAndGetExpectedSyncIssueErrors() throws Exception {
     try {
       requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
     } catch (SyncIssuesPresentError e) {

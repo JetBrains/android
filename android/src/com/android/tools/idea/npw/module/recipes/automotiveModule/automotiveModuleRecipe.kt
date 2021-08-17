@@ -37,7 +37,8 @@ fun RecipeExecutor.generateAutomotiveModule(
       packageName = data.packageName,
       hasApplicationBlock = !data.isLibrary,
       theme = "@style/${data.themesData.main.name}",
-      usesFeatureBlock = usesFeatureBlock
+      usesFeatureBlock = usesFeatureBlock,
+      appCategory = "audio"
     ),
     generateTests = true,
     themesXml = basicThemesXml("android:Theme.Material.Light.DarkActionBar", data.themesData.main.name),

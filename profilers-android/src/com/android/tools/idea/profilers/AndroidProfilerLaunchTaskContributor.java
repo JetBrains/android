@@ -43,6 +43,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
@@ -380,7 +381,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   private static String getAbiDependentLibraryName(String dir, String fileName, IDevice device) {
     return getBestAbiCpuArch(device,
                              "plugins/android/resources/" + dir,
-                             "../../prebuilts/tools/common/" + dir,
+                             "prebuilts/tools/common/" + dir,
                              fileName);
   }
 
@@ -395,9 +396,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                           @NotNull String releaseDir,
                                           @NotNull String devDir,
                                           @NotNull String fileName) {
-    File dir = new File(PathManager.getHomePath(), releaseDir);
-    if (!dir.exists()) {
-      dir = new File(PathManager.getHomePath(), devDir);
+    File dir;
+    if (StudioPathManager.isRunningFromSources()) {
+      dir = new File(StudioPathManager.getSourcesRoot(), devDir);
+    } else {
+      dir = new File(PathManager.getHomePath(), releaseDir);
     }
     for (String abi : device.getAbis()) {
       File candidate = new File(dir, abi + "/" + fileName);

@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.testutils.TestUtils
-import com.android.tools.lint.detector.api.interprocedural.*
-import com.intellij.openapi.application.PathManager
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.lint.detector.api.interprocedural.CallGraph
+import com.android.tools.lint.detector.api.interprocedural.CallGraphVisitor
+import com.android.tools.lint.detector.api.interprocedural.ClassHierarchy
+import com.android.tools.lint.detector.api.interprocedural.ClassHierarchyVisitor
+import com.android.tools.lint.detector.api.interprocedural.IntraproceduralDispatchReceiverEvaluator
+import com.android.tools.lint.detector.api.interprocedural.IntraproceduralDispatchReceiverVisitor
+import com.android.tools.lint.detector.api.interprocedural.buildContextualCallGraph
+import com.android.tools.lint.detector.api.interprocedural.searchForPaths
+import com.android.tools.lint.detector.api.interprocedural.shortName
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -53,7 +60,7 @@ class CallGraphTest : AndroidTestCase() {
   fun testKotlinCallGraph() = doTest(".kt")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/kotlin-integration/testData").path
+    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/kotlin-integration/testData").toString()
     val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph$ext", "src/CallGraph$ext")
     val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val contextualGraph = graph.buildContextualCallGraph(receiverEval)

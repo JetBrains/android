@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.adb.wireless.PinCodeInputPanel">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.adb.wireless.PairingCodeInputPanel">
   <grid id="27dc6" binding="myRootContainer" layout-manager="GridLayoutManager" row-count="8" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
@@ -69,7 +69,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="410e8" class="javax.swing.JTextField" binding="myPinCodeDigit1" custom-create="true" default-binding="true">
+          <component id="410e8" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit1" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.0" weighty="0.0"/>
@@ -79,7 +79,7 @@
               <horizontalAlignment value="0"/>
             </properties>
           </component>
-          <component id="49e8d" class="javax.swing.JTextField" binding="myPinCodeDigit2" custom-create="true" default-binding="true">
+          <component id="49e8d" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit2" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="2" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
@@ -89,7 +89,7 @@
               <horizontalAlignment value="0"/>
             </properties>
           </component>
-          <component id="6219a" class="javax.swing.JTextField" binding="myPinCodeDigit3" custom-create="true" default-binding="true">
+          <component id="6219a" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit3" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="2" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
@@ -99,7 +99,7 @@
               <horizontalAlignment value="0"/>
             </properties>
           </component>
-          <component id="72931" class="javax.swing.JTextField" binding="myPinCodeDigit4" custom-create="true" default-binding="true">
+          <component id="72931" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit4" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="2" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
@@ -109,7 +109,7 @@
               <horizontalAlignment value="0"/>
             </properties>
           </component>
-          <component id="f3fd6" class="javax.swing.JTextField" binding="myPinCodeDigit5" custom-create="true" default-binding="true">
+          <component id="f3fd6" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit5" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="2" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
@@ -119,7 +119,7 @@
               <horizontalAlignment value="0"/>
             </properties>
           </component>
-          <component id="3d1cf" class="javax.swing.JTextField" binding="myPinCodeDigit6" custom-create="true" default-binding="true">
+          <component id="3d1cf" class="com.android.tools.idea.ui.JSingleDigitTextField" binding="myPairingCodeDigit6" custom-create="true" default-binding="true">
             <constraints>
               <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="2" bottom="0" right="0" weightx="0.0" weighty="0.0"/>

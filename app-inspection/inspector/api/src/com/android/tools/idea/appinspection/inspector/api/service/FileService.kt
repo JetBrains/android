@@ -1,25 +1,41 @@
-package com.android.tools.idea.appinspection.inspector.api.service
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.io
 
+import com.intellij.openapi.application.PathManager
 import com.intellij.util.io.exists
 import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
- * A service that provides common file operations.
+ * A service that provides common file operations for temporary files or directories.
  */
-// TODO(b/170769654): Move this class to a more widely accessible location?
 abstract class FileService {
   /**
    * Location of where cached files should live - that is, these files are expected to stick around
    * for "a while" but could be cleaned up at some point in the future (so their continued
    * existence shouldn't be assumed).
    */
-  protected abstract val cacheRoot: Path
+  abstract val cacheRoot: Path
 
   /**
    * Location of where temp files should live - that is, these files will stick around until the
    * user exits the application.
    */
-  protected abstract val tmpRoot: Path
+  abstract val tmpRoot: Path
 
   /**
    * Given a [path] that represents a directory, make sure it is created.
@@ -52,4 +68,15 @@ abstract class DiskFileService : FileService() {
       }
     }
   }
+}
+
+/**
+ * A service that provides common file operations with locations standardized across the IDE.
+ *
+ * @param subdir An (optional) additional subdirectory to create all cache / temp files under to
+ *   reduce the chance of filename collisions between different areas.
+ */
+class IdeFileService(subdir: String = "") : DiskFileService() {
+  override val cacheRoot: Path = Paths.get(PathManager.getSystemPath()).resolve(subdir)
+  override val tmpRoot: Path = Paths.get(PathManager.getTempPath()).resolve(subdir)
 }

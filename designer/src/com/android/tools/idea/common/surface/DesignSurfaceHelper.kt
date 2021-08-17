@@ -17,12 +17,18 @@
 package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.adtui.stdui.ActionData
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.io.CharStreams
+import com.intellij.ide.plugins.PluginManagerConfigurable
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -93,4 +99,30 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
   }
 
   return resourceDirectory.findChild(child) ?: return resourceDirectory.createChildDirectory(project, child)
+}
+
+/**
+ * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench.
+ * This includes a hyperlink that will either switch to layoutlib legacy if the flag is on, or re-enable the design surface
+ * and run the {@link Runnable} argument.
+ */
+fun WorkBench<DesignSurface>.handleLayoutlibNativeCrash(runnable: Runnable) {
+  val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
+  val actionData =
+    if (StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get()) {
+      ActionData("Switch to legacy rendering engine") {
+        Bridge.setNativeCrash(false)
+        PluginManagerCore.disablePlugin("com.android.layoutlib")
+        PluginManagerCore.enablePlugin("com.android.layoutlib.legacy")
+        PluginManagerConfigurable.shutdownOrRestartApp()
+      }
+    }
+    else {
+      ActionData("Re-enable rendering") {
+        Bridge.setNativeCrash(false)
+        showLoading("Loading...")
+        runnable.run()
+      }
+    }
+  loadingStopped(message, actionData)
 }

@@ -72,7 +72,8 @@ public interface CaptureObject extends MemoryObject {
     ALLOCATIONS_SIZE(7, DESCENDING),
     DEALLOCATIONS_SIZE(8, DESCENDING),
     REMAINING_SIZE(9, DESCENDING),
-    MODULE(10, ASCENDING);
+    MODULE(10, ASCENDING),
+    SHALLOW_DIFFERENCE(0, DESCENDING);
 
     private final int myWeight;
 
@@ -212,21 +213,21 @@ public interface CaptureObject extends MemoryObject {
 
   default ListenableFuture<Void> addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                    @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                       @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> setSingleFilter(@NotNull CaptureObjectInstanceFilter filter,
                                                  @NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default ListenableFuture<Void> removeAllFilters(@NotNull Executor analyzeJoiner) {
-    return CaptureObjectUtils.makeEmptyTask();
+    return Utils.makeEmptyTask();
   }
 
   default boolean isGroupingSupported(ClassGrouping grouping) {
@@ -245,10 +246,10 @@ public interface CaptureObject extends MemoryObject {
   default boolean canSafelyLoad() {
     return true;
   }
-}
 
-class CaptureObjectUtils {
-  static ListenableFutureTask<Void> makeEmptyTask() {
-    return ListenableFutureTask.create(() -> null);
+  class Utils {
+    static ListenableFutureTask<Void> makeEmptyTask() {
+      return ListenableFutureTask.create(() -> null);
+    }
   }
 }

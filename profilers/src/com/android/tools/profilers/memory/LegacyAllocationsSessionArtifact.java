@@ -110,9 +110,9 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
     }
 
     // If memory profiler is not yet open, we need to do it.
-    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MemoryProfilerStage);
+    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MainMemoryProfilerStage);
     if (needsToOpenMemoryProfiler) {
-      myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+      myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
     }
 
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
@@ -122,8 +122,8 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
     }
     else {
       // Adjust the view range to fit the capture object.
-      assert myProfilers.getStage() instanceof MemoryProfilerStage;
-      MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+      assert myProfilers.getStage() instanceof MainMemoryProfilerStage;
+      MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
       Range captureRange = new Range(startTimestamp, endTimestamp);
       myProfilers.getTimeline().adjustRangeCloseToMiddleView(captureRange);
 
@@ -140,15 +140,15 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
     saveLegacyAllocationToFile(myProfilers.getClient(), mySession, myInfo, outputStream, myProfilers.getIdeServices().getFeatureTracker());
   }
 
-  public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
-                                                          @NotNull Common.Session session,
-                                                          @NotNull Common.SessionMetaData sessionMetaData) {
+  public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
+                                                             @NotNull Common.Session session,
+                                                             @NotNull Common.SessionMetaData sessionMetaData) {
     Range rangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),
                               TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
     List<Memory.AllocationsInfo> infos =
       MemoryProfiler.getAllocationInfosForSession(profilers.getClient(), session, rangeUs, profilers.getIdeServices());
 
-    List<SessionArtifact> artifacts = new ArrayList<>();
+    List<SessionArtifact<?>> artifacts = new ArrayList<>();
     for (Memory.AllocationsInfo info : infos) {
       // Skip AllocationsInfo's that represent live allocations.
       if (info.getLegacy()) {

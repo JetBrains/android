@@ -227,6 +227,26 @@ class TraceProcessorModelTest {
     assertThat(counterZ.valuesByTimestampUs).containsExactly(1L, 100.0, 2L, 50.0, 3L, 100.0).inOrder()
   }
 
+  @Test
+  fun addAndroidFrameLayers() {
+    val layer = TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
+      .setLayerName("foobar")
+      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+                  .setPhaseName("Display")
+                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(1)))
+      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+                  .setPhaseName("GPU")
+                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(2)))
+      .build()
+    val frameEventResult = TraceProcessor.AndroidFrameEventsResult.newBuilder()
+      .addLayer(layer)
+      .build()
+    val model = TraceProcessorModel.Builder().apply {
+      addAndroidFrameEvents(frameEventResult)
+    }.build()
+    assertThat(model.getAndroidFrameLayers()).containsExactly(layer)
+  }
+
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)
     : TraceProcessor.ProcessMetadataResult.ProcessMetadata.Builder {
     return this.addProcessBuilder().setId(id).setName(name)

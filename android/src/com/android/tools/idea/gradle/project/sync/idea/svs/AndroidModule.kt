@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.AndroidProject
-import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.SyncIssue
-import com.android.builder.model.Variant
-import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.impl.ModelCache
-import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.safeGet
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
-import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
+import org.jetbrains.kotlin.gradle.KotlinGradleModel
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+  val findModelRoot: Model get() = gradleProject
+  val id = createUniqueModuleId(gradleProject)
 
-  var projectSyncIssues: List<SyncIssueData>? = null; private set
-  fun setSyncIssues(issues: Collection<SyncIssue>) {
-    projectSyncIssues = issues.map { syncIssue ->
-      SyncIssueData(
-        message = syncIssue.message,
-        data = syncIssue.data,
-        multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.toList(),
-        severity = syncIssue.severity,
-        type = syncIssue.type
-      )
-    }
+  var projectSyncIssues: List<IdeSyncIssue>? = null; private set
+  fun setSyncIssues(issues: List<IdeSyncIssue>) {
+    projectSyncIssues = issues
   }
 
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
@@ -66,10 +54,27 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
 }
 
 /**
+ * The container class for Java module, containing its Android models handled by the Android plugin.
+ */
+@UsedInBuildAction
+class JavaModule(
+  gradleProject: BasicGradleProject,
+  private val kotlinGradleModel: KotlinGradleModel?,
+  private val kaptGradleModel: KaptGradleModel?
+) : GradleModule(gradleProject) {
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      kotlinGradleModel?.deliver()
+      kaptGradleModel?.deliver()
+    }
+  }
+}
+
+/**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
 @UsedInBuildAction
-class AndroidModule private constructor(
+class AndroidModule internal constructor(
   val modelVersion: GradleVersion?,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProject,
@@ -80,60 +85,9 @@ class AndroidModule private constructor(
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-  private val nativeModule: IdeNativeModule?,
-  private val modelCache: ModelCache
+  private val nativeModule: IdeNativeModule?
 ) : GradleModule(gradleProject) {
-  companion object {
-    @JvmStatic
-    fun create(
-      gradleProject: BasicGradleProject,
-      androidProject: AndroidProject,
-      nativeAndroidProject: NativeAndroidProject?,
-      nativeModule: NativeModule?,
-      modelCache: ModelCache
-    ): AndroidModule {
-      val modelVersionString = safeGet(androidProject::getModelVersion, "")
-      val modelVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
-
-      val ideAndroidProject = modelCache.androidProjectFrom(androidProject)
-      val idePrefetchedVariants =
-        safeGet(androidProject::getVariants, emptyList())
-          .map { modelCache.variantFrom(it, modelVersion) }
-          .takeUnless { it.isEmpty() }
-
-      // Single-variant-sync models have variantNames property and pre-single-variant sync model should have all variants present instead.
-      val allVariantNames: Set<String>? = (safeGet(androidProject::getVariantNames, null)
-                                           ?: idePrefetchedVariants?.map { it.name })?.toSet()
-
-      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null) ?: allVariantNames?.getDefaultOrFirstItem("debug")
-
-      val ideNativeAndroidProject = nativeAndroidProject?.let(modelCache::nativeAndroidProjectFrom)
-      val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
-
-      val androidModule = AndroidModule(
-        modelVersion,
-        gradleProject,
-        ideAndroidProject,
-        allVariantNames,
-        defaultVariantName,
-        idePrefetchedVariants,
-        ideNativeAndroidProject,
-        ideNativeModule,
-        modelCache
-      )
-
-      safeGet(androidProject::getSyncIssues, null)?.let {
-        // It will be overridden if we receive something here but also a proper sync issues model later.
-        syncIssues ->
-        androidModule.setSyncIssues(syncIssues)
-      }
-
-      return androidModule
-    }
-  }
-
-  val findModelRoot: Model get() = gradleProject
-  val projectType: Int get() = androidProject.projectType
+  val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
   /** Names of all currently fetch variants (currently pre single-variant-sync only). */
   val fetchedVariantNames: Collection<String> = prefetchedVariants?.map { it.name }?.toSet().orEmpty()
@@ -144,7 +98,6 @@ class AndroidModule private constructor(
     return safeGet(::unsafeGet, null)
   }
 
-  val id = createUniqueModuleId(gradleProject)
 
   enum class NativeModelVersion { None, V1, V2 }
 
@@ -154,22 +107,13 @@ class AndroidModule private constructor(
     else -> NativeModelVersion.None
   }
 
-  private val additionallySyncedVariants: MutableList<IdeVariant> = mutableListOf()
-  private val additionallySyncedNativeVariants: MutableList<IdeNativeVariantAbi> = mutableListOf()
-
-  fun addVariant(variant: Variant): IdeVariant {
-    val ideVariant = modelCache.variantFrom(variant, modelVersion)
-    additionallySyncedVariants.add(ideVariant)
-    return ideVariant
-  }
-
-  fun addNativeVariant(variant: NativeVariantAbi): IdeNativeVariantAbi {
-    val ideNativeVariantAbi = modelCache.nativeVariantAbiFrom(variant)
-    additionallySyncedNativeVariants.add(ideNativeVariantAbi)
-    return ideNativeVariantAbi
-  }
+  var syncedVariant: IdeVariant? = null
+  var syncedNativeVariantAbiName: String? = null
+  var syncedNativeVariant: IdeNativeVariantAbi? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
+  var kotlinGradleModel: KotlinGradleModel? = null
+  var kaptGradleModel: KaptGradleModel? = null
 
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
    * libraries other variants depend on.
@@ -177,7 +121,7 @@ class AndroidModule private constructor(
   fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
     // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
     // The first case indicates full-variants sync and the later single-variant sync.
-    val variants = prefetchedVariants ?: additionallySyncedVariants
+    val variants = prefetchedVariants ?: listOfNotNull(syncedVariant)
     return collectIdentifiers(variants)
   }
 
@@ -186,21 +130,24 @@ class AndroidModule private constructor(
     // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
     val selectedVariantName =
-      additionallySyncedVariants.firstOrNull()?.name
+      syncedVariant?.name
       ?: prefetchedVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
       ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject,
-      additionallySyncedVariants.takeUnless { it.isEmpty() } ?: prefetchedVariants.orEmpty(),
+      syncedVariant?.let { listOf(it) } ?: prefetchedVariants.orEmpty(),
       selectedVariantName,
+      syncedNativeVariantAbiName,
       projectSyncIssues.orEmpty(),
       nativeModule,
       nativeAndroidProject,
-      additionallySyncedNativeVariants
+      syncedNativeVariant
     )
     with(ModelConsumer(consumer)) {
       ideAndroidModels.deliver()
+      kotlinGradleModel?.deliver()
+      kaptGradleModel?.deliver()
       additionalClassifierArtifacts?.deliver()
     }
   }

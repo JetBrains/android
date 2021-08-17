@@ -32,6 +32,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -69,8 +71,6 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
 import java.util.*
 import java.util.function.Consumer
@@ -212,11 +212,6 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
 
   override fun createComponent(): JComponent? {
     val component = MyPanel()
-    component.addComponentListener(object: ComponentAdapter() {
-      override fun componentShown(e: ComponentEvent?) {
-        myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
-      }
-    })
     mySplitter = OnePixelSplitter(false, .17f)
     mySplitter!!.setHonorComponentsMinimumSize(true)
 
@@ -330,6 +325,9 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
         advanceInit.run()
       }
     })
+    invokeLater(ModalityState.stateForComponent(myDetails)) {
+      myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
+    }
     dialog.showAndGet()
   }
 

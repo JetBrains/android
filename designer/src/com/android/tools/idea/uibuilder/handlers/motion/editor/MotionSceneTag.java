@@ -16,12 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ID;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_LAYOUT_CONSTRAINTSET;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START;
 
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -29,7 +33,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
@@ -38,6 +41,8 @@ import com.intellij.psi.xml.XmlTag;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * This class wraps an XmlTag component and provides a uniform interface between it and other types of XML based objects
@@ -50,14 +55,26 @@ public class MotionSceneTag implements MTag {
   ArrayList<MTag> myChildren = new ArrayList<>();
   HashMap<String, Attribute> mAttrList = new HashMap<>();
 
+  MotionSceneTag() {
+  }
+
   public MotionSceneTag(XmlTag tag, MotionSceneTag parent) {
+    init(tag, parent);
+  }
+
+  protected void init(XmlTag tag, MotionSceneTag parent) {
     myXmlTag = tag;
     mParent = parent;
     if (tag == null) {
       return;
     }
     for (XmlTag subTag : tag.getSubTags()) {
-      myChildren.add(new MotionSceneTag(subTag, this));
+      if (MotionSceneAttrs.Tags.INCLUDE.equalsIgnoreCase(subTag.getName())) {
+        myChildren.add(new MotionSceneIncludeTag(subTag, this));
+      }
+      else {
+        myChildren.add(new MotionSceneTag(subTag, this));
+      }
     }
     for (XmlAttribute attribute : tag.getAttributes()) {
       Attribute a =  new Attribute();
@@ -65,12 +82,131 @@ public class MotionSceneTag implements MTag {
       a.mAttribute = a.mAttribute.substring(a.mAttribute.indexOf(":")+1);
       a.mNamespace =  attribute.getNamespacePrefix();
       a.mValue =  attribute.getValue();
-     // Debug.log(a.mNamespace+"  : "+ a.mAttribute+"  = "+ a.mValue);
-
       mAttrList.put(a.mAttribute,a);
     }
   }
 
+  /**
+   * This tag is used for includes files it. In the main tree it show up as a constraint set.
+   * Since an include can only be a ConstraintSet.
+   */
+  class MotionSceneIncludeTag extends MotionSceneTag {
+    MotionSceneTag.Root includeFile;
+
+    public MotionSceneIncludeTag(XmlTag tag, MotionSceneTag parent) {
+      super(tag, parent);
+
+      Attribute attr = mAttrList.get(ATTR_LAYOUT_CONSTRAINTSET);
+      MotionSceneTag.Root myRoot = null;
+      for (MotionSceneTag t = parent; t != null; t = t.mParent) {
+        if (t instanceof MotionSceneTag.Root) {
+          myRoot = (MotionSceneTag.Root)t;
+        }
+      }
+      if (myRoot == null) {
+        return;
+      }
+      String fileName = attr.mValue.substring(attr.mValue.indexOf('/'));
+      if (myRoot.mModel != null) {
+        includeFile = getFile(myRoot.mProject, myRoot.mModel, fileName);
+      }
+      else {
+        XmlFile xmlFile = (XmlFile)myRoot.mXmlFile.getContainingFile();
+        XmlTag inc_tag = xmlFile.getRootTag();
+        includeFile = new MotionSceneTag.Root(inc_tag, myRoot.mProject, null, xmlFile, myRoot.mModel);
+      }
+    }
+
+    @Override
+    public String getTagName() {
+      return includeFile.getTagName();
+    }
+
+    @Override
+    public String getAttributeValue(String attribute) {
+      return includeFile.getAttributeValue(attribute);
+    }
+
+    @Override
+    public ArrayList<MTag> getChildren() {
+      return includeFile.getChildren();
+    }
+
+    @Override
+    public TagWriter getChildTagWriter(String name) {
+      return includeFile.getChildTagWriter(name);
+    }
+
+    @Override
+    public MotionSceneTagWriter getTagWriter() {
+      return includeFile.getTagWriter();
+    }
+
+    @Override
+    public HashMap<String, Attribute> getAttrList() {
+      return includeFile.getAttrList();
+    }
+
+    @Override
+    public MTag[] getChildTags() {
+      return includeFile.getChildTags();
+    }
+
+    @Override
+    public MTag[] getChildTags(String type) {
+      return includeFile.getChildTags(type);
+    }
+
+    @Override
+    public MTag[] getChildTags(String attribute, String value) {
+      return includeFile.getChildTags(attribute, value);
+    }
+
+    @Override
+    public MTag[] getChildTags(String type, String attribute, String value) {
+      return includeFile.getChildTags(type, attribute, value);
+    }
+
+    @Override
+    @Nullable
+    public MTag getChildTagWithTreeId(String type, String treeId) {
+      return includeFile.getChildTagWithTreeId(type, treeId);
+    }
+
+    @Override
+    @Nullable
+    public String getTreeId() {
+      return includeFile.getTreeId();
+    }
+
+    private MotionSceneTag.Root getFile(Project project, NlModel model, String fileName) {
+      AndroidFacet facet = model.getFacet();
+
+      List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+        .getModuleResources(facet).getResourceDirs());
+      if (resourcesXML.isEmpty()) {
+        Debug.log(" resourcesXML.isEmpty() ");
+        return null;
+      }
+      Debug.log(fileName);
+      VirtualFile virtualFile = null;
+      for (VirtualFile dir : resourcesXML) {
+        virtualFile = dir.findFileByRelativePath(fileName + ".xml");
+        if (virtualFile != null) {
+          break;
+        }
+      }
+      if (virtualFile == null) {
+        System.err.println("virtualFile == null");
+        return null;
+      }
+
+      XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+      XmlTag tag = xmlFile.getRootTag();
+      return new MotionSceneTag.Root(tag, project, virtualFile, xmlFile, model);
+    }
+  }
+// ====================================================================
   @Override
   public String getTagName() {
     if (myXmlTag == null) {
@@ -337,11 +473,12 @@ public class MotionSceneTag implements MTag {
     public Root(XmlTag tag, Project project,
                 VirtualFile virtualFile,
                 XmlFile file,NlModel model) {
-      super(tag, null);
+
       mProject = project;
       mVirtualFile = virtualFile;
       mXmlFile = file;
       mModel = model;
+      init(tag, null);
     }
   }
 

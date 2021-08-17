@@ -15,16 +15,15 @@
  */
 package com.android.tools.profilers.network.details;
 
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
-import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profilers.stacktrace.ThreadId;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Tab which shows a stack trace to where a network request was created.

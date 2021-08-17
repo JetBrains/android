@@ -2,6 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+    namespace = "com.test.app"
+
     defaultConfig {
         applicationId "com.google.myapplication"
         minSdkVersion 23

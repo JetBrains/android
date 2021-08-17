@@ -66,7 +66,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected abstract void doPerform(@NotNull AnActionEvent e, @NotNull Project project);
 
-  private static boolean isGradleProject(@NotNull AnActionEvent e) {
+  protected static boolean isGradleProject(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
       return false;

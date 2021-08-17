@@ -30,7 +30,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
  */
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
-  private val LOG: Logger get() = Logger.getInstance(MergedManifestModificationTracker::class.java)
+  private val LOG: Logger get() = Logger.getInstance("MergedManifestModificationTracker.kt")
 
   init {
     // If query happens before indexing when project just starts up, invalid queried results are cached.

@@ -28,6 +28,8 @@ import com.google.wireless.android.sdk.stats.RunEvent;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 public class RunStats {
@@ -39,9 +41,16 @@ public class RunStats {
   private boolean myLogged;
   private Project myProject;
 
+  /**
+   * A set of events related to the run, but not necessarily of kind {@link AndroidStudioEvent.EventKind#RUN_EVENT}, to be logged when
+   * {@link #commit(RunEvent.Status)} is called.
+   */
+  private final Set<AndroidStudioEvent.Builder> myAdditionalOnCommitEvents;
+
   public RunStats(Project project) {
     myProject = project;
     myEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.RUN_EVENT);
+    myAdditionalOnCommitEvents = new HashSet<>();
   }
 
   public void abort() {
@@ -64,6 +73,11 @@ public class RunStats {
              .setStatus(status)
              .setEndTimestampMs(System.currentTimeMillis());
       UsageTracker.log(UsageTrackerUtils.withProjectId(myEvent, myProject));
+
+      for (AndroidStudioEvent.Builder event : myAdditionalOnCommitEvents) {
+        UsageTracker.log(UsageTrackerUtils.withProjectId(event, myProject));
+      }
+
       myLogged = true;
     }
   }
@@ -188,5 +202,9 @@ public class RunStats {
 
   private void setPartial(boolean partial) {
     myEvent.getRunEventBuilder().setPartial(partial);
+  }
+
+  public void addAdditionalOnCommitEvent(AndroidStudioEvent.Builder event) {
+    myAdditionalOnCommitEvents.add(event);
   }
 }

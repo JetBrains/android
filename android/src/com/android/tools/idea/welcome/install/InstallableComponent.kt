@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install
 
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.repository.io.FileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -35,8 +34,7 @@ private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent
 abstract class InstallableComponent(
   private val name: String,
   description: String,
-  @JvmField protected val installUpdates: Boolean,
-  @JvmField protected val fileOp: FileOp
+  @JvmField protected val installUpdates: Boolean
 ) : ComponentTreeNode(description) {
   protected var willBeInstalled: BoolProperty = BoolValueProperty(true)
   private var userSelection: Boolean? = null // null means default component enablement is used
@@ -90,7 +88,7 @@ abstract class InstallableComponent(
   override fun updateState(handler: AndroidSdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
     sdkHandler = handler
-    val nothingToInstall = !isWritable(fileOp, handler.location) || packagesToInstall.isEmpty()
+    val nothingToInstall = !isWritable(handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
 
     willBeInstalled.set(

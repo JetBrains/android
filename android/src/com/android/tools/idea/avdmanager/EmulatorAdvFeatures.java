@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.FD_EMULATOR;
+import static com.android.SdkConstants.FD_LIB;
+import static com.android.SdkConstants.FN_ADVANCED_FEATURES;
+import static com.android.SdkConstants.FN_ADVANCED_FEATURES_CANARY;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
-import com.android.sdklib.FileOpFileWrapper;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.utils.ILogger;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /** A class to query Emulator advanced feature flags. */
@@ -56,13 +60,11 @@ public final class EmulatorAdvFeatures {
         LocalPackage emulatorPackage =
           sdkHandler.getLocalPackage(FD_EMULATOR, progressIndicator);
         if (emulatorPackage != null) {
-            FileOp fop = sdkHandler.getFileOp();
-            File emuAdvFeaturesFile = new File(
-              emulatorPackage.getLocation(), FD_LIB + File.separator + featuresFile);
+            Path emuAdvFeaturesFile = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + featuresFile);
 
-            if (fop.exists(emuAdvFeaturesFile)) {
+            if (Files.exists(emuAdvFeaturesFile)) {
                 return ProjectProperties.parsePropertyFile(
-                    new FileOpFileWrapper(emuAdvFeaturesFile, fop, false), log);
+                  new PathFileWrapper(emuAdvFeaturesFile), log);
             }
         }
 

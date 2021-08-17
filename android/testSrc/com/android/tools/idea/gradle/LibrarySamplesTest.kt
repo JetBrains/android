@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle
+package com.android.tools.compose
 
 import com.android.builder.model.SyncIssue
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -27,7 +27,7 @@ import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
@@ -35,25 +35,23 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.io.File
 import java.nio.file.Paths
 
-class LibrarySamplesTest : AndroidGradleTestCase() {
+/**
+ * Tests for [ComposeSampleResolutionService]
+ */
+class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
+    myFixture.testDataPath = getComposePluginTestDataPath()
     StudioFlags.SAMPLES_SUPPORT_ENABLED.override(true)
   }
 
-  override fun tearDown() {
-    StudioFlags.SAMPLES_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/compose-ide-plugin/testData"
 
   override fun getAdditionalRepos() = listOf(
-    File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)))
+    File(getComposePluginTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)))
 
   fun testDownloadingAndAttachingSamples() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
-      // ignore missing manifest errors
-      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-    }
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
     // Pass empty path as library path to make sure that sample sources are from maven, not from local directory.
@@ -67,10 +65,7 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
   }
 
   fun testResolveSampleReference() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
-      // ignore missing manifest errors
-      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-    }
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val file = VfsUtil.findFile(Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"), false)
     assume().that(file).isNotNull()

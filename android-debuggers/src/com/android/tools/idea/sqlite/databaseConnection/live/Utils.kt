@@ -37,19 +37,27 @@ import java.util.concurrent.Executor
 /**
  * Builds a [SqliteInspectorProtocol.Command] from a [SqliteStatement] and a database connection id.
  */
-internal fun buildQueryCommand(sqliteStatement: SqliteStatement, databaseConnectionId: Int): SqliteInspectorProtocol.Command {
+internal fun buildQueryCommand(
+  sqliteStatement: SqliteStatement,
+  databaseConnectionId: Int,
+  responseSizeByteLimitHint: Long? = null
+): SqliteInspectorProtocol.Command {
   val parameterValues = sqliteStatement.parametersValues.map { param ->
     SqliteInspectorProtocol.QueryParameterValue.newBuilder().also { builder ->
-        when(param) {
-          is SqliteValue.StringValue -> builder.stringValue = param.value
-        }
-      }.build()
+      when(param) {
+        is SqliteValue.StringValue -> builder.stringValue = param.value
+      }
+    }.build()
   }
 
   val queryBuilder = SqliteInspectorProtocol.QueryCommand.newBuilder()
     .setQuery(sqliteStatement.sqliteStatementText)
     .addAllQueryParameterValues(parameterValues)
     .setDatabaseId(databaseConnectionId)
+
+  if (responseSizeByteLimitHint != null) {
+    queryBuilder.responseSizeLimitHint = responseSizeByteLimitHint
+  }
 
   return SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
 }

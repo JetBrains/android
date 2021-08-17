@@ -20,24 +20,27 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
 
 @UiThread
-class PinCodePairingViewImpl(project: Project, override val model: PinCodePairingModel) : PinCodePairingView {
-  private val dlg = PinCodePairingDialog(project)
-  private val listeners = ArrayList<PinCodePairingView.Listener>()
+class PairingCodePairingViewImpl(project: Project,
+                                 private val notificationService: WiFiPairingNotificationService,
+                                 override val model: PairingCodePairingModel
+) : PairingCodePairingView {
+  private val dlg = PairingCodePairingDialog(project)
+  private val listeners = ArrayList<PairingCodePairingView.Listener>()
   private var allowPairAction = true
 
   override fun showDialog() {
     dlg.setDevice(model.service)
     dlg.validationHandler = {
-      if (dlg.isPinCodeValid) {
+      if (dlg.isPairingCodeValid) {
         null
       }
       else {
-        ValidationInfo("PIN code must be exactly 6 digits", dlg.pinCodeComponent)
+        ValidationInfo("Pairing code must be exactly 6 digits", dlg.pairingCodeComponent)
       }
     }
     dlg.okButtonHandler = {
       if (allowPairAction) {
-        model.pinCode = dlg.currentPinCode
+        model.pairingCode = dlg.currentPairingCode
         listeners.forEach { it.onPairInvoked() }
          true
       } else {
@@ -47,11 +50,11 @@ class PinCodePairingViewImpl(project: Project, override val model: PinCodePairin
     dlg.show()
   }
 
-  override fun addListener(listener: PinCodePairingView.Listener) {
+  override fun addListener(listener: PairingCodePairingView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PinCodePairingView.Listener) {
+  override fun removeListener(listener: PairingCodePairingView.Listener) {
     listeners.remove(listener)
   }
 
@@ -68,6 +71,7 @@ class PinCodePairingViewImpl(project: Project, override val model: PinCodePairin
   override fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice) {
     dlg.showPairingSuccess(device)
     allowPairAction = false
+    notificationService.showPairingSuccessBalloon(device)
   }
 
   override fun showPairingError(service: MdnsService, error: Throwable) {

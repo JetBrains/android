@@ -34,7 +34,7 @@ class TasksDataPageModelImplTest {
   var modelUpdateListenerCallsCount = 0
   var modelUpdateListenerCallsWithTreeUpdateCount = 0
   val model: TasksDataPageModel = TasksDataPageModelImpl(mockData).apply {
-    setModelUpdatedListener { treeUpdated ->
+    addModelUpdatedListener { treeUpdated ->
       modelUpdateListenerCallsCount++
       if (treeUpdated) modelUpdateListenerCallsWithTreeUpdateCount++
     }
@@ -342,7 +342,7 @@ class TasksDataPageModelImplTest {
     model.selectNode(model.treeRoot.firstLeaf as TasksTreeNode)
 
     // Act - apply filter
-    model.applyFilter(TasksFilter.default().copy(showTasksWithoutWarnings = false))
+    model.applyFilter(TasksFilter.DEFAULT.copy(showTasksWithoutWarnings = false))
 
     // Assert
     assertThat(model.print()).isEqualTo("""
@@ -373,7 +373,7 @@ class TasksDataPageModelImplTest {
     modelUpdateListenerCallsWithTreeUpdateCount = 0
 
     // Act - apply filter
-    model.applyFilter(TasksFilter.default().copy(showTaskSourceTypes = setOf(PluginSourceType.BUILD_SRC)))
+    model.applyFilter(TasksFilter.DEFAULT.copy(showTaskSourceTypes = setOf(PluginSourceType.BUILD_SRC)))
 
     // Assert
     assertThat(model.print()).isEqualTo("""

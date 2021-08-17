@@ -47,14 +47,14 @@ public class DetailedMemoryUsageTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryUsageTEst", myService, new FakeMemoryService());
   private FakeIdeProfilerServices myIdeProfilerServices;
   private StudioProfilers myProfilers;
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
 
   @Before
   public void setup() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
-    myStage = new MemoryProfilerStage(myProfilers);
+    myStage = new MainMemoryProfilerStage(myProfilers);
 
     // insert memory data for new pipeline.
     for (int i = 0; i < 10; i++) {

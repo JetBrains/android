@@ -47,7 +47,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AddKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
 
   private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
   private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";
@@ -165,9 +165,14 @@ public class AddKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
+    String kotlinVersion = bundledRuntimeVersion();
+    int dash = kotlinVersion.indexOf('-');
+    if (dash != -1) {
+      kotlinVersion = kotlinVersion.substring(0, dash);
+    }
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + bundledRuntimeVersion() + '\'')
+      "ext.kotlin_version = '" + kotlinVersion + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
@@ -198,6 +203,6 @@ public class AddKotlinTest {
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
   }
 }

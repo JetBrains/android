@@ -15,34 +15,106 @@
   -->
 
 <idea-plugin>
-    <id>androidx.compose.plugins.idea</id>
+  <id>androidx.compose.plugins.idea</id>
 
-    <name>Compose</name>
-    <description><![CDATA[
-The Jetpack Compose IDE plugin
-]]></description>
-    <vendor url="http://www.android.com">Android</vendor>
+  <name>Compose</name>
+  <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
+  <vendor url="http://www.android.com">Android</vendor>
 
-    <idea-version since-build="191.5109.14" until-build="201.*"/>
-    <depends>org.jetbrains.android</depends>
-    <depends>org.jetbrains.kotlin</depends>
+  <idea-version since-build="191.5109.14"/>
+  <depends>org.jetbrains.android</depends>
+  <depends>org.jetbrains.kotlin</depends>
 
-    <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.TryCatchComposableChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableCallChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableDeclarationChecker" />
-        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.ComposeDiagnosticSuppressor"/>
-    </extensions>
-    <extensions defaultExtensionNs="com.intellij">
-        <annotator
-            language="kotlin"
-            implementationClass="androidx.compose.plugins.idea.ComposableAnnotator"/>
-        <additionalTextAttributes scheme="Default"
-            file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
-        <colorSettingsPage
-            implementation="androidx.compose.plugins.idea.ComposeColorSettingsPage"/>
-    </extensions>
-    <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.ComposeTypeResolutionInterceptorExtension"/>
-    </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
+
+    <annotator
+        language="kotlin"
+        implementationClass="com.android.tools.compose.ComposableAnnotator"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
+    <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
+
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeSurroundWithWidgetActionGroup</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeCreatePreviewAction</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeUnwrapAction</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>com.android.tools.compose.intentions.ComposeWrapModifiersAction</className>
+      <category>Compose Android</category>
+    </intentionAction>
+
+    <lang.foldingBuilder language="kotlin" implementationClass="com.android.tools.compose.ComposeFoldingBuilder"/>
+
+
+    <defaultLiveTemplates file="templates/AndroidCompose.xml"/>
+    <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
+
+    <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
+    <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
+
+    <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
+    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
+                    serviceImplementation="com.android.tools.compose.ComposeSampleResolutionService"
+                    overrides="true"
+    />
+    <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
+
+    <completion.contributor language="kotlin"
+                            id="ComposeCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
+
+    <completion.contributor language="kotlin"
+                            id="ComposeAlignmentCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeImplementationsCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
+
+    <completion.contributor language="kotlin"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeModifierCompletionContributor"
+                            order="first, before ComposeCompletionContributor"/>
+
+    <weigher key="completion"
+             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"
+             id="android.compose"
+             order="first"/>
+
+    <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
+    <lang.inspectionSuppressor language="Groovy" implementationClass="com.android.tools.compose.ComposeGradleInspectionSuppressor"/>
+
+    <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
+
+    <automaticRenamerFactory implementation="com.android.tools.compose.ComposableElementAutomaticRenamerFactory"/>
+
+    <debugger.positionManagerFactory implementation="com.android.tools.compose.debug.ComposePositionManagerFactory"/>
+    <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
+    <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
+    <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
+    <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
+    <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
+  </extensions>
+
 </idea-plugin>

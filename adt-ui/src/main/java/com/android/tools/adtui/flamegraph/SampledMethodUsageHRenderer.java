@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.flamegraph;
+package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.DefaultHRenderer;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.geom.Rectangle2D;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodUsage> {
 

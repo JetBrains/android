@@ -17,19 +17,21 @@ package com.android.tools.idea.layoutinspector.resource
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 class ResourceLookupTest {
 
@@ -43,6 +45,7 @@ class ResourceLookupTest {
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup = ResourceLookup(projectRule.project)
       override fun get(id: Long): ViewNode? = title
+      override val selection: ViewNode? = null
     }
     val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title.drawId, context)

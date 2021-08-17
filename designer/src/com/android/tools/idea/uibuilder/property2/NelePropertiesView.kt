@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.CommonAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.ComponentActionsInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.ConstraintLayoutHelperInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.DeclaredAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.TransformsAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.inspector.AllAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.CommonAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.ComponentActionsInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.ConstraintLayoutHelperInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.DeclaredAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.FavoritesInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.IdInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.LayoutInspectorBuilder
+import com.android.tools.idea.uibuilder.property.inspector.SelectedComponentBuilder
+import com.android.tools.idea.uibuilder.property.inspector.TransformsAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 
 private const val VIEW_NAME = "LayoutEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a component in the Component Tree or on the Design Surface."
 
-class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePropertyItem>(VIEW_NAME, model) {
-  private val enumSupportProvider = NeleEnumSupportProvider(model)
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
+  private val enumSupportProvider = NlEnumSupportProvider(model)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
   init {

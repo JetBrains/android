@@ -299,8 +299,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }
       myActiveAssetBindings.bind(activeAsset.opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(activeAsset.autoMirrored(), myAutoMirrored);
-      myActiveAssetBindings.bind(activeAsset.outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
-      myActiveAssetBindings.bind(activeAsset.outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
+      myActiveAssetBindings.bind(activeAsset.outputWidth(), Expression.create(myWidth::get, myWidth));
+      myActiveAssetBindings.bind(activeAsset.outputHeight(), Expression.create(myHeight::get, myHeight));
 
       myListeners.listenAll(myActiveAsset, activeAsset.outputWidth(), activeAsset.outputHeight(), activeAsset.color(),
                             activeAsset.opacityPercent(), activeAsset.autoMirrored())
@@ -334,7 +334,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   @Override
   @NotNull
-  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+  protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), getModuleTemplates(myFacet, null)));
   }
 

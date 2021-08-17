@@ -27,10 +27,12 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -42,6 +44,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Disposer;
@@ -52,6 +55,8 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -66,7 +71,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -183,6 +187,11 @@ public class RenderService implements Disposable {
   public RenderLogger createLogger(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
     return new RenderLogger(module.getName(), module, myCredential);
+  }
+
+  @NotNull
+  public RenderLogger getNopLogger() {
+    return RenderLogger.NOP_RENDER_LOGGER;
   }
 
   /**
@@ -340,6 +349,10 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
+  private static Logger getLogger() {
+    return Logger.getInstance(RenderService.class);
+  }
+
   public static class RenderTaskBuilder {
     private final RenderService myService;
     private final AndroidFacet myFacet;
@@ -358,6 +371,7 @@ public class RenderService implements Disposable {
     private boolean isShadowEnabled = true;
     private boolean useHighQualityShadows = true;
     private boolean enableLayoutScanner = false;
+    private boolean enableLayoutScannerOptimization = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
@@ -365,11 +379,23 @@ public class RenderService implements Disposable {
         try {
           return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
         }
-        catch (InterruptedException | TimeoutException e) {
-          Logger.getInstance(RenderService.class).warn(e);
+        catch (InterruptedException e) {
+          throw new ProcessCanceledException(e);
+        }
+        catch (TimeoutException e) {
+          getLogger().warn(e);
         }
         catch (ExecutionException e) {
-          Logger.getInstance(RenderService.class).error(e);
+          Throwable cause = e.getCause();
+          if (cause instanceof ProcessCanceledException) {
+            throw (ProcessCanceledException)cause;
+          }
+          else if (cause instanceof MergedManifestException) {
+            getLogger().warn(e);
+          }
+          else {
+            getLogger().error(e);
+          }
         }
 
         return null;
@@ -383,14 +409,26 @@ public class RenderService implements Disposable {
     private boolean privateClassLoader = false;
 
     /**
+     * Force classes preloading in RenderTask right after creation.
+     */
+    private Collection<String> classesToPreload = Collections.emptyList();
+
+    /**
      * Additional bytecode transform to apply to project classes when loaded.
      */
-    private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+    private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
 
     /**
      * Additional bytecode transform to apply to non project classes when loaded.
      */
-    private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
+    private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
+
+    /**
+     * Handler called when a new class loader has been instantiated. This allows resetting some state that
+     * might be specific to the classes currently loaded.
+     */
+    @NotNull
+    private Runnable myOnNewModuleClassLoader = () -> {};
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -402,6 +440,16 @@ public class RenderService implements Disposable {
       myConfiguration = configuration;
       myImagePool = defaultImagePool;
       myCredential = credential;
+    }
+
+
+    /**
+     * Forces preloading classes in RenderTask after creation.
+     */
+    @NotNull
+    public RenderTaskBuilder preloadClasses(Collection<String> classesToPreload) {
+      this.classesToPreload = classesToPreload;
+      return this;
     }
 
     /**
@@ -433,6 +481,11 @@ public class RenderService implements Disposable {
 
     public RenderTaskBuilder withLayoutScanner(Boolean enableLayoutScanner) {
       this.enableLayoutScanner = enableLayoutScanner;
+      return this;
+    }
+
+    public RenderTaskBuilder withLayoutScannerOptimization(Boolean enableScannerOptimization) {
+      this.enableLayoutScannerOptimization = enableScannerOptimization;
       return this;
     }
 
@@ -540,7 +593,7 @@ public class RenderService implements Disposable {
      * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
      */
     @NotNull
-    public RenderTaskBuilder setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    public RenderTaskBuilder setProjectClassesTransform(@NotNull ClassTransform transform) {
       myAdditionalProjectTransform = transform;
       return this;
     }
@@ -549,8 +602,17 @@ public class RenderService implements Disposable {
      * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
      */
     @NotNull
-    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull ClassTransform transform) {
       myAdditionalNonProjectTransform = transform;
+      return this;
+    }
+
+    /**
+     * Sets a callback to be notified when a new class loader has been instantiated.
+     */
+    @NotNull
+    public RenderTaskBuilder setOnNewClassLoader(@NotNull Runnable runnable) {
+      myOnNewModuleClassLoader = runnable;
       return this;
     }
 
@@ -580,7 +642,7 @@ public class RenderService implements Disposable {
 
         Module module = myFacet.getModule();
         if (module.isDisposed()) {
-          Logger.getInstance(RenderService.class).warn("Module was already disposed");
+          getLogger().warn("Module was already disposed");
           return null;
         }
         LayoutLibrary layoutLib;
@@ -614,7 +676,8 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
+                           classesToPreload);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
@@ -624,7 +687,8 @@ public class RenderService implements Disposable {
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
-            .setEnableLayoutScanner(enableLayoutScanner);
+            .setEnableLayoutScanner(enableLayoutScanner)
+            .setEnableLayoutScannerOptimization(enableLayoutScannerOptimization);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

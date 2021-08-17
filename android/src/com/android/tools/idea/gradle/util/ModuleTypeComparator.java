@@ -42,7 +42,7 @@ public class ModuleTypeComparator implements Comparator<Module> {
     }
     if (gm1 != null) {
       if (gm2 != null) {
-        return gm1.getAndroidProject().getProjectType() - gm2.getAndroidProject().getProjectType();
+        return gm1.getAndroidProject().getProjectType().ordinal() - gm2.getAndroidProject().getProjectType().ordinal();
       }
       return -1;
     }

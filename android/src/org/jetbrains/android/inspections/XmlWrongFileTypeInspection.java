@@ -120,7 +120,7 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
       return null;
     }
 
-    if (!IdeResourcesUtil.isResourceSubdirectory(directory, null)) {
+    if (!IdeResourcesUtil.isResourceSubdirectory(directory, null, true)) {
       return null;
     }
 

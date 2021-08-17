@@ -11,6 +11,8 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
@@ -23,6 +25,8 @@
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
+    <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="usb-devices" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />

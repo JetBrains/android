@@ -17,6 +17,8 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -41,7 +43,8 @@ public class ToggleDeviceOrientationAction extends AnAction {
       e.getPresentation().setEnabled(false);
       return;
     }
-    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null);
+    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    e.getPresentation().setEnabled(NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.SWITCH_DEVICE_ORIENTATION));
   }
 
   @Override

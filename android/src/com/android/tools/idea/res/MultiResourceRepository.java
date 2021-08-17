@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -40,7 +41,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.SmartList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
@@ -456,11 +456,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @Override
-  boolean isScanPending(@NotNull PsiFile psiFile) {
+  final boolean isScanPending(@NotNull VirtualFile file) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
       for (LocalResourceRepository child : myLocalResources) {
-        if (child.isScanPending(psiFile)) {
+        if (child.isScanPending(file)) {
           return true;
         }
       }
@@ -469,6 +469,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     }
   }
 
+  @UiThread
   @Override
   public void sync() {
     super.sync();

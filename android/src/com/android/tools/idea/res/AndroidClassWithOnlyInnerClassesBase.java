@@ -33,7 +33,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collection;
 import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +45,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @NotNull protected final CachedValue<PsiClass[]> myClassCache;
   @NotNull protected final String myShortName;
   @NotNull protected final PsiJavaFile myFile;
+  @Nullable private final String myPackageName;
 
   public AndroidClassWithOnlyInnerClassesBase(@NotNull String shortName,
                                               @Nullable String packageName,
@@ -55,6 +55,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
     Project project = getProject();
 
     myShortName = shortName;
+    myPackageName = packageName;
 
     myClassCache =
       CachedValuesManager.getManager(project).createCachedValue(() -> {
@@ -85,6 +86,11 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
     myFile.setPackageName(packageName);
   }
 
+  @Nullable
+  public String getPackageName() {
+    return myPackageName;
+  }
+
   @NotNull
   protected abstract PsiClass[] doGetInnerClasses();
 
@@ -105,17 +111,6 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
   @Override
   public PsiClass[] getInnerClasses() {
     return myClassCache.getValue();
-  }
-
-  @Nullable
-  @Override
-  public final PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    for (PsiClass aClass : getInnerClasses()) {
-      if (name.equals(aClass.getName())) {
-        return aClass;
-      }
-    }
-    return null;
   }
 
   @Override

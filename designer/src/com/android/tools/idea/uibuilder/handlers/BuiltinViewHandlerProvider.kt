@@ -34,7 +34,6 @@ import com.android.SdkConstants.CHECK_BOX
 import com.android.SdkConstants.CHIP
 import com.android.SdkConstants.CHIP_GROUP
 import com.android.SdkConstants.CHRONOMETER
-import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW
@@ -285,25 +284,12 @@ private object FlexboxViewHandlerProvider: ViewHandlerProvider {
       }
 }
 
-/**
- * [ViewHandlerProvider] for the `ComposeViewAdapter`. It only serves the [ComposeViewAdapterHandler].
- */
-// TODO(b/156186600): Move this to the compose designer module
-private object ComposeViewHandlerProvider: ViewHandlerProvider {
-  override fun findHandler(viewTag: String): ViewHandler? =
-    if (CLASS_COMPOSE_VIEW_ADAPTER == viewTag) {
-      ComposeViewAdapterHandler()
-    } else {
-      null
-    }
-}
 
 internal object BuiltinViewHandlerProvider: ViewHandlerProvider {
     private val providers = sequenceOf(BasicViewHandlerProvider,
                                        PreferencesViewHandlerProvider,
                                        AndroidxViewHandlerProvider,
-                                       FlexboxViewHandlerProvider,
-                                       ComposeViewHandlerProvider)
+                                       FlexboxViewHandlerProvider)
 
     override fun findHandler(viewTag: String): ViewHandler? =
       providers

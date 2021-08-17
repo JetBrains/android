@@ -71,6 +71,7 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
     val titlePanel = TitlePanel()
     titlePanel.setText(dialogTitle)
     titlePanel.setActive(true)
+    // WindowMoveListener allows the window to be moved by dragging the title panel.
     val moveListener: WindowMoveListener = object : WindowMoveListener(titlePanel) {
       override fun getView(component: Component): Component {
         return SwingUtilities.getAncestorOfClass(DialogWrapperDialog::class.java, component)

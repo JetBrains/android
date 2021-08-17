@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -157,7 +158,7 @@ class DetailsViewContentViewTest {
     view.setLogcat("")
     view.setErrorStackTrace("error stack trace")
     view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("\nerror stack trace")
+    assertThat(view.myLogsView.text).isEqualTo("error stack trace")
   }
 
   @Test
@@ -198,10 +199,10 @@ class DetailsViewContentViewTest {
   fun benchmarkTab() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
-    view.setBenchmarkText("test benchmark message")
+    view.setBenchmarkText(BenchmarkOutput("test benchmark message"))
     view.myBenchmarkView.waitAllRequests()
 
-    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message")
+    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
   }
 
@@ -209,7 +210,7 @@ class DetailsViewContentViewTest {
   fun benchmarkTabIsHiddenIfNoOutput() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
-    view.setBenchmarkText("")
+    view.setBenchmarkText(BenchmarkOutput.Empty)
     view.myBenchmarkView.waitAllRequests()
 
     assertThat(view.myBenchmarkView.text).isEqualTo("")
@@ -226,6 +227,6 @@ class DetailsViewContentViewTest {
   }
 
   private fun device(id: String, name: String): AndroidDevice {
-    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 }

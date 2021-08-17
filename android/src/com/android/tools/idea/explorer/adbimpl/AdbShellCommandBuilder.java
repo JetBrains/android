@@ -21,7 +21,8 @@ import static com.android.ddmlib.FileListingService.FILE_SEPARATOR;
 
 public class AdbShellCommandBuilder {
   @NotNull private final StringBuilder myCommand = new StringBuilder();
-  private boolean myNeedsTrailingQuote;
+  private boolean mySuRootPrefix;
+  private String myRunAsPackage;
 
   @Override
   public String toString() {
@@ -30,10 +31,25 @@ public class AdbShellCommandBuilder {
 
   @NotNull
   public String build() {
-    if (myNeedsTrailingQuote) {
-      myCommand.append("'");
+    // Make sure build does not have side-effects as it's called from toString
+    // otherwise it breaks while debugging it.
+    if (mySuRootPrefix && myRunAsPackage != null) {
+      throw new IllegalStateException("Either so or run-as are supported, not both.");
     }
-    return myCommand.toString();
+
+    String cmd =  myCommand.toString();
+    if (mySuRootPrefix || myRunAsPackage != null) {
+      // If using the path inside quotes, we need to further escape it
+      cmd = cmd.replaceAll("'", "'\"\\'\"'");
+    }
+
+    if (mySuRootPrefix) {
+      return "su 0 sh -c '" + cmd + "'";
+    }
+    if (myRunAsPackage != null) {
+      return "run-as " + myRunAsPackage + " sh -c '" + cmd + "'";
+    }
+    return cmd;
   }
 
   @NotNull
@@ -44,21 +60,13 @@ public class AdbShellCommandBuilder {
 
   @NotNull
   public AdbShellCommandBuilder withSuRootPrefix() {
-    if (myCommand.length() > 0) {
-      throw new IllegalStateException("\"su 0\" must be the first argument");
-    }
-    myCommand.append("su 0 sh -c '");
-    myNeedsTrailingQuote = true;
+    mySuRootPrefix = true;
     return this;
   }
 
 
   public AdbShellCommandBuilder withRunAs(@NotNull String packageName) {
-    if (myCommand.length() > 0) {
-      throw new IllegalStateException("\"run-as\" must be the first argument");
-    }
-    withText("run-as ").withText(packageName).withText(" sh -c '");
-    myNeedsTrailingQuote = true;
+    myRunAsPackage = packageName;
     return this;
   }
 

@@ -17,16 +17,16 @@ package com.android.tools.idea.common.surface;
 
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.surface.PanInteraction;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

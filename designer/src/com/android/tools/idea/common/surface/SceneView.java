@@ -57,49 +57,41 @@ public abstract class SceneView implements Disposable {
   /**
    * A {@link ShapePolicy} that uses the device configuration shape.
    */
-  public static final ShapePolicy DEVICE_CONFIGURATION_SHAPE_POLICY = new ShapePolicy() {
-    @Nullable
-    @Override
-    public Shape getShape(@NotNull SceneView sceneView) {
-      Device device = sceneView.getConfiguration().getCachedDevice();
-      if (device == null) {
-        return null;
-      }
+  public static final ShapePolicy DEVICE_CONFIGURATION_SHAPE_POLICY = sceneView -> {
+    Device device = sceneView.getConfiguration().getCachedDevice();
+    if (device == null) {
+      return null;
+    }
 
-      Screen screen = device.getDefaultHardware().getScreen();
-      if (screen.getScreenRound() != ScreenRound.ROUND) {
-        return null;
-      }
+    Screen screen = device.getDefaultHardware().getScreen();
+    if (screen.getScreenRound() != ScreenRound.ROUND) {
+      return null;
+    }
 
-      Dimension size = sceneView.getScaledContentSize();
+    Dimension size = sceneView.getScaledContentSize();
 
-      int chin = screen.getChin();
-      int originX = sceneView.getX();
-      int originY = sceneView.getY();
-      if (chin == 0) {
-        // Plain circle
-        return new Ellipse2D.Double(originX, originY, size.width, size.height);
-      }
-      else {
-        int height = size.height * chin / screen.getYDimension();
-        Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
-        Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
-        a1.subtract(a2);
-        return a1;
-      }
+    int chin = screen.getChin();
+    int originX = sceneView.getX();
+    int originY = sceneView.getY();
+    if (chin == 0) {
+      // Plain circle
+      return new Ellipse2D.Double(originX, originY, size.width, size.height);
+    }
+    else {
+      int height = size.height * chin / screen.getYDimension();
+      Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
+      Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
+      a1.subtract(a2);
+      return a1;
     }
   };
 
   /**
    * A {@link ShapePolicy} that a square size. The size is determined from the rendered size.
    */
-  public static final ShapePolicy SQUARE_SHAPE_POLICY = new ShapePolicy() {
-    @NotNull
-    @Override
-    public Shape getShape(@NotNull SceneView sceneView) {
-      Dimension size = sceneView.getScaledContentSize();
-      return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
-    }
+  public static final ShapePolicy SQUARE_SHAPE_POLICY = sceneView -> {
+    Dimension size = sceneView.getScaledContentSize();
+    return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
   };
 
   @NotNull private final DesignSurface mySurface;
@@ -331,10 +323,10 @@ public abstract class SceneView implements Disposable {
   }
 
   /**
-   * Returns whether this {@link SceneView} has content. Some {@link SceneView} might not have the content available while it's rendering
-   * or if there's been a failure.
+   * Returns whether this {@link SceneView} knows the content size. Some {@link SceneView} might not know its content size while it's
+   * rendering or if the rendering is failure.
    */
-  public boolean hasContent() {
+  public boolean hasContentSize() {
     return true;
   }
 

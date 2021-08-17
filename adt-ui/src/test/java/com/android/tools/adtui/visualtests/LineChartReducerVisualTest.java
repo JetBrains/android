@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.visualtests;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
@@ -76,7 +78,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myViewXRange = new Range(0, 0);
     mySelectionXRange = new Range();
 
-    myLineChartModel = new LineChartModel();
+    myLineChartModel = new LineChartModel(newDirectExecutorService());
     myLineChart = new LineChart(myLineChartModel, new LineChartReducer() {
       @Override
       public List<SeriesData<Long>> reduceData(List<SeriesData<Long>> data, LineConfig config) {
@@ -88,7 +90,7 @@ public class LineChartReducerVisualTest extends VisualTest {
         return path;
       }
     });
-    myOptimizedLineChartModel = new LineChartModel();
+    myOptimizedLineChartModel = new LineChartModel(newDirectExecutorService());
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
     myXAxisModel =

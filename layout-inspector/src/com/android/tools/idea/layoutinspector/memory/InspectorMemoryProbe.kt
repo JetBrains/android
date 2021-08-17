@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.awt.image.SurfaceManager.
 package com.android.tools.idea.layoutinspector.memory
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.metrics.statistics.MemoryStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.stats.MemoryProbe
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -36,7 +38,10 @@ private const val DOT = "."
  * The calculation is performed on a background thread and will be cancelled if another
  * update happens during the calculation.
  */
-class InspectorMemoryProbe(private val model: InspectorModel) {
+class InspectorMemoryProbe(
+  private val model: InspectorModel,
+  private val stats: MemoryStatistics
+) {
 
   private val includedPackagePrefixes = listOf(
     ViewNode::class.java.`package`.name + DOT,
@@ -77,8 +82,8 @@ class InspectorMemoryProbe(private val model: InspectorModel) {
     val size = probe.check(model.root)
     val elapsed = System.currentTimeMillis() - startTime
     if (!probe.wasCancelled) {
-      val hasSkiaImages = model.windows.values.any { it.imageType == PayloadType.SKP }
-      model.stats.memory.recordModelSize(hasSkiaImages, size, elapsed)
+      val hasSkiaImages = model.windows.values.any { it.imageType == ImageType.SKP }
+      stats.recordModelSize(hasSkiaImages, size, elapsed)
       Logger.getInstance(InspectorMemoryProbe::class.java).debug("Layout Inspector Memory Use: ${size / 1024 / 1024}mb time: ${elapsed}ms")
     }
   }

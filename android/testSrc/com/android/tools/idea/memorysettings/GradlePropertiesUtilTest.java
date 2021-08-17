@@ -26,84 +26,81 @@ import java.io.File;
 public class GradlePropertiesUtilTest extends PlatformTestCase {
 
   public void testHasJvmArgs() throws Exception {
-    File propertiesFilePath = createTempFile("gradle.properties", "org.gradle.jvmargs=-Xms800M");
+    File propertiesFilePath = createTempFile("gradle.properties", "");
     GradleProperties properties = new GradleProperties(propertiesFilePath);
+    properties.setJvmArgs("-Xms800M");
     assertTrue(GradlePropertiesUtil.hasJvmArgs(properties));
 
     propertiesFilePath = createTempFile("gradle.properties", "");
     properties = new GradleProperties(propertiesFilePath);
     assertFalse(GradlePropertiesUtil.hasJvmArgs(properties));
 
-    propertiesFilePath = createTempFile("gradle.properties", "kotlin.code.style=official");
+    propertiesFilePath = createTempFile("gradle.properties", "");
     properties = new GradleProperties(propertiesFilePath);
+    properties.getProperties().setProperty("kotlin.code.style", "official");
     assertFalse(GradlePropertiesUtil.hasJvmArgs(properties));
   }
 
   public void testNoDaemonXmx() throws Exception {
     checkXmx("", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
-    checkXmx("org.gradle.jvmargs=", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
-    checkXmx("# org.gradle.jvmargs=-Xmx1024M", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, 1024);
-    checkXmx("org.gradle.jvmargs=-Xmx2048m", 2048, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", MemorySettingsUtil.NO_XMX_IN_VM_ARGS, 1024);
+    checkXmx("-Xmx2048m", 2048, MemorySettingsUtil.NO_XMX_IN_VM_ARGS);
   }
 
   private void checkXmx(String text, int expectedGradleXmx, int expectedKotlinXmx) throws Exception {
-    File propertiesFilePath = createTempFile("gradle.properties", text);
+    File propertiesFilePath = createTempFile("gradle.properties", "");
     GradleProperties properties = new GradleProperties(propertiesFilePath);
+    properties.setJvmArgs(text);
     assertEquals(expectedGradleXmx, getGradleDaemonXmx(properties));
     assertEquals(expectedKotlinXmx, getKotlinDaemonXmx(properties));
   }
 
   public void testGetDaemonXmx() throws Exception {
-    checkXmx("org.gradle.jvmargs=-Xmx", -1, -1);
-    checkXmx("org.gradle.jvmargs=-XmxT", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1a", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1T", 1024 * 1024, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx2t", 2 * 1024 * 1024, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1G", 1024, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx4g", 4 * 1024, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1M", 1, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx10m", 10, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1024K", 1, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx2048k", 2, -1);
+    checkXmx("-Xmx", -1, -1);
+    checkXmx("-XmxT", -1, -1);
+    checkXmx("-Xmx1a", -1, -1);
+    checkXmx("-Xmx1T", 1024 * 1024, -1);
+    checkXmx("-Xmx2t", 2 * 1024 * 1024, -1);
+    checkXmx("-Xmx1G", 1024, -1);
+    checkXmx("-Xmx4g", 4 * 1024, -1);
+    checkXmx("-Xmx1M", 1, -1);
+    checkXmx("-Xmx10m", 10, -1);
+    checkXmx("-Xmx1024K", 1, -1);
+    checkXmx("-Xmx2048k", 2, -1);
 
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx\"", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-XmxT\"", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1a\"", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G\"", -1, -1);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1T\"", -1, 1024 * 1024);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx2G,-Xms1G\"", -1, 2048);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1024m,-Xmx2G\"", -1, 2048);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx\"", -1, -1);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-XmxT\"", -1, -1);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx1a\"", -1, -1);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xms1G\"", -1, -1);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx1T\"", -1, 1024 * 1024);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx2G,-Xms1G\"", -1, 2048);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx1024m,-Xmx2G\"", -1, 2048);
 
-    checkXmx("org.gradle.jvmargs=-Xms1G -Xmx4G -Dkotlin.daemon.jvm.options=\"-Xms1G\"", 4096, -1);
-    checkXmx("org.gradle.jvmargs=-Xmx1G -Xmx4G -Dkotlin.daemon.jvm.options=\"-Xmx2G\"", 4096, 2048);
-    checkXmx("org.gradle.jvmargs=-Xmx4G -Dkotlin.daemon.jvm.options=\"-Xms1G,-Xmx2G\"", 4096, 2048);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G,-Xmx2G\" -Xmx4G", 4096, 2048);
-    checkXmx("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xmx2G\" -Xmx3G -Xmx4G", 4096, 2048);
+    checkXmx("-Xms1G -Xmx4G -Dkotlin.daemon.jvm.options=\"-Xms1G\"", 4096, -1);
+    checkXmx("-Xmx1G -Xmx4G -Dkotlin.daemon.jvm.options=\"-Xmx2G\"", 4096, 2048);
+    checkXmx("-Xmx4G -Dkotlin.daemon.jvm.options=\"-Xms1G,-Xmx2G\"", 4096, 2048);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xms1G,-Xmx2G\" -Xmx4G", 4096, 2048);
+    checkXmx("-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xmx2G\" -Xmx3G -Xmx4G", 4096, 2048);
   }
 
   public void testSetDaemonXmx() throws Exception {
     checkXmxNewValue("", 10, -1);
-    checkXmxNewValue("#org.gradle.jvmargs=-Xms1280m", 10, -1);
-    checkXmxNewValue("org.gradle.jvmargs=-Xms1280m", 1024, -1);
-    checkXmxNewValue("org.gradle.jvmargs=-Xmx1280m", 2048, -1);
+    checkXmxNewValue("-Xms1280m", 1024, -1);
+    checkXmxNewValue("-Xmx1280m", 2048, -1);
 
     checkXmxNewValue("", -1, 1024);
-    checkXmxNewValue("#org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G\"", -1, 20);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G\"", -1, 1024);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", -1, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", -1, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\"", -1, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xms1G\"", -1, 1024);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", -1, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", -1, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\"", -1, 2048);
 
     checkXmxNewValue("", 10, 20);
-    checkXmxNewValue("#org.gradle.jvmargs=-Xms1280m", 10, 20);
-    checkXmxNewValue("#org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G\"", 10, 20);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xms1G\"", 512, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", 512, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", 512, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\"", 512, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Xmx1G -Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", 512, 2048);
-    checkXmxNewValue("org.gradle.jvmargs=-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\" -Xmx1G", 512, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xms1G\"", 512, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx1G\"", 512, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", 512, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\"", 512, 2048);
+    checkXmxNewValue("-Xmx1G -Dkotlin.daemon.jvm.options=\"-Xmx1G,-Xms512m\"", 512, 2048);
+    checkXmxNewValue("-Dkotlin.daemon.jvm.options=\"-Xmx512m,-Xmx1G\" -Xmx1G", 512, 2048);
   }
 
   private void checkXmxNewValue(String text, int newGradleXmx, int newKotlinXmx) throws Exception {

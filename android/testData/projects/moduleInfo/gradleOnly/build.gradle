@@ -16,8 +16,10 @@ android {
   compileSdkVersion 18
   buildToolsVersion "19.1.0"
 
+  namespace = "com.test.app"
+
   defaultConfig {
-    minSdkVersion 9
+    minSdkVersion 17
     targetSdkVersion 17
     applicationId "from.gradle"
   }

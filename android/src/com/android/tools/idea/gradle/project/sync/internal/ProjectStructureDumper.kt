@@ -103,8 +103,11 @@ private fun ProjectDumper.dump(module: Module) {
     sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
       dump(it)
     }
+
     // TODO(b/124658218): Remove sorting if the order can be made stable.
-    moduleRootModel.orderEntries.sortedBy { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() }.forEach {
+    moduleRootModel.orderEntries.sortedWith(
+      compareBy({ it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() },
+                { (it as? LibraryOrderEntry)?.scope})).forEach {
       dump(it)
     }
   }
@@ -188,16 +191,23 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
   orderRootTypes.forEach { type ->
     library
       .getUrls(type)
-      .filter { file ->
-        !file.toPrintablePath().contains("<M2>") ||
-        (type != OrderRootType.DOCUMENTATION &&
-         type != OrderRootType.SOURCES &&
-         type != JavadocOrderRootType.getInstance())
+      .filterNot { file ->
+        // Do not allow sources and java docs coming from cache sources as their content may change.
+        (file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+        (type == OrderRootType.DOCUMENTATION ||
+         type == OrderRootType.SOURCES ||
+         type == JavadocOrderRootType.getInstance())
       }
       .filter { file ->
         !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
       }
-      .map { file -> file.toPrintablePath().replaceMatchingVersion(androidVersion) }
+      .map { file ->
+        file.toPrintablePath().replaceMatchingVersion(androidVersion).also {
+          if (type == OrderRootType.SOURCES || type == OrderRootType.DOCUMENTATION || type == JavadocOrderRootType.getInstance()) {
+            println("$file -> $it")
+          }
+        }
+      }
       .sorted()
       .forEach { printerPath ->
         // TODO(b/124659827): Include source and JavaDocs artifacts when available.
@@ -240,7 +250,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
     prop("TypeId") { facet.typeId.toString() }
-    prop("ExternalSource") { facet.externalSource?.id }
+//TODO(b/184826517):    prop("ExternalSource") { facet.externalSource?.id }
     val configuration = facet.configuration
     when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)
@@ -255,7 +265,6 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
 
 private fun ProjectDumper.dump(javaFacetConfiguration: JavaFacetConfiguration) {
   prop("Buildable") { javaFacetConfiguration.BUILDABLE.toString() }
-  prop("BuildFolderPath") { javaFacetConfiguration.BUILD_FOLDER_PATH.toPrintablePath() }
 }
 
 private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguration) {
@@ -332,6 +341,11 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
     prop("IsTestModule") { isTestModule.toString() }
     prop("Kind") { kind.toString() }
     prop("LanguageLevel") { languageLevel?.toString() }
+
+    // The Kotlin plugin invokes this workaround in several places including where it is read by JPS build.
+    // It doesn't look like we need to do it when opening a project, but we need to refresh them before
+    // dumping them since they are not automatically restored when the project is re-opened.
+    updateMergedArguments()
     mergedCompilerArguments?.let { mergedCompilerArguments ->
       head("MergedCompilerArguments") { null }
       dump(mergedCompilerArguments)

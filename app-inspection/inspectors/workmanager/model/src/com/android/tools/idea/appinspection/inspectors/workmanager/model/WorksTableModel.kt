@@ -16,6 +16,10 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import javax.swing.table.AbstractTableModel
 
 class WorksTableModel(private val client: WorkManagerInspectorClient) : AbstractTableModel() {
@@ -23,17 +27,17 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
    * Columns of work info data.
    */
   enum class Column(val widthPercentage: Double, val type: Class<*>, private val myDisplayName: String) {
-    ORDER(0.01, Long::class.java, "#") {
+    ORDER(0.02, Long::class.java, "#") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return Any()
       }
     },
-    CLASS_NAME(0.36, Long::class.java, "Class Name") {
+    CLASS_NAME(0.32, Long::class.java, "Class Name") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.workerClassName.substringAfterLast('.')
       }
     },
-    STATE(0.1, String::class.java, "State") {
+    STATE(0.13, String::class.java, "State") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.state.ordinal
       }
@@ -70,10 +74,14 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
   }
 
   init {
-    client.addWorksChangedListener { fireTableDataChanged() }
+    client.addWorksChangedListener {
+      CoroutineScope(EdtExecutorService.getInstance().asCoroutineDispatcher()).launch {
+        fireTableDataChanged()
+      }
+    }
   }
 
-  override fun getRowCount() = client.getWorkInfoCount()
+  override fun getRowCount() = client.lockedWorks { it.size }
 
   override fun getColumnCount() = Column.values().size
 
@@ -83,7 +91,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
     if (columnIndex == Column.ORDER.ordinal) {
       return rowIndex + 1
     }
-    val work = client.getWorkInfoOrNull(rowIndex) ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
+    val work = client.lockedWorks { works -> works.getOrNull(rowIndex) } ?: WorkManagerInspectorProtocol.WorkInfo.getDefaultInstance()
     return Column.values()[columnIndex].getValueFrom(work)
   }
 }

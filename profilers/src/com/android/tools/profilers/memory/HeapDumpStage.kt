@@ -15,20 +15,21 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.adtui.model.Timeline
-import com.android.tools.profilers.Stage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
+import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.*
 import java.util.concurrent.Executor
 
-class HeapDumpStage(profilers: StudioProfilers,
-                    loader: CaptureObjectLoader,
-                    private val durationData: CaptureDurationData<out CaptureObject?>?,
-                    private val joiner: Executor?)
+class MemoryCaptureStage(profilers: StudioProfilers,
+                         loader: CaptureObjectLoader,
+                         private val durationData: CaptureDurationData<out CaptureObject?>?,
+                         private val joiner: Executor?)
       : BaseMemoryProfilerStage(profilers, loader) {
 
   override fun enter() {
-    studioProfilers.ideServices.featureTracker.trackEnterStage(javaClass)
+    studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
     loader.start()
     doSelectCaptureDuration(durationData, joiner)
   }
@@ -36,7 +37,14 @@ class HeapDumpStage(profilers: StudioProfilers,
     loader.stop()
   }
 
-  override fun getParentStage() = MemoryProfilerStage(studioProfilers, loader)
-  override fun getHomeStageClass() = MemoryProfilerStage::class.java
+  override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
+  override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
   override fun isInteractingWithTimeline() = false
+  override fun getStageType() = durationData?.captureObjectType?.let {
+    when {
+      HeapDumpCaptureObject::class.java.isAssignableFrom(it) -> MEMORY_HEAP_DUMP_STAGE
+      NativeAllocationSampleCaptureObject::class.java.isAssignableFrom(it) -> MEMORY_NATIVE_RECORDING_STAGE
+      else -> super.getStageType()
+    }
+  } ?: super.getStageType()
 }

@@ -3,7 +3,14 @@ package org.jetbrains.android.formatter;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.formatting.*;
+import com.intellij.formatting.Alignment;
+import com.intellij.formatting.Block;
+import com.intellij.formatting.CustomFormattingModelBuilder;
+import com.intellij.formatting.DelegatingFormattingModel;
+import com.intellij.formatting.FormattingContext;
+import com.intellij.formatting.FormattingModel;
+import com.intellij.formatting.Indent;
+import com.intellij.formatting.Wrap;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
 import com.intellij.openapi.util.TextRange;

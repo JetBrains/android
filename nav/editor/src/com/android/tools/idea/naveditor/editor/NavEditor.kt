@@ -21,7 +21,7 @@ import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.naveditor.property2.NavPropertiesPanelDefinition
+import com.android.tools.idea.naveditor.property.NavPropertiesPanelDefinition
 import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.tree.TreePanelDefinition

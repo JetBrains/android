@@ -26,7 +26,7 @@ import com.intellij.openapi.roots.AnnotationOrderRootType;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -189,7 +189,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   @NotNull
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Override

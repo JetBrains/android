@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -34,24 +35,29 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 class AppInspectorTabLaunchSupportTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
 
-
+  private val notApplicableInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
+    override fun isApplicable() = false
+  }
   private val frameworkInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
   private val incompatibleLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
     override val inspectorLaunchParams = LibraryInspectorLaunchParams(
@@ -62,35 +68,52 @@ class AppInspectorTabLaunchSupportTest {
                                                                       ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))
   }
 
+  private val unresolvedLibrary = ArtifactCoordinate("fallback", "library", "1.0.0", ArtifactCoordinate.Type.JAR)
+  private val unresolvedJar = AppInspectorJar("fallback_jar")
+  private val unresolvedLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+    override val inspectorLaunchParams = LibraryInspectorLaunchParams(unresolvedJar, unresolvedLibrary)
+  }
+
   /**
-   * This tests the call to getApplicableTabProviders with all possible inspector scenarios:
+   * This tests all 4 possible scenarios during and leading up to the launch of a library inspector tab + 1 framework inspector.
    *
-   * Scenarios tested:
-   *   1) framework inspector
-   *   2) library inspector
-   *   3) library inspector that is incompatible
-   *
-   * Scenarios 1 & 2 should result in LAUNCH status. Scenario 3 should result in INCOMPATIBLE status.
+   * The 4 library inspectors are:
+   * 1) not applicable - inspector tab shouldn't be included in result
+   * 2) incompatible inspector - an info tab should be created with an appropriate error message
+   * 3) compatible inspector - a mutable tab created and inspector jar set to the resolved one
+   * 4) compatible inspector but failed to resolve its jar - an info tab should be created with an appropriate error message
    */
   @Test
-  fun getApplicableTabProviders_allScenarios() = runBlocking<Unit> {
-    val support = AppInspectorTabLaunchSupport({ listOf(frameworkInspector, incompatibleLibraryInspector, libraryInspector) },
-                                               appInspectionServiceRule.apiServices, projectRule.project)
+  fun getApplicableTabProviders() = runBlocking<Unit> {
+    val support = AppInspectorTabLaunchSupport(
+      { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
+      appInspectionServiceRule.apiServices,
+      projectRule.project,
+      object : InspectorArtifactService {
+        override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
+          return if (artifactCoordinate == unresolvedLibrary) {
+            null
+          } else {
+            Paths.get("resolved", "jar")
+          }
+        }
+      }
+    )
 
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
       TestAppInspectorCommandHandler(timer, getLibraryVersionsResponse = { getLibraryVersionsCommand ->
-        AppInspection.GetLibraryVersionsResponse.newBuilder().addAllResponses(
-          getLibraryVersionsCommand.targetVersionsList.map {
-            if (it.minVersion == "INCOMPATIBLE") {
-              AppInspection.LibraryVersionResponse.newBuilder().setStatus(
-                AppInspection.LibraryVersionResponse.Status.INCOMPATIBLE)
-                .setVersionFileName(it.versionFileName).setVersion(it.minVersion).build()
+        AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(
+          getLibraryVersionsCommand.targetLibrariesList.map { coordinate ->
+            if (coordinate.version == "INCOMPATIBLE") {
+              AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
+                AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
+                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
             }
             else {
-              AppInspection.LibraryVersionResponse.newBuilder().setStatus(
-                AppInspection.LibraryVersionResponse.Status.COMPATIBLE)
-                .setVersionFileName(it.versionFileName).setVersion(it.minVersion).build()
+              AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
+                AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
+                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
             }
           }.toList()).build()
       }))
@@ -100,23 +123,34 @@ class AppInspectorTabLaunchSupportTest {
     val processReadyDeferred = CompletableDeferred<Unit>()
 
     appInspectionServiceRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
     processReadyDeferred.await()
 
     val tabs = support.getApplicableTabLaunchParams(createFakeProcessDescriptor())
-    val inspectorTabs = tabs.filter { it.status == AppInspectorTabLaunchParams.Status.LAUNCH }
-    val infoTabs = tabs.filter { it.status == AppInspectorTabLaunchParams.Status.INCOMPATIBLE }
+    val inspectorTabs = tabs.filterIsInstance<LaunchableInspectorTabLaunchParams>()
+    val infoTabs = tabs.filterIsInstance<StaticInspectorTabLaunchParams>()
 
     assertThat(inspectorTabs).hasSize(2)
-    assertThat(infoTabs).hasSize(1)
+    assertThat(infoTabs).hasSize(2)
 
-    assertThat(infoTabs[0].provider).isSameAs(incompatibleLibraryInspector)
+    assertThat(infoTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+
+    inspectorTabs.forEach { tab ->
+      when (tab.provider) {
+        frameworkInspector -> {
+          assertThat(tab.jar).isSameAs(TEST_JAR)
+        }
+        else -> {
+          assertThat(tab.jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
+        }
+      }
+    }
   }
 }

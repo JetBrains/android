@@ -16,13 +16,10 @@
 package com.android.tools.idea.npw.ui
 
 import com.android.tools.adtui.ASGallery
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE
 import com.google.common.base.Function
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBList
 import java.awt.Dimension
-import javax.swing.BorderFactory
 import javax.swing.Icon
 
 /**
@@ -32,10 +29,16 @@ import javax.swing.Icon
  */
 class WizardGallery<E>(
   title: String, iconProvider: (E?) -> Icon?, labelProvider: (E?) -> String?
-) : ASGallery<E>(JBList.createDefaultListModel<Any?>(), Function<E, Icon?> { iconProvider(it) }, Function<E, String?> { labelProvider(it) },
-                 DEFAULT_GALLERY_THUMBNAIL_SIZE, null, false) {
+) : ASGallery<E>(
+  JBList.createDefaultListModel<Any?>(),
+  Function<E, Icon?> { iconProvider(it) },
+  Function<E, String?> { labelProvider(it) },
+  DEFAULT_GALLERY_THUMBNAIL_SIZE,
+  null,
+  false
+) {
   init {
-    border = BorderFactory.createLineBorder(JBColor.border()).takeUnless { StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() }
+    border = null
     getAccessibleContext().accessibleDescription = title
   }
 

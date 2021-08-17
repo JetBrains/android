@@ -28,6 +28,9 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   ResolvedPropertyModel applicationId();
 
   @NotNull
+  ResolvedPropertyModel isDefault();
+
+  @NotNull
   ResolvedPropertyModel dimension();
 
   @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.dataviewer;
-
-import org.jetbrains.annotations.NotNull;
+package com.android.tools.inspectors.common.ui.dataviewer;
 
 import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class which provides a view for a target data buffer. For example, an image may be rendered directly, while an xml
@@ -35,7 +34,7 @@ public interface DataViewer {
     /**
      * A style for text data that is properly formatted in some way, so that the view can do this
      * like color fields or reconfigure indentation.
-     *
+     * <p>
      * For example, suppose the raw bytes for JSON data are a single line string
      * <code>{"menu": {id": "file", "value": "File"}}</code>; this text may get expanded onto
      * multiple lines and provide controls for collapsing / expanding JSON objects.

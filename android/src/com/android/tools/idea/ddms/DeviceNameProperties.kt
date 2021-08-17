@@ -21,4 +21,25 @@ package com.android.tools.idea.ddms
 data class DeviceNameProperties(val model: String?,
                                 val manufacturer: String?,
                                 val buildVersion: String?,
-                                val apiLevel: String?)
+                                val apiLevel: String?) {
+  fun getName() = getName(model, manufacturer)
+
+  companion object {
+    @JvmStatic
+    fun getName(model: String?, manufacturer: String?): String {
+      if (model == null && manufacturer == null) {
+        return "Device"
+      }
+
+      if (model == null) {
+        return "$manufacturer Device"
+      }
+
+      if (manufacturer == null) {
+        return model
+      }
+
+      return "$manufacturer $model"
+    }
+  }
+}

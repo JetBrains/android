@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;

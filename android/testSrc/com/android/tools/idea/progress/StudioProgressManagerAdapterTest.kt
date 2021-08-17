@@ -17,14 +17,14 @@ package com.android.tools.idea.progress
 
 import com.android.io.CancellableFileIo
 import com.android.testutils.file.DelegatingFileSystemProvider
-import com.google.common.jimfs.Configuration
-import com.google.common.jimfs.Jimfs
+import com.android.testutils.file.createInMemoryFileSystem
+import com.android.testutils.file.someRoot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.impl.ProgressRunner
+import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.testFramework.ApplicationRule
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.FileSystem
@@ -43,7 +43,7 @@ class StudioProgressManagerAdapterTest {
   @get:Rule
   val rule = ApplicationRule()
 
-  private val fileSystemProvider = MockFileSystemProvider(Jimfs.newFileSystem(Configuration.unix()))
+  private val fileSystemProvider = MockFileSystemProvider(createInMemoryFileSystem())
   private val fileSystem = fileSystemProvider.fileSystem
 
   /** Checks cancellation of I/O operations by a pending write action. */
@@ -57,7 +57,7 @@ class StudioProgressManagerAdapterTest {
       ProgressIndicatorUtils.runInReadActionWithWriteActionPriority {
         readActionStarted.countDown()
         for (i in 1..100) {
-          val file = fileSystem.getPath("/dir/file$i")
+          val file = fileSystem.someRoot.resolve("dir/file$i")
           CancellableFileIo.isRegularFile(file)
           ioOperationCount.set(i)
         }
@@ -65,20 +65,32 @@ class StudioProgressManagerAdapterTest {
     }
 
     // Wait until read action starts.
-    readActionStarted.await()
+    if (!readActionStarted.await(2, TimeUnit.SECONDS)) {
+      fail("Unable to start a read action, probably a write action was still running when this test started")
+    }
 
     val writeActionCompleted = CountDownLatch(1)
     // Start a write action asynchronously.
-    ProgressRunner<Unit>(writeActionCompleted::countDown).submit()
+    ApplicationManager.getApplication().invokeLater {
+      ApplicationManager.getApplication().runWriteAction(writeActionCompleted::countDown)
+    }
+
+    // Wait until the write action is ready to run.
+    while (!(ApplicationManager.getApplication() as ApplicationEx).isWriteActionPending && writeActionCompleted.count > 0) {
+      writeActionCompleted.await(10, TimeUnit.MILLISECONDS)
+    }
 
     // Allow one I/O operation every 100 milliseconds.
     for (i in 1..100) {
-      writeActionCompleted.await(100, TimeUnit.MILLISECONDS)
+      writeActionCompleted.await(10, TimeUnit.MILLISECONDS)
       fileSystemProvider.proceed()
     }
 
     // The read action should be cancelled after the first I/O operation.
     assertThat(ioOperationCount.get()).isAtMost(1)
+
+    // Make sure that the write action is not left behind when the test terminates.
+    ApplicationManager.getApplication().runReadAction {}
   }
 
   private class MockFileSystemProvider(fileSystem: FileSystem) : DelegatingFileSystemProvider(fileSystem) {

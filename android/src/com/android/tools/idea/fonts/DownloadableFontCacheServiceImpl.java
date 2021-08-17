@@ -32,6 +32,7 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -241,7 +242,8 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
   @Nullable
   protected File locateSdkHome() {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    return sdkHandler.getLocation();
+    Path location = sdkHandler.getLocation();
+    return location != null ? location.toFile() : null;
   }
 
   @Override

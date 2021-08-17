@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.editor;
 
+import static com.android.tools.idea.ui.designer.DesignSurfaceNotificationManagerKt.NOTIFICATION_KEY;
+
 import com.android.annotations.concurrency.UiThread;
+import com.android.ide.common.rendering.api.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
@@ -23,11 +26,15 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
@@ -52,16 +59,16 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.android.download.AndroidLayoutlibDownloader;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +97,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface mySurface;
+  @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
@@ -121,6 +129,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   /** Notification panel to be used for the surface. */
   private final EditorNotificationPanel myNotificationPanel = new EditorNotificationPanel();
 
+  /** Timer used for notification that hides itself after timeout. */
+  @Nullable
+  private Timer myNotificationTimer;
+
   /**
    * Creates a new {@link DesignerEditorPanel}.
    *
@@ -129,6 +141,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    * @param file the file being open by the editor.
    * @param workBench workbench containing a design surface and a number of tool window definitions (also passed in the constructor).
    * @param surface a function that produces a design surface given a design editor panel. Ideally, this panel is passed to the function.
+   * @param modelProvider a model provider to provide a {@link NlModel} for this editor.
    * @param toolWindowDefinitions list of tool windows to be added to the workbench.
    * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
    *                             be added on the bottom of this panel. The component might be associated with the model, so we need to
@@ -137,6 +150,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull ModelProvider modelProvider,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
@@ -149,6 +163,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
+    myModelProvider = modelProvider;
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
 
@@ -230,7 +245,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
-    this(editor, project, file, workBench, surface, toolWindowDefinitions, null, defaultState);
+    this(editor, project, file, workBench, surface, ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
   }
 
   @NotNull
@@ -272,6 +287,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
           mySurface.goingToSetModel(model).join();
           myWorkBench.setLoadingText("Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+            if (Bridge.hasNativeCrash()) {
+              DesignSurfaceHelper.handleLayoutlibNativeCrash(myWorkBench, this::initNeleModel);
+              return;
+            }
             myWorkBench.setLoadingText("Initializing...");
             if (result.isSuccessful()) {
               initNeleModelOnEventDispatchThread(model);
@@ -320,11 +339,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
         throw new WaitingForGradleSyncException("Waiting for next gradle sync to set AndroidFacet.");
       }
     }
-    NlModel model = NlModel.builder(facet, myFile, mySurface.getConfigurationManager(facet).getConfiguration(myFile))
-      .withParentDisposable(myEditor)
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
-      .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
-      .build();
+    NlModel model = myModelProvider.createModel(myEditor, myProject, facet, mySurface.getComponentRegistrar(), myFile);
+
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.
     myProject.getMessageBus().connect(mySurface).subscribe(ProjectTopics.MODULES, new ModuleListener() {
@@ -384,6 +400,36 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   public void showNotification(String text) {
     myNotificationPanel.setText(text);
     myNotificationPanel.setVisible(true);
+    if (myNotificationTimer != null && myNotificationTimer.isRunning()) {
+      // If new notification is showing stop any previous intents to timeout and hide.
+      myNotificationTimer.stop();
+    }
+  }
+
+  @Override
+  public void showThenHideNotification(String text, int timems) {
+    showNotification(text);
+    if (myNotificationTimer == null) {
+      myNotificationTimer = new Timer(timems, e -> {
+        hideNotification();
+      });
+      myNotificationTimer.setRepeats(false);
+      myNotificationTimer.start();
+      return;
+    }
+
+    if (myNotificationTimer.isRunning()) {
+      // This should not happen since showNotification should stop any timer.
+      // Safeguard incase showNotification impl changes.
+      Logger.getInstance("Notification")
+        .warn("Notification timer for DesignSurfaceNotificationManager should not be running at this time.");
+      return;
+    }
+
+    if (myNotificationTimer.getInitialDelay() != timems) {
+      myNotificationTimer.setInitialDelay(timems);
+    }
+    myNotificationTimer.restart();
   }
 
   @Override
@@ -443,6 +489,28 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     DEACTIVATED
   }
 
+  /**
+   * Used to provide the {@link NlModel}s for the editor file.
+   */
+  public interface ModelProvider {
+
+    ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) ->
+      NlModel.builder(facet, file, ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file))
+        .withParentDisposable(disposable)
+        .withComponentRegistrar(componentRegistrar)
+        .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
+        .build();
+
+    /**
+     * The function Create the {@link NlModel}s for the given virtual file.
+     */
+    NlModel createModel(@NotNull Disposable parentDisposable,
+                        @NotNull Project project,
+                        @NotNull AndroidFacet facet,
+                        @NotNull Consumer<NlComponent> componentRegistrar,
+                        @NotNull VirtualFile file);
+  }
+
   private static class WaitingForGradleSyncException extends RuntimeException {
     private WaitingForGradleSyncException(@NotNull String message) {
       super(message);
@@ -474,7 +542,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
           }
         }
       }
-      else if (DesignerDataKeys.NOTIFICATION_KEY.is(dataId)) {
+      else if (NOTIFICATION_KEY.is(dataId)) {
         return DesignerEditorPanel.this;
       }
       return null;

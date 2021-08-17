@@ -46,6 +46,12 @@ public class TextViewHandler extends ViewHandler {
   private static final Set<String> HAVE_REDUCED_SCALE_IN_PREVIEW =
     ImmutableSet.of(AUTO_COMPLETE_TEXT_VIEW, EDIT_TEXT, MULTI_AUTO_COMPLETE_TEXT_VIEW);
 
+  /**
+   * Set of possible default values for a TextView <code>android:text</code> attribute.
+   */
+  private static final Set<String> TEXT_DEFAULT_VALUES =
+    ImmutableSet.of("Hello World!", "TextView", "@string/hello_first_fragment", "@string/hello_blank_fragment", "@string/hello_world");
+
   @NotNull
   @Override
   public String getTitleAttributes(@NotNull NlComponent component) {
@@ -94,10 +100,7 @@ public class TextViewHandler extends ViewHandler {
     //  - tools:text is a sample data value, empty or null
     //  - AND android:text is null, empty or a default value
     boolean shouldDisplay = Strings.isNullOrEmpty(toolsText) || toolsText.startsWith(TOOLS_SAMPLE_PREFIX);
-    shouldDisplay = shouldDisplay &&
-                    (Strings.isNullOrEmpty(text) ||
-                     "Hello World!".equals(text) ||
-                     "TextView".equals(text));
+    shouldDisplay = shouldDisplay && (Strings.isNullOrEmpty(text) || TEXT_DEFAULT_VALUES.contains(text));
 
     if (!shouldDisplay) {
       return null;

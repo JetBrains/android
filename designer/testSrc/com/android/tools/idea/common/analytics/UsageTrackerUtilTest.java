@@ -25,7 +25,6 @@ package com.android.tools.idea.common.analytics;
  import static com.android.SdkConstants.COORDINATOR_LAYOUT;
  import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
  import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
- import static com.android.SdkConstants.LATEST_CONSTRAINT_LAYOUT_VERSION;
  import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
  import static com.android.SdkConstants.MAPS_ARTIFACT;
  import static com.android.SdkConstants.TEXT_VIEW;
@@ -68,7 +67,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String SDK_VERSION = ":" + HIGHEST_KNOWN_API + ".0.1";
   private static final String DESIGN_COORDINATE = DESIGN_LIB_ARTIFACT + SDK_VERSION;
   private static final String GRID_LAYOUT_COORDINATE = GRID_LAYOUT_LIB_ARTIFACT + SDK_VERSION;
-  private static final String CONSTRAINT_LAYOUT_COORDINATE = CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":" + LATEST_CONSTRAINT_LAYOUT_VERSION;
+  private static final String CONSTRAINT_LAYOUT_COORDINATE = CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":1.0.2";
   private static final String MAPS_COORDINATE = MAPS_ARTIFACT + ":2.0.0";
   private static final String LEANBACK_V17_COORDINATE = LEANBACK_V17_ARTIFACT + ":7.0.0";
   private static final String ACME_LIB_COORDINATE = "com.acme:my-layout:1.0.0";

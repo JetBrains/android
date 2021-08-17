@@ -5,10 +5,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
+import org.jetbrains.annotations.Nullable;
 
 public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/resNavigation/";
@@ -105,7 +103,7 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
       assertEquals(expectedTargets, targets.length);
 
       for (PsiElement target : targets) {
-        assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(target), targetElementClass);
+        assertInstanceOf(target, targetElementClass);
       }
     }
   }

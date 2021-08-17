@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.stacktrace;
 
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An element which represents a line in a stack trace, i.e. a fully qualified method name.
  */
-interface CodeElement extends StackElement {
+public interface CodeElement extends StackElement {
   String UNKONWN_CLASS = "<unkonwn class>";
   String UNKNOWN_PACKAGE = "<unknown package>";
   String NO_PACKAGE = "<no package>";

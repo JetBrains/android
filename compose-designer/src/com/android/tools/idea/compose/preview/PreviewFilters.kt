@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanc
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.properties.Delegates
 
-class PreviewFilters(previewProvider: PreviewElementProvider) : PreviewElementProvider {
+class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : PreviewElementInstanceProvider {
   private val LOG = Logger.getInstance(PreviewFilters::class.java)
 
   /**

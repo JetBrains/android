@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
@@ -34,7 +32,7 @@ import java.awt.Rectangle
 class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
-    val view = surface.getSceneView(mouseX, mouseY) ?: return null
+    val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
     if (isInResizeZone(view, mouseX, mouseY)) {
       val configuration = view.sceneManager.model.configuration
@@ -106,65 +104,11 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
                                        @SwingCoordinate mouseY: Int,
                                        @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
-    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
-    val scene = sceneView.scene
-    val selectionModel = sceneView.selectionModel
-
-    val xDp = Coordinates.getAndroidXDip(sceneView, mouseX)
-    val yDp = Coordinates.getAndroidYDip(sceneView, mouseY)
-
-    val model = sceneView.model
-    var component: SceneComponent? = null
-
-    // Make sure we start from root if we don't have anything selected
-    if (selectionModel.isEmpty && !model.components.isEmpty()) {
-      selectionModel.setSelection(listOf(model.components[0].root!!))
+    if (surface.getSceneViewAt(mouseX, mouseY) == null) {
+      val focusedSceneView = surface.focusedSceneView ?: return null
+      return MarqueeInteraction(focusedSceneView)
     }
-
-    // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-    // leaf nodes inside it
-    val primarySelectedComponent = selectionModel.primary
-    val primary = scene.getSceneComponent(primarySelectedComponent)
-    if (primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-      component = primary
-    }
-    if (component == null) {
-      component = scene.findComponent(sceneView.context, xDp, yDp)
-    }
-
-    if (component?.parent == null) {
-      // Dragging on the background/root view: start a marquee selection
-      return MarqueeInteraction(sceneView)
-    }
-
-    val primaryDraggedComponent = primary ?: component
-    val dragged: List<NlComponent>
-    // Dragging over a non-root component: move the set of components (if the component dragged over is
-    // part of the selection, drag them all, otherwise drag just this component)
-    if (surface.selectionModel.isSelected(component.nlComponent)) {
-      val selectedDraggedComponents = mutableListOf<NlComponent>()
-
-      val primaryNlComponent: NlComponent?
-      // Make sure the primaryDraggedComponent is the first element
-      if (primaryDraggedComponent.parent == null) {
-        primaryNlComponent = null
-      }
-      else {
-        primaryNlComponent = primaryDraggedComponent.nlComponent
-        selectedDraggedComponents.add(primaryNlComponent)
-      }
-
-      for (selected in surface.selectionModel.selection) {
-        if (!selected.isRoot && selected !== primaryNlComponent) {
-          selectedDraggedComponents.add(selected)
-        }
-      }
-      dragged = selectedDraggedComponents
-    }
-    else {
-      dragged = listOf(primaryDraggedComponent.nlComponent)
-    }
-    return DragDropInteraction(surface, dragged)
+    return null
   }
 
   override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
@@ -190,7 +134,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   }
 
   private fun clickPreview(@SwingCoordinate x: Int, @SwingCoordinate y: Int, needsFocusEditor: Boolean) {
-    val sceneView = surface.getSceneView(x, y) ?: return
+    val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
 
@@ -207,7 +151,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
-    val sceneView = surface.getSceneView(mouseX, mouseY)
+    val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
       // Check if the mouse position is at the bottom-right corner of sceneView.
       if (isInResizeZone(sceneView, mouseX, mouseY)) {

@@ -81,7 +81,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk().toFile())
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)

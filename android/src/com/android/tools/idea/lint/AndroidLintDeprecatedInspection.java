@@ -16,23 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.DeprecationDetector;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.RemoveAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
   public AndroidLintDeprecatedInspection() {
     super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return new LintIdeQuickFix[]{
-      new RemoveAttributeQuickFix()
-    };
   }
 }

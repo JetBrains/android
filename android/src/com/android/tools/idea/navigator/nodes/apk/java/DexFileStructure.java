@@ -21,6 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -39,14 +40,28 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static com.intellij.debugger.impl.DebuggerUtilsEx.signatureToName;
 
 class DexFileStructure {
-  @NotNull private final Future<DexBackedDexFile> myDexFileFuture;
+  // All dex files represented by this node.
+  @NotNull private final Future<List<DexBackedDexFile>> myDexFilesFuture;
 
-  @NotNull private final ApkPackages myPackages = new ApkPackages();
+  // Flag for lazy population of myPackages contents.
   private boolean myPackagesComputed;
 
-  DexFileStructure(@NotNull VirtualFile dexFile) {
+  // All packages represented by this node.
+  @NotNull private final ApkPackages myPackages = new ApkPackages();
+
+  DexFileStructure(@NotNull List<VirtualFile> dexFiles) {
     ListeningExecutorService executor = listeningDecorator(PooledThreadExecutor.INSTANCE);
-    myDexFileFuture = executor.submit(() -> getDexFile(dexFile));
+    myDexFilesFuture = executor.submit(() -> {
+      List<DexBackedDexFile> result = new ArrayList<>();
+      for (VirtualFile dexFile : dexFiles) {
+        try {
+          result.add(getDexFile(dexFile));
+        } catch (IOException e) {
+          // Ignore and continue.
+        }
+      }
+      return result;
+    });
   }
 
   @NotNull
@@ -59,18 +74,20 @@ class DexFileStructure {
   }
 
   private void computePackages() throws ExecutionException, InterruptedException {
-    DexBackedDexFile dexFile = myDexFileFuture.get();
-    // Definitions only returns the classes in the app's source code (no JDK or Android platform classes,) but the returned names are not
-    // fully qualified names (FQNs.) We need to get the classes FQNs from the method references.
-    // For example:
-    // For the FQN 'a.b.c.X' the class definition will be 'La/b/c/X;'
-    Set<String> definitions = dexFile.getClasses().stream().map(DexBackedClassDef::getType).collect(Collectors.toSet());
-    for (int i = 0, m = dexFile.getMethodCount(); i < m; i++) {
-      MethodReference methodRef = new DexBackedMethodReference(dexFile, i);
-      String className = signatureToName(methodRef.getDefiningClass());
-      String definition = "L" + className.replace('.', '/') + ";"; // This is how definitions are set in DexBackedDexFile
-      if (definitions.contains(definition)) {
-        myPackages.add(className);
+    List<DexBackedDexFile> dexFiles = myDexFilesFuture.get();
+    for (DexBackedDexFile dexFile : dexFiles) {
+      // Definitions only returns the classes in the app's source code (no JDK or Android platform classes,) but the returned names are not
+      // fully qualified names (FQNs.) We need to get the classes FQNs from the method references.
+      // For example:
+      // For the FQN 'a.b.c.X' the class definition will be 'La/b/c/X;'
+      Set<String> definitions = dexFile.getClasses().stream().map(DexBackedClassDef::getType).collect(Collectors.toSet());
+      for (int i = 0, m = dexFile.getMethodCount(); i < m; i++) {
+        MethodReference methodRef = new DexBackedMethodReference(dexFile, i);
+        String className = signatureToName(methodRef.getDefiningClass());
+        String definition = "L" + className.replace('.', '/') + ";"; // This is how definitions are set in DexBackedDexFile
+        if (definitions.contains(definition)) {
+          myPackages.add(className);
+        }
       }
     }
   }

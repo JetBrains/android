@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +52,7 @@ public class BasicLayoutEditTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importSimpleApplication()
+    NlEditorFixture editorFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
                                            .getEditor()
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
                                            .getLayoutEditor()

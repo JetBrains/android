@@ -25,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager.Companion.getInstance
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists
 import com.intellij.openapi.module.StdModuleTypes
@@ -32,6 +33,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 class TopLevelModuleFactory() {
@@ -111,7 +113,8 @@ class TopLevelModuleFactory() {
         if (gradleFacet == null) {
           // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
           gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
-          facetModel.addFacet(gradleFacet)
+          @Suppress("UnstableApiUsage")
+          facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
         }
         gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR
       }

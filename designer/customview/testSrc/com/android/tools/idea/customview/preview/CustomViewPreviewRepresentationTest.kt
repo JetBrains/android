@@ -18,6 +18,7 @@ package com.android.tools.idea.customview.preview
 import com.android.tools.adtui.workbench.DetachedToolWindowManager
 import com.android.tools.adtui.workbench.WorkBenchManager
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.ide.util.PropertiesComponent
@@ -52,6 +53,9 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
   @Mock
   private lateinit var syncManager: ProjectSystemSyncManager
 
+  @Mock
+  private lateinit var buildManager: ProjectSystemBuildManager
+
   private lateinit var representation: CustomViewPreviewRepresentation
 
   override fun setUp() {
@@ -68,6 +72,7 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
     Mockito.`when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     Mockito.`when`(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
     Mockito.`when`(syncManager.getLastSyncResult()).thenReturn(ProjectSystemSyncManager.SyncResult.FAILURE)
+    Mockito.`when`(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
   }
 
   override fun tearDown() {

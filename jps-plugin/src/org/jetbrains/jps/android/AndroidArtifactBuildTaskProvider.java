@@ -88,7 +88,6 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
       if (platform == null) {
         return;
       }
-      final String sdkLocation = platform.getSdk().getHomePath();
       final String artifactFilePath = myArtifact.getOutputFilePath();
 
       final String keyStorePath = myProps.getKeyStoreUrl() != null
@@ -103,7 +102,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                       ? new String(Base64.getDecoder().decode(keyPassword), StandardCharsets.UTF_8) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =
-          AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
+          AndroidBuildCommonUtils.buildArtifact(artifactName, messagePrefix, platform.getTarget(), artifactFilePath,
                                                 keyStorePath, myProps.getKeyAlias(), plainKeyStorePassword, plainKeyPassword);
         AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, entryName);
       }

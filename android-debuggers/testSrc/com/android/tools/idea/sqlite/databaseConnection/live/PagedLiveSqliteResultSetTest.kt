@@ -48,7 +48,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       return response
     }
 
-    override val rawEventFlow: Flow<ByteArray> = emptyFlow()
+    override val eventFlow: Flow<ByteArray> = emptyFlow()
 
     override val scope: CoroutineScope
       get() = throw NotImplementedError()

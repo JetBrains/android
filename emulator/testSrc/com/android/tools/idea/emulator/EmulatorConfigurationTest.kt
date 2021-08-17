@@ -49,6 +49,8 @@ class EmulatorConfigurationTest {
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/'))
         .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.foldable).isFalse()
+    assertThat(config?.rollable).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
   }
@@ -70,7 +72,55 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(320)
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
     assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.foldable).isFalse()
+    assertThat(config?.rollable).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
+  }
+
+  @Test
+  fun testFoldable() {
+    // Prepare.
+    val avdFolder = FakeEmulator.createFoldableAvd(avdParentFolder, sdkFolder)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config?.avdFolder).isEqualTo(avdFolder)
+    assertThat(config?.avdName).isEqualTo("7.6 Fold-in with outer display API 29")
+    assertThat(config?.displayWidth).isEqualTo(1768)
+    assertThat(config?.displayHeight).isEqualTo(2208)
+    assertThat(config?.density).isEqualTo(480)
+    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.foldable).isTrue()
+    assertThat(config?.rollable).isFalse()
+    assertThat(config?.hasOrientationSensors).isTrue()
+    assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
+  }
+
+  @Test
+  fun testRollable() {
+    // Prepare.
+    val avdFolder = FakeEmulator.createRollableAvd(avdParentFolder, sdkFolder)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config?.avdFolder).isEqualTo(avdFolder)
+    assertThat(config?.avdName).isEqualTo("7.4 Rollable API 31")
+    assertThat(config?.displayWidth).isEqualTo(1600)
+    assertThat(config?.displayHeight).isEqualTo(2428)
+    assertThat(config?.density).isEqualTo(420)
+    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.foldable).isFalse()
+    assertThat(config?.rollable).isTrue()
+    assertThat(config?.hasOrientationSensors).isTrue()
+    assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
   }
 }

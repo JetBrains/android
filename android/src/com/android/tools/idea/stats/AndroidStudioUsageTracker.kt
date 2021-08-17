@@ -16,15 +16,19 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.ide.common.util.isMdnsAutoConnectTls
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.Survey
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
+import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
+import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.*
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
@@ -44,9 +48,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -80,7 +85,8 @@ object AndroidStudioUsageTracker {
         osArchitecture = CommonMetricsData.osArchitecture
         channel = lifecycleChannelFromUpdateSettings()
         theme = currentIdeTheme()
-        addAllExperimentId(buildActiveExperimentList())
+        serverFlagsChangelist = ServerFlagService.instance.configurationVersion
+        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.names))
       }.build()
     }
 
@@ -219,24 +225,41 @@ object AndroidStudioUsageTracker {
       eventQueue.removeIdleListener(runner)
 
       val now = AnalyticsSettings.dateProvider.now()
-      val dialog = SatisfactionDialog()
-      dialog.showAndGetOk().doWhenDone(Runnable {
-        val result = dialog.selectedSentiment
-        UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-          kind = EventKind.USER_SENTIMENT
-          userSentiment = UserSentiment.newBuilder().apply {
-            state = UserSentiment.SentimentState.POPUP_QUESTION
-            level = result
-          }.build()
-        })
+      val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+      val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+      val hasFollowup = followupSurvey != null
 
-        AnalyticsSettings.lastSentimentQuestionDate = now
-        AnalyticsSettings.lastSentimentAnswerDate = now
-        AnalyticsSettings.saveSettings()
-      })
+      val dialog = survey?.let { createDialog(it, hasFollowup = hasFollowup) }
+                   ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, hasFollowup)
+
+      followupSurvey?.let {
+        scheduleFollowup(dialog, it)
+      }
+
+      dialog.show()
+
+      AnalyticsSettings.lastSentimentQuestionDate = now
+      AnalyticsSettings.lastSentimentAnswerDate = now
+      AnalyticsSettings.saveSettings()
     }
 
     eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
+  }
+
+  private fun scheduleFollowup(dialog: DialogWrapper, survey: Survey) {
+    Disposer.register(dialog.disposable, {
+      val eventQueue = IdeEventQueue.getInstance()
+      lateinit var runner: Runnable
+      runner = Runnable {
+        eventQueue.removeIdleListener(runner)
+
+        if (dialog.isOK) {
+          createDialog(survey, hasFollowup = false).show()
+        }
+      }
+
+      eventQueue.addIdleListener(runner, 500)
+    })
   }
 
   private fun runHourlyReports() {

@@ -34,6 +34,7 @@ import javax.swing.JPanel
  */
 open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, UserDataHolderBase() {
   private val previewPanel = JPanel(BorderLayout())
+
   override fun getComponent(): JComponent = previewPanel
   override fun getPreferredFocusedComponent(): JComponent = previewPanel
   override fun getName() = "Base File Editor"

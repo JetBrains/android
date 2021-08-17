@@ -19,13 +19,10 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.util.containers.ContainerUtil;
 import icons.StudioIcons;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.*;
@@ -39,8 +36,11 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   private final @NotNull Collection<@NotNull Key> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Set<@NotNull Key> keys, @NotNull AsyncDevicesGetter devicesGetter) {
-    myKeys = keys;
+  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<@NotNull Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
+    myKeys = targets.stream()
+      .map(Target::getDeviceKey)
+      .collect(Collectors.toSet());
+
     myDevicesGetter = devicesGetter;
   }
 
@@ -68,7 +68,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private @NotNull Stream<@NotNull Device> filteredStream(@NotNull Collection<@NotNull Device> devices) {
-    return devices.stream().filter(device -> device.hasKeyContainedBy(myKeys));
+    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
   }
 
   @NotNull
@@ -83,7 +83,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public String getDisplayName() {
-    List<Device> devices = getDeploymentDevices();
+    List<Device> devices = deviceStream().collect(Collectors.toList());
 
     switch (devices.size()) {
       case 0:
@@ -98,21 +98,13 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public Icon getIcon() {
-    List<Device> devices = getDeploymentDevices();
+    List<Device> devices = deviceStream().collect(Collectors.toList());
 
     if (devices.size() == 1) {
       return devices.get(0).getIcon();
     }
 
     return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
-  }
-
-  private @NotNull List<@NotNull Device> getDeploymentDevices() {
-    return myDevicesGetter.get().map(this::filteredList).orElseGet(Collections::emptyList);
-  }
-
-  private @NotNull List<@NotNull Device> filteredList(@NotNull Collection<@NotNull Device> devices) {
-    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(myKeys));
   }
 
   @Override

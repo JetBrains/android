@@ -75,6 +75,7 @@ public interface Manifest extends ManifestElement {
   UsesSdk addUsesSdk();
 
   List<UsesFeature> getUsesFeatures();
+  UsesFeature addUsesFeature();
 
   List<UsesSplit> getUsesSplits();
 
@@ -95,4 +96,6 @@ public interface Manifest extends ManifestElement {
   AndroidAttributeValue<Integer> getVersionCode();
 
   List<Overlay> getOverlays();
+
+  List<AttributeTag> getAttributes();
 }

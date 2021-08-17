@@ -30,7 +30,6 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
@@ -47,7 +46,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.diagnostic.Logger;
@@ -59,7 +57,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -168,20 +165,8 @@ public final class GuiTests {
     // TODO: setUpDefaultGeneralSettings();
   }
 
-  private static File getAndroidSdk() {
-    String androidSdkRoot = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    if (androidSdkRoot == null) {
-      androidSdkRoot = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
-    }
-
-    if (androidSdkRoot == null) {
-      throw new RuntimeException("Must set " + SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable when running in standalone mode");
-    }
-    return new File(androidSdkRoot);
-  }
-
   public static void setUpSdks() {
-    File androidSdkPath = GuiTestOptions.INSTANCE.isStandaloneMode() ? getAndroidSdk() : TestUtils.getSdk();
+    File androidSdkPath = TestUtils.getSdk().toFile();
     IdeSdks ideSdks = IdeSdks.getInstance();
     File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
 
@@ -355,14 +340,8 @@ public final class GuiTests {
 
   @NotNull
   public static File getTestProjectsRootDirPath() {
-    String testDataPath;
-    // The release build directory structure is different; testData is in a different location.
-    if (GuiTestOptions.INSTANCE.isRunningOnRelease()) {
-      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/uitest-framework").getPath();
-    } else {
-      testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/android-uitests").getAbsolutePath();
-    }
-    testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
+    String testDataPath =
+      toCanonicalPath(toSystemDependentName(TestUtils.resolveWorkspacePath("tools/adt/idea/android-uitests").toString()));
     return new File(testDataPath, "testData");
   }
 

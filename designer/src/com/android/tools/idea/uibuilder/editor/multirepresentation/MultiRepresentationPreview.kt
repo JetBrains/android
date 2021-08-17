@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -34,6 +34,7 @@ import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -46,6 +47,11 @@ import java.awt.BorderLayout
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+
+/**
+ * Tag name used to persist the multi preview state.
+ */
+internal const val MULTI_PREVIEW_STATE_TAG = "multi-preview-state"
 
 /**
  * Type for [PreviewRepresentation]s to store their settings as key/value pairs.
@@ -66,7 +72,7 @@ data class Representation(
  * [FileEditorState] for [MultiRepresentationPreview]. It saves the state of the individual [PreviewRepresentation]s and restore the state
  * of each one.
  */
-@Tag("multi-preview-state")
+@Tag(MULTI_PREVIEW_STATE_TAG)
 data class MultiRepresentationPreviewFileEditorState(
   @Attribute("selected")
   var selectedRepresentationName: RepresentationName = "",
@@ -102,15 +108,21 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private var representationNeverShown = true
 
   /**
-   * Whether updateRepresentations has executed once and loaded the representations from the providers or not.
+   * [MultiRepresentationPreviewFileEditorState] deserialized from disk, if any.
    */
-  private var representationsLoaded = false
+  private var stateFromDisk: MultiRepresentationPreviewFileEditorState? = null
+
   private val representations: MutableMap<RepresentationName, PreviewRepresentation> = mutableMapOf()
 
   override val currentRepresentation: PreviewRepresentation?
     get() {
       return representations[currentRepresentationName]
     }
+
+  /**
+   * true if the [currentRepresentation] has been activated.
+   */
+  private val currentRepresentationIsActive = AtomicBoolean(false)
 
   override val representationNames: List<RepresentationName>
     get() {
@@ -121,25 +133,24 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   override var currentRepresentationName: RepresentationName = ""
     set(value) {
       if (field != value) {
-        currentRepresentation?.onDeactivate()
+        if (currentRepresentationIsActive.get()) {
+          currentRepresentation?.onDeactivate()
+        }
         field = value
 
         onRepresentationChanged()
         if (isActive.get()) {
           LOG.debug { "[$instanceId] Activating '$value'"}
           currentRepresentation?.onActivate()
+          currentRepresentationIsActive.set(true)
         }
         else {
+          // The preview is not active so mark the current representation as not-active
+          currentRepresentationIsActive.set(false)
           LOG.debug { "[$instanceId] Did not activate '$value' since the MultiRepresentationPreview is not active."}
         }
       }
     }
-
-  /**
-   * If [updateRepresentations] is called while this preview is not active, this flag will become true. [updateRepresentations] will
-   * be called as soon as this preview becomes active.
-   */
-  private val updateRepresentationsOnActivation = AtomicBoolean(false)
 
   /**
    * [AtomicBoolean] to track activations.
@@ -147,18 +158,23 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   private val isActive = AtomicBoolean(false)
 
-  /**
-   * We only restore the state once when the initial creation happens. After that, we do not restore it anymore.
-   */
-  private var hasRestoredState = false
-  /**
-   * Callback called the first time the representations are loaded. This allows restoring the initial editor status.
-   */
-  private var onRepresenationsLoaded: (() -> Unit)? = null
-
   private val caretListener = object : CaretListener {
+    /**
+     * This tracks the last time the file was modified. This allows us to infer if the caret moved because the user
+     * was typing or just moving around.
+     */
+    var lastEditorModificationStamp = -1L
+
     override fun caretPositionChanged(event: CaretEvent) {
-      currentRepresentation?.onCaretPositionChanged(event)
+      val newStamp = event.editor.document.modificationStamp
+
+      val isModificationTriggered = if (newStamp != -1L && lastEditorModificationStamp != newStamp) {
+        lastEditorModificationStamp = newStamp
+        true
+      }
+      else false
+
+      currentRepresentation?.onCaretPositionChanged(event, isModificationTriggered)
     }
   }
 
@@ -187,12 +203,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
-    if (!isActive.get()) {
-      // Schedule the update for when the preview becomes active
-      updateRepresentationsOnActivation.set(true)
-      return@invokeLaterIfNeeded
-    }
-
     if (Disposer.isDisposed(this)) {
       return@invokeLaterIfNeeded
     }
@@ -202,7 +212,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       return@invokeLaterIfNeeded
     }
 
-    val providers = providers.filter { it.accept(project, file.virtualFile) }.toList()
+    val providers = providers.filter { it.accept(project, file) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
     // Remove unaccepted
@@ -211,21 +221,31 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
         Disposer.dispose(it)
       }
     }
+
+    val hadAnyRepresentationsInitialized = representations.isNotEmpty()
     // Add new
-    val addedRepresentations = mutableSetOf<RepresentationName>()
     for (provider in providers.filter { it.displayName !in representations.keys }) {
+      if (representations.containsKey(provider.displayName)) continue
       val representation = provider.createRepresentation(file)
       Disposer.register(this, representation)
       shortcutsApplicableComponent?.let {
         representation.registerShortcuts(it)
       }
       representations[provider.displayName] = representation
-      addedRepresentations.add(provider.displayName)
+
+      // Restore the state of the representation
+      stateFromDisk
+        ?.representations
+        ?.find { it.key == provider.displayName }
+        ?.let {
+          representation.setState(it.settings)
+        }
     }
 
-    onRepresenationsLoaded?.invoke()
-    onRepresenationsLoaded = null
-    representationsLoaded = true
+    if (!hadAnyRepresentationsInitialized) {
+      // The first time we load one representation, we try to set it to the one we had saved on disk when saving the state.
+      stateFromDisk?.selectedRepresentationName?.let { currentRepresentationName = it }
+    }
 
     // update current if it was deleted
     validateCurrentRepresentationName()
@@ -249,22 +269,19 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   override fun setState(state: FileEditorState) {
-    if (hasRestoredState) return
-    hasRestoredState = true
+    if (stateFromDisk != null) return
     if (state is MultiRepresentationPreviewFileEditorState) {
-      onRepresenationsLoaded = {
-        currentRepresentationName = state.selectedRepresentationName
+      stateFromDisk = state
+
+      // For any already loaded representations, restore the state.
+      representations.forEach { (representationName, representation) ->
         state.representations
-          .filter { it.key.isNotEmpty() && it.settings.isNotEmpty() }
-          .forEach { (name, settings) -> representations[name]?.setState(settings) }
+          .find { it.key == representationName }
+          ?.let { representation.setState(it.settings)  }
       }
 
-      // If the representations have been initialized already, apply the changes immediately
-      if (representationsLoaded) {
-        onRepresenationsLoaded?.invoke()
-        onRepresenationsLoaded = null
-        updateRepresentations()
-      }
+      currentRepresentationName = state.selectedRepresentationName
+      updateRepresentations()
     }
   }
 
@@ -337,19 +354,32 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   /**
+   * Method called before [onActivate] to initialize the representations. This method will only be called once while [onActivate] and
+   * [onDeactivate] might be called multiple times.
+   */
+  fun onInit() {
+    // If we initialize during non smart mode, it can be that the representations can not be calculated correctly just yet.
+    // In that case, we will force a second refresh after we are in smart mode.
+    if (DumbService.getInstance(project).isDumb) {
+      DumbService.getInstance(project).runWhenSmart {
+        updateRepresentations()
+      }
+    }
+    updateRepresentations()
+  }
+
+  /**
    * Method called when this preview becomes active.
    */
   fun onActivate() {
     if (isActive.getAndSet(true)) return
-    if (updateRepresentationsOnActivation.getAndSet(false)) {
-      // First activation, update the representations. onActivate will be called by the updateRepresentations.
-      updateRepresentations()
-    }
-    else {
+
+    if (!currentRepresentationIsActive.getAndSet(true)) {
       LOG.debug { "[$instanceId] Activating '$currentRepresentationName'" }
       currentRepresentation?.onActivate()
     }
 
+    caretListener.lastEditorModificationStamp = editor.document.modificationStamp
     editor.caretModel.addCaretListener(caretListener, this)
   }
 
@@ -358,6 +388,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   fun onDeactivate() {
     if (!isActive.getAndSet(false)) return
+    currentRepresentationIsActive.set(false)
     LOG.debug { "[$instanceId] Deactivating '$currentRepresentationName'"}
     editor.caretModel.removeCaretListener(caretListener)
     currentRepresentation?.onDeactivate()

@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
@@ -34,21 +34,20 @@ import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
-import org.junit.Ignore
 import java.awt.Color
 import java.awt.FontMetrics
 import java.awt.Paint
 import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
-import java.io.FileInputStream
+import java.nio.file.Files
 
 class CaptureNodeHRendererTest {
 
   @Before
   fun setup() {
     DataVisualizationColors.doInitialize(
-      FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
+        Files.newInputStream(resolveWorkspacePath ("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 
   @Test
@@ -199,7 +198,6 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
-  @Ignore
   fun testSystemTraceColors() {
     val invalidModel = SyscallModel("write")
     try {

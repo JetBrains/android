@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.util.*
+import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
+import com.android.tools.idea.compose.preview.util.MAX_WIDTH
+import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -27,9 +32,6 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.android.compose.COMPOSABLE_FQ_NAMES
-import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
-import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
@@ -176,7 +178,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
-    previewAnnotation.findValueArgument(WIDTH_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(PARAMETER_WIDTH_DP)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.width.limit.description", MAX_WIDTH),
@@ -184,7 +186,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
 
-    previewAnnotation.findValueArgument(HEIGHT_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(PARAMETER_HEIGHT_DP)?.let {
       if (it.exceedsLimit(MAX_HEIGHT)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.height.limit.description", MAX_HEIGHT),

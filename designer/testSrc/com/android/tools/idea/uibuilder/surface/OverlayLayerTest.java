@@ -17,10 +17,9 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
@@ -109,7 +108,7 @@ public class OverlayLayerTest {
 
     BufferedImage sceneViewTestImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
-                                                             BufferedImage.TYPE_INT_ARGB);;
+                                                             BufferedImage.TYPE_INT_ARGB);
     OverlayLayer layer = new OverlayLayer(sceneView);
     myOverlayConfiguration.showPlaceholder();
     Graphics2D g = paintColor(sceneViewTestImage, Color.BLACK, null);
@@ -117,7 +116,7 @@ public class OverlayLayerTest {
 
     BufferedImage sceneViewBaseImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
-                                                             BufferedImage.TYPE_INT_ARGB);;
+                                                             BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, null);
     paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), null);
     paintText(sceneViewBaseImage,
@@ -140,7 +139,7 @@ public class OverlayLayerTest {
 
     BufferedImage sceneViewTestImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
-                                                             BufferedImage.TYPE_INT_ARGB);;
+                                                             BufferedImage.TYPE_INT_ARGB);
     OverlayLayer layer = new OverlayLayer(sceneView);
     myOverlayConfiguration.showPlaceholder();
     Graphics2D g = paintColor(sceneViewTestImage, Color.BLACK, shape);
@@ -148,7 +147,7 @@ public class OverlayLayerTest {
 
     BufferedImage sceneViewBaseImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
-                                                             BufferedImage.TYPE_INT_ARGB);;
+                                                             BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, shape);
     paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), shape);
     paintText(sceneViewBaseImage,
@@ -260,6 +259,8 @@ public class OverlayLayerTest {
         return returnDimension;
       }
     });
+
+    when(sceneView.getScaledContentSize(any(Dimension.class))).thenCallRealMethod();
 
     when(sceneView.getX()).thenReturn(0);
     when(sceneView.getY()).thenReturn(0);

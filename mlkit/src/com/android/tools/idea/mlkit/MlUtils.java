@@ -43,8 +43,8 @@ import org.jetbrains.annotations.Nullable;
 public class MlUtils {
 
   private static final ImmutableList<String> REQUIRED_DEPENDENCY_LIST = ImmutableList.of(
-    "org.tensorflow:tensorflow-lite-support:0.1.0-rc1",
-    "org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1"
+    "org.tensorflow:tensorflow-lite-support:0.1.0",
+    "org.tensorflow:tensorflow-lite-metadata:0.1.0"
   );
 
   private MlUtils() {

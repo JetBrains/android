@@ -462,19 +462,4 @@ class ProposedFileTreeModelTest {
     assertThat(treeModel.root).isEqualTo(expectedTree)
     assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
-
-  @Test(expected = IllegalArgumentException::class)
-  fun makeTree_rejectAbsolutePathOutsideRootDir() {
-    val badRelativePath = listOf("sub", "..", "..", "bad_file").joinToString(File.separator)
-    val badFile = rootDir.absoluteFile.resolve(badRelativePath)
-
-    ProposedFileTreeModel(rootDir, setOf(badFile))
-  }
-
-  @Test(expected = IllegalArgumentException::class)
-  fun makeTree_rejectRelativePathOutsideRootDir() {
-    val badRelativePath = listOf("sub", "..", "..", "bad_file").joinToString(File.separator)
-
-    ProposedFileTreeModel(rootDir, setOf(File(badRelativePath)))
-  }
 }

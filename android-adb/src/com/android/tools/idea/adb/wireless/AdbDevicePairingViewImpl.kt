@@ -23,16 +23,19 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 
 @UiThread
-class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
-  private val dlg: AdbDevicePairingDialog
-  private val listeners = ArrayList<AdbDevicePairingView.Listener>()
+class WiFiPairingViewImpl(project: Project,
+                          private val notificationService: WiFiPairingNotificationService,
+                          override val model: WiFiPairingModel
+) : WiFiPairingView {
+  private val dlg: WiFiPairingDialog
+  private val listeners = ArrayList<WiFiPairingView.Listener>()
 
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
-    dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
-    dlg.pinCodePairInvoked = { service ->
-      listeners.forEach { it.onPinCodePairAction(service) }
+    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    dlg.pairingCodePairInvoked = { service ->
+      listeners.forEach { it.onPairingCodePairAction(service) }
     }
     dlg.qrCodeScanAgainInvoked = {
       listeners.forEach { it.onScanAnotherQrCodeDeviceAction() }
@@ -104,17 +107,18 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
 
   override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
     dlg.showQrCodePairingSuccess(device)
+    notificationService.showPairingSuccessBalloon(device)
   }
 
   override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
     dlg.showQrCodePairingError(error)
   }
 
-  override fun addListener(listener: AdbDevicePairingView.Listener) {
+  override fun addListener(listener: WiFiPairingView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: AdbDevicePairingView.Listener) {
+  override fun removeListener(listener: WiFiPairingView.Listener) {
     listeners.remove(listener)
   }
 
@@ -132,9 +136,9 @@ class AdbDevicePairingViewImpl(val project: Project, override val model: AdbDevi
       // Ignore, as this is handled by the controller via the model
     }
 
-    override fun pinCodeServicesDiscovered(services: List<MdnsService>) {
+    override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
       //TODO: Move logic to controller?
-      dlg.showPinCodeServices(services)
+      dlg.showPairingCodeServices(services)
     }
   }
 }

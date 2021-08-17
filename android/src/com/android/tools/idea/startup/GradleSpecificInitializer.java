@@ -21,6 +21,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
@@ -57,8 +58,6 @@ import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
@@ -103,9 +102,10 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       checkAndSetAndroidSdkSources();
     }
 
-    // Check JDKs in Android Studio folder since they can be invalid when changing Java versions (b/185562147)
-    if (ConfigImportHelper.isConfigImported()) {
-      cleanProjectJdkTable();
+    // Recreate JDKs since they can be invalid when changing Java versions (b/185562147)
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ConfigImportHelper.isConfigImported() && (ideInfo.isAndroidStudio() || ideInfo.isGameTools())) {
+      ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
     }
   }
 
@@ -148,8 +148,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {
     // Update the Welcome Screen actions
-    Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
-    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("New Project"));
     Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
@@ -296,15 +296,21 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
   @Nullable
   private static File getAndroidSdkPath() {
-    return AndroidSdkInitializer.findOrGetAndroidSdkPath();
+    return AndroidSdkInitializer.findValidAndroidSdkPath();
   }
 
+  /**
+   * Checks each of the sdk sources, and commits changes asynchronously if the calling thread is not the write thread.
+   */
   private static void checkAndSetAndroidSdkSources() {
     for (Sdk sdk : AndroidSdks.getInstance().getAllAndroidSdks()) {
       checkAndSetSources(sdk);
     }
   }
 
+  /**
+   * Checks platform sources, and commits changes asynchronously if the calling thread is not the write thread.
+   */
   private static void checkAndSetSources(@NotNull Sdk sdk) {
     VirtualFile[] storedSources = sdk.getRootProvider().getFiles(OrderRootType.SOURCES);
     if (storedSources.length > 0) {
@@ -313,27 +319,24 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
     AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
     if (platform != null) {
-      SdkModificator sdkModificator = sdk.getSdkModificator();
-      IAndroidTarget target = platform.getTarget();
-      AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
-      sdkModificator.commitChanges();
+      if (ApplicationManager.getApplication().isWriteThread()) {
+        setSources(sdk, platform);
+      }
+      else {
+        // We don't wait for EDT as there would be a deadlock at startup.
+        ApplicationManager.getApplication().invokeLaterOnWriteThread(
+          () -> {
+            setSources(sdk, platform);
+          }
+        );
+      }
     }
   }
 
-  private static void cleanProjectJdkTable() {
-    Runnable cleanJdkTableAction = () -> {
-      // Recreate remaining JDKs to ensure they are up to date after an update (b/185562147)
-      ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-      JavaSdk javaSdk = JavaSdk.getInstance();
-      for (Sdk jdk : jdkTable.getSdksOfType(javaSdk)) {
-        String jdkPath = jdk.getHomePath();
-        if (jdkPath == null) {
-          continue;
-        }
-        Sdk newJdk = javaSdk.createJdk(jdk.getName(), jdkPath);
-        jdkTable.updateJdk(jdk, newJdk);
-      }
-    };
-    ApplicationManager.getApplication().invokeLaterOnWriteThread(cleanJdkTableAction);
+  private static void setSources(@NotNull Sdk sdk, @NotNull AndroidPlatform platform) {
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    IAndroidTarget target = platform.getTarget();
+    AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
+    sdkModificator.commitChanges();
   }
 }

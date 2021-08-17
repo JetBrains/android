@@ -146,6 +146,14 @@ public final class AvdScreenData {
     screen.setFoldedYOffset(myDeviceData.screenFoldedYOffset().get());
     screen.setFoldedWidth(myDeviceData.screenFoldedWidth().get());
     screen.setFoldedHeight(myDeviceData.screenFoldedHeight().get());
+    screen.setFoldedXOffset2(myDeviceData.screenFoldedXOffset2().get());
+    screen.setFoldedYOffset2(myDeviceData.screenFoldedYOffset2().get());
+    screen.setFoldedWidth2(myDeviceData.screenFoldedWidth2().get());
+    screen.setFoldedHeight2(myDeviceData.screenFoldedHeight2().get());
+    screen.setFoldedXOffset3(myDeviceData.screenFoldedXOffset3().get());
+    screen.setFoldedYOffset3(myDeviceData.screenFoldedYOffset3().get());
+    screen.setFoldedWidth3(myDeviceData.screenFoldedWidth3().get());
+    screen.setFoldedHeight3(myDeviceData.screenFoldedHeight3().get());
 
 
     screen.setRatio(getScreenRatio(screenWidth, screenHeight));

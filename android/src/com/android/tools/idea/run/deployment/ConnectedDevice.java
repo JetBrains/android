@@ -17,9 +17,9 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceFutures;
-import com.intellij.openapi.project.Project;
+import com.android.tools.idea.run.LaunchCompatibility;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -35,14 +35,8 @@ final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -55,6 +49,11 @@ final class ConnectedDevice extends Device {
     @NotNull
     Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
       myAndroidDevice = androidDevice;
+      return this;
+    }
+
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -88,30 +87,24 @@ final class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
-  @Nullable
   @Override
-  Snapshot getSnapshot() {
-    return null;
+  @NotNull Collection<@NotNull Snapshot> getSnapshots() {
+    return Collections.emptyList();
   }
 
   @Override
-  boolean matches(@NotNull Key key) {
+  @NotNull Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
+  @NotNull Collection<@NotNull Target> getTargets() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
   Future<AndroidVersion> getAndroidVersion() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     throw new UnsupportedOperationException();
   }
 
@@ -124,8 +117,7 @@ final class ConnectedDevice extends Device {
     Device device = (Device)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice());
@@ -134,8 +126,7 @@ final class ConnectedDevice extends Device {
   @Override
   public int hashCode() {
     return Objects.hash(getName(),
-                        isValid(),
-                        getValidityReason(),
+                        getLaunchCompatibility(),
                         getKey(),
                         getConnectionTime(),
                         getAndroidDevice());

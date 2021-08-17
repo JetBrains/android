@@ -94,7 +94,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    * enable/disable following steps.
    */
   @NotNull
-  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+  protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     return ImmutableList.of();
   }
 

@@ -244,7 +244,7 @@ public class SwingpSerializationTest {
 
     Thread thread = mock(Thread.class);
     when(thread.getId()).thenReturn((long)123);
-    thread.setName("FakeThread");
+    when(thread.getName()).thenReturn("FakeThread");
 
     ThreadStat stat = new ThreadStat(thread).setIsRecording(true);
     stat.pushMethod(new MethodStat(new Object()) {

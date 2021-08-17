@@ -44,7 +44,7 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
 
   @Before
   fun setup() {
-    val servicePath = TestUtils.createTempDirDeletedOnExit().absolutePath
+    val servicePath = TestUtils.createTempDirDeletedOnExit().toString()
     dataStore = DataStoreService(javaClass.simpleName, servicePath, pollTicker::run, FakeLogService())
     transportService = FakeTransportService()
     val namespace = DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE

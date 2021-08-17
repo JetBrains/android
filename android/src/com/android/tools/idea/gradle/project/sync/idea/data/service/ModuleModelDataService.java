@@ -47,7 +47,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
         if (project.isDisposed()) {
           return;
         }
-        Map<String, T> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
+        Map<String, DataNode<T>> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
         importData(toImport, project, modelsProvider, modelsByModuleName);
     });
   }
@@ -55,7 +55,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   protected abstract void importData(@NotNull Collection<? extends DataNode<T>> toImport,
                                      @NotNull Project project,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
-                                     @NotNull Map<String, T> modelsByModuleName);
+                                     @NotNull Map<String, DataNode<T>> modelsByModuleName);
 
   @Override
   public @NotNull Computable<Collection<Module>> computeOrphanData(@NotNull Collection<? extends DataNode<T>> toImport,
@@ -83,12 +83,12 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   }
 
   @NotNull
-  private Map<String, T> indexByModuleName(@NotNull Collection<? extends DataNode<T>> dataNodes,
+  private Map<String, DataNode<T>> indexByModuleName(@NotNull Collection<? extends DataNode<T>> dataNodes,
                                            @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (dataNodes.isEmpty()) {
       return Collections.emptyMap();
     }
-    Map<String, T> index = new HashMap<>();
+    Map<String, DataNode<T>> index = new HashMap<>();
     for (DataNode<T> dataNode : dataNodes) {
       T model = dataNode.getData();
       String moduleName = model.getModuleName();
@@ -108,7 +108,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
           indexModulesForSourceSetsByModuleName(index, dataNode, model);
         }
       }
-      index.put(moduleName, model);
+      index.put(moduleName, dataNode);
     }
     return index;
   }

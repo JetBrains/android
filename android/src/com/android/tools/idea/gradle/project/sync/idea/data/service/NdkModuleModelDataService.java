@@ -16,43 +16,29 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
-  @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
-  @NotNull private final NdkModuleSetup myModuleSetup;
 
-  @SuppressWarnings("unused") // Instantiated by IDEA
-  public NdkModuleModelDataService() {
-    this(new ModuleSetupContext.Factory(), new NdkModuleSetup());
-  }
-
-  @VisibleForTesting
-  NdkModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
-                            @NotNull NdkModuleSetup moduleSetup) {
-    myModuleSetupContextFactory = moduleSetupContextFactory;
-    myModuleSetup = moduleSetup;
-  }
+  public NdkModuleModelDataService() { }
 
   @Override
   @NotNull
@@ -64,12 +50,20 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   protected void importData(@NotNull Collection<? extends DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
+                            @NotNull Map<String, DataNode<NdkModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      NdkModuleModel ndkModuleModel = modelsByModuleName.get(module.getName());
-      if (ndkModuleModel != null) {
-        ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-        myModuleSetup.setUpModule(context, ndkModuleModel);
+      DataNode<NdkModuleModel> ndkModuleModelNode = modelsByModuleName.get(module.getName());
+      if (ndkModuleModelNode != null) {
+        NdkFacet facet = findFacet(module, modelsProvider, NdkFacet.getFacetTypeId());
+        if (facet == null) {
+          // Module does not have Native Android facet. Create one and add it.
+          ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
+          NdkFacetType facetType = NdkFacet.getFacetType();
+          facet = facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
+          //noinspection UnstableApiUsage
+          model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID));
+        }
+        facet.setNdkModuleModel(ndkModuleModelNode.getData());
       }
     }
   }

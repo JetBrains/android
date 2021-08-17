@@ -17,15 +17,33 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.dsl.parser.elements.*
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
@@ -40,10 +58,30 @@ import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClassLiteralExpression
+import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtPostfixExpression
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtScriptInitializer
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
-import org.jetbrains.kotlin.parsing.parseBoolean
-import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import java.math.BigDecimal
 
 /**
@@ -149,9 +187,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           // to a dependency if declared under dependencies block, or not resolve it for other cases.
           else if (argumentList.arguments.size == 1) {
             val nameExpression = argumentList.arguments[0].getArgumentExpression() ?: return null
-            return when (context.parent?.fullName) {
-              "plugins" -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
-              "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+            return when (val parent = context.parent) {
+              is PluginsDslElement -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
+              is DependenciesDslElement -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+              is GradleDslInfixExpression -> when (parent.parent) {
+                is PluginsDslElement -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
+                else -> KotlinDslRawText(literal.text)
+              }
               else -> KotlinDslRawText(literal.text)
             }
           }
@@ -333,7 +375,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()
         if (isValidBlockName(referenceName)) {
-          return GradleDslLiteral(parent, expression, name, expression, true)
+          return GradleDslLiteral(parent, expression, name, expression, GradleDslLiteral.LiteralType.REFERENCE)
         }
         else {
           // This is the case of method calls for which we want to keep all the expression name as reference and resolve the nested
@@ -351,11 +393,29 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     when {
       expression.operationToken == KtTokens.EQ -> processAssignment(expression, parent)
+      expression.operationToken == KtTokens.PLUSEQ -> processAugmentedAssignment(expression, parent)
       // TODO(b/165576187): this allows us to parse plugins with versions, but the association between the Dsl and Psi is not ideal
-      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator.
-      expression.operationReference.getReferencedName() == "version" && parent is PluginsDslElement ->
-        expression.left?.let { it.accept(this, parent) }
+      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator).
+      listOf("version", "apply").contains(expression.operationReference.getReferencedName()) ->
+        processPluginDeclaration(expression, parent)
     }
+  }
+
+  private fun processPluginDeclaration(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
+    // This way of tracking what's going on -- are we accumulating or creating -- is a bit of a hack.  It does allow us
+    // to re-use the existing visitor; a cleaner solution might involve a specialized visitor passed to accept (rather than `this`)
+    val pluginDslElement = when(parent) {
+      is GradleDslInfixExpression -> parent // already processing one
+      else -> GradleDslInfixExpression(parent, expression).also { parent.addParsedElement(it) }
+    }
+    val left = expression.left ?: return
+    left.accept(this, pluginDslElement)
+    val right = expression.right ?: return
+    // TODO(xof): The psiElement argument here covering the entire expression is wrong.  The Kotlin Psi does not have an element covering
+    //  both the operation and the right-hand expression, which is what we would need (e.g. to delete `apply false` from a plugin
+    //  declaration) so we might have to define our own composite Psi element somehow.
+    val rightExpression = getExpressionElement(pluginDslElement, right, GradleNameElement.from(expression.operationReference, this), right)
+    pluginDslElement.addParsedElement(rightExpression)
   }
 
   private fun processAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
@@ -393,10 +453,39 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
     else {
       val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
 
       parentBlock.setParsedElement(propertyElement)
+    }
+  }
+
+  // TODO(xof): when the dust settles, see if this is similar enough to processAssignment() above.
+  private fun processAugmentedAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
+    val left = expression.left ?: return
+    val right = expression.right ?: return
+    var parentBlock = parent
+    val name = GradleNameElement.from(left, this)
+    if (name.isEmpty) return
+    if (name.isQualified) {
+      val nestedElement = getPropertiesElement(name.qualifyingParts(), parent, null) ?: return
+      parentBlock = nestedElement
+    }
+
+    val matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name())
+    if (matcher.find()) {
+      // foo["bar"] += "baz"
+      // foo["bar"] += 3
+      return
+    }
+    else {
+      // foo += "baz"
+      // foo += listOf("baz", "quux")
+      val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+      propertyElement.externalSyntax = AUGMENTED_ASSIGNMENT
+      propertyElement.elementType = REGULAR
+
+      parentBlock.augmentParsedElement(propertyElement)
     }
   }
 
@@ -434,7 +523,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
       ext.setParsedElement(propertyElement)
     }
@@ -453,7 +542,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       "mapOf", "mutableMapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
       "listOf", "mutableListOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, false)
       "setOf", "mutableSetOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, true)
-      "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+      "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, GradleDslLiteral.LiteralType.LITERAL)
       FILE_CONSTRUCTOR_NAME -> return getMethodCall(parentElement, psiElement, name, FILE_CONSTRUCTOR_NAME, argumentsList, true)
     }
 
@@ -614,19 +703,29 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     return when (propertyExpression) {
       // Ex: versionName = 1.0. isQualified = false.
-      is KtStringTemplateExpression, is KtConstantExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression, false)
+      is KtStringTemplateExpression ->
+        GradleDslLiteral(
+          parentElement,
+          psiElement,
+          propertyName,
+          propertyExpression,
+          if (propertyExpression.hasInterpolation()) GradleDslLiteral.LiteralType.INTERPOLATION else GradleDslLiteral.LiteralType.LITERAL)
+      is KtConstantExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.LITERAL)
       // Ex: compileSdkVersion(SDK_VERSION).
-      is KtNameReferenceExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtNameReferenceExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: KotlinCompilerVersion.VERSION.
-      is KtDotQualifiedExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtDotQualifiedExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: Delete::class.
       is KtClassLiteralExpression -> when (val receiverExpression = propertyExpression.receiverExpression) {
         null -> unknownElement()
-        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, true)
+        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, GradleDslLiteral.LiteralType.REFERENCE)
       }
       // Ex: extra["COMPILE_SDK_VERSION"]
-      is KtArrayAccessExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtArrayAccessExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.REFERENCE)
       // Ex: extra["COMPILE_SDK_VERSION"]!!, false!!
       is KtPostfixExpression -> when (val baseExpression = propertyExpression.baseExpression) {
         null -> unknownElement()

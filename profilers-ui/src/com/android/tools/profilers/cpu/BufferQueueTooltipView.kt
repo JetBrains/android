@@ -34,7 +34,7 @@ class BufferQueueTooltipView(parent: JComponent, val tooltip: BufferQueueTooltip
   }
 
   private fun updateView() {
-    valueLabel.text = "${tooltip.activeBufferQueueValue} buffer(s) in SurfaceFlinger queue"
+    valueLabel.text = "${tooltip.activeBufferQueueValue} pending buffer(s) in buffer queue"
   }
 
   init {

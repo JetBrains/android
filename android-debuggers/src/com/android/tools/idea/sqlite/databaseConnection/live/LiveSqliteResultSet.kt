@@ -19,6 +19,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
@@ -37,10 +38,26 @@ abstract class LiveSqliteResultSet(
   private val taskExecutor: Executor
 ) : SqliteResultSet {
 
-  protected fun sendQueryCommand(sqliteStatement: SqliteStatement): ListenableFuture<SqliteInspectorProtocol.Response> {
-    val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
+  /**
+   * @param responseSizeByteLimitHint - best effort limit of a single response expressed in bytes
+   */
+  protected fun sendQueryCommand(sqliteStatement: SqliteStatement, responseSizeByteLimitHint: Long? = null
+  ): ListenableFuture<SqliteInspectorProtocol.Response> {
+    val queryCommand = buildQueryCommand(sqliteStatement, connectionId, responseSizeByteLimitHint)
     return messenger.sendCommandAsync(queryCommand).cancelOnDispose(this)
   }
+
+  /**
+   * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
+   */
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> =
+    getRowBatch(rowOffset, rowBatchSize, null)
+
+  /**
+   * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
+   * @param responseSizeByteLimitHint - best effort limit of a batch size expressed in bytes
+   */
+  abstract fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long? = null): ListenableFuture<List<SqliteRow>>
 
   override fun dispose() { }
 }

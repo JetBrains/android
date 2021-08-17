@@ -51,7 +51,9 @@ import static java.io.File.separatorChar;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
@@ -808,6 +810,7 @@ public class GradleImport {
     return null;
   }
 
+  @Slow
   public void exportProject(@NonNull File destDir, boolean allowNonEmpty) throws IOException {
     mySummary.setDestDir(destDir);
     if (!isImportIntoExisting()) {
@@ -1108,7 +1111,7 @@ public class GradleImport {
   }
 
   String getBuildToolsVersion() {
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(mySdkLocation);
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, mySdkLocation.toPath());
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     return getRecommendedBuildToolsRevision(sdkHandler, progress).toString();
   }

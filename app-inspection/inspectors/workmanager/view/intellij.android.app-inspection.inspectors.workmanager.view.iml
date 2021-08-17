@@ -19,16 +19,17 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="module-library">
-      <library name="workmanager-inspector-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:27.2.0.0" />
+      <library name="workmanager-inspector-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/27.2.0.0/workmanager_inspector_proto-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/work/workmanager_inspector_proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>

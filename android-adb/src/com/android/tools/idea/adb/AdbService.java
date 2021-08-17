@@ -26,6 +26,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -328,6 +329,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       try {
         AdbInitOptions.Builder options = AdbInitOptions.builder();
         options.setClientSupportEnabled(true); // IDE needs client monitoring support.
+        options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
         options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
         if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
           // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox

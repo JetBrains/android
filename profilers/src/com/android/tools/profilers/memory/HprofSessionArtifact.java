@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.OutputStream;
@@ -58,9 +59,9 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
                        getProfilers().getIdeServices().getFeatureTracker());
   }
 
-  public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
-                                                          @NotNull Common.Session session,
-                                                          @NotNull Common.SessionMetaData sessionMetaData) {
+  public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
+                                                             @NotNull Common.Session session,
+                                                             @NotNull Common.SessionMetaData sessionMetaData) {
     Range queryRangeUs = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()),
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
@@ -68,5 +69,17 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
     List<HeapDumpInfo> infos =
       MemoryProfiler.getHeapDumpsForSession(profilers.getClient(), session, queryRangeUs, profilers.getIdeServices());
     return ContainerUtil.map(infos, info -> new HprofSessionArtifact(profilers, session, sessionMetaData, info));
+  }
+
+  @Override
+  public void onSelect() {
+    // Ignore if this heap dump is already loaded
+    if (getProfilers().getStage() instanceof BaseMemoryProfilerStage) {
+      CaptureObject loaded = ((BaseMemoryProfilerStage)getProfilers().getStage()).getCaptureSelection().getSelectedCapture();
+      if (loaded != null && loaded.getStartTimeNs() == getStartTime()) {
+        return;
+      }
+    }
+    super.onSelect();
   }
 }

@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface DependencyModel {
+public interface DependencyModel extends PsiElementHolder {
   @NotNull
   String configurationName();
 
   void setConfigurationName(@NotNull String newConfigurationName);
-
-  /**
-   * Returns the {@link PsiElement} that this {@link DependencyModel} represents.
-   */
-  @Nullable
-  PsiElement getPsiElement();
 }

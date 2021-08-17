@@ -53,7 +53,10 @@ public class IssuePanelTest extends AndroidTestCase {
     LintIssueProvider provider = new LintIssueProvider(lintAnnotationsModel);
     model.addIssueProvider(provider);
     assertEquals("1 Error", panel.getTitleText());
+    panel.setSelectedIssue(panel.getIssueViews().get(0));
+    assertNotNull(panel.getSelectedIssue());
     model.removeIssueProvider(provider);
+    assertNull(panel.getSelectedIssue());
     LintAnnotationsModel newModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(newModel, HighlightDisplayLevel.WARNING);
     model.addIssueProvider(new LintIssueProvider(newModel));

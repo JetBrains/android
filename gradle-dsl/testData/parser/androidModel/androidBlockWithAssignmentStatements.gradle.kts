@@ -4,4 +4,5 @@ android {
   defaultPublishConfig = "debug"
   dynamicFeatures = mutableSetOf(":f1", ":f2")
   generatePureSplits = true
+  targetProjectPath = ":tpp"
 }

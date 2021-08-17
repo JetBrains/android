@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.tests.gui;
 
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
-
 import com.android.testutils.ClassSuiteRunner;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
@@ -64,7 +63,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     List<File> plugins = new ArrayList<>(1);
 
     // Enable Bazel plugin if it's available
-    File aswb = new File(getWorkspaceRoot(), "tools/adt/idea/android-uitests/aswb");
+    File aswb = TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android-uitests/aswb").toFile();
     if (aswb.exists()) {
       plugins.add(aswb);
     }

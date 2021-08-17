@@ -53,7 +53,7 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
   private static void doRefresh(@NonNull PackageOperation op,
                                 @NonNull ProgressIndicator progress) {
     // We must refreshIfNeeded otherwise directories that are added will never be refreshed
-    VirtualFile file = VfsUtil.findFileByIoFile(op.getLocation(progress), true);
+    VirtualFile file = VfsUtil.findFile(op.getLocation(progress), true);
     if (file != null) {
       file.refresh(false, true);
     }

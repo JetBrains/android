@@ -17,14 +17,15 @@ package com.android.tools.idea.compose.preview.util
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
@@ -37,9 +38,9 @@ import com.intellij.psi.SmartPsiElementPointer
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
  */
-private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
+private fun requestKotlinBuild(project: Project, modules: Set<Module>, requestedByUser: Boolean) {
   fun createBuildTasks(module: Module): String? {
-    val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
+    val gradlePath = GradleProjects.getGradleModulePath(module) ?: return null
     val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
     // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
     // we just build it ourselves.
@@ -59,7 +60,14 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
 
   createBuildTasks(modules).forEach {
     val path = moduleFinder.getRootProjectPath(it.key)
-    GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
+    val request = GradleBuildInvoker.Request(project, path.toFile(), it.value).apply {
+      if (!requestedByUser) {
+        // If this was not requested by a user action, then do not automatically pop-up the build output panel on error.
+        doNotShowBuildOutputOnFailure()
+      }
+      taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(this, "Build")
+    }
+    GradleBuildInvoker.getInstance(project).executeTasks(request)
   }
 }
 
@@ -69,10 +77,17 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
 private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
   GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
 
-internal fun requestBuild(project: Project, module: Module) {
+internal fun requestBuild(project: Project, module: Module, requestByUser: Boolean) {
   if (project.isDisposed || module.isDisposed) {
     return
   }
+
+  if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
+    // For non gradle projects we just call buildProject instead of trying to invoke a single module build.
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+    return
+  }
+
 
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
@@ -80,7 +95,7 @@ internal fun requestBuild(project: Project, module: Module) {
   // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
   // a few extra tasks that are not required for the preview to refresh.
   if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
-    requestKotlinBuild(project, modules)
+    requestKotlinBuild(project, modules, requestByUser)
   }
   else {
     requestCompileJavaBuild(project, modules)
@@ -94,7 +109,7 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     }
   }
   ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
-    .mapNotNull { androidModuleSystem?.findClassFile(it) }
+    .mapNotNull { androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) }
     .firstOrNull() != null
 }
 else false
@@ -108,9 +123,11 @@ else false
  *  of the build.
  */
 fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile): Boolean {
-  val summary = GradleBuildState.getInstance(project).summary
-  if (summary != null) {
-    return summary.status.isBuildSuccessful && summary.context?.buildMode != BuildMode.CLEAN
+  val result = ProjectSystemService.getInstance(project).projectSystem.getBuildManager().getLastBuildResult()
+
+  if (result.status != ProjectSystemBuildManager.BuildStatus.UNKNOWN) {
+    return result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
+           result.mode != ProjectSystemBuildManager.BuildMode.CLEAN
 
   }
 

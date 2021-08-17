@@ -43,11 +43,13 @@ public class DbParserDefinition implements ParserDefinition {
     return new FlexAdapter(new _DbLexer(null));
   }
 
+  @NotNull
   @Override
   public @NotNull PsiParser createParser(Project project) {
     return new DbParser();
   }
 
+  @NotNull
   @Override
   public @NotNull IFileElementType getFileNodeType() {
     return FILE_ELEMENT_TYPE;
@@ -77,11 +79,13 @@ public class DbParserDefinition implements ParserDefinition {
     return DbTokenTypes.Factory.createElement(node);
   }
 
+  @NotNull
   @Override
   public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new DbFile(viewProvider);
   }
 
+  @NotNull
   @Override
   public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MAY;

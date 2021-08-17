@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.tools.editor.DesignSurfaceEmptyActionGroups
-import com.android.tools.editor.EditorActionsFloatingToolbar
+import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.BasicDesignSurfaceActionGroups
 import com.android.tools.idea.uibuilder.editor.EditableDesignSurfaceActionGroups
 import com.intellij.openapi.Disposable
 import javax.swing.JComponent
 
-/** Creates the actions toolbar used on the [DesignSurface] */
-class DesignSurfaceActionsToolbar(
+/** Creates the floating actions toolbar used on the [DesignSurface] */
+class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface,
   private val component: JComponent,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbar(component, parentDisposable), DesignSurfaceListener {
+) : EditorActionsFloatingToolbarProvider(component, parentDisposable), DesignSurfaceListener {
 
 
   init {

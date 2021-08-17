@@ -55,22 +55,23 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.wizard.template.SKIP_LINE
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
+import com.android.tools.idea.wizard.template.withoutSkipLines
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Charsets
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtil.findFileByURL
@@ -158,7 +159,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Merges the given XML file into the given destination file (or copies it over if  the destination file does not exist).
+   * Merges the given XML file into the given destination file (or copies it over if the destination file does not exist).
    */
   override fun mergeXml(source: String, to: File) {
     val content = source.withoutSkipLines()
@@ -166,7 +167,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(content, to, true, true)
+      save(content, to)
       return
     }
 
@@ -279,7 +280,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       else -> {
         val document = FileDocumentManager.getInstance().getDocument(sourceFile)
         if (document != null) {
-          io.writeFile(this, document.text, target)
+          io.writeFile(this, document.text, target, project)
         }
         else {
           io.copyFile(this, sourceFile, destPath, target.name)
@@ -290,13 +291,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Instantiates the given template file into the given output file (running the Freemarker engine over it)
+   * Instantiates the given template file into the given output file.
+   * Note: It removes trailing whitespace both from beginning and end of source.
+   *       Also, it replaces any 2+ consequent empty lines with single empty line.
    */
-  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {
+  override fun save(source: String, to: File) {
     val targetFile = getTargetFile(to)
-    val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
-    val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
-    val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
+    val content = extractFullyQualifiedNames(to, source.withoutSkipLines()).trim().squishEmptyLines()
 
     if (targetFile.exists()) {
       if (!targetFile.contentEquals(content)) {
@@ -304,17 +305,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
       return
     }
-    io.writeFile(this, content, targetFile)
+    io.writeFile(this, content, targetFile, project)
     referencesExecutor.addTargetFile(targetFile)
-    if (commitDocument) {
-      val virtualFile = findFileByIoFile(targetFile, true) ?: return
-      // RecipeIO.writeTextFile saves Documents but doesn't commit them, since there might not be a Project to speak of yet.
-      // ProjectBuildModel uses PSI, so let's make sure the Document is committed, since it's illegal to modify PSI for a file with
-      // and uncommitted Document.
-      FileDocumentManager.getInstance()
-        .getCachedDocument(virtualFile)
-        ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
-    }
   }
 
   override fun createDirectory(at: File) {
@@ -454,6 +446,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (kotlinCompilerVersion != null) {
       composeOptionsModel.kotlinCompilerVersion().setValueIfNone(kotlinCompilerVersion)
     }
+
+    buildModel.android().defaultConfig().vectorDrawables().useSupportLibrary().setValue(true)
+    buildModel.android().packagingOptions().resources().excludes().setValueIfNone("/META-INF/{AL2.0,LGPL2.1}")
   }
 
   /**
@@ -612,7 +607,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private fun writeTargetFile(requestor: Any, contents: String?, to: File) {
-    io.writeFile(requestor, contents, to)
+    io.writeFile(requestor, contents, to, project)
     referencesExecutor.addTargetFile(to)
   }
 
@@ -631,14 +626,30 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
 
   private open class RecipeIO {
-    open fun writeFile(requestor: Any, contents: String?, to: File) {
-      checkedCreateDirectoryIfMissing(to.parentFile)
-      writeTextFile(this, contents, to)
+    /**
+     * Replaces the contents of the given file with the given string. Outputs
+     * text in UTF-8 character encoding. The file is created if it does not
+     * already exist.
+     */
+    open fun writeFile(requestor: Any, contents: String?, to: File, project: Project) {
+      if (contents == null) {
+        return
+      }
+
+      val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
+      val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
+      vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
+
+      // ProjectBuildModel uses PSI, let's committed document, since it's illegal to modify PSI on uncommitted Document.
+      //FileDocumentManager.getInstance()
+      //  .getDocument(vf)
+      //  ?.let(PsiDocumentManager.getInstance(project)::commitDocument) <==== DOESN'T WORK!! ::commitDocument thinks doc is already committed
+      PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
       val toDir = checkedCreateDirectoryIfMissing(toFile.parentFile)
-      VfsUtilCore.copyFile(this, file, toDir)
+      VfsUtilCore.copyFile(requestor, file, toDir)
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
@@ -652,7 +663,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private class DryRunRecipeIO : RecipeIO() {
-    override fun writeFile(requestor: Any, contents: String?, to: File) {
+    override fun writeFile(requestor: Any, contents: String?, to: File, project: Project) {
       checkDirectoryIsWriteable(to.parentFile)
     }
 
@@ -679,17 +690,12 @@ private const val OTHER_CONFIGURATION = "__other__"
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
 
-private fun CharSequence.withoutSkipLines() = this.split("\n")
-  .filter { it.trim() != SKIP_LINE }
-  .joinToString("\n")
-  .replace(SKIP_LINE, "") // for some SKIP_LINEs which are not on their own line
-
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
   var isLastBlank = false
   return this.split("\n").mapNotNull { line ->
     when {
-      !line.isBlank() -> line
+      line.isNotBlank() -> line
       !isLastBlank -> "" // replace blank with empty
       else -> null
     }.also {

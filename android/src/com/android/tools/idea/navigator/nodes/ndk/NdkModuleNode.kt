@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -27,6 +27,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludeP
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
 import com.android.tools.idea.ndk.ModuleVariantAbi
 import com.android.tools.idea.ndk.NativeWorkspaceService
+import com.android.tools.idea.ndk.NativeWorkspaceService.Companion.getInstance
 import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.PresentationData
@@ -90,7 +91,7 @@ fun getNativeSourceNodes(project: Project,
   val ndkModel = ndkModuleModel.ndkModel
   if (!StudioFlags.USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW.get() && ndkModel is V1NdkModel) {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptyList()
-    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings)
+    return getLibraryBasedNativeNodes(ndkFacet, ndkModel, project, settings, module)
   }
   else {
     return getContentRootBasedNativeNodes(module, settings)
@@ -104,7 +105,8 @@ fun getNativeSourceNodes(project: Project,
 private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
                                        v1NdkModel: V1NdkModel,
                                        project: Project,
-                                       settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+                                       settings: ViewSettings,
+                                       module: Module): Collection<AbstractTreeNode<*>> {
 
   val variant = v1NdkModel.getNdkVariant(ndkFacet.selectedVariantAbi) ?: return emptyList()
   val nativeLibraries = HashMultimap.create<NativeLibraryKey, IdeNativeArtifact>()
@@ -137,13 +139,20 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
     nativeLibraries.put(NativeLibraryKey(nativeLibraryName, nativeLibraryType), artifact)
   }
   val children = ArrayList<AbstractTreeNode<*>>()
+  val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
   for (key in nativeLibraries.keySet()) {
     val nativeLibraryType = key.type.displayText
     val nativeLibraryName = key.name
-    val node = NdkLibraryEnhancedHeadersNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
-                                             NativeIncludes({ v1NdkModel.findSettings(it) },
-                                                            nativeLibraries.get(key)), settings
-    )
+    val node = NdkLibraryEnhancedHeadersNode(
+      project,
+      nativeLibraryName,
+      nativeLibraryType,
+      nativeLibraries.get(key),
+      NativeIncludes({ v1NdkModel.findSettings(it) }, nativeLibraries.get(key)),
+      settings
+    ) { item ->
+      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
+    }
     children.add(node)
   }
   return if (children.size == 1) {
@@ -152,12 +161,18 @@ private fun getLibraryBasedNativeNodes(ndkFacet: NdkFacet,
   else children
 }
 
-fun containedInIncludeFolders(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {
+fun containedByNativeNodes(project: Project, ndkModuleModel: NdkModuleModel, file: VirtualFile): Boolean {
+  // Check if the file is an additional native files that is manually added.
+  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName) ?: return false
+  if (getInstance(project).getAdditionalNativeFiles(module).contains(file)) {
+    return true
+  }
+
+  // Check if the file is a header file that's under the synthesized "Includes" node.
   if (!LexicalIncludePaths.hasHeaderExtension(file.name)) {
     // Skip directly if the file does not look like a header.
     return false
   }
-  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)!!
   val ndkFacet = NdkFacet.getInstance(module)!!
   val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return false
   val variant = selectedVariantAbi.variant

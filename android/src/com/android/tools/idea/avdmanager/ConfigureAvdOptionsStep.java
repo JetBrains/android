@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
@@ -43,6 +42,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -79,12 +79,12 @@ import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import java.awt.Dimension;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -98,6 +98,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -105,16 +107,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -264,8 +257,15 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ArrayList<SnapshotListItem> mySnapshotList;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
+    this(project, model, new SkinChooser(project, true));
+  }
+
+  @VisibleForTesting
+  ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model, @NotNull SkinChooser skinComboBox) {
     super(model, "Android Virtual Device (AVD)");
     myModel = model;
+    initSkinComboBox(skinComboBox);
+
     myValidatorPanel = new ValidatorPanel(this, myRoot);
     myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
 
@@ -295,6 +295,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
     myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
+  }
+
+  private void initSkinComboBox(@NotNull SkinChooser skinComboBox) {
+    mySkinComboBox = skinComboBox;
+
+    GridConstraints constraints = new GridConstraints();
+    constraints.setColumn(1);
+    constraints.setAnchor(GridConstraints.ANCHOR_WEST);
+
+    myCustomSkinPanel.add(skinComboBox, constraints);
   }
 
   private static void setupCameraComboBox(JComboBox comboBox, boolean withVirtualScene) {
@@ -472,7 +482,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   static
   boolean isGoogleApiTag(IdDisplay tag) {
     return SystemImage.WEAR_TAG.equals(tag) ||
-           SystemImage.TV_TAG.equals(tag) ||
+           SystemImage.ANDROID_TV_TAG.equals(tag) ||
+           SystemImage.GOOGLE_TV_TAG.equals(tag) ||
            SystemImage.GOOGLE_APIS_TAG.equals(tag);
   }
 
@@ -638,8 +649,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public void run() {
         if (getModel().systemImage().get().isPresent() && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
           File skin =
-            AvdWizardUtils.pathToUpdatedSkins(getModel().getAvdDeviceData().customSkinFile().getValue(), getModel().systemImage().getValue(),
-                                              FileOpUtils.create());
+            AvdWizardUtils.pathToUpdatedSkins(getModel().getAvdDeviceData().customSkinFile().getValue().toPath(),
+                                              getModel().systemImage().getValue());
           if (skin != null) {
             getModel().getAvdDeviceData().customSkinFile().setValue(skin);
             if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
@@ -1011,7 +1022,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                ? new Result(Severity.ERROR, "The specified SD image file must be a valid image file")
                : Result.OK;
       }
-    });
+    }, getModel().useExternalSdCard());
 
     // If we are using an internal SD card, make sure it has enough memory.
     myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
@@ -1111,21 +1122,28 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @Override
   protected void onProceeding() {
-    boolean hasFrame = getModel().hasDeviceFrame().get();
-    if (hasFrame && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
-      getModel().backupSkinFile().clear();
-    }
-    else {
-      getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
-      getModel().backupSkinFile().set(getModel().getAvdDeviceData().customSkinFile());
-    }
+    AvdOptionsModel model = getModel();
 
-    if (getSelectedApiLevel() < 16 || getModel().hostGpuMode().getValueOrNull() == GpuMode.OFF) {
-      getModel().useHostGpu().set(false);
-      getModel().hostGpuMode().setValue(GpuMode.OFF);
+    SettableValue<Optional<File>> customSkinDefinitionProperty = model.getAvdDeviceData().customSkinFile();
+    SettableValue<Optional<File>> customSkinDefinitionBackupProperty = model.backupSkinFile();
+
+    Path customSkinDefinition = customSkinDefinitionProperty.get().map(File::toPath).orElse(null);
+    Path customSkinDefinitionBackup = customSkinDefinitionBackupProperty.get().map(File::toPath).orElse(null);
+
+    CustomSkinDefinitionResolver resolver = new CustomSkinDefinitionResolver(FileSystems.getDefault(),
+                                                                             model.hasDeviceFrame().get(),
+                                                                             customSkinDefinition,
+                                                                             customSkinDefinitionBackup);
+
+    customSkinDefinitionProperty.set(resolver.getCustomSkinDefinition().map(Path::toFile));
+    customSkinDefinitionBackupProperty.set(resolver.getCustomSkinDefinitionBackup().map(Path::toFile));
+
+    if (getSelectedApiLevel() < 16 || model.hostGpuMode().getValueOrNull() == GpuMode.OFF) {
+      model.useHostGpu().set(false);
+      model.hostGpuMode().setValue(GpuMode.OFF);
     }
     else {
-      getModel().useHostGpu().set(true);
+      model.useHostGpu().set(true);
     }
   }
 
@@ -1219,7 +1237,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean doesSystemImageSupportQemu2() {
     assert getModel().systemImage().get().isPresent();
-    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue(), FileOpUtils.create());
+    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue());
   }
 
   private int getSelectedApiLevel() {
@@ -1282,7 +1300,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
     myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new SkinChooser(myProject, true);
   }
 
   private static final class NamedIcon {
@@ -1329,9 +1346,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     File hardwareSkin = null;
     if (IsDevicePresent && getModel().systemImage().get().isPresent()) {
 
-      hardwareSkin =
-        AvdWizardUtils.pathToUpdatedSkins(deviceDefaultHardware.getSkinFile(), getModel().systemImage().getValue(),
-                                          FileOpUtils.create());
+      File defaultHardwareSkinFile = deviceDefaultHardware.getSkinFile();
+      hardwareSkin = AvdWizardUtils.pathToUpdatedSkins(defaultHardwareSkinFile == null ? null : defaultHardwareSkinFile.toPath(),
+                                                       getModel().systemImage().getValue());
 
       myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
       myDeviceName.setText(getModel().device().getValue().getDisplayName());

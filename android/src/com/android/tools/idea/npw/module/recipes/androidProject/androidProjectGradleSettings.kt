@@ -17,10 +17,22 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.tools.idea.wizard.template.renderIf
 
-fun androidProjectGradleSettings(appTitle: String): String {
-  require(!appTitle.contains("\\")) { "Backslash should not be present in the application title"}
+fun androidProjectGradleSettings(appTitle: String, kotlinVersion: String): String {
+  require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {
     val escapedAppTitle = appTitle.replace("$", "\\$")
-    "rootProject.name = \"$escapedAppTitle\""
+
+    """
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    google()
+    mavenCentral()
+    jcenter() // Warning: this repository is going to shut down soon
+    ${kotlinEapRepoBlock(kotlinVersion)}
+  }
+}
+rootProject.name = "$escapedAppTitle"
+"""
   }
 }

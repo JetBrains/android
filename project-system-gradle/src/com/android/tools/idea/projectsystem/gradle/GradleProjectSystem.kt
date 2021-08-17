@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
-import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -31,6 +30,7 @@ import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
@@ -44,7 +44,6 @@ import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
@@ -72,6 +71,7 @@ import java.util.function.Function
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+  private val myBuildManager: ProjectSystemBuildManager = GradleProjectSystemBuildManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
   private val myPsiElementFinders: List<PsiElementFinder> = run {
@@ -83,6 +83,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
+  override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 
   override fun getPathToAapt(): Path {
     return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
@@ -93,11 +94,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getDefaultApkFile(): VirtualFile? {
     return ModuleManager.getInstance(project).modules.asSequence()
       .mapNotNull { AndroidModuleModel.get(it) }
-      .filter { it.androidProject.projectType == PROJECT_TYPE_APP }
+      .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
-          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, OutputType.Apk, false))
+          sequenceOf(androidModel.selectedVariant.mainArtifact.buildInformation.getOutputFileOrFolderFromListingFile(OutputType.Apk))
         }
         else {
           androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.outputFile }
@@ -108,15 +109,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
 
-  override fun buildProject() {
-    GradleProjectBuilder.getInstance(project).compileJava()
-  }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }
 
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
     val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
     return GradleApplicationIdProvider(
       androidFacet,
@@ -206,11 +203,13 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    (model as? AndroidModuleModel)?.let { androidModuleModel ->
+    run {
+      val flavorNames = model.selectedVariant.productFlavors.toSet()
       listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
-      @Suppress("DEPRECATION") androidModuleModel.flavorSourceProviders.map { it.toIdeaSourceProvider() }
+      model.androidProject.productFlavors
+        .filter { it.productFlavor.name in flavorNames }
+        .map { it.sourceProvider.toIdeaSourceProvider() }
     }
-    ?: emptyList()
   )
 }
 

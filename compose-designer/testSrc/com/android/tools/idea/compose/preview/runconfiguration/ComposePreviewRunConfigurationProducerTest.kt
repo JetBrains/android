@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
@@ -39,11 +40,11 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -86,14 +87,14 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testParameterProvider() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestPreviewParameter.kt",
       // language=kotlin
       """
         package my.composable.app
 
-        import androidx.ui.tooling.preview.Preview
-        import androidx.ui.tooling.preview.PreviewParameter
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.PreviewParameter
         import androidx.compose.Composable
 
         class Names: CollectionPreviewParameterProvider<String>(listOf("Android", "Studio"))
@@ -115,11 +116,11 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   fun testSetupConfigurationFromContextLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Composable
@@ -136,11 +137,11 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testInvalidContexts() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestNotPreview.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
         @Preview
@@ -180,10 +181,12 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     runConfiguration.name = "Preview1"
     assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.composableMethodFqn = "TestKt.Preview1"
-    // Both configuration name and composable FQN need to match for the configuration be considered the same as the context's
+    // Configuration name does not need to match for the configuration be considered the same as the context's, as long as the composable
+    // FQN does. That allows finding and reusing an existing configuration that runs a Compose Preview even if we don't know the actual
+    // configuration name.
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.name = "Preview2"
-    assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
+    assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
   private fun createConfigurationFromElement(element: PsiElement): ComposePreviewRunConfiguration {

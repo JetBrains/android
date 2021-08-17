@@ -16,12 +16,15 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
+import com.android.tools.idea.nav.safeargs.psi.GRADLE_VERSION_ZERO
+import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -70,6 +73,9 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var lastResourcesModificationCount = Long.MIN_VALUE
 
   @GuardedBy("lock")
+  private var lastNavigationVersion = GRADLE_VERSION_ZERO
+
+  @GuardedBy("lock")
   private var _directions = emptyList<LightDirectionsClass>()
   val directions: List<LightDirectionsClass>
     get() {
@@ -100,8 +106,9 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
 
     synchronized(lock) {
       val modificationCount = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
+      val currVersion = facet.findNavigationVersion()
 
-      if (modificationCount != lastResourcesModificationCount) {
+      if (modificationCount != lastResourcesModificationCount || currVersion != lastNavigationVersion) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
 
@@ -117,10 +124,11 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
           .toList()
 
         _args = entries
-          .flatMap { entry -> createLightArgsClasses(facet, modulePackage, entry) }
+          .flatMap { entry -> createLightArgsClasses(facet, modulePackage, currVersion, entry) }
           .toList()
 
         lastResourcesModificationCount = modificationCount
+        lastNavigationVersion = currVersion
       }
     }
   }
@@ -132,10 +140,13 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
       .toSet()
   }
 
-  private fun createLightArgsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightArgsClass> {
+  private fun createLightArgsClasses(facet: AndroidFacet,
+                                     modulePackage: String,
+                                     navigationVersion: GradleVersion,
+                                     entry: NavEntry): Collection<LightArgsClass> {
     return entry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
-      .map { destination -> LightArgsClass(facet, modulePackage, entry.resource, destination) }
+      .map { destination -> LightArgsClass(facet, modulePackage, navigationVersion, entry.resource, destination) }
       .toSet()
   }
 }

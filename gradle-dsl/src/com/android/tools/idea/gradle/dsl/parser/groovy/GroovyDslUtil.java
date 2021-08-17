@@ -24,6 +24,7 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.addQuotes;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStringCharacters;
 
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil;
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -375,14 +377,22 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
-      // TODO(b/161911921): we will want to only allow references to resolvable elements.
-      if (((ReferenceTo)unsavedValue).getReferredElement() != null) {
-        unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
-        if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
+      unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
+      if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
+    }
+    else if (unsavedValue instanceof InterpolatedText) {
+      InterpolatedText interpolatedValue = (InterpolatedText)unsavedValue;
+      StringBuilder builder = new StringBuilder();
+      for (InterpolatedText.InterpolatedTextItem elem : interpolatedValue.getInterpolationElements()) {
+        if (elem.getTextItem() != null) {
+          builder.append(elem.getTextItem());
+        }
+        if (elem.getReferenceItem() != null) {
+          String externalText = convertToExternalTextValue(elem.getReferenceItem().getReferredElement(), context, applyContext, true);
+          builder.append(externalText != null ? externalText : elem.getReferenceItem().getReferredElement().getFullName());
+        }
       }
-      else {
-        unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
-      }
+      unsavedValueText = addQuotes(builder.toString(), true);
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();
@@ -463,7 +473,14 @@ public final class GroovyDslUtil {
       return null;
     }
     else {
-      return externalName.toString();
+      if (!forInjection) return externalName.toString();
+      Pattern varShouldNotBeWrapped = Pattern.compile("(([a-zA-Z0-9_]\\w*)(\\.([a-zA-Z0-9_]\\w+))*)");
+      if (varShouldNotBeWrapped.matcher(externalName.toString()).matches()) {
+        return "$" + externalName.toString();
+      }
+      else {
+        return "${" + externalName.toString() + "}";
+      }
     }
   }
 
@@ -692,6 +709,27 @@ public final class GroovyDslUtil {
     else {
       throw new IllegalStateException("Unexpected element type added to Mpa: " + added);
     }
+  }
+
+  static PsiElement createInfixElement(@NotNull GradleDslSettableExpression expression) {
+    GradleDslElement parent = expression.getParent();
+    if (!(parent instanceof GradleDslInfixExpression)) return null;
+    GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) parent;
+    PsiElement parentPsi = parent.create();
+    if (parentPsi == null) return null;
+    PsiElement expressionPsi = expression.getUnsavedValue();
+    if (expressionPsi == null) return null;
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsi.getProject());
+    String expressionText = parentPsi.getText() + " " + expression.getName() + " " + expressionPsi.getText();
+    GrExpression newInfixExpression = factory.createExpressionFromText(expressionText);
+    PsiElement newParentPsi = parentPsi.replace(newInfixExpression);
+    parent.setPsiElement(newParentPsi);
+
+    expression.setPsiElement(newParentPsi.getLastChild().getLastChild());
+    expression.commit();
+    expression.reset();
+    return expression.getPsiElement();
   }
 
   static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression, GroovyDslWriter writer) {

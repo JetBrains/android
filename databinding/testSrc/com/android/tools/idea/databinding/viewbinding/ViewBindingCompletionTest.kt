@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
@@ -36,7 +36,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingCompletionTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule

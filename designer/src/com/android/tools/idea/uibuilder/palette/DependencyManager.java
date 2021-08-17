@@ -209,7 +209,7 @@ public class DependencyManager implements Disposable {
 
       if (coordinate != null) {
         synchronized (mySync) {
-          DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
+          DependencyManagementUtil.addDependenciesWithUiConfirmation(myModule, Collections.singletonList(coordinate), true);
         }
       }
     }

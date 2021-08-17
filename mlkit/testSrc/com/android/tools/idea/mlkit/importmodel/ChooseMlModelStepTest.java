@@ -88,7 +88,8 @@ public class ChooseMlModelStepTest extends AndroidTestCase {
   }
 
   public void testCheckPath_validFile_returnOK() {
-    File modelFile = TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite");
+    File modelFile =
+      TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite").toFile();
     assertThat(myChooseMlModelStep.checkPath(modelFile).getSeverity()).isEqualTo(Validator.Severity.OK);
   }
 }

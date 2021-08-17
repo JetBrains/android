@@ -15,16 +15,21 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.idea.transport.TransportClient;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerClient {
@@ -57,6 +62,10 @@ public class ProfilerClient {
   @NotNull
   public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient() {
     return myTransportClient;
+  }
+
+  public CompletableFuture<Transport.ExecuteResponse> executeAsync(Commands.Command command, Executor executor) {
+    return TransportClient.executeAsync(myTransportClient, command, executor);
   }
 
   @NotNull

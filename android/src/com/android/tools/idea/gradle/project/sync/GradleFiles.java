@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -271,102 +272,131 @@ public class GradleFiles {
     return status;
   }
 
-  /**
-   * Schedules an update to the currently stored hashes for each of the gradle build files.
-   */
-  private void scheduleUpdateFileHashes() {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      Project project = myProject;
-      if (project.isDisposed()) {
-        return;
-      }
+  private void updateFileHashes() {
+    Project project = myProject;
+    if (project.isDisposed()) {
+      return;
+    }
 
-      // Local map to minimize time holding myLock
-      Map<VirtualFile, Integer> fileHashes = new HashMap<>();
+    ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
+    ProgressManager progressManager = ProgressManager.getInstance();
+    ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
+    Application application = ApplicationManager.getApplication();
+
+    // Local map to minimize time holding myLock
+    Map<VirtualFile, Integer> fileHashes = new HashMap<>();
+
+    Runnable computeWrapperHashRunnable = () -> {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
       if (gradleWrapper != null) {
         File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
         if (propertiesFilePath.isFile()) {
           VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
           if (propertiesFile != null) {
-            putHashForFile(fileHashes, propertiesFile);
+            application.runReadAction(() -> putHashForFile(fileHashes, propertiesFile));
           }
         }
       }
+    };
+    Future wrapperHashFuture = executorService.submit(
+      () -> progressManager.executeProcessUnderProgress(computeWrapperHashRunnable, progressIndicator)
+    );
+    try {
+      wrapperHashFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      /* ignored */
+    }
 
-      // Clean external build files before they are repopulated.
-      removeExternalBuildFiles();
-      List<VirtualFile> externalBuildFiles = new ArrayList<>();
+    // Clean external build files before they are repopulated.
+    removeExternalBuildFiles();
+    List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
-      ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
-      ProgressManager progressManager = ProgressManager.getInstance();
-      ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
-      Application application = ApplicationManager.getApplication();
+    List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
 
-      Consumer<Module> computeHashes = module -> {
-        VirtualFile buildFile = getGradleBuildFile(module);
-        if (buildFile != null) {
+    Consumer<Module> computeHashes = module -> {
+      VirtualFile buildFile = getGradleBuildFile(module);
+      if (buildFile != null) {
+        ProgressManager.checkCanceled();
+        File path = VfsUtilCore.virtualToIoFile(buildFile);
+        if (path.isFile()) {
+          application.runReadAction(() -> putHashForFile(fileHashes, buildFile));
+        }
+      }
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel != null) {
+        for (File externalBuildFile : ndkModuleModel.getBuildFiles()) {
           ProgressManager.checkCanceled();
-          File path = VfsUtilCore.virtualToIoFile(buildFile);
-          if (path.isFile()) {
-            putHashForFile(fileHashes, buildFile);
-          }
-        }
-        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-        if (ndkModuleModel != null) {
-          for (File externalBuildFile : ndkModuleModel.getBuildFiles()) {
-            ProgressManager.checkCanceled();
-            if (externalBuildFile.isFile()) {
-              // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.
-              VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
-              externalBuildFiles.add(virtualFile);
-              if (virtualFile != null) {
-                putHashForFile(fileHashes, virtualFile);
-              }
-            }
-          }
-        }
-      };
-
-      modules.stream()
-        .map(module ->
-               executorService.submit(
-                 () -> progressManager.executeProcessUnderProgress(
-                   () -> application.runReadAction(
-                     () -> computeHashes.accept(module)),
-                   progressIndicator
-                 )
-               )
-        )
-        .forEach(future -> {
-          try {
-            future.get();
-          }
-          catch (InterruptedException | ExecutionException e) {
-            // ignored, the hashes won't be updated. This will cause areGradleFilesModified to return true.
-          }
-        });
-
-      storeExternalBuildFiles(externalBuildFiles);
-
-      String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
-      File rootFolderPath = getBaseDirPath(myProject);
-      VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
-      if (rootFolder != null) {
-        for (String fileName : fileNames) {
-          File filePath = new File(rootFolderPath, fileName);
-          if (filePath.isFile()) {
-            VirtualFile virtualFile = rootFolder.findChild(fileName);
-            if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-              putHashForFile(fileHashes, virtualFile);
+          if (externalBuildFile.isFile()) {
+            // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.
+            VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
+            externalBuildFiles.add(virtualFile);
+            if (virtualFile != null) {
+              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
             }
           }
         }
       }
+    };
 
-      storeHashesForFiles(fileHashes);
-    }, myProject.getDisposed());
+    modules.stream()
+      .map(module ->
+             executorService.submit(
+               () -> progressManager.executeProcessUnderProgress(() -> computeHashes.accept(module), progressIndicator)
+             )
+      )
+      .forEach(future -> {
+        try {
+          future.get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+          // ignored, the hashes won't be updated. This will cause areGradleFilesModified to return true.
+        }
+      });
+
+    storeExternalBuildFiles(externalBuildFiles);
+
+    String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
+    File rootFolderPath = getBaseDirPath(myProject);
+    VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
+    Runnable settingsAndPropertiesRunnable = () -> {
+      for (String fileName : fileNames) {
+        ProgressManager.checkCanceled();
+        File filePath = new File(rootFolderPath, fileName);
+        if (filePath.isFile()) {
+          VirtualFile virtualFile = rootFolder.findChild(fileName);
+          if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+            application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+          }
+        }
+      }
+    };
+    if (rootFolder != null) {
+      Future settingsAndPropertiesFuture = executorService.submit(
+        () -> progressManager.executeProcessUnderProgress(settingsAndPropertiesRunnable, progressIndicator)
+      );
+      try {
+        settingsAndPropertiesFuture.get();
+      } catch (InterruptedException | ExecutionException e) {
+        /* ignored */
+      }
+    }
+    storeHashesForFiles(fileHashes);
+  }
+
+  /**
+   * Schedules an update to the currently stored hashes for each of the gradle build files.
+   */
+  private void scheduleUpdateFileHashes() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // If we are running in tests, we might be invoked directly from a WriteCommand, which would mean that our attempts to
+      // do background ReadActions and wait for them will deadlock.  Schedule us for later on the EDT but without the write lock, for
+      // consistent order of operations.
+      ApplicationManager.getApplication().invokeLater(this::updateFileHashes);
+    } else {
+      // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
+      // disk IO is slow.
+      ApplicationManager.getApplication().executeOnPooledThread(this::updateFileHashes);
+    }
   }
 
   /**

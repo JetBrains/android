@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.ide.stacktrace;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessListUI;
-import com.android.tools.profilers.FakeFeatureTracker;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.inspectors.common.api.stacktrace.CodeElement;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser;
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
+import com.android.tools.inspectors.common.api.stacktrace.ThreadElement;
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.RunsInEdt;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.JList;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 @RunsInEdt
 public class IntelliJStackTraceViewTest {
@@ -59,10 +65,22 @@ public class IntelliJStackTraceViewTest {
   @Rule
   public final EdtRule myEdtRule = new EdtRule();
 
+  @Rule
+  public final ProjectRule myProjectRule = new ProjectRule();
+
   private IntelliJStackTraceView myStackView;
 
   public static StackTraceModel createStackTraceModel() {
-    return new StackTraceModel(new FakeCodeNavigator(new FakeFeatureTracker()));
+    return new StackTraceModel(new CodeNavigator() {
+      @Override
+      public boolean isNavigatable(@NotNull CodeLocation location) {
+        return true;
+      }
+
+      @Override
+      protected void handleNavigate(@NotNull CodeLocation location) {
+      }
+    });
   }
 
   public static IntelliJStackTraceView createStackTraceView(Project project, StackTraceModel model) {
@@ -73,7 +91,7 @@ public class IntelliJStackTraceViewTest {
   public void before() {
     // Arbitrary size just so we can click on it
     StackTraceModel model = createStackTraceModel();
-    IntelliJStackTraceView view = createStackTraceView(ProjectStub.getInstance(), model);
+    IntelliJStackTraceView view = createStackTraceView(myProjectRule.getProject(), model);
     view.getComponent().setLocation(0, 0);
     view.getComponent().setSize(100, 400);
     view.getListView().setUI(new HeadlessListUI());

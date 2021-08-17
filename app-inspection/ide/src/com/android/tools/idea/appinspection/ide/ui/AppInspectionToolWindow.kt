@@ -61,8 +61,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
     override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
-    override fun showNotification(title: String,
-                                  content: String,
+    override fun showNotification(content: String,
+                                  title: String,
                                   severity: AppInspectionIdeServices.Severity,
                                   hyperlinkClicked: () -> Unit) {
       val type = when (severity) {
@@ -82,11 +82,11 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
       val fqcn = codeLocation.fqcn
-      val navigatable: Navigatable? = if (fqcn != null) {
-        ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
-      }
-      else {
-        runReadAction {
+      val navigatable: Navigatable? = runReadAction {
+        if (fqcn != null) {
+          ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
+        }
+        else {
           val fileName = codeLocation.fileName!!
           FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
             .firstOrNull()?.virtualFile
@@ -120,7 +120,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
   init {
     Disposer.register(this, appInspectionView)
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AppInspectionToolWindowManagerListener(project, appInspectionView))
+                                               AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView))
   }
 
   override fun dispose() {

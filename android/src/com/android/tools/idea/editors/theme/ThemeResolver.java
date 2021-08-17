@@ -19,6 +19,7 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -131,6 +132,7 @@ public class ThemeResolver {
     return builder.build();
   }
 
+  @Slow
   @NotNull
   private List<StyleResourceValue> resolveFrameworkThemes() {
     ConfigurationManager configurationManager = myConfiguration.getConfigurationManager();

@@ -1,0 +1,4 @@
+ext {
+  prop = 123
+  prop1 = "abc$prop"
+}

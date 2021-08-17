@@ -17,8 +17,6 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getSourceProvider
@@ -41,14 +39,12 @@ import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.observable.ui.IconProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
-import com.android.tools.idea.observable.ui.VisibleProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.uniquenessSatisfied
 import com.android.tools.idea.templates.validate
-import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint
@@ -78,7 +74,6 @@ import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.base.Joiner
-import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -88,15 +83,9 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.Label
 import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
-import com.intellij.uiDesigner.core.GridConstraints
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
-import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
-import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
-import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.util.EnumSet
@@ -107,7 +96,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
-import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
   ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
@@ -127,10 +115,9 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
-  private val thumbnailsCache = CacheBuilder.newBuilder().build(IconLoader())!!
   private val parameterRows = hashMapOf<Parameter<in Any>, RowEntry<*>>()
   private val userValues = hashMapOf<Parameter<*>, Any>()
-  private val thumbPath = StringValueProperty()
+
   /**
    * Validity check of all parameters is performed when any parameter changes, and the first error found is set here.
    * This is then registered as its own validator with [validatorPanel].
@@ -143,57 +130,31 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     font = Font("Default", Font.PLAIN, 11)
   }
   private val templateTitleLabel: JLabel = Label("", bold = true)
-  // TODO: When StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR is removed, this field can be removed.
-  private val templateThumbLabel = JLabel().apply {
-    horizontalTextPosition = SwingConstants.CENTER
-    verticalAlignment = SwingConstants.TOP
-    verticalTextPosition = SwingConstants.BOTTOM
-    font = Font("Default", Font.PLAIN, 16)
-  }
+
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  private val mainPanel = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-    panel {
-      row {
-        templateTitleLabel()
-      }
-      row {
-        cell(isVerticalFlow = true, isFullWidth = true) {
-          templateDescriptionLabel()
-        }
-      }
-      row {
-        cell(isFullWidth = true) {
-          parametersPanel(constraints = arrayOf(CCFlags.growX))
-        }
-      }
-    }.apply {
-      border = JBUI.Borders.emptyTop(32)
+  private val mainPanel = panel {
+    row {
+      templateTitleLabel()
     }
-  } else {
-    // TODO(b/142107543) Replace it with TabularLayout for more readability
-    JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
-      val anySize = Dimension(-1, -1)
-      val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
-      add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
-      add(parametersPanel,
-          GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
-                          anySize, anySize, anySize))
-      add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    row {
+      cell(isVerticalFlow = true, isFullWidth = true) {
+        templateDescriptionLabel()
+      }
     }
+    row {
+      cell(isFullWidth = true) {
+        parametersPanel(constraints = arrayOf(CCFlags.growX))
+      }
+    }
+  }.apply {
+    border = JBUI.Borders.emptyTop(32)
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, mainPanel)
   private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)
   private var evaluationState = EvaluationState.NOT_EVALUATING
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
-
-  /**
-   * Get the current thumbnail path.
-   */
-  private val thumbnailPath: String
-    get() = model.newTemplate.thumb().path().path
-
   private val project: Project? get() = if (model.isNewProject) null else model.project
 
   /**
@@ -219,19 +180,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     icon = newTemplate.formFactor.toWizardFormFactor().icon
 
-    val thumb = IconProperty(templateThumbLabel)
-    val thumbVisibility = VisibleProperty(templateThumbLabel)
-    bindings.apply {
-      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path()) }
-      bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
-    }
-    thumbPath.set(thumbnailPath)
-    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
-      templateTitleLabel.text = newTemplate.name
-    }
-    else {
-      templateThumbLabel.text = newTemplate.name
-    }
+    templateTitleLabel.text = newTemplate.name
 
     for (widget in model.newTemplate.widgets) {
       if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNewModule || model.projectTemplateDataBuilder.isNewProject)) {
@@ -374,9 +323,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       }
     }
 
-    // Aggressively update the icon path just in case it changed
-    thumbPath.set(thumbnailPath)
-
     evaluationState = EvaluationState.NOT_EVALUATING
 
     invalidParameterMessage.set(validateAllParameters() ?: "")
@@ -391,7 +337,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       .firstNotNullResult { parameter ->
         val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullResult null
         parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
-    }
+      }
   }
 
   override fun getComponent(): JComponent = rootPanel
@@ -413,7 +359,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   override fun dispose() {
     bindings.releaseAll()
     listeners.releaseAll()
-    thumbnailsCache.invalidateAll()
   }
 
   /**

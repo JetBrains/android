@@ -16,14 +16,13 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.event.MouseListener
 import javax.swing.JComponent
@@ -45,6 +44,8 @@ open class PropertyTextFieldWithLeftButton(
   protected val textField = PropertyTextField(editorModel)
 
   init {
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     border = DarculaTextBorder()
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     leftButton?.border = JBUI.Borders.empty(0, ICON_LEFT_BORDER, 0, 0)
@@ -56,7 +57,7 @@ open class PropertyTextFieldWithLeftButton(
       HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
     }
 
-    editorModel.addListener(ValueChangedListener { updateFromModel() })
+    editorModel.addListener { updateFromModel() }
     setFromModel()
   }
 
@@ -88,7 +89,8 @@ open class PropertyTextFieldWithLeftButton(
     isVisible = editorModel.visible
     leftButton?.icon = editorModel.displayedIcon(editorModel.leftButtonIcon)
     leftButton?.readOnly = editorModel.readOnly
-    background = editorModel.displayedBackground(secondaryPanelBackground)
+    background = editorModel.displayedBackground(UIUtil.TRANSPARENT_COLOR)
+    isOpaque = editorModel.isUsedInRendererWithSelection
     toolTipText = editorModel.tooltip
   }
 

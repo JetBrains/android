@@ -16,8 +16,8 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.impl.ViewTreeCellRenderer.ColoredViewRenderer
@@ -27,7 +27,6 @@ import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AbstractExpandableItemsHandler
-import com.intellij.ui.ExpandableItemsHandlerFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -44,7 +43,6 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 
@@ -73,11 +71,10 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
-    appRule.testApplication.registerService(
-      ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory(), appRule.testRootDisposable)
-    doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
+    doAnswer { focusOwner }.`when`(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree")
+    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree", null)
+    tree!!.expandableTreeItemsHandler = TestTreeExpansionHandler(tree!!)
   }
 
   @After
@@ -140,7 +137,8 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
     val size = component.preferredSize
-    component.setBounds(0, 0, size.width - 3, size.height)
+    size.width -= 3
+    tree!!.size = size
     component.adjustForPainting()
     val fragments = getFragments(component)
     checkFragment(fragments[0], Fragment("text", bold))
@@ -154,7 +152,8 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
     val size = component.preferredSize
-    component.setBounds(0, 0, size.width - 3, size.height)
+    size.width -= 3
+    tree!!.size = size
     component.adjustForPainting()
     checkFragments(component, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
   }
@@ -320,13 +319,6 @@ class ViewTreeCellRendererTest {
 
     override fun getExpandedItems(): Collection<Int> {
       return listOf(expandedRow)
-    }
-  }
-
-  private class TestExpandableItemsHandlerFactory : ExpandableItemsHandlerFactory() {
-    override fun doInstall(component: JComponent) = when (component) {
-      is JTree -> TestTreeExpansionHandler(component)
-      else -> null
     }
   }
 }

@@ -15,22 +15,21 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers;
 
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.base.Strings;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Classifies {@link InstanceObject}s based on a particular stack trace line of its allocation stack. If the end of the stack is reached or

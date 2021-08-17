@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fileTypes.profiler;
+package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
 import org.jetbrains.annotations.NotNull;

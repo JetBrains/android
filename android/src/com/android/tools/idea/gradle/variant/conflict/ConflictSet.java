@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -67,7 +67,7 @@ public class ConflictSet {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
-      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
         continue;
       }
       String gradlePath = getGradlePath(module);
@@ -119,14 +119,14 @@ public class ConflictSet {
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
-    for (IdeLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
+    for (IdeModuleLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(dependency.getProjectPath())) {
         return dependency.getVariant();
       }
     }
 
     if (variant.getAndroidTestArtifact() != null) {
-      for (IdeLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }
@@ -134,7 +134,7 @@ public class ConflictSet {
     }
 
     if (variant.getUnitTestArtifact() != null) {
-      for (IdeLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }

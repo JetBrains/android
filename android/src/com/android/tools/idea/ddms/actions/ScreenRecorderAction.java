@@ -22,7 +22,7 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
-import com.android.prefs.AndroidLocation.AndroidLocationException;
+import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -44,6 +44,8 @@ import java.awt.EventQueue;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,10 +55,11 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   static final String TITLE = "Screen Recorder";
 
   private static final String EMU_TMP_FILENAME = "tmp.webm";
+  /** Devices that are currently recording. */
+  private static final Set<IDevice> myRecordingInProgress = new HashSet<>();
 
   private final Features myFeatures;
   private final Project myProject;
-  private boolean myRecordingInProgress;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
     this(project, context, new CachedFeatures(project));
@@ -94,7 +97,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   }
 
   protected boolean isEnabled() {
-    return super.isEnabled() && !myRecordingInProgress;
+    return super.isEnabled() && !myRecordingInProgress.contains(myDeviceContext.getSelectedDevice());
   }
 
   @Override
@@ -124,7 +127,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   private void startRecordingAsync(@NotNull ScreenRecorderOptions options, @NotNull IDevice device, boolean showTouchEnabled) {
     AvdManager manager = getVirtualDeviceManager();
     Path hostRecordingFile = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
-    myRecordingInProgress = true;
+    myRecordingInProgress.add(device);
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       if (options.showTouches != showTouchEnabled) {
@@ -138,7 +141,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
         if (options.showTouches != showTouchEnabled) {
           setShowTouch(device, showTouchEnabled);
         }
-        EventQueue.invokeLater(() -> myRecordingInProgress = false);
+        EventQueue.invokeLater(() -> myRecordingInProgress.remove(device));
       }
     });
   }
@@ -150,7 +153,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     try {
       return AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(logger));
     }
-    catch (AndroidLocationException exception) {
+    catch (AndroidLocationsException exception) {
       logger.warn(exception);
       return null;
     }

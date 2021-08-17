@@ -23,21 +23,26 @@ import com.android.sdklib.AndroidVersion
  *
  * @param id a device identifier. This can be arbitrary string as long as it is unique to other devices.
  * @param deviceName a name of this device
+ * @param avdName the name of the avd for this device. If this Device represents a physical device,
+ *   this field should be an empty string.
  * @param deviceType a device type
  * @param version Android version of this device
  * @param additionalInfo an additional device info (such as RAM, processor name) as a key value pair
  */
 data class AndroidDevice(val id: String,
                          val deviceName: String,
+                         val avdName: String,
                          val deviceType: AndroidDeviceType,
                          val version: AndroidVersion,
                          val additionalInfo: MutableMap<String,String> = mutableMapOf())
 
 enum class AndroidDeviceType {
-  // A virtual Android device running on a local machine.
+  // A virtual Android device running on a local machine from the AVD home folder.
   LOCAL_EMULATOR,
   // A physical Android device connected to a local machine.
-  LOCAL_PHYSICAL_DEVICE
+  LOCAL_PHYSICAL_DEVICE,
+  // A virtual Android device managed by the Android plugin for Gradle.
+  LOCAL_GRADLE_MANAGED_EMULATOR
 }
 
 /**

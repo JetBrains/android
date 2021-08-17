@@ -19,9 +19,12 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -38,7 +41,11 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
 public class PluginModelImpl implements PluginModel {
+  @NonNls private static final String APPLY = "apply";
+  @NonNls private static final String ID = "id";
+  @NonNls private static final String KOTLIN = "kotlin";
   @NonNls private static final String PLUGIN = "plugin";
+  @NonNls private static final String VERSION = "version";
 
   @NotNull
   private final GradleDslElement myCompleteElement;
@@ -75,6 +82,19 @@ public class PluginModelImpl implements PluginModel {
           results.add(new PluginModelImpl(item, item));
         }
       }
+      else if (e instanceof GradleDslInfixExpression) {
+        GradleDslInfixExpression infixExpression = (GradleDslInfixExpression) e;
+        GradleDslElement idElement = infixExpression.getElement(ID);
+        GradleDslElement kotlinElement = infixExpression.getElement(KOTLIN);
+        if (idElement instanceof GradleDslSimpleExpression) {
+          GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)idElement;
+          results.add(new PluginModelImpl(infixExpression, pluginElement));
+        }
+        else if (kotlinElement instanceof GradleDslSimpleExpression) {
+          GradleDslSimpleExpression pluginElement = (GradleDslSimpleExpression)kotlinElement;
+          results.add(new PluginModelImpl(infixExpression, pluginElement));
+        }
+      }
     }
 
     return results;
@@ -107,7 +127,26 @@ public class PluginModelImpl implements PluginModel {
   @NotNull
   @Override
   public ResolvedPropertyModel name() {
+    // TODO(xof): need to transformize this so we can get rid of myDslElement
     return GradlePropertyModelBuilder.create(myDslElement).buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel version() {
+    return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new LiteralToInfixTransform(VERSION))
+      .addTransform(new InfixPropertyTransform(VERSION))
+      .buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel apply() {
+    return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new LiteralToInfixTransform(APPLY))
+      .addTransform(new InfixPropertyTransform(APPLY))
+      .buildResolved();
   }
 
   @Override

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.colorToString
@@ -26,25 +28,21 @@ import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
-import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.HelpSupport
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
-import java.awt.event.MouseEvent
 import java.util.Locale
 import javax.swing.JComponent
-import javax.swing.JTable
-import javax.swing.SwingUtilities
 
 const val PICK_A_RESOURCE = "Pick a Resource"
 
@@ -53,7 +51,7 @@ const val PICK_A_RESOURCE = "Pick a Resource"
  *
  * Note: this may change pending UX specifications.
  */
-class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("Toggle Computed Value") {
+class ToggleShowResolvedValueAction(val model: NlPropertiesModel) : AnAction("Toggle Computed Value") {
 
   init {
     shortcutSet = CustomShortcutSet(SHORTCUT)
@@ -72,7 +70,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
 object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESOURCE, StudioIcons.Common.PROPERTY_UNBOUND) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
     val newValue = property.delegate?.let { selectFromResourceDialog(it) }
     if (newValue != null) {
       property.value = newValue
@@ -83,7 +81,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     (event.inputEvent?.source as? JComponent)?.requestFocus()
   }
 
-  private fun selectFromResourceDialog(property: NelePropertyItem): String? {
+  private fun selectFromResourceDialog(property: NlPropertyItem): String? {
     val propertyName = property.name
     val tag = property.components.firstOrNull()?.backend?.tag ?: return null
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
@@ -145,8 +143,8 @@ open class TestableColorSelectionAction(
 ) : AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
-    val actualProperty = (property as? NeleNewPropertyItem)?.delegate ?: property
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
+    val actualProperty = (property as? NlNewPropertyItem)?.delegate ?: property
 
     val resourceReference = property.resolveValueAsReference(property.rawValue)
     val currentColor = if (resourceReference != null) {
@@ -156,12 +154,12 @@ open class TestableColorSelectionAction(
       property.resolveValueAsColor(property.rawValue)
     }
     val initialColor = currentColor ?: Color.WHITE
-    val restoreFocusTo = componentToRestoreFocusTo(event)
-    selectFromColorDialog(locationFromEvent(event), actualProperty, initialColor, resourceReference, restoreFocusTo)
+    val restoreFocusTo = event.componentToRestoreFocusTo()
+    selectFromColorDialog(event.locationFromEvent(), actualProperty, initialColor, resourceReference, restoreFocusTo)
   }
 
   private fun selectFromColorDialog(location: Point,
-                                    property: NelePropertyItem,
+                                    property: NlPropertyItem,
                                     initialColor: Color?,
                                     resourceReference: ResourceReference?,
                                     restoreFocusTo: Component?) {
@@ -175,28 +173,5 @@ open class TestableColorSelectionAction(
       { color -> property.value = colorToString(color) },
       { resourceString -> property.value = resourceString }
     )
-  }
-
-  private fun locationFromEvent(event: AnActionEvent): Point {
-    val source = componentFromEvent(event)
-    if (source is Component) {
-      val location = source.locationOnScreen
-      return Point(location.x + source.width / 2, location.y + source.height / 2)
-    }
-    val input = event.inputEvent
-    if (input is MouseEvent) {
-      return input.locationOnScreen
-    }
-    return Point(20, 20)
-  }
-
-  private fun componentFromEvent(event: AnActionEvent): Component? {
-    return PlatformDataKeys.CONTEXT_COMPONENT.getData(event.dataContext) ?: event.inputEvent?.component
-  }
-
-  private fun componentToRestoreFocusTo(event: AnActionEvent): Component? {
-    val component = componentFromEvent(event) ?: return null
-    val table = SwingUtilities.getAncestorOfClass(JTable::class.java, component)
-    return table ?: component
   }
 }

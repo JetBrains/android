@@ -28,13 +28,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** A utility class to wait for an emulator to be fully launched (ready for "pm install") and connected to adb. */
 public class EmulatorConnectionListener {
@@ -45,7 +44,7 @@ public class EmulatorConnectionListener {
                                                                long timeout,
                                                                @NotNull TimeUnit units) {
     if (emulatorProcessHandler == null) {
-      return Futures.immediateFailedFuture(new RuntimeException("Emulator process for AVD " + avdName + " died."));
+      return Futures.immediateFailedFuture(new RuntimeException("The emulator process for AVD " + avdName + " died."));
     }
 
     final SettableFuture<IDevice> future = SettableFuture.create();
@@ -90,7 +89,7 @@ public class EmulatorConnectionListener {
         }
 
         if (myEmulatorProcessHandler.isProcessTerminated() || myEmulatorProcessHandler.isProcessTerminating()) {
-          myDeviceFuture.setException(new RuntimeException("The emulator process for AVD " + myAvdName + " was killed."));
+          myDeviceFuture.setException(new RuntimeException("The emulator process for AVD " + myAvdName + " has terminated."));
           return;
         }
 

@@ -63,7 +63,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   public void testUpdateSdkWithMissingDocumentation() {
     createSdk();
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -79,7 +79,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   public void testUpdateSdkWithSourcesInstalled() {
     createSdk();
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -89,7 +89,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
       assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
 
       // Simulate the case that sources are installed after the initial sync.
-      createDirectory(new File(mockJdkHome, join(FD_PKG_SOURCES, new File(target.getPath(IAndroidTarget.SOURCES)).getName())));
+      createDirectory(new File(mockJdkHome, join(FD_PKG_SOURCES, target.getPath(IAndroidTarget.SOURCES).getFileName().toString())));
       updateSdkIfNeeded(spy, AndroidSdks.getInstance(), target);
 
       // Verify that Javadoc is set to empty since sources are now available.
@@ -197,7 +197,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   }
 
   private void createSdk() {
-    File sdkPath = getSdk();
+    File sdkPath = getSdk().toFile();
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 

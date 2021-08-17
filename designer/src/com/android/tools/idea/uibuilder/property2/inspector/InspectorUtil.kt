@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {
+fun getTagName(properties: PropertiesTable<NlPropertyItem>): String? {
   val property = properties.first ?: return null
   val tagName = property.components.firstOrNull()?.tagName ?: return null
   return if (property.components.any { it.tagName == tagName }) tagName else null

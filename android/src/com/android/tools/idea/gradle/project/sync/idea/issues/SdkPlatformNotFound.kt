@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project

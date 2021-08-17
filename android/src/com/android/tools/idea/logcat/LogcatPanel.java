@@ -17,17 +17,11 @@ package com.android.tools.idea.logcat;
 
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.intellij.execution.ui.BaseContentCloseListener;
-import com.intellij.execution.ui.RunnerLayoutUi;
-import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.content.Content;
-import icons.StudioIcons.Shell.ToolWindows;
+import java.awt.BorderLayout;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public final class LogcatPanel extends JBLoadingPanel {
   private final DevicePanel myDevicePanel;
@@ -41,27 +35,7 @@ public final class LogcatPanel extends JBLoadingPanel {
     myLogcatView = new AndroidLogcatView(project, context, toolWindow.getDisposable());
 
     add(new DeviceAndSearchPanel(myDevicePanel, myLogcatView), BorderLayout.NORTH);
-    add(createCenterComponent(project), BorderLayout.CENTER);
-  }
-
-  @NotNull
-  private Component createCenterComponent(@NotNull Project project) {
-    RunnerLayoutUi ui = RunnerLayoutUi.Factory.getInstance(project).create("Android", "Logcat", "Logcat", project);
-
-    Content content = ui.createContent("Android Logcat", myLogcatView.getContentPanel(), "logcat", ToolWindows.LOGCAT, null);
-    content.setCloseable(false);
-    content.setPreferredFocusableComponent(myDevicePanel.getDeviceComboBox());
-    content.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, myLogcatView);
-
-    ui.addContent(content, 0, PlaceInGrid.center, false);
-
-    // Note: like other users of the RunnerLayoutUi, we should implement a BaseContentCloseListener to participate in early disposal.
-    // BaseContentCloseListener.canClose() will perform the disposal for us, during ProjectManagerImpl.fireProjectClosing(). This happens
-    // before the project is disposed, when it's too late to save state (b/157825209). See similar patterns in RunContentManagerImpl and
-    // BuildContentManagerImpl; our case is simpler, this listener will be disposed with the project.
-    new LogcatCloseListener(content, project);
-
-    return ui.getComponent();
+    add(myLogcatView.getContentPanel(), BorderLayout.CENTER);
   }
 
   @NotNull
@@ -73,23 +47,4 @@ public final class LogcatPanel extends JBLoadingPanel {
   public AndroidLogcatView getLogcatView() {
     return myLogcatView;
   }
-
-
-  private static class LogcatCloseListener extends BaseContentCloseListener {
-
-    LogcatCloseListener(@NotNull Content content, @NotNull Project project) {
-      super(content, project);
-    }
-
-    @Override
-    protected void disposeContent(@NotNull Content content) {
-      // Nothing to dispose, both myLogcatView and myDevicePanel are already registered in the Disposer tree, with the project as parent.
-    }
-
-    @Override
-    protected boolean closeQuery(@NotNull Content content, boolean projectClosing) {
-      return true;
-    }
-  }
 }
-

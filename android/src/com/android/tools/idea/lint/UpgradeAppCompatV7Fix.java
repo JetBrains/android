@@ -53,7 +53,7 @@ public class UpgradeAppCompatV7Fix implements LintIdeQuickFix {
       StudioSdkUtil.reloadRemoteSdkWithModalProgress();
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       StudioLoggerProgressIndicator
-        progress = new StudioLoggerProgressIndicator(AndroidLintFontValidationErrorInspection.class);
+        progress = new StudioLoggerProgressIndicator(AndroidLintFontValidationInspection.class);
 
       RepoPackage p = SdkMavenRepository.findLatestVersion(MIN_APPSUPPORT_VERSION, sdkHandler, null, progress);
       if (p != null) {

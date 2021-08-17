@@ -158,10 +158,14 @@ public class MTagImp implements MTag, MTag.TagWriter {
 
   @Override
   public String getAttributeValue(String attribute) {
-    System.out.println(Debug.getLocation()+ " test  ---- attribute =  " + attribute);
+    if (DEBUG) {
+      System.out.println(Debug.getLocation() + " test  ---- attribute =  " + attribute);
+    }
 
     for (Attribute value : mAttrList.values()) {
-      System.out.println(Debug.getLocation()+ " test  ----  " + value.mAttribute);
+      if (DEBUG) {
+        System.out.println(Debug.getLocation() + " test  ----  " + value.mAttribute);
+      }
 
       if (value.mAttribute.equals(attribute)) {
         return value.mValue;
@@ -452,12 +456,8 @@ public class MTagImp implements MTag, MTag.TagWriter {
 
     @Override
     public MTag commit(@Nullable String commandName) {
-      printFormal(" > ", System.out);
-      MTagImp.RootTag rootTag = null;
-      for (MTag tag = parent; tag != null; tag = ((MTagImp)tag).parent) {
-        if (tag instanceof MTagImp.RootTag) {
-          rootTag = (MTagImp.RootTag)tag;
-        }
+      if (DEBUG) {
+        printFormal(" > ", System.out);
       }
       parent.mChildren.remove(this);
       MTagImp ret = new MTagImp();

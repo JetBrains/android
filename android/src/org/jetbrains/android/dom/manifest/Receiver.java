@@ -39,4 +39,6 @@ public interface Receiver extends ApplicationComponent {
   List<IntentFilter> getIntentFilters();
 
   IntentFilter addIntentFilter();
+
+  List<Property> getProperties();
 }

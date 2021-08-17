@@ -25,8 +25,10 @@ public interface PanZoomListener {
 
   /**
    * The designSurface's screen scale has changed.
+   * @param previousScale previous value of the scale before the zoom event.
+   * @param newScale new value of the scale after the zoom event.
    */
-  void zoomChanged();
+  void zoomChanged(double previousScale, double newScale);
 
   /**
    * The scrollbars value has changed.

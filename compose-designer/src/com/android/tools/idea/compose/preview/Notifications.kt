@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
@@ -57,7 +56,7 @@ private fun createBuildNotificationPanel(project: Project,
     isFocusable = false
 
     createActionLabel(buildActionLabel) {
-      requestBuild(project, module)
+      requestBuild(project, module, true)
     }
   }
 }
@@ -85,7 +84,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
             FileEditorManager.getInstance(project).closeFile(file)
             FileEditorManager.getInstance(project).openFile(file, true)
             val module = ModuleUtil.findModuleForFile(file, project) ?: return@createActionLabel
-            requestBuild(project, module)
+            requestBuild(project, module, true)
           }
         }
       }
@@ -164,25 +163,29 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     }
 
     val previewManager = fileEditor.getComposePreviewManager() ?: return null
-    val previewStatus = previewManager.status() ?: return null
+    val previewStatus = previewManager.status()
     if (LOG.isDebugEnabled) {
       LOG.debug(previewStatus.toString())
     }
 
-    // Show a notification with a Loader if the preview is refreshing.
-    if (previewStatus.isRefreshing) {
-      LOG.debug("Refresh in progress")
-      return EditorNotificationPanel(fileEditor).apply {
-        setText(message("notification.preview.is.refreshing"))
-        icon(AnimatedIcon.Default())
-      }
-    }
-
-    val gradleBuildState = GradleBuildState.getInstance(project)
     // Do not show the notification while the build is in progress but refresh is not.
-    if (gradleBuildState.isBuildInProgress) {
-      LOG.debug("Build in progress")
-      return null
+    if (previewStatus.isRefreshing) {
+      LOG.debug("Refreshing")
+      return when (previewStatus.interactiveMode) {
+        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel().apply {
+          text = message("notification.interactive.preview.starting")
+          icon(AnimatedIcon.Default())
+        }
+        ComposePreviewManager.InteractiveMode.STOPPING ->
+          // Don't show the notification when entering animation preview
+          if (previewManager.animationInspectionPreviewElementInstance != null) null
+          else
+            EditorNotificationPanel().apply {
+              text = message("notification.interactive.preview.stopping")
+              icon(AnimatedIcon.Default())
+            }
+        else -> null
+      }
     }
 
     val status = GradleBuildState.getInstance(project).summary?.status

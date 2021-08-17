@@ -52,33 +52,20 @@ class GenericFileFilterTest {
   }
 
   @Test
-  fun `lonely slashes are not highlighted`() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
-      !setOf(
-        "/", "\\"
-      ).contains(arg)}))
-      .thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("hello / world, hello \\ world", false)
-      .checkFileLinks()
-  }
+  fun `lonely slashes are not highlighted`() =
+    getFilterResultAndCheckHighlightPositions("hello / world, hello \\ world", listOf(),false).checkFileLinks()
 
   @Test
-  fun `short names are highlighted`() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
-      !setOf(
-        "/", "/a", "C:\\", "C:\\b"
-      ).contains(arg)}))
-      .thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("hello /a world, hello C:\\ C:\\b world C:\\d", false)
+  fun `short names are highlighted`() =
+    getFilterResultAndCheckHighlightPositions("hello /a world, hello C:\\ C:\\b world C:\\d", listOf("/a", "C:\\", "C:\\b"),false)
       .checkFileLinks("/a", "C:\\", "C:\\b")
-  }
 
   @Test
   fun `honor FILENAME_MAX for performance reasons`() {
     val longString = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX + 1)
     `when`(localFileSystem.findFileByPathIfCached(eq("/$longString"))).thenThrow(AssertionError("Should not be queried"))
 
-    getFilterResultAndCheckHighlightPositions("/$longString /path/to/file", checkHighlights = false)
+    getFilterResultAndCheckHighlightPositions("/$longString /path/to/file", listOf("/path/to/file"), checkHighlights = false)
       .checkFileLinks("/path/to/file")
   }
 
@@ -90,76 +77,69 @@ class GenericFileFilterTest {
 
     `when`(localFileSystem.findFileByPathIfCached(eq("/$p1"))).thenReturn(null)
     `when`(localFileSystem.findFileByPathIfCached(eq("/$p1 $p2"))).thenThrow(AssertionError("Should not be queried"))
-    getFilterResultAndCheckHighlightPositions(
-      "/$p1 $p2 /path/to/file", checkHighlights = false)
+    getFilterResultAndCheckHighlightPositions("/$p1 $p2 /path/to/file", listOf("/path/to/file"), checkHighlights = false)
       .checkFileLinks("/path/to/file")
   }
 
   @Test
-  fun `nonexisting paths cancel early`() {
-    `when`(localFileSystem.findFileByPathIfCached(eq("/is"))).thenReturn(null)
-    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not"))).thenThrow(AssertionError("Should not be queried"))
-    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not/a"))).thenThrow(AssertionError("Should not be queried"))
-    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not/a path"))).thenThrow(AssertionError("Should not be queried"))
-    getFilterResultAndCheckHighlightPositions(
-      "This /is/not/a path /path/to/file", checkHighlights = false)
+  fun `nonexisting paths cancel early`() =
+    getFilterResultAndCheckHighlightPositions("This /is/not/a path /path/to/file", listOf("/path/to/file"), checkHighlights = false)
       .checkFileLinks("/path/to/file")
-  }
 
   @Test
   fun `recognize simple Linux path`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file
       ^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file"))
     .checkFileLinks("/path/to/file")
 
   @Test
   fun `recognize simple Windows path`() = getFilterResultAndCheckHighlightPositions("""
     | C:\path\to\file
       ^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("""C:\path\to\file"""))
     .checkFileLinks("""C:\path\to\file""")
 
   @Test
   fun `recognize simple Windows path with forward slashes`() = getFilterResultAndCheckHighlightPositions("""
     | C:/path/to/file
       ^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("""C:/path/to/file"""))
     .checkFileLinks("""C:/path/to/file""")
 
   @Test
   fun `recognize path with line number`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.c:3
       ^^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file.c"))
     .checkFileLinks("/path/to/file.c")
 
   @Test
   fun `a huge line number will not break it`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.c:99999999999999999
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file.c"))
     .checkFileLinks("/path/to/file.c")
 
   @Test
   fun `recognize path with line number and column`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.c:3:7
       ^^^^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file.c"))
     .checkFileLinks("/path/to/file.c")
 
   @Test
   fun `recognize path in middle of a line`() = getFilterResultAndCheckHighlightPositions("""
     | blah blah /path/to/file blah blah
                 ^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file"))
     .checkFileLinks("/path/to/file")
 
   @Test
   fun `recognize multiple paths in a line`() = getFilterResultAndCheckHighlightPositions("""
     | blah blah /path/to/file blah blah /another/path/to/file
                 ^^^^^^^^^^^^^           ^^^^^^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file", "/another/path/to/file"))
     .checkFileLinks(
       "/path/to/file",
       "/another/path/to/file"
@@ -169,38 +149,29 @@ class GenericFileFilterTest {
   fun `recognize path with line number and column in parenthesis`() = getFilterResultAndCheckHighlightPositions("""
     | /path/to/file.kt: (3, 7): No value passed for parameter 'silent'
       ^^^^^^^^^^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file.kt"))
     .checkFileLinks("/path/to/file.kt")
 
   @Test
-  fun `recognize path with space`() {
-    `when`(localFileSystem.findFileByPathIfCached(eq("/path/to/file/with"))).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
+  fun `recognize path with space`() = getFilterResultAndCheckHighlightPositions("""
     | blah blah /path/to/file/with space blah blah
                 ^^^^^^^^^^^^^^^^^^^^^^^^
-    """.trimIndent())
-      .checkFileLinks("/path/to/file/with space")
-  }
+  """.trimIndent(), listOf("/path/to/file/with space"))
+    .checkFileLinks("/path/to/file/with space")
 
   @Test
-  fun `recognize path with space and numbers`() {
-    `when`(localFileSystem.findFileByPathIfCached(eq("/path/to/file/with"))).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
+  fun `recognize path with space and numbers`() = getFilterResultAndCheckHighlightPositions("""
     | blah blah /path/to/file/with space:3:7 blah blah
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    """.trimIndent())
-      .checkFileLinks("/path/to/file/with space")
-  }
+  """.trimIndent(), listOf("/path/to/file/with space"))
+    .checkFileLinks("/path/to/file/with space")
 
   @Test
-  fun `recognize path with space and numbers parenthesis Windows`() {
-    `when`(localFileSystem.findFileByPathIfCached(eq("""C:\path\to\file\with"""))).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
+  fun `recognize path with space and numbers parenthesis Windows`() = getFilterResultAndCheckHighlightPositions("""
     | blah blah C:\path\to\file\with space.kt: (3, 7): blah blah
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    """.trimIndent())
-      .checkFileLinks("""C:\path\to\file\with space.kt""")
-  }
+  """.trimIndent(), listOf("""C:\path\to\file\with space.kt"""))
+    .checkFileLinks("""C:\path\to\file\with space.kt""")
 
   @Test
   fun `multiple lines and multiple links`() = getFilterResultAndCheckHighlightPositions("""
@@ -208,7 +179,7 @@ class GenericFileFilterTest {
                 ^^^^^^^^^^^^^^           ^^^^^^^^^^^^^^^^
     | blah blah blah /path/to/file3:1:2: error: blah blah C:\path\to\file4
                      ^^^^^^^^^^^^^^^^^^                   ^^^^^^^^^^^^^^^^
-  """.trimIndent())
+  """.trimIndent(), listOf("/path/to/file1", "/path/to/file2", "/path/to/file3", """C:\path\to\file4"""))
     .checkFileLinks(
       "/path/to/file1",
       "/path/to/file2",
@@ -217,66 +188,64 @@ class GenericFileFilterTest {
     )
 
   @Test
-  fun `skip files not cached by local file system`() {
-    `when`(localFileSystem.findFileByPathIfCached("/path/to/uncached/file")).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
-      | /path/to/cached/file and /path/to/uncached/file
-        ^^^^^^^^^^^^^^^^^^^^
-    """.trimIndent())
-      .checkFileLinks(
+  fun `skip files not cached by local file system`() = getFilterResultAndCheckHighlightPositions("""
+    | /path/to/cached/file and /path/to/uncached/file
+      ^^^^^^^^^^^^^^^^^^^^
+  """.trimIndent(), listOf("/path/to/cached/file"))
+    .checkFileLinks(
         "/path/to/cached/file"
       )
-  }
 
   @Test
-  fun `ignore slashes from progress indicators`() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.contains("5,678"))).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
+  fun `ignore slashes from progress indicators`() = getFilterResultAndCheckHighlightPositions("""
       | [1,234 / 5,678] Doing Something Important
-    """.trimIndent())
+  """.trimIndent(), listOf())
       .checkFileLinks()
-  }
 
   @Test
-  fun `real world case 1`() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
-      !listOf(
-        "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp",
-        "/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64"
-      ).any {
-        arg == it || it.startsWith("$arg/")
-      }
-    })).thenReturn(null)
-    getFilterResultAndCheckHighlightPositions("""
-      | FAILURE: Build failed with an exception.
-      |
-      | * What went wrong:
-      | Execution failed for task ':app:externalNativeBuildDebug'.
-      | > Build command failed.
-      |   Error while executing process /usr/local/google/home/tgeng/Android/Sdk/cmake/3.10.2.4988404/bin/ninja with arguments
-      |     {-C /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/.cxx/cmake/debug/armeabi-v7a native-lib}
-      |   ninja: Entering directory `/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/.cxx/cmake/debug/armeabi-v7a'
-      |   [1/2] Building CXX object CMakeFiles/native-lib.dir/native-lib.cpp.o
-      |   FAILED: CMakeFiles/native-lib.dir/native-lib.cpp.o
-      |   /usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++
-      |     --target=armv7-none-linux-androideabi19
-      |     --gcc-toolchain=/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      |     ... -c /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      |   /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp:21:5: error: use of undeclared identifier 'yoo'
-      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      |       yoo;
-      |       ^
-      | 1 error generated.
-      | ninja: build stopped: subcommand failed.
-    """.trimIndent())
+  fun `take longest path when prefix with spaces exists`() = getFilterResultAndCheckHighlightPositions("""
+    | blah blah C:\path\to\file\with space\and no more.kt: (5, 71): blah blah
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    | blah blah C:\path\to\file\with space and more.kt: (3, 7): blah blah
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """.trimIndent(), listOf("""C:\path\to\file\with space\and no more.kt""", """C:\path\to\file\with space and more.kt"""))
       .checkFileLinks(
-        "/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64",
-        "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp",
-        "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp"
+        """C:\path\to\file\with space\and no more.kt""",
+        """C:\path\to\file\with space and more.kt""",
       )
-  }
+
+  @Test
+  fun `real world case 1`() = getFilterResultAndCheckHighlightPositions("""
+    | FAILURE: Build failed with an exception.
+    |
+    | * What went wrong:
+    | Execution failed for task ':app:externalNativeBuildDebug'.
+    | > Build command failed.
+    |   Error while executing process /usr/local/google/home/tgeng/Android/Sdk/cmake/3.10.2.4988404/bin/ninja with arguments
+    |     {-C /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/.cxx/cmake/debug/armeabi-v7a native-lib}
+    |   ninja: Entering directory `/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/.cxx/cmake/debug/armeabi-v7a'
+    |   [1/2] Building CXX object CMakeFiles/native-lib.dir/native-lib.cpp.o
+    |   FAILED: CMakeFiles/native-lib.dir/native-lib.cpp.o
+    |   /usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++
+    |     --target=armv7-none-linux-androideabi19
+    |     --gcc-toolchain=/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     ... -c /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   /usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp:21:5: error: use of undeclared identifier 'yoo'
+    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |       yoo;
+    |       ^
+    | 1 error generated.
+    | ninja: build stopped: subcommand failed.
+  """.trimIndent(), listOf(
+    "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp",
+    "/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64"
+  )).checkFileLinks(
+    "/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64",
+    "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp",
+    "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp"
+  )
 
   @Test
   fun `real world case 2`() {
@@ -291,13 +260,34 @@ class GenericFileFilterTest {
     | CMake Error at /Users/jomof/projects/GunBox/GunBox/Sources/Engine/CMakeLists.txt:156 (include):
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |   include could not find load file:
-    """.trimIndent())
+    """.trimIndent(), listOf(
+      "/Users/jomof/projects/GunBox/GunBox/Sources/Engine/CMakeLists.txt",
+      "/Users/jomof/projects/GunBox/GunBox/ExternalLibraries/__cmake/ExternalLibraries.cmake",
+    ))
       .checkFileLinks(
         "/Users/jomof/projects/GunBox/GunBox/Sources/Engine/CMakeLists.txt",
         "/Users/jomof/projects/GunBox/GunBox/ExternalLibraries/__cmake/ExternalLibraries.cmake",
         "/Users/jomof/projects/GunBox/GunBox/Sources/Engine/CMakeLists.txt"
       )
   }
+
+  @Test
+  fun `real world case for bug 167701951`() =getFilterResultAndCheckHighlightPositions("""
+    | C:\android\Android studio Projects\AppManager\app\src\main\res\values-zh-rCN\strings.xml:427:4 Error: always_light
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    | C:\android\Android studio\not_cached
+    | when executing C:\android\Android studio\bin\studio.exe
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    | In folder C:\android\Android studio
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  """.trimIndent(), listOf(
+    """C:\android\Android studio Projects\AppManager\app\src\main\res\values-zh-rCN\strings.xml""",
+    """C:\android\Android studio\bin\studio.exe"""
+  )).checkFileLinks(
+    """C:\android\Android studio Projects\AppManager\app\src\main\res\values-zh-rCN\strings.xml""",
+    """C:\android\Android studio\bin\studio.exe""",
+    """C:\android\Android studio"""
+  )
 
   @Test
   fun `fuzz test`() {
@@ -317,15 +307,23 @@ class GenericFileFilterTest {
     ).repeated(1..5, " ")
     val paragraphGen = sentenceGen.repeated(50..60, "\n")
 
-    getFilterResultAndCheckHighlightPositions(Random.paragraphGen(), checkHighlights = false)
+    getFilterResultAndCheckHighlightPositions(Random.paragraphGen(), allGeneratedPaths, checkHighlights = false)
       .checkFileLinks(*allGeneratedPaths.toTypedArray())
   }
 
-  private fun getFilterResultAndCheckHighlightPositions(content: String, checkHighlights: Boolean = true): List<Filter.Result> {
+  private fun getFilterResultAndCheckHighlightPositions(content: String,
+                                                        validPaths: Collection<String>,
+                                                        checkHighlights: Boolean = true): List<Filter.Result> {
     var totalLength = 0
     var previousInputLine = ""
     var previousInputStartIndex = 0
     val results = mutableListOf<Filter.Result?>()
+
+    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+      !validPaths.any {
+        arg == it || it.startsWith("$arg/") || it.startsWith("$arg\\")
+      }
+    })).thenReturn(null)
     content.lines().forEach { line ->
       if (!checkHighlights || line.startsWith('|')) {
         val inputLine = line.removePrefix("| ") + "\n"

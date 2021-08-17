@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat

@@ -16,11 +16,7 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.DOT_JAVA
-import com.android.testutils.TestUtils
-import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.analytics.AnalyticsSettingsData
-//import com.intellij.analytics.AndroidStudioAnalytics // modified platform
-//import com.intellij.analytics.NullAndroidStudioAnalytics // modified platform
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection
 import com.intellij.openapi.util.io.FileUtil
@@ -41,17 +37,10 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
   }
 
   override fun setUp() {
-
     // Compute the workspace root before any IDE code starts messing with user.dir:
-
-    // Compute the workspace root before any IDE code starts messing with user.dir:
-    TestUtils.getWorkspaceRoot()
+    getWorkspaceRoot()
     VfsRootAccess.allowRootAccess(testRootDisposable,
                                   FileUtil.toCanonicalPath(AndroidTestBase.getAndroidPluginHome()))
-    //AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics()) // modified platform
-    val analyticsSettings = AnalyticsSettingsData()
-    analyticsSettings.optedIn = false
-    AnalyticsSettings.setInstanceForTest(analyticsSettings)
     myVisibilityInspection = createTool()
     super.setUp()
   }

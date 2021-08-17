@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.perfetto.traceprocessor
 
-import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
-import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import java.io.File
 
 /**
@@ -35,21 +34,33 @@ interface TraceProcessorService {
    *
    * @returns true if the trace was loaded successfully.
    */
-  fun loadTrace(traceId: Long, traceFile: File, tracker: FeatureTracker): Boolean
+  fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean
 
   /**
    * Query the Perfetto trace processor processes and threads information available in a trace.
    */
-  fun getProcessMetadata(traceId: Long, tracker: FeatureTracker): List<ProcessModel>
+  fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel>
 
   /**
    * Query the Perfetto trace processor for cpu data regarding a set of processes.
-   * For example, a main process plus surfaceflinger one.
+   *
+   * @param processIds set of processes to get CPU data for, e.g. a main process plus surfaceflinger one.
+   * @param selectedProcessName name of the selected application process, useful for retrieving Android frame events.
    */
-  fun loadCpuData(traceId: Long, processIds: List<Int>, tracker: FeatureTracker): SystemTraceModelAdapter
+  fun loadCpuData(traceId: Long,
+                  processIds: List<Int>,
+                  selectedProcessName: String,
+                  ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter
 
   /**
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
    */
-  fun loadMemoryData(traceId: Long, abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet, tracker: FeatureTracker)
+  fun loadMemoryData(traceId: Long, abi: String, memorySet: NativeMemoryHeapSet, ideProfilerServices: IdeProfilerServices)
+
+  /**
+   * Query the trace metadata from the metadata table. https://perfetto.dev/docs/analysis/sql-tables#metadata
+   * If the metadataName is blank or has multiple rows with the same name, the value of each row is returned.
+   * If an error occurs, or the metadata is not found an empty list is returned.
+   */
+  fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices) : List<String>
 }

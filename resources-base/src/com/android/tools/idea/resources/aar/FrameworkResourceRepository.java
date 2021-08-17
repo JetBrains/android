@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.PathString;
+import com.android.io.CancellableFileIo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.Base128OutputStream;
@@ -45,7 +46,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -125,6 +125,21 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
                 (System.currentTimeMillis() - start) / 1000. + " sec");
     }
     return repository;
+  }
+
+  /**
+   * Checks if the repository contains resources for the given set of languages.
+   *
+   * @param languages the set of ISO 639 language codes to check
+   * @return true if the repository contains resources for all requested languages
+   */
+  public boolean containsLanguages(@NotNull Set<String> languages) {
+    for (String language : languages) {
+      if (!myLanguageGroups.contains(getLanguageGroup(language))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -546,9 +561,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private static class CacheFileNameGenerator {
-    private Path myLanguageNeutralFile;
-    private String myPrefix;
-    private String mySuffix;
+    private final Path myLanguageNeutralFile;
+    private final String myPrefix;
+    private final String mySuffix;
 
     CacheFileNameGenerator(@NotNull CachingData cachingData) {
       myLanguageNeutralFile = cachingData.getCacheFile();
@@ -592,7 +607,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     public Set<String> getAllCacheFileLanguages() {
       Set<String> result = new TreeSet<>();
-      try (Stream<Path> stream = Files.list(myLanguageNeutralFile.getParent())) {
+      try (Stream<Path> stream = CancellableFileIo.list(myLanguageNeutralFile.getParent())) {
         stream.forEach(file -> {
           String language = getLanguage(file.getFileName().toString());
           if (language != null) {

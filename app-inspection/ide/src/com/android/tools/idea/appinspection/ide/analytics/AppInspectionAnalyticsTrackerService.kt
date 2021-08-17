@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.appinspection.ide.analytics
 
-import com.android.ide.common.util.isMdnsAutoConnectTls
-import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
-import com.android.sdklib.AndroidVersion
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionAnalyticsTracker
-import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
-import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -50,7 +45,7 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
     track(AppInspectionEvent.Type.TOOL_WINDOW_HIDDEN)
   }
 
-  override fun trackProcessSelected(device: Common.Device, numDevices: Int, numProcesses: Int) {
+  override fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int) {
     track(AppInspectionEvent.Type.PROCESS_SELECTED)  { events ->
       events.studioEvent.deviceInfo = device.toDeviceInfo()
       events.inspectionEvent.environmentMetadata = toEnvironmentMetadata(numDevices, numProcesses)
@@ -63,22 +58,6 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
 
   override fun trackInspectionRestarted() {
     track(AppInspectionEvent.Type.INSPECTION_RESTARTED)
-  }
-
-  private fun Common.Device.toDeviceInfo(): DeviceInfo? {
-    return DeviceInfo.newBuilder()
-      .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(this.serial))
-      .setBuildVersionRelease(this.version)
-      .setBuildApiLevelFull(AndroidVersion(this.apiLevel, this.codename).apiString)
-      .setManufacturer(this.manufacturer)
-      .setDeviceType(if (this.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-      .setMdnsConnectionType(when {
-                               isMdnsAutoConnectUnencrypted(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
-                               isMdnsAutoConnectTls(this.serial) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
-                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
-                             })
-      .setModel(this.model)
-      .build()
   }
 
   private fun toEnvironmentMetadata(numDevices: Int, numProcesses: Int): AppInspectionEvent.EnvironmentMetadata {

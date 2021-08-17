@@ -22,9 +22,9 @@ import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -221,11 +221,9 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
       if (!subscribedToRootsChangedEvents) {
         connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
           override fun rootsChanged(event: ModuleRootEvent) {
-            ModuleManager.getInstance(project)
-              .modules.asIterable()
-              .mapNotNull { it -> FacetManager.getInstance(it).getFacetByType(AndroidFacet.ID) }.forEach { facet ->
-                onChanged(facet)
-              }
+            for (facet in ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
+              onChanged(facet)
+            }
           }
         })
         subscribedToRootsChangedEvents = true
@@ -267,10 +265,10 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
       override val manifestFileUrls get() = providers.asSequence().map { it.manifestFileUrls.asSequence() }.flatten()
       override val manifestDirectoryUrls get() = providers.asSequence().map { it.manifestDirectoryUrls.asSequence() }.flatten()
       override val javaDirectoryUrls get() = providers.asSequence().map { it.javaDirectoryUrls.asSequence() }.flatten()
+      override val kotlinDirectoryUrls get() = providers.asSequence().map { it.kotlinDirectoryUrls.asSequence() }.flatten()
       override val resourcesDirectoryUrls get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
       override val aidlDirectoryUrls get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
       override val renderscriptDirectoryUrls get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
-      override val jniDirectoryUrls get() = providers.asSequence().map { it.jniDirectoryUrls.asSequence() }.flatten()
       override val jniLibsDirectoryUrls get() = providers.asSequence().map { it.jniLibsDirectoryUrls.asSequence() }.flatten()
       override val resDirectoryUrls get() = providers.asSequence().map { it.resDirectoryUrls.asSequence() }.flatten()
       override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
@@ -325,7 +323,6 @@ private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
       aidlDirectoryUrls,
       renderscriptDirectoryUrls,
       assetsDirectoryUrls,
-      jniDirectoryUrls,
       jniLibsDirectoryUrls
     )
       .asSequence()
@@ -373,11 +370,11 @@ val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
   get() =
     arrayOf(
       javaDirectories,
+      kotlinDirectories,
       resDirectories,
       aidlDirectories,
       renderscriptDirectories,
       assetsDirectories,
-      jniDirectories,
       jniLibsDirectories
     )
       .asSequence()

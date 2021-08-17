@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
@@ -23,11 +23,9 @@ import com.android.tools.idea.ui.resourcemanager.getPluginsResourcesDirectory
 import com.android.tools.idea.ui.resourcemanager.getStateList
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
-import com.android.tools.idea.util.androidFacet
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.ImageUtil
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -67,9 +65,8 @@ class DrawableRendererTest {
     saveProjectOnDisk()
     val viewer = DrawableAssetRenderer()
     assertTrue { viewer.isFileSupported(virtualFile) }
-    val image = viewer.getImage(virtualFile, projectRule.module.androidFacet!!.module, Dimension(32, 32)).get(2, TimeUnit.SECONDS)
-    assertNotNull(image)
-    ImageDiffUtil.assertImageSimilar(getPNGFile(), ImageUtil.toBufferedImage(image!!), 0.05)
+    val image = checkNotNull(viewer.getImage(virtualFile, projectRule.module, Dimension(32, 32)).get(2, TimeUnit.SECONDS))
+    ImageDiffUtil.assertImageSimilar(getPNGFile().toPath(), ImageUtil.toBufferedImage(image), 0.05)
   }
 
   private fun saveProjectOnDisk() {

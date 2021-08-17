@@ -32,6 +32,7 @@ import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.jetbrains.android.AndroidTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -118,17 +119,17 @@ public class InstantAppSdksTest extends PlatformTestCase {
 
   /** Points the SDK loader at an empty directory. */
   private void installSdkWithoutLib() throws Exception{
-    doReturn(Files.createTempDirectory("empty").toFile()).when(myInstantAppSdks).getOrInstallInstantAppSdk();
+    doReturn(Files.createTempDirectory("empty")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
   }
 
   /** Points the SDK loader at a stub JAR implemeting only the old {@code Sdk} SPI. */
   private void installLegacyFakeLib() {
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_1.3_sdk")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
+    doReturn(Paths.get(AndroidTestCase.getTestDataPath() + "/instantapps/fake_1.3_sdk")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
   }
 
   /** Points the SDK loader at a stub JAR implementing the {@code ExtendedSdk} SPI. */
   private void installExtendedFakeLib() {
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_extended_sdk")).when(myInstantAppSdks)
+    doReturn(Paths.get(AndroidTestCase.getTestDataPath() + "/instantapps/fake_extended_sdk")).when(myInstantAppSdks)
                                                                                             .getOrInstallInstantAppSdk();
   }
 }

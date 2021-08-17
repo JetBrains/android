@@ -38,6 +38,14 @@ fun Editor.moveCaretToFirstOccurrence(text: String) {
   caretModel.moveToOffset(document.text.indexOf(text))
 }
 
+fun Editor.moveCaretToEnd() {
+  caretModel.moveToOffset(document.textLength)
+}
+
+fun Editor.insertText(text: String) {
+  document.insertString(caretModel.offset, text)
+}
+
 /**
  * Deletes the first occurrence of the given [text].
  */

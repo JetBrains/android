@@ -47,8 +47,13 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
@@ -358,7 +363,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "        tools:layout_editor_absoluteX=\"32dp\"\n" +
                       "        tools:layout_editor_absoluteY=\"43dp\" /></RelativeLayout>\n" +
                       "</layout>";
-    assertEquals(expected, xmlFile.getText());
+    assertEquals(expected, arrangeXml(getProject(), xmlFile));
   }
 
   public void testIdFromMixin() {
@@ -446,7 +451,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "            tools123:text=\"ToolText\" />\n" +
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
-    assertThat(xmlFile.getText()).isEqualTo(expected);
+    assertEquals(expected, arrangeXml(getProject(), xmlFile));
   }
 
   public void testNamespaceTransferFromRoot() {
@@ -631,5 +636,17 @@ public final class NlComponentTest extends LayoutTestCase {
     textView.getParent().removeChild(textView);
     // Now textView is a root
     assertEquals(textView, textView.getRoot());
+  }
+
+  /**
+   * Rearranges the given XML file with the XML formatting rules and returns the resulting contents.
+   */
+  @NotNull
+  private static String arrangeXml(@NotNull Project project, @NotNull PsiFile psiFile) {
+    WriteCommandAction.runWriteCommandAction(project, () -> {
+      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      ApplicationManager.getApplication().saveAll();
+    });
+    return FileDocumentManager.getInstance().getDocument(psiFile.getVirtualFile()).getText();
   }
 }

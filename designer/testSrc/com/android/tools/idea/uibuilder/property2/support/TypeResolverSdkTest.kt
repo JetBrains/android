@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.support
+package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
@@ -32,10 +32,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.AndroidAttributeFact
-import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.testutils.AndroidAttributeFact
+import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
@@ -222,8 +222,8 @@ class TypeResolverSdkTest {
 
   private data class Mismatch(val tag: String,
                               val attribute: String,
-                              val found: NelePropertyType,
-                              val expected: NelePropertyType)
+                              val found: NlPropertyType,
+                              val expected: NlPropertyType)
 
   private class Report(private val name: String) {
     private val found = mutableMapOf<String, Int>()

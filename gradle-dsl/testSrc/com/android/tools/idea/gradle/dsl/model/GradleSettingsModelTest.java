@@ -18,14 +18,19 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.dsl.GradleUtil;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -332,6 +337,44 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.ADD_INCLUDE_AT_THE_END_EXPECTED);
   }
 
+  @Test
+  public void testParseDependencyResolutionManagement() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
+
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertSize(2, repositories);
+    assertEquals("Google", repositories.get(0).name().forceString());
+    assertEquals("BintrayJCenter2", repositories.get(1).name().forceString());
+  }
+
+  @Test
+  public void testAddAndApplyDependencyResolutionManagement() throws IOException {
+    writeToSettingsFile(TestFile.ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
+
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("7.0.0"));
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
+  }
+
+  @Test
+  public void testEditAndApplyDependencyResolutionManagement() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
+
+    repositoriesModel.removeRepository(repositoriesModel.repositories().get(0));
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("7.0.0"));
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
+  }
+
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
     runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
     assertFalse(settingsModel.isModified());
@@ -368,6 +411,11 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     SET_PROJECT_DIR_NON_RELATIVE_WINDOWS_EXPECTED("setProjectDirNonRelativeWindowsExpected"),
     ADD_INCLUDE_AT_THE_END("addIncludeAtTheEnd"),
     ADD_INCLUDE_AT_THE_END_EXPECTED("addIncludeAtTheEndExpected"),
+    PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT("parseDependencyResolutionManagement"),
+    ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("addAndApplyDependencyResolutionManagement"),
+    ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("addAndApplyDependencyResolutionManagementExpected"),
+    EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("editAndApplyDependencyResolutionManagement"),
+    EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("editAndApplyDependencyResolutionManagementExpected"),
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {

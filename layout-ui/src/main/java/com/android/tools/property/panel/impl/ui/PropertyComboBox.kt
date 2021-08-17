@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -27,7 +26,6 @@ import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.util.text.nullize
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -50,7 +48,8 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
   private val comboBox = WrappedComboBox(model, asTableCellEditor)
 
   init {
-    background = secondaryPanelBackground
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     comboBox.actionOnKeyNavigation = false
     add(comboBox, BorderLayout.CENTER)
   }
@@ -78,7 +77,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     registerActionKey({ tab { enterInPopup() } }, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
-    background = secondaryPanelBackground
+    background = UIUtil.TRANSPARENT_COLOR
+    isOpaque = false
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
@@ -91,7 +91,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerActionKey({ tab { enter() } }, KeyStrokes.TAB, "tab")
     textField.registerActionKey({ backtab { enter() } }, KeyStrokes.BACKTAB, "backtab")
     textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
-    textField.background = secondaryPanelBackground
+    textField.background = UIUtil.TRANSPARENT_COLOR
+    textField.isOpaque = false
     textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
 
     val focusListener = TextEditorFocusListener(textField, this, model)
@@ -123,6 +124,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
             // Do this by calling JPopupMenu.show(Component,x,y) which could be overridden
             // in a LAF implementation of PopupMenuUI.
             val popupMenu = popup as? JPopupMenu ?: return@updatePopup
+            if (!isPopupVisible) {
+              return@updatePopup
+            }
             val location = popupMenu.locationOnScreen
             val comboLocation = this@WrappedComboBox.locationOnScreen
             location.translate(-comboLocation.x, -comboLocation.y)
@@ -169,7 +173,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   private fun tab(action: () -> Unit) {
     action()
-    textField.transferFocus()
+    if (isEditable) textField.transferFocus() else transferFocus()
   }
 
   private fun backtab(action: () -> Unit) {
@@ -185,7 +189,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   private fun setFromModel() {
     isVisible = model.visible
     foreground = model.displayedForeground(UIUtil.getLabelForeground())
-    background = model.displayedBackground(secondaryPanelBackground)
+    background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
+    isOpaque = model.isUsedInRendererWithSelection
     if (model.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
@@ -195,22 +200,12 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     if (!model.editable) {
       inSetup = true
       try {
-        selectedIndex = findIndexWithValue(model.value)
+        selectedIndex = model.getIndexOfCurrentValue()
       }
       finally {
         inSetup = false
       }
     }
-  }
-
-  private fun findIndexWithValue(value: String): Int {
-    val nullable = value.nullize()
-    for (index in 0 until model.size) {
-      if (model.getElementAt(index)?.value == nullable) {
-        return index
-      }
-    }
-    return -1
   }
 
   override fun setForeground(color: Color?) {

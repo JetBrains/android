@@ -15,6 +15,6 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
-    <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" order="last"/>
   </extensions>
 </idea-plugin>

@@ -17,12 +17,10 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
@@ -32,6 +30,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import java.text.DecimalFormat
 import javax.swing.Icon
+import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 /**
  * A [PropertyItem] in the inspector with a snapshot of the value.
@@ -53,8 +52,8 @@ open class InspectorPropertyItem(
   /** The value of the attribute when the snapshot was taken */
   val initialValue: String?,
 
-  /** Which group this attribute belongs to */
-  val group: PropertySection,
+  /** Which section this attribute belongs to in the attributes tool window */
+  val section: PropertySection,
 
   /** A reference to the resource where the value was set e.g. "@layout/my_form.xml" */
   val source: ResourceReference?,
@@ -77,6 +76,10 @@ open class InspectorPropertyItem(
       field = value
       dimensionValue = computeDimensionValue(value)
     }
+
+  /** Return true if this property has details that will require a ResolutionEditor */
+  open val needsResolutionEditor: Boolean
+    get() = false
 
   /**
    * The integer value of a dimension or -1 for other types.
@@ -180,8 +183,8 @@ open class InspectorPropertyItem(
     if (sp.isNaN()) {
       return initialValue
     }
-    if (lookup.resourceLookup.dpi <= 0) {
-      // If we are unable to get the dpi from the device, just show in sp
+    if (lookup.resourceLookup.dpi <= 0 || lookup.resourceLookup.fontScale <= 0.0f) {
+      // If we are unable to get the dpi or scale factor from the device, just show in sp
       return "${formatFloat(sp)}sp"
     }
     return when (PropertiesSettings.dimensionUnits) {

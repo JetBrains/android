@@ -28,11 +28,11 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
-import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
-import com.android.ide.common.gradle.model.IdeSourceProvider;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;

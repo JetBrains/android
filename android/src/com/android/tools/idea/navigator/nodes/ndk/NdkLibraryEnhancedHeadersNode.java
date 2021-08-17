@@ -20,8 +20,8 @@ import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHom
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
@@ -30,6 +30,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -51,6 +52,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Id
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
   @NotNull private final NativeIncludes myNativeIncludes;
+  @Nullable private final PsiFileSystemItemFilter myFilter;
 
   @Nullable private VirtualFile myLibraryFolder;
 
@@ -59,18 +61,21 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Id
                                        @NotNull String nativeLibraryType,
                                        @NotNull Collection<IdeNativeArtifact> artifacts,
                                        @NotNull NativeIncludes nativeIncludes,
-                                       @NotNull ViewSettings settings) {
+                                       @NotNull ViewSettings settings,
+                                       @Nullable PsiFileSystemItemFilter filter) {
     super(project, artifacts, settings);
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
     myNativeIncludes = nativeIncludes;
+    myFilter = filter;
   }
 
   @NotNull
   private static Collection<AbstractTreeNode<?>> getSourceFolderNodes(
     @NotNull Project project,
     @NotNull Collection<IdeNativeArtifact> artifacts,
-    @NotNull ViewSettings settings) {
+    @NotNull ViewSettings settings,
+    @Nullable PsiFileSystemItemFilter filter) {
     TreeMap<String, RootFolder> rootFolders = new TreeMap<>();
 
     for (IdeNativeArtifact artifact : artifacts) {
@@ -91,7 +96,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Id
     for (RootFolder rootFolder : rootFolders.values()) {
       PsiDirectory directory = psiManager.findDirectory(rootFolder.rootFolder);
       if (directory != null) {
-        children.add(new NdkSourceFolderNode(project, directory, settings));
+        children.add(new NdkSourceFolderNode(project, directory, settings, filter));
       }
     }
     return children;
@@ -237,7 +242,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Id
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     result.add(includesNode);
     Collection<AbstractTreeNode<?>> sourceFolderNodes =
-      getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings());
+      getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings(), myFilter);
     if (sourceFolderNodes.size() == 1) {
       AbstractTreeNode node = Iterables.getOnlyElement(sourceFolderNodes);
       assert node instanceof NdkSourceFolderNode;

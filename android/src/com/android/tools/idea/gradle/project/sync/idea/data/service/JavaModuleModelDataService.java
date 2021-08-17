@@ -64,12 +64,12 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   protected void importData(@NotNull Collection<? extends DataNode<JavaModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
-                            @NotNull Map<String, JavaModuleModel> modelsByModuleName) {
+                            @NotNull Map<String, DataNode<JavaModuleModel>> modelsByModuleName) {
     for (Module module : modelsProvider.getModules()) {
-      JavaModuleModel javaModuleModel = modelsByModuleName.get(module.getName());
-      if (javaModuleModel != null) {
+      DataNode<JavaModuleModel> javaModuleModelNode = modelsByModuleName.get(module.getName());
+      if (javaModuleModelNode != null) {
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-        myModuleSetup.setUpModule(context, javaModuleModel);
+        myModuleSetup.setUpModule(context, javaModuleModelNode.getData());
       }
     }
   }

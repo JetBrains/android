@@ -60,7 +60,7 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     val visible = false
     val scale = 0.1
     val showDecoration = false
-    val configurationSet = ConfigurationSet.LARGE_FONT
+    val configurationSet = ConfigurationSet.LargeFont
     val customConfigurations = emptyList<CustomConfigurationAttribute>()
 
     settings.globalState.isVisible = visible

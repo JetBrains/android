@@ -15,31 +15,33 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
-import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.Collections;
-
 import static com.intellij.icons.AllIcons.Nodes.Folder;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
+import com.intellij.ide.projectView.PresentationData;
+import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
+import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import java.util.Collection;
+import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NdkSourceFolderNode extends PsiDirectoryNode {
   private boolean myShowFolderPath;
 
   public NdkSourceFolderNode(@NotNull Project project,
                              @NotNull PsiDirectory folder,
-                             @NotNull ViewSettings settings) {
-    super(project, folder, settings);
+                             @NotNull ViewSettings settings,
+                             @Nullable PsiFileSystemItemFilter filter) {
+    super(project, folder, settings, filter);
   }
 
   @Override
@@ -72,7 +74,8 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
       return Collections.emptyList();
     }
 
-    return ProjectViewDirectoryHelper.getInstance(myProject).getDirectoryChildren(folder, getSettings(), true /* with subdirectories */);
+    return ProjectViewDirectoryHelper.getInstance(myProject)
+      .getDirectoryChildren(folder, getSettings(), true /* with subdirectories */, getFilter());
   }
 
   void setShowFolderPath(boolean showFolderPath) {

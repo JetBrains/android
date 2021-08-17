@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 
 /**
  * This serves as the entry point to all public AppInspection API services, specifically:
@@ -40,12 +39,11 @@ internal class DefaultAppInspectionApiServices internal constructor(
   }
 
   private suspend fun doAttachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
-    val processDescriptor = process.toTransportImpl()
-    val jarCopierCreator = createJarCopier(processDescriptor.stream.device) ?: throw RuntimeException("Cannot find ADB device.")
-    val streamChannel = discovery.getStreamChannel(processDescriptor.stream.streamId)
+    val jarCopierCreator = createJarCopier(process.device) ?: throw RuntimeException("Cannot find ADB device.")
+    val streamChannel = discovery.getStreamChannel(process.streamId)
                         ?: throw AppInspectionProcessNoLongerExistsException(
-                          "Cannot attach to process because the device does not exist. Process: ${process}")
-    return targetManager.attachToProcess(processDescriptor, jarCopierCreator, streamChannel, projectName)
+                          "Cannot attach to process because the device does not exist. Process: $process")
+    return targetManager.attachToProcess(process, jarCopierCreator, streamChannel, projectName)
   }
 
   override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {

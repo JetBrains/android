@@ -369,7 +369,7 @@ public class DrawConnection implements DrawCommand {
 
     int manhattanDistance = Math.abs(startx - endx) + Math.abs(starty - endy);
     int scale_source = Math.min(90, manhattanDistance);
-    int scale_dest = (myDestType == DEST_PARENT) ? -scale_source : scale_source;
+    int scale_dest = scale_source;
     boolean flip_arrow = false;
     if (myDestType != DEST_NORMAL) {
       switch (destDirection) {
@@ -383,44 +383,60 @@ public class DrawConnection implements DrawCommand {
           break;
       }
     }
-    else {
-      if (sourceDirection == destDirection) {
-        switch (destDirection) {
-          case DIR_BOTTOM:
-            if (endy - 1 > starty) {
-              scale_dest *= -1;
+    if (sourceDirection == destDirection) {
+      switch (myDestType) {
+        case DEST_PARENT:
+          scale_dest *= -1;
+          flip_arrow = true;
+          switch (destDirection) {
+            case DIR_BOTTOM:
+            case DIR_TOP:
               dy *= -1;
-              flip_arrow = true;
-            }
-            break;
-          case DIR_TOP:
-            if (endy < starty) {
-              scale_dest *= -1;
-              dy *= -1;
-              flip_arrow = true;
-            }
-            break;
-          case DIR_LEFT:
-            if (endx < startx) {
-              scale_dest *= -1;
+              break;
+            case DIR_LEFT:
+            case DIR_RIGHT:
               dx *= -1;
-              flip_arrow = true;
-            }
-            break;
-          case DIR_RIGHT:
-            if (endx - 1 > startx) {
-              scale_dest *= -1;
-              dx *= -1;
-              flip_arrow = true;
-            }
-            break;
-        }
+              break;
+          }
+          break;
+        case DEST_NORMAL:
+          switch (destDirection) {
+            case DIR_BOTTOM:
+              if (endy - 1 > starty) {
+                scale_dest *= -1;
+                dy *= -1;
+                flip_arrow = true;
+              }
+              break;
+            case DIR_TOP:
+              if (endy < starty) {
+                scale_dest *= -1;
+                dy *= -1;
+                flip_arrow = true;
+              }
+              break;
+            case DIR_LEFT:
+              if (endx < startx) {
+                scale_dest *= -1;
+                dx *= -1;
+                flip_arrow = true;
+              }
+              break;
+            case DIR_RIGHT:
+              if (endx - 1 > startx) {
+                scale_dest *= -1;
+                dx *= -1;
+                flip_arrow = true;
+              }
+              break;
+          }
+          break;
       }
     }
 
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
-    int dir = ((myDestType == DEST_PARENT) ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
+    int dir = flip_arrow ? ourOppositeDirection[destDirection] : destDirection;
     ourPath.reset();
     ourPath.moveTo(startx, starty);
     Stroke defaultStroke;
@@ -827,66 +843,41 @@ public class DrawConnection implements DrawCommand {
             }
           }
         }
-        if ((startx - endx == 0 || starty - endy == 0) && sourceDirection != destDirection) {
+        g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
+        if (startx - endx == 0 && (sourceDirection != destDirection || dirDeltaX[sourceDirection] == 0)) {
+          // Case for straight vertical lines or adjacent widgets connecting opposite horizontal anchors
           scale_source = 0;
           scale_dest = 0;
         }
-        g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
+        else if (starty - endy == 0 && (sourceDirection != destDirection || dirDeltaY[sourceDirection] == 0)) {
+          // Case for straight horizontal lines or adjacent widgets connecting opposite vertical anchors
+          scale_source = 0;
+          scale_dest = 0;
+        }
         if (sourceDirection == destDirection && margin == 0) {
+          // For adjacent widgets connecting the same anchor
           scale_source /= 3;
           scale_dest /= 2;
-          float x1 = startx, y1 = starty, x2, y2, x3, y3, x4, y4;
-          if (hover) {
-            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-            Stroke tmpStroke = g.getStroke();
-            g.setStroke(myHoverStroke);
-            GeneralPath hoverPath = new GeneralPath(ourPath);
-            hoverPath
-              .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                       x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
-                       x4 = endx + dx, y4 = endy + dy);
-            g.draw(hoverPath);
-            g.setStroke(tmpStroke);
-          }
-          g.setColor(constraintColor);
-          ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                          x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
-                          x4 = endx + dx, y4 = endy + dy);
-          if (picker != null && secondarySelector != null) {
-            picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
-          }
         }
-        else {
-          int xgap = startx - endx;
-          int ygap = starty - endy;
-          if ((startx - endx) == 0 && dirDeltaX[sourceDirection] == 0) {
-            scale_source = 0;
-            scale_dest = 0;
-          }
-          else if ((starty - endy) == 0 && dirDeltaY[sourceDirection] == 0) {
-            scale_dest = 0;
-            scale_source = 0;
-          }
-          float x1 = startx, y1 = starty, x2, y2, x3, y3, x4, y4;
-          if (hover) {
-            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-            Stroke tmpStroke = g.getStroke();
-            g.setStroke(myHoverStroke);
-            GeneralPath tmpPath = new GeneralPath(ourPath);
-            tmpPath
-              .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                       x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
-                       x4 = endx + dx, y4 = endy + dy);
-            g.draw(tmpPath);
-            g.setStroke(tmpStroke);
-          }
-          g.setColor(constraintColor);
-          ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                          x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
-                          x4 = endx + dx, y4 = endy + dy);
-          if (picker != null && secondarySelector != null) {
-            picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
-          }
+        float x1 = startx, y1 = starty, x2, y2, x3, y3, x4, y4;
+        if (hover) {
+          g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
+          Stroke tmpStroke = g.getStroke();
+          g.setStroke(myHoverStroke);
+          GeneralPath hoverPath = new GeneralPath(ourPath);
+          hoverPath
+            .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                     x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
+                     x4 = endx + dx, y4 = endy + dy);
+          g.draw(hoverPath);
+          g.setStroke(tmpStroke);
+        }
+        g.setColor(constraintColor);
+        ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
+                        x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
+                        x4 = endx + dx, y4 = endy + dy);
+        if (picker != null && secondarySelector != null) {
+          picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
         }
         g.setStroke(getStroke(StrokeType.BACKGROUND, false, modeTo));
         g.setColor(color.getBackground());

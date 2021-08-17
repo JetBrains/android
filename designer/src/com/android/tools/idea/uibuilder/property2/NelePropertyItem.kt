@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
@@ -47,12 +47,12 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
-import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
-import com.android.tools.idea.uibuilder.property2.support.HelpActions
-import com.android.tools.idea.uibuilder.property2.support.IdEnumSupport
-import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
-import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
+import com.android.tools.idea.uibuilder.property.support.ColorSelectionAction
+import com.android.tools.idea.uibuilder.property.support.EmptyBrowseActionIconButton
+import com.android.tools.idea.uibuilder.property.support.HelpActions
+import com.android.tools.idea.uibuilder.property.support.IdEnumSupport
+import com.android.tools.idea.uibuilder.property.support.OpenResourceManagerAction
+import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
@@ -93,14 +93,14 @@ import javax.swing.Icon
  * that this property was defined on. If it is not present the
  * origin of the property is unknown.
  */
-open class NelePropertyItem(
+open class NlPropertyItem(
   override val namespace: String,
   override val name: String,
-  open val type: NelePropertyType,
+  open val type: NlPropertyType,
   open val definition: AttributeDefinition?,
   open val componentName: String,
   open val libraryName: String,
-  val model: NelePropertiesModel,
+  val model: NlPropertiesModel,
   open val components: List<NlComponent>,
   val optionalValue1: Any? = null,
   val optionalValue2: Any? = null
@@ -156,7 +156,7 @@ open class NelePropertyItem(
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
-  open val delegate: NelePropertyItem?
+  open val delegate: NlPropertyItem?
     get() = this
 
   // TODO: Change the namespace property above to be of type ResourceReference
@@ -194,7 +194,7 @@ open class NelePropertyItem(
   override val helpSupport = object : HelpSupport {
     override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
-    override fun browse() { model.browseToValue(this@NelePropertyItem) }
+    override fun browse() { model.browseToValue(this@NlPropertyItem) }
   }
 
   override val editingSupport = object : EditingSupport {
@@ -206,13 +206,13 @@ open class NelePropertyItem(
     override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
   }
 
-  val designProperty: NelePropertyItem
+  val designProperty: NlPropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
+      NlPropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
 
   override fun equals(other: Any?) =
     when (other) {
-      is NelePropertyItem -> namespace == other.namespace && name == other.name
+      is NlPropertyItem -> namespace == other.namespace && name == other.name
       else -> false
     }
 
@@ -224,7 +224,7 @@ open class NelePropertyItem(
 
   fun resolveValueAsReference(value: String?): ResourceReference? {
     if (value == null) return null
-    return ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
+    return ResourceUrl.parse(value)?.resolve(computeDefaultNamespace(), namespaceResolver)
   }
 
   fun resolveValueAsColor(value: String?): Color? {
@@ -274,7 +274,7 @@ open class NelePropertyItem(
     // The value of the remaining resource types are file names or ids.
     // We don't want to show the file names and the ids don't have a value.
     // Instead show the url of this resolved resource.
-    return resValue.asReference().getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
+    return resValue.asReference().getRelativeResourceUrl(computeDefaultNamespace(), namespaceResolver).toString()
   }
 
   val resolver: ResourceResolver?
@@ -303,8 +303,8 @@ open class NelePropertyItem(
   private val nlModel: NlModel?
     get() = firstComponent?.model
 
-  private val defaultNamespace: ResourceNamespace
-    get() = ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
+  private fun computeDefaultNamespace(): ResourceNamespace =
+    ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -340,7 +340,7 @@ open class NelePropertyItem(
       tags.sort()
       return tags
     }
-    if (type == NelePropertyType.ID) {
+    if (type == NlPropertyType.ID) {
       return IdEnumSupport(this).values.mapNotNull { it.value }
     }
     val values = mutableListOf<String>()
@@ -352,6 +352,7 @@ open class NelePropertyItem(
     val localRepository = repositoryManager.appResources
     val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
+    val defaultNamespace = computeDefaultNamespace()
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
       // Resources may contain multiple entries for the same name
@@ -395,7 +396,7 @@ open class NelePropertyItem(
       // Sort and add to the result list:
       values.addAll(valueSet.sorted())
     }
-    if (type == NelePropertyType.FONT) {
+    if (type == NlPropertyType.FONT) {
       values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
     }
     return values
@@ -461,14 +462,14 @@ open class NelePropertyItem(
     }
   }
 
-  override val browseButton = createBrowseButton()
+  override val browseButton: ActionIconButton? = createBrowseButton()
 
-  override val colorButton = createColorButton()
+  override val colorButton: ActionIconButton? = createColorButton()
 
   // region Implementation of browseButton
 
-  private fun createBrowseButton(): ActionIconButton? {
-    if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
+  private fun createBrowseButton(): ActionIconButton {
+    if (name == ATTR_ID || type == NlPropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
     return BrowseActionIconButton()
@@ -482,7 +483,7 @@ open class NelePropertyItem(
       get() = if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND else StudioIcons.Common.PROPERTY_UNBOUND
 
 
-    override val action: AnAction?
+    override val action: AnAction
       get() = OpenResourceManagerAction
   }
 
@@ -517,14 +518,14 @@ open class NelePropertyItem(
         parsed?.type == ResourceType.COLOR -> true
         parsed?.type == ResourceType.DRAWABLE -> false
         name == ATTR_BACKGROUND -> true
-        type == NelePropertyType.DRAWABLE -> false
+        type == NlPropertyType.DRAWABLE -> false
         type.resourceTypes.contains(ResourceType.COLOR) -> true
         type.resourceTypes.contains(ResourceType.DRAWABLE) -> false
         else -> true
       }
     }
 
-    override val action: AnAction?
+    override val action: AnAction
       get() {
         val value = rawValue
         return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction

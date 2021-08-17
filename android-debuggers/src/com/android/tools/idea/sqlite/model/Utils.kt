@@ -70,3 +70,5 @@ fun createSqliteStatement(
 }
 
 fun DatabaseInspectorModel.getAllDatabaseIds(): List<SqliteDatabaseId> = getOpenDatabaseIds() + getCloseDatabaseIds()
+
+data class DatabaseIdNotFoundException(override val message: String?) : RuntimeException(message)

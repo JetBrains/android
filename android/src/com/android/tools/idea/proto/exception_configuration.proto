@@ -1,0 +1,60 @@
+syntax = "proto2";
+
+import "src/com/android/tools/idea/proto/date.proto";
+
+option java_package = "com.android.tools.idea";
+option java_multiple_files = true;
+
+// Represents a filter condition for matching exceptions
+message ExceptionFilterCondition {
+  repeated string frame_patterns =
+      1;  // Match exceptions with stack frames
+          // containing all the specified constant strings
+  optional string signature =
+      2;  // Match exceptions with the specified signature
+  optional string exception_type =
+      3;  // Match exceptions with the specified exception type
+}
+
+// Enum indicating severity level of an exception in the error log
+enum ExceptionSeverity {
+  UNKNOWN_EXCEPTION_SEVERITY = 0;
+  TRACE = 1;
+  DEBUG = 2;
+  INFO = 3;
+  WARNING = 4;
+  ERROR = 5;
+}
+
+// Represents a single filter condition for a message from the idea log
+message MessageFilterCondition {
+  optional ExceptionSeverity severity = 1;  // min level of severity to collect
+  optional string logger_category =
+      2;  // filter condition for which messages to collect
+}
+
+// Indicates which entries from the idea log should be gathered
+message LogFilter {
+  optional int32 max_message_count =
+      1;  // maximum number of messages to collect
+  repeated MessageFilterCondition message_filter =
+      2;  // filter condition for which messages to collect
+}
+
+// Indicates what action should be taken for a given exception
+message ExceptionAction {
+  optional bool include_exception_message = 1;  // include the exception message
+  optional bool include_full_stack =
+      2;  // include the full stack trace of the exception
+  optional LogFilter log_filter =
+      3;  // specifies which idea log entries should be included
+}
+
+// Configuration for actions to take when encountering an exception that matches
+// the specified filter conditions
+message ExceptionConfiguration {
+  optional Date expiration_date = 1;  // expiry date for this configuration
+  optional ExceptionFilterCondition filter_condition =
+      2;  // matching criteria for this configuration
+  optional ExceptionAction action = 3;  // action to take
+}

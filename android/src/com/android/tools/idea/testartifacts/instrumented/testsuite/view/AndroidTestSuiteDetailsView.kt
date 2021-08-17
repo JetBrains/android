@@ -227,6 +227,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       contentView.setLogcat(testResults.getLogcat(it))
       contentView.setErrorStackTrace(testResults.getErrorStackTrace(it))
       contentView.setBenchmarkText(testResults.getBenchmark(it))
+      contentView.setRetentionInfo(testResults.getRetentionInfo(it))
       contentView.setRetentionSnapshot(testResults.getRetentionSnapshot(it))
     }
   }

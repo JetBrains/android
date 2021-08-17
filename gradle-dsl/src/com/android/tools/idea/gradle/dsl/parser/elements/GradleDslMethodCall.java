@@ -46,7 +46,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
    * Create a new method call.
    *
    * @param parent     the parent element.
-   * @param name       element name, this should be null if the method call is on its own, Ex: "jcenter()"
+   * @param name       element name, this should be empty if the method call is on its own, Ex: "jcenter()"
    * @param methodName the method name of this method call,  Ex: to create "compile project(':xyz')",
    *                   use "project" as statement name and "compile" as element name.
    */

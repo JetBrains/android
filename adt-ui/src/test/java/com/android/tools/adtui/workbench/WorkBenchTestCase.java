@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.adtui.workbench;
 
-import com.android.tools.adtui.mockito.MockitoThreadLocalsCleaner;
+import com.android.testutils.MockitoThreadLocalsCleaner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;

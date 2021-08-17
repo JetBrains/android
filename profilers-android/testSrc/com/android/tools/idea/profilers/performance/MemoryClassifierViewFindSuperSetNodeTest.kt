@@ -33,7 +33,7 @@ import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryClassifierView
 import com.android.tools.profilers.memory.MemoryObjectTreeNode
-import com.android.tools.profilers.memory.MemoryProfilerStage
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
@@ -58,7 +58,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   private val ideServices = FakeIdeProfilerServices()
   private val timer = FakeTimer()
   private lateinit var profilers: StudioProfilers
-  private lateinit var stage: MemoryProfilerStage
+  private lateinit var stage: MainMemoryProfilerStage
   private val capture = FakeCaptureObject.Builder().build()
   private lateinit var view: MemoryClassifierView
 
@@ -74,17 +74,22 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   @Before
   fun init() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
-    stage = MemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply { setReturnImmediateFuture(true) })
+    stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply {
+      setReturnImmediateFuture(true)
+    })
   }
 
   @Test
-  fun `find node in flat view`() = benchmark("Flat", ClassGrouping.ARRANGE_BY_CLASS, makeInstances(4, 10, 10))
+  fun `find node in flat view`() = benchmark("Flat", ClassGrouping.ARRANGE_BY_CLASS, makeInstances(4, 10, 1, {100}))
 
   @Test
   fun `find node in hierarchical view`() = benchmark("Hier", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(4, 10, 10))
 
   @Test
   fun `find node in deep hierarchical view`() = benchmark("Deep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(19, 2, 1))
+
+  @Test
+  fun `find many instances in deep stack`() = benchmark("XDeep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(200, 1, 1) { (200-it) * 10 });
 
   private fun benchmark(tag: String, grouping: ClassGrouping, instances: List<InstanceObject>) {
     capture.addInstanceObjects(instances.toSet())
@@ -112,13 +117,15 @@ class MemoryClassifierViewFindSuperSetNodeTest {
     timingBenchmark.log("Find-SuperSet-Node-$tag", elapsedMillis)
   }
 
-  private fun makeInstances(depth: Int, packagesPerNode: Int, classesPerNode: Int): List<InstanceObject> {
+  private fun makeInstances(depth: Int, packagesPerNode: Int, classesPerNode: Int, instancesPerClass: (Int) -> Int = {1}): List<InstanceObject> {
     val nodes = mutableListOf<InstanceObject>()
     var id = 0L;
     fun makeInstancesAt(prefix: String, depth: Int) {
       (0 until classesPerNode).forEach {
         val className = "$prefix.c$it"
-        nodes.add(FakeInstanceObject.Builder(capture, id++, className).setName("instance_$className").build())
+        (0 until instancesPerClass(depth)).forEach {
+          nodes.add(FakeInstanceObject.Builder(capture, id++, className).setName("instance_${className}_$it").build())
+        }
       }
       if (depth > 0) {
         (0 until packagesPerNode).forEach {

@@ -54,14 +54,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
     fileDatabaseManager = FakeFileDatabaseManager()
     offlineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager)
 
-    processDescriptor = object : ProcessDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "model"
-      override val serial = "serial"
-      override val processName = "processName"
-      override val isEmulator = false
-      override val isRunning = false
-    }
+    processDescriptor = StubProcessDescriptor()
   }
 
   fun testDownloadFiles() {

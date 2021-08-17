@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
@@ -34,6 +36,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,16 +56,16 @@ public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<File, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static Map<Path, DeviceManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private DeviceManager ourDeviceManager;
-  @Nullable private File mySdkPath;
+  @Nullable private Path mySdkPath;
 
-  public DeviceManagerConnection(@Nullable File sdkPath) {
+  public DeviceManagerConnection(@Nullable Path sdkPath) {
     mySdkPath = sdkPath;
   }
 
   @NotNull
-  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull File sdkPath) {
+  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull Path sdkPath) {
     if (!ourCache.containsKey(sdkPath)) {
       ourCache.put(sdkPath, new DeviceManagerConnection(sdkPath));
     }
@@ -71,7 +74,8 @@ public class DeviceManagerConnection {
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    File sdkPath = AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation();
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    Path sdkPath = handler.getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
     }
@@ -90,7 +94,7 @@ public class DeviceManagerConnection {
         IJ_LOG.error("No installed SDK found!");
         return false;
       }
-      ourDeviceManager = DeviceManager.createInstance(mySdkPath, SDK_LOG);
+      ourDeviceManager = DeviceManager.createInstance(AndroidLocationsSingleton.INSTANCE, mySdkPath, SDK_LOG);
     }
     return true;
   }

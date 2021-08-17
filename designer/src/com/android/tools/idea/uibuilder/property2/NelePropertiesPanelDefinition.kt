@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2
+package com.android.tools.idea.uibuilder.property
 
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
@@ -29,7 +29,7 @@ private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)
 /**
  * Tool Window definition for the Properties Panel
  */
-class NelePropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
+class NlPropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
   ToolWindowDefinition<DesignSurface>("Attributes", StudioIcons.Shell.ToolWindows.ATTRIBUTES, "PROPERTIES", side, split, autoHide,
                                       DEFAULT_PROPERTY_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING or ALLOW_SPLIT_MODE,
-                                      { NelePropertiesPanelToolContent(facet, it) })
+                                      { NlPropertiesPanelToolContent(facet, it) })

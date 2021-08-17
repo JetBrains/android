@@ -17,10 +17,8 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -31,22 +29,12 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
-import org.jetbrains.android.dom.resources.Attr;
-import org.jetbrains.android.dom.resources.DeclareStyleable;
-import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -114,159 +102,6 @@ public class LocalResourceManager extends ResourceManager {
     synchronized (myAttrDefsLock) {
       myAttrDefs = null;
     }
-  }
-
-  @NotNull
-  public List<Attr> findAttrs(@NotNull ResourceNamespace namespace, @NotNull String name) {
-    List<Attr> list = new ArrayList<>();
-    List<Resources> rootElements = loadPsiForFilesContainingResource(namespace, ResourceType.ATTR, name);
-    for (Resources root : rootElements) {
-      for (Attr attr : root.getAttrs()) {
-        ResourceReference resourceReference = attr.getName().getValue();
-        if (resourceReference!= null && name.equals(resourceReference.getName())) {
-          list.add(attr);
-        }
-      }
-      for (DeclareStyleable styleable : root.getDeclareStyleables()) {
-        for (Attr attr : styleable.getAttrs()) {
-          ResourceReference resourceReference = attr.getName().getValue();
-          if (resourceReference!= null && name.equals(resourceReference.getName())) {
-            list.add(attr);
-          }
-        }
-      }
-    }
-    return list;
-  }
-
-  public List<DeclareStyleable> findStyleables(@NotNull ResourceNamespace namespace, @NotNull String name) {
-    List<DeclareStyleable> list = new ArrayList<>();
-    List<Resources> rootElements = loadPsiForFilesContainingResource(namespace, ResourceType.STYLEABLE, name);
-    for (Resources root : rootElements) {
-      for (DeclareStyleable styleable : root.getDeclareStyleables()) {
-        if (name.equals(styleable.getName().getValue())) {
-          list.add(styleable);
-        }
-      }
-    }
-
-    return list;
-  }
-
-  public List<Attr> findStyleableAttributesByFieldName(@NotNull ResourceNamespace namespace, @NotNull String fieldName) {
-    int index = fieldName.lastIndexOf('_');
-
-    // Find the first underscore character where the next character is lower case. In other words, if we have
-    // this field name:
-    //    Eeny_Meeny_miny_moe
-    // we want to assume that the styleableName is "Eeny_Meeny" and the attribute name
-    // is "miny_moe".
-    while (index >= 0) {
-      int prev = fieldName.lastIndexOf('_', index - 1);
-      if (prev == -1 || Character.isUpperCase(fieldName.charAt(prev + 1))) {
-        break;
-      }
-      index = prev;
-    }
-
-    if (index < 0) {
-      return Collections.emptyList();
-    }
-
-    String styleableName = fieldName.substring(0, index);
-    String attrName = fieldName.substring(index + 1);
-
-    List<Attr> list = new ArrayList<>();
-    List<Resources> rootElements = loadPsiForFilesContainingResource(namespace, ResourceType.STYLEABLE, styleableName);
-    for (Resources root : rootElements) {
-      for (DeclareStyleable styleable : root.getDeclareStyleables()) {
-        if (styleableName.equals(styleable.getName().getValue())) {
-          for (Attr attr : styleable.getAttrs()) {
-            ResourceReference resourceReference = attr.getName().getValue();
-            if (resourceReference != null) {
-              if (ResourcesUtil.resourceNameToFieldName(resourceReference.getQualifiedName()).equals(attrName) ||
-                  resourceReference.getName().equals(attrName)) {
-                list.add(attr);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return list;
-  }
-
-  /**
-   * Returns a list of root PSI elements for XML files containing definitions of the given resource.
-   */
-  @NotNull
-  private List<Resources> loadPsiForFilesContainingResource(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType,
-                                                            @NotNull String name) {
-    return getResourceRepository()
-        .getResources(namespace, resourceType, name)
-        .stream()
-        .map(item -> IdeResourcesUtil.getSourceAsVirtualFile(item))
-        .filter(file -> Objects.nonNull(file))
-        .distinct()
-        .map(file -> AndroidUtils.loadDomElement(myProject, file, Resources.class))
-        .filter(res -> Objects.nonNull(res))
-        .collect(Collectors.toList());
-  }
-
-  @NotNull
-  public List<PsiElement> findResourcesByField(@NotNull PsiField field) {
-    String type = IdeResourcesUtil.getResourceClassName(field);
-    if (type == null) {
-      return Collections.emptyList();
-    }
-
-    String fieldName = field.getName();
-    if (fieldName == null) {
-      return Collections.emptyList();
-    }
-
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(field);
-    if (repositoryManager == null) {
-      return Collections.emptyList();
-    }
-    ResourceNamespace namespace = repositoryManager.getNamespace();
-    return findResourcesByFieldName(namespace, type, fieldName);
-  }
-
-  @NotNull
-  public List<PsiElement> findResourcesByFieldName(@NotNull ResourceNamespace namespace, @NotNull String resClassName,
-                                                   @NotNull String fieldName) {
-    List<PsiElement> targets = new ArrayList<>();
-    if (resClassName.equals(ResourceType.ID.getName())) {
-      targets.addAll(findIdDeclarations(namespace, fieldName));
-    }
-
-    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
-    if (folderType != null) {
-      targets.addAll(findResourceFiles(namespace, folderType, fieldName, false, true));
-    }
-
-    for (ResourceElement element : findValueResources(namespace, resClassName, fieldName, false)) {
-      targets.add(element.getName().getXmlAttributeValue());
-    }
-
-    if (resClassName.equals(ResourceType.ATTR.getName())) {
-      for (Attr attr : findAttrs(namespace, fieldName)) {
-        targets.add(attr.getName().getXmlAttributeValue());
-      }
-    }
-    else if (resClassName.equals(ResourceType.STYLEABLE.getName())) {
-      for (DeclareStyleable styleable : findStyleables(namespace, fieldName)) {
-        targets.add(styleable.getName().getXmlAttributeValue());
-      }
-
-      for (Attr attr : findStyleableAttributesByFieldName(namespace, fieldName)) {
-        targets.add(attr.getName().getXmlAttributeValue());
-      }
-    }
-
-    return targets;
   }
 
   /**
@@ -350,13 +185,6 @@ public class LocalResourceManager extends ResourceManager {
   @NotNull
   protected Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
     return getResourceRepository().getLeafResourceRepositories();
-  }
-
-  @Override
-  @NotNull
-  protected List<ResourceItem> getResources(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resName) {
-    return getResourceRepository().getResources(namespace, resourceType, resName);
   }
 
   @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.dataviewer
+package com.android.tools.inspectors.common.ui.dataviewer
 
-import com.android.tools.profilers.dataviewer.DataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
+import javax.swing.text.JTextComponent
 
-class IntellijDataViewerTest : PlatformTestCase() {
+class IntellijDataViewerTest : HeavyPlatformTestCase() {
   fun testCanCreateRawTextViewer() {
     val sampleText = "ASDF ".repeat(100)
     val viewer = IntellijDataViewer.createRawTextViewer(sampleText.toByteArray())
@@ -62,6 +62,13 @@ class IntellijDataViewerTest : PlatformTestCase() {
 
     // At one point, windows newlines would have caused an exception, returning an invalid viewer
     assertThat(viewer.style).isNotEqualTo(DataViewer.Style.INVALID)
+  }
+
+  fun testRawTextViewerLimitsStringLength() {
+    val veryLongText = "very long string".repeat(100)
+    val viewer = IntellijDataViewer.createRawTextViewer(veryLongText.toByteArray())
+
+    assertThat((viewer.component as JTextComponent).text).hasLength(500)
   }
 
   private fun assertExpectedEditorSettings(viewer: IntellijDataViewer) {

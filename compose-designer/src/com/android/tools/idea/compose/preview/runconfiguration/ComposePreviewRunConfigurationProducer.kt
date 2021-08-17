@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.compose.PREVIEW_PARAMETER_FQNS
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
@@ -47,13 +51,16 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) return false
+    if (!isComposeRunConfigurationEnabled()) return false
     if (context.module?.isNonLibraryAndroidModule() != true) return false
 
+    configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
       configuration.setModule(context.module)
+      updateConfigurationTriggerToGutterIfNeeded(configuration, context)
+
       it.valueParameters.forEach { parameter ->
         parameter.annotationEntries.firstOrNull { annotation ->
           annotation.fqNameMatches(PREVIEW_PARAMETER_FQNS)
@@ -70,13 +77,27 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   }
 
   final override fun isConfigurationFromContext(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
+    if (!isComposeRunConfigurationEnabled()) {
       return false
     }
     context.containingComposePreviewFunction()?.let {
-      return configuration.name == it.name && configuration.composableMethodFqn == it.composePreviewFunctionFqn()
+      val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
+      if (createdFromContext) {
+        // Handle configurations that already exist (e.g. that could have been created from the Preview toolbar).
+        updateConfigurationTriggerToGutterIfNeeded(configuration, context)
+      }
+      return createdFromContext
     }
     return false
+  }
+}
+
+/**
+ * When producing the configuration from the gutter icon, update its [ComposePreviewRunConfiguration.TriggerSource] so we can keep track.
+ */
+private fun updateConfigurationTriggerToGutterIfNeeded(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext) {
+  if (PlatformDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
+    configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
   }
 }
 

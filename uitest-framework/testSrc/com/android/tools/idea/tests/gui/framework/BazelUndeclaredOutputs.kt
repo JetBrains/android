@@ -30,7 +30,7 @@ class BazelUndeclaredOutputs : ExternalResource() {
 
   override fun after() {
     if (TestUtils.runningFromBazel()) {
-      val outputDir = TestUtils.getTestOutputDir()
+      val outputDir = TestUtils.getTestOutputDir().toFile()
       val logDir = File(PathManager.getSystemPath() + File.separator + "log")
       val screenshotsDir = GuiTests.getFailedTestScreenshotDirPath()
       FileUtils.copyDirectoryToDirectory(logDir, outputDir)

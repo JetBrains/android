@@ -20,11 +20,10 @@ import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.helpIcon
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
-import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.wrapPathToSpans
@@ -50,6 +49,13 @@ fun taskDetailsPage(
   add(taskDetailsPanel( taskData, helpLinkListener, generateReportClickedListener), BorderLayout.CENTER)
 }
 
+private const val NO_PLUGIN_INFO_HELP_TEXT = "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
+
+private fun pluginNameHtml(taskData: TaskUiData) = when {
+  taskData.pluginUnknownBecauseOfCC -> "N/A ${helpIcon(NO_PLUGIN_INFO_HELP_TEXT)}"
+  else -> taskData.pluginName
+}
+
 private fun taskDetailsPanel(
   taskData: TaskUiData,
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
@@ -64,10 +70,9 @@ private fun taskDetailsPanel(
       <br/>
       <b>Duration:</b>  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}<br/>
       Sub-project: ${taskData.module}<br/>
-      Plugin: ${taskData.pluginName}<br/>
+      Plugin: ${pluginNameHtml(taskData)}<br/>
       Type: ${taskData.taskType}<br/>
       <br/>
-      <b>Warnings</b><br/>
     """.trimIndent())
 
   val reasonsList = htmlTextLabelWithLinesWrap("""
@@ -79,9 +84,13 @@ private fun taskDetailsPanel(
   var row = 0
   infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
   if (taskData.issues.isEmpty()) {
-    infoPanel.add(JLabel("No warnings found"), TabularLayout.Constraint(row++, 0))
+    htmlTextLabelWithFixedLines("""
+      <b>Warnings</b><br/>
+      No warnings found
+    """.trimIndent()).let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
   }
   else {
+    htmlTextLabelWithFixedLines("<b>Warnings</b>").let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
     if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
       infoPanel.add(generateReportLinkLabel(taskData, generateReportClickedListener), TabularLayout.Constraint(row++, 0))
     }

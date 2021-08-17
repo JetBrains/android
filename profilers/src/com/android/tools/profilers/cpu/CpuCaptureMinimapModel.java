@@ -47,6 +47,7 @@ public class CpuCaptureMinimapModel {
                                 @NotNull CpuCapture cpuCapture,
                                 @NotNull Range selectionRange) {
     myCaptureRange = cpuCapture.getRange();
+    Range initialCaptureViewRange = cpuCapture.getTimeline().getViewRange();
     myCpuUsage = new CpuUsage(profilers, myCaptureRange, myCaptureRange, cpuCapture);
 
     // Copy capture range as view range
@@ -69,7 +70,9 @@ public class CpuCaptureMinimapModel {
       }
     })));
     // Set initial selection to the entire capture range.
-    myRangeSelectionModel.set(myCaptureRange.getMin(), myCaptureRange.getMax());
+    // The initial capture view range is set only with perfetto traces that contain UI metadata.
+    // The initial value is set in SystemTraceCpuCapture. If no metadata is available this value is set to the data range of the capture.
+    myRangeSelectionModel.set(initialCaptureViewRange.getMin(), initialCaptureViewRange.getMax());
   }
 
   @NotNull

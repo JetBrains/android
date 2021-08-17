@@ -16,10 +16,12 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
+import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtArgsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtDirectionsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.getKotlinType
@@ -39,7 +41,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PlatformIcons
-import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -61,10 +62,6 @@ import org.jetbrains.kotlin.storage.StorageManager
  */
 class KtDescriptorCacheModuleService(val module: Module) {
   private val LOG get() = Logger.getInstance(KtDescriptorCacheModuleService::class.java)
-  private val lock = Any()
-
-  @GuardedBy("lock")
-  private var lastModificationCount = -1L
 
   private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
 
@@ -78,52 +75,38 @@ class KtDescriptorCacheModuleService(val module: Module) {
     fun getInstance(module: Module) = module.getService(KtDescriptorCacheModuleService::class.java)!!
   }
 
-  @GuardedBy("lock")
-  var descriptorsCache = emptyMap<FqName, List<PackageFragmentDescriptor>>()
-
   fun getDescriptors(moduleDescriptor: ModuleDescriptor): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
     if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
+    val facet = module.androidFacet!!
 
     if (DumbService.isDumb(module.project)) {
-      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
-      return descriptorsCache
+      LOG.warn("Safe Args classes may be temporarily unavailable due to indices not being ready right now.")
+      return emptyMap()
     }
 
-    val packageFqName = AndroidFacet.getInstance(module)?.let {
-      val packageName = getPackageName(it) ?: return@let null
-      FqName(packageName)
-    } ?: return descriptorsCache
+    val packageFqName = getPackageName(facet)?.let { packageName -> FqName(packageName) }
+                        ?: return emptyMap()
 
-    synchronized(lock) {
-      val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
+    val currVersion = facet.findNavigationVersion()
 
-      if (lastModificationCount != now) {
-        val moduleNavResources = getNavResourceFromIndex()
+    val moduleNavResources = getNavResourceFromIndex()
+    val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
+    // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService
+    return packageResourceData.moduleNavResource
+      .asSequence()
+      .flatMap { navEntry ->
+        val backingXmlFile = PsiManager.getInstance(module.project).findFile(navEntry.file)
+        val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
 
-        val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
+        val packages =
+          createArgsPackages(moduleDescriptor, currVersion, navEntry, sourceElement, packageFqName.asString()) +
+          createDirectionsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString())
 
-        val packageDescriptors = packageResourceData.moduleNavResource
-          .asSequence()
-          .flatMap { navEntry ->
-            val backingXmlFile = PsiManager.getInstance(module.project).findFile(navEntry.file)
-            val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
-
-            val packages = createArgsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString()) +
-                           createDirectionsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString())
-
-            packages.asSequence()
-          }
-          .groupBy({ it.fqName }, { it.descriptor })
-
-        descriptorsCache = packageDescriptors
-        lastModificationCount = now
+        packages.asSequence()
       }
-
-      // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService
-      return descriptorsCache
-    }
+      .groupBy({ it.fqName }, { it.descriptor })
   }
 
   private fun createDirectionsPackages(
@@ -163,6 +146,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
   private fun createArgsPackages(
     moduleDescriptor: ModuleDescriptor,
+    navigationVersion: GradleVersion,
     entry: NavEntryKt,
     sourceElement: SourceElement,
     modulePackage: String,
@@ -194,8 +178,8 @@ class KtDescriptorCacheModuleService(val module: Module) {
           listOf(ktType)
         }
 
-        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className,
-                                                        destination, superTypesProvider, resolvedSourceElement, storageManager)
+        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), navigationVersion, packageName,
+                                                        className, destination, superTypesProvider, resolvedSourceElement, storageManager)
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }

@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE
@@ -81,7 +82,76 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val prop1Model = extModel.findProperty("prop1")
     TestCase.assertNotNull(prop1Model)
     val referenceTo = ReferenceTo(prop1Model)
-    assertEquals(referenceTo.referredElement, prop1Model.rawElement)
+    assertEquals(referenceTo.referredElement, prop1Model.rawElement);
+  }
+
+  @Test
+  fun testGetExceptionWhenNoPropertyExist() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    // Create a reference to  a non-existing property.
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop33")
+    // The model is never null.
+    TestCase.assertNotNull(prop1Model)
+    try {
+      // As the model is empty (i.e. Doesn't refer to any existing property), we cannot set a reference to it.
+      val referenceTo = ReferenceTo(prop1Model)
+      fail()
+    } catch (e: IllegalArgumentException) {
+      // Expected.
+    }
+  }
+
+  @Test
+  fun testGetPropertyInterpolatedValueType() {
+    writeToBuildFile(TestFile.PROPERTY_INTERPOLATED_VALUE_TYPE)
+
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop1")
+
+    // Test the model RawValue.
+    val prop1ModelInterpolatedRawValue = prop1Model.getRawValue(INTERPOLATED_TEXT_TYPE)
+
+    verifyPropertyModel(prop1Model, STRING_TYPE, "abc123", INTERPOLATED, REGULAR, 1)
+    assertThat(prop1ModelInterpolatedRawValue!!.javaClass, equalTo(InterpolatedText::class.java))
+    assertThat(prop1ModelInterpolatedRawValue.toString(), equalTo("abc\${prop}"))
+    assertThat(prop1Model.getRawValue(STRING_TYPE), equalTo("abc\$prop"))
+
+    // Test the model value.
+    val prop1ModelInterpolatedValue = prop1Model.getValue(INTERPOLATED_TEXT_TYPE)
+
+    // When requesting the resolvable value as INTERPOLATED_TEXT_TYPE , we get the InterpolatedText value.
+    assertThat(prop1ModelInterpolatedValue!!.javaClass, equalTo(InterpolatedText::class.java))
+    assertThat(prop1ModelInterpolatedValue.toString(), equalTo("abc\${prop}"))
+    // When requesting the model value as STRING_TYPE, we get the actual expression value.
+    assertThat(prop1Model.getValue(STRING_TYPE), equalTo("abc123"))
+  }
+
+  @Test
+  fun testSetPropertyValueToUnresolvableInjection() {
+    writeToBuildFile(TestFile.PROPERTY_UNRESOLVED_INTERPOLATED_VALUE)
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop1")
+
+    assertThat(prop1Model.getRawValue(STRING_TYPE), equalTo("abc\$prop2"))
+    // When the injection is not resolvable, we cannot getInterpolatedText object, so we get a RawText that the user shouldn't expect us to
+    // handle properly.
+    assertThat(prop1Model.getRawValue(OBJECT_TYPE)!!.javaClass, equalTo(RawText::class.java))
+  }
+
+  @Test
+  fun testSetValueToInterpolatedProperty() {
+    writeToBuildFile(TestFile.PROPERTY_INTERPOLATED_VALUE_TYPE)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val prop1Model = extModel.findProperty("prop1")
+    prop1Model.getRawValue(INTERPOLATED_TEXT_TYPE)?.let { extModel.findProperty("newProp").setValue(it) }
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.PROPERTY_INTERPOLATED_VALUE_TYPE_EXPECTED)
   }
 
   @Test
@@ -379,9 +449,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(properties[0], STRING_TYPE, "var1", REFERENCE, REGULAR, 1, "prop1", "ext.prop1")
     verifyPropertyModel(properties[0].dependencies[0], STRING_TYPE, "Value1", STRING, VARIABLE, 0, "var1")
-    verifyPropertyModel(properties[1], STRING_TYPE, "Cool Value2", STRING, REGULAR, 1, "prop2", "ext.prop2")
+    verifyPropertyModel(properties[1], STRING_TYPE, "Cool Value2", INTERPOLATED, REGULAR, 1, "prop2", "ext.prop2")
     verifyPropertyModel(properties[1].dependencies[0], STRING_TYPE, "Value2", STRING, VARIABLE, 0, "var2")
-    verifyPropertyModel(properties[2], STRING_TYPE, "Nice Value3", STRING, REGULAR, 1, "prop3", "ext.prop3")
+    verifyPropertyModel(properties[2], STRING_TYPE, "Nice Value3", INTERPOLATED, REGULAR, 1, "prop3", "ext.prop3")
     verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3")
   }
 
@@ -665,7 +735,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("prop2")
     assertEquals("\${${extraName("prop1")}} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
     val dependencies = propertyModel.dependencies
@@ -689,7 +759,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
     assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
 
     val dependencies = propertyModel.dependencies
@@ -709,7 +779,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("prop2")
     assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
     val dependencies = propertyModel.dependencies
@@ -733,7 +803,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
     assertEquals(if (isGroovy) "\${prop1} world!" else "\${extra[\"prop1\"]} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
 
     val dependencies = propertyModel.dependencies
@@ -819,7 +889,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals("3", propertyModel.getValue(STRING_TYPE))
     assertEquals(if (isGroovy) "${'$'}{prop3.key[0][2]}" else "\${prop3[\"key\"][0][2]}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
 
     val dependencies = propertyModel.dependencies
     assertSize(1, dependencies)
@@ -838,7 +908,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       isGroovy -> gradleBuildModel.ext().findProperty("prop3")
       else -> gradleBuildModel.declaredProperties.find { it.name == "prop3" }!!
     }
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
     assertEquals("valuetrue", propertyModel.getValue(STRING_TYPE))
     assertEquals("${'$'}{prop2[\"key2\"][\"key1\"]}", propertyModel.getRawValue(STRING_TYPE))
@@ -846,7 +916,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val dependencies = propertyModel.dependencies
     assertSize(1, dependencies)
     val depModel = dependencies[0]
-    assertEquals(STRING, depModel.valueType)
+    assertEquals(INTERPOLATED, depModel.valueType)
     assertEquals(DERIVED, depModel.propertyType)
     assertEquals("valuetrue", depModel.getValue(STRING_TYPE))
     assertEquals("value${'$'}{prop}", depModel.getRawValue(STRING_TYPE))
@@ -962,7 +1032,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("prop9")
     assertEquals(expected, propertyModel.getValue(STRING_TYPE))
     assertEquals("9\${${extraName("prop8")}}", propertyModel.getRawValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
     var deps = propertyModel.dependencies
@@ -972,7 +1042,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       expected = expected.drop(1)
       assertEquals(expected, value.getValue(STRING_TYPE))
       assertEquals("${9 - i}\${${extraName("prop${8 - i}")}}", value.getRawValue(STRING_TYPE))
-      assertEquals(STRING, propertyModel.valueType)
+      assertEquals(INTERPOLATED, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       deps = deps[0].dependencies
     }
@@ -981,7 +1051,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val value = deps[0]
     assertEquals("1", value.getValue(STRING_TYPE))
     assertEquals("1", value.getRawValue(STRING_TYPE))
-    assertEquals(STRING, propertyModel.valueType)
+    assertEquals(INTERPOLATED, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
   }
 
@@ -1022,7 +1092,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val value = map["key2"]!!
-      assertEquals(STRING, value.valueType)
+      assertEquals(INTERPOLATED, value.valueType)
       assertEquals(DERIVED, value.propertyType)
       assertEquals("false", value.getValue(STRING_TYPE))
       assertEquals("key2", value.name)
@@ -1184,7 +1254,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(literalProperty, STRING_TYPE, "I watched as the ${'$'}{lamb}", STRING, VARIABLE, 0)
 
       val interpolatedProperty = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(interpolatedProperty, STRING_TYPE, "opened the first of the sêvĕn seals", STRING, REGULAR, 1)
+      verifyPropertyModel(interpolatedProperty, STRING_TYPE, "opened the first of the sêvĕn seals", INTERPOLATED, REGULAR, 1)
 
       // Check the dependency is correct.
       val dependencyModel = interpolatedProperty.dependencies[0]
@@ -1350,7 +1420,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "25", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "25", INTERPOLATED, REGULAR, 1)
 
       // Ensure the referred value is still correct.
       val intModel = buildModel.ext().findProperty("prop1")
@@ -1368,7 +1438,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "hello", STRING, REGULAR, 0)
       val propertyModel2 = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel2, STRING_TYPE, "hello world!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel2, STRING_TYPE, "hello world!", INTERPOLATED, REGULAR, 1)
       assertEquals("${'$'}{prop1} world!", propertyModel2.getRawValue(STRING_TYPE))
     }
 
@@ -1379,7 +1449,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.setValue(newValue)
       verifyPropertyModel(propertyModel, STRING_TYPE, newValue, STRING, REGULAR, 0)
       val propertyModel2 = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel2, STRING_TYPE, "goodbye world!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel2, STRING_TYPE, "goodbye world!", INTERPOLATED, REGULAR, 1)
       // Check dependency is correct.
       verifyPropertyModel(propertyModel2.dependencies[0], STRING_TYPE, newValue, STRING, REGULAR, 0)
 
@@ -1390,7 +1460,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel3 = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel3, STRING_TYPE, newValue, STRING, REGULAR, 0)
       val propertyModel4 = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel4, STRING_TYPE, "goodbye world!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel4, STRING_TYPE, "goodbye world!", INTERPOLATED, REGULAR, 1)
       assertEquals("${'$'}{prop1} world!", propertyModel2.getRawValue(STRING_TYPE))
       // Check dependency is correct.
       verifyPropertyModel(propertyModel4.dependencies[0], STRING_TYPE, newValue, STRING, REGULAR, 0)
@@ -1402,7 +1472,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(TestFile.DEPENDENCY_BASIC_CYCLE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{${extraName("prop1")}}", STRING, REGULAR, 0)
+    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{${extraName("prop1")}}", INTERPOLATED, REGULAR, 0)
   }
 
   @Test
@@ -1420,7 +1490,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", INTERPOLATED, REGULAR, 1)
     }
   }
 
@@ -1431,7 +1501,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value + Value", STRING, REGULAR, 2)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Value + Value", INTERPOLATED, REGULAR, 2)
     }
   }
 
@@ -1442,12 +1512,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "abcValue", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "abcValue", INTERPOLATED, REGULAR, 1)
     }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "bcValue", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "bcValue", INTERPOLATED, REGULAR, 1)
     }
   }
 
@@ -2188,7 +2258,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)
 
       val thirdModel = buildModel.ext().findProperty("prop3")
-      verifyPropertyModel(thirdModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1)
+      verifyPropertyModel(thirdModel, STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1)
       ReferenceTo.createReferenceFromText("prop2", thirdModel)?.let { thirdModel.convertToEmptyList().addListValue().setValue(it) }
       assertEquals(LIST, thirdModel.valueType)
       val thirdList = thirdModel.getValue(LIST_TYPE)!!
@@ -2466,14 +2536,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "hello", STRING, REGULAR, 0)
       val otherModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(otherModel, STRING_TYPE, "hello world!", STRING, REGULAR, 1)
+      verifyPropertyModel(otherModel, STRING_TYPE, "hello world!", INTERPOLATED, REGULAR, 1)
 
 
       propertyModel.dependencies[0].setValue("howdy")
 
       verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "howdy", STRING, REGULAR, 0)
-      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", STRING, REGULAR, 1)
+      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", INTERPOLATED, REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
@@ -2490,7 +2560,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val otherModel = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "howdy", STRING, REGULAR, 0)
-      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", STRING, REGULAR, 1)
+      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", INTERPOLATED, REGULAR, 1)
     }
   }
 
@@ -2508,13 +2578,13 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, rhino!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, rhino!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "rhino", STRING, VARIABLE, 0)
 
       // Delete the dependency and try resolution again.
       propertyModel.dependencies[0].delete()
 
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "lion", STRING, PROPERTIES_FILE, 0)
     }
 
@@ -2522,7 +2592,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "lion", STRING, PROPERTIES_FILE, 0)
 
       // Properties file can't be edited directly.
@@ -2533,7 +2603,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, meerkat!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, meerkat!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "meerkat", STRING, PROPERTIES_FILE, 0)
 
       // Properties file can't be edited directly.
@@ -2546,19 +2616,19 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, penguin!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, penguin!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "penguin", STRING, REGULAR, 0)
 
       propertyModel.dependencies[0].delete()
 
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", STRING, REGULAR, 0)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", INTERPOLATED, REGULAR, 0)
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", STRING, REGULAR, 0)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", INTERPOLATED, REGULAR, 0)
     }
   }
 
@@ -2796,11 +2866,11 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Hello : Hello world! : true", STRING, REGULAR, 3)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Hello : Hello world! : true", INTERPOLATED, REGULAR, 3)
 
       val deps = propertyModel.dependencies
       verifyPropertyModel(deps[0], STRING_TYPE, "var2", REFERENCE, REGULAR, 1)
-      verifyPropertyModel(deps[1], STRING_TYPE, "Hello world!", STRING, REGULAR, 1)
+      verifyPropertyModel(deps[1], STRING_TYPE, "Hello world!", INTERPOLATED, REGULAR, 1)
       verifyPropertyModel(deps[2], STRING_TYPE, "var3", REFERENCE, REGULAR, 1)
 
       // Lets delete one of the variables
@@ -2808,7 +2878,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       deps[0].dependencies[0].delete()
       // And edit one of the properties
       deps[0].setValue(72)
-      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", STRING, REGULAR, 3)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", INTERPOLATED, REGULAR, 3)
     }
 
     applyChangesAndReparse(buildModel)
@@ -2817,7 +2887,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", STRING, REGULAR, 3)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", INTERPOLATED, REGULAR, 3)
     }
   }
 
@@ -2846,6 +2916,18 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
   }
 
   @Test
+  fun testReferenceToMapInMap() {
+    writeToBuildFile(TestFile.REFERENCE_TO_MAP_IN_MAP)
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val depsModel = extModel.findProperty("deps")
+    val reference = ReferenceTo.createReferenceFromText("activity", depsModel)!!
+    extModel.findProperty("newDeps").convertToEmptyMap().getMapValue("newActivity").setValue(reference)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REFERENCE_TO_MAP_IN_MAP_EXPECTED)
+  }
+
+  @Test
   fun testRename() {
     writeToBuildFile(TestFile.RENAME)
 
@@ -2853,7 +2935,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "hello ${'$'}{var2}", STRING, REGULAR, 1, "prop1", "ext.prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello ${'$'}{var2}", INTERPOLATED, REGULAR, 1, "prop1", "ext.prop1")
       val varModel = propertyModel.dependencies[0]
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1")
 
@@ -2866,7 +2948,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       }
       varModel.rename("var2")
 
-      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", INTERPOLATED, REGULAR, 1, "prop2", "ext.prop2")
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2")
     }
 
@@ -2876,7 +2958,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
       val varModel = propertyModel.dependencies[0]
-      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", INTERPOLATED, REGULAR, 1, "prop2", "ext.prop2")
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2")
     }
   }
@@ -3136,7 +3218,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertEquals("${'$'}{prop2}", propertyModel.getRawValue(STRING_TYPE))
       applyChangesAndReparse(buildModel)
       val newRefModel = findProperty("prop1")
-      verifyPropertyModel(newRefModel, STRING_TYPE, "ref", STRING, type, 1)
+      verifyPropertyModel(newRefModel, STRING_TYPE, "ref", INTERPOLATED, type, 1)
       assertEquals("${'$'}{prop2}", newRefModel.getRawValue(STRING_TYPE))
     }
   }
@@ -3297,7 +3379,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val mainBuildModel = gradleBuildModel
     val appBuildModel = subModuleGradleBuildModel
 
-    val kotlinVersionModel = mainBuildModel.ext().findProperty("kotlin_version")
+    val kotlinVersionModel = mainBuildModel.buildscript().ext().findProperty("kotlin_version")
     appBuildModel.dependencies().artifacts().get(0).version().setValue(ReferenceTo(kotlinVersionModel))
     applyChangesAndReparse(appBuildModel)
     verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
@@ -3345,7 +3427,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val propertyModel = extModel.findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, one.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, one.toString(), INTERPOLATED, REGULAR, 1, "prop2", "ext.prop2")
       // Check the dependency
       val dependencyModel = propertyModel.dependencies[0]
       verifyPropertyModel(dependencyModel, INTEGER_TYPE, one, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
@@ -3358,7 +3440,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     // Check that the value of prop2 has changed
     run {
       val propertyModel = gradleBuildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, two.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, two.toString(), INTERPOLATED, REGULAR, 1, "prop2", "ext.prop2")
       val dependencyModel = propertyModel.dependencies[0]
       verifyPropertyModel(dependencyModel, INTEGER_TYPE, two, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
     }
@@ -3744,6 +3826,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     PROPERTIES_FROM_SCRATCH_EXPECTED("propertiesFromScratchExpected"),
     PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION("propertiesFromScratchArrayExpression"),
     PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION_EXPECTED("propertiesFromScratchArrayExpressionExpected"),
+    PROPERTY_INTERPOLATED_VALUE_TYPE("propertyInterpolatedValueType"),
+    PROPERTY_INTERPOLATED_VALUE_TYPE_EXPECTED("propertyInterpolatedValueTypeExpected"),
+    PROPERTY_UNRESOLVED_INTERPOLATED_VALUE("propertyUnresolvedInterpolatedValue"),
     VARIABLES("variables"),
     UNKNOWN_VALUES("unknownValues"),
     UNKNOWN_VALUES_IN_MAP("unknownValuesInMap"),
@@ -3917,7 +4002,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected"),
     WRITE_REFERENCE_TO_BUILDSCRIPT_EXT("writeReferenceToBuildscriptExt"),
     WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP("writeReferenceToBuildscriptExtApp"),
-    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected")
+    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected"),
+    REFERENCE_TO_MAP_IN_MAP("referenceToMapInMap"),
+    REFERENCE_TO_MAP_IN_MAP_EXPECTED("referenceToMapInMapExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

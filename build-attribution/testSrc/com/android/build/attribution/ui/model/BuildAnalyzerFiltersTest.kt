@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.DisposableRule
@@ -66,7 +67,8 @@ class BuildAnalyzerFiltersTest {
     BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
     BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS,
     BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS
+    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS,
+    BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS,
   )
 
   private val defaultTasksFilterItemsList = listOf(
@@ -77,24 +79,24 @@ class BuildAnalyzerFiltersTest {
   )
 
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), BuildAttributionWarningsFilter())
-  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
-  val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
-
+  lateinit var analytics: BuildAttributionUiAnalytics
+  lateinit var controller: BuildAnalyzerViewController
 
   @Before
   fun setUp() {
-    val ideComponents = IdeComponents(projectRule.project, disposableRule.disposable)
     UsageTracker.setWriterForTest(tracker)
+    analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
+    controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     analytics.newReportSessionId(buildSessionId)
   }
 
   @Test
   fun testInitialWarningsFilterState() {
     val initialFilterActionsState = (warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<ToggleAction>()
-      .map { it.templateText to it.isSelected(TestActionEvent()) }
+      .filterIsInstance<WarningsFilterToggleAction>()
+      .map { it.templateText to it.isSelected(model.warningsPageModel.filter) }
 
     val expected = listOf(
       "Show Always-run tasks" to true,
@@ -102,8 +104,9 @@ class BuildAnalyzerFiltersTest {
       "Show issues for Android/Java/Kotlin plugins" to true,
       "Show issues for other plugins" to true,
       "Show issues for project customization" to true,
+      "Include issues for tasks non determining this build duration" to false,
       "Show annotation processors issues" to true,
-      "Include issues for tasks non determining this build duration" to false
+      "Show configuration cache issues" to true,
     )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)
@@ -115,12 +118,12 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Always-run tasks" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS, defaultWarningFilterItemsList)
   }
@@ -132,12 +135,12 @@ class BuildAnalyzerFiltersTest {
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // Mock tasks have only one Always-run tasks warning and task is attributed to Android plugin.
-    // When it is filtered out, only AP warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // When it is filtered out, only AP and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS, defaultWarningFilterItemsList)
   }
@@ -148,21 +151,37 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show annotation processors issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // When AP warnings are filtered out only Always-run tasks warning should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // When AP warnings are filtered out only Always-run tasks and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    // All warnings should be back.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS, defaultWarningFilterItemsList)
   }
 
   @Test
+  fun testShowConfigurationCacheIssuesFilterApplyToWarnings() {
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show configuration cache issues" }
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // When CC warnings are filtered out only Always-run tasks and AP warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // All warnings should be back.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS, defaultWarningFilterItemsList)
+  }
+
+  @Test
   fun testInitialTaskFilterState() {
     val initialFilterActionsState = (tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<ToggleAction>()
-      .map { it.templateText to it.isSelected(TestActionEvent()) }
+      .filterIsInstance<TasksFilterToggleAction>()
+      .map { it.templateText to it.isSelected(model.tasksPageModel.filter) }
 
     val expected = listOf(
       "Show tasks for Android/Java/Kotlin plugins" to true,

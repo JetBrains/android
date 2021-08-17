@@ -16,14 +16,11 @@
 package com.android.tools.idea.fileTypes;
 
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class FontFileType implements FileType {
   public static final FontFileType INSTANCE = new FontFileType();

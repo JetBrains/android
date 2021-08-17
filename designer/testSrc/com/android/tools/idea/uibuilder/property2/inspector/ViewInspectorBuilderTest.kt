@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_END_FOR_ICON
@@ -142,12 +142,11 @@ import com.android.SdkConstants.MATERIAL_BUTTON
 import com.android.SdkConstants.TAB_LAYOUT
 import com.android.SdkConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.util.AndroidTestPaths
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -165,7 +164,7 @@ class ViewInspectorBuilderTest {
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = AndroidTestPaths.adtSources().resolve("designer/testData/property/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/designer/testData/property/").toString()
     addManifest(projectRule.fixture)
   }
 
@@ -601,16 +600,16 @@ class ViewInspectorBuilderTest {
 
   private fun addImageViewProperties(util: InspectorTestUtil, withAppCompat: Boolean) {
     if (withAppCompat) {
-      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
+      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
     }
     else {
-      util.addProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
+      util.addProperty(ANDROID_URI, ATTR_SRC, NlPropertyType.DRAWABLE)
     }
-    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
+    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NlPropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NlPropertyType.INTEGER)
+    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NlPropertyType.ENUM)
   }
 }

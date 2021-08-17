@@ -25,11 +25,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
-import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.Nullable
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -58,6 +56,12 @@ private const val BOTTOM_BAR_TOP_MARGIN = 3
  */
 @SwingCoordinate
 private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
+
+/**
+ * Minimum allowed width for the model name label.
+ */
+@SwingCoordinate
+private const val MODEL_NAME_LABEL_MIN_WIDTH = 20
 
 /**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
@@ -169,7 +173,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
         }
       }
 
-    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContent())
+    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContentSize())
       sceneView.getContentSize(dimension).also {
         cachedContentSize.size = it
       }
@@ -227,6 +231,11 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     if (sceneViewToolbar != null) {
       add(sceneViewToolbar, BorderLayout.LINE_END)
     }
+    // The space of name label is sacrified when there is no enough width to display the toolbar.
+    // When it happens, the label will be trimmed and show the ellipsis at its tail.
+    // User can still hover it to see the full label in the tooltips.
+    val minWidth = MODEL_NAME_LABEL_MIN_WIDTH + (sceneViewToolbar?.minimumSize?.width ?: 0)
+    minimumSize = Dimension(minWidth, minimumSize.height)
   }
 
   val sceneViewBottomPanel = JPanel(BorderLayout()).apply {
@@ -254,6 +263,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     add(sceneViewTopPanel)
     add(sceneViewBottomPanel)
     add(sceneViewLeftPanel)
+    // This setup the initial positions of sceneViewTopPanel, sceneViewBottomPanel, and sceneViewLeftPanel.
+    // Otherwise they are all placed at top-left corner before first time layout.
+    doLayout()
   }
 
   override fun isValid(): Boolean {
@@ -298,13 +310,13 @@ class SceneViewPeerPanel(val sceneView: SceneView,
 }
 
 /**
- * A [JPanel] responsible for displaying [SceneView]s. The [SceneView]s need to be explicitly added by the surface by calling
- * [addSceneView] and removed by calling [removeSceneView]. Only [SceneView]s added by calling thosemethods will be rendered by this panel.
+ * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
  *
  * @param interactionLayersProvider A [Layer] provider that returns the additional interaction [Layer]s, if any
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
-internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
+internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<SceneView>,
+                              private val interactionLayersProvider: () -> Collection<Layer>,
                               layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
   /**
@@ -330,6 +342,48 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
     get() = components.filterIsInstance<SceneViewPeerPanel>()
       .map { it.positionableAdapter }
       .toList()
+
+  @UiThread
+  private fun revalidateSceneViews() {
+    // Check if the SceneViews are still valid
+    val designSurfaceSceneViews = sceneViewProvider()
+    val currentSceneViews = findSceneViews()
+
+    if (designSurfaceSceneViews == currentSceneViews) return // No updates
+
+    // Invalidate the current components
+    removeAll()
+    designSurfaceSceneViews.forEachIndexed { index, sceneView ->
+      val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
+        sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
+      }
+      else {
+        null
+      }
+
+      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
+        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
+      } else {
+        null
+      }
+
+      // The left bar is only added for the first panel
+      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && index == 0) {
+        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
+      } else {
+        null
+      }
+
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar).also {
+        it.alignmentX = sceneViewAlignment
+      })
+    }
+  }
+
+  override fun doLayout() {
+    revalidateSceneViews()
+    super.doLayout()
+  }
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -402,58 +456,12 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
     }
   }
 
-  /**
-   * Adds the given [SceneView] to this panel if it was not part of the panel already.
-   */
-  @UiThread
-  fun addSceneView(sceneView: SceneView) {
-    val alreadyAdded = components
-      .filterIsInstance<SceneViewPeerPanel>()
-      .any { sceneView == it.sceneView }
-
-    // The left bar should only be added for only one of the SceneViewPeerPanels
-    // Check if a left Panel already exists and is visible, and if not add one
-    val leftBarAlreadyAdded = components
-      .filterIsInstance<SceneViewPeerPanel>().any {
-        it.sceneViewLeftPanel.isVisible
-      }
-
-    if (!alreadyAdded) {
-      val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
-        sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
-      }
-      else {
-        null
-      }
-
-      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
-        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
-      } else {
-        null
-      }
-
-      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && !leftBarAlreadyAdded) {
-        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
-      } else {
-        null
-      }
-
-      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar).also {
-        it.alignmentX = sceneViewAlignment
-      })
-    }
-  }
-
-  /**
-   * Removes the given [SceneView] from the panel.
-   */
-  @UiThread
-  fun removeSceneView(sceneView: SceneView) {
+  private fun findSceneViews(): List<SceneView> =
     components
       .filterIsInstance<SceneViewPeerPanel>()
-      .filter { sceneView == it.sceneView }
-      .forEach { remove(it) }
-  }
+      .map { it.sceneView }
+      .toList()
+
 
   fun findSceneViewRectangle(sceneView: SceneView): Rectangle? =
     components

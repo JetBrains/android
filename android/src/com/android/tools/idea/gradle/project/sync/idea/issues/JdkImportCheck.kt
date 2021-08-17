@@ -16,8 +16,13 @@
 @file:JvmName("JdkImportCheck")
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -28,28 +33,62 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
 class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
 
 /**
- * Validates the state of the JDK that is set in studio before the Gradle import is started.
+ * Validates the state of the project Gradle JDK.
  *
  * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
  * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
  * quick fixes.
  */
-fun validateJdk() {
-  val jdkValidationError = validateJdk(IdeSdks.getInstance().jdk) ?: return // Valid jdk
+fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
+  // This method is a wrapper to provide a Jdk to checkJdkErrorMessage. Tests are run directly on checkJdkErrorMessage.
+  if (project == null) {
+    // If the project is not defined, assume default project
+    validateDefaultGradleJdk()
+    return
+  }
+  val jdk: Sdk? =
+    if (StringUtils.isNotBlank(projectPath)) {
+      @Suppress("UnstableApiUsage")
+      AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, projectPath!!)
+    }
+    else {
+      null
+    }
+  checkJdkErrorMessage(jdk)
+}
+
+/**
+ * Validates the state of the default Gradle JDK.
+ *
+ * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
+ * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
+ * quick fixes.
+ */
+fun validateDefaultGradleJdk() {
+  checkJdkErrorMessage(IdeSdks.getInstance().jdk)
+}
+
+@VisibleForTesting
+fun checkJdkErrorMessage(jdk: Sdk?) {
+  val jdkValidationError = validateJdk(jdk) ?: return // Valid jdk
   throw JdkImportCheckException(jdkValidationError)
 }
 
@@ -68,11 +107,11 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
     return BuildIssueComposer(message).apply {
       if (IdeInfo.getInstance().isAndroidStudio) {
-        val ideSdks = IdeSdks.getInstance()
-        if (!ideSdks.isUsingJavaHomeJdk) {
-          val jdkFromHome = IdeSdks.getJdkFromJavaHome()
-          if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
-            addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
+        val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+        if (ideaProject != null) {
+          val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+          if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
+            addUseJavaHomeQuickFix(this)
           }
         }
 
@@ -91,6 +130,14 @@ class JdkImportIssueChecker : GradleIssueChecker {
       addQuickFix(DownloadJdk8QuickFix())
     }.composeBuildIssue()
   }
+
+  private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
+    val ideSdks = IdeSdks.getInstance()
+    val jdkFromHome = IdeSdks.getJdkFromJavaHome()
+    if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
+      composer.addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
+    }
+  }
 }
 
 private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIssueQuickFix {
@@ -100,7 +147,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
   override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { IdeSdks.getInstance().setJdkPath(Paths.get(javaHome)) }
+      runWriteAction { setJdkAsJavaHome(project, javaHome) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT)
       future.complete(null)
     }
@@ -115,7 +162,7 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { IdeSdks.getInstance().setUseEmbeddedJdk() }
+      runWriteAction { setJdkAsEmbedded(project) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED)
       future.complete(null)
     }
@@ -189,5 +236,16 @@ private fun validateJdk(jdk: Sdk?): String? {
     "with the current OS. For example, for x86 systems please choose a 32 bits download option.\n" +
     selectedJdkMsg
   }
-  else null
+  else {
+    val ideInfo = IdeInfo.getInstance()
+    if (ideInfo.isAndroidStudio || ideInfo.isGameTools) {
+      // Recreate JDK table information for this JDK (b/187205058)
+      if (StudioFlags.GRADLE_SYNC_RECREATE_JDK.get()) {
+        WriteAction.runAndWait<RuntimeException> {
+          IdeSdks.getInstance().recreateOrAddJdkInTable(jdk)
+        }
+      }
+    }
+    return null
+  }
 }

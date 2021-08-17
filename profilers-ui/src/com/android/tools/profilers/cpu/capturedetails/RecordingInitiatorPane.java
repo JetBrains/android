@@ -24,7 +24,6 @@ import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import com.android.tools.profilers.cpu.CpuProfilerToolbar;
 import com.android.tools.profilers.cpu.config.CpuProfilingConfigurationView;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
@@ -49,6 +48,9 @@ class RecordingInitiatorPane extends CapturePane {
   @VisibleForTesting
   static final String HELP_TIP_TITLE = "Thread details unavailable";
 
+  static final String RECORD_TEXT = "Record";
+  static final String STOP_TEXT = "Stop";
+
   @VisibleForTesting
   static final String LEARN_MORE_MESSAGE = "Learn more";
 
@@ -65,7 +67,7 @@ class RecordingInitiatorPane extends CapturePane {
     super(stageView);
     myConfigsView = new CpuProfilingConfigurationView(stageView.getStage(), stageView.getIdeComponents());
 
-    myRecordButton = new JButton(CpuProfilerToolbar.RECORD_TEXT);
+    myRecordButton = new JButton(RECORD_TEXT);
     myRecordButton.setEnabled(stageView.getStage().getStudioProfilers().getSessionsManager().isSessionAlive());
     myRecordButton.addActionListener(event -> stageView.getStage().toggleCapturing());
 

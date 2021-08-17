@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2;
+package com.android.tools.idea.uibuilder.handlers.motion.property;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.InspectorBuilder;
 import com.android.tools.property.panel.api.InspectorPanel;
 import com.android.tools.property.panel.api.PropertiesTable;
@@ -34,12 +34,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An InspectorBuilder for an informative line (or 2) in the top of the properties panel.
  */
-class SelectedTargetBuilder implements InspectorBuilder<NelePropertyItem> {
+class SelectedTargetBuilder implements InspectorBuilder<NlPropertyItem> {
   private static final String UNNAMED_TARGET = "<unnamed>";
 
   @Override
-  public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<NelePropertyItem> properties) {
-    NelePropertyItem any = properties.getFirst();
+  public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<NlPropertyItem> properties) {
+    NlPropertyItem any = properties.getFirst();
     if (any == null) {
       return;
     }
@@ -48,7 +48,7 @@ class SelectedTargetBuilder implements InspectorBuilder<NelePropertyItem> {
       return;
     }
     MotionSceneTag motionTag = selection.getMotionSceneTag();
-    NelePropertyItem idProperty = properties.getOrNull(ANDROID_URI, ATTR_ID);
+    NlPropertyItem idProperty = properties.getOrNull(ANDROID_URI, ATTR_ID);
 
     String label = motionTag != null ? motionTag.getTagName() : "";
     String id = idProperty != null ? idProperty.getValue() : null;

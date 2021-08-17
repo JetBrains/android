@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lang
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
-import java.io.File
+import java.nio.file.Files
 
 fun getTestDataPath(): String {
-  val adtPath = TestUtils.getWorkspaceFile("tools/adt/idea/android-lang/testData").path
-  return if (File(adtPath).exists()) adtPath else PathManagerEx.findFileUnderCommunityHome("plugins/android").path
+  val adtPath = resolveWorkspacePath("tools/adt/idea/android-lang/testData")
+  return if (Files.exists(adtPath)) adtPath.toString() else PathManagerEx.findFileUnderCommunityHome("plugins/android").path
 }

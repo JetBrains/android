@@ -23,7 +23,7 @@ import java.awt.image.BufferedImage
 class MemoryProbeTest {
   @Test
   fun testString() {
-    assertThat(check("Here is a string with text")).isIn(Range.closed(112L, 128L)) // Actual number can vary with JRE
+    assertThat(check("Here is a string with text")).isEqualTo(56L)
   }
 
   @Test
@@ -43,7 +43,7 @@ class MemoryProbeTest {
   fun testBufferedImage() {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB)
-    assertThat(check(image)).isIn(Range.closed(1921488L, 1922336L)) // Actual number can vary with JRE
+    assertThat(check(image)).isEqualTo(968L)
   }
 
   @Test

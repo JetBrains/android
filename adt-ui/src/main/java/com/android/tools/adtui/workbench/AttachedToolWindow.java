@@ -4,6 +4,7 @@ package com.android.tools.adtui.workbench;
 import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
+import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -11,21 +12,22 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbAwareToggleAction;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
-import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
@@ -44,7 +46,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -71,11 +72,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final PropertiesComponent myPropertiesComponent;
   private final SideModel<T> myModel;
   private final JPanel myPanel;
-  private final List<UpdatableActionButton> myActionButtons;
   private final AbstractButton myMinimizedButton;
-  private final MySearchField mySearchField;
-  private final ActionButton mySearchActionButton;
+  private MySearchField mySearchField;
   private ButtonDragListener<T> myDragListener;
+  private ActionToolbar myActionToolbar;
+  private ActionButton mySearchActionButton;
+  private boolean myShowSearchField;
 
   @Nullable
   private ToolContent<T> myContent;
@@ -94,16 +96,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
-    myActionButtons = new ArrayList<>(4);
-    myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBench.getName() + ".TEXT_SEARCH_HISTORY");
-    mySearchActionButton = createActionButton(new SearchAction(), myDefinition.getButtonSize());
+    myMinimizedButton = new MinimizedButton<>(definition.getTitle(), definition.getIcon(), this);
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
-    DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
     if (globalFindAction != null) {
       new FindAction().registerCustomShortcutSet(globalFindAction.getShortcutSet(), myPanel, this);
@@ -247,7 +245,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       setProperty(property, true);
     }
     updateContent();
-    updateActions();
     myModel.update(this, property);
     if (property == PropertyType.MINIMIZED && !value && myContent != null) {
       myContent.getFocusedComponent().requestFocus();
@@ -265,7 +262,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       setProperty(property, getLayoutProperty(Layout.DEFAULT, property));
     }
     updateContent();
-    updateActions();
     myModel.update(this, PropertyType.DETACHED);
   }
 
@@ -276,6 +272,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @VisibleForTesting
+  @Nullable
   public SearchTextField getSearchField() {
     return mySearchField;
   }
@@ -292,13 +289,15 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       myContent.setToolContext(null);
       Disposer.dispose(myContent);
       myContent = null;
+      myActionToolbar = null;
+      mySearchActionButton = null;
     }
     else if (!isDetached() && myContent == null) {
       myContent = myDefinition.getFactory().apply(this);
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
       myContent.registerCallbacks(this);
-      myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
+      myPanel.add(createHeader(myContent), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
     myPanel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, myContent);
@@ -319,16 +318,19 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @NotNull
-  private JComponent createHeader(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
+  private JComponent createHeader(@NotNull ToolContent<T> content) {
+    myActionToolbar = createToolbar(content);
+    mySearchActionButton = findSearchActionButton(content, myActionToolbar);
+
     JPanel header = new JPanel(new BorderLayout());
-    header.add(createTitlePanel(myDefinition.getTitle(), includeSearchButton, mySearchField), BorderLayout.CENTER);
-    header.add(createActionPanel(includeSearchButton, additionalActions), BorderLayout.EAST);
+    header.add(createTitlePanel(myDefinition.getTitle(), content.supportsFiltering()), BorderLayout.CENTER);
+    header.add(myActionToolbar.getComponent(), BorderLayout.EAST);
     header.setBorder(new SideBorder(JBColor.border(), SideBorder.BOTTOM));
     return header;
   }
 
   @NotNull
-  private static JPanel createTitlePanel(@NotNull String title, boolean includeSearchField, @NotNull SearchTextField searchField) {
+  private JPanel createTitlePanel(@NotNull String title, boolean includeSearchField) {
     CardLayout layout = new CardLayout();
     JPanel titlePanel = new JPanel(layout);
     JLabel titleLabel = new JBLabel(title) {
@@ -341,20 +343,23 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     titleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
     titlePanel.add(titleLabel, LABEL_HEADER);
     if (includeSearchField) {
+      mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + myWorkBench.getName() + ".TEXT_SEARCH_HISTORY");
+
       // Override the preferred height of the search field in order to align all tool window headers
-      searchField.setPreferredSize(new Dimension(searchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
-      titlePanel.add(searchField, SEARCH_HEADER);
+      mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      titlePanel.add(mySearchField, SEARCH_HEADER);
     }
     layout.show(titlePanel, LABEL_HEADER);
     return titlePanel;
   }
 
   private void showSearchField(boolean show) {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     Container parent = mySearchField.getParent();
     CardLayout layout = (CardLayout)parent.getLayout();
+    myShowSearchField = show;
     if (show) {
       layout.show(parent, SEARCH_HEADER);
       mySearchField.requestFocus();
@@ -362,12 +367,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     else {
       layout.show(parent, LABEL_HEADER);
     }
-    mySearchActionButton.setVisible(!show);
+    updateActions();
   }
 
   @Override
   public void startFiltering(@NotNull String initialSearchString) {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     mySearchField.setText(initialSearchString);
@@ -376,7 +381,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   @Override
   public void stopFiltering() {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     mySearchField.setText("");
@@ -384,36 +389,42 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @NotNull
-  private JComponent createActionPanel(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
+  private ActionToolbar createToolbar(@NotNull ToolContent<T> content) {
+    DefaultActionGroup rightGroup = new DefaultActionGroup();
+    if (content.supportsFiltering()) {
+      rightGroup.add(new SearchAction());
+    }
+    if (!content.getAdditionalActions().isEmpty()) {
+      rightGroup.addAll(content.getAdditionalActions());
+      rightGroup.add(Separator.getInstance());
+    }
+    rightGroup.add(new GearAction());
+    rightGroup.add(new HideAction());
+    ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("AttachedToolWindow", rightGroup, true);
+    ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
+    actionToolbar.setMinimumButtonSize(myDefinition.getButtonSize());
+    actionToolbar.setTargetComponent(myPanel);
+    actionToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    actionToolbar.setReservePlaceAutoPopupIcon(false);
     Dimension buttonSize = myDefinition.getButtonSize();
     int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
-    JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-    actionPanel.setOpaque(false);
-    actionPanel.setBorder(JBUI.Borders.empty(border, 0));
-    if (includeSearchButton) {
-      actionPanel.add(mySearchActionButton);
-      mySearchActionButton.setVisible(true);
-    }
-    if (!additionalActions.isEmpty()) {
-      additionalActions.forEach(action -> actionPanel.add(createActionButton(action, buttonSize)));
-      actionPanel.add(new JLabel(AllIcons.General.Divider));
-    }
-    actionPanel.add(createActionButton(new GearAction(), buttonSize));
-    actionPanel.add(createActionButton(new HideAction(), buttonSize));
-    return actionPanel;
+    actionToolbar.getComponent().setBorder(JBUI.Borders.empty(border, 0));
+    return actionToolbar;
   }
 
-  @NotNull
-  private ActionButton createActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
-    UpdatableActionButton button = new UpdatableActionButton(action, buttonSize);
-    button.setFocusable(true);
-    myActionButtons.add(button);
-    return button;
+  @Nullable
+  private ActionButton findSearchActionButton(@NotNull ToolContent<T> content, @NotNull ActionToolbar actionToolbar) {
+    if (!content.supportsFiltering()) {
+      return null;
+    }
+    return ActionToolbarUtil.findActionButton(actionToolbar, actionToolbar.getActions().get(0));
   }
 
   @VisibleForTesting
   public void updateActions() {
-    myActionButtons.forEach(UpdatableActionButton::update);
+    if (myActionToolbar != null) {
+      myActionToolbar.updateActionsImmediately();
+    }
   }
 
   private void showGearPopup(@NotNull Component component, int x, int y) {
@@ -495,12 +506,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myDragListener.buttonDropped(this, event);
   }
 
-  private static final class MinimizedButton extends AnchoredButton {
-    private final AttachedToolWindow<?> myToolWindow;
+  private static class MinimizedButton<T> extends AnchoredButton {
+    private final AttachedToolWindow<T> myToolWindow;
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<?> toolWindow) {
+    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<T> toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -526,7 +537,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
         @Override
         public void mouseClicked(@NotNull MouseEvent event) {
-          if (event.getButton() <= MouseEvent.BUTTON1) {
+          if ((event.getModifiersEx() & InputEvent.META_DOWN_MASK) == 0) {
             setSelected(false);
             myToolWindow.setPropertyAndUpdate(AttachedToolWindow.PropertyType.MINIMIZED, !myToolWindow.isMinimized());
           }
@@ -608,17 +619,16 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private static class UpdatableActionButton extends ActionButton {
-    private UpdatableActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
-      super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
-    }
-  }
-
   private class SearchAction extends DumbAwareAction {
+
     private SearchAction() {
-      super("Search");
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.Actions.Find);
+      super("Search", null, AllIcons.Actions.Find);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setVisible(!myShowSearchField);
     }
 
     @Override
@@ -709,7 +719,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       myModel.swap();
-      updateActions();
     }
   }
 
@@ -785,7 +794,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
         else if (myContent != null) {
           myContent.getFocusedComponent().requestFocus();
         }
-        else {
+        else if (mySearchActionButton != null) {
           mySearchActionButton.requestFocus();
         }
       }

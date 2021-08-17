@@ -16,8 +16,13 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.packaging.artifacts.ArtifactManager;
+import com.intellij.packaging.elements.CompositePackagingElement;
+import com.intellij.packaging.elements.PackagingElementFactory;
 import java.util.Collection;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.android.compiler.artifact.AndroidFinalPackageElement;
 import org.mockito.Mockito;
 
 /**
@@ -38,5 +43,25 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
     ApkInfo apk = apks.iterator().next();
     assertEquals("p1.p2", apk.getApplicationId());
     assertTrue(apk.getFile().getPath().endsWith("artifact.apk"));
+  }
+
+  public void testGetApksWithArtifactName() throws Exception{
+    IDevice device = Mockito.mock(IDevice.class);
+
+    ArtifactManager artifactManager = ArtifactManager.getInstance(myFacet.getModule().getProject());
+    CompositePackagingElement<?> archive = PackagingElementFactory.getInstance().createArchive("right.apk");
+    archive.addFirstChild(new AndroidFinalPackageElement(myFacet.getModule().getProject(), myFacet));
+    artifactManager.addArtifact("customApk", AndroidApplicationArtifactType.getInstance(), archive);
+
+    myFacet.getProperties().APK_PATH = "wrong.apk";
+
+    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, new NonGradleApplicationIdProvider(myFacet), "customApk");
+
+    Collection<ApkInfo> apks = provider.getApks(device);
+    assertNotNull(apks);
+    assertEquals(1, apks.size());
+    ApkInfo apk = apks.iterator().next();
+    assertEquals("p1.p2", apk.getApplicationId());
+    assertTrue(apk.getFile().getPath().endsWith("right.apk"));
   }
 }

@@ -55,7 +55,7 @@ class FilteringTest {
 
   @Test
   fun testSingleElementFiltering() {
-    val staticPreviewProvider = StaticPreviewProvider(listOf(
+    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
@@ -79,7 +79,7 @@ class FilteringTest {
 
   @Test
   fun `multiple @Preview for the same MethodFqn`() {
-    val staticPreviewProvider = StaticPreviewProvider(listOf(
+    val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name1"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name2"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "Name1")

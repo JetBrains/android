@@ -2,8 +2,9 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
@@ -15,23 +16,27 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
  */
 class AppInspectionToolWindowManagerListener(
   private val project: Project,
-  private val appInspectionView: AppInspectionView
+  private val ideServices: AppInspectionIdeServices,
+  private val toolWindow: ToolWindow,
+  private val appInspectionView: AppInspectionView,
 ) : ToolWindowManagerListener {
-  private var isWindowMinimizedBubbleShown = false
-  private var wasVisible = false
+  private var wasVisible = toolWindow.isVisible
+
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
-    val inspectionToolWindow = toolWindowManager.getToolWindow(APP_INSPECTION_ID) ?: return
-    val visibilityChanged = inspectionToolWindow.isVisible != wasVisible
-    wasVisible = inspectionToolWindow.isVisible
+    val isVisible = toolWindow.isVisible
+    val visibilityChanged = isVisible != wasVisible
+    wasVisible = isVisible
+
     if (visibilityChanged) {
-      if (inspectionToolWindow.isVisible) {
+      if (isVisible) {
         AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowOpened()
       }
       else {
         AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowHidden()
-        if (!isWindowMinimizedBubbleShown && appInspectionView.isInspectionActive()) {
-          isWindowMinimizedBubbleShown = true
-          toolWindowManager.notifyByBalloon(APP_INSPECTION_ID, MessageType.INFO, AppInspectionBundle.message("inspection.is.running"))
+        if (appInspectionView.isInspectionActive()) {
+          ideServices.showNotification(AppInspectionBundle.message("inspection.is.running"), hyperlinkClicked = {
+            appInspectionView.stopInspectors()
+          })
         }
       }
     }

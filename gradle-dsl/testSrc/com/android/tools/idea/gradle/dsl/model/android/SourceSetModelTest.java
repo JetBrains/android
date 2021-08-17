@@ -213,7 +213,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     android = buildModel.android();
     assertNotNull(android);
-    checkForInValidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
     assertThat(android.sourceSets()).isEmpty();
   }
 
@@ -365,7 +365,43 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     android = buildModel.android();
     assertNotNull(android);
-    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
+    assertEmpty(android.sourceSets());
+  }
+
+  @Test
+  public void testDeleteAndApplyBlockElements() throws Exception {
+    writeToBuildFile(SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    checkForValidPsiElement(android, AndroidModelImpl.class);
+
+    List<SourceSetModel> sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    SourceSetModel sourceSet = sourceSets.get(0);
+    assertEquals("name", "main", sourceSet.name());
+    verifySourceSet(sourceSet, true /*elements are present in the file and the parser was able to find them all*/);
+
+    sourceSet.aidl().delete();
+    sourceSet.assets().delete();
+    sourceSet.java().delete();
+    sourceSet.jni().delete();
+    sourceSet.jniLibs().delete();
+    sourceSet.manifest().delete();
+    sourceSet.mlModels().delete();
+    sourceSet.renderscript().delete();
+    sourceSet.res().delete();
+    sourceSet.resources().delete();
+    sourceSet.shaders().delete();
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
+    android = buildModel.android();
+    assertNotNull(android);
+    checkForInvalidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
 

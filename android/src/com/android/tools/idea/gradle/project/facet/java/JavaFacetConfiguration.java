@@ -23,10 +23,8 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
-import org.jetbrains.annotations.NonNls;
 
 public class JavaFacetConfiguration implements FacetConfiguration {
-  @NonNls public String BUILD_FOLDER_PATH;
   public boolean BUILDABLE;
 
   @Override

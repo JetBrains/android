@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.FULL_SYNC_KEY
 import com.android.tools.idea.gradle.project.upgrade.ForcedPluginPreviewVersionUpgradeDialog

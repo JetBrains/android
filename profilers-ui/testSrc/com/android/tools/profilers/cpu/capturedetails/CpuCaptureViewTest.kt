@@ -28,12 +28,11 @@ import com.android.tools.profilers.ReferenceWalker
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
-import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
+import com.android.tools.profilers.cpu.capturedetails.RecordingInitiatorPane.STOP_TEXT
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -132,7 +131,7 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
     }
     val recordingPane = TreeWalker(captureView.component).descendants().filterIsInstance<CpuCaptureView.RecordingPane>()[0]
     val stopButton = TreeWalker(recordingPane).descendants().filterIsInstance<JButton>().first {
-      it.text == CpuProfilerToolbar.STOP_TEXT
+      it.text == STOP_TEXT
     }
     assertThat(stopButton.isEnabled).isTrue()
     cpuProfiler.stopCapturing(true, CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))

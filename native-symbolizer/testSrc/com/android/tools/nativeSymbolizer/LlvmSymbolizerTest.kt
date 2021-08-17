@@ -15,7 +15,7 @@
  */
 package com.android.tools.nativeSymbolizer
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Assert
@@ -28,7 +28,7 @@ import java.nio.file.Paths
 
 class LlvmSymbolizerTest {
 
-  val testDataDir = TestUtils.getWorkspaceFile("tools/adt/idea/native-symbolizer/testData/bin/").absolutePath
+  val testDataDir = resolveWorkspacePath("tools/adt/idea/native-symbolizer/testData/bin/").toString()
   val LIB_FILE_NAME = "libnative-lib.so"
   val EXPECTED_SYMBOLS_FILE_NAME = "symbols.txt"
   val architectures = listOf("arm", "arm64", "x86", "x86_64")

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;

@@ -19,16 +19,15 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.Collections.emptyList;
 
-import com.android.ide.common.gradle.model.IdeJavaLibrary;
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl;
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryCore;
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl;
-import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder;
-import com.android.ide.common.gradle.model.stubs.ModuleLibraryStubBuilder;
-import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
+import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.testing.Facets;
@@ -65,10 +64,9 @@ public class DependenciesExtractorTest extends HeavyPlatformTestCase {
       ), false
     );
 
-    IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
-    builder.setJavaLibraries(ImmutableList.of(javaLibrary));
-
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(builder.build(), myModuleFinder).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(
+      new IdeDependenciesImpl(emptyList(), ImmutableList.of(javaLibrary), emptyList(), emptyList()),
+      myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -89,20 +87,35 @@ public class DependenciesExtractorTest extends HeavyPlatformTestCase {
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-    AndroidLibraryStubBuilder builder = new AndroidLibraryStubBuilder();
-    builder.setArtifactAddress("com.android.support:support-core-ui:25.3.1@aar");
-    builder.setArtifactFile(libAar);
-    builder.setJarFile(libJar.getPath());
-    builder.setCompileJarFile(libCompileJar.getPath());
-    builder.setResFolder(resFolder.getPath());
-    builder.setLocalJars(Collections.singletonList(localJar.getPath()));
-    IdeAndroidLibraryImpl library = builder.build();
+    IdeAndroidLibrary androidLibrary = new IdeAndroidLibraryImpl(
+      "com.android.support:support-core-ui:25.3.1@aar",
+      new File("libraryFolder"),
+      "manifest.xml",
+      ImmutableList.of(libCompileJar.getPath(), localJar.getPath()),
+      ImmutableList.of(libJar.getPath(), localJar.getPath()),
+      resFolder.getPath(),
+      new File("libraryFolder/res.apk"),
+      "assets",
+      "jni",
+      "aidl",
+      "renderscriptFolder",
+      "proguardRules",
+      "lint.jar",
+      "externalAnnotations",
+      "publicResources",
+      libAar,
+      "symbolFile",
+      false
+    );
 
-    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
-    dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
-
-    DependencySet dependencySet = myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(),
-                                                                      myModuleFinder
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(
+      new IdeDependenciesImpl(
+        ImmutableList.of(androidLibrary),
+        ImmutableList.of(),
+        ImmutableList.of(),
+        ImmutableList.of()
+      ),
+      myModuleFinder
     );
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
@@ -122,15 +135,19 @@ public class DependenciesExtractorTest extends HeavyPlatformTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder(gradlePath);
-    IdeModuleLibraryImpl library = builder.build();
+    IdeModuleLibraryImpl library = new IdeModuleLibraryImpl(gradlePath, "", null, null);
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
 
-    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
-    dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(dependenciesStubBuilder.build(), myModuleFinder).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(
+      new IdeDependenciesImpl(
+        ImmutableList.of(),
+        ImmutableList.of(),
+        ImmutableList.of(library),
+        ImmutableList.of()
+      ),
+      myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);

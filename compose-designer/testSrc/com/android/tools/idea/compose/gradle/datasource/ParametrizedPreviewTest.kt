@@ -16,13 +16,13 @@
 package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.ide.common.blame.Message
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.StaticPreviewProvider
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -48,8 +48,8 @@ class ParametrizedPreviewTest {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
     if (!gradleInvocationResult.isBuildSuccessful) {
       Assert.fail("""
@@ -84,8 +84,7 @@ class ParametrizedPreviewTest {
 
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestWithProvider" }
-                              .toList()))
+                              .filter { it.displaySettings.name == "TestWithProvider" }))
       .previewElements
     assertEquals(3, elements.count())
 
@@ -106,8 +105,7 @@ class ParametrizedPreviewTest {
 
     val elements = PreviewElementTemplateInstanceProvider(
       StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                              .filter { it.displaySettings.name == "TestLorem" }
-                              .toList()))
+                              .filter { it.displaySettings.name == "TestLorem" }))
       .previewElements
     assertEquals(1, elements.count())
 

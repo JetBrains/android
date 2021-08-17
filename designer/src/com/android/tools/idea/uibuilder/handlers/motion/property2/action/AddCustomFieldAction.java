@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
+package com.android.tools.idea.uibuilder.handlers.motion.property.action;
 
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.NewCustomAttributePanel;
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel;
+import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection;
+import com.android.tools.idea.uibuilder.handlers.motion.property.NewCustomAttributePanel;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;

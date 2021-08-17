@@ -19,15 +19,18 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
 import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
+import com.intellij.openapi.util.io.FileUtil
 import io.grpc.stub.StreamObserver
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -35,8 +38,8 @@ class TraceProcessorServiceImplTest {
 
   private val fakeGrpcService = TPServiceInMemoryForTesting()
   private val fakeTicker = FakeTicker(10, TimeUnit.MILLISECONDS)
-  private val fakeFeatureTracker = FakeFeatureTracker()
-
+  private val fakeIdeProfilerServices = FakeIdeProfilerServices()
+  private val fakeFeatureTracker = fakeIdeProfilerServices.featureTracker as FakeFeatureTracker
   @get:Rule
   val tempFolder = TemporaryFolder()
 
@@ -55,13 +58,15 @@ class TraceProcessorServiceImplTest {
     val traceFile = tempFolder.newFile("perfetto.trace")
     traceFile.writeBytes(Random.Default.nextBytes(256))
 
-    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
 
     assertThat(traceLoaded).isTrue()
-
+    val symbolsFile = File("${FileUtil.getTempDirectory()}${File.separator}10.symbols")
     val expectedRequest = TraceProcessor.LoadTraceRequest.newBuilder()
       .setTraceId(10)
       .setTracePath(traceFile.absolutePath)
+      .addSymbolPath("/fake/sym/dir/")
+      .setSymbolizedOutputPath(symbolsFile.absolutePath)
       .build()
     assertThat(fakeGrpcService.lastLoadTraceRequest).isEqualTo(expectedRequest)
 
@@ -81,7 +86,7 @@ class TraceProcessorServiceImplTest {
 
     val traceFile = tempFolder.newFile("perfetto.trace")
     traceFile.writeBytes(Random.Default.nextBytes(256))
-    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
     assertThat(traceLoaded).isFalse()
     assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
       Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getErrorMetricStatsFor(10, 10, 256)))
@@ -99,7 +104,7 @@ class TraceProcessorServiceImplTest {
 
     val traceFile = tempFolder.newFile("perfetto.trace")
     traceFile.writeBytes(Random.Default.nextBytes(256))
-    val traceLoaded = ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    val traceLoaded = ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
     assertThat(traceLoaded).isTrue()
     assertThat(fakeFeatureTracker.traceProcessorQueryMetrics).containsExactly(
       Pair.of(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE, getOkMetricStatsFor(10, 10, 256)))
@@ -119,7 +124,7 @@ class TraceProcessorServiceImplTest {
     traceFile.writeBytes(Random.Default.nextBytes(256))
 
     try {
-      ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+      ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
       assertThat(e.message).isEqualTo("TPD Service: Fail to load trace 10: Unable to reach TPDaemon.")
@@ -139,7 +144,7 @@ class TraceProcessorServiceImplTest {
       .addResult(TraceProcessor.QueryResult.newBuilder().setOk(true))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
+    ideService.loadCpuData(10, listOf(33, 42), "foo", fakeIdeProfilerServices)
 
     val expectedRequest = TraceProcessor.QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
@@ -151,6 +156,10 @@ class TraceProcessorServiceImplTest {
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setCpuCoreCountersRequest(TraceProcessor.QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setAndroidFrameEventsRequest(
+                    TraceProcessor.QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint("foo")))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(33)))
@@ -182,7 +191,7 @@ class TraceProcessorServiceImplTest {
     val traceFile = tempFolder.newFile("perfetto.trace")
     traceFile.writeBytes(Random.Default.nextBytes(256))
 
-    ideService.loadTrace(10, traceFile, fakeFeatureTracker)
+    ideService.loadTrace(10, traceFile, fakeIdeProfilerServices)
     fakeGrpcService.lastLoadTraceRequest = null // Mark as a null, so we can verify below it was called
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
@@ -192,7 +201,7 @@ class TraceProcessorServiceImplTest {
                    .setFailureReason(TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
+    ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
     // Can't do assertThat(...).isNotNull() because of a problem that assertThat(Any?).isNotNull()
     fakeGrpcService.lastLoadTraceRequest ?: fail("Expected lastLoadTraceRequest to not be null")
 
@@ -216,7 +225,7 @@ class TraceProcessorServiceImplTest {
       .build()
 
     try {
-      ideService.loadCpuData(10, listOf(33, 42), fakeFeatureTracker)
+      ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
       assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")

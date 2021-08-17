@@ -28,7 +28,6 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
@@ -97,14 +96,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       createController = { _, _, _, _ -> databaseInspectorController }
     )
 
-    processDescriptor = object : ProcessDescriptor {
-      override val manufacturer = "manufacturer"
-      override val model = "model"
-      override val serial = "serial"
-      override val processName = "processName"
-      override val isEmulator = false
-      override val isRunning = true
-    }
+    processDescriptor = StubProcessDescriptor()
   }
 
   override fun tearDown() {
@@ -152,6 +144,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
@@ -166,7 +160,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     }
 
     // Assert
-    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices)
+    verify(databaseInspectorController).startAppInspectionSession(clientCommandsChannel, appInspectionServices, processDescriptor, processDescriptor.name)
     verify(databaseInspectorController).stopAppInspectionSession("processName", processDescriptor)
   }
 
@@ -232,6 +226,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)

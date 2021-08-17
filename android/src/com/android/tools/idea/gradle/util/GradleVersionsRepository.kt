@@ -25,11 +25,11 @@ import com.google.gson.JsonParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.PathUtil
 import com.intellij.util.io.HttpRequests
 import org.jetbrains.ide.PooledThreadExecutor
-import java.io.File
 import java.io.InputStream
+import java.nio.file.Path
+import java.nio.file.Paths
 
 const val GRADLE_VERSIONS_URL = "https://services.gradle.org/versions/all"
 const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
@@ -72,11 +72,12 @@ fun parseGradleVersionsResponse(response: InputStream): List<String> =
       ?.get("version")?.asString
     }
 
-private fun getCacheDir(): File? =
+private fun getCacheDir(): Path? {
   if (ApplicationManager.getApplication() == null ||
       ApplicationManager.getApplication().isUnitTestMode ||
-      GuiTestingService.getInstance().isGuiTestingMode)
+      GuiTestingService.getInstance().isGuiTestingMode) {
     // Test mode
-    null
-  else
-    File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), GRADLE_VERSIONS_CACHE_DIR_KEY)
+    return null
+  }
+  return Paths.get(PathManager.getSystemPath()).normalize().resolve(GRADLE_VERSIONS_CACHE_DIR_KEY)
+}

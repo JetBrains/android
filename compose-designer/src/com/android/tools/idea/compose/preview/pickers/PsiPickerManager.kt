@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyMode
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.Point
@@ -30,23 +29,9 @@ import javax.swing.BoxLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.LayoutFocusTraversalPolicy
 
 object PsiPickerManager {
-  /**
-   * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
-   */
-  fun showForEvent(e: AnActionEvent, model: PsiPropertyModel) {
-    val disposable = Disposer.newDisposable()
-    val popup = createPopup(disposable)
-    val previewPickerPanel = createPreviewPickerPanel(disposable, model)
-
-    val owner = e.inputEvent.component
-    val location = owner.locationOnScreen
-    // Center the picker in the middle of the parent width, usually a button. The popup will show up at the bottom of the owner.
-    location.translate(owner.width / 2, owner.height)
-
-    popup.show(previewPickerPanel, null, location)
-  }
 
   /**
    * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
@@ -78,5 +63,8 @@ private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyM
       isOpaque = false
       border = JBUI.Borders.empty(0, 0, 8, 0)
     })
+    isFocusCycleRoot = true
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
 }

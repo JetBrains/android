@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.compose
+package com.android.tools.compose
 
 import com.intellij.application.options.editor.CheckboxDescriptor
 import com.intellij.application.options.editor.checkBox
@@ -21,20 +21,18 @@ import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel
-import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Provides additional options in Settings | Editor | Code Completion section.
  *
- * Contains a checkbox that allows enable/disable [AndroidComposeInsertHandler].
+ * Contains a checkbox that allows enable/disable [ComposeInsertHandler].
  */
 class ComposeCodeCompletionConfigurable : BoundConfigurable("Compose") {
-  private val editor = AndroidEditorSettings.getInstance()
+  private val settings = ComposeSettings.getInstance()
 
   private val checkboxDescriptor = CheckboxDescriptor(
-    AndroidBundle.message("compose.enable.insertion.handler"),
-    PropertyBinding(editor.globalState::isComposeInsertHandlerEnabled, editor.globalState::setComposeInsertHandlerEnabled)
+    ComposeBundle.message("compose.enable.insertion.handler"),
+    PropertyBinding({ settings.state.isComposeInsertHandlerEnabled }, { settings.state.isComposeInsertHandlerEnabled = it })
   )
 
   override fun createPanel(): DialogPanel {

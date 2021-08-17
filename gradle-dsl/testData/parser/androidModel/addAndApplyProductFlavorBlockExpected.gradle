@@ -2,6 +2,7 @@ android {
   productFlavors {
     flavor {
       applicationId 'abc.xyz'
+      isDefault true
     }
   }
 }

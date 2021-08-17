@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -38,7 +39,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
@@ -48,9 +51,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A project service that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
- * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
- * needed.
+ * A project service that manages {@link ResourceFolderRepository} instances, creating them as necessary and reusing repositories for
+ * the same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created,
+ * if needed.
  */
 public final class ResourceFolderRegistry implements Disposable {
   @NotNull private final Project myProject;
@@ -106,8 +109,11 @@ public final class ResourceFolderRegistry implements Disposable {
   private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
                                                            @NotNull VirtualFile dir,
                                                            @NotNull ResourceNamespace namespace) {
-    ResourceFolderRepositoryCachingData cachingData = ResourceFolderRepositoryFileCacheService.get()
-        .getCachingData(facet.getModule().getProject(), dir, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
+                        runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
+    ResourceFolderRepositoryCachingData cachingData =
+        ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
@@ -125,18 +131,27 @@ public final class ResourceFolderRegistry implements Disposable {
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
-    myNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
-    myNonNamespacedCache.asMap().keySet().removeIf(dir -> isStale(dir));
+    removeStaleEntries(myNamespacedCache);
+    removeStaleEntries(myNonNamespacedCache);
   }
 
-  private boolean isStale(@NotNull VirtualFile dir) {
-    AndroidFacet facet = AndroidFacet.getInstance(dir, myProject);
-    if (facet == null) {
-      return true;
+  private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
+    Set<VirtualFile> resourceFolders = cache.asMap().keySet();
+    if (resourceFolders.isEmpty()) {
+      return;
+    }
+    Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(resourceFolders.size());
+    Set<VirtualFile> newResourceFolders = Sets.newHashSetWithExpectedSize(resourceFolders.size());
+    for (VirtualFile folder : resourceFolders) {
+      AndroidFacet facet = AndroidFacet.getInstance(folder, myProject);
+      if (facet != null && facets.add(facet)) {
+        ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
+        newResourceFolders.addAll(folderManager.getFolders());
+        newResourceFolders.addAll(folderManager.getTestFolders());
+      }
     }
 
-    ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
-    return !folderManager.getFolders().contains(dir) && !folderManager.getTestFolders().contains(dir);
+    resourceFolders.retainAll(newResourceFolders);
   }
 
   @Override
@@ -144,8 +159,7 @@ public final class ResourceFolderRegistry implements Disposable {
     reset();
   }
 
-  void dispatchToRepositories(@NotNull VirtualFile file,
-                                      @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
     for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
       for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
         ResourceFolderRepository repository = cache.getIfPresent(dir);

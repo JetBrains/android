@@ -107,16 +107,18 @@ def _write_file(zip_path, mode, data, entry, sub_entry=None):
 
 
 RES_PATH = {
-  "linux": "android-studio/",
-  "win": "android-studio/",
-  "mac": "Android Studio.app/Contents/Resources/",
+  "linux": "",
+  "win": "",
+  "mac": "Contents/Resources/",
+  "mac_arm": "Contents/Resources/",
 }
 
 
 BASE_PATH = {
-  "linux": "android-studio/",
-  "win": "android-studio/",
-  "mac": "Android Studio.app/Contents/",
+  "linux": "",
+  "win": "",
+  "mac": "Contents/",
+  "mac_arm": "Contents/",
 }
 
 
@@ -149,7 +151,7 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   if os == "linux":
     info = _read_file(platform, base_path + "product-info.json")
     info = info.replace("__BUILD_NUMBER__", bid)
-  elif os == "mac":
+  elif os == "mac" or os == "mac_arm":
     info = _read_file(platform, base_path + "Info.plist")
     info = info.replace("__BUILD_NUMBER__", bid)
 
@@ -162,7 +164,7 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
 
   if os == "linux":
     _write_file(out, "a", info, base_path + "product-info.json")
-  elif os == "mac":
+  elif os == "mac" or os == "mac_arm":
     _write_file(out, "a", info, base_path + "Info.plist")
 
 
@@ -189,7 +191,7 @@ def main(argv):
       "--os",
       default="",
       dest="os",
-      choices = ["linux", "mac", "win"],
+      choices = ["linux", "mac", "mac_arm", "win"],
       help="The operating system the platform belongs to")
   parser.add_argument(
       "--version_micro",

@@ -17,6 +17,7 @@ package org.jetbrains.android
 
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass
@@ -36,7 +37,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointer
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
@@ -161,7 +161,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       return CachedValuesManager.getManager(project).getCachedValue(module, cacheKey, {
         CachedValueProvider.Result(
           computeAdditionalResolveScopeForModule(module, includeTests),
-          ProjectRootModificationTracker.getInstance(project)
+          ProjectSyncModificationTracker.getInstance(project)
         )
       }, false)
     }

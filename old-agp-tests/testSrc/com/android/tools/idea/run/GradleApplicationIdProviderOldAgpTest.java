@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,7 +73,7 @@ public class GradleApplicationIdProviderOldAgpTest extends AndroidGradleTestCase
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
     void setInstantAppProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull InstantAppProjectBuildOutput instantAppProjectBuildOutput) {
-      when(myPostBuildModel.findInstantAppProjectBuildOutput(facet)).thenReturn(instantAppProjectBuildOutput);
+      when(myPostBuildModel.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(instantAppProjectBuildOutput);
     }
 
     @Override

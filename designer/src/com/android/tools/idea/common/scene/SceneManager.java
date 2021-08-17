@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -25,21 +26,26 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderUtils;
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
-abstract public class SceneManager implements Disposable {
+abstract public class SceneManager implements Disposable, ResourceNotificationManager.ResourceChangeListener {
   /**
    * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
    */
@@ -84,6 +90,11 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
   @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
+
+  @NotNull private final Object myActivationLock = new Object();
+  @GuardedBy("myActivationLock")
+  private boolean myIsActivated = false;
+
 
   /**
    * Creates a new {@link SceneManager}.
@@ -132,16 +143,7 @@ abstract public class SceneManager implements Disposable {
    * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
    */
   public final void updateSceneView() {
-    // Remove the current SceneViews before they are disposed
-    for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.removeSceneView(sceneView);
-    }
     createSceneView();
-
-    // Add the newly allocated SceneViews
-    for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.addSceneView(sceneView);
-    }
   }
 
   @Deprecated // A SceneManager can have more than one SceneView. Use getSceneViews() instead
@@ -164,9 +166,7 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
-    for (SceneView sceneView : getSceneViews()) {
-      myDesignSurface.removeSceneView(sceneView);
-    }
+    deactivate(this);
   }
 
   /**
@@ -192,7 +192,29 @@ abstract public class SceneManager implements Disposable {
     mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
-    SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
+    SceneComponent root;
+    if (hierarchy.isEmpty()) {
+      root = null;
+    }
+    else if (hierarchy.size() == 1) {
+      root = hierarchy.get(0);
+    }
+    else {
+      root = new SceneComponent(scene, rootComponent, scene.getSceneManager().getHitProvider(rootComponent));
+      int minX = Integer.MAX_VALUE;
+      int minY = Integer.MAX_VALUE;
+      int maxX = 0;
+      int maxY = 0;
+      for (SceneComponent child: hierarchy) {
+        minX = Math.min(minX, child.getDrawX());
+        minY = Math.min(minY, child.getDrawY());
+        maxX = Math.max(maxX, child.getDrawX() + child.getDrawWidth());
+        maxY = Math.max(maxY, child.getDrawY() + child.getDrawHeight());
+        root.addChild(child);
+      }
+      root.setPosition(minX, minY);
+      root.setSize(maxX - minX, maxY - minY);
+    }
     scene.setRoot(root);
     if (root != null) {
       updateFromComponent(root, usedComponents);
@@ -304,6 +326,17 @@ abstract public class SceneManager implements Disposable {
    * @returns true if the {@link SceneManager} was not active before and was activated.
    */
   public boolean activate(@NotNull Object source) {
+    synchronized (myActivationLock) {
+      if (!myIsActivated) {
+        AndroidFacet facet = myModel.getFacet();
+        VirtualFile file = myModel.getVirtualFile();
+        Configuration config = myModel.getConfiguration();
+        ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+        manager.addListener(this, facet, file, config);
+        myIsActivated = true;
+      }
+    }
+    // NlModel handles the double activation/deactivation itself.
     return getModel().activate(source);
   }
 
@@ -316,6 +349,47 @@ abstract public class SceneManager implements Disposable {
    * @returns true if the {@link SceneManager} was active before and was deactivated.
    */
   public boolean deactivate(@NotNull Object source) {
+    synchronized (myActivationLock) {
+      if (myIsActivated) {
+        AndroidFacet facet = myModel.getFacet();
+        VirtualFile file = myModel.getVirtualFile();
+        Configuration config = myModel.getConfiguration();
+        ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+        manager.removeListener(this, facet, file, config);
+        myIsActivated = false;
+      }
+    }
+    // NlModel handles the double activation/deactivation itself.
     return getModel().deactivate(source);
+  }
+
+  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
+
+  @Override
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+    for (ResourceNotificationManager.Reason reason : reasons) {
+      switch (reason) {
+        case RESOURCE_EDIT:
+          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.RESOURCE_EDIT);
+          break;
+        case EDIT:
+          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.EDIT);
+          break;
+        case IMAGE_RESOURCE_CHANGED:
+          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
+          myModel.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+          break;
+        case GRADLE_SYNC:
+        case PROJECT_BUILD:
+        case VARIANT_CHANGED:
+        case SDK_CHANGED:
+          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
+          myModel.notifyModified(NlModel.ChangeType.BUILD);
+          break;
+        case CONFIGURATION_CHANGED:
+          myModel.notifyModified(NlModel.ChangeType.CONFIGURATION_CHANGE);
+          break;
+      }
+    }
   }
 }

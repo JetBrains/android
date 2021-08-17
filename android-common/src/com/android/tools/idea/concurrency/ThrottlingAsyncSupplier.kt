@@ -88,12 +88,13 @@ class ThrottlingAsyncSupplier<V : Any>(
       return Futures.immediateFuture(cachedValue)
     }
     val computation = Computation<V>(modificationCount)
-    val scheduled = scheduledComputation.updateAndGet { it ?: computation }
-    if (scheduled === computation) {
+    val scheduled = scheduledComputation.compareAndExchange(null, computation)
+    if (scheduled == null) {
       // Our thread won and our computation is considered scheduled. Let's schedule it:
       alarm.addRequest(this::runScheduledComputation, determineDelay(cachedComputation, lastFailedComputation.get()))
+      return computation.getResult()
     }
-    return scheduled!!.getResult()
+    return scheduled.getResult()
   }
 
   private fun runScheduledComputation() {

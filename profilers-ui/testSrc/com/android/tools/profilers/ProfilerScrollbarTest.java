@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.stdui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -29,14 +29,15 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ProfilerScrollbarTest {
+public class StreamingScrollbarTest {
 
   public static final float EPSILON = 0.0001f;
   private StreamingTimeline myTimeline;
-  private ProfilerScrollbar myScrollbar;
+  private StreamingScrollbar myScrollbar;
   private JPanel myPanel;
   private FakeUi myUi;
   private FakeTimer myTimer;
@@ -48,7 +49,7 @@ public class ProfilerScrollbarTest {
     myTimeline = new StreamingTimeline(updater);
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
-    myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);
+    myScrollbar = new StreamingScrollbar(myTimeline, myPanel);
     myScrollbar.setSize(100, 10);
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(myPanel, BorderLayout.CENTER);
@@ -62,7 +63,7 @@ public class ProfilerScrollbarTest {
 
   @Test
   public void testInitialization() {
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(myTimeline, myPanel);
+    StreamingScrollbar scrollbar = new StreamingScrollbar(myTimeline, myPanel);
 
     // Scrollbar's model should be correct without an explicit update.
     // Note: model units are kept in 1000th of a range unit
@@ -99,7 +100,7 @@ public class ProfilerScrollbarTest {
   public void testZoom() {
     // Zoom in
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     myUi.mouse.wheel(50, 50, -1);
     myTimer.tick(TimeUnit.SECONDS.toNanos(5));
@@ -127,7 +128,7 @@ public class ProfilerScrollbarTest {
     myTimeline.getViewRange().set(0, initialMax);
     // Zoom in
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     assertTrue(myScrollbar.isScrollable());
     myUi.mouse.wheel(50, 50, -1);
@@ -229,7 +230,7 @@ public class ProfilerScrollbarTest {
     myTimeline.getViewRange().set(0, 10000);
 
     double delta = myScrollbar.getZoomWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY_CODE); // Menu+wheel == zoom
 
     // Zoom out should work but does nothing.
     myUi.mouse.wheel(50, 50, 1);

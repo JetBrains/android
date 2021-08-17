@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.ui
+package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
-import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
+import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces

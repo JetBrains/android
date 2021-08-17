@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
@@ -42,6 +43,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfiguratio
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
+import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText.*;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -52,6 +55,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -724,7 +728,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     // and thee guavaVersion variable is reported for version property.
     GradlePropertyModel version = guavaDependencyModel.version();
-    verifyPropertyModel(version, STRING_TYPE, "18.0", STRING, DERIVED, 1, "version");
+    verifyPropertyModel(version, STRING_TYPE, "18.0", INTERPOLATED, DERIVED, 1, "version");
     assertThat(version.getRawValue(STRING_TYPE)).isEqualTo("$guavaVersion");
   }
 
@@ -790,7 +794,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     // and thee guavaVersion variable is reported for version property.
     GradlePropertyModel version = guavaDependencyModel.version();
-    verifyPropertyModel(version, STRING_TYPE, "18.0", STRING, DERIVED, 1, "version");
+    verifyPropertyModel(version, STRING_TYPE, "18.0", INTERPOLATED, DERIVED, 1, "version");
     assertThat(version.getRawValue(STRING_TYPE)).isEqualTo("$guavaVersion");
 
     guavaVersionVariable = guavaResolvedVariables.get(0);
@@ -1343,11 +1347,59 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     firstModel = artifacts.get(0);
     verifyPropertyModel(firstModel.version(), STRING_TYPE, "3.6", STRING, FAKE, 1, "version");
-    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:${version}");
+    assertThat(firstModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:$version");
 
     secondModel = artifacts.get(1);
     verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, FAKE, 1, "name");
-    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${name}:+");
+    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:$name:+");
+  }
+
+  @Test
+  public void CompactNotationSetToInterpolation() throws IOException {
+    writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_INTERPOLATION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    // Get the version variable model
+    ExtModel extModel = buildModel.ext();
+    GradlePropertyModel version = extModel.findProperty("version");
+    InterpolatedText interpolation = new InterpolatedText(
+      Collections.singletonList(new InterpolatedTextItem(new ReferenceTo(version))));
+
+    ArtifactDependencyModel artifactModel = artifacts.get(0);
+    artifactModel.version().setValue(interpolation);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.COMPACT_NOTATION_SET_TO_INTERPOLATION_EXPECTED);
+
+    dependencies = buildModel.dependencies();
+    artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    artifactModel = artifacts.get(0);
+    verifyPropertyModel(artifactModel.version(), STRING_TYPE, "3.6", STRING, FAKE, 1, "version");
+    assertThat(artifactModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("org.gradle.test.classifiers:service:$version");
+  }
+
+  @Test
+  public void testSetPropertyWithDottedName() throws IOException {
+    writeToBuildFile(TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.version().setValue(ReferenceTo.createReferenceFromText("versions.first", firstModel.version()));
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME_EXPECTED);
   }
 
   @Test
@@ -1432,11 +1484,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
     if (isGroovy()) {
       verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
-      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", INTERPOLATED, DERIVED, 1, "1");
     }
     else {
       verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
-      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", INTERPOLATED, REGULAR, 1, "testCompile");
     }
   }
 
@@ -1466,11 +1518,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
     if (isGroovy()) {
       verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
-      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", INTERPOLATED, DERIVED, 1, "1");
     }
     else {
       verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
-      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", INTERPOLATED, REGULAR, 1, "testCompile");
     }
   }
 
@@ -1612,7 +1664,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     applyChangesAndReparse(model);
     depModel = model.dependencies();
     artModel = depModel.artifacts().get(0);
-    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", INTERPOLATED, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
 
     verifyFileContents(myBuildFile, TestFile.SET_VERSION_REFERENCE_EXPECTED);
@@ -1635,9 +1687,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ArtifactDependencyModel artifactModel = buildModel.dependencies().artifacts().get(0);
     ExcludedDependencyModel excludedModel = artifactModel.configuration().excludes().get(0);
 
-    verifyPropertyModel(excludedModel.group(), STRING_TYPE, "dependency", STRING, DERIVED, 1);
-    verifyPropertyModel(excludedModel.module(), STRING_TYPE, "bad", STRING, DERIVED, 1);
-    verifyPropertyModel(artifactModel.completeModel(), STRING_TYPE, "junit:junit:2.3.1", STRING, REGULAR, 1);
+    verifyPropertyModel(excludedModel.group(), STRING_TYPE, "dependency", INTERPOLATED, DERIVED, 1);
+    verifyPropertyModel(excludedModel.module(), STRING_TYPE, "bad", INTERPOLATED, DERIVED, 1);
+    verifyPropertyModel(artifactModel.completeModel(), STRING_TYPE, "junit:junit:2.3.1", INTERPOLATED, REGULAR, 1);
   }
 
   @Test
@@ -2120,6 +2172,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     MAP_NOTATION_PSI_ELEMENT("mapNotationPsiElement"),
     COMPACT_NOTATION_SET_TO_REFERENCE("compactNotationSetToReference"),
     COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED("compactNotationSetToReferenceExpected"),
+    COMPACT_NOTATION_SET_TO_INTERPOLATION("compactNotationSetToInterpolation"),
+    COMPACT_NOTATION_SET_TO_INTERPOLATION_EXPECTED("compactNotationSetToInterpolationExpected"),
     COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS("compactNotationElementUnsupportedOperations"),
     SET_I_STR_IN_COMPACT_NOTATION("setIStrInCompactNotation"),
     SET_I_STR_IN_COMPACT_NOTATION_EXPECTED("setIStrInCompactNotationExpected"),
@@ -2155,6 +2209,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_VERSION_REFERENCE_EXPECTED("setVersionReferenceExpected"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES("setExcludesBlockToReferences"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED("setExcludesBlockToReferencesExpected"),
+    SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME("SetReferencePropertyWithDottedName"),
+    SET_REFERENCE_PROPERTY_WITH_DOTTED_NAME_EXPECTED("SetReferencePropertyWithDottedNameExpected"),
     ARTIFACT_NOTATION_EDGE_CASES("artifactNotationEdgeCases"),
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import java.io.Serializable
 
 class IdeAndroidModels(
   val androidProject: IdeAndroidProject,
   val fetchedVariants: List<IdeVariant>,
   val selectedVariantName: String,
-  val syncIssues: List<SyncIssueData>,
+  val selectedAbiName: String?,
+  val syncIssues: List<IdeSyncIssue>,
   val v2NativeModule: IdeNativeModule?,
   val v1NativeProject: IdeNativeAndroidProject?,
-  val v1NativeVariantAbis: List<IdeNativeVariantAbi>?
+  val v1NativeVariantAbi: IdeNativeVariantAbi?
 ) : Serializable
 
 class IdeAndroidNativeVariantsModels(
   val v1NativeVariantAbis: List<IdeNativeVariantAbi>?, // null if v2.
-  val syncIssues: List<SyncIssueData>
+  val syncIssues: List<IdeSyncIssue>
 ) : Serializable
 
 /**

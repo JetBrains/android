@@ -9,17 +9,12 @@ iml_module(
         "src",
         "gen",
     ],
-    bundle_data = [":device-art-resources"],
     iml_files = ["intellij.android.artwork.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
-    resources = [
-        "resources",
-        "compatibilityResources",
-    ],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = ["//tools/idea/platform/util:intellij.platform.util.ui[module]"],
+    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )
 
 filegroup(
@@ -35,25 +30,4 @@ studio_data(
         "tools/adt/idea/artwork/resources/": "",
     },
     visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-iml_module(
-    name = "intellij.android.artwork",
-    # do not sort: must match IML order
-    srcs = [
-        "src",
-        "gen",
-    ],
-    bundle_data = [":device-art-resources"],
-    iml_files = ["intellij.android.artwork.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    project = "unb",
-    # do not sort: must match IML order
-    resources = [
-        "resources",
-        "compatibilityResources",
-    ],
-    visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -73,7 +74,6 @@ class WarningsPageViewTest {
   @Test
   @RunsInEdt
   fun testCreateView() {
-    assertThat(model.modelUpdatedListener).isNotNull()
     assertThat(view.component.name).isEqualTo("warnings-view")
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
@@ -132,8 +132,9 @@ class WarningsPageViewTest {
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList()).apply {
       annotationProcessors = object : AnnotationProcessorsReport {
-        override val nonIncrementalProcessors = emptyList < AnnotationProcessorUiData>()
+        override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
       }
+      confCachingData = ConfigurationCachingTurnedOn
     }
     val model = WarningsDataPageModelImpl(data)
     view = WarningsPageView(model, mockHandlers).apply {

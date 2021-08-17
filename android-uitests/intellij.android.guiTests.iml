@@ -7,31 +7,16 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="jna" level="project" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.idea.community.main" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.debugger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.gradle.java" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" />
@@ -40,11 +25,9 @@
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.debugger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.guiTestFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.bleak" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
@@ -53,12 +36,14 @@
     <orderEntry type="module" module-name="android.sdktools.deployer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
-        </CLASSES>
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library name="native artifacts">
+        <CLASSES />
         <JAVADOC />
+        <NATIVE>
+          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android-uitests/native/testing" />
+        </NATIVE>
         <SOURCES />
       </library>
     </orderEntry>
@@ -66,15 +51,18 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
+    <orderEntry type="module" module-name="studio" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
   </component>
 </module>

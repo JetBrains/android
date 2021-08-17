@@ -112,6 +112,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
         return String.format(Locale.US, "<a href=\"%d\">%s</a>", id.getAndDecrement(), input.getDisplayText());
       }
 
+      @SuppressWarnings("EqualsHashCode")  // b/180537631
       @Override
       public boolean equals(Object object) {
         return false;

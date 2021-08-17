@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property2
+package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.argumentName
-import com.android.tools.idea.naveditor.property2.ui.DefaultValueModel
+import com.android.tools.idea.naveditor.property.ui.DefaultValueModel
 
 class DefaultValueModelTest : NavTestCase() {
   fun testDefaultValueModelInherit() {

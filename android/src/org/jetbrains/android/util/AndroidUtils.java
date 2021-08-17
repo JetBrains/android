@@ -161,16 +161,16 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @Nullable
-  public static <T extends DomElement> T loadDomElement(@NotNull final Module module,
-                                                        @NotNull final VirtualFile file,
-                                                        @NotNull final Class<T> aClass) {
+  public static <T extends DomElement> T loadDomElement(@NotNull Module module,
+                                                        @NotNull VirtualFile file,
+                                                        @NotNull Class<T> aClass) {
     return loadDomElement(module.getProject(), file, aClass);
   }
 
   @Nullable
-  public static <T extends DomElement> T loadDomElement(@NotNull final Project project,
-                                                        @NotNull final VirtualFile file,
-                                                        @NotNull final Class<T> aClass) {
+  public static <T extends DomElement> T loadDomElement(@NotNull Project project,
+                                                        @NotNull VirtualFile file,
+                                                        @NotNull Class<T> aClass) {
     return getApplication().runReadAction((Computable<T>)() -> {
       if (project.isDisposed() || !file.isValid()) return null;
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -198,7 +198,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Nullable
   public static VirtualFile findSourceRoot(@NotNull Module module, VirtualFile file) {
-    final Set<VirtualFile> sourceRoots = new HashSet<>();
+    Set<VirtualFile> sourceRoots = new HashSet<>();
     Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
 
     while (file != null) {
@@ -212,11 +212,11 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Nullable
   public static String computePackageName(@NotNull Module module, VirtualFile file) {
-    final Set<VirtualFile> sourceRoots = new HashSet<>();
+    Set<VirtualFile> sourceRoots = new HashSet<>();
     Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
 
-    final VirtualFile projectDir = module.getProject().getBaseDir();
-    final List<String> packages = new ArrayList<>();
+    VirtualFile projectDir = module.getProject().getBaseDir();
+    List<String> packages = new ArrayList<>();
     file = file.getParent();
 
     while (file != null && !Objects.equals(projectDir, file) && !sourceRoots.contains(file)) {
@@ -225,7 +225,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
 
     if (file != null && sourceRoots.contains(file)) {
-      final StringBuilder packageName = new StringBuilder();
+      StringBuilder packageName = new StringBuilder();
 
       for (int i = packages.size() - 1; i >= 0; i--) {
         packageName.append(packages.get(i));
@@ -250,7 +250,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static VirtualFile createChildDirectoryIfNotExist(Project project, VirtualFile parent, String name) throws IOException {
-    final VirtualFile child = parent.findChild(name);
+    VirtualFile child = parent.findChild(name);
     return child == null ? parent.createChildDirectory(project, name) : child;
   }
 
@@ -261,8 +261,8 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   public static void navigateTo(@NotNull PsiElement[] targets, @Nullable RelativePoint pointToShowPopup) {
     if (targets.length == 0) {
-      final JComponent renderer = HintUtil.createErrorLabel("Empty text");
-      final JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(renderer, renderer).createPopup();
+      JComponent renderer = HintUtil.createErrorLabel("Empty text");
+      JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(renderer, renderer).createPopup();
       if (pointToShowPopup != null) {
         popup.show(pointToShowPopup);
       }
@@ -275,34 +275,34 @@ public class AndroidUtils extends CommonAndroidUtil {
       DefaultPsiElementCellRenderer renderer = new DefaultPsiElementCellRenderer() {
         @Override
         public String getElementText(PsiElement element) {
-          final PsiFile file = getContainingFile(element);
+          PsiFile file = getContainingFile(element);
           return file != null ? file.getName() : super.getElementText(element);
         }
 
         @Override
         public String getContainerText(PsiElement element, String name) {
-          final PsiFile file = getContainingFile(element);
-          final PsiDirectory dir = file != null ? file.getContainingDirectory() : null;
+          PsiFile file = getContainingFile(element);
+          PsiDirectory dir = file != null ? file.getContainingDirectory() : null;
           return dir == null ? "" : '(' + dir.getName() + ')';
         }
       };
-      final JBPopup popup = NavigationUtil.getPsiElementPopup(targets, renderer, null);
+      JBPopup popup = NavigationUtil.getPsiElementPopup(targets, renderer, null);
       popup.show(pointToShowPopup);
     }
   }
 
   @NotNull
   public static ExecutionStatus executeCommand(@NotNull GeneralCommandLine commandLine,
-                                               @Nullable final OutputProcessor processor,
+                                               @Nullable OutputProcessor processor,
                                                @Nullable WaitingStrategies.Strategy strategy) throws ExecutionException {
     LOG.info(commandLine.getCommandLineString());
     OSProcessHandler handler = new OSProcessHandler(commandLine);
 
-    final ProcessAdapter listener = new ProcessAdapter() {
+    ProcessAdapter listener = new ProcessAdapter() {
       @Override
-      public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         if (processor != null) {
-          final String message = event.getText();
+          String message = event.getText();
           processor.onTextAvailable(message);
         }
       }
@@ -363,16 +363,16 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @NotNull
-  public static AndroidFacet addAndroidFacetInWriteAction(@NotNull final Module module,
-                                                          @NotNull final VirtualFile contentRoot,
-                                                          final boolean library) {
+  public static AndroidFacet addAndroidFacetInWriteAction(@NotNull Module module,
+                                                          @NotNull VirtualFile contentRoot,
+                                                          boolean library) {
     return WriteAction.compute(() -> addAndroidFacet(module, contentRoot, library));
   }
 
   @NotNull
-  public static AndroidFacet addAndroidFacet(final Module module, @NotNull VirtualFile contentRoot,
+  public static AndroidFacet addAndroidFacet(Module module, @NotNull VirtualFile contentRoot,
                                              boolean library) {
-    final FacetManager facetManager = FacetManager.getInstance(module);
+    FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = facetManager.createModifiableModel();
     AndroidFacet facet = model.getFacetByType(AndroidFacet.ID);
 
@@ -430,7 +430,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Module module,
                                                                   @NotNull ConfigurationType type,
                                                                   @NonNls ConfigurationType alternativeType) {
-    final RunManager runManager = RunManager.getInstance(module.getProject());
+    RunManager runManager = RunManager.getInstance(module.getProject());
     List<RunConfiguration> configurations = runManager.getConfigurationsList(type);
 
     TargetSelectionMode alternative = null;
@@ -438,8 +438,8 @@ public class AndroidUtils extends CommonAndroidUtil {
     if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
-          final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
-          final TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
+          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
+          TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
           if (runConfig.getConfigurationModule() == module) {
             return targetMode;
           }
@@ -490,17 +490,17 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @NotNull
   public static List<AndroidFacet> getAndroidLibraryDependencies(@NotNull Module module) {
-    final List<AndroidFacet> depFacets = new ArrayList<>();
+    List<AndroidFacet> depFacets = new ArrayList<>();
 
     for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
       if (orderEntry instanceof ModuleOrderEntry) {
-        final ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
+        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
 
         if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
-          final Module depModule = moduleOrderEntry.getModule();
+          Module depModule = moduleOrderEntry.getModule();
 
           if (depModule != null) {
-            final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
+            AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null && depFacet.getConfiguration().canBeDependency()) {
               depFacets.add(depFacet);
@@ -550,12 +550,12 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @NotNull
   public static Set<String> getDepLibsPackages(Module module) {
-    final Set<String> result = new HashSet<>();
-    final HashSet<Module> visited = new HashSet<>();
+    Set<String> result = new HashSet<>();
+    HashSet<Module> visited = new HashSet<>();
 
     if (visited.add(module)) {
       for (AndroidFacet depFacet : getAllAndroidDependencies(module, true)) {
-        final Manifest manifest = Manifest.getMainManifest(depFacet);
+        Manifest manifest = Manifest.getMainManifest(depFacet);
 
         if (manifest != null) {
           String aPackage = manifest.getPackage().getValue();
@@ -605,8 +605,8 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
   }
 
-  public static void showStackStace(@Nullable final Project project, @NotNull Throwable[] throwables) {
-    final StringBuilder messageBuilder = new StringBuilder();
+  public static void showStackStace(@Nullable Project project, @NotNull Throwable[] throwables) {
+    StringBuilder messageBuilder = new StringBuilder();
 
     for (Throwable t : throwables) {
       if (messageBuilder.length() > 0) {
@@ -615,16 +615,15 @@ public class AndroidUtils extends CommonAndroidUtil {
       messageBuilder.append(TraceUtils.getStackTrace(t));
     }
 
-    final DialogWrapper wrapper = new DialogWrapper(project, false) {
-
+    DialogWrapper wrapper = new DialogWrapper(project, false) {
       {
         init();
       }
 
       @Override
       protected JComponent createCenterPanel() {
-        final JPanel panel = new JPanel(new BorderLayout());
-        final JTextArea textArea = new JTextArea(messageBuilder.toString());
+        JPanel panel = new JPanel(new BorderLayout());
+        JTextArea textArea = new JTextArea(messageBuilder.toString());
         textArea.setEditable(false);
         textArea.setRows(40);
         textArea.setColumns(70);
@@ -729,11 +728,11 @@ public class AndroidUtils extends CommonAndroidUtil {
   // error messages tweaked
   @Nullable
   private static String validateName(String name) {
-    final int N = name.length();
+    int N = name.length();
     boolean hasSep = false;
     boolean front = true;
     for (int i=0; i<N; i++) {
-      final char c = name.charAt(i);
+      char c = name.charAt(i);
       if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
         front = false;
         continue;
@@ -784,7 +783,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   @NotNull
   public static Set<Module> getSetWithBackwardDependencies(@NotNull Module module) {
     Graph<Module> graph = ModuleManager.getInstance(module.getProject()).moduleGraph();
-    final Set<Module> set = new HashSet<>();
+    Set<Module> set = new HashSet<>();
     GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     return set;
   }
@@ -794,7 +793,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     if (urls.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<>(urls.size());
+    List<String> result = new ArrayList<>(urls.size());
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
@@ -811,11 +810,11 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static boolean isAndroidComponent(@NotNull PsiClass c) {
-    final Project project = c.getProject();
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    Project project = c.getProject();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
 
     for (String componentClassName : ANDROID_COMPONENT_CLASSES) {
-      final PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
+      PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
       if (componentClass != null && c.isInheritor(componentClass, true)) {
         return true;
       }

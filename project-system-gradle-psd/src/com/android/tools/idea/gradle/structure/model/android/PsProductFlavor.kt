@@ -13,8 +13,8 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeBaseConfig
-import com.android.ide.common.gradle.model.IdeProductFlavor
+import com.android.tools.idea.gradle.model.IdeBaseConfig
+import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel

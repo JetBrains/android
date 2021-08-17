@@ -18,13 +18,13 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
-import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createPayloadChunks
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.appinspection.test.createRawResponse
 import com.android.tools.idea.protobuf.ByteString
@@ -57,7 +57,7 @@ class AppInspectorConnectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule
@@ -98,26 +98,63 @@ class AppInspectorConnectionTest {
     assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
   }
 
+  @Test
+  fun sendRawCommandSucceedWithPayload() = runBlocking<Unit> {
+    val payloadId = 1L
+    val connection = appInspectionRule.launchInspectorConnection(
+      commandHandler = TestAppInspectorCommandHandler(timer, rawInspectorResponse = createRawResponse(payloadId))
+    )
+
+    // Initialize the payload cache *before* sending a command (which will then trigger a payload response)
+    // Also, choose a chunk size smaller than the payload itself, to ensure chunking works
+    appInspectionRule.addAppInspectionPayload(payloadId, createPayloadChunks("TestResponse".toByteArray(), 2))
+    assertThat(connection.sendRawCommand("TestCommand".toByteArray())).isEqualTo("TestResponse".toByteArray())
+  }
 
   @Test
-  fun receiveRawEvent() = runBlocking<Unit> {
+  fun receiveRawEventWithData() = runBlocking<Unit> {
     val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
-
-    // Verify the flow is cold.
-    assertThat(connection.rawEventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
+    assertThat(connection.eventFlow.take(1).single()).isEqualTo(byteArrayOf(0x12, 0x15))
 
     // Verify flow collection when inspector is disposed.
     connection.scope.cancel()
 
     try {
-      connection.rawEventFlow.single()
+      connection.eventFlow.single()
       fail()
     }
     catch (e: CancellationException) {
     }
+  }
+
+  @Test
+  fun receiveRawEventWithPayload() = runBlocking<Unit> {
+    val connection = appInspectionRule.launchInspectorConnection()
+
+    val payloadId1 = 1L
+    val payloadId2 = 2L
+    val payloadId3 = 3L
+    val data1 = (0..127).map { it.toByte() }.toByteArray() // Make sure we can handle all bytes
+    val data2 = ByteArray(255) { 0 } // Make sure we can handle 0s
+    val data3 = byteArrayOf(0x1, 0x2, 0x3) // Make sure we can handle large chunk sizes
+
+    // Send the payloads first
+    appInspectionRule.addAppInspectionPayload(payloadId1, createPayloadChunks(data1, 5))
+    appInspectionRule.addAppInspectionPayload(payloadId2, createPayloadChunks(data2, 2))
+    appInspectionRule.addAppInspectionPayload(payloadId3, createPayloadChunks(data3, 999))
+
+    // Send payload events out of order, just to stress test that payloads can be queried anytime after they are sent
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId2))
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId1))
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId3))
+
+    val received = mutableListOf<ByteArray>()
+    connection.eventFlow.take(3).collect { received.add(it) }
+
+    assertThat(received.map { it.contentToString() }).containsExactly(data2.contentToString(), data1.contentToString(),
+                                                                      data3.contentToString()).inOrder()
   }
 
   @Test
@@ -138,7 +175,7 @@ class AppInspectorConnectionTest {
   }
 
   @Test
-  fun receiveCrashEventClosesConnection() = runBlocking<Unit> {
+  fun receiveDisposedEvent_cancelsSendingCommands() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
     val sendRawCommandCalled = CompletableDeferred<Unit>()
@@ -148,7 +185,7 @@ class AppInspectorConnectionTest {
       }
     })
 
-    val crashed = CompletableDeferred<Unit>()
+    val disposedDeferred = CompletableDeferred<Unit>()
     launch {
       try {
         // This next line should get stuck (because of the disabled handler above) until the
@@ -157,8 +194,8 @@ class AppInspectorConnectionTest {
         fail()
       }
       catch (e: AppInspectionConnectionException) {
-        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
-        crashed.complete(Unit)
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has been disposed.")
+        disposedDeferred.complete(Unit)
       }
     }
 
@@ -166,15 +203,52 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
         .setInspectorId(INSPECTOR_ID)
-        .setCrashEvent(
-          CrashEvent.newBuilder()
-            .setErrorMessage("error")
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
             .build()
         )
         .build()
     )
 
-    crashed.join()
+    disposedDeferred.join()
+
+    assertThat(client.awaitForDisposal()).isTrue()
+  }
+
+
+  @Test
+  fun receiveDisposedEvent() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    appInspectionRule.addAppInspectionEvent(
+      AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
+            .build()
+        )
+        .build()
+    )
+
+    assertThat(client.awaitForDisposal()).isTrue()
+  }
+
+  @Test
+  fun receiveCrashEvent() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    appInspectionRule.addAppInspectionEvent(
+      AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
+            .setErrorMessage("ERROR")
+            .build()
+        )
+        .build()
+    )
+
+    assertThat(client.awaitForDisposal()).isFalse()
   }
 
   @Test
@@ -233,8 +307,8 @@ class AppInspectorConnectionTest {
       appInspectionRule.addAppInspectionEvent(
         AppInspectionEvent.newBuilder()
           .setInspectorId(INSPECTOR_ID)
-          .setCrashEvent(
-            CrashEvent.newBuilder()
+          .setDisposedEvent(
+            AppInspection.DisposedEvent.newBuilder()
               .setErrorMessage("error")
               .build()
           )
@@ -257,7 +331,7 @@ class AppInspectorConnectionTest {
 
     val client = appInspectionRule.launchInspectorConnection()
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
-    val rawData = client.rawEventFlow.take(1).single()
+    val rawData = client.eventFlow.take(1).single()
     assertThat(rawData).isEqualTo(freshEventData)
   }
 
@@ -272,7 +346,7 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
 
     var count = 0
-    val flow = client.rawEventFlow.map { eventData ->
+    val flow = client.eventFlow.map { eventData ->
       count++
       eventData
     }
@@ -369,8 +443,8 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
         .setInspectorId(INSPECTOR_ID)
-        .setCrashEvent(
-          CrashEvent.newBuilder()
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
             .setErrorMessage("error")
             .build()
         )

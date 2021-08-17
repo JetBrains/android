@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.StudioProfilersView;
@@ -35,7 +36,6 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -64,6 +64,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange(),
                                                            trackModel.isCollapsed());
+    traceEventChart.setDrawDebugInfo(
+      myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
       List<CpuAnalyzable> selection = multiSelectionModel.getSelection();

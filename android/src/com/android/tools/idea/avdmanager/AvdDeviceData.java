@@ -17,8 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.IdDisplay;
@@ -52,6 +50,14 @@ public final class AvdDeviceData {
   private IntProperty myScreenFoldedYOffset = new IntValueProperty();
   private IntProperty myScreenFoldedWidth = new IntValueProperty();
   private IntProperty myScreenFoldedHeight = new IntValueProperty();
+  private IntProperty myScreenFoldedXOffset2 = new IntValueProperty();
+  private IntProperty myScreenFoldedYOffset2 = new IntValueProperty();
+  private IntProperty myScreenFoldedWidth2 = new IntValueProperty();
+  private IntProperty myScreenFoldedHeight2 = new IntValueProperty();
+  private IntProperty myScreenFoldedXOffset3 = new IntValueProperty();
+  private IntProperty myScreenFoldedYOffset3 = new IntValueProperty();
+  private IntProperty myScreenFoldedWidth3 = new IntValueProperty();
+  private IntProperty myScreenFoldedHeight3 = new IntValueProperty();
 
   private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
 
@@ -215,6 +221,46 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public IntProperty screenFoldedXOffset2() {
+    return myScreenFoldedXOffset2;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedYOffset2() {
+    return myScreenFoldedYOffset2;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedWidth2() {
+    return myScreenFoldedWidth2;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedHeight2() {
+    return myScreenFoldedHeight2;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedXOffset3() {
+    return myScreenFoldedXOffset3;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedYOffset3() {
+    return myScreenFoldedYOffset3;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedWidth3() {
+    return myScreenFoldedWidth3;
+  }
+
+  @NotNull
+  public IntProperty screenFoldedHeight3() {
+    return myScreenFoldedHeight3;
+  }
+
+  @NotNull
   public BoolProperty isFoldable() {
     return new BoolValueProperty(myScreenFoldedHeight.get() > 0 && myScreenFoldedWidth.get() > 0);
   }
@@ -344,6 +390,11 @@ public final class AvdDeviceData {
     myScreenResolutionHeight.set(1920);
     myScreenFoldedWidth.set(0);
     myScreenFoldedHeight.set(0);
+    myScreenFoldedWidth2.set(0);
+    myScreenFoldedWidth2.set(0);
+    myScreenFoldedHeight2.set(0);
+    myScreenFoldedWidth3.set(0);
+    myScreenFoldedHeight3.set(0);
     myRamStorage.set(new Storage(2, Storage.Unit.GiB));
 
     myHasHardwareButtons.set(false);
@@ -382,8 +433,7 @@ public final class AvdDeviceData {
     if (!skinLayoutFile.isFile()) {
       return null;
     }
-    FileOp fop = FileOpUtils.create();
-    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile, fop);
+    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile);
     if (skin == null) {
       return null;
     }
@@ -421,6 +471,14 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset.set(screen.getFoldedYOffset());
     myScreenFoldedWidth.set(screen.getFoldedWidth());
     myScreenFoldedHeight.set(screen.getFoldedHeight());
+    myScreenFoldedXOffset2.set(screen.getFoldedXOffset2());
+    myScreenFoldedYOffset2.set(screen.getFoldedYOffset2());
+    myScreenFoldedWidth2.set(screen.getFoldedWidth2());
+    myScreenFoldedHeight2.set(screen.getFoldedHeight2());
+    myScreenFoldedXOffset3.set(screen.getFoldedXOffset3());
+    myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
+    myScreenFoldedWidth3.set(screen.getFoldedWidth3());
+    myScreenFoldedHeight3.set(screen.getFoldedHeight3());
     /**
      * This is maxed out at {@link AvdWizardUtils.MAX_RAM_MB}, for more information read
      * {@link AvdWizardUtils#getDefaultRam(Hardware)}
@@ -469,7 +527,9 @@ public final class AvdDeviceData {
 
   public void updateSkinFromDeviceAndSystemImage(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     Hardware defaultHardware = device.getDefaultHardware();
-    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardware.getSkinFile(), systemImage, FileOpUtils.create());
+    File defaultHardwareSkinFile = defaultHardware.getSkinFile();
+    File skinFile = AvdWizardUtils.pathToUpdatedSkins(defaultHardwareSkinFile == null ? null : defaultHardwareSkinFile.toPath(),
+                                                      systemImage);
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
   }
 

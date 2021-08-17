@@ -22,11 +22,12 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -53,6 +54,7 @@ class SqliteEvaluatorController(
   private val view: SqliteEvaluatorView,
   private val showSuccessfulExecutionNotification: (String) -> Unit,
   override val closeTabInvoked: () -> Unit,
+  private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -217,6 +219,7 @@ class SqliteEvaluatorController(
       databaseId = databaseId,
       databaseRepository = databaseRepository,
       sqliteStatement = sqliteStatement,
+      showExportDialog = showExportDialog,
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
     )
@@ -295,8 +298,3 @@ class SqliteEvaluatorController(
 
   data class EvaluationParams(val databaseId: SqliteDatabaseId?, val statementText: String)
 }
-
-private val SqliteStatement.isQueryStatement
-  get() = statementType == SqliteStatementType.SELECT ||
-          statementType == SqliteStatementType.EXPLAIN ||
-          statementType == SqliteStatementType.PRAGMA_QUERY

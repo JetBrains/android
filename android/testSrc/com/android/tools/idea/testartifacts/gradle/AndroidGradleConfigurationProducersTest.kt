@@ -30,16 +30,6 @@ import junit.framework.TestCase
  * Tests for producing Gradle Run Configuration for Android unit test.
  */
 class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_UNIT_TESTING.override(true)
-  }
-
-  @Throws(Exception::class)
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.GRADLE_UNIT_TESTING.clearOverride()
-  }
 
   @Throws(Exception::class)
   fun testCanCreateGradleConfigurationFromTestClass() {

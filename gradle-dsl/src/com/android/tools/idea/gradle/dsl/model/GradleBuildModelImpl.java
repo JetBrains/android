@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElemen
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -80,7 +81,10 @@ import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
   @NonNls private static final String PLUGIN = "plugin";
+  // TODO(xof): duplication with PluginModelImpl strings
   @NonNls private static final String ID = "id";
+  @NonNls private static final String VERSION = "version";
+  @NonNls private static final String APPLY = "apply";
 
   public GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
@@ -111,8 +115,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     // If no plugins declaration exist, create a PluginDslElement to apply plugins
     if (pluginsDslElement == null && applyDslElement == null) {
-      pluginsDslElement = new PluginsDslElement(myGradleDslFile, GradleNameElement.fake(PLUGINS.name));
-      myGradleDslFile.addNewElementAt(0, pluginsDslElement);
+      int at = 0;
+      List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+      if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+        at += 1;
+      }
+      pluginsDslElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
     }
     else if (pluginsDslElement == null) {
       Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement));
@@ -148,6 +156,32 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     pluginsDslElement.setNewElement(literal);
 
     return new PluginModelImpl(literal, literal);
+  }
+
+  @Override
+  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply) {
+    // For this method, the existence of an apply block is irrelevant, as the features of the plugins Dsl are not supported
+    // with an apply operator; we must always find the plugins block.
+
+    int at = 0;
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+      at += 1;
+    }
+    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
+    GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
+
+    // id '<plugin>'
+    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin);
+    // ... version '<version>'
+    expression.setNewLiteral(VERSION, version);
+    // ... apply <boolean>
+    expression.setNewLiteral(APPLY, apply);
+    // link everything up
+    pluginsElement.setNewElement(expression);
+
+    // TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
+    return new PluginModelImpl(expression, idLiteral);
   }
 
   @Override
@@ -222,9 +256,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   public ExtModel ext() {
     int at = 0;
-    List<GradleDslElement> elements = myGradleDslFile.getAllElements();
-    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
-      at += 1;
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+    if (!elements.isEmpty()) {
+      GradleDslElement firstElement = elements.get(0);
+      if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
+        at += 1;
+      }
     }
     ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);

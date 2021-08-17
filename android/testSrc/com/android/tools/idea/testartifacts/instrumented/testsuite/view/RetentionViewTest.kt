@@ -16,8 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.SdkConstants
-import com.android.repository.Revision
-import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
@@ -25,38 +23,45 @@ import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.google.common.collect.ImmutableList
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
+import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.apache.commons.io.IOUtils
-import org.ini4j.Ini
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import java.io.File
+import org.mockito.ArgumentCaptor
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
+import java.io.ByteArrayInputStream
 import java.io.FileOutputStream
+import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
+import javax.swing.ImageIcon
 
 private const val RESOURCE_BASE = "com/android/tools/idea/testartifacts/instrumented/testsuite/snapshots/"
+private const val SCREENSHOT_PNG = "screenshot.png"
 private const val SNAPSHOT_TAR = "fakeSnapshotWithScreenshot.tar"
 private const val SNAPSHOT_TAR_GZ = "fakeSnapshotWithScreenshot.tar.gz"
 private const val SNAPSHOT_WITH_PB_TAR = "fakeSnapshotWithPb.tar.gz"
-private const val RESOURCE_SYSTEM_IMAGE_BUILD_PROP = "systemImageBuild.prop"
-private const val SDK_SYSTEM_IMAGE_BUILD_PROP = "build.prop"
-private const val FAKE_EMULATOR_REVISION = "26.0.0"
-private const val INI_GLOBAL_SECTION_NAME = "global"
 
-@RunWith(JUnit4::class)
-@RunsInEdt
 class RetentionViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
@@ -65,25 +70,45 @@ class RetentionViewTest {
   @get:Rule
   val rules: RuleChain = RuleChain
     .outerRule(projectRule)
-    .around(EdtRule())
     .around(disposableRule)
     .around(temporaryFolderRule)
 
   private lateinit var retentionView: RetentionView
   private lateinit var androidSdkHandler: AndroidSdkHandler
-  private lateinit var sdkPath: File
+  private val sdkPath = "/sdk"
+
+  @Mock
+  private lateinit var mockRuntime: Runtime
+
+  @Mock
+  private lateinit var mockProcess: Process
+  private val mockFileOp = MockFileOp()
+
+  @Mock
+  private lateinit var mockLogReporter: UsageLogReporter
 
   @Before
   fun setUp() {
-    sdkPath = temporaryFolderRule.newFolder()
+    MockitoAnnotations.initMocks(this)
+    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, mockFileOp)
+    mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
+    val packages = RepositoryPackages(listOf(p), listOf())
+    val mgr: RepoManager = FakeRepoManager(mockFileOp.toPath(sdkPath), packages)
+    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mockFileOp, mgr)
+    `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
+    `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
+    retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime, mockLogReporter)
+  }
 
-    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR)
-    p.setRevision(Revision.parseRevision(FAKE_EMULATOR_REVISION))
-    val packages = RepositoryPackages()
-    packages.setLocalPkgInfos(ImmutableList.of<LocalPackage>(p))
-    val mgr: RepoManager = FakeRepoManager(null, packages)
-    androidSdkHandler = AndroidSdkHandler(sdkPath, null, MockFileOp(), mgr)
-    retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator())
+  @Test
+  fun loadRetentionInfo() {
+    val packageName = "my.app.name"
+    val iceboxInfo = temporaryFolderRule.newFile()
+    FileOutputStream(iceboxInfo).use {
+      IceboxOutputProto.IceboxOutput.newBuilder().setAppPackage(packageName).build().writeTo(it)
+    }
+    retentionView.setRetentionInfoFile(iceboxInfo)
+    assertThat(packageName).isEqualTo(retentionView.appName)
   }
 
   @Test
@@ -96,10 +121,49 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      // Fake the panel size so that it will update the image
+      retentionView.rootPanel.resize(200, 200)
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.image).isNotNull()
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myImageLabel.icon).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
+  }
+
+  @Test
+  fun loadTarScreenshotCached() {
+    assertThat(retentionView.image).isNull()
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
+      // Fake the panel size so that it will update the image
+      retentionView.rootPanel.resize(200, 200)
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myImageLabel.icon).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
   }
 
   @Test
@@ -112,10 +176,14 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.image).isNotNull()
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNotNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+    }
   }
 
   @Test
@@ -127,30 +195,57 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf broken")).isTrue()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf not found")).isTrue()
+    }
+    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
+    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
+                                Mockito.any())
+
+    val event = eventCaptor.value
+    assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
+    assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
+    assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
+      .isEqualTo(AndroidTestRetentionEvent.SnapshotCompatibility.Result.SNAPSHOT_PROTO_FILE_NOT_FOUND)
   }
 
-  fun setupSystemFolder() {
-    val systemImageFolder = sdkPath.resolve("system-images")
-      .resolve("android-29")
-      .resolve("google_apis_playstore")
-      .resolve("x86_64")
-    assertThat(systemImageFolder.mkdirs()).isTrue()
-    val buildPropUrl = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropUrl).isNotNull()
-    val buildPropFile = systemImageFolder.resolve(SDK_SYSTEM_IMAGE_BUILD_PROP)
-    assertThat(buildPropFile.createNewFile()).isTrue()
-    with(FileOutputStream(buildPropFile)) {
-      IOUtils.copy(buildPropUrl.openStream(), this)
+  @Test
+  fun loadBadSnapshotPbInterrupted() {
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_TAR_GZ)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val application = ApplicationManager.getApplication()
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    val toolTipText = "default"
+    var uiUpdateChecks = 0
+    retentionView.myRetentionDebugButton.isEnabled = false
+    retentionView.myRetentionDebugButton.toolTipText = toolTipText
+    retentionView.scanSnapshotFileContent(snapshotFile) {
+      if (application.isDispatchThread) {
+        uiUpdateChecks += 1
+        uiUpdateChecks > 1
+      } else {
+        false
+      }
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    application.invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).contains("Validating snapshot")
     }
   }
 
   @Test
   fun loadSnapshotWithPb() {
-    setupSystemFolder()
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -158,13 +253,28 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    }
+    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
+    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
+                                   Mockito.any())
+    val event = eventCaptor.value
+    assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
+    assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
+    assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
+      .isEqualTo(AndroidTestRetentionEvent.SnapshotCompatibility.Result.LOADABLE)
   }
 
   @Test
-  fun loadSnapshotPbWithoutSystem() {
+  fun snapshotNotLoadable() {
+    val reason = "a good reason"
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
+      "Not loadable\n$reason".toByteArray(Charset.defaultCharset())))
     val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
     // RetentionView needs a real file so that it can parse the file name extension for compression format.
     val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
@@ -172,57 +282,281 @@ class RetentionViewTest {
     with(FileOutputStream(snapshotFile)) {
       IOUtils.copy(url.openStream(), this)
     }
-    retentionView.setSnapshotFile(snapshotFile)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
     (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
-    assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Failed to find system image build property")).isTrue()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).contains(reason)
+    }
+    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
+    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
+                                   Mockito.any())
+    val event = eventCaptor.value
+    assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
+    assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
+    assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
+      .isEqualTo(AndroidTestRetentionEvent.SnapshotCompatibility.Result.EMULATOR_LOADABLE_CHECK_FAILURE)
+  }
+
+
+  @Test
+  fun snapshotNotLoadableCached() {
+    val reason = "a good reason"
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream(
+      "Not loadable\n$reason".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).contains(reason)
+      verify(mockRuntime, times(1)).exec(anyString())
+    }
+    verify(mockLogReporter, times(1)).report(Mockito.any() ?: AndroidStudioEvent.newBuilder(), Mockito.any())
+  }
+
+  @Test
+  fun loadSameSnapshotWithPb() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+    }
+    verify(mockRuntime, times(1)).exec(anyString())
+  }
+
+  @Test
+  fun unloadSnapshot() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+      retentionView.setSnapshotFile(null)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
+    }
+  }
+
+  @Test
+  fun loadSnapshotWithPbNotLoadable() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Not loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(snapshotFile)
+    }
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot not loadable")).isTrue()
+    }
+    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
+    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
+                                   Mockito.any())
+    val event = eventCaptor.value
+    assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
+    assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
+    assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
+      .isEqualTo(AndroidTestRetentionEvent.SnapshotCompatibility.Result.EMULATOR_LOADABLE_CHECK_FAILURE)
   }
 
   @Test
   fun loadNullScreenshot() {
-    retentionView.setSnapshotFile(null)
-    assertThat(retentionView.image).isNull()
-  }
-
-  @Test
-  fun checkSystemImageVersion() {
-    setupSystemFolder()
-    val hardwareIni =  Ini().also {
-      it.add(INI_GLOBAL_SECTION_NAME)
-      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
-                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
-      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.setSnapshotFile(null)
     }
-    // The system image version must match the one from ${RESOURCE_BASE + RESOURCE_SYSTEM_IMAGE_BUILD_PROP}
-    assertThat(isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).compatible).isTrue()
-  }
-
-  @Test
-  fun checkSystemImageVersionEmptyIni() {
-    val hardwareIni = Ini()
-    isSystemImageCompatible(hardwareIni, "QSR1.190920.001 dev-keys", androidSdkHandler).also {
-      assertThat(it.compatible).isFalse()
-      assertThat(it.reason).isNotNull()
+    (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.image).isNull()
     }
   }
 
   @Test
-  fun checkBadSystemImageVersion() {
-    setupSystemFolder()
-    val hardwareIni =  Ini().also {
-      it.add(INI_GLOBAL_SECTION_NAME)
-      it[INI_GLOBAL_SECTION_NAME]?.add("disk.systemPartition.initPath",
-                                       "/Android/Sdk/system-images/android-29/google_apis_playstore/x86_64//system.img")
-      it[INI_GLOBAL_SECTION_NAME]?.add("android.sdk.root", "/Android/Sdk")
+  fun imageUpdate() {
+    ApplicationManager.getApplication().invokeAndWait {
+      // Fake the panel size so that it will update the image
+      retentionView.rootPanel.resize(200, 200)
+      val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SCREENSHOT_PNG)
+      retentionView.updateSnapshotImage(ImageIcon(url).image, 100, 100) { false }
+      assertThat(retentionView.myImageLabel.icon).isNotNull()
     }
-    isSystemImageCompatible(hardwareIni, "invalid", androidSdkHandler).also {
-      assertThat(it.compatible).isFalse()
-      assertThat(it.reason!!.contains("System image version mismatch")).isTrue()
+  }
+
+  @Test
+  fun interruptImageUpdate() {
+    ApplicationManager.getApplication().invokeAndWait {
+      // Fake the panel size so that it will update the image
+      retentionView.rootPanel.resize(200, 200)
+      val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SCREENSHOT_PNG)
+      retentionView.updateSnapshotImage(ImageIcon(url).image, 100, 100) { true }
+      assertThat(retentionView.myImageLabel.icon).isNull()
+    }
+  }
+
+  @Test
+  fun scanSnapshotWithUiUpdate() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val toolTipText = "default"
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.myRetentionDebugButton.isEnabled = false
+      retentionView.myRetentionDebugButton.toolTipText = toolTipText
+      retentionView.scanSnapshotFileContent(snapshotFile) {
+        false
+      }
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).isNotEqualTo(toolTipText)
+    }
+  }
+
+  // Very fine-grain tests for multithreading behavior when setting snapshot files.
+  // The problem here is that sometimes people start validating a new retention snapshot before a previous validation
+  // is done, which raises a conflict in updating the UI.
+  // Thus in the UI code it checks multiple times if it has become stale. If so, interrupt the UI updates.
+  @Test
+  fun interruptUiUpdate0() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val toolTipText = "default"
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      retentionView.myRetentionDebugButton.isEnabled = false
+      retentionView.myRetentionDebugButton.toolTipText = toolTipText
+      retentionView.scanSnapshotFileContent(snapshotFile) {
+        true
+      }
+      assertThat(retentionView.image).isNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).isEqualTo(toolTipText)
+    }
+  }
+
+  @Test
+  fun interruptUiUpdate1() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val toolTipText = "default"
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      var uiUpdateChecks = 0
+      retentionView.myRetentionDebugButton.isEnabled = false
+      retentionView.myRetentionDebugButton.toolTipText = toolTipText
+      retentionView.scanSnapshotFileContent(snapshotFile) {
+        uiUpdateChecks += 1
+        uiUpdateChecks > 1
+      }
+      assertThat(retentionView.image).isNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).isEqualTo(toolTipText)
+    }
+  }
+
+  @Test
+  fun interruptUiUpdate2() {
+    `when`(mockProcess.inputStream).thenReturn(ByteArrayInputStream("Loadable".toByteArray(Charset.defaultCharset())))
+    val url = RetentionViewTest::class.java.classLoader.getResource(RESOURCE_BASE + SNAPSHOT_WITH_PB_TAR)
+    // RetentionView needs a real file so that it can parse the file name extension for compression format.
+    val snapshotFile = temporaryFolderRule.newFile(SNAPSHOT_TAR_GZ)
+    val toolTipText = "default"
+    assertThat(url).isNotNull()
+    with(FileOutputStream(snapshotFile)) {
+      IOUtils.copy(url.openStream(), this)
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      for (i in 2..5) {
+        var uiUpdateChecks = 0
+        retentionView.myRetentionDebugButton.isEnabled = false
+        retentionView.myRetentionDebugButton.toolTipText = toolTipText
+        retentionView.scanSnapshotFileContent(snapshotFile) {
+          uiUpdateChecks += 1
+          uiUpdateChecks > i
+        }
+        assertThat(retentionView.image).isNull()
+        assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+        assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Validating snapshot file")).isTrue()
+      }
+    }
+  }
+
+  @Test
+  fun interruptUiUpdate3() {
+    ApplicationManager.getApplication().invokeAndWait {
+      val toolTipText = "default"
+      var uiUpdateChecks = 0
+      retentionView.myRetentionDebugButton.isEnabled = false
+      retentionView.myRetentionDebugButton.toolTipText = toolTipText
+      retentionView.scanSnapshotFileContent(null) {
+        uiUpdateChecks += 1
+        uiUpdateChecks > 1
+      }
+      assertThat(retentionView.image).isNull()
+      assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
+      assertThat(retentionView.myRetentionDebugButton.toolTipText).isEqualTo(toolTipText)
     }
   }
 
   @Test
   fun checkBackgroundColor() {
-    assertThat(retentionView.myInfoText.isOpaque).isFalse()
+    ApplicationManager.getApplication().invokeAndWait {
+      assertThat(retentionView.myInfoText.isOpaque).isFalse()
+    }
   }
 }

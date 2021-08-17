@@ -18,19 +18,13 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
-import com.android.build.attribution.ui.model.tasksFilterActions
+import com.android.build.attribution.ui.model.tasksFilterComponent
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
-import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
-import com.android.tools.idea.flags.StudioFlags.NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
-import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.SideBorder
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
@@ -53,9 +47,6 @@ import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JViewport
-import javax.swing.RepaintManager
-import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
@@ -124,8 +115,6 @@ class TasksPageView(
     }
   }
 
-  val chartsPanel = ChartsPanel(model.reportData)
-
   private val componentsSplitter = OnePixelSplitter(SPLITTER_PROPERTY, 0.33f).apply {
     val masterHalf: JComponent = JBPanel<JBPanel<*>>().apply {
       layout = BorderLayout(2, 1)
@@ -135,17 +124,11 @@ class TasksPageView(
         treeHeaderLabel.border = JBUI.Borders.empty(5, 20)
         treeHeaderLabel.alignmentX = Component.LEFT_ALIGNMENT
         add(treeHeaderLabel, BorderLayout.CENTER)
-        if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
-          add(tasksLegendPanel, BorderLayout.SOUTH)
-        }
+        add(tasksLegendPanel, BorderLayout.SOUTH)
       }
       add(treeHeaderPanel, BorderLayout.NORTH)
-      val treeComponent: Component = if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
-        // Create tree with new visualization element attached when flag is on.
-        CriticalPathChartLegend.pluginColorPalette.reset()
-        TimeDistributionTreeChart.wrap(tree)
-      }
-      else ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE)
+      CriticalPathChartLegend.pluginColorPalette.reset()
+      val treeComponent = TimeDistributionTreeChart.wrap(tree)
 
       add(treeComponent, BorderLayout.CENTER)
     }
@@ -154,18 +137,6 @@ class TasksPageView(
       layout = BorderLayout(dimension.width(), dimension.height())
       border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
-      if (!NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
-        // Add old visualization to the UI only if flag is off.
-        val chartsScrollArea = JBScrollPane().apply {
-          border = JBUI.Borders.empty()
-          horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-          verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
-          verticalScrollBar.isOpaque = false
-
-          setViewportView(chartsPanel)
-        }
-        add(chartsScrollArea, BorderLayout.WEST)
-      }
     }
 
     firstComponent = masterHalf
@@ -187,19 +158,13 @@ class TasksPageView(
     layout = HorizontalLayout(10)
     name = "tasks-view-additional-controls"
 
-    val tasksFilterActions = tasksFilterActions(model, actionHandlers)
-    val defaultActionGroup = DefaultActionGroup().apply { add(tasksFilterActions) }
-    val actionsToolbar = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
-
     add(groupingCheckBox)
-    if (NEW_BUILD_ANALYZER_UI_VISUALIZATION_ENABLED.get()) {
-      add(actionsToolbar.component)
-    }
+    add(tasksFilterComponent(model, actionHandlers))
   }
 
   init {
     updateViewFromModel(true)
-    model.setModelUpdatedListener(this::updateViewFromModel)
+    model.addModelUpdatedListener(this::updateViewFromModel)
   }
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {
@@ -216,11 +181,9 @@ class TasksPageView(
       if (selectedNode == null) {
         val emptyPageId = TasksPageId.emptySelection(model.selectedGrouping)
         detailsPanel.select(emptyPageId, true)
-        chartsPanel.select(emptyPageId, true)
       }
       else {
         detailsPanel.select(selectedNode.descriptor.pageId, true)
-        chartsPanel.select(selectedNode.descriptor.pageId, true)
         TreeUtil.selectNode(tree, selectedNode)
       }
     }

@@ -20,6 +20,8 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.AndroidSessionInfo
+import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.editor.AndroidDebugger
@@ -43,14 +45,32 @@ private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
  */
 class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
 
-  @Mock lateinit var mockLaunchInfo: LaunchInfo
-  @Mock lateinit var mockDevice: IDevice
-  @Mock lateinit var mockStatus: ProcessHandlerLaunchStatus
-  @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockAndroidSessionInfo: AndroidSessionInfo
-  @Mock lateinit var mockDescriptor: RunContentDescriptor
-  @Mock lateinit var mockClient: Client
-  @Mock lateinit var mockClientData: ClientData
+  @Mock
+  lateinit var mockLaunchInfo: LaunchInfo
+
+  @Mock
+  lateinit var mockDevice: IDevice
+
+  @Mock
+  lateinit var mockStatus: ProcessHandlerLaunchStatus
+
+  @Mock
+  lateinit var mockProcessHandler: ProcessHandler
+
+  @Mock
+  lateinit var mockAndroidSessionInfo: AndroidSessionInfo
+
+  @Mock
+  lateinit var mockDescriptor: RunContentDescriptor
+
+  @Mock
+  lateinit var mockClient: Client
+
+  @Mock
+  lateinit var mockClientData: ClientData
+
+  @Mock
+  lateinit var mockApplicationIdProvider: ApplicationIdProvider
 
   lateinit var baseConnector: TestConnectDebuggerTask
   lateinit var printer: ProcessHandlerConsolePrinter
@@ -59,7 +79,9 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
     super.setUp()
 
     MockitoAnnotations.initMocks(this)
-    baseConnector = TestConnectDebuggerTask()
+    `when`(mockApplicationIdProvider.packageName).thenReturn(TEST_APP_PACKAGE_NAME)
+    `when`(mockApplicationIdProvider.testPackageName).thenThrow(ApkProvisionException("no test package"))
+    baseConnector = TestConnectDebuggerTask(mockApplicationIdProvider)
     printer = ProcessHandlerConsolePrinter(mockProcessHandler)
 
     `when`(mockStatus.processHandler).thenReturn(mockProcessHandler)
@@ -101,10 +123,11 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
   }
 }
 
-class TestConnectDebuggerTask : ConnectDebuggerTask(setOf(TEST_APP_PACKAGE_NAME),
-                                                    mock(AndroidDebugger::class.java),
-                                                    mock(Project::class.java),
-                                                    true) {
+class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
+  : ConnectDebuggerTask(applicationIdProvider,
+                        mock(AndroidDebugger::class.java),
+                        mock(Project::class.java),
+                        false) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,

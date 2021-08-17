@@ -17,13 +17,13 @@ package com.android.tools.idea.projectsystem.gradle;
 
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
+import com.android.tools.idea.run.GradleApkProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -76,7 +76,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
     //noinspection ConstantConditions
     if (classesFolder == null) {
-      File file = GradleUtil.getOutputFile(model);
+      File file = GradleApkProvider.getOutputFile(model);
       if (file != null) {
         File buildFolder = file.getParentFile().getParentFile();
         classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot

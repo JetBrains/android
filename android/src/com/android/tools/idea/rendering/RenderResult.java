@@ -16,13 +16,16 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.*;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -36,25 +39,27 @@ import java.util.Map;
 public class RenderResult {
   private static Logger LOG = Logger.getInstance(RenderResult.class);
 
-  @NotNull private final PsiFile myFile;
+  @NotNull private final PsiFile myRenderedFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
   @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
   @NotNull private final ImagePool.Image myImage;
-  @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   @NotNull private final Map<Object, ResourceReference> myDefaultStyles;
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
-  private final long myRenderDurationMs;
+  private final boolean myHasRequestedCustomViews;
+  @Nullable private final RenderContext myRenderContext;
   private boolean isDisposed;
+  private final RenderResultStats myStats;
 
-  protected RenderResult(@NotNull PsiFile file,
+  protected RenderResult(@NotNull PsiFile renderedFile,
                          @NotNull Module module,
                          @NotNull RenderLogger logger,
-                         @Nullable RenderTask renderTask,
+                         @Nullable RenderContext renderContext,
+                         boolean hasRequestedCustomViews,
                          @NotNull Result renderResult,
                          @NotNull ImmutableList<ViewInfo> rootViews,
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
@@ -62,10 +67,10 @@ public class RenderResult {
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
                          @NotNull Map<Object, ResourceReference> defaultStyles,
                          @Nullable Object validatorResult,
-                         long renderDurationMs) {
-    myRenderTask = renderTask;
+                         @NotNull RenderResultStats stats) {
     myModule = module;
-    myFile = file;
+    myRenderContext = renderContext;
+    myRenderedFile = renderedFile;
     myLogger = logger;
     myRenderResult = renderResult;
     myRootViews = rootViews;
@@ -74,7 +79,8 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
     myValidatorResult = validatorResult;
-    myRenderDurationMs = renderDurationMs;
+    myStats = stats;
+    myHasRequestedCustomViews = hasRequestedCustomViews;
   }
 
   /**
@@ -126,7 +132,8 @@ public class RenderResult {
       file,
       renderTask.getContext().getModule(),
       logger,
-      renderTask,
+      renderTask.getContext(),
+      renderTask.getLayoutlibCallback().isUsed(),
       session.getResult(),
       rootViews != null ? ImmutableList.copyOf(rootViews) : ImmutableList.of(),
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
@@ -134,7 +141,7 @@ public class RenderResult {
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
       session.getValidationData(),
-      -1);
+      RenderResultStats.getEMPTY());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -147,12 +154,13 @@ public class RenderResult {
    * Creates a new {@link RenderResult} from this with recorded render duration.
    */
   @NotNull
-  public RenderResult createWithDuration(long renderDurationMs) {
+  RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
-      myFile,
+      myRenderedFile,
       myModule,
       myLogger,
-      myRenderTask,
+      myRenderContext,
+      myHasRequestedCustomViews,
       myRenderResult,
       myRootViews,
       mySystemRootViews,
@@ -160,7 +168,7 @@ public class RenderResult {
       myDefaultProperties,
       myDefaultStyles,
       myValidatorResult,
-      renderDurationMs);
+      myStats.combine(stats));
   }
 
   /**
@@ -199,6 +207,7 @@ public class RenderResult {
       module,
       logger != null ? logger : new RenderLogger(null, module),
       null,
+      false,
       errorResult,
       ImmutableList.of(),
       ImmutableList.of(),
@@ -206,7 +215,7 @@ public class RenderResult {
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,
-      -1);
+      RenderResultStats.getEMPTY());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -235,14 +244,34 @@ public class RenderResult {
     }
   }
 
+  /**
+   * Returns the source {@link PsiFile} if available. This might be different from the {@link #getRenderedFile()} in cases where the
+   * render is generated via a synthetic layout (like menus, drawables or Compose.).
+   * If you want to access the user source file name, use this method.
+   */
+  @SuppressWarnings("UnstableApiUsage")
   @NotNull
-  public PsiFile getFile() {
-    return myFile;
+  public PsiFile getSourceFile() {
+    VirtualFile renderedVirtualFile = myRenderedFile.getVirtualFile();
+    if (!renderedVirtualFile.isInLocalFileSystem() && renderedVirtualFile instanceof BackedVirtualFile) {
+      VirtualFile sourceVirtualFile = ((BackedVirtualFile)renderedVirtualFile).getOriginFile();
+      PsiFile sourcePsiFile = AndroidPsiUtils.getPsiFileSafely(myRenderedFile.getProject(), sourceVirtualFile);
+      if (sourcePsiFile != null) return sourcePsiFile;
+    }
+
+    return myRenderedFile;
   }
 
+  /**
+   * Returns the {@link PsiFile} being rendered. This might be different from the actual user source file when the render comes from a
+   * layout generated synthetically by the Layout Editor. This happens in cases like menus, drawables or Compose.
+   */
+  @NotNull
+  public PsiFile getRenderedFile() { return myRenderedFile; }
+
   @Nullable
-  public RenderTask getRenderTask() {
-    return myRenderTask;
+  public RenderContext getRenderContext() {
+    return myRenderContext;
   }
 
   @NotNull
@@ -283,20 +312,25 @@ public class RenderResult {
     return myDefaultStyles;
   }
 
+  /**
+   * Returns whether the render has requested any custom views.
+   */
+  public boolean hasRequestedCustomViews() {
+    return myHasRequestedCustomViews;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add("renderResult", myRenderResult)
-      .add("psiFile", myFile)
+      .add("psiFile", myRenderedFile)
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .toString();
   }
 
-  /**
-   * Returns render duration in ms or -1 if unknown.
-   */
-  public long getRenderDuration() {
-    return myRenderDurationMs;
+  @NotNull
+  public RenderResultStats getStats() {
+    return myStats;
   }
 }

@@ -21,7 +21,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.util.Comparator;
 import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
@@ -110,13 +110,13 @@ public class Locale {
   public Icon getFlagImage() {
     String languageCode = qualifier.hasLanguage() ? qualifier.getLanguage() : null;
     if (languageCode == null) {
-      return AndroidIcons.Flags.FlagEmpty;
+      return StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
     }
     String regionCode = hasRegion() ? qualifier.getRegion() : null;
     FlagManager icons = FlagManager.get();
     Icon image = icons.getFlag(languageCode, regionCode);
     if (image == null) {
-      image = AndroidIcons.Flags.FlagEmpty;
+      image = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;
     }
 
     return image;

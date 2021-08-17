@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -38,8 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,13 +118,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     myOverflowMenuButton.setBorder(myMargins);
     add(myOverflowMenuButton);
     myVisibleComponents.add(myOverflowMenuButton);
-    myOverflowMenuButton.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        myOverflowMenu
-          .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY());
-      }
-    });
+    myOverflowMenuButton.addHyperlinkListener(event -> myOverflowMenu
+      .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY()));
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -138,9 +132,10 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   @NotNull
   private List<AvdUiAction> getActions() {
-    List<AvdUiAction> actionList = new ArrayList<AvdUiAction>();
+    List<AvdUiAction> actionList = new ArrayList<>();
 
     actionList.add(new RunAvdAction(this));
+    actionList.add(new ExploreAvdAction(this));
     actionList.add(new EditAvdAction(this));
     actionList.add(new DuplicateAvdAction(this));
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import

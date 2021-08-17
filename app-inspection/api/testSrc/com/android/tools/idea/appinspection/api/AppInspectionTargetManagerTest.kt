@@ -32,7 +32,7 @@ class AppInspectionTargetManagerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule

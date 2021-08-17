@@ -16,13 +16,10 @@ package com.android.tools.idea.naveditor.editor
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.actions.CREATED_FILES
-import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.includeFile
@@ -39,14 +36,15 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
-import com.android.tools.idea.util.addDependencies
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
@@ -80,6 +78,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.dynamicModules
 import org.jetbrains.android.dom.navigation.getClassesForTag
 import org.jetbrains.android.dom.navigation.isInProject
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
 import java.awt.BorderLayout
@@ -115,7 +114,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private lateinit var button: JComponent
   private var creatingInProgress = false
-  private val createdFiles: MutableList<File> = mutableListOf()
   private val iconProvider: SlowResourcePreviewManager by lazy {
     val model = surface.model!!
     // TODO(147157941): Get the Icon provider with AssetPreviewManager
@@ -190,16 +188,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   private fun createSelectionPanel(): JPanel {
     destinationsList = JBList()
-    val result = object : AdtSecondaryPanel(VerticalLayout(8)), DataProvider {
-      override fun getData(dataId: String): Any? {
-        return if (CREATED_FILES.`is`(dataId)) {
-          createdFiles
-        }
-        else {
-          surface.getData(dataId)
-        }
-      }
-    }
+    val result = AdtSecondaryPanel(VerticalLayout(8))
     result.name = DESTINATION_MENU_MAIN_PANEL_NAME
     result.background = BACKGROUND_COLOR
     result.border = BorderFactory.createEmptyBorder(8, 4, 8, 4)
@@ -213,7 +202,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     val action: AnAction = object : AnAction("Create new destination") {
       override fun actionPerformed(e: AnActionEvent) {
-        createNewDestination(e)
+        createNewDestination()
       }
     }
     createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
@@ -329,39 +318,36 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return result
   }
 
-  private fun createNewDestination(e: AnActionEvent) {
+  private fun createNewDestination() {
     balloon?.hide()
-    val action = if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get()) {
-      NewAndroidFragmentAction().apply {
-        // Not moving out the same setShouldOpenFiles method as the other branch because AnAction
-        // doesn't have the method and once NPW_SHOW_FRAGMENT_GALLERY flag is removed, this if
-        // statement is going to be removed.
-        shouldOpenFiles = false
-      }
-    } else {
-      NewAndroidComponentAction("Fragment", "Fragment (Blank)", SdkVersionInfo.LOWEST_ACTIVE_API).apply {
-        shouldOpenFiles = false
-      }
+
+    val model = surface.model ?: return
+    val module = model.module
+    val facet = AndroidFacet.getInstance(module)
+    // Find navigation resource folder.
+    val targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(DataManager.getInstance().getDataContext(surface))?.parent
+    if (facet == null || targetDirectory == null) {
+      return
     }
-    createNewDestination(e, action)
+
+    // returned argument to receive created files from wizard.
+    val createdFiles = mutableListOf<File>()
+    NewAndroidFragmentAction.openNewFragmentWizard(facet, model.project, targetDirectory, createdFiles, false)
+    postNewDestinationFileCreated(model, createdFiles)
   }
 
   @VisibleForTesting
-  fun createNewDestination(e: AnActionEvent, action: AnAction) {
-    createdFiles.clear()
-    action.actionPerformed(e)
-    val project = e.project ?: return
-    val model = surface.model ?: return
+  fun postNewDestinationFileCreated(model: NlModel, createdFiles: MutableList<File>) {
     val schema = model.schema
     val resourceManager = LocalResourceManager.getInstance(model.module) ?: return
 
-    DumbService.getInstance(project).runWhenSmart {
+    DumbService.getInstance(model.project).runWhenSmart {
       var layoutFile: XmlFile? = null
       var psiClass: PsiClass? = null
 
       for (file in createdFiles) {
         val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
-        val psiFile = PsiUtil.getPsiFile(project, virtualFile)
+        val psiFile = PsiUtil.getPsiFile(model.project, virtualFile)
         if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
           layoutFile = psiFile
         }
@@ -439,7 +425,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       return
     }
 
-    module.addDependencies(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
+    module.addDependenciesWithUiConfirmation(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
   }
 
   private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {

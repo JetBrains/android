@@ -18,20 +18,33 @@ package com.android.tools.componenttree
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.mock.MockApplication
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.ui.Splitter
+import com.intellij.openapi.util.Condition
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.impl.WindowManagerImpl
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.Icon
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -40,6 +53,7 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.LookAndFeel
+import javax.swing.SwingUtilities
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.UIManager
 
@@ -51,11 +65,21 @@ object ComponentTreeManualTest {
   @Suppress("UnusedMainParameter")
   @JvmStatic
   fun main(args: Array<String>) {
+    startTestApplication()
     IconLoader.activate()
     invokeLater {
       val test = ComponentTreeTest()
       test.start()
     }
+  }
+
+  private fun startTestApplication(): MockApplication {
+    val disposable = Disposer.newDisposable()
+    val app = TestApplication(disposable)
+    ApplicationManager.setApplication(app, disposable)
+    app.registerService(DataManager::class.java, DataManagerImpl())
+    app.registerService(WindowManager::class.java, WindowManagerImpl())
+    return app
   }
 }
 
@@ -81,14 +105,21 @@ private class ComponentTreeTest {
       .withoutTreeSearch()
       .withBadgeSupport(badge1)
       .withBadgeSupport(badge2)
+      .withHorizontalScrollBar()
       .build()
     tree = result.first
     model = result.second
     selectionModel = result.third
 
+    val rightPanel = JPanel()
+    val splitter = Splitter(false, 0.8f)
+    splitter.firstComponent = tree
+    splitter.secondComponent = rightPanel
+    rightPanel.background = secondaryPanelBackground
+    rightPanel.add(JButton("OK"))
     val panel = JPanel(BorderLayout())
     panel.add(JLabel("Start of panel"), BorderLayout.NORTH)
-    panel.add(tree, BorderLayout.CENTER)
+    panel.add(splitter, BorderLayout.CENTER)
     panel.add(JLabel("End of panel"), BorderLayout.SOUTH)
     frame.contentPane.add(panel)
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -180,11 +211,37 @@ private class ComponentTreeTest {
     override fun getTooltipText(item: Any?) = "Tooltip for $item"
 
     override fun performAction(item: Any) {
-      JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+      if (getIcon(item) != null) {
+        JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+      }
     }
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
       displayPopup(popup, component, x, y) // item will always be the selected item as well...
+    }
+
+    override fun toString(): String {
+      return context
+    }
+  }
+}
+
+private class TestApplication(disposable: Disposable): MockApplication(disposable) {
+  override fun invokeLater(runnable: Runnable) {
+    SwingUtilities.invokeLater(runnable)
+  }
+
+  override fun invokeLater(runnable: Runnable, modalityState: ModalityState) {
+    invokeLater(runnable)
+  }
+
+  override fun invokeLater(runnable: Runnable, expired: Condition<*>) {
+    invokeLater(runnable, ModalityState.any(), expired)
+  }
+
+  override fun invokeLater(runnable: Runnable, state: ModalityState, expired: Condition<*>) {
+    if (!expired.value(null)) {
+      invokeLater(runnable)
     }
   }
 }

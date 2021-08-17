@@ -18,32 +18,38 @@ package com.android.tools.idea.editors.literals
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.deleteText
 import com.android.tools.idea.testing.executeAndSave
-import com.android.tools.idea.testing.moveCaretToFirstOccurrence
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.hasErrorElementInRange
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+fun LiteralUsageReference.toDebugString() = "${fqName}-${range.startOffset}"
+
 fun LiteralReference.toDebugString(withUniqueId: Boolean): String {
   val usagesString = if (usages.distinct().count() == 1) {
-    usages.first().fqName.toString()
+    val usage = usages.single()
+    "${usage.fqName}-${usage.range.startOffset}"
   }
   else {
-    usages.joinToString(", ", "[", "]") { it.fqName.toString() }
+    usages
+      .map { it.toDebugString() }
+      .sorted()
+      .joinToString(", ", "[", "]")
   }
-  val elementText = "text='$text' value='$constantValue' usages='$usagesString'"
+  val elementText = "text='$text' location='$fileName $initialTextRange' value='$constantValue' usages='$usagesString'"
   return if (withUniqueId) {
     "[$uniqueId] $elementText"
   }
@@ -91,76 +97,8 @@ class LiteralsTest {
       }
       """.trimIndent())
 
-  private fun populateJavaFile(): PsiFile = projectRule.fixture.addFileToProject(
-    "/src/test/app/LiteralsTest.java",
-    // language=Java
-    """
-        package test.app;
-
-        public class LiteralsTest {
-          private class Inner {
-            private static final String STR_EXPR = "S2" + "S3";
-            private static final String STR_COMPLEX_EXPR = "S4" + STR_EXPR;
-          }
-
-          private static final int INT = 100;
-          private static final int INT_EXPR = 100 + 1 + 2 + 3;
-          private static final int INT_COMPLEX_EXPR = INT_EXPR + 1;
-          private static final String STR = "S1";
-
-          private String method(String parameter) {
-            return parameter + 22 + "S5";
-          }
-
-          @SuppressWarnings("ResultOfMethodCallIgnored")
-          public void testCall() {
-            String variable = "S6";
-
-            method("S7");
-            method(STR + "S8");
-            method(variable);
-          }
-        }
-      """.trimIndent())
-
   private fun PsiFile.configureEditor(): PsiFile = this.also {
     projectRule.fixture.configureFromExistingVirtualFile(it.virtualFile)
-  }
-
-  @Ignore("b/159582001")
-  @Test
-  fun `Java literals finder`() {
-    val literalsManager = LiteralsManager()
-    val file = populateJavaFile().configureEditor()
-    ReadAction.run<Throwable> {
-      assertFalse(file.hasErrorElementInRange(file.textRange))
-    }
-    val snapshot = literalsManager.findLiterals(file)
-    assertEquals("""
-      text='"S2" + "S3"' value='S2S3' usages='test.app.LiteralsTest.Inner.<init>'
-      text='"S4" + STR_EXPR' value='S4S2S3' usages='test.app.LiteralsTest.Inner.<init>'
-      text='100' value='100' usages='test.app.LiteralsTest.<init>'
-      text='100 + 1 + 2 + 3' value='106' usages='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='107' usages='test.app.LiteralsTest.<init>'
-      text='"S1"' value='S1' usages='test.app.LiteralsTest.<init>'
-      text='22' value='22' usages='test.app.LiteralsTest.method'
-      text='"S5"' value='S5' usages='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' usages='test.app.LiteralsTest.testCall'
-      text='"S7"' value='S7' usages='test.app.LiteralsTest.testCall'
-      text='STR + "S8"' value='S1S8' usages='test.app.LiteralsTest.testCall'
-    """.trimIndent(), snapshot.all.toDebugString())
-
-    projectRule.fixture.editor.executeAndSave {
-      projectRule.fixture.editor.moveCaretToFirstOccurrence("S4")
-      projectRule.fixture.type("Modified")
-      projectRule.fixture.editor.moveCaretToFirstOccurrence("+ 3")
-      projectRule.fixture.type("+5")
-    }
-    assertEquals("""
-      text='"ModifiedS4" + STR_EXPR' value='ModifiedS4S2S3' usages='test.app.LiteralsTest.Inner.<init>'
-      text='100 + 1 + 2 +5+ 3' value='111' usages='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='112' usages='test.app.LiteralsTest.<init>'
-    """.trimIndent(), snapshot.modified.toDebugString())
   }
 
   @Test
@@ -172,23 +110,27 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(file)
     assertEquals("""
-      text='"TOP_LEVEL"' value='TOP_LEVEL' usages='[]'
-      text='"S2" + "S3"' value='S2S3' usages='test.app.LiteralsTest.Inner.<init>'
-      text='"S4" + STR_EXPR' value='S4S2S3' usages='[]'
-      text='100' value='100' usages='[]'
-      text='100 + 1 + 2 + 3' value='106' usages='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='107' usages='[]'
-      text='"S1"' value='S1' usages='test.app.LiteralsTest.testCall'
-      text='true' value='true' usages='test.app.LiteralsTest.<init>'
-      text='"S5"' value='S5' usages='test.app.LiteralsTest.<init>'
-      text='3' value='3' usages='test.app.LiteralsTest.<init>'
-      text='"DEF1"' value='DEF1' usages='test.app.LiteralsTest.method'
-      text='22' value='22' usages='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' usages='test.app.LiteralsTest.method'
-      text='"S7"' value='S7' usages='[test.app.LiteralsTest.testCall, test.app.LiteralsTest.testCall]'
-      text='"S8"' value='S8' usages='test.app.LiteralsTest.testCall'
-      text='"${'$'}STR S9"' value='S1 S9' usages='test.app.LiteralsTest.testCall'
-      text='"DEF2"' value='DEF2' usages='test.app.LiteralsTest.testCall'
+      text='TOP_LEVEL' location='LiteralsTest.kt (56,65)' value='TOP_LEVEL' usages='test.app.LiteralsTestKt.<init>-56'
+      text='S2' location='LiteralsTest.kt (145,147)' value='S2' usages='test.app.LiteralsTest.Inner.<init>-145'
+      text='S3' location='LiteralsTest.kt (152,154)' value='S3' usages='test.app.LiteralsTest.Inner.<init>-152'
+      text='S4' location='LiteralsTest.kt (194,196)' value='S4' usages='test.app.LiteralsTest.Inner.<init>-194'
+      text='100' location='LiteralsTest.kt (238,241)' value='100' usages='test.app.LiteralsTest.<init>-238'
+      text='100' location='LiteralsTest.kt (269,272)' value='100' usages='test.app.LiteralsTest.<init>-269'
+      text='1' location='LiteralsTest.kt (275,276)' value='1' usages='test.app.LiteralsTest.<init>-275'
+      text='2' location='LiteralsTest.kt (279,280)' value='2' usages='test.app.LiteralsTest.<init>-279'
+      text='3' location='LiteralsTest.kt (283,284)' value='3' usages='test.app.LiteralsTest.<init>-283'
+      text='1' location='LiteralsTest.kt (331,332)' value='1' usages='test.app.LiteralsTest.<init>-331'
+      text='S1' location='LiteralsTest.kt (356,358)' value='S1' usages='test.app.LiteralsTest.<init>-356'
+      text='true' location='LiteralsTest.kt (397,401)' value='true' usages='test.app.LiteralsTest.<init>-397'
+      text='S5' location='LiteralsTest.kt (404,406)' value='S5' usages='test.app.LiteralsTest.<init>-404'
+      text='3' location='LiteralsTest.kt (413,414)' value='3' usages='test.app.LiteralsTest.<init>-413'
+      text='DEF1' location='LiteralsTest.kt (469,473)' value='DEF1' usages='test.app.LiteralsTest.method-469'
+      text='22' location='LiteralsTest.kt (490,492)' value='22' usages='test.app.LiteralsTest.method-490'
+      text='S6' location='LiteralsTest.kt (496,498)' value='S6' usages='test.app.LiteralsTest.method-496'
+      text='S7' location='LiteralsTest.kt (546,548)' value='S7' usages='test.app.LiteralsTest.testCall-546'
+      text='S8' location='LiteralsTest.kt (567,569)' value='S8' usages='test.app.LiteralsTest.testCall-567'
+      text=' S9' location='LiteralsTest.kt (592,595)' value=' S9' usages='test.app.LiteralsTest.testCall-592'
+      text='DEF2' location='LiteralsTest.kt (649,653)' value='DEF2' usages='test.app.LiteralsTest.testCall-649'
     """.trimIndent(), snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
@@ -196,16 +138,9 @@ class LiteralsTest {
       deleteText("100 +")
     }
     assertEquals("""
-      text='1 + 2 + 3' value='6' usages='test.app.LiteralsTest.<init>'
-      text='INT_EXPR + 1' value='7' usages='[]'
-      text='""${'"'}
-      S1_MULTILINE
-      ""${'"'}' value='
-      S1_MULTILINE
-      ' usages='test.app.LiteralsTest.testCall'
-      text='"${'$'}STR S9"' value='
-      S1_MULTILINE
-       S9' usages='test.app.LiteralsTest.testCall'
+      text='
+      ' location='LiteralsTest.kt (356,358)' value='
+      ' usages='test.app.LiteralsTest.<init>-356'
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
@@ -234,17 +169,17 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(file)
     assertEquals("""
-      text='"TEST"' value='TEST' usages='test.app.LiteralsTestKt.testCall'
-      text='Template ' value='Template ' usages='test.app.LiteralsTestKt.method'
-      text='!!' value='!!' usages='test.app.LiteralsTestKt.method'
-      text='"NAME ${'$'}testVal"' value='NAME TEST' usages='test.app.LiteralsTestKt.testCall'
+      text='TEST' location='LiteralsTest.kt (58,62)' value='TEST' usages='test.app.LiteralsTestKt.<init>-58'
+      text='Template ' location='LiteralsTest.kt (119,128)' value='Template ' usages='test.app.LiteralsTestKt.method-119'
+      text='!!' location='LiteralsTest.kt (133,135)' value='!!' usages='test.app.LiteralsTestKt.method-133'
+      text='NAME ' location='LiteralsTest.kt (201,206)' value='NAME ' usages='test.app.LiteralsTestKt.testCall-201'
     """.trimIndent(), snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
       replaceText("Template", "New modified template")
     }
     assertEquals("""
-      text='New modified template ' value='New modified template ' usages='test.app.LiteralsTestKt.method'
+      text='New modified template ' location='LiteralsTest.kt (119,128)' value='New modified template ' usages='test.app.LiteralsTestKt.method-119'
     """.trimIndent(), snapshot.modified.toDebugString())
   }
 
@@ -257,6 +192,8 @@ class LiteralsTest {
       assertFalse(file.hasErrorElementInRange(file.textRange))
     }
     val snapshot = literalsManager.findLiterals(file)
+
+    println(snapshot.all.toDebugString())
 
     projectRule.fixture.editor.executeAndSave {
       deleteText("private val INT = 100")
@@ -278,9 +215,9 @@ class LiteralsTest {
     }
     val snapshot = literalsManager.findLiterals(method)
     assertEquals("""
-      text='"DEF1"' value='DEF1' usages='test.app.LiteralsTest.method'
-      text='22' value='22' usages='test.app.LiteralsTest.method'
-      text='"S6"' value='S6' usages='test.app.LiteralsTest.method'
+      text='DEF1' location='LiteralsTest.kt (469,473)' value='DEF1' usages='test.app.LiteralsTest.method-469'
+      text='22' location='LiteralsTest.kt (490,492)' value='22' usages='test.app.LiteralsTest.method-490'
+      text='S6' location='LiteralsTest.kt (496,498)' value='S6' usages='test.app.LiteralsTest.method-496'
     """.trimIndent(), snapshot.all.toDebugString())
   }
 
@@ -313,7 +250,7 @@ class LiteralsTest {
     val file = lambdaFile.configureEditor()
     val snapshot = literalsManager.findLiterals(lambdaFile)
     assertEquals("""
-      text='"constant"' value='constant' usages='AClass.AMethod.BMethod.<anonymous>.<anonymous>'
+      text='constant' location='LambdaTest.kt (30,38)' value='constant' usages='LambdaTestKt.<init>-30'
     """.trimIndent(), snapshot.all.toDebugString())
   }
 
@@ -350,5 +287,151 @@ class LiteralsTest {
       assertEquals(children0Id, SimplePsiElementUniqueIdProvider.getUniqueId(children[0].element!!))
       assertEquals(children1Id, SimplePsiElementUniqueIdProvider.getUniqueId(children[1].element!!))
     }
+  }
+
+
+  @Test
+  fun `test literal deletion and reattach`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val STR = "S1"
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+    ReadAction.run<Throwable> {
+      assertFalse(file.hasErrorElementInRange(file.textRange))
+    }
+    val snapshot = literalsManager.findLiterals(file)
+    assertEquals(
+      "text='S1' location='LiteralsTest.kt (66,68)' value='S1' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.all.toDebugString())
+
+    projectRule.fixture.editor.executeAndSave {
+      // Delete the literal. This will invalidate the current value.
+      replaceText("S1", "")
+    }
+    assertEquals(
+      "text='<null>' location='LiteralsTest.kt (66,68)' value='null' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.modified.toDebugString())
+    projectRule.fixture.editor.executeAndSave {
+      // Delete the literal
+      replaceText("\"\"", "\"S3\"")
+    }
+    // Now we will have reattached to the new literal that is in the same position.
+    assertEquals(
+      "text='S3' location='LiteralsTest.kt (66,68)' value='S3' usages='test.app.LiteralsTest.<init>-66'",
+      snapshot.modified.toDebugString())
+  }
+
+  @Test
+  fun `check multiline string`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val STR = ""${'"'}
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ""${'"'}
+
+          private val SIMPLE = ""${'"'}
+              Hello world!
+          ""${'"'}
+  
+          private val ONE_LINE = ""${'"'}In one line""${'"'}
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+
+    val snapshot = literalsManager.findLiterals(file)
+    assertEquals(
+      """
+      text='
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ' location='LiteralsTest.kt (68,134)' value='
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ' usages='test.app.LiteralsTest.<init>-68'
+      text='
+              Hello world!
+          ' location='LiteralsTest.kt (167,193)' value='
+              Hello world!
+          ' usages='test.app.LiteralsTest.<init>-167'
+      text='In one line' location='LiteralsTest.kt (228,239)' value='In one line' usages='test.app.LiteralsTest.<init>-228'
+      """.trimIndent(),
+      snapshot.all.toDebugString())
+  }
+
+  @Test
+  fun `check highlights`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val SIMPLE = "S1"
+          private val STR = ""${'"'}
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ""${'"'}
+          private val ONE_LINE = ""${'"'}In one line""${'"'}
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+
+    val snapshot = literalsManager.findLiterals(file)
+    val outHighlighters = mutableSetOf<RangeHighlighter>()
+    UIUtil.invokeAndWaitIfNeeded(Runnable {
+      snapshot.highlightSnapshotInEditor(
+        projectRule.project,
+        projectRule.fixture.editor,
+        LITERAL_TEXT_ATTRIBUTE_KEY,
+        outHighlighters)
+    })
+
+    val output = ReadAction.compute<String, Throwable> {
+      outHighlighters.joinToString("\n") {
+        "${it.startOffset}-${it.endOffset}"
+      }
+    }
+    assertEquals(
+      """
+        69-71
+        95-167
+        198-209
+      """.trimIndent(),
+      output
+      )
   }
 }

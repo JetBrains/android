@@ -340,7 +340,13 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     }
 
     if (selectedDebugger != null) {
-      myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
+      // The selected debugger may not be the same debugger object as one of the populated debuggers.
+      // Here we choose the same "type" of debugger, not the same object.
+      for (AndroidDebugger debugger : androidDebuggers) {
+        if (debugger.getId().equals(selectedDebugger.getId())) {
+          myDebuggerTypeCombo.setSelectedItem(debugger);
+        }
+      }
     }
   }
 

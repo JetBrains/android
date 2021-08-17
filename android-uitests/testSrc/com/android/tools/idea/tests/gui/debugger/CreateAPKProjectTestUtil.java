@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.intellij.openapi.fileChooser.impl.FileChooserUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,9 +44,9 @@ public class CreateAPKProjectTestUtil {
 
     // This step generates the ~/ApkProjects/app-x86-debug directory. This
     // directory will be removed as a part of our tests' cleanup methods.
-    guiTest.welcomeFrame().profileOrDebugApk()
+    guiTest.welcomeFrame().profileOrDebugApk(apk)
       .select(apkFile)
-      .clickOk();
+      .clickOkAndWaitToClose();
 
     guiTest.waitForBackgroundTasks();
   }
@@ -57,6 +58,10 @@ public class CreateAPKProjectTestUtil {
     Wait.seconds(5)
       .expecting("DemoActivity.smali file to be indexed and shown")
       .until(() -> ideFrame.findFileByRelativePath(smaliFile) != null);
+
+    // The file chooser is quite slow and we don't have a good way to find when loading finished (there used to be
+    // a loading spinner, but was removed from the platform). To make sure we don't have to wait, we pre-inject the path.
+    FileChooserUtil.setLastOpenedFile(ideFrame.getProject(), sourceDir.toPath());
 
     ideFrame.getEditor()
       .open(smaliFile)

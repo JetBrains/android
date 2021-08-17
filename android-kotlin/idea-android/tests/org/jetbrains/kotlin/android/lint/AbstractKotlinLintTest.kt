@@ -16,14 +16,14 @@
 
 package org.jetbrains.kotlin.android.lint
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.PathUtil
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import java.io.File
 
 abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
@@ -32,7 +32,7 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
         super.setUp()
         (myFixture as CodeInsightTestFixtureImpl).setVirtualFileFilter { false } // Allow access to tree elements.
 
-        val kotlinPlugin = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+        val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
         val compilerLib = "$kotlinPlugin/kotlinc/lib"
         ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", compilerLib, arrayOf("android-extensions-runtime.jar"))
         ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))

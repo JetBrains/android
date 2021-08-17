@@ -33,9 +33,9 @@ fun RecipeExecutor.androidProjectRecipe(
   appTitle: String,
   language: Language,
   addAndroidXSupport: Boolean,
-  addJetifierSupport: Boolean,
   useGradleKts: Boolean,
-  makeIgnore: Boolean = true
+  makeIgnore: Boolean = true,
+  forceNonTransitiveRClass: Boolean = false
 ) {
   val topOut = data.rootDir
 
@@ -57,9 +57,9 @@ fun RecipeExecutor.androidProjectRecipe(
   }
 
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
+  save(androidProjectGradleSettings(appTitle, data.kotlinVersion), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
   save(
-    androidProjectGradleProperties(addAndroidXSupport, addJetifierSupport, language == Language.Kotlin, data.overridePathCheck),
+    androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck, forceNonTransitiveRClass),
     topOut.resolve(FN_GRADLE_PROPERTIES))
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))
   copy(resource("wrapper"), topOut)

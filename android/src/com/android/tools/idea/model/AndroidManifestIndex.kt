@@ -255,10 +255,10 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       // and the IllegalStateExceptions from our utility methods, but KXmlParser throws simple
       // RuntimeExceptions in some cases when the input file is malformed (e.g. if an attribute uses
       // an undefined namespace).
+      catch (e: ProcessCanceledException) {
+        throw e
+      }
       catch (e: RuntimeException) {
-        if (e is ProcessCanceledException) {
-          throw e
-        }
         LOG.warn(e)
       }
       return null

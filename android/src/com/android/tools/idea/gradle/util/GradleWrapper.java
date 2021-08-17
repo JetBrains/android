@@ -283,18 +283,6 @@ public final class GradleWrapper {
     if (url != null) {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
       if (m.matches()) {
-        return m.group(1);
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public String getGradleFullVersion() throws IOException {
-    String url = getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (url != null) {
-      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-      if (m.matches()) {
         return m.group(1) + Strings.nullToEmpty(m.group(2));
       }
     }

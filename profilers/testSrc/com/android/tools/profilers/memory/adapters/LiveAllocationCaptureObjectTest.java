@@ -30,18 +30,17 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.CaptureSelectionAspect;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.memory.CaptureSelectionAspect;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.LinkedList;
@@ -101,7 +100,7 @@ public class LiveAllocationCaptureObjectTest {
   protected final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
   protected final Executor LOAD_JOINER = MoreExecutors.directExecutor();
 
-  protected MemoryProfilerStage myStage;
+  protected MainMemoryProfilerStage myStage;
 
   protected final AspectObserver myAspectObserver = new AspectObserver();
 
@@ -110,7 +109,7 @@ public class LiveAllocationCaptureObjectTest {
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
+    myStage = new MainMemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
 
     long dataStartTime = CAPTURE_START_TIME;
     long dataEndTime = TimeUnit.SECONDS.toNanos(8);
@@ -152,9 +151,6 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(2)
     public Boolean myJniRefTracking;
 
-    @Parameter(3)
-    public Boolean myNewPipeline;
-
     private ProfilerClient myProfilerClient;
 
     @Before
@@ -162,19 +158,16 @@ public class LiveAllocationCaptureObjectTest {
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
-      myIdeProfilerServices.enableEventsPipeline(myNewPipeline);
+      myIdeProfilerServices.enableEventsPipeline(true);
       myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
-    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}, New Pipeline: {3}")
+    @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}")
     public static Object[] getHeapParameters() {
       return new Object[]{
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, false},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false, true},
-        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true, true},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, false},
-        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true, true},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, false},
+        new Object[]{DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME, true},
+        new Object[]{JNI_HEAP_ID, JNI_HEAP_NAME, true},
       };
     }
 
@@ -275,7 +268,7 @@ public class LiveAllocationCaptureObjectTest {
 
       // Adds a task that starts and blocks. This forces the subsequent selection change events to wait.
       CountDownLatch latch = new CountDownLatch(1);
-      capture.myExecutorService.execute(() -> {
+      capture.executorService.execute(() -> {
         try {
           latch.await();
         }
@@ -575,58 +568,39 @@ public class LiveAllocationCaptureObjectTest {
     @Test
     public void testInfoMessageBasedOnSelection() {
       MemoryAllocSamplingData fullData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
       MemoryAllocSamplingData sampledData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build();
       MemoryAllocSamplingData noneData = MemoryAllocSamplingData.newBuilder()
-        .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
-      if (myNewPipeline) {
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
-            .setMemoryAllocSampling(fullData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
-            .setMemoryAllocSampling(sampledData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
-            .setMemoryAllocSampling(noneData)
-            .build());
-        myTransportService.addEventToStream(
-          ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
-            .setPid(ProfilersTestData.SESSION_DATA.getPid())
-            .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
-            .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
-            .setMemoryAllocSampling(fullData)
-            .build());
-      }
-      else {
-        MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
-                                        .setSamplingRate(fullData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
-                                        .setSamplingRate(sampledData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
-                                        .setSamplingRate(noneData))
-          .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-                                        .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
-                                        .setSamplingRate(fullData))
-          .build();
-        myService.setMemoryData(memoryData);
-      }
+        .setSamplingNumInterval(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build();
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME))
+          .setMemoryAllocSampling(fullData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 1))
+          .setMemoryAllocSampling(sampledData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 2))
+          .setMemoryAllocSampling(noneData)
+          .build());
+      myTransportService.addEventToStream(
+        ProfilersTestData.SESSION_DATA.getStreamId(), Common.Event.newBuilder()
+          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+          .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+          .setTimestamp(TimeUnit.SECONDS.toNanos(CAPTURE_START_TIME + 3))
+          .setMemoryAllocSampling(fullData)
+          .build());
 
       // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
       boolean[] loadSuccess = new boolean[1];
@@ -694,17 +668,17 @@ public class LiveAllocationCaptureObjectTest {
 
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 4, 2, 2, 4, 4, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (LThis/Is/Foo;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (LThis/Also/Foo;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (This.Also.Foo)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (LThis/Also/Foo;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (LThis/Is/Foo;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
 
       Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + TimeUnit.SECONDS.toMicros(4));
@@ -738,14 +712,14 @@ public class LiveAllocationCaptureObjectTest {
       heapSet.selectFilter(new Filter("MethodA"));
       Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
       expected_0_to_4.add(new ClassifierSetTestData(0, DEFAULT_HEAP_NAME, 3, 2, 1, 4, 3, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (This.Is.Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (LThis/Is/Foo;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (This.Also.Foo)", 1, 1, 0, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (That.Is.Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (LThis/Also/Foo;)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (LThat/Is/Bar;)", 1, 1, 0, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
-      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, 1, true));
-      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (LThis/Is/Foo;)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (LThat/Also/Bar;)", 1, 0, 1, 1, 1, true));
       expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
     }
@@ -889,7 +863,7 @@ public class LiveAllocationCaptureObjectTest {
   // NOTE - this works because myExecutorService is a single-threaded executor.
   private static void waitForLoadComplete(@NotNull LiveAllocationCaptureObject capture) throws InterruptedException, ExecutionException {
     CountDownLatch latch = new CountDownLatch(1);
-    capture.myExecutorService.execute(() -> {
+    capture.executorService.execute(() -> {
       try {
         latch.countDown();
       }

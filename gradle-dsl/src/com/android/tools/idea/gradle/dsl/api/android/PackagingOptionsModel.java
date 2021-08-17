@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.DexModel;
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.JniLibsModel;
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.ResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface PackagingOptionsModel extends GradleDslModel {
+  @NotNull
+  ResolvedPropertyModel doNotStrip();
+
   @NotNull
   ResolvedPropertyModel excludes();
 
@@ -28,4 +34,13 @@ public interface PackagingOptionsModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel pickFirsts();
+
+  @NotNull
+  DexModel dex();
+
+  @NotNull
+  JniLibsModel jniLibs();
+
+  @NotNull
+  ResourcesModel resources();
 }

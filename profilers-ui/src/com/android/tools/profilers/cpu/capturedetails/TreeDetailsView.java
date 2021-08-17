@@ -27,7 +27,8 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -35,8 +36,6 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;

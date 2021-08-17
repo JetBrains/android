@@ -49,6 +49,11 @@ import java.util.Date
 import javax.swing.Icon
 
 /**
+ * A file name which UTP outputs test results.
+ */
+private const val TEST_RESULT_PB_FILE_NAME = "test-result.pb"
+
+/**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
  *
  * @param importFile a UTP result protobuf file to open, or null to open file chooser dialog
@@ -102,6 +107,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       val contentManager = toolWindow.contentManager
       val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
       contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
 
       project.coroutineScope.launch {
         testAdapter.forwardResults(testSuiteView)
@@ -129,10 +135,12 @@ class ImportUtpResultAction(icon: Icon? = null,
       return
     }
 
-    val defaultPath = getDefaultAndroidGradlePluginTestOutputFile(project)
+    val defaultPath = getDefaultAndroidGradlePluginTestDirectory(project)?.let {
+      findTestResultProto(it).firstOrNull()
+    }
     chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
-        .withFileFilter { it.extension == "pb" },
+        .withFileFilter { it.name == TEST_RESULT_PB_FILE_NAME },
       e.project,
       defaultPath
     ) { file: VirtualFile ->
@@ -163,8 +171,31 @@ data class ImportUtpResultActionFromFile(val timestamp: Long, val action: Import
 /**
  * Creates an ImportUtpResultAction from the default output directory of Android Gradle plugin.
  */
-fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): ImportUtpResultActionFromFile? {
-  val file = getDefaultAndroidGradlePluginTestOutputFile(project) ?: return null
+fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): List<ImportUtpResultActionFromFile> {
+  val testDirectory = getDefaultAndroidGradlePluginTestDirectory(project) ?: return listOf()
+  return findTestResultProtoAndCreateImportActions(testDirectory)
+}
+
+fun createImportGradleManagedDeviceUtpResults(project: Project?): List<ImportUtpResultActionFromFile> {
+  val deviceFolder = getDefaultAndroidGradlePluginDevicesTestDirectory(project) ?: return listOf()
+  return findTestResultProtoAndCreateImportActions(deviceFolder)
+}
+
+private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile): List<ImportUtpResultActionFromFile> {
+  return findTestResultProto(dir)
+    .map { createImportUtpResultsFromProto(it) }
+    .filterNotNull()
+    .toList()
+}
+
+private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
+  return dir.children.asSequence()
+    .filter(VirtualFile::isDirectory)
+    .map { it.findChild(TEST_RESULT_PB_FILE_NAME) }
+    .filterNotNull()
+}
+
+private fun createImportUtpResultsFromProto(file: VirtualFile): ImportUtpResultActionFromFile? {
   val resultProto = try {
     TestSuiteResultProto.TestSuiteResult.parseFrom(file.inputStream)
   } catch (e: IOException) {
@@ -182,11 +213,23 @@ fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?):
   return ImportUtpResultActionFromFile(startTimeMillis, ImportUtpResultAction(text = actionText, importFile = file))
 }
 
-private fun getDefaultAndroidGradlePluginTestOutputFile(project: Project?): VirtualFile? {
+private fun getDefaultAndroidGradlePluginTestDirectory(project: Project?): VirtualFile? {
   if (project == null) {
     return null
   }
-  val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected", "test-result.pb")
+  val relativePath = Paths.get("build", "outputs", "androidTest-results", "connected")
+  return ModuleManager.getInstance(project).modules.asSequence().map { module ->
+    ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
+      it.findFileByRelativePath(relativePath.toString())
+    }.filterNotNull().firstOrNull()
+  }.filterNotNull().firstOrNull()
+}
+
+private fun getDefaultAndroidGradlePluginDevicesTestDirectory(project: Project?): VirtualFile? {
+  if (project == null) {
+    return null
+  }
+  val relativePath = Paths.get("build", "outputs", "androidTest-results", "managedDevice")
   return ModuleManager.getInstance(project).modules.asSequence().map { module ->
     ModuleRootManager.getInstance(module).contentRoots.asSequence().map {
       it.findFileByRelativePath(relativePath.toString())

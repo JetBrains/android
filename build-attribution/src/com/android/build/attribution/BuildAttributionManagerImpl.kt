@@ -17,17 +17,20 @@ package com.android.build.attribution
 
 import com.android.SdkConstants
 import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
+import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
@@ -38,14 +41,12 @@ class BuildAttributionManagerImpl(private val project: Project) : BuildAttributi
   private val pluginContainer = PluginContainer()
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
-  private val analyzersWrapper = BuildEventsAnalyzersWrapper(
-    analyzersProxy.getBuildEventsAnalyzers(),
-    analyzersProxy.getBuildAttributionReportAnalyzers()
-  )
+  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+  private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
+    ServiceManager.getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
   override fun onBuildSuccess(attributionFileDir: File) {
@@ -56,11 +57,9 @@ class BuildAttributionManagerImpl(private val project: Project) : BuildAttributi
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          if (attributionData != null) {
-            taskContainer.updateTasksData(attributionData)
-            pluginContainer.updatePluginsData(attributionData)
-          }
-          analyzersWrapper.onBuildSuccess(attributionData)
+          val pluginsData = ServiceManager.getService(KnownGradlePluginsService::class.java).gradlePluginsData
+          val studioProvidedInfo = StudioProvidedInfo.fromProject(project)
+          analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
@@ -88,4 +87,7 @@ class BuildAttributionManagerImpl(private val project: Project) : BuildAttributi
 
   override fun openResultsTab() = BuildAttributionUiManager.getInstance(project)
     .openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
+
+  override fun shouldShowBuildOutputLink(): Boolean = !ConfigurationCacheTestBuildFlowRunner.getInstance(project)
+    .runningFirstConfigurationCacheBuild
 }

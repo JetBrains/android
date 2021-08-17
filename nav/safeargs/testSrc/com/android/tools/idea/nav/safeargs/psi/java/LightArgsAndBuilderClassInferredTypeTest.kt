@@ -18,6 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.Parameter
 import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnType
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
@@ -131,7 +132,10 @@ class LightArgsAndBuilderClassInferredTypeTest(
   }
 
   @Test
-  fun expectedGettersAndFromBundleMethodsAreCreated_inferredType() {
+  fun expectedMethodsAreCreated_inferredType() {
+    // Use a newer version to get the most number of methods generated
+    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
+
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -161,7 +165,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
     val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
-      assertThat(methods.size).isEqualTo(3)
+      assertThat(methods.size).isEqualTo(4)
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = defaultValueTypeMapping.inferredTypeStr,
@@ -177,6 +181,14 @@ class LightArgsAndBuilderClassInferredTypeTest(
       )
 
       methods[2].checkSignaturesAndReturnType(
+        name = "fromSavedStateHandle",
+        returnType = "FragmentArgs",
+        parameters = listOf(
+          Parameter("savedStateHandle", "SavedStateHandle")
+        )
+      )
+
+      methods[3].checkSignaturesAndReturnType(
         name = "toBundle",
         returnType = "Bundle"
       )

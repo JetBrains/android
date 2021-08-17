@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5
-import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.TestProjectPaths.BASIC
+import com.android.tools.idea.testing.findModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -35,8 +35,8 @@ class DeprecatedConfigurationReporterIntegrationTest : AndroidGradleTestCase() {
 
   @Test
   fun testModuleLink() {
-    loadProject(PROJECT_WITH1_DOT5)
-    val appModule = project.findAppModule()
+    loadProject(BASIC)
+    val appModule = project.findModule("testModuleLink")
     val appFile = GradleUtil.getGradleBuildFile(appModule)!!
 
     val issue = mock(IdeSyncIssue::class.java)

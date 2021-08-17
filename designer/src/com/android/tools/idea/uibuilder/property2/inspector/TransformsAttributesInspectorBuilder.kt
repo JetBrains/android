@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider
-import com.android.tools.idea.uibuilder.property2.ui.TransformsPanel
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider
+import com.android.tools.idea.uibuilder.property.ui.TransformsPanel
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -31,15 +31,15 @@ import com.android.tools.property.panel.api.PropertiesTable
  * Builder for a panel for transform properties in the layout editor
  */
 class TransformsAttributesInspectorBuilder(
-  private val model: NelePropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NelePropertyItem>
-) : InspectorBuilder<NelePropertyItem> {
+  private val model: NlPropertiesModel,
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+) : InspectorBuilder<NlPropertyItem> {
 
-  private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
-  private val controlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
+  private val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
+  private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.TRANSFORMS.visible) {
       return
     }

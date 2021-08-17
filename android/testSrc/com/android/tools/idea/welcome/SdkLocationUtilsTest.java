@@ -15,100 +15,83 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.repository.io.FileOp;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import java.io.File;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public final class SdkLocationUtilsTest {
-  private FileOp myFileOp;
+import com.android.testutils.file.DelegatingFileSystemProvider;
+import com.android.testutils.file.InMemoryFileSystems;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AccessMode;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
-  @Before
-  public void mockFileOp() {
-    myFileOp = Mockito.mock(FileOp.class);
-  }
+public final class SdkLocationUtilsTest {
+  private final FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystems.createInMemoryFileSystem()) {
+    @Override
+    public void checkAccess(@NotNull Path path, AccessMode @NotNull ... modes) throws IOException {
+      Path file = path.getFileName();
+      if (file != null && file.toString().endsWith("unwritable") && Arrays.asList(modes).contains(AccessMode.WRITE)) {
+        throw new AccessDeniedException("unwritable");
+      }
+      super.checkAccess(path, modes);
+    }
+  }.getFileSystem();
 
   @Test
   public void isWritableSdkLocationIsNull() {
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, null));
+    assertFalse(SdkLocationUtils.isWritable(null));
   }
 
   @Test
-  public void isWritableSdkLocationIsNotDirectoryAndCanNotWrite() {
-    File sdkLocation = Mockito.mock(File.class);
-    Mockito.when(myFileOp.exists(sdkLocation)).thenReturn(true);
+  public void isWritableSdkLocationIsNotDirectoryAndCanNotWrite() throws IOException {
+    Path file = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/unwritable"));
+    Files.createFile(file);
 
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
+    assertFalse(SdkLocationUtils.isWritable(file));
   }
 
   @Test
-  public void isWritableSdkLocationIsNotDirectoryAndCanWrite() {
-    File sdkLocation = Mockito.mock(File.class);
+  public void isWritableSdkLocationIsNotDirectoryAndCanWrite() throws IOException {
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/sdk"));
+    Files.createFile(sdkLocation);
 
-    Mockito.when(myFileOp.exists(sdkLocation)).thenReturn(true);
-    Mockito.when(myFileOp.canWrite(sdkLocation)).thenReturn(true);
-
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
+    assertFalse(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
-  public void isWritableSdkLocationIsDirectoryAndCanNotWrite() {
-    File sdkLocation = Mockito.mock(File.class);
+  public void isWritableSdkLocationIsDirectoryAndCanNotWrite() throws IOException {
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/unwritable"));
+    Files.createDirectories(sdkLocation);
 
-    Mockito.when(myFileOp.exists(sdkLocation)).thenReturn(true);
-    Mockito.when(myFileOp.isDirectory(sdkLocation)).thenReturn(true);
-
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
+    assertFalse(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
-  public void isWritableSdkLocationIsDirectoryAndCanWrite() {
-    File sdkLocation = Mockito.mock(File.class);
+  public void isWritableSdkLocationIsDirectoryAndCanWrite() throws IOException {
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/sdk"));
+    Files.createDirectories(sdkLocation);
 
-    Mockito.when(myFileOp.exists(sdkLocation)).thenReturn(true);
-    Mockito.when(myFileOp.isDirectory(sdkLocation)).thenReturn(true);
-    Mockito.when(myFileOp.canWrite(sdkLocation)).thenReturn(true);
-
-    assertTrue(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
+    assertTrue(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
-  public void isWritableAncestorIsNull() {
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, Mockito.mock(File.class)));
+  public void isWritableAncestorIsNotNullAndCanNotWrite() throws IOException {
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1/d2/unwritable"));
+    Files.createDirectories(sdkLocation);
+
+    assertFalse(SdkLocationUtils.isWritable(sdkLocation));
   }
 
   @Test
-  public void isWritableAncestorIsNotNullAndCanNotWrite() {
-    File ancestor2 = Mockito.mock(File.class);
-    Mockito.when(myFileOp.exists(ancestor2)).thenReturn(true);
+  public void isWritableAncestorIsNotNullAndCanWrite() throws IOException {
+    Path sdkLocation = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1/d2/sdk"));
+    Files.createDirectories(fs.getPath(InMemoryFileSystems.getPlatformSpecificPath("/d1")));
 
-    File ancestor1 = Mockito.mock(File.class);
-    Mockito.when(ancestor1.getParentFile()).thenReturn(ancestor2);
-
-    File sdkLocation = Mockito.mock(File.class);
-    Mockito.when(sdkLocation.getParentFile()).thenReturn(ancestor1);
-
-    assertFalse(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
-  }
-
-  @Test
-  public void isWritableAncestorIsNotNullAndCanWrite() {
-    File ancestor2 = Mockito.mock(File.class);
-
-    Mockito.when(myFileOp.exists(ancestor2)).thenReturn(true);
-    Mockito.when(myFileOp.canWrite(ancestor2)).thenReturn(true);
-
-    File ancestor1 = Mockito.mock(File.class);
-    Mockito.when(ancestor1.getParentFile()).thenReturn(ancestor2);
-
-    File sdkLocation = Mockito.mock(File.class);
-    Mockito.when(sdkLocation.getParentFile()).thenReturn(ancestor1);
-
-    assertTrue(SdkLocationUtils.isWritable(myFileOp, sdkLocation));
+    assertTrue(SdkLocationUtils.isWritable(sdkLocation));
   }
 }

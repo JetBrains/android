@@ -29,6 +29,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 @Styleable("AnimatedStateListDrawableTransition")
 public interface AnimatedStateListTransition extends DrawableDomElement {
   AnimationList getAnimationList();
+  AnimatedVector getAnimatedVector();
 
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("id")

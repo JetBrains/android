@@ -16,6 +16,10 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <editorNotificationProvider implementation="com.android.tools.idea.appinspection.inspectors.workmanager.ide.WorkManagerInspectorNotificationProvider"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.appinspection">
       <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.appinspection.inspectors.workmanager.ide.WorkManagerInspectorTabProvider" />
   </extensions>

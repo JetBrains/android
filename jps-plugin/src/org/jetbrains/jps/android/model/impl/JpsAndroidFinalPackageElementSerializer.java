@@ -2,7 +2,6 @@ package org.jetbrains.jps.android.model.impl;
 
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.model.module.JpsModuleReference;
 import org.jetbrains.jps.model.serialization.artifact.JpsPackagingElementSerializer;
 import org.jetbrains.jps.model.serialization.facet.JpsFacetSerializer;

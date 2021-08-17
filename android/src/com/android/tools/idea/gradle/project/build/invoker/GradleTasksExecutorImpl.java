@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsProjectJdk;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.CANCELED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
@@ -36,9 +37,9 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -81,7 +82,6 @@ import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -244,19 +244,19 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           commandLineArguments.add(PARALLEL_BUILD_OPTION);
         }
 
-        commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
 
         AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
           attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
-          commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
+          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
-        // Inject embedded repository if it's enabled by user or if in testing mode.
-        if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isInTestingMode()) {
+        // Inject embedded repository if it's enabled by user.
+        if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
           GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
           attemptToUseEmbeddedGradle(project);
         }
@@ -467,7 +467,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {ideSdks.setJdkPath(Paths.get(jdkHome));}));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> setJdkAsProjectJdk(myRequest.getProject(), jdkHome)));
         }
       }
     };

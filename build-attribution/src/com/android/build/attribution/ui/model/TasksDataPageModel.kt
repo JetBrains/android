@@ -26,10 +26,10 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
 import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
@@ -76,7 +76,7 @@ interface TasksDataPageModel {
   fun selectPageById(tasksPageId: TasksPageId)
 
   /** Install the listener that will be called on model state changes. */
-  fun setModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
+  fun addModelUpdatedListener(listener: (treeStructureChanged: Boolean) -> Unit)
   fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor?
 
   enum class Grouping(
@@ -93,9 +93,7 @@ class TasksDataPageModelImpl(
   override val reportData: BuildAttributionReportUiData
 ) : TasksDataPageModel {
 
-  @VisibleForTesting
-  var modelUpdatedListener: ((treeStructureChanged: Boolean) -> Unit)? = null
-    private set
+  private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
 
   override val selectedGrouping: TasksDataPageModel.Grouping
     get() = selectedPageId.grouping
@@ -128,7 +126,7 @@ class TasksDataPageModelImpl(
   override val selectedNode: TasksTreeNode?
     get() = treeStructure.pageIdToNode[selectedPageId]
 
-  override var filter: TasksFilter = TasksFilter.default()
+  override var filter: TasksFilter = TasksFilter.DEFAULT
     private set(value) {
       field = value
       treeStructure.updateStructure(selectedGrouping, value)
@@ -192,8 +190,8 @@ class TasksDataPageModelImpl(
     notifyModelChanges()
   }
 
-  override fun setModelUpdatedListener(listener: (Boolean) -> Unit) {
-    modelUpdatedListener = listener
+  override fun addModelUpdatedListener(listener: (Boolean) -> Unit) {
+    modelUpdatedListeners.add(listener)
   }
 
   override fun getNodeDescriptorById(pageId: TasksPageId): TasksTreePresentableNodeDescriptor? =
@@ -201,7 +199,7 @@ class TasksDataPageModelImpl(
 
   private fun notifyModelChanges() {
     if (modelChanged) {
-      modelUpdatedListener?.invoke(treeStructureChanged)
+      modelUpdatedListeners.forEach { it.invoke(treeStructureChanged) }
       treeStructureChanged = false
       modelChanged = false
     }
@@ -370,7 +368,11 @@ class PluginDetailsNodeDescriptor(
 
 private fun TimeWithPercentage.toRightAlignedNodeDurationText(): String {
   val timeString = if (timeMs < 100) "<0.1s" else "%2.1fs".format(timeS)
-  val percentageString = if (percentage < 0.1) "<0.1%" else "%4.1f%%".format(percentage)
+  val percentageString = when {
+    percentage < 0.1 -> "<0.1%"
+    percentage > 99.9 -> ">99.9%"
+    else -> "%4.1f%%".format(percentage)
+  }
   return "%s %5s".format(timeString, percentageString)
 }
 

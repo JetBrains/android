@@ -40,7 +40,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.TestActionManager;
-import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -195,19 +194,20 @@ public class ModelBuilder {
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getTestRootDisposable(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getModels()).thenReturn(ImmutableList.of(model));
+      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
 
       // TODO: NlDesignSurface should not be referenced from here.
       // TODO: Do we need a special version of ModelBuilder for Nele?
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
         when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
+        when(surface.getActionHandlerProvider()).thenReturn(NlDesignSurface::defaultActionHandlerProvider);
       }
 
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       when(surface.getSceneManagers()).thenReturn(ImmutableList.of(sceneManager));
-      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
+      when(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
@@ -239,6 +239,7 @@ public class ModelBuilder {
     DesignSurface surface = mock(surfaceClass);
     Disposer.register(disposableParent, surface);
     List<DesignSurfaceListener> listeners = new ArrayList<>();
+    when(surface.getData(any())).thenCallRealMethod();
     when(surface.getLayeredPane()).thenReturn(new JPanel());
     when(surface.getInteractionPane()).thenReturn(new JPanel());
     SelectionModel selectionModel = new DefaultSelectionModel();

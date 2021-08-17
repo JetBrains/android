@@ -23,9 +23,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.InvalidProtocolBufferException
-import com.google.testing.platform.plugin.android.info.host.proto.AndroidTestDeviceInfoProto
 import com.google.testing.platform.proto.api.core.PathProto
 import com.google.testing.platform.proto.api.core.TestArtifactProto
 import com.google.testing.platform.proto.api.core.TestCaseProto
@@ -291,14 +291,22 @@ class UtpTestResultAdapterTest {
     val deviceApi2 = 28
     val deviceInfoProtoFile1 = temporaryFolder.newFile()
     val deviceInfoProtoFile2 = temporaryFolder.newFile()
+    val manufacturer1 = "manufacturer 1"
+    val manufacturer2 = "manufacturer 2"
+    val model1 = "model 1"
+    val model2 = "model 2"
     AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
       apiLevel = deviceApi1.toString()
       name = deviceName1
+      manufacturer = manufacturer1
+      model = model1
     }.build().writeTo(deviceInfoProtoFile1.outputStream())
     AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
       apiLevel = deviceApi2.toString()
       name = deviceName2
       avdName = deviceName2
+      manufacturer = manufacturer2
+      model = model2
     }.build().writeTo(deviceInfoProtoFile2.outputStream())
     val testClass1 = "ExampleInstrumentedTest1"
     val testClass2 = "ExampleInstrumentedTest2"
@@ -342,9 +350,11 @@ class UtpTestResultAdapterTest {
     utpTestResultAdapter.forwardResults(mockListener)
     val deviceMatcher1 = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == deviceName1 && device?.deviceType == AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+      && device.additionalInfo["Manufacturer"] == manufacturer1 && device.additionalInfo["Model"] == model1
     }
     val deviceMatcher2 = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == deviceName2 && device?.deviceType == AndroidDeviceType.LOCAL_EMULATOR
+      && device.additionalInfo["Manufacturer"] == manufacturer2 && device.additionalInfo["Model"] == model2
     }
     val testCaseMatcher1= ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod1 && testCase?.className == testClass1 && testCase?.packageName == TEST_PACKAGE_NAME
@@ -365,6 +375,60 @@ class UtpTestResultAdapterTest {
     ))
     verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher2), argThat (
       ArgumentMatcher { it!!.result == AndroidTestSuiteResult.FAILED }
+    ))
+  }
+
+  @Test
+  fun importManagedDevice() {
+    val deviceName = "really_long_avd_name"
+    val dslName = "myDevice"
+    val deviceApi = 29
+    val deviceInfoProtoFile = temporaryFolder.newFile()
+    AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
+      apiLevel = deviceApi.toString()
+      name = deviceName
+      avdName = deviceName
+      gradleDslDeviceName = dslName
+    }.build().writeTo(deviceInfoProtoFile.outputStream())
+
+    val testClass = "ExampleInstrumentedTest1"
+    val testMethod = "useAppContext1"
+
+    TestSuiteResultProto.TestSuiteResult.newBuilder()
+      .addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass(testClass)
+                         .setTestPackage(TEST_PACKAGE_NAME)
+                         .setTestMethod(testMethod))
+          .setTestStatus(TestStatusProto.TestStatus.PASSED)
+          .addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+            label = labelBuilder
+              .setLabel(DEVICE_INFO_LABEL)
+              .setNamespace(DEVICE_INFO_NAMESPACE)
+              .build()
+            sourcePath = sourcePathBuilder
+              .setPath(deviceInfoProtoFile.absolutePath)
+              .build()
+          })
+      ).build().writeTo(utpProtoFile.outputStream())
+
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
+    val deviceMatcher = ArgumentMatcher<AndroidDevice> { device ->
+      device?.deviceName == "Gradle:$dslName" &&
+      device.avdName == deviceName &&
+      device.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
+    }
+    val testCaseMatcher = ArgumentMatcher<AndroidTestCase> { testCase ->
+      testCase?.methodName == testMethod && testCase.className == testClass && testCase.packageName == TEST_PACKAGE_NAME
+    }
+    verify(mockListener).onTestSuiteScheduled(argThat(deviceMatcher))
+    verify(mockListener).onTestSuiteStarted(argThat(deviceMatcher), any())
+    verify(mockListener).onTestCaseStarted(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestCaseFinished(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher), argThat (
+      ArgumentMatcher { it!!.result == AndroidTestSuiteResult.PASSED }
     ))
   }
 }

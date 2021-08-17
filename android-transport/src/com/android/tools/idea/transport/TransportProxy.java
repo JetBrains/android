@@ -16,19 +16,16 @@
 package com.android.tools.idea.transport;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.idea.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -49,9 +46,8 @@ public class TransportProxy {
   }
 
   private Server myProxyServer;
-  @NotNull private final List<ServiceProxy> myProxyServices;
-  @NotNull private IDevice myDevice;
-  @NotNull private ManagedChannel myTransportChannel;
+  @NotNull private final IDevice myDevice;
+  @NotNull private final ManagedChannel myTransportChannel;
   @NotNull private final TransportServiceProxy myProxyService;
   @NotNull private final LinkedBlockingDeque<Common.Event> myProxyEventQueue = new LinkedBlockingDeque<>();
   // General file/byte cache used in the proxy layer.
@@ -60,7 +56,6 @@ public class TransportProxy {
   public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
-    myProxyServices = new LinkedList<>();
     myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyEventQueue, myProxyBytesCache);
   }
 
@@ -72,10 +67,6 @@ public class TransportProxy {
   @NotNull
   public Map<String, ByteString> getBytesCache() {
     return myProxyBytesCache;
-  }
-
-  public void registerProxyService(ServiceProxy proxyService) {
-    myProxyServices.add(proxyService);
   }
 
   /**
@@ -99,10 +90,9 @@ public class TransportProxy {
    * Must be called as the last step of initializing the proxy server, after registering proxy services
    */
   public void initializeProxyServer(String channelName) {
-    ServerBuilder builder = InProcessServerBuilder.forName(channelName);
-    myProxyServices.add(myProxyService);
-    myProxyServices.forEach(service -> builder.addService(service.getServiceDefinition()));
-    myProxyServer = builder.build();
+    myProxyServer = InProcessServerBuilder.forName(channelName)
+      .addService(myProxyService.getServiceDefinition())
+      .build();
   }
 
   public void connect() throws IOException {
@@ -116,7 +106,7 @@ public class TransportProxy {
     if (myProxyServer == null) {
       throw new IllegalStateException("Proxy server has not been built");
     }
-    myProxyServices.forEach(ServiceProxy::disconnect);
+    myProxyService.disconnect();
     // Shutdown instead of shutdown now so that the proxy services have a chance to finish sending through their data.
     myProxyServer.shutdown();
   }

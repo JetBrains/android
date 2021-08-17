@@ -34,10 +34,10 @@ class NamedIdeaSourceProviderImpl(
   interface Core {
     val manifestFileUrl: String
     val javaDirectoryUrls: Sequence<String>
+    val kotlinDirectoryUrls: Sequence<String>
     val resourcesDirectoryUrls: Sequence<String>
     val aidlDirectoryUrls: Sequence<String>
     val renderscriptDirectoryUrls: Sequence<String>
-    val jniDirectoryUrls: Sequence<String>
     val jniLibsDirectoryUrls: Sequence<String>
     val resDirectoryUrls: Sequence<String>
     val assetsDirectoryUrls: Sequence<String>
@@ -47,10 +47,10 @@ class NamedIdeaSourceProviderImpl(
 
   private val manifestFileUrl: String get() = core.manifestFileUrl
   override val javaDirectoryUrls: Iterable<String> get() = core.javaDirectoryUrls.asIterable()
+  override val kotlinDirectoryUrls: Iterable<String> get() = core.kotlinDirectoryUrls.asIterable()
   override val resourcesDirectoryUrls: Iterable<String> get() = core.resourcesDirectoryUrls.asIterable()
   override val aidlDirectoryUrls: Iterable<String> get() = core.aidlDirectoryUrls.asIterable()
   override val renderscriptDirectoryUrls: Iterable<String> get() = core.renderscriptDirectoryUrls.asIterable()
-  override val jniDirectoryUrls: Iterable<String> get() = core.jniDirectoryUrls.asIterable()
   override val jniLibsDirectoryUrls: Iterable<String> get() = core.jniLibsDirectoryUrls.asIterable()
   override val resDirectoryUrls: Iterable<String> get() = core.resDirectoryUrls.asIterable()
   override val assetsDirectoryUrls: Iterable<String> get() = core.assetsDirectoryUrls.asIterable()
@@ -87,10 +87,10 @@ class NamedIdeaSourceProviderImpl(
     get() = listOfNotNull(manifestDirectory)
 
   override val javaDirectories: Iterable<VirtualFile> get() = core.javaDirectoryUrls.toVirtualFiles()
+  override val kotlinDirectories: Iterable<VirtualFile> get() = core.kotlinDirectoryUrls.toVirtualFiles()
   override val resourcesDirectories: Iterable<VirtualFile> get() = core.resourcesDirectoryUrls.toVirtualFiles()
   override val aidlDirectories: Iterable<VirtualFile> get() = core.aidlDirectoryUrls.toVirtualFiles()
   override val renderscriptDirectories: Iterable<VirtualFile> get() = core.renderscriptDirectoryUrls.toVirtualFiles()
-  override val jniDirectories: Iterable<VirtualFile> get() = core.jniDirectoryUrls.toVirtualFiles()
   override val jniLibsDirectories: Iterable<VirtualFile> get() = core.jniLibsDirectoryUrls.toVirtualFiles()
   override val resDirectories: Iterable<VirtualFile> get() = core.resDirectoryUrls.toVirtualFiles()
   override val assetsDirectories: Iterable<VirtualFile> get() = core.assetsDirectoryUrls.toVirtualFiles()
@@ -113,10 +113,10 @@ class IdeaSourceProviderImpl(
     val manifestFileUrls: Sequence<String>
     val manifestDirectoryUrls: Sequence<String>
     val javaDirectoryUrls: Sequence<String>
+    val kotlinDirectoryUrls: Sequence<String>
     val resourcesDirectoryUrls: Sequence<String>
     val aidlDirectoryUrls: Sequence<String>
     val renderscriptDirectoryUrls: Sequence<String>
-    val jniDirectoryUrls: Sequence<String>
     val jniLibsDirectoryUrls: Sequence<String>
     val resDirectoryUrls: Sequence<String>
     val assetsDirectoryUrls: Sequence<String>
@@ -127,10 +127,10 @@ class IdeaSourceProviderImpl(
   override val manifestFileUrls: Iterable<String> get() = core.manifestFileUrls.asIterable()
   override val manifestDirectoryUrls: Iterable<String> get() = core.manifestDirectoryUrls.asIterable()
   override val javaDirectoryUrls: Iterable<String> get() = core.javaDirectoryUrls.asIterable()
+  override val kotlinDirectoryUrls: Iterable<String> get() = core.kotlinDirectoryUrls.asIterable()
   override val resourcesDirectoryUrls: Iterable<String> get() = core.resourcesDirectoryUrls.asIterable()
   override val aidlDirectoryUrls: Iterable<String> get() = core.aidlDirectoryUrls.asIterable()
   override val renderscriptDirectoryUrls: Iterable<String> get() = core.renderscriptDirectoryUrls.asIterable()
-  override val jniDirectoryUrls: Iterable<String> get() = core.jniDirectoryUrls.asIterable()
   override val jniLibsDirectoryUrls: Iterable<String> get() = core.jniLibsDirectoryUrls.asIterable()
   override val resDirectoryUrls: Iterable<String> get() = core.resDirectoryUrls.asIterable()
   override val assetsDirectoryUrls: Iterable<String> get() = core.assetsDirectoryUrls.asIterable()
@@ -140,10 +140,10 @@ class IdeaSourceProviderImpl(
   override val manifestFiles: Iterable<VirtualFile> get() = core.manifestFileUrls.toVirtualFiles()
   override val manifestDirectories: Iterable<VirtualFile> get() = core.manifestDirectoryUrls.toVirtualFiles()
   override val javaDirectories: Iterable<VirtualFile> get() = core.javaDirectoryUrls.toVirtualFiles()
+  override val kotlinDirectories: Iterable<VirtualFile> get() = core.kotlinDirectoryUrls.toVirtualFiles()
   override val resourcesDirectories: Iterable<VirtualFile> get() = core.resourcesDirectoryUrls.toVirtualFiles()
   override val aidlDirectories: Iterable<VirtualFile> get() = core.aidlDirectoryUrls.toVirtualFiles()
   override val renderscriptDirectories: Iterable<VirtualFile> get() = core.renderscriptDirectoryUrls.toVirtualFiles()
-  override val jniDirectories: Iterable<VirtualFile> get() = core.jniDirectoryUrls.toVirtualFiles()
   override val jniLibsDirectories: Iterable<VirtualFile> get() = core.jniLibsDirectoryUrls.toVirtualFiles()
   override val resDirectories: Iterable<VirtualFile> get() = core.resDirectoryUrls.toVirtualFiles()
   override val assetsDirectories: Iterable<VirtualFile> get() = core.assetsDirectoryUrls.toVirtualFiles()
@@ -159,6 +159,7 @@ interface NamedIdeaSourceProviderBuilder {
   fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder
   fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder
   fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withKotlinDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withAidlDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withRenderscriptDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
@@ -180,6 +181,7 @@ interface NamedIdeaSourceProviderBuilder {
     val scopeType: ScopeType = ScopeType.MAIN,
     val manifestFileUrl: String,
     val javaDirectoryUrls: Collection<String> = emptyList(),
+    val kotlinDirectoryUrls: Collection<String> = emptyList(),
     val resourcesDirectoryUrls: Collection<String> = emptyList(),
     val aidlDirectoryUrls: Collection<String> = emptyList(),
     val renderscriptDirectoryUrls: Collection<String> = emptyList(),
@@ -194,6 +196,7 @@ interface NamedIdeaSourceProviderBuilder {
     override fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder = copy(scopeType = scopeType)
     override fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder = copy(manifestFileUrl = url)
     override fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(javaDirectoryUrls = urls)
+    override fun withKotlinDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(kotlinDirectoryUrls = urls)
     override fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(resourcesDirectoryUrls = urls)
     override fun withAidlDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(aidlDirectoryUrls = urls)
     override fun withRenderscriptDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(renderscriptDirectoryUrls = urls)
@@ -210,10 +213,10 @@ interface NamedIdeaSourceProviderBuilder {
       object : NamedIdeaSourceProviderImpl.Core {
         override val manifestFileUrl: String get() = this@Builder.manifestFileUrl
         override val javaDirectoryUrls: Sequence<String> get() = this@Builder.javaDirectoryUrls.asSequence()
+        override val kotlinDirectoryUrls: Sequence<String> get() = this@Builder.kotlinDirectoryUrls.asSequence()
         override val resourcesDirectoryUrls: Sequence<String> get() = this@Builder.resourcesDirectoryUrls.asSequence()
         override val aidlDirectoryUrls: Sequence<String> get() = this@Builder.aidlDirectoryUrls.asSequence()
         override val renderscriptDirectoryUrls: Sequence<String> get() = this@Builder.renderscriptDirectoryUrls.asSequence()
-        override val jniDirectoryUrls: Sequence<String> get() = this@Builder.jniDirectoryUrls.asSequence()
         override val jniLibsDirectoryUrls: Sequence<String> get() = this@Builder.jniLibsDirectoryUrls.asSequence()
         override val resDirectoryUrls: Sequence<String> get() = this@Builder.resDirectoryUrls.asSequence()
         override val assetsDirectoryUrls: Sequence<String> get() = this@Builder.assetsDirectoryUrls.asSequence()

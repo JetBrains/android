@@ -29,6 +29,8 @@ class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
                     val threads: TLongObjectHashMap<ThreadInfo>,
                     var roots: TLongObjectHashMap<RootReason>) {
 
+  class RemapException : Exception();
+
   fun remapIds(remappingFunction: LongUnaryOperator) {
     // Remap ids in class store
     classStore = classStore.createStoreWithRemappedIDs(remappingFunction)
@@ -36,9 +38,13 @@ class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
     // Remap root objects' ids
     val newRoots = TLongObjectHashMap<RootReason>()
     roots.forEachEntry { key, value ->
-      val newKey = remappingFunction.applyAsLong(key)
-      assert(!newRoots.containsKey(newKey))
-      newRoots.put(newKey, value)
+      try {
+        val newKey = remappingFunction.applyAsLong(key)
+        assert(!newRoots.containsKey(newKey))
+        newRoots.put(newKey, value)
+      } catch (e: RemapException) {
+        // Ignore root entry if there is no associated object
+      }
       true
     }
     roots = newRoots

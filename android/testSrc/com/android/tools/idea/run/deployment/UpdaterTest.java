@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -23,24 +22,27 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.deployment.Device.Type;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.ide.util.ProjectPropertiesComponentImpl;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,9 +56,6 @@ public final class UpdaterTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private final Presentation myPresentation = new Presentation();
-  private final DevicesSelectedService myDevicesSelectedService = Mockito.mock(DevicesSelectedService.class);
-  private final PropertiesComponent myProperties = new ProjectPropertiesComponentImpl();
-  private final AsyncDevicesGetter myDevicesGetter = Mockito.mock(AsyncDevicesGetter.class);
 
   @Test
   public void updateDependingOnConfigurationConfigurationAndSettingsIsNull() {
@@ -64,7 +63,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -83,7 +82,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -104,7 +103,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -125,7 +124,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -148,9 +147,11 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmptyDevicesIsEmpty() {
     // Arrange
-    DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
+    Key key = new VirtualDeviceName("Pixel_2_API_29");
+
+    DevicesSelectedService devicesSelectedService = newDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new VirtualDeviceName("Pixel_2_API_29")));
+    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -162,10 +163,9 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog(Collections.emptyList()));
+    assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.empty(), devicesSelectedService.getTargetSelectedWithComboBox(Collections.emptyList()));
 
     assertNull(myPresentation.getIcon());
     assertEquals("No Devices", myPresentation.getText());
@@ -174,33 +174,37 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmpty() {
     // Arrange
+    Key key1 = new VirtualDeviceName("Pixel_2_API_29");
+
+    DevicesSelectedService devicesSelectedService = newDevicesSelectedService();
+    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
+    devicesSelectedService.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key1)));
+
+    Key key2 = new VirtualDeviceName("Pixel_3_API_29");
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
+      .setType(Type.PHONE)
+      .setKey(key2)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
-    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new VirtualDeviceName("Pixel_2_API_29")));
+    List<Device> devices = Collections.singletonList(device);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
-      .setDevices(Collections.singletonList(device))
+      .setDevices(devices)
       .build();
 
     // Act
     updater.update();
 
     // Assert
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
-    assertEquals("VirtualDeviceName@Pixel_3_API_29", myProperties.getValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
-    assertEquals("2018-11-28T01:15:27Z", myProperties.getValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog(devices));
+    assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.of(new QuickBootTarget(key2)), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals("Pixel 3 API 29", myPresentation.getText());
@@ -210,47 +214,119 @@ public final class UpdaterTest {
   public void updateInToolbarForMultipleDevices() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_2_API_29");
+    Target target = new QuickBootTarget(key);
+    Set<Target> targets = Collections.singleton(target);
+
+    DevicesSelectedService devicesSelectedService = newDevicesSelectedService();
+    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
+    devicesSelectedService.setTargetsSelectedWithDialog(targets);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
+      .setType(Type.PHONE)
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
-    devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
+    List<Device> devices = Collections.singletonList(device);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
-      .setDevices(Collections.singletonList(device))
+      .setDevices(devices)
       .build();
 
     // Act
     updater.update();
 
     // Assert
-    assertArrayEquals(new String[]{"VirtualDeviceName@Pixel_2_API_29"},
-                      myProperties.getValues(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
-
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
-    assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
-    assertTrue(myProperties.getBoolean(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
+    assertEquals(targets, devicesSelectedService.getTargetsSelectedWithDialog(devices));
+    assertTrue(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.of(target), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
     assertEquals("Multiple Devices (1)", myPresentation.getText());
   }
 
-  @NotNull
-  private DevicesSelectedService buildDevicesSelectedService() {
-    return new DevicesSelectedService(myRule.getProject(),
-                                      project -> myProperties,
-                                      Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")),
-                                      () -> false);
+  @Test
+  public void updateInToolbarForMultipleDevicesDeviceIsLaunchedAfterTargetWasSelected() {
+    // Arrange
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
+
+    DevicesSelectedService service = newDevicesSelectedService();
+    service.setMultipleDevicesSelectedInComboBox(true);
+    service.setTargetsSelectedWithDialog(Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey)));
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
+      .setKey(deviceKey)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(snapshotKey))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    Object target = new RunningDeviceTarget(deviceKey);
+
+    assertEquals(Collections.singleton(target), service.getTargetsSelectedWithDialog(devices));
+    assertTrue(service.isMultipleDevicesSelectedInComboBox());
+    assertEquals(Optional.of(target), service.getTargetSelectedWithComboBox(devices));
+
+    assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
+    assertEquals("Multiple Devices (1)", myPresentation.getText());
+  }
+
+  @Test
+  public void updateInToolbarForMultipleDevicesRunningDeviceTargetIsReplacedWithQuickBootTarget() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    DevicesSelectedService service = newDevicesSelectedService();
+    service.setMultipleDevicesSelectedInComboBox(true);
+    service.setTargetsSelectedWithDialog(Collections.singleton(new RunningDeviceTarget(key)));
+
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
+      .build();
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(Collections.singletonList(device))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
+    assertEquals("Pixel 4 API 30 - Quick Boot", myPresentation.getText());
   }
 
   @Test
@@ -259,7 +335,7 @@ public final class UpdaterTest {
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -275,16 +351,20 @@ public final class UpdaterTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
+      .setType(Type.PHONE)
       .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getDeviceSelectedWithComboBox(Collections.singletonList(device))).thenReturn(device);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -301,16 +381,20 @@ public final class UpdaterTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("apiQ_64_Google")
+      .setType(Type.PHONE)
       .setKey(new VirtualDeviceName("apiQ_64_Google"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getDeviceSelectedWithComboBox(Collections.singletonList(device))).thenReturn(device);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDeviceName("apiQ_64_Google"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -322,25 +406,73 @@ public final class UpdaterTest {
   }
 
   @Test
-  public void getTextDeviceHasSnapshot() {
+  public void updateInToolbarForSingleDeviceRunningDeviceTargetIsReplacedWithQuickBootTarget() {
     // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    DevicesSelectedService service = newDevicesSelectedService();
+    service.setTargetSelectedWithComboBox(new RunningDeviceTarget(key));
+
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
 
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
+      .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .build();
-
-    Mockito.when(myDevicesSelectedService.getDeviceSelectedWithComboBox(Collections.singletonList(device))).thenReturn(device);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
-      .setSnapshotsEnabled(true)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
+    assertEquals("Pixel 4 API 30 - Quick Boot", myPresentation.getText());
+  }
+
+  private static @NotNull DevicesSelectedService newDevicesSelectedService() {
+    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
+    return new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
+  }
+
+  @Test
+  public void getTextDeviceHasSnapshot() {
+    // Arrange
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd");
+
+    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setType(Type.PHONE)
+      .setKey(deviceKey)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .addSnapshot(new Snapshot(snapshotKey))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Target target = new BootWithSnapshotTarget(deviceKey, snapshotKey);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(target));
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act
@@ -357,17 +489,21 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setType(Type.PHONE)
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
+      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getDeviceSelectedWithComboBox(Collections.singletonList(device))).thenReturn(device);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
+      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
       .build();
 
@@ -383,22 +519,27 @@ public final class UpdaterTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
+      .setType(Type.PHONE)
       .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
+      .setType(Type.PHONE)
       .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesSelectedService.getDeviceSelectedWithComboBox(Arrays.asList(device1, device2))).thenReturn(device1);
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(service.getTargetSelectedWithComboBox(Arrays.asList(device1, device2)))
+      .thenReturn(Optional.of(new RunningDeviceTarget(new SerialNumber("00fff9d2279fa601"))));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(service)
       .setDevices(Arrays.asList(device1, device2))
       .build();
 
@@ -410,13 +551,78 @@ public final class UpdaterTest {
   }
 
   @Test
+  public void getTextDeviceIsConnected() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
+      .setKey(key)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals("Pixel 4 API 30", myPresentation.getText());
+  }
+
+  @Test
+  public void getTextSnapshotsIsEmpty() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setDevicesSelectedService(service)
+      .setDevices(devices)
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertEquals("Pixel 4 API 30", myPresentation.getText());
+  }
+
+  @Test
   public void updatePlaceEqualsMainMenu() {
     // Arrange
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.MAIN_MENU)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -435,7 +641,7 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.ACTION_SEARCH)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act
@@ -454,7 +660,7 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.KEYBOARD_SHORTCUT)
-      .setDevicesSelectedService(myDevicesSelectedService)
+      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
       .build();
 
     // Act

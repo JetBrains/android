@@ -15,18 +15,18 @@
  */
 package org.jetbrains.kotlin.android.configure
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
 import com.intellij.openapi.vfs.CharsetToolkit
-import com.intellij.testFramework.LightCodeInsightTestCase
+import com.intellij.testFramework.LightJavaCodeInsightTestCase
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import java.io.File
 
-abstract class ConfigureProjectTest : LightCodeInsightTestCase() {
+abstract class ConfigureProjectTest : LightJavaCodeInsightTestCase() {
 
   companion object {
     private const val DEFAULT_VERSION = "default_version"
@@ -35,7 +35,7 @@ abstract class ConfigureProjectTest : LightCodeInsightTestCase() {
   }
 
   fun doTest(path: String, extension: String, useAndroidX: Boolean = false) {
-    val testRoot = TestUtils.getWorkspaceFile("tools/adt/idea/android-kotlin")
+    val testRoot = resolveWorkspacePath("tools/adt/idea/android-kotlin").toFile()
     val file = File(testRoot, "${path}_before.$extension")
     val fileText = loadFile(file, CharsetToolkit.UTF8, true)
     configureFromFileText(file.name, fileText)

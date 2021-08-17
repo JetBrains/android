@@ -60,7 +60,6 @@ class PTableModelImplTest {
     val groupAfter = model.items[3] as PTableGroupItem
 
     assertThat(impl.isExpanded(groupAfter)).isTrue()
-    assertThat(impl.isExpanded(groupBefore)).isTrue()
     assertThat(impl.expandedItems).containsExactly(groupAfter)
 
     // Verify that the old expanded group is no longer in the expandedItems:
@@ -78,9 +77,7 @@ class PTableModelImplTest {
     impl.expand(2)
     impl.collapse(0)
 
-    assertThat(impl.rowCount).isEqualTo(2)
-    assertThat(impl.getValueAt(0, 0).name).isEqualTo("group")
-    assertThat(impl.getValueAt(1, 0).name).isEqualTo("item2")
+    checkRows(impl, "group", "item2")
   }
 
   @Test
@@ -92,13 +89,7 @@ class PTableModelImplTest {
     impl.collapse(0)
     impl.expand(0)
 
-    assertThat(impl.rowCount).isEqualTo(6)
-    assertThat(impl.getValueAt(0, 0).name).isEqualTo("group")
-    assertThat(impl.getValueAt(1, 0).name).isEqualTo("item1")
-    assertThat(impl.getValueAt(2, 0).name).isEqualTo("visibility")
-    assertThat(impl.getValueAt(3, 0).name).isEqualTo("show")
-    assertThat(impl.getValueAt(4, 0).name).isEqualTo("hide")
-    assertThat(impl.getValueAt(5, 0).name).isEqualTo("item2")
+    checkRows(impl, "group", "item1", "visibility", "show", "hide", "item2")
   }
 
   @Test
@@ -109,27 +100,71 @@ class PTableModelImplTest {
     impl.expand(2)
     model.updateTo(true, Item("extra"), Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
 
-    assertThat(impl.rowCount).isEqualTo(7)
-    assertThat(impl.getValueAt(0, 0).name).isEqualTo("extra")
-    assertThat(impl.getValueAt(1, 0).name).isEqualTo("group")
-    assertThat(impl.getValueAt(2, 0).name).isEqualTo("item1")
-    assertThat(impl.getValueAt(3, 0).name).isEqualTo("visibility")
-    assertThat(impl.getValueAt(4, 0).name).isEqualTo("show")
-    assertThat(impl.getValueAt(5, 0).name).isEqualTo("hide")
-    assertThat(impl.getValueAt(6, 0).name).isEqualTo("item2")
+    checkRows(impl, "extra", "group", "item1", "visibility", "show", "hide", "item2")
   }
 
   @Test
   fun testModelWithMultipleEqualNodes() {
     val model = createModel(Group("group", Group("group", Item("item")), Item("item")))
-    val group0 = model.items.single() as Group
-    val group1 = group0.children.first() as Group
-    val item1 = group0.children.last()
-    val item2 = group1.children.single()
+    val group1 = model.items.single() as Group
+    val group2 = group1.children.first() as Group
+    val item1 = group1.children.last()
+    val item2 = group2.children.single()
     val impl = PTableModelImpl(model)
-    assertThat(impl.parentOf(item1)).isSameAs(group0)
-    assertThat(impl.parentOf(item2)).isSameAs(group1)
+    assertThat(impl.parentOf(item1)).isSameAs(group1)
+    assertThat(impl.parentOf(item2)).isSameAs(group2)
     assertThat(impl.depth(item1)).isEqualTo(1)
     assertThat(impl.depth(item2)).isEqualTo(2)
+  }
+
+  @Test
+  fun testExpansionWithMultipleEqualGroupNodes() {
+    val model = createModel(Group("top", Group("group", Item("item1")), Group("group", Item("item2")), Item("item3")))
+    val top = model.items.single() as Group
+    val group1 = top.children.first() as Group
+    val group2 = top.children[1] as Group
+    val impl = PTableModelImpl(model)
+    checkRows(impl, "top")
+    impl.toggle(top)
+    checkRows(impl, "top", "group", "group", "item3")
+    impl.toggle(group1)
+    checkRows(impl, "top", "group", "item1", "group", "item3")
+    impl.toggle(group2)
+    checkRows(impl, "top", "group", "item1", "group", "item2", "item3")
+    impl.toggle(group1)
+    checkRows(impl, "top", "group", "group", "item2", "item3")
+    impl.toggle(group2)
+    checkRows(impl, "top", "group", "group", "item3")
+    impl.toggle(top)
+    checkRows(impl, "top")
+  }
+
+  @Test
+  fun testDelayedExpansion() {
+    val model = createModel(Item("weight"), Group("weiss"))
+    val weiss = model.find("weiss") as Group
+    weiss.delayedExpansion = true
+
+    val impl = PTableModelImpl(model)
+    checkRows(impl, "weight", "weiss")
+
+    impl.toggle(weiss)
+    checkRows(impl, "weight", "weiss")
+
+    weiss.children.addAll(listOf(Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    checkRows(impl, "weight", "weiss")
+
+    weiss.expandNow(true)
+    checkRows(impl, "weight", "weiss", "siphon", "extra")
+
+    val more = model.find("more") as Group
+    assertThat(impl.depth(more)).isEqualTo(2)
+  }
+
+  private fun checkRows(model: PTableModelImpl, vararg titles: String) {
+    assertThat(model.rowCount).isEqualTo(titles.size)
+    for ((index, title) in titles.withIndex()) {
+      assertThat(model.getValueAt(index, 0).name).isEqualTo(title)
+    }
   }
 }

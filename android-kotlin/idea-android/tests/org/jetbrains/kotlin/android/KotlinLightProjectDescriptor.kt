@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android
 
-import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.roots.ContentEntry
@@ -33,7 +33,7 @@ open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
 
   companion object {
     private const val LIBRARY_NAME = "myLibrary"
-    private val KOTLIN_PLUGIN = TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin")
+    private val KOTLIN_PLUGIN = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin").toFile()
     private val KOTLIN_STDLIB = File(KOTLIN_PLUGIN, "kotlinc/lib/kotlin-stdlib.jar")
     val INSTANCE = KotlinLightProjectDescriptor()
   }

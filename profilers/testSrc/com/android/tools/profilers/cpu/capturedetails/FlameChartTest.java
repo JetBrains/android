@@ -15,18 +15,20 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import java.util.Arrays;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class FlameChartTest {
   /**
@@ -200,6 +202,23 @@ public class FlameChartTest {
     assertEquals("A", main.getChildAt(2).getData().getFullName());
     assertEquals(24, main.getChildAt(2).getStart());
     assertEquals(25, main.getChildAt(2).getEnd());
+  }
+
+  @Test
+  public void selectionOutsideChildrenRange() {
+    CaptureNode thread1 = newNode("thread1", 0, 100);
+    CaptureNode thread2 = newNode("thread2", 0, 100);
+
+    Range selection = new Range(0, 100);
+    CpuCapture capture = Mockito.mock(CpuCapture.class);
+    Mockito.when(capture.getRange()).thenReturn(selection);
+
+    // Create a multi-node flame chart.
+    CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(selection, Arrays.asList(thread1, thread2), capture);
+
+    // Selecting outside all of the children's range should effectively return no intersection for the flame chart.
+    selection.set(110, 120);
+    assertNull(flameChart.getNode());
   }
 
   @NotNull

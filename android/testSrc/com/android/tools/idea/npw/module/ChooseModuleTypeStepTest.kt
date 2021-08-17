@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -66,16 +65,21 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
 
     val expectedEntries = listOf(
-      message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
-      message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.new.dynamic.module.instant"),
-      message("android.wizard.module.new.automotive"), message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
-      message("android.wizard.module.new.things"), message("android.wizard.module.import.gradle.title"),
-      message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.new.java.or.kotlin.library"),
-      message("android.wizard.module.new.benchmark.module.app"))
-      .filterNot {
-        StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() &&
-        (it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title"))
-      }
+      message("android.wizard.module.new.mobile"),
+      message("android.wizard.module.new.library"),
+      message("android.wizard.module.new.native.library"),
+      message("android.wizard.module.new.dynamic.module"),
+      message("android.wizard.module.new.dynamic.module.instant"),
+      message("android.wizard.module.new.automotive"),
+      message("android.wizard.module.new.wear"),
+      message("android.wizard.module.new.tv"),
+      message("android.wizard.module.import.gradle.title"),
+      message("android.wizard.module.import.eclipse.title"),
+      message("android.wizard.module.new.java.or.kotlin.library"),
+      message("android.wizard.module.new.benchmark.module.app")
+    ).filterNot {
+      it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
+    }
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

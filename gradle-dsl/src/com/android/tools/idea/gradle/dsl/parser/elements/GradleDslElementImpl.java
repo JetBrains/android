@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -41,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,7 +62,6 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,10 +84,10 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   private long myLastCommittedModificationCount;
   private long myModificationCount;
 
-  // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
-  // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
-  // the information to make this distinction. GradleDslElement will set this to a default of false.
-  protected boolean myUseAssignment;
+  /**
+   * Represents the expressed syntax of this element (if from the parser), defaulting to METHOD.
+   */
+  @NotNull protected ExternalNameSyntax mySyntax;
 
   @NotNull private PropertyType myElementType;
 
@@ -118,7 +119,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       myDslFile = parent.getDslFile();
     }
 
-    myUseAssignment = false;
+    mySyntax = METHOD;
     // Default to DERIVED, this is overwritten in the parser if required for the given element type.
     myElementType = DERIVED;
   }
@@ -244,13 +245,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  public boolean shouldUseAssignment() {
-    return myUseAssignment;
+  @NotNull
+  public ExternalNameSyntax getExternalSyntax() {
+    return mySyntax;
   }
 
   @Override
-  public void setUseAssignment(boolean useAssignment) {
-    myUseAssignment = useAssignment;
+  public void setExternalSyntax(@NotNull ExternalNameSyntax syntax) {
+    mySyntax = syntax;
   }
 
   @Override
@@ -306,10 +308,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public void delete() {
-    for (GradleDslElement element : getChildren()) {
-      element.delete();
-    }
-
     this.getDslFile().getWriter().deleteDslElement(this);
   }
 
@@ -559,8 +557,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return ImmutableMap.of();
   }
 

@@ -102,7 +102,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     }
 
     File wrongPath = new File("/$@@  \"\'should/not/exist");
-    File androidHome = TestUtils.getSdk();
+    File androidHome = TestUtils.getSdk().toFile();
 
     assertPagesVisible(null, true, false);
 

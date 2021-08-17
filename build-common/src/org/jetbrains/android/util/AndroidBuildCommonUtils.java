@@ -345,12 +345,12 @@ public class AndroidBuildCommonUtils {
 
     commands.add("-libraryjars");
 
-    builder = new StringBuilder(quotePath(target.getPath(IAndroidTarget.ANDROID_JAR)));
+    builder = new StringBuilder(quotePath(target.getPath(IAndroidTarget.ANDROID_JAR).toString()));
 
     List<OptionalLibrary> libraries = target.getAdditionalLibraries();
     for (OptionalLibrary lib : libraries) {
       builder.append(File.pathSeparatorChar);
-      builder.append(quotePath(lib.getJar().getAbsolutePath()));
+      builder.append(quotePath(lib.getJar().toAbsolutePath().toString()));
     }
     for (String path : providedJarOsPaths) {
       builder.append(File.pathSeparatorChar);
@@ -563,7 +563,6 @@ public class AndroidBuildCommonUtils {
   @NotNull
   public static Map<AndroidCompilerMessageKind, List<String>> buildArtifact(@NotNull String artifactName,
                                                                             @NotNull String messagePrefix,
-                                                                            @NotNull String sdkLocation,
                                                                             @NotNull IAndroidTarget target,
                                                                             @Nullable String artifactFilePath,
                                                                             @NotNull String keyStorePath,
@@ -593,7 +592,7 @@ public class AndroidBuildCommonUtils {
       messages.get(AndroidCompilerMessageKind.ERROR).add(prefix + "file " + artifactFilePath + " hasn't been generated");
       return messages;
     }
-    String zipAlignPath = getZipAlign(sdkLocation, target);
+    String zipAlignPath = getZipAlign(target);
 
     File tmpDir = null;
     try {
@@ -695,7 +694,7 @@ public class AndroidBuildCommonUtils {
   }
 
   @Nullable
-  public static String getZipAlign(@NotNull String sdkPath, @NotNull IAndroidTarget target) {
+  public static String getZipAlign(@NotNull IAndroidTarget target) {
     BuildToolInfo buildToolInfo = target.getBuildToolInfo();
 
     if (buildToolInfo != null) {

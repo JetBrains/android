@@ -111,7 +111,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
-    checkForInValidPsiElement(compileOptions, CompileOptionsModelImpl.class);
+    checkForInvalidPsiElement(compileOptions, CompileOptionsModelImpl.class);
     assertMissingProperty(compileOptions.sourceCompatibility());
     assertMissingProperty(compileOptions.targetCompatibility());
     assertMissingProperty(compileOptions.encoding());

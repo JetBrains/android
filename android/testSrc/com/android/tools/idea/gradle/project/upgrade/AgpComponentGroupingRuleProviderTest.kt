@@ -120,8 +120,8 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
-      .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText }.toSet())
+      .containsExactly("Add directives to keep using Java 7")
   }
 
   fun testJava8DefaultRefactoringProcessorAcceptNewDefault() {
@@ -140,8 +140,8 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
-      .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText }.toSet())
+      .containsExactly("Add directives to keep using Java 7")
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {
@@ -161,8 +161,63 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
-      .containsExactly("Replace deprecated configurations", "Replace deprecated configurations")
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText }.toSet())
+      .containsExactly("Replace deprecated configurations")
+  }
+
+  fun testFabricCrashlyticsRefactoringProcessor() {
+    myFixture.addFileToProject("build.gradle", """
+      buildscript {
+        dependencies {
+          classpath 'io.fabric.tools:gradle:1.2.3'
+        }
+      }
+    """.trimIndent())
+    val processor = FabricCrashlyticsRefactoringProcessor(myFixture.project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.2.0"))
+    assertTrue(processor.isEnabled)
+    val usages = processor.findUsages()
+    assertThat(usages).hasLength(3)
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) }.toSet())
+      .containsExactly("Migrate crashlytics from fabric to firebase")
+  }
+
+  fun testMigrateToBuildFeaturesRefactoringProcessor() {
+    myFixture.addFileToProject("build.gradle", """
+      android {
+        viewBinding {
+          enabled true
+        }
+      }
+    """.trimIndent())
+    val processor = MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(myFixture.project,
+                                                                        GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    assertTrue(processor.isEnabled)
+    val usages = processor.findUsages()
+    assertThat(usages).hasLength(1)
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+      .containsExactly("Migrate enabled booleans to buildFeatures")
+  }
+
+  fun testRemoveSourceSetJniRefactoringProcessor() {
+    myFixture.addFileToProject("build.gradle", """
+      android {
+        sourceSets {
+          foo {
+            jni {
+              srcDirs 'abcd'
+            }
+          }
+        }
+      }
+    """.trimIndent())
+
+    val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(myFixture.project,
+                                                                    GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    assertTrue(processor.isEnabled)
+    val usages = processor.findUsages()
+    assertThat(usages).hasLength(1)
+    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+      .containsExactly("Remove jni source directory from sourceSets")
   }
 
   /**

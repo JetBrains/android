@@ -15,8 +15,8 @@
  */
 package com.android.studio.updater
 
-import com.android.prefs.AndroidLocation
-import com.android.testutils.TestUtils
+import com.android.prefs.AbstractAndroidLocations
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.google.common.collect.MoreCollectors
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -113,7 +113,7 @@ class StudioPatchUpdaterIntegrationTest {
   @Test
   fun patchApplicationSmokeTest() {
     val analyticsHome = createAnalyticsHome()
-    val env = mapOf(AndroidLocation.ANDROID_PREFS_ROOT to analyticsHome.toString())
+    val env = mapOf(AbstractAndroidLocations.ANDROID_PREFS_ROOT to analyticsHome.toString())
 
     // When V1 to V2 patch applied to V1
     val dir = ExampleDirectory.V1.createExampleDir(myTempDirectory)
@@ -214,7 +214,7 @@ class StudioPatchUpdaterIntegrationTest {
 
   private val updaterFullJar: Path
     get() {
-      val root = TestUtils.getWorkspaceRoot().toPath()
+      val root = getWorkspaceRoot()
       val path = System.getProperty("updater.jar.path", "tools/adt/idea/studio/updater_deploy.jar")
       val bazelDeployJar = root.resolve(path)
       if (Files.isRegularFile(bazelDeployJar)) {

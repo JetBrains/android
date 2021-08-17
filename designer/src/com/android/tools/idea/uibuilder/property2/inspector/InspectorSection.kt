@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property2.inspector
+package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.tools.idea.uibuilder.property2.getPropertiesToolContent
+import com.android.tools.idea.uibuilder.property.getPropertiesToolContent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTEXT_COMPONENT

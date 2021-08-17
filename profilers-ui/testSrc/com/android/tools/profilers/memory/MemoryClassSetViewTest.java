@@ -30,6 +30,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -49,14 +50,12 @@ import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.swing.JScrollPane;
@@ -77,7 +76,7 @@ public class MemoryClassSetViewTest {
   @Rule public final FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
 
-  private MemoryProfilerStage myStage;
+  private MainMemoryProfilerStage myStage;
 
   private MemoryClassSetView myClassSetView;
   private JTree myClassSetTree;
@@ -87,7 +86,7 @@ public class MemoryClassSetViewTest {
 
   private MemoryObjectTreeNode<HeapSet> myClassifierSetHeapNode;
   private MemoryObjectTreeNode<MemoryObject> myClassSetRootNode;
-  private MemoryProfilerStageView myStageView;
+  private MainMemoryProfilerStageView myStageView;
   private JTree myClassifierSetTree;
 
   @Before
@@ -97,8 +96,8 @@ public class MemoryClassSetViewTest {
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myStage = new MemoryProfilerStage(profilers, loader);
-    myStageView = new MemoryProfilerStageView(profilersView, myStage);
+    myStage = new MainMemoryProfilerStage(profilers, loader);
+    myStageView = new MainMemoryProfilerStageView(profilersView, myStage);
 
     myCaptureObject = new FakeCaptureObject.Builder().build();
     myInstanceObjects = Arrays.asList(
@@ -206,7 +205,7 @@ public class MemoryClassSetViewTest {
   }
 
   @Test
-  public void fieldSelectionAndNavigationTest() {
+  public void instanceSelectionTest() {
     final long TEST_CLASS_ID = 1, TEST_FIELD_ID = 2;
     final String TEST_CLASS_NAME = "com.Foo";
     final String TEST_FIELD_NAME = "com.Field";
@@ -280,8 +279,7 @@ public class MemoryClassSetViewTest {
     assertThat(((MemoryObjectTreeNode)classSetRoot).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
-    findChildWithPredicate(findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo),
-                           field -> Objects.equals(field, fieldFoo));
+    findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo);
 
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_PACKAGE);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
@@ -294,7 +292,7 @@ public class MemoryClassSetViewTest {
     CodeLocation codeLocation = codeLocationSupplier.get();
     assertThat(codeLocation).isNotNull();
     String codeLocationClassName = codeLocation.getClassName();
-    assertThat(codeLocationClassName).isEqualTo(TEST_FIELD_NAME);
+    assertThat(codeLocationClassName).isEqualTo(TEST_CLASS_NAME);
 
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);

@@ -108,15 +108,19 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
                                                               module, false)): SourceLocationWithVirtualFile? {
   if (isEmpty()) return null
 
-  val rootClassName = className.substringBefore("$")
-  // Lookup in the filename index for matches of the filename. Multiple matches are possible. If that's the case, we use the className t
-  // find which one we need.
-  val originalPsiFile = FilenameIndex.getFilesByName(module.project, fileName, scope)
-                          .filterIsInstance<PsiClassOwner>()
-                          .find { file ->
-                            // File names are not unique. If the class name is available, disambiguate by class name.
-                            matchesFile(file, rootClassName) || matchesPackage(file, packageHash)
-                          } ?: return null
+  // Lookup in the filename index for matches of the filename. Multiple matches are possible.
+  val filesWithName = FilenameIndex.getFilesByName(module.project, fileName, scope)
+    .filterIsInstance<PsiClassOwner>()
+    .toList()
+
+  val originalPsiFile = when {
+    packageHash != -1 -> filesWithName.find {
+      // File names are not unique. If the class name is available, disambiguate by class name.
+      matchesPackage(it, packageHash)
+    }
+    filesWithName.size == 1 -> filesWithName.single()
+    else -> null
+  } ?: return null
 
   val remappedLocation = if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
     // re-map inline

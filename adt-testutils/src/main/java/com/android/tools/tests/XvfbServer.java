@@ -18,12 +18,12 @@ package com.android.tools.tests;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.sun.jna.platform.linux.LibC;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An X server backed by Xvfb. Constructor searches for an available X display ID in the system
@@ -66,19 +66,19 @@ class XvfbServer {
   }
 
   private Process launchDisplay(String display) {
-    File workspace = TestUtils.getWorkspaceRoot();
-    File launcher = new File(workspace, XVFB_LAUNCHER);
-    if (!launcher.exists()) {
-      throw new IllegalStateException("Xvfb runfiles did not exist; "
-                                      + "add a data dependency on the runfiles for Xvfb. "
+    Path workspace = TestUtils.getWorkspaceRoot();
+    Path launcher = workspace.resolve(XVFB_LAUNCHER);
+    if (Files.notExists(launcher)) {
+      throw new IllegalStateException("Xvfb runfiles does not exist. "
+                                      + "Add a data dependency on the runfiles for Xvfb. "
                                       + "It will look something like "
                                       + "//tools/vendor/google/testing/display:xvfb");
     }
     try {
       return new ProcessBuilder(
-        launcher.getAbsolutePath(),
+        launcher.toString(),
         display,
-        workspace.getAbsolutePath(),
+        workspace.toString(),
         DEFAULT_RESOLUTION
       ).start();
     }

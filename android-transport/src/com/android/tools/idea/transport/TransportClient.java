@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.profiler.proto.Commands.Command;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,5 +50,16 @@ public class TransportClient {
   public void shutdown() throws InterruptedException {
     myChannel.shutdown();
     myChannel.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+  }
+
+  public CompletableFuture<Transport.ExecuteResponse> executeAsync(Command command, Executor executor) {
+    return executeAsync(myTransportStub, command, executor);
+  }
+
+  public static CompletableFuture<Transport.ExecuteResponse> executeAsync(
+    TransportServiceGrpc.TransportServiceBlockingStub stub, Command command, Executor executor) {
+    return CompletableFuture.supplyAsync(
+      () -> stub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()), executor
+    );
   }
 }

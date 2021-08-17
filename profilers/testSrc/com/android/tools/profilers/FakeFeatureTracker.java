@@ -28,6 +28,7 @@ import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObject
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.utils.Pair;
+import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
@@ -128,8 +129,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
-
+  public void trackEnterStage(AndroidProfilerEvent.Stage stageType) {
+    // Production stages should have a valid stage type set.
+    Truth.assertThat(stageType).isNotEqualTo(AndroidProfilerEvent.Stage.UNKNOWN_STAGE);
   }
 
   @Override

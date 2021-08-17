@@ -4,6 +4,7 @@
 Thumbs.db
 *.class
 *.DS_Store
+test-temp
 tools-base
 out
 .knownPackages

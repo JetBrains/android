@@ -54,6 +54,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   // Misc. layouts
   CONSTRAINT_LAYOUT("com.android.support.constraint", "constraint-layout", false),
   ANDROIDX_CONSTRAINT_LAYOUT("androidx.constraintlayout", "constraintlayout", false),
+  ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE("androidx.constraintlayout", "constraintlayout-compose", false),
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
   // Navigation
@@ -90,12 +91,24 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   DATA_BINDING_ADAPTERS("com.android.databinding", "adapters", false),
   ANDROIDX_DATA_BINDING_ADAPTERS("androidx.databinding", "databinding-adapters", false),
 
+  // App Inspection supported libraries
+  ANDROIDX_WORK_RUNTIME("androidx.work", "work-runtime", false),
+
   // Google repo
   PLAY_SERVICES("com.google.android.gms", "play-services", false),
   PLAY_SERVICES_ADS("com.google.android.gms", "play-services-ads", false),
   PLAY_SERVICES_WEARABLE("com.google.android.gms", "play-services-wearable", false),
   PLAY_SERVICES_MAPS("com.google.android.gms", "play-services-maps", false),
   WEARABLE("com.google.android.support", "wearable", false),
+
+  // Compose
+  COMPOSE_RUNTIME("androidx.compose.runtime", "runtime", false),
+  COMPOSE_TOOLING("androidx.compose.ui", "ui-tooling", false),
+  COMPOSE_TOOLING_PREVIEW("androidx.compose.ui", "ui-tooling-preview", false),
+
+  // Kotlin
+  KOTLIN_STDLIB("org.jetbrains.kotlin", "kotlin-stdlib", false),
+  KOTLIN_REFLECT("org.jetbrains.kotlin", "kotlin-reflect", false),
   ;
 
   fun getCoordinate(revision: String): GradleCoordinate =

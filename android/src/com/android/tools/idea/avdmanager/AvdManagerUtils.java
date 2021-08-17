@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.ddmlib.IDevice;
-import com.android.prefs.AndroidLocation;
+import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.CommonBundle;
@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AvdManagerUtils {
+  static final String NO_SKIN = "_no_skin";
+
   public static boolean reloadAvds(@NotNull AvdManager manager, @NotNull Project project) {
     try {
       MessageBuildingSdkLog log = new MessageBuildingSdkLog();
@@ -41,7 +43,7 @@ public class AvdManagerUtils {
       }
       return true;
     }
-    catch (AndroidLocation.AndroidLocationException e) {
+    catch (AndroidLocationsException e) {
       Messages.showErrorDialog(project, AndroidBundle.message("cant.load.avds.error"), CommonBundle.getErrorTitle());
       return false;
     }
@@ -52,7 +54,7 @@ public class AvdManagerUtils {
     try {
       return AvdManager.getInstance(AndroidSdkData.getSdkHolder(facet), new AvdManagerLog());
     }
-    catch (AndroidLocation.AndroidLocationException ignored) {
+    catch (AndroidLocationsException ignored) {
     }
     return null;
   }

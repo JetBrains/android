@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
@@ -41,7 +42,6 @@ import com.intellij.openapi.util.RecursionManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.time.Duration
 import java.util.concurrent.ExecutionException
-import java.util.logging.Logger
 
 /**
  * The minimum amount of time between the creation of any two [MergedManifestSnapshot]s
@@ -104,7 +104,7 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) : AsyncSup
     return runCancellableReadAction {
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        Disposer.isDisposed(facet) -> MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
+        Disposer.isDisposed(facet) || facet.module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       }
@@ -129,10 +129,8 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) : AsyncSup
       return manifestSnapshot
     }
 
-    Logger.getLogger(this.javaClass.name).warning(
-      """Infinite recursion detected when computing merged manifest for module ${facet.module.name}
-         ${TraceUtils.getCurrentStack()}
-      """.trimMargin())
+    logger<MergedManifestSupplier>().warn(
+        "Infinite recursion detected when computing merged manifest for module ${facet.module.name}\n" + TraceUtils.getCurrentStack())
     return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
   }
 

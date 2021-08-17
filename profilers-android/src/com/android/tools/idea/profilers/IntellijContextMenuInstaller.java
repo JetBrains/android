@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.inspectors.common.api.ide;
 
-import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
-import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.intellij.ide.actions.CopyAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;

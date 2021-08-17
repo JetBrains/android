@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.dataviewer;
+package com.android.tools.inspectors.common.ui.dataviewer;
 
-import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.folding.CodeFoldingManager;
 import com.intellij.lang.Language;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
@@ -43,6 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IntellijDataViewer implements DataViewer {
+  private static final int RAW_VIEWER_MAX_STRING_LENGTH = 500;
+
   @NotNull
   private final JComponent myComponent;
   @NotNull
@@ -50,11 +50,14 @@ public class IntellijDataViewer implements DataViewer {
 
   /**
    * Create a data viewer that renders its content as is, without any attempt to clean it up.
+   * <p>
+   * Note: to prevent UI from being frozen by large text, the content will be truncated.
    */
+
   public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
-    JTextArea textArea = new JTextArea(new String(content));
+    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH)));
     textArea.setLineWrap(true);
-    textArea.setFont(ProfilerFonts.H4_FONT);
+    textArea.setFont(AdtUiUtils.DEFAULT_FONT.biggerOn(3f));
     textArea.setEditable(false);
     textArea.setBackground(null);
     return new IntellijDataViewer(textArea, Style.RAW);
@@ -71,7 +74,7 @@ public class IntellijDataViewer implements DataViewer {
    */
   @NotNull
   public static IntellijDataViewer createPrettyViewerIfPossible(@NotNull Project project,
-                                                                @NotNull byte[] content,
+                                                                byte[] content,
                                                                 @Nullable FileType fileType) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
@@ -125,12 +128,7 @@ public class IntellijDataViewer implements DataViewer {
         editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
       }
 
-      Disposer.register(project, new Disposable() {
-        @Override
-        public void dispose() {
-          editorFactory.releaseEditor(editor);
-        }
-      });
+      Disposer.register(project, () -> editorFactory.releaseEditor(editor));
 
       return new IntellijDataViewer(editor.getComponent(), style);
     }

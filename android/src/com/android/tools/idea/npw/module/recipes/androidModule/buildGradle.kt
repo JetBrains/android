@@ -15,15 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision.parseRevision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
-import com.android.tools.idea.npw.module.recipes.getConfigurationName
-import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -31,16 +24,15 @@ import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
+  gradlePluginVersion: GradlePluginVersion,
   isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
   packageName: String,
   buildApiString: String,
-  buildToolsVersion: String,
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
-  gradlePluginVersion: GradlePluginVersion,
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
@@ -50,20 +42,15 @@ fun buildGradle(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
-  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
-  val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
-  val isApplicationProject = !isLibraryProject
-
   val androidConfigBlock = androidConfig(
-    buildApiString,
-    explicitBuildToolsVersion,
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    useAndroidX,
-    isLibraryProject,
-    isApplicationProject,
-    packageName,
+    gradlePluginVersion = gradlePluginVersion,
+    buildApiString = buildApiString,
+    minApi = minApi,
+    targetApi = targetApi,
+    useAndroidX = useAndroidX,
+    isLibraryProject = isLibraryProject,
+    explicitApplicationId = !isLibraryProject,
+    applicationId = packageName,
     hasTests = hasTests,
     canUseProguard = true,
     addLintOptions = addLintOptions,
@@ -83,18 +70,8 @@ dependencies {
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
 
-  val oldTestDependenciesBlock = renderIf(!supportsImprovedTestDeps) {
-    """
-    ${getConfigurationName("androidTestCompile", gradlePluginVersion)}("${
-    resolveDependency(RepositoryUrlManager.get(), "com.android.support.test.espresso:espresso-core:+")
-    }", {
-      exclude group : "com.android.support", module: "support-annotations"
-    })
-    """
-  }
-
   val wearProjectBlock = when {
-    !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
+    wearProjectName.isNotBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
       """wearApp project (":${wearProjectName}")"""
     else -> ""
   }
@@ -102,7 +79,6 @@ dependencies {
   val dependenciesBlock = """
   dependencies {
     $composeDependenciesBlock
-    $oldTestDependenciesBlock
     $wearProjectBlock
   }
   """
@@ -130,10 +106,16 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
   split("\n").joinToString("\n") {
     it.replace("'", "\"")
       .toKtsFunction("compileSdkVersion")
+      .toKtsProperty("compileSdk")
+      .toKtsProperty("compileSdkPreview")
       .toKtsProperty("buildToolsVersion")
       .toKtsProperty("applicationId")
       .toKtsFunction("minSdkVersion")
+      .toKtsProperty("minSdk")
+      .toKtsProperty("minSdkPreview")
       .toKtsFunction("targetSdkVersion")
+      .toKtsProperty("targetSdk")
+      .toKtsProperty("targetSdkPreview")
       .toKtsProperty("versionCode")
       .toKtsProperty("versionName")
       .toKtsProperty("testInstrumentationRunner")
@@ -143,8 +125,6 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
       .toKtsFunction("wearApp")
       .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
       .replace("minifyEnabled", "isMinifyEnabled")
-      .replace("release {", "getByName(\"release\") {")
-      .replace("debug {", "getByName(\"debug\") {")
       // The followings are for externalNativeBuild
       .toKtsFunction("cppFlags")
       .toKtsFunction("path")

@@ -21,9 +21,9 @@ import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COM
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableSet;

@@ -43,23 +43,13 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class MemoryProfilerTest {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useUnifiedPipeline() {
-    return Arrays.asList(false, true);
-  }
-
   public static final Memory.MemoryAllocSamplingData DEFAULT_MEMORY_ALLOCATION_SAMPLING_DATA =
     Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(10).build();
 
@@ -80,16 +70,10 @@ public final class MemoryProfilerTest {
   private Common.Device myDevice;
   private Common.Process myProcess;
 
-  private final boolean myUnifiedPipeline;
-
-  public MemoryProfilerTest(boolean useUnifiedPipeline) {
-    myUnifiedPipeline = useUnifiedPipeline;
-  }
-
   @Before
   public void setUp() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
+    myIdeProfilerServices.enableEventsPipeline(true);
     myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
   }
 
@@ -99,17 +83,10 @@ public final class MemoryProfilerTest {
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
 
-    // We stop any ongoing (legacy or jvmti) allocation tracking session before stopping the memory profiler.
-    if (myUnifiedPipeline) {
-      Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
-      memoryProfiler.stopProfiling(TEST_SESSION);
-      Truth.assertThat(allocTrackingHandler.getLastInfo()).isNotEqualTo(Memory.AllocationsInfo.getDefaultInstance());
-    }
-    else {
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-      memoryProfiler.stopProfiling(TEST_SESSION);
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(1);
-    }
+    // We stop any ongoing allocation tracking session before stopping the memory profiler.
+    Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
+    memoryProfiler.stopProfiling(TEST_SESSION);
+    Truth.assertThat(allocTrackingHandler.getLastInfo()).isNotEqualTo(Memory.AllocationsInfo.getDefaultInstance());
   }
 
   @Test
@@ -120,12 +97,7 @@ public final class MemoryProfilerTest {
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
-    if (myUnifiedPipeline) {
-      Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
-    }
-    else {
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    }
+    Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
 
     // Advance the timer to select the device + process
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
@@ -133,28 +105,21 @@ public final class MemoryProfilerTest {
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     // We first call stop tracking before starting.
     Memory.AllocationsInfo lastInfo;
-    if (myUnifiedPipeline) {
-      verifyIsUsingLiveAllocation();
-      lastInfo = allocTrackingHandler.getLastInfo();
-      Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
-      Truth.assertThat(lastInfo.getSuccess()).isFalse();
-    }
-    else {
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
-    }
+    verifyIsUsingLiveAllocation();
+    lastInfo = allocTrackingHandler.getLastInfo();
+    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
+    Truth.assertThat(lastInfo.getSuccess()).isFalse();
 
-    // For unified pipeline, we further verify that if we end the session and start a new one
+    // We further verify that if we end the session and start a new one
     // on the process, a new START_ALLOC_TRACKING command will be issued.
-    if (myUnifiedPipeline) {
-      myStudioProfiler.getSessionsManager().endCurrentSession();
-      Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
-      myStudioProfiler.getSessionsManager().beginSession(myDevice.getDeviceId(), myDevice, myProcess);
-      myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
-      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-      Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
-      verifyIsUsingLiveAllocation();
-      Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.START_ALLOC_TRACKING);
-    }
+    myStudioProfiler.getSessionsManager().endCurrentSession();
+    Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    myStudioProfiler.getSessionsManager().beginSession(myDevice.getDeviceId(), myDevice, myProcess);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    verifyIsUsingLiveAllocation();
+    Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.START_ALLOC_TRACKING);
   }
 
   @Test
@@ -169,40 +134,26 @@ public final class MemoryProfilerTest {
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
     // We first call stop tracking before starting.
-    if (myUnifiedPipeline) {
-      Memory.AllocationsInfo lastInfo = allocTrackingHandler.getLastInfo();
-      Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
-      Truth.assertThat(lastInfo.getSuccess()).isFalse();
-      // Reset for testing when agent is not attached below.
-      allocTrackingHandler.setLastInfo(Memory.AllocationsInfo.getDefaultInstance());
+    Memory.AllocationsInfo lastInfo = allocTrackingHandler.getLastInfo();
+    Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
+    Truth.assertThat(lastInfo.getSuccess()).isFalse();
+    // Reset for testing when agent is not attached below.
+    allocTrackingHandler.setLastInfo(Memory.AllocationsInfo.getDefaultInstance());
 
-      myTransportService.addEventToStream(myStudioProfiler.getSession().getStreamId(), Common.Event.newBuilder()
-        .setPid(myStudioProfiler.getSession().getPid())
-        .setKind(Common.Event.Kind.AGENT)
-        .setAgentData(DEFAULT_AGENT_DETACHED_RESPONSE)
-        .build());
-    }
-    else {
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
-
-      myMemoryService.resetTrackAllocationCount();
-      myTransportService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
-    }
+    myTransportService.addEventToStream(myStudioProfiler.getSession().getStreamId(), Common.Event.newBuilder()
+      .setPid(myStudioProfiler.getSession().getPid())
+      .setKind(Common.Event.Kind.AGENT)
+      .setAgentData(DEFAULT_AGENT_DETACHED_RESPONSE)
+      .build());
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStudioProfiler.changed(ProfilerAspect.AGENT);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
-    if (myUnifiedPipeline) {
-      Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
-    }
-    else {
-      Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
-    }
+    Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
   }
 
   @Test
   public void testGetNativeHeapSamplesForSession() {
-    Assume.assumeTrue(myUnifiedPipeline);
     long nativeHeapTimestamp = 30L;
     Memory.MemoryNativeSampleData nativeHeapInfo =
       Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(nativeHeapTimestamp + 1).build();
@@ -216,11 +167,9 @@ public final class MemoryProfilerTest {
     Truth.assertThat(samples).containsExactly(nativeHeapInfo);
   }
 
+  @Ignore("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().")
   @Test
   public void testSaveHeapDumpToFile() {
-    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
-                       myUnifiedPipeline);
-
     long startTimeNs = 3;
     long endTimeNs = 8;
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
@@ -239,7 +188,7 @@ public final class MemoryProfilerTest {
   }
 
   @Test
-  public  void testSaveHeapProfdSampleToFile() {
+  public void testSaveHeapProfdSampleToFile() {
     long startTimeNs = 3;
     Memory.MemoryNativeSampleData data = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).build();
     byte[] buffer = data.toByteArray();
@@ -251,8 +200,6 @@ public final class MemoryProfilerTest {
 
   @Test
   public void testgetAllocationInfosForSession() {
-    Assume.assumeTrue(myUnifiedPipeline);
-
     Common.Session session = myStudioProfiler.getSession();
 
     // Insert a completed info.

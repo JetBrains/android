@@ -24,7 +24,7 @@ import static org.junit.Assert.fail;
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.util.concurrent.Futures;

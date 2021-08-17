@@ -91,6 +91,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -321,7 +322,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
         AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
         AndroidSdkData sdkData = androidPlatform == null ? null : androidPlatform.getSdkData();
         if (sdkData != null) {
-          locations.add(sdkData.getLocation());
+          locations.add(sdkData.getLocationFile());
         }
       }
     }
@@ -377,6 +378,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
             }
 
             mySelectedSdkLocation.setValue(sdkLocation);
+            // Pick up changes done by the wizard.
+            refresh(false);
           }
 
           @NotNull
@@ -612,13 +615,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-              progressRunner, myDownloader, mySettings, false);
+                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+                          progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), null, null,
-              progressRunner, null, mySettings, false);
+                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
+                          progressRunner, null, mySettings);
     }
   }
 
@@ -626,7 +629,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Validates {@link #mySdkLocationTextField} and shows appropriate errors in the UI if needed.
    */
   private void validate() {
-    File nullableSdkLocation = myConfigurable.getRepoManager().getLocalPath();
+    Path nullableSdkPath = myConfigurable.getRepoManager().getLocalPath();
+    File nullableSdkLocation = nullableSdkPath == null ? null : myConfigurable.getSdkHandler().getFileOp().toFile(nullableSdkPath);
     @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
 
     Validator.Result result = PathValidator.forAndroidSdkLocation().validate(sdkLocation);
@@ -669,8 +673,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   /**
    * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
-   *
-   * @return
    */
   public Collection<PackageNodeModel> getStates() {
     List<PackageNodeModel> result = new ArrayList<>();

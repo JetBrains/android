@@ -46,7 +46,6 @@ import org.mockito.MockitoAnnotations
 /**
  * Unit tests for [ExecutionEnvironment] extension functions.
  */
-@org.junit.Ignore("b/155929379")
 @RunWith(JUnit4::class)
 class ExecutionEnvironmentExtTest {
 
@@ -85,6 +84,7 @@ class ExecutionEnvironmentExtTest {
     `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
     `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
     `when`(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
@@ -95,6 +95,7 @@ class ExecutionEnvironmentExtTest {
     `when`(mockEnv.getUserData(eq(SwapInfo.SWAP_INFO_KEY))).thenReturn(mockSwapInfo)
     val mockProcessHandler = mock(ProcessHandler::class.java)
     `when`(mockSwapInfo.handler).thenReturn(mockProcessHandler)
+    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
@@ -116,12 +117,14 @@ class ExecutionEnvironmentExtTest {
     `when`(mockRemoteConnection.address).thenReturn("  1234  ")
     val mockProcessHandler = mock(ProcessHandler::class.java)
     `when`(mockDebugProcess.processHandler).thenReturn(mockProcessHandler)
+    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
 
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isSameAs(mockProcessHandler)
   }
 
   @Test
   fun findExistingProcessHandler_noExistingSession() {
+    `when`(mockExecutionManager.getRunningProcesses()).thenReturn(arrayOf())
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isNull()
   }
 

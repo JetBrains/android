@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.internal.process.toTransportImpl
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -50,7 +49,7 @@ class AppInspectionProcessDiscoveryTest {
     }
   }
 
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule
@@ -94,11 +93,11 @@ class AppInspectionProcessDiscoveryTest {
   fun makeNewConnectionFiresListener() {
     val latch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -119,12 +118,12 @@ class AppInspectionProcessDiscoveryTest {
     val latch = CountDownLatch(1)
     val processesList = mutableListOf<ProcessDescriptor>()
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
-        processesList.add(descriptor)
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processesList.add(process)
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -133,9 +132,9 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify
     assertThat(processesList).hasSize(1)
-    assertThat(processesList[0].manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
-    assertThat(processesList[0].model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-    assertThat(processesList[0].processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+    assertThat(processesList[0].device.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(processesList[0].device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(processesList[0].name).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
 
   @Test
@@ -143,11 +142,11 @@ class AppInspectionProcessDiscoveryTest {
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
@@ -163,12 +162,36 @@ class AppInspectionProcessDiscoveryTest {
   }
 
   @Test
+  fun deviceDisconnectNotifiesListener() {
+    val processConnectLatch = CountDownLatch(1)
+    val processDisconnectLatch = CountDownLatch(1)
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processConnectLatch.countDown()
+      }
+
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
+        processDisconnectLatch.countDown()
+      }
+    })
+
+    // Wait for process to connect.
+    launchFakeDevice()
+    launchFakeProcess()
+    processConnectLatch.await()
+
+    // Device disconnecting takes the process down with it.
+    removeFakeDevice()
+    processDisconnectLatch.await()
+  }
+
+  @Test
   fun processReconnects() {
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessLatch.count > 0) {
           firstProcessLatch.countDown()
         } else {
@@ -176,7 +199,7 @@ class AppInspectionProcessDiscoveryTest {
         }
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
@@ -199,11 +222,11 @@ class AppInspectionProcessDiscoveryTest {
   fun twoProcessWithSamePidFromDifferentStream() {
     val latch = CountDownLatch(2)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -226,11 +249,11 @@ class AppInspectionProcessDiscoveryTest {
   fun processesRunningOnTwoIdenticalDeviceModels() {
     val latch = CountDownLatch(2)
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -257,12 +280,12 @@ class AppInspectionProcessDiscoveryTest {
     val latch = CountDownLatch(1)
     lateinit var processDescriptor: ProcessDescriptor
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
-        processDescriptor = descriptor
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processDescriptor = process
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
       }
     })
 
@@ -298,7 +321,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify discovery host has only notified about the process that ran on >= O device.
     latch.await()
-    assertThat(processDescriptor.toTransportImpl().stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
+    assertThat(processDescriptor.device.apiLevel >= AndroidVersion.VersionCodes.O)
   }
 
   // Test the scenario where discovery encounters a device it has discovered before.
@@ -310,7 +333,7 @@ class AppInspectionProcessDiscoveryTest {
     var firstProcessTimestamp: Long? = null
     var secondProcessTimestamp: Long? = null
     appInspectionRule.addProcessListener(object : ProcessListener {
-      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessReadyLatch.count > 0) {
           firstProcessTimestamp = timer.currentTimeNs
           firstProcessReadyLatch.countDown()
@@ -320,7 +343,7 @@ class AppInspectionProcessDiscoveryTest {
         }
       }
 
-      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      override fun onProcessDisconnected(process: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })

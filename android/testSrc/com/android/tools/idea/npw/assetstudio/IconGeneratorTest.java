@@ -36,6 +36,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+/**
+ * Tests for {@link IconGenerator}.
+ */
 @RunWith(JUnit4.class)
 public final class IconGeneratorTest {
     @Rule
@@ -45,7 +48,7 @@ public final class IconGeneratorTest {
     public void generateIconsIsCancelledWhenDisposed() {
         CountDownLatch latch = new CountDownLatch(1);
 
-        IconGenerator iconGenerator= new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+        IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
             @NotNull
             @Override
             public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
@@ -74,11 +77,11 @@ public final class IconGeneratorTest {
             }
         };
 
-        Disposer.register(myProjectRule.getProject(), iconGenerator);
+        Disposer.register(myProjectRule.getFixture().getTestRootDisposable(), iconGenerator);
 
         new Thread(() -> {
             try {
-                latch.await(1, TimeUnit.SECONDS); // Wait for the task to start
+                latch.await(1, TimeUnit.SECONDS); // Wait for the task to start.
             }
             catch (InterruptedException ignored) {
             }

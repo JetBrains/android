@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
+import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
 import org.junit.Test
 
 /**
@@ -28,7 +30,15 @@ class SyncIssueUsageReporterTest : AndroidGradleTestCase() {
   fun testAllSyncIssueTypesHaveGradleSyncIssueType() {
     val nonGenericSyncIssues = SyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") && it.name != "TYPE_GENERIC" }
     for (syncIssue in nonGenericSyncIssues) {
-      assertThat(syncIssue.getInt(SyncIssue::class.java).toGradleSyncIssueType()).isNotNull()
+      assertThat(syncIssue.getInt(SyncIssue::class.java).toGradleSyncIssueType())
+        .named("SyncIssue.${syncIssue.name}.toGradleSyncIssueType()")
+        .isNotNull()
     }
+  }
+
+  @Test
+  fun testRemoveJcenterHyperlinkIsReported() {
+    val hyperlink =  RemoveJcenterHyperlink(project, listOf())
+    assertThat(hyperlink.toSyncIssueQuickFix()).isEqualTo(REMOVE_JCENTER_HYPERLINK)
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.stacktrace;
+package com.android.tools.inspectors.common.api.stacktrace;
+
+import static com.android.tools.inspectors.common.api.stacktrace.CodeLocation.INVALID_LINE_NUMBER;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.profilers.stacktrace.CodeLocation.INVALID_LINE_NUMBER;
-
 /**
  * Class which wraps a single stack frame in a Java stack trace.
- *
+ * <p>
  * E.g. "a.b.FooClass.someFunc(FooClass.java:123
  */
 public final class StackFrameParser {

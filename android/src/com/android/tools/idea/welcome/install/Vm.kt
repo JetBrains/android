@@ -56,8 +56,7 @@ abstract class Vm(
 ) : InstallableComponent("Performance (${installerInfo.fullName})",
                          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                          "Android app emulation on your development computer. (Recommended)",
-                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES,
-                         FileOpUtils.create()) {
+                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES) {
 
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set
@@ -118,7 +117,7 @@ abstract class Vm(
   }
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
-    val sdkRoot = sdkHandler.location
+    val sdkRoot = sdkHandler.location?.toFile()
     if (sdkRoot == null) {
       installContext.print(
         "${installerInfo.fullName} installer could not be run because SDK root isn't specified", ConsoleViewContentType.ERROR_OUTPUT)

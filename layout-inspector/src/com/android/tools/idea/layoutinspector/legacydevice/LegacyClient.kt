@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,55 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.legacydevice
+package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
-import com.android.ddmlib.Client
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.android.tools.idea.stats.withProjectId
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.android.tools.profiler.proto.Common
-import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.concurrency.JobScheduler
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.containers.ContainerUtil
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
+import com.intellij.openapi.application.invokeLater
 
-private const val MAX_RETRY_COUNT = 60
+private const val MAX_CONNECTION_ATTEMPTS = 5
 
 /**
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
-class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : InspectorClient {
-  var selectedClient: Client? = null
+class LegacyClient(
+  adb: AndroidDebugBridge,
+  process: ProcessDescriptor,
+  model: InspectorModel,
+  stats: SessionStatistics,
+  treeLoaderForTest: LegacyTreeLoader? = null
+) : AbstractInspectorClient(process) {
+
   private val lookup: ViewNodeAndResourceLookup = model
-  private val stats = model.stats
-
-  override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-    private set(value) {
-      if (value != field) {
-        loggedInitialRender = false
-      }
-      field = value
-    }
-
-  override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
-    private set
-
-  override val isConnected: Boolean
-    get() = selectedClient?.isValid == true
 
   override val isCapturing = false
 
@@ -70,33 +52,17 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
+  private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
+  private val composeWarning = ComposeWarning(model.project)
 
-  private val processManager = LegacyProcessManager(parentDisposable)
-
-  private val project = model.project
-
-  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+  fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
-      logEvent(type, selectedStream)
+      metrics.logEvent(type)
     }
     else if (!loggedInitialRender) {
-      logEvent(type, selectedStream)
+      metrics.logEvent(type)
       loggedInitialRender = true
     }
-  }
-
-  private fun logEvent(type: DynamicLayoutInspectorEventType, stream: Common.Stream) {
-    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(type)
-    if (type == DynamicLayoutInspectorEventType.SESSION_DATA) {
-      stats.save(inspectorEvent.sessionBuilder)
-    }
-    val builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(inspectorEvent)
-      .withProjectId(project)
-    processManager.findIDeviceFor(stream)?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
-    UsageTracker.log(builder)
   }
 
   private fun isRenderEvent(type: DynamicLayoutInspectorEventType): Boolean =
@@ -106,81 +72,50 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
       else -> false
     }
 
-  override var treeLoader = LegacyTreeLoader
-    @VisibleForTesting set
+  override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(adb, this)
 
-  private val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
+  val latestScreenshots = mutableMapOf<String, ByteArray>()
 
   init {
-    processManager.processListeners.add {
-      if (selectedClient?.isValid != true) {
-        disconnect()
-      }
-    }
+    loggedInitialRender = false
   }
 
-  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {
-    processChangedListeners.add(callback)
+  override fun doConnect(): ListenableFuture<Nothing> {
+    attach()
+    return Futures.immediateFuture(null)
   }
 
-  override fun getStreams(): Sequence<Common.Stream> = processManager.getStreams()
-
-  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = processManager.getProcesses(stream)
-
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? {
+  private fun attach() {
     loggedInitialAttach = false
-    return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
-  }
-
-  // TODO: It might be possible for attach() to be successful here before the process is actually ready to be inspected, causing the later
-  // call to LegacyTreeLoader.capture to fail. If this is the case, this method should be changed to ensure the capture will work before
-  // declaring success.
-  // If it's not the case, this code is duplicated from DefaultClient and so should be factored out somewhere.
-  private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    for (stream in getStreams()) {
-      if (preferredProcess.isDeviceMatch(stream.device)) {
-        for (process in getProcesses(stream)) {
-          if (process.name == preferredProcess.packageName) {
-            if (doAttach(stream, process)) {
-              return
-            }
-          }
-        }
-      }
-    }
-    if (timesAttempted < MAX_RETRY_COUNT) {
-      JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
-    }
-    return
-  }
-
-  override fun attach(stream: Common.Stream, process: Common.Process) {
-    loggedInitialAttach = false
-    if (!doAttach(stream, process)) {
+    if (!doAttach()) {
       // TODO: create a different event for when there are no windows
-      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
     }
   }
 
   /**
-   * Attach to the specified [process].
+   * Attach to the current [process].
    *
    * Return <code>true</code> if windows were found otherwise false.
    */
-  private fun doAttach(stream: Common.Stream, process: Common.Process): Boolean {
+  private fun doAttach(): Boolean {
     if (!loggedInitialAttach) {
-      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stream)
+      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
       loggedInitialAttach = true
     }
-    selectedClient = processManager.findClientFor(stream, process) ?: return false
-    selectedProcess = process
-    selectedStream = stream
-    processChangedListeners.forEach { it(this) }
 
-    if (!reloadAllWindows()) {
-      return false
+    var attempts = 0
+    while (!reloadAllWindows()) {
+      // The windows may not be available yet, try again: b/185936377
+      if (++attempts > MAX_CONNECTION_ATTEMPTS) {
+        return false
+      }
+      Thread.sleep(500) // wait 0.5 secs
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+    invokeLater {
+      composeWarning.performCheck(this)
+    }
     return true
   }
 
@@ -195,33 +130,32 @@ class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : Inspec
    */
   @Slow
   fun reloadAllWindows(): Boolean {
-    val windowIds = treeLoader.getAllWindowIds(null, this) ?: return false
+    val windowIds = treeLoader.getAllWindowIds(null) ?: return false
     if (windowIds.isEmpty()) {
       return false
     }
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
     for (windowId in windowIds) {
-      eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
+      fireTreeEvent(LegacyEvent(windowId, propertiesUpdater, windowIds))
     }
     propertiesUpdater.apply(provider)
     return true
   }
 
-  override fun disconnect(): Future<Nothing> {
-    if (selectedClient != null) {
-      logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
-      selectedClient = null
-      selectedProcess = Common.Process.getDefaultInstance()
-      selectedStream = Common.Stream.getDefaultInstance()
-      processChangedListeners.forEach { it(this) }
-    }
-    return CompletableFuture.completedFuture(null)
+  override fun doDisconnect(): ListenableFuture<Nothing> {
+    logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
+    latestScreenshots.clear()
+    return Futures.immediateFuture(null)
   }
 
-  override fun execute(command: LayoutInspectorProto.LayoutInspectorCommand) {}
+  class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
 
-  override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
-    eventListeners.getOrPut(groupId, { mutableListOf() }).add(callback)
+  override fun startFetching() {
+    throw LegacyFetchingUnsupportedOperationException()
+  }
+
+  override fun stopFetching() {
+    throw LegacyFetchingUnsupportedOperationException()
   }
 }
 

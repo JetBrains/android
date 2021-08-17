@@ -20,7 +20,7 @@ import static com.android.SdkConstants.FD_RES;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.utils.PathUtils;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -38,14 +38,14 @@ import org.jetbrains.annotations.NotNull;
  * If this test fails, run {@code tools/vendor/google/layoutlib-prebuilt/build_framework_res_jar.sh}
  * to update {@code prebuilts/studio/layoutlib/data/framework_res.jar}.
  */
-public class FrameworkResJarTest extends PlatformTestCase {
+public class FrameworkResJarTest extends LightPlatformTestCase {
   private Path myTempDir;
 
   /** Returns the path of framework_res.jar in prebuilts. */
   @NotNull
   private static Path getFrameworkResJar() {
     IAndroidTarget renderTarget = StudioEmbeddedRenderTarget.getInstance();
-    return Paths.get(renderTarget.getPath(IAndroidTarget.RESOURCES));
+    return renderTarget.getPath(IAndroidTarget.RESOURCES);
   }
 
   /** Returns the path of the framework res directory in prebuilts. */

@@ -13,26 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.model
+package com.android.tools.idea.layoutinspector.pipeline.transport
 
+import com.android.io.readImage
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
-import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
+import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.android.tools.idea.layoutinspector.skia.SkiaParserServerConnection
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.layoutinspector.LayoutInspectorUtils
+import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.testFramework.ProjectRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -41,11 +49,13 @@ import org.mockito.internal.verification.Times
 import java.awt.Image
 import java.awt.Polygon
 import java.awt.image.BufferedImage
-import java.io.File
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.util.zip.Deflater
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
-class ComponentTreeLoaderTest {
+class TransportTreeLoaderTest {
 
   private val eventStr = """
       tree {
@@ -94,6 +104,28 @@ class ComponentTreeLoaderTest {
               bottom_right_y: 253
             }
           }
+          sub_view {
+            draw_id: -2
+            x: 30
+            y: 170
+            width: 70
+            height: 30
+            class_name: 5
+            compose_filename: 6
+            compose_package_hash: 12345678
+            compose_offset: 300,
+            compose_line_number: 12,
+            transformed_bounds {
+              top_left_x: 32
+              top_left_y: 171
+              top_right_x: 95
+              top_right_y: 170
+              bottom_left_x: 38
+              bottom_left_y: 180
+              bottom_right_x: 80
+              bottom_right_y: 195
+            }
+          }
         }
         string {
           id: 1
@@ -111,6 +143,14 @@ class ComponentTreeLoaderTest {
           id: 4
           str: "MyViewClass2"
         }
+        string {
+          id: 5
+          str: "Text"
+        }
+        string {
+          id: 6
+          str: "MySource.kt"
+        }
         resources {
           api_level: 29
           configuration {
@@ -125,6 +165,46 @@ class ComponentTreeLoaderTest {
 
   @get:Rule
   val projectRule = ProjectRule()
+
+  private lateinit var sampleImage: BufferedImage
+  private lateinit var sampleDeflatedBytes: ByteArray
+
+  @Before
+  fun setUp() {
+    val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readImage()
+    sampleImage = LayoutInspectorUtils.createImage565(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
+                                                      origImage.height)
+    val graphics = sampleImage.graphics
+    graphics.drawImage(origImage, 0, 0, null)
+    val deflater = Deflater(Deflater.BEST_SPEED)
+    val dataElements = sampleImage.raster.getDataElements(0, 0, sampleImage.width, sampleImage.height,
+                                                          ShortArray(sampleImage.width * sampleImage.height)) as ShortArray
+    val imageBytes = ArrayList<Byte>(sampleImage.width * sampleImage.height * 2)
+    dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
+    deflater.setInput(imageBytes.toByteArray())
+    deflater.finish()
+    val buffer = ByteArray(1024 * 100)
+    val baos = ByteArrayOutputStream()
+    while (!deflater.finished()) {
+      val count = deflater.deflate(buffer)
+      if (count <= 0) {
+        break
+      }
+      baos.write(buffer, 0, count)
+    }
+    baos.flush()
+    sampleDeflatedBytes = baos.toByteArray()
+  }
+  /**
+   * Creates a mock [TransportInspectorClient] with tree loader initialized.
+   *
+   * Callers can continue to mock the returned client if necessary.
+   */
+  private fun createMockTransportClient(): TransportInspectorClient {
+    val client: TransportInspectorClient = mock()
+    `when`(client.treeLoader).thenReturn(TransportTreeLoader(projectRule.project, client, mock()))
+    return client
+  }
 
   @Test
   fun testLoad() {
@@ -146,15 +226,14 @@ class ComponentTreeLoaderTest {
       ))
     ))
 
-    val client: DefaultInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
-    val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.drawId }.sorted() == listOf(1L, 2L, 3L, 4L) }, any(), any()))
+    val skiaParser: SkiaParser = mock()
+    `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(-2L, 1L, 2L, 3L, 4L) }, any(), any()))
       .thenReturn(skiaResponse)
 
-    val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
     val tree = window.root
     assertThat(tree.drawId).isEqualTo(1)
@@ -164,7 +243,7 @@ class ComponentTreeLoaderTest {
     assertThat(tree.height).isEqualTo(200)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
     ViewNode.readDrawChildren { drawChildren -> assertThat ((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
-    assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L).inOrder()
+    assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, -2L).inOrder()
 
     val node2 = tree.children[0]
     assertThat(node2.drawId).isEqualTo(2)
@@ -197,28 +276,42 @@ class ComponentTreeLoaderTest {
     assertThat(node4.children).isEmpty()
     assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 78, 23))
     assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 253, 250))
+
+    val node5 = tree.children[2]
+    assertThat(node5.drawId).isEqualTo(-2)
+    assertThat(node5.x).isEqualTo(30)
+    assertThat(node5.y).isEqualTo(170)
+    assertThat(node5.width).isEqualTo(70)
+    assertThat(node5.height).isEqualTo(30)
+    assertThat(node5.qualifiedName).isEqualTo("Text")
+    ViewNode.readDrawChildren { drawChildren -> assertThat(node5.drawChildren()).isEmpty() }
+    assertThat(node5.children).isEmpty()
+    assertThat((node5.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(32, 95, 80, 38))
+    assertThat((node5.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(171, 170, 195, 180))
   }
 
   @Test
   fun testFallback() {
-    val imageFile = File(TestUtils.getWorkspaceRoot(), "$TEST_DATA_PATH/image1.png")
-    val imageBytes = imageFile.readBytes()
     val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder(event).apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
-        payloadType = PNG_AS_REQUESTED
+        payloadType = PayloadType.BITMAP_AS_REQUESTED
+        root = LayoutInspectorProto.View.newBuilder(root).apply {
+          width = sampleImage.width
+          height = sampleImage.height
+        }.build()
       }.build()
     }.build()
 
-    val client: DefaultInspectorClient = mock()
-    `when`(client.getPayload(111)).thenReturn(imageBytes)
+    val client = createMockTransportClient()
+    `when`(client.getPayload(111)).thenReturn(sampleDeflatedBytes)
 
-    val (window, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
     window!!.refreshImages(1.0)
     val tree = window.root
 
-    assertThat(window.imageType).isEqualTo(PNG_AS_REQUESTED)
+    assertThat(window.imageType).isEqualTo(ImageType.BITMAP_AS_REQUESTED)
     ViewNode.readDrawChildren { drawChildren ->
-      ImageDiffUtil.assertImageSimilar(imageFile, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
+      ImageDiffUtil.assertImageSimilar("image1.png", sampleImage, (tree.drawChildren()[0] as DrawViewImage).image as BufferedImage, 0.0)
       assertThat(tree.flatten().flatMap { it.drawChildren().asSequence() }.count { it is DrawViewImage }).isEqualTo(1)
     }
     verify(client).logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
@@ -227,17 +320,18 @@ class ComponentTreeLoaderTest {
   @Test
   fun testUnsupportedSkpVersion() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
+    val connection: SkiaParserServerConnection = mock()
+    `when`(connection.getViewTree(eq(payload), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
+    var calledBack = false
+    val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
 
-    val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
-    verify(client).requestScreenshotMode()
+    assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
@@ -246,17 +340,18 @@ class ComponentTreeLoaderTest {
   @Test
   fun testInvalidSkp() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenReturn(null)
+    val connection: SkiaParserServerConnection = mock()
+    `when`(connection.getViewTree(eq(payload), any(), any())).thenThrow(ParsingFailedException::class.java)
+    var calledBack = false
+    val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
 
-    val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
-    verify(client).requestScreenshotMode()
+    assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
@@ -265,17 +360,19 @@ class ComponentTreeLoaderTest {
   @Test
   fun testOtherProblem() {
     val banner = InspectorBanner(projectRule.project)
-    val client: DefaultInspectorClient = mock()
+    val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
-    `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw Exception() }
+    val connection: SkiaParserServerConnection = mock()
+    `when`(connection.getViewTree(eq(payload), any(), any())).thenThrow(RuntimeException::class.java)
 
-    val (window, _) =
-      ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    var calledBack = false
+    val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
+
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
     window!!.refreshImages(1.0)
-    verify(client).requestScreenshotMode()
+    assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logEvent(any(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType::class.java))
@@ -283,18 +380,38 @@ class ComponentTreeLoaderTest {
 
   @Test
   fun testEmptyTree() {
-    val eventTreeEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
+    val emptyTreeEvent = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
       tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder(tree).apply {
         payloadType = PayloadType.NONE
         generation = 17
       }.build()
     }.build()
 
-    val client: DefaultInspectorClient = mock()
-    val skiaParser: SkiaParserService = mock()
-    val (window, generation) =
-      ComponentTreeLoader.loadComponentTree(eventTreeEvent, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
+    val client = createMockTransportClient()
+    val skiaParser: SkiaParser = mock()
+    val (window, generation) = client.treeLoader.loadComponentTree(emptyTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
+  }
+
+  @Test
+  fun testBitmap() {
+    val client = createMockTransportClient()
+    `when`(client.getPayload(1111)).thenReturn(sampleDeflatedBytes)
+    val event = LayoutInspectorProto.LayoutInspectorEvent.newBuilder().apply {
+      tree = LayoutInspectorProto.ComponentTreeEvent.newBuilder().apply {
+        root = LayoutInspectorProto.View.newBuilder().apply {
+          drawId = 1
+          width = sampleImage.width
+          height = sampleImage.height
+        }.build()
+        payloadId = 1111
+        payloadType = PayloadType.BITMAP_AS_REQUESTED
+      }.build()
+    }.build()
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
+    window!!.refreshImages(1.0)
+    val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
+    ImageDiffUtil.assertImageSimilar("image1.png", sampleImage, resultImage, 0.01)
   }
 }

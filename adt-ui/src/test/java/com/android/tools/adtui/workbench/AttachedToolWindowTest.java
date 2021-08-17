@@ -19,13 +19,15 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -41,8 +43,8 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -66,39 +68,33 @@ import org.mockito.Mock;
 public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock private SideModel<String> myModel;
-  @Mock private ActionManagerEx myActionManager;
+  @Mock private ActionManagerImpl myActionManager;
   @Mock private ActionPopupMenu myActionPopupMenu;
   @Mock private JPopupMenu myPopupMenu;
+  @Mock private WorkBench<String> myWorkBench;
   @Mock private KeyboardFocusManager myKeyboardFocusManager;
 
-  private KeyStroke myCommandF = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
+  private static final KeyStroke ourCommandF = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
   private AttachedToolWindow<String> myToolWindow;
-  private WorkBench<String> myWorkBench;
+  private AutoCloseable myMocks;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
-    SearchTextField.FindAction globalFindAction = new SearchTextField.FindAction();
-    globalFindAction.registerCustomShortcutSet(new CustomShortcutSet(myCommandF), null);
+    myMocks = openMocks(this);
     registerApplicationService(ActionManager.class, myActionManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
-    when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
-    when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
-    when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
-    when(myActionManager.getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(new SomeAction("ClearText"));
-    when(myActionManager.getAction(IdeActions.ACTION_FIND)).thenReturn(globalFindAction);
+    doAnswer(invocation -> new SomeAction(invocation.getArgument(0))).when(myActionManager).getAction(anyString());
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
     when(myActionManager.getRegistrationOrderComparator()).thenReturn(String.CASE_INSENSITIVE_ORDER);
+    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean())).thenCallRealMethod();
+    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean())).thenCallRealMethod();
     when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
-
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
-    //noinspection unchecked
-    myWorkBench = (WorkBench<String>)mock(WorkBench.class);
     when(myWorkBench.getName()).thenReturn("DESIGNER");
     when(myWorkBench.getContext()).thenReturn("");
 
@@ -112,6 +108,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void tearDown() throws Exception {
     try {
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
+      myMocks.close();
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -311,7 +308,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testDraggedEvent() {
     AbstractButton button = myToolWindow.getMinimizedButton();
     button.setSize(20, 50);
-    MouseEvent event = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_MASK, 20, 150, 1, false);
+    MouseEvent event = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false);
     fireMouseDragged(button, event);
     ArgumentCaptor<AttachedToolWindow.DragEvent> dragEventArgumentCaptor = ArgumentCaptor.forClass(AttachedToolWindow.DragEvent.class);
     verify(myDragListener).buttonDragged(eq(myToolWindow), dragEventArgumentCaptor.capture());
@@ -327,9 +324,9 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testDropEvent() {
     AbstractButton button = myToolWindow.getMinimizedButton();
     button.setSize(20, 50);
-    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_MASK, 20, 150, 1, false);
+    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false);
     fireMouseDragged(button, event1);
-    MouseEvent event2 = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_MASK, 800, 450, 1, false);
+    MouseEvent event2 = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_DOWN_MASK, 800, 450, 1, false);
     fireMouseReleased(button, event2);
     ArgumentCaptor<AttachedToolWindow.DragEvent> dragEventArgumentCaptor = ArgumentCaptor.forClass(AttachedToolWindow.DragEvent.class);
     verify(myDragListener).buttonDropped(eq(myToolWindow), dragEventArgumentCaptor.capture());
@@ -346,12 +343,12 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     myToolWindow.setMinimized(false);
     AbstractButton button = myToolWindow.getMinimizedButton();
 
-    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_MASK, 20, 150, 1, false);
+    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false);
     fireMouseClicked(button, event1);
     assertThat(myToolWindow.isMinimized()).isTrue();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
 
-    MouseEvent event2 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_MASK, 20, 150, 1, false);
+    MouseEvent event2 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_DOWN_MASK, 20, 150, 1, false);
     fireMouseClicked(button, event2);
     assertThat(myToolWindow.isMinimized()).isFalse();
     verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
@@ -403,7 +400,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleDockModeFromButtonRightClick() {
     myToolWindow.setAutoHide(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "Docked");
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -419,7 +416,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleFloatingModeFromButtonRightClick() {
     myToolWindow.setFloating(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "Floating");
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -447,7 +444,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleSplitModeFromButtonRightClick() {
     myToolWindow.setSplit(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "Split");
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -517,7 +514,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleDockModeFromGearButtonInHeader() {
     myToolWindow.setAutoHide(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), "Docked");
+    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -533,7 +530,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleFloatingModeFromGearButtonInHeader() {
     myToolWindow.setFloating(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), "Floating");
+    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -551,7 +548,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   public void testToggleSplitModeFromGearButtonInHeader() {
     myToolWindow.setSplit(false);
 
-    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), "Split");
+    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID);
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
 
@@ -664,11 +661,12 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
 
   public void testCommandFStartsFiltering() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(panel.getComponent());
     IdeKeyEventDispatcher dispatcher = new IdeKeyEventDispatcher(null);
     dispatcher.dispatchKeyEvent(
-      new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, myCommandF.getModifiers(), myCommandF.getKeyCode(), 'F'));
-    assertThat(myToolWindow.getSearchField().isVisible()).isTrue();
+      new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, ourCommandF.getModifiers(), ourCommandF.getKeyCode(), 'F'));
+    assertThat(Objects.requireNonNull(myToolWindow.getSearchField()).isVisible()).isTrue();
   }
 
   public void testActionsEnabledAtStartup() {
@@ -725,7 +723,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   private DefaultActionGroup getPopupMenuFromButtonRightClick() {
     AbstractButton button = myToolWindow.getMinimizedButton();
 
-    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON3_MASK, 20, 150, 1, false);
+    MouseEvent event1 = new MouseEvent(button, MouseEvent.MOUSE_CLICKED, 1, InputEvent.META_DOWN_MASK, 20, 150, 1, false);
     fireMouseClicked(button, event1);
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
@@ -795,7 +793,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
       if (component instanceof ActionButton) {
         ActionButton button = (ActionButton)component;
         AnAction action = button.getAction();
-        if (action != null && name.equals(action.getTemplatePresentation().getText())) {
+        if (name.equals(action.getTemplatePresentation().getText())) {
           return button;
         }
       }
@@ -818,6 +816,9 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   private static class SomeAction extends AnAction {
     private SomeAction(@NotNull String title) {
       super(title);
+      if (title.equals(IdeActions.ACTION_FIND)) {
+        registerCustomShortcutSet(new CustomShortcutSet(ourCommandF), null);
+      }
     }
 
     @Override

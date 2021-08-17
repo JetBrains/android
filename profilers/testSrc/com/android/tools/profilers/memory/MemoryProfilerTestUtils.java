@@ -115,73 +115,40 @@ public class MemoryProfilerTestUtils {
   }
 
 
-  public static void startTrackingHelper(MemoryProfilerStage stage,
-                                         boolean unifiedPipeline,
+  public static void startTrackingHelper(MainMemoryProfilerStage stage,
                                          FakeTransportService transportService,
-                                         FakeMemoryService memoryService,
                                          FakeTimer timer,
                                          long startTimeNs,
                                          Memory.TrackStatus.Status status,
                                          boolean legacyTracking) {
     Memory.TrackStatus trackStatus = Memory.TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(status).build();
-    if (unifiedPipeline) {
-      MemoryAllocTracking allocTrackingHandler =
-        (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
-      allocTrackingHandler.setLegacyTracking(legacyTracking);
-      allocTrackingHandler.setTrackStatus(trackStatus);
-    }
-    else {
-      memoryService.setExplicitAllocationsStatus(trackStatus);
-      if (status == Memory.TrackStatus.Status.SUCCESS) {
-        memoryService.setExplicitAllocationsInfo(startTimeNs, Long.MAX_VALUE, legacyTracking);
-      }
-    }
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+    allocTrackingHandler.setLegacyTracking(legacyTracking);
+    allocTrackingHandler.setTrackStatus(trackStatus);
     stage.trackAllocations(true);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
-  public static void stopTrackingHelper(MemoryProfilerStage stage,
-                                        boolean unifiedPipeline,
+  public static void stopTrackingHelper(MainMemoryProfilerStage stage,
                                         FakeTransportService transportService,
-                                        FakeMemoryService memoryService,
                                         FakeTimer timer,
                                         long startTimeNs,
-                                        long endTimeNs,
                                         Memory.TrackStatus.Status status,
                                         boolean legacyTracking) {
     Memory.TrackStatus trackStatus = Memory.TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(status).build();
-    if (unifiedPipeline) {
-      MemoryAllocTracking allocTrackingHandler =
-        (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
-      allocTrackingHandler.setLegacyTracking(legacyTracking);
-      allocTrackingHandler.setTrackStatus(trackStatus);
-    }
-    else {
-      memoryService.setExplicitAllocationsStatus(trackStatus);
-      if (status == Memory.TrackStatus.Status.SUCCESS) {
-        memoryService.setExplicitAllocationsInfo(startTimeNs, endTimeNs, legacyTracking);
-      }
-    }
+    MemoryAllocTracking allocTrackingHandler =
+      (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+    allocTrackingHandler.setLegacyTracking(legacyTracking);
+    allocTrackingHandler.setTrackStatus(trackStatus);
     stage.trackAllocations(false);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
-  public static void heapDumpHelper(MemoryProfilerStage stage,
-                                    boolean unifiedPipeline,
+  public static void heapDumpHelper(MainMemoryProfilerStage stage,
                                     FakeTransportService transportService,
-                                    FakeMemoryService memoryService,
-                                    long dumpStartNs,
-                                    long dumpEndNs,
                                     Memory.HeapDumpStatus.Status status) {
-    if (unifiedPipeline) {
-      ((HeapDump)transportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP)).setDumpStatus(status);
-    }
-    else {
-      memoryService.setExplicitHeapDumpStatus(status);
-      if (status == Memory.HeapDumpStatus.Status.SUCCESS) {
-        memoryService.setExplicitHeapDumpInfo(dumpStartNs, dumpEndNs);
-      }
-    }
+    ((HeapDump)transportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP)).setDumpStatus(status);
     stage.requestHeapDump();
   }
 }

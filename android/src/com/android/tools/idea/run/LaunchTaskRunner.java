@@ -23,7 +23,6 @@ import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
@@ -43,6 +42,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -58,7 +58,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -183,39 +182,39 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
       }
 
-      AtomicInteger completedStepsCount = new AtomicInteger(0);
-      final int totalScheduledStepsCount = launchTaskMap.values().stream()
-        .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask)).sum();
+      Ref<Integer> completedStepsCount = new Ref<>(0);
+      final int totalScheduledStepsCount = launchTaskMap
+        .values()
+        .stream()
+        .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask))
+        .sum();
 
-      // Disable the parallel deployment. LaunchTasks need to be revisited to support
-      // parallel installation. See b/169887635.
       for (Map.Entry<IDevice, List<LaunchTask>> entry : launchTaskMap.entrySet()) {
         try {
-          boolean isSucceeded = runLaunchTaskAsync(
+          boolean isSucceeded = runLaunchTasks(
             entry.getValue(),
             indicator,
             new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
             destroyProcessOnCancellation,
             completedStepsCount,
-            totalScheduledStepsCount).get();
+            totalScheduledStepsCount);
           if (!isSucceeded) {
             return;
           }
-        } catch (CancellationException|InterruptedException e) {
-          return;
-        } catch (ExecutionException e) {
-          Logger.getInstance(LaunchTaskRunner.class).error(e);
+        } catch (CancellationException e) {
+          launchStatus.terminateLaunch(e.getMessage(), !isSwap());
           return;
         }
       }
 
-      // A debug session task should be performed sequentially at last.
+      // A debug session task should be performed sequentially at the end.
       for (IDevice device : devices) {
         if (debugSessionTask != null) {
+          indicator.setText(debugSessionTask.getDescription());
           debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
           // Update the indicator progress bar.
-          completedStepsCount.addAndGet(debugSessionTask.getDuration());
-          indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+          completedStepsCount.set(completedStepsCount.get() + debugSessionTask.getDuration());
+          indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
         }
       }
     } finally {
@@ -223,33 +222,28 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
   }
 
-  private ListenableFuture<Boolean> runLaunchTaskAsync(@NotNull List<LaunchTask> launchTasks,
-                                                       @NotNull ProgressIndicator indicator,
-                                                       @NotNull LaunchContext launchContext,
-                                                       boolean destroyProcessOnCancellation,
-                                                       @NotNull AtomicInteger completedStepsCount,
-                                                       int totalScheduledStepsCount) {
-    // TODO(b/170750947): Parallelize this step by not using DirectExecutorService.
-    return MoreExecutors.listeningDecorator(MoreExecutors.newDirectExecutorService()).submit(() -> {
-      // Update the indicator progress.
-      indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
-      IDevice device = launchContext.getDevice();
-      LaunchStatus launchStatus = launchContext.getLaunchStatus();
+  private boolean runLaunchTasks(@NotNull List<LaunchTask> launchTasks,
+                                 @NotNull ProgressIndicator indicator,
+                                 @NotNull LaunchContext launchContext,
+                                 boolean destroyProcessOnCancellation,
+                                 @NotNull Ref<Integer> completedStepsCount,
+                                 int totalScheduledStepsCount) {
+    // Update the indicator progress.
+    indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
+    IDevice device = launchContext.getDevice();
+    LaunchStatus launchStatus = launchContext.getLaunchStatus();
 
-      String groupId = "LaunchTaskRunner for " + launchContext.getExecutor().getId();
-      NotificationGroup notificationGroup = NotificationGroup.findRegisteredGroup(groupId);
-      if (notificationGroup == null) {
-        notificationGroup = NotificationGroup.toolWindowGroup(groupId, launchContext.getExecutor().getId());
+    String groupId = "LaunchTaskRunner for " + launchContext.getExecutor().getId();
+    NotificationGroup notificationGroup = NotificationGroup.findRegisteredGroup(groupId);
+    if (notificationGroup == null) {
+      notificationGroup = NotificationGroup.toolWindowGroup(groupId, launchContext.getExecutor().getId());
+    }
+    for (LaunchTask task : launchTasks) {
+      if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
+        return false;
       }
-      for (LaunchTask task : launchTasks) {
-        if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
-          return false;
-        }
 
-        if (!task.shouldRun(launchContext)) {
-          continue;
-        }
-
+      if (task.shouldRun(launchContext)) {
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
         LaunchResult result = task.run(launchContext);
@@ -280,17 +274,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
         // Notify listeners of the deployment.
         myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
-
-        // Update the indicator progress.
-        indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
       }
 
-      String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
-      notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION)
-        .setImportant(false).notify(myProject);
+      // Update the indicator progress.
+      completedStepsCount.set(completedStepsCount.get() + task.getDuration());
+      indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
+    }
 
-      return true;
-    });
+    String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
+    notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION)
+      .setImportant(false).notify(myProject);
+
+    return true;
   }
 
   private void printLaunchTaskStartedMessage(ConsolePrinter consolePrinter) {
@@ -312,16 +307,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     if (myError == null) {
       myStats.success();
     }
-    else {
-      myStats.fail();
-      LaunchUtils.showNotification(
-        myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR, myErrorNotificationListener);
-    }
   }
 
   @Override
   public void onFinished() {
     super.onFinished();
+    if (myError != null) {
+      myStats.fail();
+    }
     for (Runnable runnable : myOnFinished) {
       ApplicationManager.getApplication().invokeLater(runnable);
     }
