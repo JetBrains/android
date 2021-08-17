@@ -17,10 +17,14 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.StudioToolWindowActionStats
+import com.google.wireless.android.sdk.stats.StudioToolWindowActionStats.EventType
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
 /**
@@ -34,46 +38,64 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 class ToolWindowTrackerService(private val project: Project) : ToolWindowManagerListener {
   private val stateMap = HashMap<String, ToolWindowState>()
 
-  sealed class ToolWindowState {
-    object UNKNOWN : ToolWindowState()
-    object OPENED : ToolWindowState()
-    object CLOSED : ToolWindowState()
-  }
-
   companion object {
     @JvmStatic
     fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
   }
 
   override fun toolWindowRegistered(id: String) {
-    stateMap[id] = queryToolWindowState(id, ToolWindowManager.getInstance(project))
+    stateMap[id] = getToolWindowState(ToolWindowManager.getInstance(project).getToolWindow(id))
   }
 
   override fun stateChanged() {
     val toolWindowManager = ToolWindowManager.getInstance(project)
     for ((id, previousState) in stateMap) {
-      val currentState = queryToolWindowState(id, toolWindowManager)
+      val window = toolWindowManager.getToolWindow(id)
+      val currentState = getToolWindowState(window)
+
       if (currentState == previousState) {
         continue
       }
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
-                         .setStudioToolWindowActionStats(StudioToolWindowActionStats.newBuilder()
-                                                           .setToolWindowId(id)
-                                                           .setEventType(when (currentState) {
-                                                                           ToolWindowState.UNKNOWN -> StudioToolWindowActionStats.EventType.UNKNOWN_EVENT_TYPE
-                                                                           ToolWindowState.OPENED -> StudioToolWindowActionStats.EventType.OPEN_EVENT_TYPE
-                                                                           ToolWindowState.CLOSED -> StudioToolWindowActionStats.EventType.CLOSED_EVENT_TYPE
-                                                                         })))
+
+      val stats = StudioToolWindowActionStats.newBuilder()
+        .setToolWindowId(id)
+        .setEventType(currentState.eventType)
+        .setToolWindowType(getToolWindowType(window))
+        .build()
+
+      val builder = AndroidStudioEvent.newBuilder()
+        .setKind(EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
+        .setStudioToolWindowActionStats(stats)
+
+      UsageTracker.log(builder)
       stateMap[id] = currentState
     }
   }
+}
 
-  private fun queryToolWindowState(id: String, toolWindowManager: ToolWindowManager): ToolWindowState {
-    val window = toolWindowManager.getToolWindow(id) ?: return ToolWindowState.UNKNOWN
-    return when {
-      window.isActive -> ToolWindowState.OPENED
-      else -> ToolWindowState.CLOSED
-    }
+private sealed class ToolWindowState(val eventType: EventType) {
+  object UNKNOWN : ToolWindowState(EventType.UNKNOWN_EVENT_TYPE)
+  object OPENED : ToolWindowState(EventType.OPEN_EVENT_TYPE)
+  object CLOSED : ToolWindowState(EventType.CLOSED_EVENT_TYPE)
+}
+
+private fun getToolWindowState(window: ToolWindow?): ToolWindowState {
+  return when {
+    window == null -> ToolWindowState.UNKNOWN
+    window.isActive -> ToolWindowState.OPENED
+    else -> ToolWindowState.CLOSED
+  }
+}
+
+private fun getToolWindowType(window: ToolWindow?): StudioToolWindowActionStats.ToolWindowType {
+  if (window == null) {
+    return StudioToolWindowActionStats.ToolWindowType.UNKNOWN_TOOL_WINDOW_TYPE
+  }
+
+  return when (window.type) {
+    ToolWindowType.DOCKED -> StudioToolWindowActionStats.ToolWindowType.DOCKED_TOOL_WINDOW_TYPE
+    ToolWindowType.FLOATING -> StudioToolWindowActionStats.ToolWindowType.FLOATING_TOOL_WINDOW_TYPE
+    ToolWindowType.SLIDING -> StudioToolWindowActionStats.ToolWindowType.SLIDING_TOOL_WINDOW_TYPE
+    ToolWindowType.WINDOWED -> StudioToolWindowActionStats.ToolWindowType.WINDOWED_TOOL_WINDOW_TYPE
   }
 }
