@@ -25,6 +25,7 @@ import com.jetbrains.rd.util.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 typealias EntryUpdateEventListener = (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
@@ -48,6 +49,12 @@ class EventWrapper(val case: Case, data: ByteArray) {
     WORK,
     BACKGROUND_TASK
   }
+
+  @TestOnly
+  constructor(event: WorkManagerInspectorProtocol.Event): this(Case.WORK, event.toByteArray())
+
+  @TestOnly
+  constructor(event: BackgroundTaskInspectorProtocol.Event): this(Case.BACKGROUND_TASK, event.toByteArray())
 
   val workEvent =
     (if (case == Case.WORK) WorkManagerInspectorProtocol.Event.parseFrom(data)
