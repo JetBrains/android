@@ -111,7 +111,10 @@ internal class AndroidExtraModelProviderWorker(
       val buildMap: BuildMap,
       val androidProject: V2AndroidProject,
       val modelVersions: Versions,
-      val androidDsl: AndroidDsl
+      val androidDsl: AndroidDsl,
+      // Valid when requesting all-variants-sync and building all the variants.
+      val variantsWithDependencies: Map<V2Variant, VariantDependencies>? = null,
+      val globalLibraryMap: GlobalLibraryMap? = null
     ) : AndroidProjectResult() {
       override val buildName: String = androidProject.buildName
       override val buildNameMap: Map<String, File> = buildMap.buildIdMap
@@ -172,7 +175,22 @@ internal class AndroidExtraModelProviderWorker(
                 } else if (canFetchV2Models == false) {
                   error("Cannot initiate V2 models for Sync.")
                 }
-                androidProjectResult = AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl)
+
+                // When requesting Sync for the PSD, then we need to request the models for all the variant.
+                androidProjectResult = if (isAllVariantsSync) {
+                  val variantsWithDependencies =
+                    androidProject.variants
+                      .mapNotNull { controller.findVariantDependenciesV2Model(gradleProject, it.name)?.let { model -> it to model } }
+                      .associate { it.first to it.second }
+                  // Request GlobalLibraryMap after all models.
+                  val globalLibraryMap = controller.findNonParameterizedV2Model(gradleProject, GlobalLibraryMap::class.java)
+
+                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl, variantsWithDependencies, globalLibraryMap)
+                }
+                else {
+                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl)
+                }
+
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                 val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isAllVariantsSync)
                 val nativeAndroidProject: NativeAndroidProject? =
@@ -585,8 +603,6 @@ internal class AndroidExtraModelProviderWorker(
 
         // Request VariantDependencies model for the variant's dependencies.
         val variantDependencies = controller.findVariantDependenciesV2Model(module.gradleProject, moduleConfiguration.variant) ?: return null
-        // We need the GlobalLibraryMap for only Variants fetching, so we won't be fetching it alongside the AndroidProject.
-        //TODO(b/187689291): add support for fullSyncActionOptions with V2.
         val globalLibraryMap = controller.findNonParameterizedV2Model(module.gradleProject, GlobalLibraryMap::class.java) ?: return null
         ideVariant = modelCache.variantFrom(
           module.androidProject,
@@ -788,6 +804,7 @@ private fun createAndroidModule(
                                                                                                        androidProjectResult.modelVersions,
                                                                                                        androidProjectResult.androidDsl)
   }
+
   val idePrefetchedVariants = when (androidProjectResult) {
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
       ModelCache.safeGet(androidProjectResult.androidProject::getVariants, emptyList())
@@ -800,7 +817,22 @@ private fun createAndroidModule(
         )
       }
       .takeUnless { it.isEmpty() }
-    is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project -> null
+    is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project ->
+      if (androidProjectResult.variantsWithDependencies != null && androidProjectResult.globalLibraryMap != null) {
+        androidProjectResult.variantsWithDependencies
+          .map {
+            modelCache.variantFrom(
+              ideAndroidProject,
+              it.key,
+              modelVersion,
+              it.value,
+              androidProjectResult.globalLibraryMap,
+              androidProjectResult.buildNameMap
+            )
+          }
+          .takeUnless { it.isEmpty() }
+      }
+    else null
   }
 
   val v2Variants = when (androidProjectResult) {
@@ -809,7 +841,7 @@ private fun createAndroidModule(
       ModelCache.safeGet(androidProjectResult.androidProject::variants, null)?.toList()
   }
 
-  // Single-variant-sync models have variantNames property and pre-single-variant sync model should have all variants present instead.
+  // Single-variant-sync models have variantNames property and all-variants-sync model should have all variants present instead.
   val allVariantNames: Set<String>? = when (androidProjectResult) {
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
       (ModelCache.safeGet(androidProjectResult.androidProject::getVariantNames, null)

@@ -79,6 +79,20 @@ fun ProjectDumper.dumpAndroidIdeModel(project: Project) {
   }
 }
 
+fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: AndroidModuleModel, projectPath: String) {
+  nest(File(projectPath), "PROJECT") {
+    androidModuleModel.let { androidModuleModel ->
+      dump(androidModuleModel.androidProject)
+      // Dump all the fetched Ide variants.
+      head("IdeVariants")
+      nest {
+        androidModuleModel.variants.forEach { ideVariant -> dump(ideVariant)
+        }
+      }
+    }
+  }
+}
+
 private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   prop("ModelVersion") { ideAndroidModel.modelVersion.replaceKnownPatterns() }
   prop("ProjectType") { ideAndroidModel.projectType.toString() }
