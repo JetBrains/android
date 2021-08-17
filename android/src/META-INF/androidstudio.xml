@@ -88,6 +88,19 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
+    <group id="Internal.JavaFlightRecorder" text="Java Flight Recorder" popup="true" internal="true">
+      <add-to-group group-id="Internal" anchor="after" relative-to-action="Internal.HeapAnalysis"/>
+    </group>
+    <action class="com.android.tools.idea.diagnostics.jfr.FreezeUiAction" id="FreezeUI"
+            text="Freeze UI" internal="true">
+      <add-to-group group-id="Internal.JavaFlightRecorder" anchor="first"/>
+    </action>
+    <action class="com.android.tools.idea.diagnostics.jfr.RecordingManager$DumpJfrAction" id="DumpJFR"
+            text="Dump JFR Recording" internal="true">
+      <add-to-group group-id="Internal.JavaFlightRecorder" anchor="after" relative-to-action="FreezeUI"/>
+    </action>
+
+
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>

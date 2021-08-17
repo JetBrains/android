@@ -23,6 +23,7 @@ import com.google.gson.stream.JsonWriter
 import com.intellij.diagnostic.ThreadDumper
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
+import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -33,6 +34,7 @@ class FreezeReport
 @JvmOverloads
 constructor(val threadDumpPath: Path?,
             val reportParts: Map<String, Path>,
+            val binaryReportParts: Map<String, Path>,
             val timedOut: Boolean,
             val totalDuration: Long?,
             val description: String?,
@@ -43,6 +45,9 @@ constructor(val threadDumpPath: Path?,
     if (threadDumpPath != null) writer.name("threadDumpPath").value(threadDumpPath.toString())
     reportParts.forEach {
       writer.name(it.key + "Path").value(it.value.toString())
+    }
+    binaryReportParts.forEach {
+      writer.name(it.key + "BinaryPath").value(it.value.toString())
     }
     writer.name("timedOut").value(timedOut.toString())
     if (totalDuration != null) writer.name("totalDuration").value(totalDuration)
@@ -66,6 +71,9 @@ constructor(val threadDumpPath: Path?,
         GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
         contents.forEach { name, contents ->
           GoogleCrashReporter.addBodyToBuilder(builder, name, contents, ContentType.create("text/plain", Charsets.UTF_8))
+        }
+        binaryReportParts.forEach { (name, path) ->
+          builder.addBinaryBody(name, path.toFile())
         }
       }
     }
@@ -91,8 +99,14 @@ constructor(val threadDumpPath: Path?,
         val timedOut = dynamicProperties.remove("timedOut")?.toBoolean() ?: false
 
         val paths = TreeMap<String, Path>()
+        val binaryPaths = TreeMap<String, Path>()
         dynamicProperties.forEach { (name, pathName) ->
-          if (name.endsWith("Path")) {
+          if (name.endsWith("BinaryPath")) {
+            fixDirectoryPathAndCheckIfReadable(
+              Paths.get(pathName))?.let {
+              binaryPaths[name.dropLast("BinaryPath".length)] = it
+            }
+          } else if (name.endsWith("Path")) {
             fixDirectoryPathAndCheckIfReadable(
               Paths.get(pathName))?.let {
               paths[name.dropLast("Path".length)] = it
@@ -102,6 +116,7 @@ constructor(val threadDumpPath: Path?,
         return FreezeReport(
           threadDumpPath,
           paths,
+          binaryPaths,
           timedOut,
           totalDuration,
           description,

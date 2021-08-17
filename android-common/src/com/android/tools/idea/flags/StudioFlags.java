@@ -985,6 +985,7 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "antivirus.check.registry", "Use registry instead of PowerShell for checking antivirus status",
     "If enabled, the antivirus status checker will use the Windows registry instead of PowerShell commands",
     true);
+
   //endregion
 
   //region Compose

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.*;
@@ -54,6 +55,7 @@ public class DiagnosticReportBuilder {
   @GuardedBy("LOCK")
   private boolean myIsStopped;
   private @NotNull List<DiagnosticReportContributor> myReportContributors;
+  private final @NotNull Map<String, Path> myBinaryReportPaths;
   @GuardedBy("LOCK")
   private boolean myIsTimedOut;
 
@@ -75,6 +77,7 @@ public class DiagnosticReportBuilder {
       new MemoryUseReportContributor(),
       new ActionsReportContributor(lastActionTracker)
     );
+    myBinaryReportPaths = new TreeMap<>();
 
     myFreezeTimeBeforeCreated = freezeTimeBeforeCreatedMs;
     DiagnosticReportConfiguration configuration =
@@ -100,6 +103,10 @@ public class DiagnosticReportBuilder {
     }
 
     myFutureStop = JobScheduler.getScheduler().schedule(this::stopAfterTimeout, maxSamplingTimeMs, TimeUnit.MILLISECONDS);
+  }
+
+  public void addBinaryReportPath(String reportName, Path reportPath) {
+    myBinaryReportPaths.put(reportName, reportPath);
   }
 
   private void stopAfterTimeout() {
@@ -130,7 +137,7 @@ public class DiagnosticReportBuilder {
         return null;
       }
       Path hotPathStackTrace = reportPaths.remove("hotPathStackTrace");
-      return new FreezeReport(hotPathStackTrace, reportPaths, myIsTimedOut, totalDurationMs, null);
+      return new FreezeReport(hotPathStackTrace, reportPaths, myBinaryReportPaths, myIsTimedOut, totalDurationMs, null);
     }
   }
 

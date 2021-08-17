@@ -23,6 +23,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.crash.UploadFields;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
+import com.android.tools.idea.diagnostics.jfr.RecordingManager;
 import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
@@ -86,14 +87,12 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -462,6 +461,7 @@ public class AndroidStudioSystemHealthMonitor {
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
+    RecordingManager.init();
 
     application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
