@@ -76,7 +76,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions;
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider;
-import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions;
+import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels;
@@ -141,7 +141,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
@@ -173,7 +172,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension implements AndroidGradleProjectResolverMarker {
   /**
    * Stores a collection of variants of the data node tree for previously synced build variants.
-   *
+   * <p>
    * NOTE: This key/data is not directly processed by any data importers.
    */
   @NotNull public static final com.intellij.openapi.externalSystem.model.Key<VariantProjectDataNodes>
@@ -183,7 +182,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   /**
    * Stores a collection of internal in-memory properties used by Kotlin 1.4/1.5 IDE plugin so that they can be restored when the data node
    * tree is re-used to re-import a build variant it represents.
-   *
+   * <p>
    * NOTE: This key/data is not directly processed by any data importers.
    */
   @NotNull public static final com.intellij.openapi.externalSystem.model.Key<KotlinProperties>
@@ -1007,7 +1006,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         );
       }
       else {
-        syncOptions = new FullSyncActionOptions(studioFlags, additionalClassifierArtifactsAction);
+        syncOptions = new AllVariantsSyncActionOptions(studioFlags, additionalClassifierArtifactsAction);
       }
     }
     else if (projectResolutionMode instanceof ProjectResolutionMode.FetchNativeVariantsMode) {
@@ -1031,7 +1030,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   private static boolean shouldSyncAllVariants(@NotNull Project project) {
-    Boolean shouldSyncAllVariants = project.getUserData(GradleSyncExecutor.FULL_SYNC_KEY);
+    Boolean shouldSyncAllVariants = project.getUserData(GradleSyncExecutor.ALL_VARIANTS_SYNC_KEY);
     return shouldSyncAllVariants != null && shouldSyncAllVariants;
   }
 

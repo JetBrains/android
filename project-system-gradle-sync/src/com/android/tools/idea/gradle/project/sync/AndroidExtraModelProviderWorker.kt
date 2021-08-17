@@ -129,8 +129,8 @@ internal class AndroidExtraModelProviderWorker(
    * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
   private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<GradleModule> {
-    val isFullSync = when (syncOptions) {
-      is FullSyncActionOptions -> true
+    val isAllVariantsSync = when (syncOptions) {
+      is AllVariantsSyncActionOptions -> true
       is SingleVariantSyncActionOptions -> false
       // Note: No other cases.
     }
@@ -158,10 +158,10 @@ internal class AndroidExtraModelProviderWorker(
                 }
                 androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-                val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+                val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isAllVariantsSync)
                 val nativeAndroidProject: NativeAndroidProject? =
                   if (nativeModule == null)
-                    controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isFullSync)
+                    controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isAllVariantsSync)
                   else null
 
                 return createAndroidModule(
@@ -179,7 +179,7 @@ internal class AndroidExtraModelProviderWorker(
             val androidProject = controller.findParameterizedAndroidModel(
               gradleProject,
               AndroidProject::class.java,
-              shouldBuildVariant = isFullSync
+              shouldBuildVariant = isAllVariantsSync
             )
             if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion)) {
               if (canFetchV2Models == null) {
@@ -189,10 +189,10 @@ internal class AndroidExtraModelProviderWorker(
               }
               androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
 
-              val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+              val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isAllVariantsSync)
               val nativeAndroidProject: NativeAndroidProject? =
                 if (nativeModule == null)
-                  controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isFullSync)
+                  controller.findParameterizedAndroidModel(gradleProject, NativeAndroidProject::class.java, shouldBuildVariant = isAllVariantsSync)
                 else null
 
               return createAndroidModule(
@@ -320,7 +320,7 @@ internal class AndroidExtraModelProviderWorker(
         if (model != null) return model
       }
       catch (e: UnsupportedVersionException) {
-        // Using old version of Gradle. Fall back to full variants sync for this module.
+        // Using old version of Gradle. Fall back to all variants sync for this module.
       }
     }
     return findModel(project, modelType)

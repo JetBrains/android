@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.FULL_SYNC_KEY
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALL_VARIANTS_SYNC_KEY
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.upgrade.ForcedPluginPreviewVersionUpgradeDialog
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
@@ -61,7 +61,7 @@ class AgpUpgradeRequiredIssueChecker : GradleIssueChecker {
     //  that might be triggered by some other process (e.g. from the platform's project import).  At the moment, there are
     //  circumstances where we get multiple syncs on open/import, and we should ideally interrupt the user's flow by showing
     //  a modal dialog only once.
-    if (project?.getUserData(FULL_SYNC_KEY) != null) {
+    if (project?.getUserData(ALL_VARIANTS_SYNC_KEY) != null) {
       updateAndRequestSync(project, modelVersion)
     }
 

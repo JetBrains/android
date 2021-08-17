@@ -159,7 +159,7 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
-    public boolean forceFullVariantsSync;
+    public boolean forceAllVariantsSync;
     public boolean skipPreSyncChecks;
 
     // Perform a variant-only sync if not null.
@@ -190,7 +190,7 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
-             forceFullVariantsSync == request.forceFullVariantsSync &&
+             forceAllVariantsSync == request.forceAllVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks;
     }
 
@@ -198,7 +198,7 @@ public class GradleSyncInvoker {
     public int hashCode() {
       return Objects
         .hash(trigger, runInBackground,
-              forceFullVariantsSync, skipPreSyncChecks);
+              forceAllVariantsSync, skipPreSyncChecks);
     }
 
     @Override
@@ -206,7 +206,7 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
-             ", forceFullVariantsSync=" + forceFullVariantsSync +
+             ", forceAllVariantsSync=" + forceAllVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
              '}';
     }

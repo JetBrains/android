@@ -89,7 +89,7 @@ import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
-  @NotNull public static final Key<Boolean> FULL_SYNC_KEY = new Key<>("android.full.sync");
+  @NotNull public static final Key<Boolean> ALL_VARIANTS_SYNC_KEY = new Key<>("android.all.variants.sync");
   @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
@@ -104,7 +104,7 @@ public class GradleSyncExecutor {
     }
     // Setup the settings for setup.
     // Setup the settings for the resolver.
-    myProject.putUserData(FULL_SYNC_KEY, request.forceFullVariantsSync);
+    myProject.putUserData(ALL_VARIANTS_SYNC_KEY, request.forceAllVariantsSync);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
@@ -137,7 +137,7 @@ public class GradleSyncExecutor {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
-      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.trigger, request.forceFullVariantsSync));
+      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.trigger, request.forceAllVariantsSync));
       refreshProject(rootPath, builder.build());
     }
   }
@@ -186,13 +186,13 @@ public class GradleSyncExecutor {
 
     DataNode<ProjectData> projectDataNode;
 
-    myProject.putUserData(FULL_SYNC_KEY, true);
+    myProject.putUserData(ALL_VARIANTS_SYNC_KEY, true);
     try {
       GradleProjectResolver projectResolver = new GradleProjectResolver();
       projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     }
     finally {
-      myProject.putUserData(FULL_SYNC_KEY, null);
+      myProject.putUserData(ALL_VARIANTS_SYNC_KEY, null);
     }
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 

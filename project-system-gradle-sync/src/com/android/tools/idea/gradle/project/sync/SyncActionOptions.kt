@@ -26,7 +26,7 @@ sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags) : SyncAction
   abstract val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 }
 
-class FullSyncActionOptions(
+class AllVariantsSyncActionOptions(
   flags: GradleSyncStudioFlags,
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 ) : SyncProjectActionOptions(flags), Serializable
