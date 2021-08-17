@@ -22,6 +22,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager

@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
 
