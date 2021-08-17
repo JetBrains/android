@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
+package com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table
 
-import com.android.tools.adtui.common.ColumnTreeBuilder
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFormattedTimeString
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.tree.TreeModelAdapter
