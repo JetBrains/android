@@ -154,11 +154,6 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   private void initTable(@NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable) {
     myTable = newPhysicalDeviceTable.apply(this);
-
-    if (true) {
-      return;
-    }
-
     myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 

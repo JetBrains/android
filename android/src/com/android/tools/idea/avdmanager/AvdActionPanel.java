@@ -172,7 +172,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new ShowAvdOnDiskAction(this, logDeviceManagerEvents));
-    actionList.add(new AvdSummaryAction(this));
+
+    if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
+      actionList.add(new AvdSummaryAction(this));
+    }
+
     actionList.add(new DeleteAvdAction(this, logDeviceManagerEvents));
     actionList.add(new StopAvdAction(this, logDeviceManagerEvents));
 
