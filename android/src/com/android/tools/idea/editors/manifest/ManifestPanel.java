@@ -122,6 +122,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -439,7 +440,103 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   public void updateDetails(@Nullable ManifestTreeNode node) {
+    Node manifestNode = node != null ? node.getUserObject() : null;
+    HtmlBuilder sb = prepareHtmlReport(manifestNode);
+    myDetails.setText(sb.getHtml());
+    myDetails.setCaretPosition(0);
+  }
+
+  @VisibleForTesting
+  public @NotNull HtmlBuilder prepareHtmlReport(@Nullable Node node) {
     HtmlBuilder sb = new HtmlBuilder();
+    prepareReportHeader(sb);
+
+    // See if there are errors; if so, show the merging report instead of node selection report
+    if (!myManifest.getLoggingRecords().isEmpty()) {
+      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
+        if (record.getSeverity() == MergingReport.Record.Severity.ERROR) {
+          node = null;
+          break;
+        }
+      }
+    }
+
+    if (node != null) {
+      prepareSelectedNodeReport(node, sb);
+    }
+    else if (!myManifest.getLoggingRecords().isEmpty()) {
+      prepareMergingErrorsReport(sb);
+    }
+
+    sb.closeHtmlBody();
+    return sb;
+  }
+
+  private void prepareMergingErrorsReport(@NotNull HtmlBuilder sb) {
+    sb.add("Merging Errors:").newline();
+    for (MergingReport.Record record : myManifest.getLoggingRecords()) {
+      sb.addHtml(getHtml(record.getSeverity()));
+      sb.add(" ");
+      try {
+        sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
+                                LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0)), myManifestEditable));
+      }
+      catch (Exception ex) {
+        Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
+        sb.add(record.getMessage());
+      }
+      sb.add(" ");
+      sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
+      sb.newline();
+    }
+  }
+
+  @VisibleForTesting
+  public void prepareSelectedNodeReport(@NotNull Node manifestNode, @NotNull HtmlBuilder sb) {
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, manifestNode);
+    sb.beginUnderline().beginBold();
+    sb.add("Merging Log");
+    sb.endBold().endUnderline().newline();
+
+    if (records.isEmpty()) {
+      sb.add("No records found. (This is a bug in the manifest merger.)");
+    }
+
+    SourceFilePosition prev = null;
+    boolean prevInjected = false;
+    for (Actions.Record record : records) {
+      // There are currently some duplicated entries; filter these out
+      SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);
+      if (location.equals(prev)) {
+        continue;
+      }
+      prev = location;
+
+      Actions.ActionType actionType = record.getActionType();
+      boolean injected = actionType == Actions.ActionType.INJECTED;
+      if (injected && prevInjected) {
+        continue;
+      }
+      prevInjected = injected;
+      if (injected) {
+        sb.add("Value provided by Gradle"); // TODO: include module source? Are we certain it's correct?
+        sb.newline();
+        continue;
+      }
+      sb.add(StringUtil.capitalize(StringUtil.toLowerCase(String.valueOf(actionType))));
+      sb.add(" from the ");
+      sb.addHtml(getHtml(myFacet, location));
+
+      String reason = record.getReason();
+      if (reason != null) {
+        sb.add("; reason: ");
+        sb.add(reason);
+      }
+      sb.newline();
+    }
+  }
+
+  private void prepareReportHeader(@NotNull HtmlBuilder sb) {
     Font font = UIUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
@@ -476,82 +573,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
       sb.newline().newline();
     }
-
-    // See if there are errors; if so, show the merging report instead of node selection report
-    if (!myManifest.getLoggingRecords().isEmpty()) {
-      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-        if (record.getSeverity() == MergingReport.Record.Severity.ERROR) {
-          node = null;
-          break;
-        }
-      }
-    }
-
-    if (node != null) {
-      List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node.getUserObject());
-      sb.beginUnderline().beginBold();
-      sb.add("Merging Log");
-      sb.endBold().endUnderline().newline();
-
-      if (records.isEmpty()) {
-        sb.add("No records found. (This is a bug in the manifest merger.)");
-      }
-
-      SourceFilePosition prev = null;
-      boolean prevInjected = false;
-      for (Actions.Record record : records) {
-        // There are currently some duplicated entries; filter these out
-        SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);
-        if (location.equals(prev)) {
-          continue;
-        }
-        prev = location;
-
-        Actions.ActionType actionType = record.getActionType();
-        boolean injected = actionType == Actions.ActionType.INJECTED;
-        if (injected && prevInjected) {
-          continue;
-        }
-        prevInjected = injected;
-        if (injected) {
-          sb.add("Value provided by Gradle"); // TODO: include module source? Are we certain it's correct?
-          sb.newline();
-          continue;
-        }
-        sb.add(StringUtil.capitalize(StringUtil.toLowerCase(String.valueOf(actionType))));
-        sb.add(" from the ");
-        sb.addHtml(getHtml(myFacet, location));
-
-        String reason = record.getReason();
-        if (reason != null) {
-          sb.add("; reason: ");
-          sb.add(reason);
-        }
-        sb.newline();
-      }
-    }
-    else if (!myManifest.getLoggingRecords().isEmpty()) {
-      sb.add("Merging Errors:").newline();
-      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-        sb.addHtml(getHtml(record.getSeverity()));
-        sb.add(" ");
-        try {
-          sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                  LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0)), myManifestEditable));
-        }
-        catch (Exception ex) {
-          Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
-          sb.add(record.getMessage());
-        }
-        sb.add(" ");
-        sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
-        sb.newline();
-      }
-    }
-
-    sb.closeHtmlBody();
-    myDetails.setText(sb.getHtml());
-    myDetails.setCaretPosition(0);
   }
 
   @NotNull
