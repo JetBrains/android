@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates
+package com.android.tools.idea.npw.template
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.SdkConstants.FD_TEST
@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.templates.getAppNameForTheme
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
@@ -54,16 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
-
-/**
- * Helper method for converting two paths relative to one another into a String path, since this
- * ends up being a common pattern when creating values to put into our template's data model.
- *
- * Note: Use [FileUtil.getRelativePath] (String, String, Char) instead of [FileUtil.getRelativePath] (File, File), because the second
- * version will use [File.getParent] if base directory is not yet created (when adding a new module, the directory is created later)
- */
-private fun getRelativePath(base: File, file: File): String? =
-  FileUtil.getRelativePath(FileUtil.toSystemIndependentName(base.path), FileUtil.toSystemIndependentName(file.path), '/')
 
 /**
  * Builder for [ModuleTemplateData].

@@ -947,7 +947,7 @@
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
     <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
-    <androidStartupActivity implementation="com.android.tools.idea.templates.DynamicTemplateMenuAndroidStartupActivity" />
+    <androidStartupActivity implementation="com.android.tools.idea.npw.template.DynamicTemplateMenuAndroidStartupActivity" />
     <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
     <androidStartupActivity implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncStartupActivity" />
   </extensions>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates
+package com.android.tools.idea.npw.template
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
@@ -33,7 +33,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.File
 
-val log: Logger get() = logger<ProjectTemplateDataBuilder>()
+private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 
 /**
  * Builder for [ProjectTemplateData].

@@ -28,6 +28,8 @@ import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericMo
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -35,8 +37,6 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.templates.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor

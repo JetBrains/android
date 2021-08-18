@@ -20,6 +20,8 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getPackageForApplication
+import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -28,8 +30,6 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
-import com.android.tools.idea.templates.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor

@@ -29,6 +29,8 @@ import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.npw.model.titleToTemplateRenderer
 import com.android.tools.idea.npw.model.titleToTemplateType
+import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
 import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
