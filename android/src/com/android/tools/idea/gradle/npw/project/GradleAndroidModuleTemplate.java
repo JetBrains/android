@@ -24,7 +24,6 @@ import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 
-import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModulePathsImpl;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
@@ -61,7 +60,7 @@ public class GradleAndroidModuleTemplate {
    * aidl and manifest.
    */
   public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
-    File moduleRoot = ModuleModelKt.getModuleRoot(projectPath, moduleName);
+    File moduleRoot = getModuleRootForNewModule(projectPath, moduleName);
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     return new NamedModuleTemplate("main", new AndroidModulePathsImpl(
@@ -74,5 +73,14 @@ public class GradleAndroidModuleTemplate {
       ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES)),
       ImmutableList.of(new File(baseFlavorDir, FD_ML_MODELS))
     ));
+  }
+
+
+  /**
+   * Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
+   * the Module Path (called Project Path in gradle world) in "settings.gradle"
+   */
+  public static File getModuleRootForNewModule(String projectLocation, String moduleName) {
+    return new File(projectLocation, moduleName.replace(':', File.separatorChar));
   }
 }
