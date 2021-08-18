@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,18 +35,23 @@ public class InfoSection extends JBPanel<InfoSection> {
   public InfoSection(@NotNull String heading) {
     super(null);
 
-    myHeadingLabel = new JBLabel(heading);
+    myHeadingLabel = DetailsPanel.newHeadingLabel(heading);
     myNameLabels = new ArrayList<>();
     myValueLabels = new ArrayList<>();
+
+    setOpaque(false);
   }
 
   public final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
-    myNameLabels.add(new JBLabel(name));
+    Component nameLabel = new JBLabel(name);
+    nameLabel.setForeground(Label.disabledForeground());
 
-    JLabel label = new JBLabel();
-    myValueLabels.add(label);
+    myNameLabels.add(nameLabel);
 
-    return label;
+    JLabel valueLabel = new JBLabel();
+    myValueLabels.add(valueLabel);
+
+    return valueLabel;
   }
 
   public final void setLayout() {
