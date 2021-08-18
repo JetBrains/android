@@ -19,8 +19,9 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -110,6 +111,9 @@ public class EnableInstantAppsSupportDialog extends DialogWrapper {
     EnableInstantAppsSupportAction.addInstantAppSupportToManifest(manifestTag);
 
     // Update run configurations "Deploy as instant app"
-    new ProjectSyncInvoker.DefaultProjectSyncInvoker().syncProject(myBaseModule.getProject());
+    ProjectSystemService.getInstance(myBaseModule.getProject())
+      .getProjectSystem()
+      .getSyncManager()
+      .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
   }
 }
