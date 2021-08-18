@@ -136,13 +136,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "assertJ",
-    jars = ["//prebuilts/tools/common/m2:assertJ_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "transport-proto",
     jars = ["//tools/base/transport/proto:transport_java_proto.jar"],
     visibility = ["//visibility:public"],
