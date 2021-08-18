@@ -122,9 +122,9 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
     val selectedLabel = labelMap[selectedWork.id]
     val depthMap = mutableMapOf<String, Int>()
     for (work in works) {
-      depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.max() ?: -1) + 1
+      depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.maxOrNull() ?: -1) + 1
     }
-    val maxDepth = depthMap.values.max() ?: -1
+    val maxDepth = depthMap.values.maxOrNull() ?: -1
 
     // Find the maximum estimated width for all depths.
     var maxWidth = 0

@@ -25,7 +25,9 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.tree.TreeModelAdapter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import java.awt.Dimension
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
@@ -45,6 +47,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
   init {
     val tree = JTree(treeModel)
     tree.isRootVisible = false
+    // Allow variable row heights.
+    tree.rowHeight = 0
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
     treeModel.addTreeModelListener(object : TreeModelAdapter() {
@@ -77,7 +81,13 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
       }
     }
 
-    val builder = ColumnTreeBuilder(tree)
+    val builder = ColumnTreeBuilder(tree).setShowVerticalLines(true)
+
+    builder.setCustomRenderer { _, value, _, _, _, _, _ ->
+      JLabel((value as DefaultMutableTreeNode).userObject as String).apply {
+        preferredSize = Dimension(preferredSize.width, 30)
+      }
+    }
 
     builder.addColumn(ColumnTreeBuilder.ColumnBuilder().setName("Class").setRenderer(object : ColoredTreeCellRenderer() {
       override fun customizeCellRenderer(tree: JTree,
