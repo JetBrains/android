@@ -136,38 +136,6 @@ fun pad(image: BufferedImage, paddingPercent: Int): BufferedImage {
 }
 
 /**
- * Returns true if a resource with the same name is already found at a location implied by the input parameters.
- */
-fun resourceExists(paths: AndroidModulePaths, resourceType: ResourceFolderType, name: String): Boolean {
-  val resDir = Iterables.getFirst(paths.resDirectories, null) ?: return false
-  val resTypes = resDir.listFiles() ?: return false
-
-  // The path of a resource looks something like:
-  //
-  // path/to/res/
-  //   drawable/name
-  //   drawable-hdpi-v9/name
-  //   drawable-hdpi-v11/name
-  //   drawable-mdpi-v9/name
-  //   ...
-  //
-  // We don't really care about the "drawable" directory here; we just want to search all folders
-  // in res/ and look for the first match in any of them.
-  return resTypes
-    .filter { it.isDirectory && resourceType == ResourceFolderType.getFolderType(it.name) }
-    .flatMap { it.listFiles().orEmpty().toList()  }
-    .any { FileUtil.getNameWithoutExtension(it).equals(name, ignoreCase = true) }
-}
-
-/**
- * Like [resourceExists] but a useful fallback if information about the current paths is not known.
- */
-fun resourceExists(facet: AndroidFacet, resourceType: ResourceType, name: String): Boolean {
-  val repository = ResourceRepositoryManager.getAppResources(facet)
-  return repository.hasResources(ResourceNamespace.TODO(), resourceType, name)
-}
-
-/**
  * Returns the name of an enum value as a lower camel case string.
  */
 fun toLowerCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name)

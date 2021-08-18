@@ -20,16 +20,18 @@ import com.android.builder.model.SourceProvider
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.npw.assetstudio.resourceExists
+import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.template.Constraint.*
 import com.android.tools.idea.wizard.template.Constraint
 import com.android.tools.idea.wizard.template.StringParameter
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Iterables
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -262,4 +264,36 @@ private fun existsPackage(project: Project?, sourceProvider: SourceProvider?, pa
     val classFile = File(it, packageName.replace('.', File.separatorChar))
     classFile.exists() && classFile.isDirectory
   }
+}
+
+/**
+ * Returns true if a resource with the same name is already found at a location implied by the input parameters.
+ */
+private fun resourceExists(paths: AndroidModulePaths, resourceType: ResourceFolderType, name: String): Boolean {
+  val resDir = Iterables.getFirst(paths.resDirectories, null) ?: return false
+  val resTypes = resDir.listFiles() ?: return false
+
+  // The path of a resource looks something like:
+  //
+  // path/to/res/
+  //   drawable/name
+  //   drawable-hdpi-v9/name
+  //   drawable-hdpi-v11/name
+  //   drawable-mdpi-v9/name
+  //   ...
+  //
+  // We don't really care about the "drawable" directory here; we just want to search all folders
+  // in res/ and look for the first match in any of them.
+  return resTypes
+    .filter { it.isDirectory && resourceType == ResourceFolderType.getFolderType(it.name) }
+    .flatMap { it.listFiles().orEmpty().toList()  }
+    .any { FileUtil.getNameWithoutExtension(it).equals(name, ignoreCase = true) }
+}
+
+/**
+ * Like [resourceExists] but a useful fallback if information about the current paths is not known.
+ */
+private fun resourceExists(facet: AndroidFacet, resourceType: ResourceType, name: String): Boolean {
+  val repository = ResourceRepositoryManager.getAppResources(facet)
+  return repository.hasResources(ResourceNamespace.TODO(), resourceType, name)
 }

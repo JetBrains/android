@@ -18,12 +18,12 @@ package com.android.tools.idea.mlkit.importmodel
 import com.android.tools.idea.mlkit.MlUtils
 import com.android.tools.idea.mlkit.logEvent
 import com.android.tools.idea.npw.model.render
+import com.android.tools.idea.npw.template.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.templates.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel

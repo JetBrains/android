@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates
+package com.android.tools.idea.npw.template
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
@@ -26,9 +26,7 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInv
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForPath
-import com.android.tools.idea.npw.template.ChooseActivityTypeStep
-import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
-import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.templates.AdditionalTemplateActionsProvider
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.util.androidFacet

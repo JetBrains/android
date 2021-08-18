@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.tools.idea.npw.template.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
