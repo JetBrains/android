@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.manifest;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
@@ -24,15 +25,16 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -97,12 +99,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.JEditorPane;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -168,6 +173,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
+  private Map<PathString, ExternalAndroidLibrary> myLibrariesByManifestDir;
 
   public ManifestPanel(final @NotNull AndroidFacet facet, final @NotNull Disposable parent) {
     myFacet = facet;
@@ -336,6 +342,17 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
+    myLibrariesByManifestDir =
+      Arrays.stream(ModuleManager.getInstance(myManifest.getModule().getProject()).getModules())
+        .flatMap(module -> getModuleSystem(module)
+          .getAndroidLibraryDependencies()
+          .stream()
+          .filter(it -> it.getManifestFile() != null)
+        )
+        .collect(Collectors.toMap(it -> it.getManifestFile().getParent(),
+                                  it -> it,
+                                  (a, b) -> a // Ignore any duplicates.
+        ));
     Document document = myManifest.getDocument();
     Element root = document != null ? document.getDocumentElement() : null;
     myTree.setModel(root == null ? null : new DefaultTreeModel(new ManifestTreeNode(root)));
@@ -1074,27 +1091,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
           // AAR library in the project build directory?
           if (path.contains(FilenameConstants.EXPLODED_AAR)) {
-            source = findSourceForFileInExplodedAar(file, facet, module);
+            source = findSourceForFileInExplodedAar(file);
           }
         }
         // AAR library in the build cache?
         // (e.g., ".android/build-cache/0d86e51789317f7eb0747ecb9da6162c7082982e/output/AndroidManifest.xml")
         // Since the user can change the location or name of the build cache directory, we need to detect it using the following pattern.
         else if (path.contains("output") && path.matches(".*\\w{40}[\\\\/]output.*")) {
-          for (Module singleModule : modules) {
-            source = findSourceForFileInExplodedAar(file, facet, singleModule);
-            if (source != null) {
-              break;
-            }
-          }
-        } else if (path.contains("caches")) {
+          source = findSourceForFileInExplodedAar(file);
+        }
+        else if (path.contains("caches")) {
           // Look for the Gradle cache, where AAR libraries can appear when distributed via the google() Maven repository
-          for (Module singleModule : modules) {
-            source = findSourceForFileInExplodedAar(file, facet, singleModule);
-            if (source != null) {
-              break;
-            }
-          }
+          source = findSourceForFileInExplodedAar(file);
         }
 
         NamedIdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
@@ -1143,17 +1151,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @Nullable
-  private static String findSourceForFileInExplodedAar(@NotNull File file, @NotNull AndroidFacet facet, @NotNull Module module) {
-    String source = null;
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel != null) {
-      IdeAndroidLibrary library =
-        GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
-      if (library != null) {
-        source = getDependencyDisplayName(library);
-      }
-    }
-    return source;
+  private String findSourceForFileInExplodedAar(@NotNull File file) {
+    File parentFile = file.getParentFile();
+    if (parentFile == null) return null;
+    PathString parentFilePath = new PathString(parentFile);
+    ExternalAndroidLibrary androidLibrary = myLibrariesByManifestDir.get(parentFilePath);
+    if (androidLibrary == null) return null;
+    return getDependencyDisplayName(androidLibrary.getAddress());
   }
 
   /**

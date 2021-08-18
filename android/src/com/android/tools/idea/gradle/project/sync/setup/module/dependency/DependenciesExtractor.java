@@ -21,7 +21,6 @@ import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeModuleLibrary;
@@ -101,8 +100,7 @@ public class DependenciesExtractor {
    * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
    */
   @NotNull
-  public static String getDependencyDisplayName(@NotNull IdeArtifactLibrary library) {
-    String artifactAddress = library.getArtifactAddress();
+  public static String getDependencyDisplayName(@NotNull String artifactAddress) {
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
     if (coordinates != null) {
       String name = coordinates.getArtifactId();
