@@ -61,5 +61,9 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="library" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.java.psi" />
   </component>
 </module>

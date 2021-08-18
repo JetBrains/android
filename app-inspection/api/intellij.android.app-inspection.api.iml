@@ -28,5 +28,7 @@
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
   </component>
 </module>

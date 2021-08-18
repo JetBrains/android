@@ -48,5 +48,8 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.tests" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
   </component>
 </module>

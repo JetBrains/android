@@ -43,5 +43,10 @@
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="intellij.java.psi.impl" />
+    <orderEntry type="library" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="module" module-name="kotlin.core" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
   </component>
 </module>

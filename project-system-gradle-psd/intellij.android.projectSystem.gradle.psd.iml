@@ -39,5 +39,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.java.psi" />
   </component>
 </module>

@@ -31,10 +31,9 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module-library">
-      <library name="traceprocessor-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:27.2.0.0" />
+      <library name="traceprocessor-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/27.2.0.0/traceprocessor_protos-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -43,7 +42,9 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" name="asm-tools" level="project" />
+    <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
   </component>
 </module>

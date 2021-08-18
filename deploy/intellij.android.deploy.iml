@@ -31,5 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.buildCommon" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>

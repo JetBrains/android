@@ -64,5 +64,6 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
   </component>
 </module>

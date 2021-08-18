@@ -212,5 +212,12 @@
     </orderEntry>
     <orderEntry type="module" module-name="utp" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="http-client" level="project" />
+    <orderEntry type="library" name="commons-compress" level="project" />
+    <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.statistics.uploader" />
+    <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
   </component>
 </module>

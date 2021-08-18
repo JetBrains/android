@@ -28,7 +28,15 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="layoutinspector-proto" level="project" />
+    <orderEntry type="module-library">
+      <library name="layoutinspector-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/bazel-bin/tools/base/dynamic-layout-inspector/skia/proto/layout_inspector_skia_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -49,5 +57,12 @@
     <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-compose-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="library" name="error-prone-annotations" level="project" />
+    <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
+    <orderEntry type="module" module-name="kotlin.idea" />
+    <orderEntry type="library" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="module" module-name="kotlin.common" />
   </component>
 </module>

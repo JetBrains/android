@@ -29,5 +29,9 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.gradle.common" scope="TEST" />
   </component>
 </module>

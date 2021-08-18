@@ -16,5 +16,6 @@
     <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
+    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>
