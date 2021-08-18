@@ -26,7 +26,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout

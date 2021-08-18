@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorColors;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollBar;
@@ -89,7 +90,7 @@ public class ColumnTreeBuilder {
   @NotNull
   private final JTree myTree;
   @NotNull
-  private final ColumnTreeCellRenderer myCellRenderer;
+  private ColumnTreeCellRenderer myCellRenderer;
   @NotNull
   private final JTable myTable;
   @NotNull
@@ -97,9 +98,11 @@ public class ColumnTreeBuilder {
   @NotNull
   private final ColumnTreeScrollPanel myHScrollBarPanel;
   @Nullable
+  private TreeCellRenderer myCustomRenderer;
+  @Nullable
   private TreeSorter myTreeSorter;
   @NotNull
-  private List<ColumnBuilder> myColumnBuilders;
+  private final List<ColumnBuilder> myColumnBuilders;
   @Nullable
   private Border myBorder;
   @Nullable
@@ -120,7 +123,6 @@ public class ColumnTreeBuilder {
     myTable.setAutoCreateColumnsFromModel(true);
     myTable.setShowVerticalLines(false);
     myTable.setFocusable(false);
-    myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myColumnBuilders = new LinkedList<>();
   }
 
@@ -169,7 +171,18 @@ public class ColumnTreeBuilder {
     return this;
   }
 
+  /**
+   * Sets custom row renderer for immediate children of the root.
+   */
+  @NotNull
+  public ColumnTreeBuilder setCustomRenderer(TreeCellRenderer customRenderer) {
+    myCustomRenderer = customRenderer;
+    return this;
+  }
+
   public JComponent build() {
+    myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel(), myCustomRenderer);
+
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
     myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
@@ -441,8 +454,12 @@ public class ColumnTreeBuilder {
    * widgets.
    */
   private static class ColumnTreeCellRenderer extends JPanel implements TreeCellRenderer {
-    public ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel) {
+    @Nullable
+    private final TreeCellRenderer myCustomRenderer;
+
+    public ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel, @Nullable TreeCellRenderer customRenders) {
       super(new ColumnLayout(tree, columnModel));
+      myCustomRenderer = customRenders;
     }
 
     @Override
@@ -453,6 +470,11 @@ public class ColumnTreeBuilder {
                                                   boolean leaf,
                                                   int row,
                                                   boolean hasFocus) {
+      // Return custom component for immediate children of root.
+      if (tree.getPathForRow(row).getPathCount() == 2 && myCustomRenderer != null) {
+        return myCustomRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+      }
+
       setFont(tree.getFont());
       String toolTip = null;
       for (int i = 0; i < getComponentCount(); i++) {
@@ -499,7 +521,7 @@ public class ColumnTreeBuilder {
     @Nullable private final JTable myTable;
     private int myWidth = -1;
     private int myTreeColumnWidth = -1;
-    private ArrayList<Integer> myTreeWidths = new ArrayList<>();
+    private final ArrayList<Integer> myTreeWidths = new ArrayList<>();
     private ChangeListener stateChangeListener;
 
     ColumnTreeUI() {
@@ -622,16 +644,52 @@ public class ColumnTreeBuilder {
         g.setColor(originalColor);
       }
 
-      super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+      // If current row represents an entry section (e.g. works, jobs, wake locks, alarms), paint the component like a title panel.
+      if (path.getPathCount() == 2) {
+        if (editingComponent != null && editingRow == row) {
+          return;
+        }
+        // Paint the background.
+        final int containerWidth = tree.getParent() instanceof JViewport ? tree.getParent().getWidth() : tree.getWidth();
+        final int xOffset = tree.getParent() instanceof JViewport ? ((JViewport)tree.getParent()).getViewPosition().x : 0;
+        g.setColor(BackgroundTaskInspectorColors.ENTRY_SECTION_BACKGROUND_COLOR);
+        g.fillRect(xOffset, bounds.y, containerWidth, bounds.height);
 
-      // Grid line color need to look like covered by hover or select highlight. Instead of painting transparent grid lines on top of
-      // table hover or select background, paint a blending color of background and grid color.
-      if (myTable != null && myTable.getShowVerticalLines() && tree.isPathSelected(path)) {
-        Color gridBackground = RenderingUtil.getSelectionBackground(tree);
-        Color gridColor = gridBackground == null ? myTable.getGridColor() :
-                          AdtUiUtils.overlayColor(gridBackground.getRGB(), myTable.getGridColor().getRGB(), 0.25f);
-        g.setColor(gridColor);
-        getColumnX().forEach((Integer x) -> g.drawLine(x, bounds.y, x, bounds.y + bounds.height - 1));
+        // Redraw the expand-control icon.
+        if (shouldPaintExpandControl(path, row, isExpanded, hasBeenExpanded, isLeaf)) {
+          // Use path.getParentPath() to avoid applying the selected icon.
+          paintExpandControl(g, bounds, insets, bounds, path.getParentPath(), row, isExpanded, hasBeenExpanded, isLeaf);
+        }
+
+        // Paint the component.
+        int leadIndex;
+        if (tree.hasFocus()) {
+          leadIndex = getLeadSelectionRow();
+        }
+        else {
+          leadIndex = -1;
+        }
+
+        Component component;
+        component = currentCellRenderer.getTreeCellRendererComponent
+          (tree, path.getLastPathComponent(),
+           tree.isRowSelected(row), isExpanded, isLeaf, row,
+           (leadIndex == row));
+
+        rendererPane.paintComponent(g, component, tree, bounds.x, bounds.y,
+                                    bounds.width, bounds.height, true);
+      }
+      else {
+        super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+        // Grid line color need to look like covered by hover or select highlight. Instead of painting transparent grid lines on top of
+        // table hover or select background, paint a blending color of background and grid color.
+        if (myTable != null && myTable.getShowVerticalLines() && tree.isPathSelected(path)) {
+          Color gridBackground = RenderingUtil.getSelectionBackground(tree);
+          Color gridColor = gridBackground == null ? myTable.getGridColor() :
+                            AdtUiUtils.overlayColor(gridBackground.getRGB(), myTable.getGridColor().getRGB(), 0.25f);
+          g.setColor(gridColor);
+          getColumnX().forEach((Integer x) -> g.drawLine(x, bounds.y, x, bounds.y + bounds.height - 1));
+        }
       }
     }
 
