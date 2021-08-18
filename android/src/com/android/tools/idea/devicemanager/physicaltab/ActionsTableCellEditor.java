@@ -21,11 +21,15 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel
 import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javax.swing.AbstractCellEditor;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +66,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     myComponent.getActivateDeviceFileExplorerWindowButton().addActionListener(event -> activateDeviceFileExplorerWindow());
     myComponent.getEditDeviceNameButton().addActionListener(event -> editDeviceName());
     myComponent.getRemoveButton().addActionListener(event -> remove());
+    myComponent.getMoreButton().addActionListener(event -> showPopupMenu());
   }
 
   @VisibleForTesting
@@ -103,6 +108,23 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
 
     fireEditingStopped();
     myPanel.getTable().getModel().remove(myDevice.getKey());
+  }
+
+  private void showPopupMenu() {
+    JMenuItem item = new JBMenuItem("Pair device");
+
+    // TODO Call item::setEnabled as appropriate
+    item.addActionListener(event -> pairDevice());
+
+    JPopupMenu menu = new JBPopupMenu();
+    menu.add(item);
+
+    Component button = myComponent.getMoreButton();
+    menu.show(button, 0, button.getHeight());
+  }
+
+  private void pairDevice() {
+    // TODO Pair device
   }
 
   @VisibleForTesting

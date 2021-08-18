@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Buttons;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBPanel;
@@ -29,6 +30,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
   private final @NotNull AbstractButton myEditDeviceNameButton;
   private final @NotNull AbstractButton myRemoveButton;
   private final @NotNull AbstractButton myViewDetailsButton;
+  private final @NotNull AbstractButton myMoreButton;
 
   ActionsComponent() {
     this(false);
@@ -42,6 +44,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     myEditDeviceNameButton = Buttons.newIconButton(AllIcons.Actions.Edit);
     myRemoveButton = Buttons.newIconButton(AllIcons.Actions.GC);
     myViewDetailsButton = Buttons.newIconButton(AllIcons.Actions.Preview);
+    myMoreButton = Buttons.newIconButton(AllIcons.Actions.More);
 
     GroupLayout layout = new GroupLayout(this);
 
@@ -55,6 +58,12 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
       horizontalGroup.addComponent(myViewDetailsButton);
     }
 
+    boolean pairingAssistantEnabled = StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get();
+
+    if (pairingAssistantEnabled) {
+      horizontalGroup.addComponent(myMoreButton);
+    }
+
     Group group = layout.createParallelGroup()
       .addComponent(myActivateDeviceFileExplorerWindowButton)
       // .addComponent(myEditDeviceNameButton)
@@ -62,6 +71,10 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
 
     if (addViewDetailsButton) {
       group.addComponent(myViewDetailsButton);
+    }
+
+    if (pairingAssistantEnabled) {
+      group.addComponent(myMoreButton);
     }
 
     Group verticalGroup = layout.createSequentialGroup()
@@ -89,5 +102,9 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
 
   @NotNull AbstractButton getViewDetailsButton() {
     return myViewDetailsButton;
+  }
+
+  @NotNull AbstractButton getMoreButton() {
+    return myMoreButton;
   }
 }
