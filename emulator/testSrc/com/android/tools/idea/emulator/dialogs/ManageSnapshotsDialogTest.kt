@@ -43,8 +43,8 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
-import org.assertj.core.api.Assertions
 import org.assertj.core.internal.Failures.threadDumpDescription
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -348,7 +348,7 @@ class ManageSnapshotsDialogTest {
       waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
-      Assertions.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      Assert.fail(e.javaClass.name + '\n' + threadDumpDescription())
     }
     assertThat(table.items).hasSize(2) // The two incompatible snapshots were deleted automatically.
     // Close the "Manage Snapshots" dialog.
@@ -371,7 +371,7 @@ class ManageSnapshotsDialogTest {
       waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
-      Assertions.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      Assert.fail(e.javaClass.name + '\n' + threadDumpDescription())
     }
     assertThat(table.items).hasSize(4) // No snapshots were deleted.
     // Close the "Manage Snapshots" dialog.
