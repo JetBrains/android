@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Buttons;
 import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBPanel;
 import javax.swing.AbstractButton;
@@ -29,21 +28,14 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
   private final @NotNull AbstractButton myActivateDeviceFileExplorerWindowButton;
   private final @NotNull AbstractButton myEditDeviceNameButton;
   private final @NotNull AbstractButton myRemoveButton;
-  private final @NotNull AbstractButton myViewDetailsButton;
   private final @NotNull AbstractButton myMoreButton;
 
   ActionsComponent() {
-    this(false);
-  }
-
-  @VisibleForTesting
-  ActionsComponent(boolean addViewDetailsButton) {
     super(null);
 
     myActivateDeviceFileExplorerWindowButton = Buttons.newIconButton(AllIcons.General.OpenDiskHover);
     myEditDeviceNameButton = Buttons.newIconButton(AllIcons.Actions.Edit);
     myRemoveButton = Buttons.newIconButton(AllIcons.Actions.GC);
-    myViewDetailsButton = Buttons.newIconButton(AllIcons.Actions.Preview);
     myMoreButton = Buttons.newIconButton(AllIcons.Actions.More);
 
     GroupLayout layout = new GroupLayout(this);
@@ -53,10 +45,6 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
       .addComponent(myActivateDeviceFileExplorerWindowButton)
       // .addComponent(myEditDeviceNameButton)
       .addComponent(myRemoveButton);
-
-    if (addViewDetailsButton) {
-      horizontalGroup.addComponent(myViewDetailsButton);
-    }
 
     boolean pairingAssistantEnabled = StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get();
 
@@ -68,10 +56,6 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
       .addComponent(myActivateDeviceFileExplorerWindowButton)
       // .addComponent(myEditDeviceNameButton)
       .addComponent(myRemoveButton);
-
-    if (addViewDetailsButton) {
-      group.addComponent(myViewDetailsButton);
-    }
 
     if (pairingAssistantEnabled) {
       group.addComponent(myMoreButton);
@@ -98,10 +82,6 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
 
   @NotNull AbstractButton getRemoveButton() {
     return myRemoveButton;
-  }
-
-  @NotNull AbstractButton getViewDetailsButton() {
-    return myViewDetailsButton;
   }
 
   @NotNull AbstractButton getMoreButton() {

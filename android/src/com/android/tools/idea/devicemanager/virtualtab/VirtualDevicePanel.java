@@ -98,11 +98,6 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
   private void initVirtualDisplayList(@Nullable Project project) {
     myAvdDisplayList = new VirtualDisplayList(project);
-
-    if (true) {
-      return;
-    }
-
     myAvdDisplayList.getTable().getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 
