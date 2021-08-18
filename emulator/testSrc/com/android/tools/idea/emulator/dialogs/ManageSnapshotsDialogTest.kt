@@ -32,6 +32,7 @@ import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
+import com.intellij.diagnostic.ThreadDumper
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
@@ -43,7 +44,6 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.table.TableView
-import org.assertj.core.internal.Failures.threadDumpDescription
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -348,7 +348,7 @@ class ManageSnapshotsDialogTest {
       waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
-      Assert.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      Assert.fail(e.javaClass.name + '\n' + ThreadDumper.dumpThreadsToString())
     }
     assertThat(table.items).hasSize(2) // The two incompatible snapshots were deleted automatically.
     // Close the "Manage Snapshots" dialog.
@@ -371,7 +371,7 @@ class ManageSnapshotsDialogTest {
       waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
-      Assert.fail(e.javaClass.name + '\n' + threadDumpDescription())
+      Assert.fail(e.javaClass.name + '\n' + ThreadDumper.dumpThreadsToString())
     }
     assertThat(table.items).hasSize(4) // No snapshots were deleted.
     // Close the "Manage Snapshots" dialog.

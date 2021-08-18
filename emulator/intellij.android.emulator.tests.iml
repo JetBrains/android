@@ -21,7 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
