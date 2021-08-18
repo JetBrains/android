@@ -21,10 +21,10 @@ import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import java.io.File
 
-class DolphinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?, modelV2: Boolean):
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion, modelV2) {
+class DolphinPerfTestV1(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?):
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
   override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
-  override val projectName: String = "Dolphin"
+  override val projectName: String = "Dolphin_V1"
 
   @Before
   override fun setUp() {
@@ -33,6 +33,21 @@ class DolphinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion
     // source code. Therefore we manually copy all the native source code to a subfolder 'native' under the IDEA project root. This works
     // because the diff patch (setupForSyncTest) we applied already changed build.gradle to refer to the CMakeLists.txt under this "native"
     // directory.
+    val dolphinSource: File = projectRule.resolveTestDataPath(DOLPHIN_PROJECT_ROOT)
+    val ideaProjectDolphinSource = File(FileUtil.toSystemDependentName(projectRule.project.basePath!!), "native")
+    FileUtil.copyDir(dolphinSource, ideaProjectDolphinSource)
+  }
+}
+
+class DolphinPerfTestV2(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?):
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+  override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
+  override val projectName: String = "Dolphin_V2"
+  override val useModelV2: Boolean = true
+
+  @Before
+  override fun setUp() {
+    super.setUp()
     val dolphinSource: File = projectRule.resolveTestDataPath(DOLPHIN_PROJECT_ROOT)
     val ideaProjectDolphinSource = File(FileUtil.toSystemDependentName(projectRule.project.basePath!!), "native")
     FileUtil.copyDir(dolphinSource, ideaProjectDolphinSource)
