@@ -18,11 +18,9 @@ package com.android.tools.adtui.chart.statechart
 import com.android.tools.adtui.AnimatedComponent
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.AdtUiUtils.shrinkToFit
-import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.adtui.model.Stopwatch
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.MouseEventHandler
@@ -34,6 +32,7 @@ import java.awt.Point
 import java.awt.RenderingHints
 import java.awt.event.MouseEvent
 import java.awt.geom.Rectangle2D
+import java.util.function.Consumer
 import javax.swing.JList
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -69,6 +68,7 @@ class StateChart<T: Any>
    */
   private var rectangleCache = listOf<Pair<List<Rectangle2D.Float>, List<T>>>()
   private var rowPoint: Point? = null
+  private val itemClickedListeners = mutableListOf<Consumer<T>>()
 
   init {
     font = AdtUiUtils.DEFAULT_FONT
@@ -236,6 +236,10 @@ class StateChart<T: Any>
     addDebugInfo("# of drawn rects: %d", transformedShapesCount)
   }
 
+  fun addItemClickedListener(onClicked: Consumer<T>) {
+    itemClickedListeners.add(onClicked)
+  }
+
   private fun registerMouseEvents() {
     /**
      * In some cases, StateChart is delegated to by a parent containing component (e.g. a JList or
@@ -252,6 +256,11 @@ class StateChart<T: Any>
 
     val handler = object : MouseEventHandler() {
       override fun handle(event: MouseEvent) {
+        if (event.id == MouseEvent.MOUSE_CLICKED) {
+          itemAtMouse(event.point)?.let { itemClickedListeners.forEach { handler -> handler.accept(it) } }
+          return
+        }
+
         if (event.point == mousePoint) return
         val src = event.source
         if (rowIndex != INVALID_INDEX) {
@@ -301,6 +310,49 @@ class StateChart<T: Any>
     addMouseMotionListener(handler)
   }
 
+  @VisibleForTesting
+  fun itemAtMouse(point: Point): T? = seriesIndexAtMouse(point)?.let { (seriesIndex, i) ->
+    val seriesData = model.series[seriesIndex].series
+    when (i) {
+      in seriesData.indices -> seriesData[i].value
+      else -> {
+        val j = -i - 1 - 1 // take the one to the left of the insertion index
+        if (j in seriesData.indices) seriesData[j].value else null
+      }
+    }
+  }
+
+  /**
+   * Find the item index in the model that corresponds to the mouse position.
+   * @return - null if the mouse isn't on any series, or
+   *         - a pair of the series index, and the item index within the series.
+   *           The item index is negative if it's an "insertion" index when the item
+   *           with the exact `x` isn't found
+   */
+  private fun seriesIndexAtMouse(point: Point): Pair<Int, Int>? {
+    val series = model.series
+    if (series.isEmpty()) return null
+
+    val scaleX = width.toFloat()
+    val scaleY = height.toFloat()
+    val seriesIndex = (1f - point.y / scaleY).let { normalizedY ->
+      // Clamp just in case of Swing off-by-one-pixel-mouse-handling issues
+      min(series.size - 1, (normalizedY * series.size).toInt())
+    }
+    val seriesAtMouse = series[seriesIndex]
+    val seriesData = seriesAtMouse.series
+    val min = seriesAtMouse.xRange.min.toFloat()
+    val max = seriesAtMouse.xRange.max.toFloat()
+    val range = max - min
+
+    // Convert mouseX into data/series coordinate space
+    val modelMouseX = point.x / scaleX * range + min
+    return when {
+      seriesData.isEmpty() -> null
+      else -> seriesIndex to seriesData.binarySearch { it.x.compareTo(modelMouseX) }
+    }
+  }
+
   private fun renderUnion(container: Any?, containerOffset: Point) {
     if (rowPoint != null && container is Component) {
       getMouseRectanglesUnion(rowPoint!!)?.let { union ->
@@ -314,47 +366,21 @@ class StateChart<T: Any>
     }
   }
 
-  private fun getMouseRectanglesUnion(mousePoint: Point): Rectangle2D.Float? {
-    val series = model.series
-    if (series.isEmpty()) return null
-
+  private fun getMouseRectanglesUnion(mousePoint: Point) = seriesIndexAtMouse(mousePoint)?.let { (seriesIndex, i) ->
+    val series = model.series[seriesIndex]
+    val seriesDataList = series.series
+    val min = series.xRange.min.toFloat()
+    val max = series.xRange.max.toFloat()
+    val range = max - min
+    val seriesSize = model.series.size
     val scaleX = width.toFloat()
     val scaleY = height.toFloat()
-    val seriesSize = series.size
-    val seriesIndex = (1.0f - mousePoint.y / scaleY).let { normalizedMouseY ->
-      // Clamp just in case of Swing off-by-one-pixel-mouse-handling issues
-      min(seriesSize - 1, (normalizedMouseY * seriesSize).toInt())
+    val (leftIndex, rightIndex) = when (i) {
+      in seriesDataList.indices -> max(0, i - 2) to min(i + 2, seriesDataList.size - 1)
+      else -> (-i - 1).let { max(0, it - 2) to min(it + 2, seriesDataList.size - 1) }
     }
 
-    if (seriesIndex !in 0 until seriesSize) {
-      Logger.getInstance(StateChart::class.java).warn(
-        "Series index in getMouseRectanglesUnion is out of bounds: mouseY = ${mousePoint.y}, scaleY = $scaleY"
-      )
-      return Rectangle2D.Float(0f, 0f, scaleX, scaleY)
-    }
-    val data = series[seriesIndex]
-    val min = data.xRange.min.toFloat()
-    val max = data.xRange.max.toFloat()
-    val range = max - min
-
-    // Convert mouseX into data/series coordinate space. However, note that the mouse covers a whole pixel, which has width.
-    // Therefore, we need to find all the rectangles potentially intersecting the pixel.
-    val modelMouseXLeft = floor((mousePoint.x - 1f) / scaleX * range + min)
-    val modelMouseXRight = ceil((mousePoint.x + 1.0f) / scaleX * range + min)
-    fun compareWithMouseRange(data: SeriesData<T>) = when {
-      data.x < modelMouseXLeft -> -1
-      data.x > modelMouseXRight -> 1
-      else -> 0
-    }
-    val seriesDataList = data.series
-    if (seriesDataList.isEmpty()) return null
-
-    val (leftIndex, rightIndex) = seriesDataList.binarySearch(comparison = ::compareWithMouseRange).let { when (it) {
-      in seriesDataList.indices -> max(0, it - 2) to min(it + 2, seriesDataList.size - 1)
-      else -> (-it - 1).let { max(0, it - 2) to min(it + 2, seriesDataList.size - 1) }
-    } }
-
-    // Now transform the union of the left and right (or range max) index x values back into view space.
+    // Transform the union of the left and right (or range max) index x values back into view space.
     val modelXLeft = max(min, seriesDataList[leftIndex].x.toFloat())
     val modelXRight = min(max, seriesDataList[rightIndex].x.toFloat())
     val screenXLeft = floor((modelXLeft - min) * scaleX / range)
@@ -363,7 +389,7 @@ class StateChart<T: Any>
     val screenYBottom = ceil(scaleY - seriesIndex * scaleY / seriesSize)
     val screenWidth = screenXRight - screenXLeft
     val screenHeight = screenYBottom - screenYTop
-    return Rectangle2D.Float(screenXLeft, screenYTop, screenWidth, screenHeight)
+    Rectangle2D.Float(screenXLeft, screenYTop, screenWidth, screenHeight)
   }
 
   private companion object {
