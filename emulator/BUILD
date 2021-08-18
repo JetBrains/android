@@ -56,7 +56,6 @@ iml_module(
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/.idea/libraries:assertJ[test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
