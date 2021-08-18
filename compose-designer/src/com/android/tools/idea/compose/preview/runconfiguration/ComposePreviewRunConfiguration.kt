@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.stats.RunStats

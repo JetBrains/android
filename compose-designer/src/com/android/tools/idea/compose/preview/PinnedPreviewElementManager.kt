@@ -2,6 +2,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.DisplayPositioning
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement

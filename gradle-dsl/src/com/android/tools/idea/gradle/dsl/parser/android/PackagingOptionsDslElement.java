@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.DO_NOT_STRIP;
 import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.EXCLUDES;
 import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.MERGES;
 import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.PICK_FIRSTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;

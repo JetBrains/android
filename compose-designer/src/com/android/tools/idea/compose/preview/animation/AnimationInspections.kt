@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession

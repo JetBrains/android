@@ -16,6 +16,8 @@
 package com.android.tools.adtui.model.formatter;
 
 import com.intellij.openapi.util.text.StringUtil;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.text.DecimalFormat;
 import java.util.function.DoubleToIntFunction;
 import org.jetbrains.annotations.NotNull;

@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -29,7 +30,6 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.util.containers.MultiMap
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
 import java.awt.Cursor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent

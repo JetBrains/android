@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelIm
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.HTML_REPORT;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.IGNORE;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.IGNORE_WARNINGS;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.INFORMATIONAL;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.LINT_CONFIG;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.NO_LINES;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.QUIET;
@@ -42,6 +43,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelIm
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;

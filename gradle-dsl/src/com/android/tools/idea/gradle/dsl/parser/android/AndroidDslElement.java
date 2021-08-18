@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.ASSET_PACKS;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
@@ -24,6 +26,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.G
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.PUBLISH_NON_DEFAULT;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.RESOURCE_PREFIX;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;

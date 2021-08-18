@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction

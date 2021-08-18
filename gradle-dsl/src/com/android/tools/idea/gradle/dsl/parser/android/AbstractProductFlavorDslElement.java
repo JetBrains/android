@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.APPLICATION_ID;
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.DEFAULT;
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.DIMENSION;
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.MAX_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.MIN_SDK_VERSION;

@@ -21,9 +21,9 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.kotlin.gradle.ArgsInfo
-import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.configuration.hasKotlinPlugin
-import org.jetbrains.kotlin.idea.configuration.isResolved
+import org.jetbrains.kotlin.idea.gradle.configuration.compilerArgumentsBySourceSet
+import org.jetbrains.kotlin.idea.gradle.configuration.hasKotlinPlugin
+import org.jetbrains.kotlin.idea.gradle.configuration.isResolved
 
 class KotlinProperties {
   var isResolved = false

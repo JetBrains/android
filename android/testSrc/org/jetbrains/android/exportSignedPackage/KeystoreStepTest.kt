@@ -17,7 +17,6 @@ package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings

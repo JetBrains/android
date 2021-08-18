@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FN_ADB;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 

@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.property.panel.api.EnumValue

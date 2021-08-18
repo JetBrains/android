@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.capture;
 
-import com.android.tools.idea.fileTypes.profiler.AndroidProfilerCaptureFileType;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 

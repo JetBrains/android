@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.toPreviewElement

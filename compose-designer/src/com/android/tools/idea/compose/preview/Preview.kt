@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.Bridge
-import com.android.tools.idea.common.model.*
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.common.util.*
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
@@ -31,7 +31,13 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.compose.preview.util.*
+import com.android.tools.idea.compose.preview.util.FpsCalculator
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.containsOffset
+import com.android.tools.idea.compose.preview.util.isComposeErrorResult
+import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
+import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -90,7 +96,7 @@ import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong

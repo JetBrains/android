@@ -17,6 +17,8 @@
 package org.jetbrains.android.sdk;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
+import static com.intellij.openapi.util.io.FileUtil.pathHashCode;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;

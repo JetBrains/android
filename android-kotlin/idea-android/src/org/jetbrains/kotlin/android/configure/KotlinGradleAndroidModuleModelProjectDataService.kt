@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -27,7 +27,9 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.gradle.configuration.GradleProjectImportHandler
+import org.jetbrains.kotlin.idea.gradle.configuration.compilerArgumentsBySourceSet
 import org.jetbrains.kotlin.idea.gradle.configuration.configureFacetByGradleModule
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<AndroidModuleModel, Void>() {
     override fun getTargetDataKey() = ANDROID_MODEL

@@ -50,6 +50,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.CRUNCH_PNGS;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEBUGGABLE;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEFAULT;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.EMBED_MICRO_APP;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.JNI_DEBUGGABLE;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.MINIFY_ENABLED;
@@ -24,6 +26,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.RENDERSCRIPT_OPTIM_LEVEL;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.SHRINK_RESOURCES;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.TEST_COVERAGE_ENABLED;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.USE_PROGUARD;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.ZIP_ALIGN_ENABLED;
 import static com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
