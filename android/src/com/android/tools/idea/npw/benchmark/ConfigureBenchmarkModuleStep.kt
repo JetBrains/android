@@ -80,10 +80,10 @@ class ConfigureBenchmarkModuleStep(
       targetModuleCombo.isVisible = isMacrobenchmark
     }
 
-    // Only allow min SDK >= 29 for macrobenchmarks.
+    // Only allow min SDK >= 21 for macrobenchmarks.
     validatorPanel.registerValidator(model.androidSdkInfo, createValidator { value ->
-      if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < 29)
-        Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= 29")
+      if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < 21)
+        Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= 21")
       else
         OK
     }, model.benchmarkModuleType)
