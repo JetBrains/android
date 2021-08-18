@@ -37,7 +37,6 @@ import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -157,36 +156,9 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   }
 
   public void testGetDependencyDisplayName() {
-    IdeJavaLibraryImpl library1 = new IdeJavaLibraryImpl(
-      new IdeJavaLibraryCore(
-        "com.google.guava:guava:11.0.2@jar", new File("")
-      ),
-      "com.google.guava:guava:11.0.2",
-      false);
-    assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
-
-    IdeJavaLibraryImpl library2 = new IdeJavaLibraryImpl(
-      new IdeJavaLibraryCore(
-        "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File("")
-      ),
-      "android.arch.lifecycle:extensions:1.0.0-beta1@aar",
-      false);
-    assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
-
-    IdeJavaLibraryImpl library3 = new IdeJavaLibraryImpl(
-      new IdeJavaLibraryCore(
-        "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File("")
-      ),
-      "com.android.support.test.espresso:espresso-core:3.0.1@aar",
-      false);
-    assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
-
-    IdeJavaLibraryImpl library4 = new IdeJavaLibraryImpl(
-      new IdeJavaLibraryCore(
-        "foo:bar:1.0", new File("")
-      ),
-      "foo:bar:1.0",
-      false);
-    assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
+    assertThat(getDependencyDisplayName("com.google.guava:guava:11.0.2")).isEqualTo("guava:11.0.2");
+    assertThat(getDependencyDisplayName("android.arch.lifecycle:extensions:1.0.0-beta1@aar")).isEqualTo("lifecycle:extensions:1.0.0-beta1");
+    assertThat(getDependencyDisplayName("com.android.support.test.espresso:espresso-core:3.0.1@aar")).isEqualTo("espresso-core:3.0.1");
+    assertThat(getDependencyDisplayName("foo:bar:1.0")).isEqualTo("foo:bar:1.0");
   }
 }
