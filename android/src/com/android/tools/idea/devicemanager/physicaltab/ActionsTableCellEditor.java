@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
-import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.google.common.annotations.VisibleForTesting;
@@ -157,18 +156,8 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
                                                         boolean selected,
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
-    viewColumnIndex = table.convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
-    myDevice = (PhysicalDevice)table.getValueAt(viewRowIndex, viewColumnIndex);
-
-    boolean online = myDevice.isOnline();
-
-    myComponent.getActivateDeviceFileExplorerWindowButton().setEnabled(online);
-    myComponent.getRemoveButton().setEnabled(!online);
-
-    myComponent.setBackground(Tables.getBackground(table, selected));
-    myComponent.setBorder(Tables.getBorder(selected, true));
-
-    return myComponent;
+    myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
+    return myComponent.getTableCellComponent(table, selected, true, viewRowIndex);
   }
 
   @Override

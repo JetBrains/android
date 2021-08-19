@@ -51,4 +51,12 @@ public final class Tables {
 
     return getBorder.apply("Table.focusCellHighlightBorder");
   }
+
+  public static @NotNull Color getForeground(@NotNull JTable table, boolean selected) {
+    if (selected) {
+      return table.getSelectionForeground();
+    }
+
+    return table.getForeground();
+  }
 }
