@@ -31,6 +31,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,6 +42,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +64,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myShowLogcatCheckBox;
   private JCheckBox mySkipNoOpApkInstallation;
   private JCheckBox myForceStopRunningApplicationCheckBox;
+  private JCheckBox myEnableLayoutInspectionWithoutActivityRestart;
+  private JTextPane myActivityRestartDescription;
 
   private JComponent anchor;
 
@@ -139,6 +144,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     Disposer.register(this, myConfigurationSpecificEditor);
     myConfigurationSpecificPanel.add(myConfigurationSpecificEditor.getComponent());
 
+    myActivityRestartDescription.setBorder(JBUI.Borders.emptyLeft(24));
+    myActivityRestartDescription.setForeground(UIUtil.getContextHelpForeground());
+    myActivityRestartDescription.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+
     myShowLogcatCheckBox.setVisible(showLogcatCheckbox);
 
     checkValidationResults(config.validate(null));
@@ -183,6 +192,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
     mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
     myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
+    myEnableLayoutInspectionWithoutActivityRestart.setSelected(configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART);
 
     myConfigurationSpecificEditor.resetFrom(configuration);
 
@@ -204,6 +214,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
     configuration.SKIP_NOOP_APK_INSTALLATIONS = mySkipNoOpApkInstallation.isSelected();
     configuration.FORCE_STOP_RUNNING_APP = myForceStopRunningApplicationCheckBox.isSelected();
+    configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART = myEnableLayoutInspectionWithoutActivityRestart.isSelected();
 
     myConfigurationSpecificEditor.applyTo(configuration);
 

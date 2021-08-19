@@ -91,6 +91,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
+  public boolean INSPECTION_WITHOUT_ACTIVITY_RESTART = false; // set global attributes at launch time
 
   private final ProfilerState myProfilerState;
 
@@ -241,7 +242,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return LaunchOptions.builder()
       .setClearLogcatBeforeStart(CLEAR_LOGCAT)
       .setSkipNoopApkInstallations(SKIP_NOOP_APK_INSTALLATIONS)
-      .setForceStopRunningApp(FORCE_STOP_RUNNING_APP);
+      .setForceStopRunningApp(FORCE_STOP_RUNNING_APP)
+      .setInspectionWithoutActivityRestart(INSPECTION_WITHOUT_ACTIVITY_RESTART);
   }
 
   @Override

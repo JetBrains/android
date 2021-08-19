@@ -43,6 +43,7 @@ public final class LaunchOptions {
     private boolean myClearLogcatBeforeStart = false;
     private boolean mySkipNoopApkInstallations = true;
     private boolean myForceStopRunningApp = true;
+    private boolean myInspectionWithoutActivityRestart = false;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
     private boolean myAlwaysInstallWithPm = false;
@@ -61,6 +62,7 @@ public final class LaunchOptions {
                                myClearLogcatBeforeStart,
                                mySkipNoopApkInstallations,
                                myForceStopRunningApp,
+                               myInspectionWithoutActivityRestart,
                                myExtraOptions,
                                myDeployAsInstant,
                                myAlwaysInstallWithPm);
@@ -115,6 +117,12 @@ public final class LaunchOptions {
     }
 
     @NotNull
+    public Builder setInspectionWithoutActivityRestart(boolean inspectionWithoutActivityRestart) {
+      myInspectionWithoutActivityRestart = inspectionWithoutActivityRestart;
+      return this;
+    }
+
+    @NotNull
     public Builder addExtraOptions(@NotNull Map<String, Object> extraOptions) {
       myExtraOptions.putAll(extraOptions);
       return this;
@@ -152,6 +160,7 @@ public final class LaunchOptions {
   private final boolean myClearLogcatBeforeStart;
   private final boolean mySkipNoopApkInstallations;
   private final boolean myForceStopRunningApp;
+  private final boolean myInspectionWithoutActivityRestart;
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
   private final boolean myAlwaysInstallWithPm;
@@ -165,6 +174,7 @@ public final class LaunchOptions {
                         boolean clearLogcatBeforeStart,
                         boolean skipNoopApkInstallations,
                         boolean forceStopRunningApp,
+                        boolean inspectionWithoutActivityRestart,
                         @NotNull Map<String, Object> extraOptions,
                         boolean deployAsInstant,
                         boolean alwaysInstallWithPm) {
@@ -177,6 +187,7 @@ public final class LaunchOptions {
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
     mySkipNoopApkInstallations = skipNoopApkInstallations;
     myForceStopRunningApp = forceStopRunningApp;
+    myInspectionWithoutActivityRestart = inspectionWithoutActivityRestart;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
@@ -223,6 +234,10 @@ public final class LaunchOptions {
 
   public boolean isForceStopRunningApp() {
     return myForceStopRunningApp;
+  }
+
+  public boolean isInspectionWithoutActivityRestart() {
+    return myInspectionWithoutActivityRestart;
   }
 
   @Nullable
