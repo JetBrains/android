@@ -36,6 +36,6 @@ class IDEAndroidPackageFragmentProviderExtension(val project: Project) : Android
     }
 
     override fun <T> createLazyValue(value: () -> T): () -> T {
-        return { ClearableLazyValue.create<T> { value() }.value }
+        return { ClearableLazyValue.create<T> { value()!! }.value }
     }
 }

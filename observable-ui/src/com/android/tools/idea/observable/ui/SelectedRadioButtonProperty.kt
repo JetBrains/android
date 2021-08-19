@@ -27,7 +27,7 @@ import javax.swing.JRadioButton
  * @param values the values to map the radio buttons to
  * @param radioButtons the radio buttons
  */
-class SelectedRadioButtonProperty<T>(private var selected: T, values: Array<T>, vararg radioButtons: JRadioButton) : ObjectProperty<T>() {
+class SelectedRadioButtonProperty<T : Any>(private var selected: T, values: Array<T>, vararg radioButtons: JRadioButton) : ObjectProperty<T>() {
   private val myValueToButtonMap: Map<T, JRadioButton>
 
   init {

@@ -178,6 +178,6 @@ class StateChartTest {
   }
 }
 
-private fun<T> constColorProvider(color: Color) = object : StateChartColorProvider<T>() {
+private fun <T : Any> constColorProvider(color: Color) = object : StateChartColorProvider<T>() {
   override fun getColor(isMouseOver: Boolean, value: T) = color
 }
