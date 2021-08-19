@@ -75,6 +75,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 
@@ -471,8 +472,11 @@ public class ColumnTreeBuilder {
                                                   int row,
                                                   boolean hasFocus) {
       // Return custom component for immediate children of root.
-      if (tree.getPathForRow(row).getPathCount() == 2 && myCustomRenderer != null) {
-        return myCustomRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+      if (myCustomRenderer != null && value instanceof TreeNode) {
+        TreeNode parent = ((TreeNode)value).getParent();
+        if (parent != null && parent.getParent() == null) {
+          return myCustomRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+        }
       }
 
       setFont(tree.getFont());
