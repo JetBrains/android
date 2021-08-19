@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.actions
+package com.android.tools.idea.npw.actions
 
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep

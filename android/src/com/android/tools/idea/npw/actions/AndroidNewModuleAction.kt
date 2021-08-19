@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.actions
+package com.android.tools.idea.npw.actions
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.npw.model.ProjectSyncInvoker

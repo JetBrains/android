@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.actions.AndroidNewModuleAction
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_LOADED
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
@@ -56,7 +56,7 @@ private const val EMPTY_TEXT_LINE_HEIGHT = 1.2
 class NoFacetView(val project: Project)
   : JPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false)) {
 
-  private val androidNewModuleAction = AndroidNewModuleAction()
+  private val androidNewModuleAction = ActionManager.getInstance().getAction("NewModule")
 
   init {
     add(createInnerText())

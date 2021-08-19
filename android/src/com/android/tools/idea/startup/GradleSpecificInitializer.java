@@ -23,10 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
-import com.android.tools.idea.actions.AndroidImportModuleAction;
-import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
-import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
@@ -152,11 +148,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   private static void setUpNewProjectActions(ActionManager actionManager) {
     // Unregister IntelliJ's version of the project actions and manually register our own.
     Actions.replaceAction(actionManager, "OpenFile", new AndroidOpenFileAction());
-    Actions.replaceAction(actionManager, "NewProject", new AndroidNewProjectAction());
-    Actions.replaceAction(actionManager, "NewModule", new AndroidNewModuleAction());
-    Actions.replaceAction(actionManager, "NewModuleInGroup", new AndroidNewModuleInGroupAction());
     Actions.replaceAction(actionManager, "CreateLibraryFromFile", new CreateLibraryFromFilesAction());
-    Actions.replaceAction(actionManager, "ImportModule", new AndroidImportModuleAction());
 
     Actions.hideAction(actionManager, "AddFrameworkSupport");
     Actions.hideAction(actionManager, "BuildArtifact");
@@ -166,7 +158,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {
     // Update the Welcome Screen actions
     Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open"));
-    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("New Project"));
     Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
