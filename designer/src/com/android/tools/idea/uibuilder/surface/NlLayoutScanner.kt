@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.LayoutScannerControl
 import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_ADD_INCLUDE
 import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.uibuilder.lint.AtfIssueListUserDataHandler
+import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
@@ -166,7 +166,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
       }
 
       if (NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL.get()) {
-        AtfIssueListUserDataHandler.updateIssues(model.file, issues)
+        CommonLintUserDataHandler.updateAtfIssues(model.file, issues)
       }
 
       lintIntegrator.populateLints()
