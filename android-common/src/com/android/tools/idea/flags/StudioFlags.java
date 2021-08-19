@@ -359,6 +359,11 @@ public final class StudioFlags {
     "If the xml layout contains atf results, it will be shown in the common error panel as well as issue panel.",
     false);
 
+  public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
+    NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
+    "For all non-.",
+    false);
+
   public static final Flag<Boolean> NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS = Flag.create(
     NELE, "show.issue.panel.in.problems", "Show the Issue Panel in IJ's Problem Panel",
     "Move the Issue Panel from Design Tools into the Problems Panel as an additional tab.",

@@ -18,7 +18,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.lint.AtfIssueList
+import com.android.tools.idea.uibuilder.lint.CommonPanelIssueSet
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Key
 import java.util.concurrent.CountDownLatch
@@ -31,14 +31,28 @@ import java.util.concurrent.CountDownLatch
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
 
+private const val COMMON_PROBLEMS_PANEL_ISSUE = "COMMON_PROBLEMS_PANEL_ISSUE"
+
 /**
  * User data key for render related issues. It is used as a bus between external annotator and design surface.
  */
 @JvmField
-val ATF_ISSUES: Key<AtfIssueList> = Key.create(AtfIssueList::class.qualifiedName!!)
+val ATF_ISSUES: Key<CommonPanelIssueSet> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_ATF")
 
 /**
  * User data key for render related latch. It is used to control scheduling between lint and render.
  */
 @JvmField
-val ATF_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${AtfIssueList::class.qualifiedName!!}_LATCH")
+val ATF_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_ATF_LATCH")
+
+/**
+ * User data key for visual lint issues. It is used as a bus between external annotator and design surface.
+ */
+@JvmField
+val VISUAL_LINT_ISSUES: Key<CommonPanelIssueSet> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT")
+
+/**
+ * User data key for visual lint related latch. It is used to control scheduling between lint and render.
+ */
+@JvmField
+val VISUAL_LINT_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT_LATCH")

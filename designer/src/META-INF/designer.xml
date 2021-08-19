@@ -20,6 +20,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.AtfIssueExternalAnnotator"/>
+    <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.VisualLintIssueExternalAnnotator"/>
   </extensions>
 
   <!-- Extension points -->
