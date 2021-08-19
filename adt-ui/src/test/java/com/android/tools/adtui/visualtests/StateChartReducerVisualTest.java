@@ -149,13 +149,6 @@ public class StateChartReducerVisualTest extends VisualTest {
 
     controls.add(VisualTest.createButton("Add samples", e -> addData(mySampleSize)));
 
-    controls.add(VisualTest.createCheckbox("Text Mode", itemEvent -> {
-      StateChart.RenderMode mode = itemEvent.getStateChange() == ItemEvent.SELECTED ?
-                                   StateChart.RenderMode.TEXT : StateChart.RenderMode.BAR;
-      myColorChart.setRenderMode(mode);
-      myOptimizedColorChart.setRenderMode(mode);
-    }));
-
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
                      new Dimension(300, Integer.MAX_VALUE)));

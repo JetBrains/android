@@ -36,10 +36,8 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ?> trackModel) {
-    StateChart<SystemTraceFrame> stateChart = new StateChart<>(
+    return new StateChart<>(
       trackModel.getDataModel().getModel(), new FrameColorProvider(), new FrameTextConverter());
-    stateChart.setRenderMode(StateChart.RenderMode.TEXT);
-    return stateChart;
   }
 
   private static class FrameColorProvider extends StateChartColorProvider<SystemTraceFrame> {

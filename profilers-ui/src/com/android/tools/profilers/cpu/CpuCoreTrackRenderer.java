@@ -39,7 +39,6 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel> {
     CpuCoreTrackModel dataModel = trackModel.getDataModel();
     StateChart<CpuThreadSliceInfo> stateChart =
       new StateChart<>(dataModel.getStateChartModel(), new CpuCoreColorProvider(), CpuThreadInfo::getName);
-    stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     stateChart.setOpaque(true);
     return stateChart;
   }
