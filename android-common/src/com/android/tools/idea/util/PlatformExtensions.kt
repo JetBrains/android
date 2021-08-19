@@ -23,6 +23,6 @@ import com.intellij.openapi.util.UserDataHolderEx
  *
  * In the case of a race, [computeValue] may be called but its value not returned from this method.
  */
-fun <T> UserDataHolderEx.computeUserDataIfAbsent(key: Key<T>, computeValue: () -> T): T {
+fun <T : Any> UserDataHolderEx.computeUserDataIfAbsent(key: Key<T>, computeValue: () -> T): T {
   return getUserData(key) ?: putUserDataIfAbsent(key, computeValue())
 }

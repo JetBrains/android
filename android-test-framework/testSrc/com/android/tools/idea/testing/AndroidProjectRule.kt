@@ -217,10 +217,10 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
+  fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
       mocks.replaceProjectService(serviceType, newServiceInstance)
 
-  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
+  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) =
       mocks.replaceApplicationService(serviceType, newServiceInstance)
 
   fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)

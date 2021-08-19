@@ -194,7 +194,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       }
 
       val property = row.property
-      val parameter = widget.parameter as Parameter<in Any>
+      val parameter = widget.parameter as Parameter<Any>
       property?.addListener {
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
         if (evaluationState != EvaluationState.EVALUATING && mainPanel.isShowing) {
@@ -457,7 +457,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <V> setValue(value: V) {
+    fun <V : Any> setValue(value: V) {
       checkNotNull(property)
       (property as AbstractProperty<V>).set(value)
     }

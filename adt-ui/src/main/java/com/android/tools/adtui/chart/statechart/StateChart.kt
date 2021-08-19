@@ -55,9 +55,9 @@ typealias Renderer<T> = (g: Graphics2D,
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-class StateChart<T>(private val model: StateChartModel<T>,
-                    private val render: Renderer<T>,
-                    private val config: StateChartConfig<T> = defaultConfig())
+class StateChart<T : Any>(private val model: StateChartModel<T>,
+                          private val render: Renderer<T>,
+                          private val config: StateChartConfig<T> = defaultConfig())
   : AnimatedComponent() {
   /**
    * The gap value as a percentage {0...1} of the height given to each data series
@@ -436,12 +436,12 @@ class StateChart<T>(private val model: StateChartModel<T>,
     private fun<T> defaultConfig() = StateChartConfig<T>(DefaultStateChartReducer<T>())
     @JvmStatic fun<T> defaultTextConverter() = StateChartTextConverter<T>(Any?::toString)
 
-    private fun<T> fillRectRenderer(colorProvider: StateChartColorProvider<T>): Renderer<T> = { g, rect, _, hovered, value ->
+    private fun <T : Any> fillRectRenderer(colorProvider: StateChartColorProvider<T>): Renderer<T> = { g, rect, _, hovered, value ->
       g.color = colorProvider.getColor(hovered, value)
       g.fill(rect)
     }
 
-    private fun<T> fillRectAndTextRenderer(colorProvider: StateChartColorProvider<T>,
+    private fun <T : Any> fillRectAndTextRenderer(colorProvider: StateChartColorProvider<T>,
                                            textConverter: StateChartTextConverter<T>): Renderer<T> =
       fillRectRenderer(colorProvider).let { fillRect -> { g, rect, fontMetrics, hovered, value ->
         fillRect(g, rect, fontMetrics, hovered, value)
