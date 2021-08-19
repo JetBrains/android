@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.npw.actions.NewAndroidComponentAction;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;

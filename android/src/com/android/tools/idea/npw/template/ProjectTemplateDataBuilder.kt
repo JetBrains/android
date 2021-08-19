@@ -18,10 +18,8 @@ package com.android.tools.idea.npw.template
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
-import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.project.determineGradlePluginVersion
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
@@ -89,7 +87,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     }
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val progress = StudioLoggerProgressIndicator(ConfigureAndroidModuleStep::class.java)
 
     sdkDir = sdkHandler.location?.toFile()
   }

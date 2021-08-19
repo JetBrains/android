@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.template
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.actions.NewAndroidComponentAction
+import com.android.tools.idea.npw.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker

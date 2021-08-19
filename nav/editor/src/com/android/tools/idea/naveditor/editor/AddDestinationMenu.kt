@@ -17,7 +17,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.actions.NewAndroidFragmentAction
+import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
