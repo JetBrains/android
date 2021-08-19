@@ -32,11 +32,8 @@ import javax.swing.JComponent
  * Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase.
  */
 class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel> {
-  override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>): JComponent {
-    return StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider()).apply {
-      renderMode = StateChart.RenderMode.TEXT
-    }
-  }
+  override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>) =
+    StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
 }
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {

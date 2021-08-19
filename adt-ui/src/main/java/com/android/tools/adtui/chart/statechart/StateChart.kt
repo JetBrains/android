@@ -27,6 +27,7 @@ import com.intellij.util.ui.MouseEventHandler
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.RenderingHints
@@ -40,13 +41,22 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
+ * A renderer is a function performing arbitrary drawing on the graphics.
+ * Other parameters such as boundary and defaultFontMetrics meant to be
+ * read-only.
+ */
+typealias Renderer<T> = (g: Graphics2D,
+                         boundary: Rectangle2D.Float,
+                         defaultFontMetrics: FontMetrics,
+                         hoverred: Boolean,
+                         value: T) -> Unit
+
+/**
  * A chart component that renders series of state change events as rectangles.
  */
-class StateChart<T: Any>
-  @JvmOverloads constructor (private var model: StateChartModel<T>,
-                             private val colorProvider: StateChartColorProvider<T>,
-                             private val textConverter: StateChartTextConverter<T> = defaultTextConverter(),
-                             private val config: StateChartConfig<T> = defaultConfig())
+class StateChart<T>(private val model: StateChartModel<T>,
+                    private val render: Renderer<T>,
+                    private val config: StateChartConfig<T> = defaultConfig())
   : AnimatedComponent() {
   /**
    * The gap value as a percentage {0...1} of the height given to each data series
@@ -56,7 +66,6 @@ class StateChart<T: Any>
       field = max(min(gap, 1f), 0f)
     }
 
-  var renderMode = RenderMode.BAR
   private var needsTransformToViewSpace = true
 
   /**
@@ -82,6 +91,19 @@ class StateChart<T: Any>
     registerMouseEvents()
     preferredSize = Dimension(preferredSize.width, JBUI.scale(PREFERRED_ROW_HEIGHT) * model.series.size)
   }
+
+  @JvmOverloads
+  constructor(model: StateChartModel<T>,
+              colorProvider: StateChartColorProvider<T>,
+              config: StateChartConfig<T> = defaultConfig())
+    : this(model, fillRectRenderer(colorProvider), config)
+
+  @JvmOverloads
+  constructor(model: StateChartModel<T>,
+              colorProvider: StateChartColorProvider<T>,
+              textConverter: StateChartTextConverter<T>,
+              config: StateChartConfig<T> = defaultConfig())
+    : this(model, fillRectAndTextRenderer(colorProvider, textConverter), config)
 
   /**
    * @param colors map of a state to corresponding color
@@ -133,7 +155,7 @@ class StateChart<T: Any>
         var previousX = seriesDataList[0].x.toFloat()
         var previousValue = seriesDataList[0].value
         for ((x, value) in seriesDataList.subList(1, seriesDataList.size)) {
-          if (value != previousValue!!) { // Ignore repeated values.
+          if (value != previousValue) { // Ignore repeated values.
             // Don't draw if this block doesn't intersect with [min..max]
             if (x >= min) {
               // Draw the previous block.
@@ -210,20 +232,11 @@ class StateChart<T: Any>
         seriesIndex != hoveredSeriesIndex || rowPoint == null -> INVALID_INDEX
         else -> rowPoint!!.x.toFloat().let { transformedShapes.searchByX(it, 1f) }
       }
-      for (i in transformedShapes.indices) {
-        val value = transformedValues[i]
-        val rect = transformedShapes[i]
-        val isMouseOver = i == hoverIndex
-        g2d.color = colorProvider.getColor(isMouseOver, value)
-        g2d.fill(rect)
-        if (renderMode == RenderMode.TEXT) {
-          val text = shrinkToFit(textConverter.convertToString(value), mDefaultFontMetrics, rect.width - TEXT_PADDING * 2)
-          if (text.isNotEmpty()) {
-            g2d.color = colorProvider.getFontColor(isMouseOver, value)
-            val textOffset = rect.y + (rect.height - mDefaultFontMetrics.height) * 0.5f + mDefaultFontMetrics.ascent.toFloat()
-            g2d.drawString(text, rect.x + TEXT_PADDING, textOffset)
-          }
-        }
+
+      transformedShapes.indices.forEach {
+        val rect = transformedShapes[it]
+        g2d.clip = rect
+        render(g2d, rect, mDefaultFontMetrics, it == hoverIndex, transformedValues[it])
       }
     }
 
@@ -392,16 +405,28 @@ class StateChart<T: Any>
     Rectangle2D.Float(screenXLeft, screenYTop, screenWidth, screenHeight)
   }
 
-  private companion object {
-    const val INVALID_INDEX = -1
-    const val TEXT_PADDING = 3
-    const val PREFERRED_ROW_HEIGHT = 27
-    fun<T> defaultConfig() = StateChartConfig<T>(DefaultStateChartReducer<T>())
-    fun<T: Any> defaultTextConverter() = StateChartTextConverter<T> { it.toString() }
-  }
+  companion object {
+    private const val INVALID_INDEX = -1
+    private const val TEXT_PADDING = 3
+    private const val PREFERRED_ROW_HEIGHT = 27
+    private fun<T> defaultConfig() = StateChartConfig<T>(DefaultStateChartReducer<T>())
+    @JvmStatic fun<T> defaultTextConverter() = StateChartTextConverter<T>(Any?::toString)
 
-  enum class RenderMode {
-    BAR,  // Each state is rendered as a filled rectangle until the next state changed.
-    TEXT // Each state is marked with a vertical line and and corresponding state text/label at the beginning.
+    private fun<T> fillRectRenderer(colorProvider: StateChartColorProvider<T>): Renderer<T> = { g, rect, _, hovered, value ->
+      g.color = colorProvider.getColor(hovered, value)
+      g.fill(rect)
+    }
+
+    private fun<T> fillRectAndTextRenderer(colorProvider: StateChartColorProvider<T>,
+                                           textConverter: StateChartTextConverter<T>): Renderer<T> =
+      fillRectRenderer(colorProvider).let { fillRect -> { g, rect, fontMetrics, hovered, value ->
+        fillRect(g, rect, fontMetrics, hovered, value)
+        val text = shrinkToFit(textConverter.convertToString(value), fontMetrics, rect.width - TEXT_PADDING * 2)
+        if (text.isNotEmpty()) {
+          g.color = colorProvider.getFontColor(hovered, value)
+          val textOffset = rect.y + (rect.height - fontMetrics.height) * 0.5f + fontMetrics.ascent.toFloat()
+          g.drawString(text, rect.x + TEXT_PADDING, textOffset)
+        }
+      }}
   }
 }

@@ -133,8 +133,6 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // TODO: this might hide some issues. We need to use the same font used in studio, to reflect what is seen by the user.
         myStateChart.setFont(ImageDiffTestUtil.getDefaultFont());
 
-        // Set the render mode of the state chart to text
-        myStateChart.setRenderMode(StateChart.RenderMode.TEXT);
         addSeries();
       }
     });
@@ -181,8 +179,6 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // TODO: this might hide some issues. We need to use the same font used in studio, to reflect what is seen by the user.
         myStateChart.setFont(ImageDiffTestUtil.getDefaultFont());
 
-        // Set the render mode of the state chart to text
-        myStateChart.setRenderMode(StateChart.RenderMode.TEXT);
         // Add a considerable amount of series to the state chart,
         // because the text of a single state chart doesn't occupy a lot of the image
         for (int i = 0; i < 15; i++) {

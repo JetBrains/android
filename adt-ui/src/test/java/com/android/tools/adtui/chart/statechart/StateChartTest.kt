@@ -25,8 +25,10 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.Color
+import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.geom.Rectangle2D
 import java.util.EnumMap
 
 class StateChartTest {
@@ -50,7 +52,6 @@ class StateChartTest {
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
     val stateChart = StateChart(model, constColorProvider(Color.BLACK), { "123" })
     stateChart.setSize(100, 100)
-    stateChart.renderMode = StateChart.RenderMode.TEXT
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
@@ -64,9 +65,8 @@ class StateChartTest {
     val dataSeries = DataSeries { listOf(SeriesData(0, ToStringTestClass("Test")),
                                          SeriesData(1000, ToStringTestClass("Test2"))) }
     model.addSeries(RangedSeries(Range(0.0, 100.0), dataSeries))
-    val stateChart = StateChart(model, constColorProvider(Color.BLACK))
+    val stateChart = StateChart(model, constColorProvider(Color.BLACK), StateChart.defaultTextConverter())
     stateChart.setSize(100, 100)
-    stateChart.renderMode = StateChart.RenderMode.TEXT
     val fakeGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
@@ -125,6 +125,28 @@ class StateChartTest {
     assertThat(stateChart.itemAtMouse(Point(10, 80))).isEqualTo(0)
     assertThat(stateChart.itemAtMouse(Point(75, 20))).isEqualTo(7)
     assertThat(stateChart.itemAtMouse(Point(75, 80))).isEqualTo(6)
+  }
+
+  @Test
+  fun `chart uses custom renderer`() {
+    val model = StateChartModel<Long>()
+    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+
+    fun render(g: Graphics2D, rect: Rectangle2D.Float, defaultFontMetrics: FontMetrics, hovered: Boolean, value: Long) {
+      if (value % 2 == 0L) g.fill(rect) else g.drawString("hi", 25, 25)
+    }
+
+    val stateChart = StateChart(model, ::render).apply { setSize(100, 100) }
+
+    val fakeGraphics = Mockito.mock(Graphics2D::class.java)
+    Mockito.`when`(fakeGraphics.create()).thenReturn(fakeGraphics)
+    stateChart.paint(fakeGraphics)
+    Mockito.verify(fakeGraphics, Mockito.times(5))
+      .drawString(ArgumentMatchers.eq("hi"), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())
+    Mockito.verify(fakeGraphics, Mockito.times(5))
+      .fill(ArgumentMatchers.any(Rectangle2D.Float::class.java))
   }
 }
 
