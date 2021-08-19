@@ -19,7 +19,6 @@ com.android.tools.idea.gradle.project.build.invoker.BuildActionInvokerTest
 com.android.tools.idea.gradle.project.build.invoker.BuildInvokerTest
 com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinderTestOnlyModuleTest
 com.android.tools.idea.gradle.project.importing.TopLevelModuleFactoryTest
-com.android.tools.idea.gradle.project.library.AndroidLibraryTest
 com.android.tools.idea.gradle.project.model.AndroidModuleModelTest
 com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
@@ -132,8 +131,6 @@ com.android.tools.idea.imports.AndroidMavenImportFixTest
 com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest
 com.android.tools.idea.navigator.AndroidProjectViewTest
 com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest
-com.android.tools.idea.npw.importing.SourceToGradleModuleModelTest
-com.android.tools.idea.npw.module.ChooseModuleTypeStepTest
 com.android.tools.idea.rendering.NamespacedRenderTest
 com.android.tools.idea.rendering.NamespacedRenderTestWithAppCompat
 com.android.tools.idea.run.AndroidRunConfigurationGradleTest

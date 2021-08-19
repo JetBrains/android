@@ -83,12 +83,6 @@
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="NewAndroidImageAsset" class="com.android.tools.idea.npw.actions.NewImageAssetAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
-    </action>
-    <action id="NewAndroidVectorAsset" class="com.android.tools.idea.npw.actions.NewVectorAssetAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewAndroidImageAsset"/>
-    </action>
     <action id="Android.CreateResourcesActionGroup" text="Android resource file" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
@@ -463,8 +457,6 @@
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 
-    <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
-
     <defaultLiveTemplates file="liveTemplates/Android"/>
     <defaultLiveTemplates file="liveTemplates/AndroidKotlin"/>
     <defaultLiveTemplates file="liveTemplates/AndroidComments"/>
@@ -657,7 +649,6 @@
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.res.SampleDataListener$Subscriber"/>
-    <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
@@ -869,8 +860,6 @@
 
 
   <extensionPoints>
-    <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
-
     <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
     <extensionPoint qualifiedName="com.android.moduleImporter" interface="com.android.tools.idea.gradle.project.AndroidModuleImporter" />
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
@@ -929,12 +918,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
-    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>
-    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
-    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider"/>
-    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider"/>
-    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
-
     <moduleImporter implementation="com.android.tools.idea.gradle.project.GradleModuleImporter$GradleAndroidModuleImporter" />
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
@@ -945,7 +928,6 @@
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
     <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
-    <androidStartupActivity implementation="com.android.tools.idea.npw.template.DynamicTemplateMenuAndroidStartupActivity" />
     <androidStartupActivity implementation="com.android.tools.idea.wearpairing.WearPairingAndroidStartupActivity" />
     <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
     <androidStartupActivity implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncStartupActivity" />

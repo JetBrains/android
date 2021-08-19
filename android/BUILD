@@ -197,9 +197,6 @@ iml_module(
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
         },
-        "npw.assetstudio": {
-            "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
-        },
         "testartifacts": {
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
@@ -585,16 +582,6 @@ iml_module(
         "MigrateToAndroidxGradleKtsTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-        },
-        "AddNewModulesToAppTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            # b/192102820 flaky windows, taking longer than 15 minutes
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
-        },
-        "BenchmarkModuleTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.npw.module.BenchmarkModuleTest",
         },
         "IllegalIdentifierInspectionTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well

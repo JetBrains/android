@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.getResourceSubdirs
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
@@ -41,6 +42,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -55,7 +57,6 @@ import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import com.android.tools.idea.res.getResourceSubdirs
 import kotlin.properties.Delegates
 
 /**
@@ -112,8 +113,12 @@ class ResourceExplorerToolbarViewModel(
       when (resourceType) {
         ResourceType.MIPMAP,
         ResourceType.DRAWABLE -> {
-          add(actionManager.getAction("NewAndroidImageAsset"))
-          add(actionManager.getAction("NewAndroidVectorAsset"))
+          actionManager.getAction("NewAndroidImageAsset")?.let { add(it) }
+          ?: thisLogger().warn("No action associated with id: \"NewAndroidImageAsset\".")
+
+          actionManager.getAction("NewAndroidVectorAsset")?.let { add(it) }
+          ?: thisLogger().warn("No action associated with id: \"NewAndroidVectorAsset\".")
+
           add(Separator())
           add(ImportResourceAction())
         }

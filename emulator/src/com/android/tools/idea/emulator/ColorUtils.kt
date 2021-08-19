@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.npw.assetstudio.roundToInt
 import java.awt.Color
+import kotlin.math.roundToInt
 
 /**
  * Interpolates between two colors.

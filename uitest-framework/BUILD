@@ -49,5 +49,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
     ],
 )
