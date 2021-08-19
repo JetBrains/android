@@ -15,27 +15,30 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
-import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 
-public final class Buttons {
-  private Buttons() {
-  }
+public final class IconButton extends JButton {
+  private final @NotNull Icon myIcon;
 
-  public static @NotNull AbstractButton newIconButton(@NotNull Icon icon) {
+  public IconButton(@NotNull Icon icon) {
+    super(icon);
     Dimension size = new JBDimension(22, 22);
 
-    AbstractButton button = new JButton(icon);
-    button.setBorderPainted(false);
-    button.setContentAreaFilled(false);
-    button.setMaximumSize(size);
-    button.setMinimumSize(size);
-    button.setPreferredSize(size);
+    setBorderPainted(false);
+    setContentAreaFilled(false);
+    setMaximumSize(size);
+    setMinimumSize(size);
+    setPreferredSize(size);
 
-    return button;
+    myIcon = icon;
+  }
+
+  public void setSelectedInTableCell(boolean selected) {
+    setIcon(selected ? ColoredIconGenerator.INSTANCE.generateColoredIcon(myIcon, getForeground()) : myIcon);
   }
 }

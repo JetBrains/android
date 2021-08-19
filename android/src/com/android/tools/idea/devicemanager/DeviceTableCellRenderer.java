@@ -39,6 +39,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
   private final @NotNull JLabel myIconLabel;
@@ -106,31 +107,42 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
     D device = myValueClass.cast(value);
-    Color foreground = getForeground(table, selected);
+    Color foreground = Tables.getForeground(table, selected);
 
-    myIconLabel.setIcon(device.getIcon());
+    myIconLabel.setForeground(foreground);
+    setIcon(myIconLabel, device.getIcon(), selected);
 
     myNameLabel.setForeground(foreground);
     myNameLabel.setText(getName(device));
 
-    myOnlineLabel.setIcon(device.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : null);
+    myOnlineLabel.setForeground(foreground);
+    setIcon(myOnlineLabel, device.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : null, selected);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
     myLine2Label.setText(getLine2(device));
 
-    if (WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()).getFirst() != null) {
-      Icon icon = StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN;
-      myPairedLabel.setIcon(selected ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
-    }
-    else {
-      myPairedLabel.setIcon(null);
-    }
+    myPairedLabel.setForeground(foreground);
+
+    boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()).getFirst() != null;
+    setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(myGetBorder.apply(selected, focused));
 
     return myPanel;
+  }
+
+  private static void setIcon(@NotNull JLabel label, @Nullable Icon icon, boolean selected) {
+    if (icon == null) {
+      label.setIcon(null);
+    }
+    else if (selected) {
+      label.setIcon(ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, label.getForeground()));
+    }
+    else {
+      label.setIcon(icon);
+    }
   }
 
   protected @NotNull String getName(@NotNull D device) {
@@ -139,14 +151,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
   protected @NotNull String getLine2(@NotNull D device) {
     return device.getTarget();
-  }
-
-  private static @NotNull Color getForeground(@NotNull JTable table, boolean selected) {
-    if (selected) {
-      return table.getSelectionForeground();
-    }
-
-    return table.getForeground();
   }
 
   private static @NotNull Color brighten(@NotNull Color color) {

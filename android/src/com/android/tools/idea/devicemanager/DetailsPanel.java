@@ -50,7 +50,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
     super(null);
 
     myHeadingLabel = newHeadingLabel(heading);
-    myCloseButton = Buttons.newIconButton(StudioIcons.Common.CLOSE);
+    myCloseButton = new IconButton(StudioIcons.Common.CLOSE);
     myInfoSections = new ArrayList<>();
 
     myInfoSectionPanel = new JBPanel<>(null);

@@ -18,14 +18,15 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
-import com.intellij.ui.table.JBTable;
 import java.awt.Component;
+import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ActionsTableCellRendererTest {
@@ -33,7 +34,10 @@ public final class ActionsTableCellRendererTest {
   public void getTableCellRendererComponent() {
     // Arrange
     ActionsTableCellRenderer renderer = new ActionsTableCellRenderer();
-    JTable table = new JBTable();
+
+    PhysicalDevicePanel panel = Mockito.mock(PhysicalDevicePanel.class);
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    JTable table = new PhysicalDeviceTable(panel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
 
     // Act
     Component component = renderer.getTableCellRendererComponent(table, Actions.INSTANCE, false, true, 0, 3);

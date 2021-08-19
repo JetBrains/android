@@ -34,8 +34,7 @@ public final class ExploreAvdAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
 
   public ExploreAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
-    super(provider, "Explore device filesystem...",
-          "Open Device File Explorer for this device", AllIcons.General.OpenDiskHover);
+    super(provider, "Explore device filesystem...", "Open Device File Explorer for this device", AllIcons.Actions.MenuOpen);
 
     myAvdInfoProvider = provider;
     myLogDeviceManagerEvents = logDeviceManagerEvents;

@@ -54,7 +54,11 @@ final class PhysicalDeviceTable extends JBTable {
       return Optional.empty();
     }
 
-    return Optional.of(getModel().getCombinedDevices().get(convertRowIndexToModel(viewRowIndex)));
+    return Optional.of(getDeviceAt(viewRowIndex));
+  }
+
+  @NotNull PhysicalDevice getDeviceAt(int viewRowIndex) {
+    return (PhysicalDevice)getValueAt(viewRowIndex, convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
   }
 
   @VisibleForTesting

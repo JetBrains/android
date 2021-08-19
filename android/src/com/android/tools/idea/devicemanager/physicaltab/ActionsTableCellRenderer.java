@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.Tables;
 import java.awt.Component;
-import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 final class ActionsTableCellRenderer implements TableCellRenderer {
-  private final JComponent myComponent = new ActionsComponent();
+  private final ActionsComponent myComponent = new ActionsComponent();
 
   @Override
   public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
@@ -32,9 +30,6 @@ final class ActionsTableCellRenderer implements TableCellRenderer {
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    myComponent.setBackground(Tables.getBackground(table, selected));
-    myComponent.setBorder(Tables.getBorder(selected, focused));
-
-    return myComponent;
+    return myComponent.getTableCellComponent(table, selected, focused, viewRowIndex);
   }
 }
