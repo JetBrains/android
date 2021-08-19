@@ -34,7 +34,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   private var _className = ""
   private var _status = State.UNSPECIFIED
   private var _startTime = -1L
-  private var _isValid = true
+  private var _isValid = false
 
   override val isValid get() = _isValid
 
@@ -55,6 +55,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
     when (backgroundTaskEvent.backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED -> {
+        _isValid = true
         acquired = backgroundTaskEvent
         _className = "WakeLock $id"
         _status = State.ACQUIRED

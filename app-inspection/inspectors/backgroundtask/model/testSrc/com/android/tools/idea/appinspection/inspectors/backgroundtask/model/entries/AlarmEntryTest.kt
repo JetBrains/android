@@ -84,11 +84,28 @@ class AlarmEntryTest {
       assertThat(startTimeMs).isEqualTo(2)
       assertThat(callstacks).containsExactly("SET")
       assertThat(tags).containsExactly("TAG1")
+      assertThat(isValid).isTrue()
     }
 
     alarmEntry.consumeAndAssert(firedEvent) {
       assertThat(status).isEqualTo("FIRED")
       assertThat(callstacks).containsExactly("SET")
+      assertThat(isValid).isTrue()
+    }
+  }
+
+  @Test
+  fun missingAlarmSet() {
+    val alarmEntry = AlarmEntry("1")
+
+    val firedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
+      taskId = 1
+      alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
+    }.build()
+
+    alarmEntry.consumeAndAssert(firedEvent) {
+      assertThat(status).isEqualTo("FIRED")
+      assertThat(isValid).isFalse()
     }
   }
 }

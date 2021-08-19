@@ -64,11 +64,15 @@ class JobEntryTest {
       assertThat(callstacks).containsExactly("SCHEDULED")
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
+      assertThat(isValid).isTrue()
     }
 
-    jobEntry.consumeAndAssertJob(jobStarted)
+    jobEntry.consumeAndAssertJob(jobStarted) {
+      assertThat(isValid).isTrue()
+    }
 
     jobEntry.consumeAndAssertJob(jobFinished) {
+      assertThat(isValid).isTrue()
       assertThat(callstacks).containsExactly("SCHEDULED", "FINISHED")
     }
   }
@@ -115,13 +119,51 @@ class JobEntryTest {
       assertThat(callstacks).containsExactly("SCHEDULED")
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
+      assertThat(isValid).isTrue()
     }
 
 
-    jobEntry.consumeAndAssertJob(jobStarted)
+    jobEntry.consumeAndAssertJob(jobStarted) {
+      assertThat(isValid).isTrue()
+    }
 
     jobEntry.consumeAndAssertJob(jobStopped) {
+      assertThat(isValid).isTrue()
       assertThat(callstacks).containsExactly("SCHEDULED")
+    }
+  }
+
+  @Test
+  fun missingJobScheduled() {
+    val jobStarted = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
+      taskId = 1
+      jobStarted = BackgroundTaskInspectorProtocol.JobStarted.newBuilder().apply {
+        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
+          jobId = 222
+        }.build()
+        workOngoing = false
+      }.build()
+    }.build()
+
+    val jobFinished = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
+      taskId = 1
+      stacktrace = "FINISHED"
+      jobFinished = BackgroundTaskInspectorProtocol.JobFinished.newBuilder().apply {
+        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
+          jobId = 222
+        }.build()
+        needsReschedule = false
+      }.build()
+    }.build()
+
+    val jobEntry = JobEntry("1")
+    jobEntry.consumeAndAssertJob(jobStarted) {
+      assertThat(isValid).isFalse()
+    }
+
+    jobEntry.consumeAndAssertJob(jobFinished) {
+      assertThat(callstacks).containsExactly("FINISHED")
+      assertThat(isValid).isFalse()
     }
   }
 }

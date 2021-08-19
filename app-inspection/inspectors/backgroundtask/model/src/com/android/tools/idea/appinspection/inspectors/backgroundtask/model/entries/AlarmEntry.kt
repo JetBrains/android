@@ -35,7 +35,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   private var _className = ""
   private var _status = State.UNSPECIFIED
   private var _startTime = -1L
-  private var _isValid = true
+  private var _isValid = false
   private var _tags = mutableListOf<String>()
 
   override val isValid get() = _isValid
@@ -57,6 +57,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
     val backgroundTaskEvent = latestEvent!!.backgroundTaskEvent
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
+        _isValid = true
         alarmSet = backgroundTaskEvent.alarmSet
         _className = "Alarm $id"
         _status = State.SET

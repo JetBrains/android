@@ -45,13 +45,35 @@ class WakeLockEntryTest {
     val entry = WakeLockEntry("1")
 
     entry.consumeAndAssert(wakeLockAcquiredEvent) {
+      assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("ACQUIRED")
       assertThat(callstacks).containsExactly("ACQUIRED")
     }
 
     entry.consumeAndAssert(wakeLockReleasedEvent) {
+      assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("RELEASED")
       assertThat(callstacks).containsExactly("ACQUIRED", "RELEASED")
+    }
+  }
+
+  @Test
+  fun missingWakeLockAcquired() {
+    val wakeLockReleasedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
+      taskId = 1
+      stacktrace = "RELEASED"
+      wakeLockReleased = BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder().apply {
+        addFlags(BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY)
+        isHeld = false
+      }.build()
+    }.build()
+
+    val entry = WakeLockEntry("1")
+
+    entry.consumeAndAssert(wakeLockReleasedEvent) {
+      assertThat(status).isEqualTo("RELEASED")
+      assertThat(callstacks).containsExactly("RELEASED")
+      assertThat(isValid).isFalse()
     }
   }
 }

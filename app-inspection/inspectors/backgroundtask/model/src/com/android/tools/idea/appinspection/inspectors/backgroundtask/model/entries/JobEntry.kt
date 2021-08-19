@@ -36,7 +36,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   private var _className = ""
   private var _status = State.UNSPECIFIED
   private var _startTime = -1L
-  private var _isValid = true
+  private var _isValid = false
 
   var targetWorkId: String? = null
 
@@ -63,6 +63,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
     val timestamp = eventWrapper.backgroundTaskEvent.timestamp
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED -> {
+        _isValid = true
         _className = "Job $id"
         _status = State.SCHEDULED
         _startTime = timestamp
