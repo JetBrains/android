@@ -31,7 +31,7 @@ interface MaterialIconsMetadataUrlProvider {
 /**
  * The default implementation of [MaterialIconsMetadataUrlProvider], returns the [URL] for the bundled metadata file in Android Studio.
  */
-internal class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
+class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
   override fun getMetadataUrl(): URL? =
     javaClass.classLoader.getResource(MATERIAL_ICONS_PATH + METADATA_FILE_NAME)
 }
@@ -41,7 +41,7 @@ internal class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
  *
  * @see MaterialIconsUtils.getIconsSdkTargetPath
  */
-internal class SdkMetadataUrlProvider: MaterialIconsMetadataUrlProvider {
+class SdkMetadataUrlProvider: MaterialIconsMetadataUrlProvider {
   override fun getMetadataUrl(): URL? {
     val metadataFilePath = MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(METADATA_FILE_NAME) ?: return null
     return if (metadataFilePath.exists()) SdkUtils.fileToUrl(metadataFilePath) else null

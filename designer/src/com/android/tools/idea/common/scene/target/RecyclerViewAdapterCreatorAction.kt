@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet

@@ -28,7 +28,7 @@ import java.util.Locale
 /**
  * Set of common functions and values used when reading/writing Material Icons files.
  */
-internal object MaterialIconsUtils {
+object MaterialIconsUtils {
   private val LOG = Logger.getInstance(javaClass)
 
   /**

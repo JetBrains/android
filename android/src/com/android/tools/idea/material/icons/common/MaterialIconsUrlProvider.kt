@@ -42,7 +42,7 @@ interface MaterialIconsUrlProvider {
 /**
  * The default [MaterialIconsUrlProvider] for [VdIcon] files bundled with Android Studio.
  */
-internal class BundledIconsUrlProvider : MaterialIconsUrlProvider {
+class BundledIconsUrlProvider : MaterialIconsUrlProvider {
   override fun getStyleUrl(style: String): URL? {
     return javaClass.classLoader.getResource(getStyleDirectoryPath(style))
   }
@@ -65,7 +65,7 @@ internal class BundledIconsUrlProvider : MaterialIconsUrlProvider {
  *
  * @see MaterialIconsUtils.getIconsSdkTargetPath
  */
-internal class SdkMaterialIconsUrlProvider: MaterialIconsUrlProvider {
+class SdkMaterialIconsUrlProvider: MaterialIconsUrlProvider {
   private val iconsSdkPath = MaterialIconsUtils.getIconsSdkTargetPath()
 
   override fun getStyleUrl(style: String): URL? {
