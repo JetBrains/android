@@ -96,7 +96,8 @@ class AnalysisConfig(
     val maxDominatorIterations: Int = 2_000,
     val minNodeSize: Int = 100_000,
     val maxDepth: Int = 30,
-    val headLimit: Int = 5_000
+    val headLimit: Int = 5_000,
+    val diskSpaceThreshold: Long = 500_000_000L
   )
 
   companion object {

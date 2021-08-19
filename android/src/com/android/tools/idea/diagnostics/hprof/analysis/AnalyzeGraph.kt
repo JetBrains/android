@@ -31,11 +31,13 @@ import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.util.io.FileUtil
 import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
 import gnu.trove.TIntIntHashMap
 import gnu.trove.TLongArrayList
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintWriter
 import java.util.Arrays
 import kotlin.math.max
@@ -438,15 +440,21 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     }
 
     if (config.dominatorTreeOptions.includeDominatorTree) {
-      try {
-        rootsSet.addAll(frameRootsSet.toArray())
-        computeDominatorFlameGraph(nav, rootsSet, sizesList, edgeCount, report)
-      } catch (e: Exception) {
-        val baos = ByteArrayOutputStream()
-        val pw = PrintWriter(baos)
-        e.printStackTrace(pw)
-        pw.flush()
-        dominatorFlameGraph = baos.toString()
+      val usableDiskSpace = File(FileUtil.getTempDirectory()).usableSpace
+      if (usableDiskSpace - estimateDominatorTempFilesSize(visitedCount, edgeCount) > config.dominatorTreeOptions.diskSpaceThreshold) {
+        try {
+          rootsSet.addAll(frameRootsSet.toArray())
+          computeDominatorFlameGraph(nav, rootsSet, sizesList, edgeCount, report)
+        }
+        catch (e: Exception) {
+          val baos = ByteArrayOutputStream()
+          val pw = PrintWriter(baos)
+          e.printStackTrace(pw)
+          pw.flush()
+          dominatorFlameGraph = baos.toString()
+        }
+      } else {
+        dominatorFlameGraph = "Omitted due to low disk space"
       }
     }
     rootsSet.clear()
@@ -517,6 +525,10 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         }
       }
     }
+  }
+
+  private fun estimateDominatorTempFilesSize(objectCount: Int, edgeCount: Int): Long {
+    return 20L * objectCount + 10L * edgeCount
   }
 
   private fun computeDominatorFlameGraph(nav: ObjectNavigator, rootsSet: TIntHashSet, sizesList: IntList, edgeCount: Int, report: AnalysisReport) {
