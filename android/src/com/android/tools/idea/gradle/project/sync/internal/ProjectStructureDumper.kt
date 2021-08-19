@@ -134,6 +134,7 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
   prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
   prop("SkipNoopApkInstallations") { runConfiguration.SKIP_NOOP_APK_INSTALLATIONS.takeUnless { it == true }?.toString() }
   prop("ForceStopRunningApp") { runConfiguration.FORCE_STOP_RUNNING_APP.takeUnless { it == true }?.toString() }
+  prop("EnableInspectionWithoutActivityRestart") { runConfiguration.INSPECTION_WITHOUT_ACTIVITY_RESTART.takeUnless { !it }?.toString() }
   if (runConfiguration is AndroidTestRunConfiguration) {
     prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
     prop("MethodName") { runConfiguration.METHOD_NAME }
