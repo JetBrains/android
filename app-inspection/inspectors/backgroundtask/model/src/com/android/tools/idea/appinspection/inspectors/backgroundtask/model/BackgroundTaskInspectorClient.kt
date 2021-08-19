@@ -126,8 +126,10 @@ class BackgroundTaskInspectorClient(
     } ?: candidate.let { newEntry ->
       // Insert a new entry.
       newEntry.consume(event)
-      entryMap[newEntry.id] = newEntry
-      fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
+      if (newEntry.isValid) {
+        entryMap[newEntry.id] = newEntry
+        fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
+      }
     }
   }
 

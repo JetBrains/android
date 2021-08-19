@@ -26,7 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Even
  * @param id a universally unique identifier (UUID) of 128 bit value.
  */
 class WorkEntry(override val id: String) : BackgroundTaskEntry {
-  private var _isValid = true
+  private var _isValid = false
 
   override val isValid get() = _isValid
 
@@ -48,6 +48,7 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
     when (event.oneOfCase) {
       Event.OneOfCase.WORK_ADDED -> {
         work = event.workAdded.work.toBuilder()
+        _isValid = true
       }
       Event.OneOfCase.WORK_UPDATED -> {
         when (event.workUpdated.oneOfCase!!) {

@@ -57,12 +57,31 @@ class WorkEntryTest {
 
     val entry = WorkEntry("1")
     entry.consumeAndAssert(workAddedEvent)
+    assertThat(entry.isValid).isTrue()
     assertThat(entry.status).isEqualTo("ENQUEUED")
+    assertThat(entry.isValid).isTrue()
     entry.consumeAndAssert(workUpdatedEvent)
+    assertThat(entry.isValid).isTrue()
     assertThat(entry.status).isEqualTo("RUNNING")
     entry.consumeAndAssert(workSucceededEvent)
+    assertThat(entry.isValid).isTrue()
     assertThat(entry.status).isEqualTo("SUCCEEDED")
     entry.consumeAndAssert(workRemovedEvent)
+    assertThat(entry.isValid).isFalse()
+  }
+
+  @Test
+  fun missingWorkAdded() {
+    val workUpdatedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
+      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
+        id = "1"
+        state = WorkManagerInspectorProtocol.WorkInfo.State.RUNNING
+      }.build()
+    }.build()
+
+    val entry = WorkEntry("1")
+    entry.consume(EventWrapper(workUpdatedEvent))
+    assertThat(entry.status).isEqualTo("RUNNING")
     assertThat(entry.isValid).isFalse()
   }
 }
