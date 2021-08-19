@@ -111,6 +111,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
 

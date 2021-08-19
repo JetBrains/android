@@ -57,5 +57,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
   </component>
 </module>
