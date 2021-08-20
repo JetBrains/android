@@ -34,6 +34,23 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceDetailsPanelTest {
+  /**
+   * PhysicalDeviceDetailsPanel accepts two devices; one of them is in a future
+   *
+   * <p>This device represents an instance built by AsyncPhysicalDeviceBuilder and contained in the table. They do not have all their
+   * details filled in.
+   *
+   * <p>The devices in the test methods represent instances built by AsyncDetailsBuilder. When the details panel is shown the rest of the
+   * details are filled in asynchronously.
+   */
+  private static final @NotNull PhysicalDevice DEVICE = new PhysicalDevice.Builder()
+    .setKey(new SerialNumber("86UX00F4R"))
+    .setName("Google Pixel 3")
+    .setTarget("Android 12.0")
+    .setApi("S")
+    .addConnectionType(ConnectionType.USB)
+    .build();
+
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
@@ -51,7 +68,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel("Google Pixel 3",
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(DEVICE,
                                                                       future,
                                                                       section -> newSummarySectionCallback(section, latch),
                                                                       DeviceSectionCallback::new);
@@ -79,7 +96,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     // Act
-    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel("Google Pixel 3",
+    PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(DEVICE,
                                                                       future,
                                                                       SummarySectionCallback::new,
                                                                       section -> newDeviceSectionCallback(section, latch));
