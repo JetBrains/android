@@ -32,6 +32,7 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.wearpairing.GmscoreHelper.refreshEmulatorConnection
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
@@ -113,7 +114,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       phoneDevice.runCatching { createForward(hostPort, 5601) }
       wearDevice.runCatching { createReverse(5601, hostPort) }
 
-      restartGmsCore(wearDevice)
+      wearDevice.refreshEmulatorConnection()
     }
   }
 
@@ -138,7 +139,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         LOG.warn("[$name] Remove AUTO-reverse")
         runCatching { removeReverse(5601) }
         if (restartWearGmsCore) {
-          restartGmsCore(this)
+          refreshEmulatorConnection()
         }
       }
     }
@@ -259,8 +260,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 }
 
-private const val GMS_PACKAGE = "com.google.android.gms"
-
 suspend fun IDevice.executeShellCommand(cmd: String) {
   withContext(ioThread) {
     runCatching {
@@ -298,38 +297,6 @@ suspend fun IDevice.retrieveUpTime(): Double {
     return uptimeRes.split(' ').firstOrNull()?.toDoubleOrNull() ?: 0.0
   }
   return 0.0
-}
-
-private suspend fun killGmsCore(device: IDevice) {
-  runCatching {
-    val uptime = device.retrieveUpTime()
-    // Killing gmsCore during cold boot will hang booting for a while, so skip it
-    if (uptime > 120.0) {
-      LOG.warn("[${device.name}] Killing Google Play Services/gmsCore")
-      device.executeShellCommand("am force-stop $GMS_PACKAGE")
-    }
-    else {
-      LOG.warn("[${device.name}] Skip killing Google Play Services/gmsCore (uptime = $uptime)")
-    }
-  }
-}
-
-private suspend fun restartGmsCore(device: IDevice) {
-  killGmsCore(device)
-
-  LOG.warn("[${device.name}] Wait for Google Play Services/gmsCore re-start")
-  val res = withTimeoutOrNull(30_000) {
-    while (device.loadNodeID().isEmpty()) {
-      // Restart in case it doesn't restart automatically
-      device.executeShellCommand("am broadcast -a $GMS_PACKAGE.INITIALIZE")
-      delay(1_000)
-    }
-    true
-  }
-  when (res) {
-    true -> LOG.warn("[${device.name}] Google Play Services/gmsCore started")
-    else -> LOG.warn("[${device.name}] Google Play Services/gmsCore never started")
-  }
 }
 
 private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevice: PairingDevice?): PairingDevice {
