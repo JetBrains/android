@@ -88,7 +88,7 @@ class BackgroundInspectorClientTest {
     workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
     client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                            WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope)
+                                           scope, StubBackgroundTaskInspectorTracker())
     listener = Listener(client)
   }
 

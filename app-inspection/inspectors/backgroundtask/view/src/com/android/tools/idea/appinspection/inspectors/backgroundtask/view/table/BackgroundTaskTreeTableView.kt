@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFormattedTimeString
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
@@ -104,6 +105,20 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
         val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
         val entry = node.userObject as? BackgroundTaskEntry ?: return@addTreeSelectionListener
         selectionModel.selectedEntry = entry
+        when (entry) {
+          is AlarmEntry -> client.tracker.trackAlarmSelected()
+          is JobEntry -> {
+            if (entry.targetWorkId == null) {
+              client.tracker.trackJobSelected()
+            }
+            else {
+              client.tracker.trackJobUnderWorkSelected()
+            }
+          }
+          is WorkEntry -> client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT)
+          // TODO(b/196583048): distinguish between standalone wake locks and wake lock under job.
+          is WakeLockEntry -> client.tracker.trackWakeLockSelected()
+        }
       }
       else {
         selectionModel.selectedEntry = null

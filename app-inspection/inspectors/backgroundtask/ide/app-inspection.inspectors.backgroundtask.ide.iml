@@ -20,5 +20,7 @@
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
     <orderEntry type="module" module-name="codenavigation" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
   </component>
 </module>

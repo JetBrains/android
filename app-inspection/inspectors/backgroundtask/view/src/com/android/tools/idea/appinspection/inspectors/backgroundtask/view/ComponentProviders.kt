@@ -23,6 +23,7 @@ import backgroundtask.inspection.BackgroundTaskInspectorProtocol.JobInfo
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -57,13 +58,17 @@ class ToStringProvider<T> : ComponentProvider<T> {
 /**
  * Provides a component that represents a class name which can be navigated to.
  */
-class ClassNameProvider(private val ideServices: AppInspectionIdeServices,
-                        private val scope: CoroutineScope) : ComponentProvider<String> {
+class ClassNameProvider(
+  private val ideServices: AppInspectionIdeServices,
+  private val scope: CoroutineScope,
+  private val tracker: BackgroundTaskInspectorTracker
+) : ComponentProvider<String> {
   override fun convert(fqcn: String): JComponent {
     return HyperlinkLabel(fqcn).apply {
       addHyperlinkListener {
         scope.launch {
           ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
+          tracker.trackJumpedToSource()
         }
       }
     }
@@ -92,8 +97,11 @@ object StateProvider : ComponentProvider<State> {
  * Provides a component that displays the location a worker was enqueued at, with the ability to
  * click on that location to navigate into the code.
  */
-class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
-                         private val scope: CoroutineScope) : ComponentProvider<CallStack> {
+class EnqueuedAtProvider(
+  private val ideServices: AppInspectionIdeServices,
+  private val scope: CoroutineScope,
+  private val tracker: BackgroundTaskInspectorTracker
+) : ComponentProvider<CallStack> {
   override fun convert(stack: CallStack): JComponent {
     return if (stack.framesCount == 0) {
       JPanel(FlowLayout(FlowLayout.LEADING, 0, 0)).apply {
@@ -112,6 +120,7 @@ class EnqueuedAtProvider(private val ideServices: AppInspectionIdeServices,
         addHyperlinkListener {
           scope.launch {
             ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+            tracker.trackJumpedToSource()
           }
         }
       }

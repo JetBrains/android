@@ -71,6 +71,7 @@ class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
   private val wmiMessengerTarget: WmiMessengerTarget,
   val scope: CoroutineScope,
+  val tracker: BackgroundTaskInspectorTracker
 ) {
   private val listeners = mutableListOf<EntryUpdateEventListener>()
   private val entryMap = ConcurrentHashMap<String, BackgroundTaskEntry>()

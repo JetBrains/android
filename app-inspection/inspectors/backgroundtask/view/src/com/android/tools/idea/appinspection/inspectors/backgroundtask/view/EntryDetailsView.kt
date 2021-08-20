@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.popup.IconButton
@@ -171,7 +172,7 @@ class EntryDetailsView(
     val job = jobEntry.jobInfo ?: return
 
     val descriptions = mutableListOf(
-      buildKeyValuePair("Service", job.serviceName, ClassNameProvider(ideServices, client.scope)),
+      buildKeyValuePair("Service", job.serviceName, ClassNameProvider(ideServices, client.scope, client.tracker))
     )
     jobEntry.targetWorkId?.let { uuid -> descriptions.add(buildKeyValuePair("UUID", uuid)) }
     detailsPanel.add(buildCategoryPanel("Description", descriptions))
@@ -207,16 +208,17 @@ class EntryDetailsView(
 
     val idListProvider = IdListProvider(client, work) {
       selectionModel.selectedEntry = it
+      client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT)
     }
 
     detailsPanel.add(buildCategoryPanel("Description", listOf(
-      buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, client.scope)),
+      buildKeyValuePair("Class", work.workerClassName, ClassNameProvider(ideServices, client.scope, client.tracker)),
       buildKeyValuePair("Tags", work.tagsList.toList(), StringListProvider),
       buildKeyValuePair("UUID", work.id)
     )))
 
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
-      buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope)),
+      buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope, client.tracker)),
       buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
       buildKeyValuePair("State", work.state, StateProvider)
