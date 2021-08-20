@@ -37,10 +37,15 @@ import com.intellij.psi.util.ClassUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +58,7 @@ public class IntellijCodeNavigator extends CodeNavigator {
   @NotNull
   private final NativeSymbolizer myNativeSymbolizer;
   @NotNull
-  private final Map<String, String> myApkSrcDirMap;
+  private final List<LibraryMapping> myLibraryMappings;
 
   /**
    * Supplier of the target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled. Can be set by
@@ -65,7 +70,7 @@ public class IntellijCodeNavigator extends CodeNavigator {
                                @NotNull NativeSymbolizer nativeSymbolizer) {
     myProject = project;
     myNativeSymbolizer = nativeSymbolizer;
-    myApkSrcDirMap = getApkSourceDirMap();
+    myLibraryMappings = getLibraryMappings(project);
     myCpuAbiArchSupplier = () -> null;
   }
 
@@ -183,10 +188,10 @@ public class IntellijCodeNavigator extends CodeNavigator {
   @Nullable
   private Navigatable getApkMappingNavigable(@NotNull CodeLocation location) {
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (Map.Entry<String, String> entry : myApkSrcDirMap.entrySet()) {
-      if (location.getFileName().startsWith(entry.getKey())) {
-        String pathTailAfterPrefix = location.getFileName().substring(entry.getKey().length());
-        String newFileName = Paths.get(entry.getValue(), pathTailAfterPrefix).toString();
+    for (LibraryMapping mapping : myLibraryMappings) {
+      if (location.getFileName().startsWith(mapping.getOriginalPath())) {
+        String pathTailAfterPrefix = location.getFileName().substring(mapping.getOriginalPath().length());
+        String newFileName = Paths.get(mapping.getLocalPath(), pathTailAfterPrefix).toString();
         VirtualFile sourceFile = fileSystem.findFileByPath(newFileName);
         if (sourceFile != null && sourceFile.exists()) {
           return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
@@ -195,25 +200,6 @@ public class IntellijCodeNavigator extends CodeNavigator {
     }
 
     return null;
-  }
-
-  @NotNull
-  private Map<String, String> getApkSourceDirMap() {
-    // Using LinkedHashMap here to preserve order from getSymbolFolderPathMappings and imitate LLDB's behavior.
-    Map<String, String> sourceMap = new LinkedHashMap<>();
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      ApkFacet apkFacet = ApkFacet.getInstance(module);
-      if (apkFacet != null) {
-        for (Map.Entry<String, String> entry : apkFacet.getConfiguration().getSymbolFolderPathMappings().entrySet()) {
-          // getSymbolFolderPathMappings() has a lot of path records which are not mapped, they need
-          // to be filtered out.
-          if (!entry.getValue().isEmpty() && !entry.getKey().equals(entry.getValue())) {
-            sourceMap.put(entry.getKey(), entry.getValue());
-          }
-        }
-      }
-    }
-    return sourceMap;
   }
 
   /**
@@ -239,6 +225,26 @@ public class IntellijCodeNavigator extends CodeNavigator {
       return null;
     }
     return new FileNavigatable(myProject, new FilePosition(new File(symbol.getSourceFile()), symbol.getLineNumber() - 1, 0));
+  }
+
+  /** Get all the file mappings that connect the library in the APK with a build machine. */
+  @NotNull
+  private static List<LibraryMapping> getLibraryMappings(@NotNull Project project) {
+    // Using a list to preserve order from getSymbolFolderPathMappings and imitate LLDB's behavior.
+    List<LibraryMapping> sourceMap = new ArrayList<>();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      ApkFacet apkFacet = ApkFacet.getInstance(module);
+      if (apkFacet != null) {
+        for (Map.Entry<String, String> entry : apkFacet.getConfiguration().getSymbolFolderPathMappings().entrySet()) {
+          // getSymbolFolderPathMappings() has a lot of path records which are not mapped, they need
+          // to be filtered out.
+          if (!entry.getValue().isEmpty() && !entry.getKey().equals(entry.getValue())) {
+            sourceMap.add(new LibraryMapping(entry.getKey(), entry.getValue()));
+          }
+        }
+      }
+    }
+    return sourceMap;
   }
 
   @Nullable
