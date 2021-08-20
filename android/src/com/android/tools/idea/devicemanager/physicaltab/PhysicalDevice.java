@@ -17,6 +17,9 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.resources.Density;
 import com.android.tools.idea.devicemanager.Device;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,10 +41,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull String myNameOverride;
   private final @NotNull String myApi;
-  private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes;
+  private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Resolution myResolution;
   private final int myDensity;
-  private final @NotNull Collection<@NotNull String> myAbis;
+  private final @NotNull ImmutableCollection<@NotNull String> myAbis;
 
   public static final class Builder extends Device.Builder {
     private @Nullable Instant myLastOnlineTime;
@@ -122,10 +125,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     assert builder.myApi != null;
     myApi = builder.myApi;
 
-    myConnectionTypes = builder.myConnectionTypes;
+    myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
-    myAbis = builder.myAbis;
+    myAbis = ImmutableList.copyOf(builder.myAbis);
   }
 
   @Nullable Instant getLastOnlineTime() {
@@ -173,10 +176,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     int height = (int)Math.ceil(Density.DEFAULT_DENSITY * myResolution.getHeight() / density);
 
     return new Resolution(width, height);
-  }
-
-  int getDensity() {
-    return myDensity;
   }
 
   @NotNull Collection<@NotNull String> getAbis() {

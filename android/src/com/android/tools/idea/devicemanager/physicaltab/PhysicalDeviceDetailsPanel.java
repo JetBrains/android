@@ -23,15 +23,21 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.awt.Component;
 import java.util.concurrent.Executor;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceDetailsPanel extends DetailsPanel {
-  private final @NotNull SummarySection mySummarySection;
-  private final @NotNull DeviceSection myDeviceSection;
+  private final boolean myOnline;
+
+  private final @Nullable SummarySection mySummarySection;
+  private final @Nullable DeviceSection myDeviceSection;
 
   @VisibleForTesting
   static final class SummarySection extends InfoSection {
@@ -113,36 +119,72 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device.getName(), new AsyncDetailsBuilder(project, device).buildAsync(), SummarySectionCallback::new, DeviceSectionCallback::new);
+    this(device, new AsyncDetailsBuilder(project, device).buildAsync(), SummarySectionCallback::new, DeviceSectionCallback::new);
   }
 
   @VisibleForTesting
-  PhysicalDeviceDetailsPanel(@NotNull String heading,
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device,
                              @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
                              @NotNull NewInfoSectionCallback<@NotNull SummarySection> newSummarySectionCallback,
                              @NotNull NewInfoSectionCallback<@NotNull DeviceSection> newDeviceSectionCallback) {
-    super(heading);
-    Executor executor = EdtExecutorService.getInstance();
+    super(device.getName());
+    myOnline = device.isOnline();
 
-    mySummarySection = new SummarySection();
-    Futures.addCallback(future, newSummarySectionCallback.apply(mySummarySection), executor);
+    if (myOnline) {
+      Executor executor = EdtExecutorService.getInstance();
 
-    myDeviceSection = new DeviceSection();
-    Futures.addCallback(future, newDeviceSectionCallback.apply(myDeviceSection), executor);
+      mySummarySection = new SummarySection();
+      Futures.addCallback(future, newSummarySectionCallback.apply(mySummarySection), executor);
 
-    myInfoSections.add(mySummarySection);
-    myInfoSections.add(myDeviceSection);
+      myDeviceSection = new DeviceSection();
+      Futures.addCallback(future, newDeviceSectionCallback.apply(myDeviceSection), executor);
+
+      myInfoSections.add(mySummarySection);
+      myInfoSections.add(myDeviceSection);
+    }
+    else {
+      mySummarySection = null;
+      myDeviceSection = null;
+    }
 
     init();
   }
 
+  @Override
+  protected void setInfoSectionPanelLayout() {
+    if (myOnline) {
+      super.setInfoSectionPanelLayout();
+      return;
+    }
+
+    Component label = new JBLabel("Details unavailable for offline devices");
+    GroupLayout layout = new GroupLayout(myInfoSectionPanel);
+
+    Group horizontalGroup = layout.createSequentialGroup()
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(label)
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(label)
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    myInfoSectionPanel.setLayout(layout);
+  }
+
   @VisibleForTesting
   @NotNull SummarySection getSummarySection() {
+    assert mySummarySection != null;
     return mySummarySection;
   }
 
   @VisibleForTesting
   @NotNull DeviceSection getDeviceSection() {
+    assert myDeviceSection != null;
     return myDeviceSection;
   }
 }

@@ -43,7 +43,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
   private final @NotNull Component myHeadingLabel;
   private final @NotNull AbstractButton myCloseButton;
   protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
-  private final @NotNull Container myInfoSectionPanel;
+  protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
 
   protected DetailsPanel(@NotNull String heading) {
@@ -96,18 +96,20 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
       .mapToInt(size -> size.width)
       .max();
 
-    int width = optionalWidth.orElseThrow(AssertionError::new);
+    optionalWidth.ifPresent(width -> setPreferredWidths(labels, width));
+  }
 
-    labels.forEach(label -> {
-      Dimension size = label.getPreferredSize();
+  private static void setPreferredWidths(@NotNull Iterable<@NotNull Component> components, int width) {
+    components.forEach(component -> {
+      Dimension size = component.getPreferredSize();
       size.width = width;
 
-      label.setPreferredSize(size);
-      label.setMaximumSize(size);
+      component.setPreferredSize(size);
+      component.setMaximumSize(size);
     });
   }
 
-  private void setInfoSectionPanelLayout() {
+  protected void setInfoSectionPanelLayout() {
     GroupLayout layout = new GroupLayout(myInfoSectionPanel);
 
     Group horizontalGroup = layout.createParallelGroup();
