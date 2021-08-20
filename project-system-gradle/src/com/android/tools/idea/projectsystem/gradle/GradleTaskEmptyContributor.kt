@@ -29,7 +29,7 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.util.containers.MultiMap
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
+import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.awt.Cursor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -47,7 +47,7 @@ class GradleTaskEmptyContributor: ExternalSystemViewContributor() {
   }
 
   override fun getSystemId(): ProjectSystemId {
-    return GRADLE_SYSTEM_ID
+    return SYSTEM_ID
   }
 
   override fun getKeys(): MutableList<Key<*>> {
