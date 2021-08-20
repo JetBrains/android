@@ -1,8 +1,12 @@
 package com.android.tools.idea.appinspection.ide
 
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -12,12 +16,15 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Separator
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 
@@ -252,10 +259,10 @@ class SelectProcessActionTest {
     val fakeStream = createFakeStream()
     val processB = fakeStream.createFakeProcess("B", 101)
     val callbackFiredLatch = CountDownLatch(1)
-    val selectProcessAction = SelectProcessAction(model) {
+    val selectProcessAction = SelectProcessAction(model, onStopAction = {
       model.stop()
       callbackFiredLatch.countDown()
-    }
+    })
 
     testNotifier.fireConnected(processB) // Preferred
 
@@ -279,5 +286,39 @@ class SelectProcessActionTest {
     val processes = (refreshedDevice as ActionGroup).getChildren(null)
     assertThat(processes).hasLength(2)
     assertThat(processes.map { it.templateText }).containsExactly("B", "B [DETACHED]")
+  }
+
+  @Test
+  fun testCustomAttribution() {
+    val testNotifier = TestProcessNotifier()
+    val model = ProcessesModel(testNotifier)
+    val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = mock()
+    val processAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = mock()
+    val stream = createFakeStream()
+    val processes = listOf("A", "B", "C").map { stream.createFakeProcess(it, it.hashCode()) }
+    processes.forEach { testNotifier.fireConnected(it) }
+
+    val selectProcessAction =
+      SelectProcessAction(model, customDeviceAttribution = deviceAttribution, customProcessAttribution = processAttribution)
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(2)
+    val deviceAction = children[0] as DropDownAction
+    val event1 = update(deviceAction)
+    verify(deviceAttribution).invoke(eq(processes[0].device), eq(event1))
+
+    val processActions = deviceAction.getChildren(null)
+    processActions.forEachIndexed { index, action ->
+      val event = update(action)
+      verify(processAttribution).invoke(eq(processes[index]), eq(event))
+    }
+  }
+
+  private fun update(action: AnAction): AnActionEvent {
+    val presentation = action.templatePresentation.clone()
+    val event: AnActionEvent = mock()
+    `when`(event.presentation).thenReturn(presentation)
+    action.update(event)
+    return event
   }
 }
