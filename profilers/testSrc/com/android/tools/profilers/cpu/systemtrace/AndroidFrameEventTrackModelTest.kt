@@ -43,11 +43,13 @@ class AndroidFrameEventTrackModelTest {
     assertThat(trackModel.series[0].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
       SeriesData(1L, AndroidFrameEvent.Data(1, 1, 1)),
-      SeriesData(2L, AndroidFrameEvent.Data(2, 2, 1))
+      SeriesData(2L, AndroidFrameEvent.Data(2, 2, 1)),
+      SeriesData(3L, AndroidFrameEvent.Padding)
     ).inOrder()
     assertThat(trackModel.series[1].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Padding),
-      SeriesData(2L, AndroidFrameEvent.Data(3, 2, 1))
+      SeriesData(2L, AndroidFrameEvent.Data(3, 2, 1)),
+      SeriesData(3L, AndroidFrameEvent.Padding)
     )
   }
 
