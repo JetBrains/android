@@ -111,7 +111,6 @@ import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -149,7 +148,6 @@ private const val downloadFolderName = "downloaded$nonAsciiSuffix"
 @Suppress("IncorrectParentDisposable")
 @RunsInEdt
 @RunWith(Parameterized::class)
-@Ignore
 class ExportToFileControllerTest(private val testConfig: TestConfig) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
@@ -350,7 +348,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
     submitExportRequest(exportRequest)
     verify(exportInProgressListener).invoke(controller.lastExportJob!!)
-    awaitExportComplete(5000L)
+    awaitExportComplete(15_000L)
     stopwatch.stop()
 
     verifyExportCallbacks(stopwatch.elapsed(MILLISECONDS))
@@ -477,7 +475,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     job.cancel(UserCancellationException())
 
     // verify the job gets cancelled and notifyError gets the confirmation
-    awaitExportComplete(500L)
+    awaitExportComplete(5000L)
     stopwatch.stop()
     assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
     assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)

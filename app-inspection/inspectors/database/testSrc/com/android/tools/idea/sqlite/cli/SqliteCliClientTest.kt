@@ -25,11 +25,9 @@ import com.intellij.util.io.delete
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
-import org.junit.Ignore
 import java.lang.System.lineSeparator
 import java.nio.file.Path
 
-@Ignore
 class SqliteCliClientTest : LightPlatformTestCase() {
   private lateinit var client: SqliteCliClient
   private lateinit var databaseFile: Path
