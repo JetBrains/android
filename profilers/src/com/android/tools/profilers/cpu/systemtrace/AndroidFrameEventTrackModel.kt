@@ -37,7 +37,7 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
       val eventSeries = mutableListOf<SeriesData<AndroidFrameEvent>>()
       var lastEndTimeNs = 0L
       for (event in events) {
-        // Add an fake event as padding between real events, needed for StateChart rendering.
+        // Add a fake event as padding between real events, needed for StateChart rendering.
         if (event.timestampNanoseconds > lastEndTimeNs) {
           eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), Padding))
         }
@@ -45,6 +45,9 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
         // Add the real event.
         eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds), Data(event)))
       }
+      // Add another padding event at the end to properly end the last event.
+      eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), Padding))
+
       if (eventSeries.isNotEmpty()) {
         addSeries(RangedSeries(viewRange, LazyDataSeries { eventSeries }))
       }
