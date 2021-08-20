@@ -563,58 +563,6 @@ public final class GradleUtil {
     return gradleVersion.equals(GRADLE_LATEST_VERSION);
   }
 
-  /**
-   * Returns {@code true} if the main artifact of the given Android model depends on the given artifact, which consists of a group id and an
-   * artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param androidModel the Android model to check
-   * @param artifact     the artifact
-   * @return {@code true} if the project depends on the given artifact (including transitively)
-   */
-  public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    return dependsOnAndroidLibrary(dependencies, artifact);
-  }
-
-  /**
-   * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param dependencies the Gradle dependencies object to check
-   * @param artifact     the artifact
-   * @return {@code true} if the dependencies include the given artifact (including transitively)
-   */
-  private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
-    for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {
-      if (dependsOn(library, artifact)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param library  the Gradle library to check
-   * @param artifact the artifact
-   * @return {@code true} if the project depends on the given artifact
-   */
-  public static boolean dependsOn(@NonNull IdeArtifactLibrary library, @NonNull String artifact) {
-    return getDependencyVersion(library, artifact) != null;
-  }
-
-  private static String getDependencyVersion(@NonNull IdeArtifactLibrary library, @NonNull String artifact) {
-    GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
-    if (resolvedCoordinates != null) {
-      if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
-        return resolvedCoordinates.getRevision();
-      }
-    }
-    return null;
-  }
-
   public static boolean hasCause(@NotNull Throwable e, @NotNull Class<?> causeClass) {
     // We want to ignore class loader difference, that's why we just compare fully-qualified class names here.
     String causeClassName = causeClass.getName();
