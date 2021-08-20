@@ -47,6 +47,7 @@ private class AndroidLibraryWrapper(source: IdeAndroidLibrary) : LibraryWrapper<
   override val manifestFile: PathString? get() = PathString(lib.manifest)
   override val packageName: String? get() = null
   override val resFolder: ResourceFolder? get() = RecursiveResourceFolder(PathString(lib.resFolder))
+  override val assetsFolder: PathString? get() = PathString(lib.assetsFolder)
   override val symbolFile: PathString? get() = PathString(lib.symbolFile)
   override val resApkFile: PathString? get() = lib.resStaticLibrary?.let(::PathString)
 
