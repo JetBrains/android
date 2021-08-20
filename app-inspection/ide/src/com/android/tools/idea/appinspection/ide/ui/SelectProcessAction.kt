@@ -65,12 +65,20 @@ private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons
  *
  * @param onStopAction A callback triggered when the user presses the stop button.
  *
+ * @param customDeviceAttribution A callback that allows customization of the device.
+ *
+ * @param customProcessAttribution A callback that allows customization of a process.
+ *
  */
-class SelectProcessAction(private val model: ProcessesModel,
-                          private val supportsOffline: Boolean = true,
-                          private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
-                          private val stopPresentation: StopPresentation = StopPresentation(),
-                          private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
+class SelectProcessAction(
+  private val model: ProcessesModel,
+  private val supportsOffline: Boolean = true,
+  private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
+  private val stopPresentation: StopPresentation = StopPresentation(),
+  private val onStopAction: ((ProcessDescriptor) -> Unit)? = null,
+  private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
+  private val customProcessAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = { _, _ -> }
+) :
   DropDownAction(
     AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
     ICON_PHONE) {
@@ -125,7 +133,7 @@ class SelectProcessAction(private val model: ProcessesModel,
     model.processes
       .filter { process -> process.isRunning || supportsOffline }
       .distinctBy { process -> process.device.serial }
-      .forEach { process -> add(DeviceAction(process, model, supportsOffline)) }
+      .forEach { process -> add(DeviceAction(process.device)) }
 
     if (childrenCount == 0) {
       add(NO_DEVICE_ACTION)
@@ -149,7 +157,7 @@ class SelectProcessAction(private val model: ProcessesModel,
   class StopPresentation(val text: String = AppInspectionBundle.message("action.stop.inspectors"),
                          val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"))
 
-  class ConnectAction(private val processDescriptor: ProcessDescriptor, private val model: ProcessesModel) :
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
     ToggleAction(processDescriptor.buildProcessName()) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == model.selectedProcess
@@ -158,30 +166,40 @@ class SelectProcessAction(private val model: ProcessesModel,
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       model.selectedProcess = processDescriptor
     }
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      customProcessAttribution(processDescriptor, event)
+    }
   }
 
-  private class DeviceAction(process: ProcessDescriptor, private val model: ProcessesModel, private val supportsOffline: Boolean)
-    : DropDownAction(process.device.buildDeviceName(), null, process.device.toIcon()) {
+  private inner class DeviceAction(
+    private val device: DeviceDescriptor,
+  ) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
       val (preferredProcesses, otherProcesses) = model.processes
         .sortedBy { it.name }
-        .filter { (it.isRunning || supportsOffline) && (it.device.serial == process.device.serial) }
+        .filter { (it.isRunning || supportsOffline) && (it.device.serial == device.serial) }
         .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }
 
       for (preferredProcess in preferredProcesses) {
-        add(ConnectAction(preferredProcess, model))
+        add(ConnectAction(preferredProcess))
       }
       if (preferredProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
         add(Separator.getInstance())
       }
       for (otherProcess in otherProcesses) {
-        add(ConnectAction(otherProcess, model))
+        add(ConnectAction(otherProcess))
       }
       if (childrenCount == 0) {
         add(NO_PROCESS_ACTION)
       }
+    }
+
+    override fun update(event: AnActionEvent) {
+      customDeviceAttribution(device, event)
     }
   }
 }
