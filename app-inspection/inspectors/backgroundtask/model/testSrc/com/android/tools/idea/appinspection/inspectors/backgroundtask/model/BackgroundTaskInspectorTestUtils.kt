@@ -73,7 +73,7 @@ object BackgroundTaskInspectorTestUtils {
     val workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
     return BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                          WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                         scope)
+                                         scope, StubBackgroundTaskInspectorTracker())
   }
 
   fun BackgroundTaskInspectorClient.sendWorkEvent(map: WorkManagerInspectorProtocol.Event.Builder.() -> Unit) {

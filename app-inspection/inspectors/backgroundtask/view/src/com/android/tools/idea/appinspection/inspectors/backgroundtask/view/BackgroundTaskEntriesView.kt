@@ -23,7 +23,9 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.toChainInfo
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
@@ -71,6 +73,7 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     override fun actionPerformed(e: AnActionEvent) {
       val id = selectionModel.selectedWork?.id ?: return
       client.cancelWorkById(id)
+      client.tracker.trackWorkCancelled()
       if (contentMode == Mode.TABLE) {
         tableView.component.requestFocusInWindow()
       }
@@ -171,9 +174,12 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
         when (value) {
           Mode.TABLE -> {
             contentScrollPane.setViewportView(getContentView())
+            client.tracker.trackTableModeSelected()
           }
           Mode.GRAPH -> {
             contentScrollPane.setViewportView(getContentView())
+            client.tracker.trackGraphModeSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+                                                  client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo())
           }
         }
         contentScrollPane.revalidate()

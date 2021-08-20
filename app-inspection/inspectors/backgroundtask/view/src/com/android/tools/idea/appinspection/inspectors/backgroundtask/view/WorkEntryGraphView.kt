@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorColors.DEFAULT_WORK_BORDER_COLOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorColors.GRAPH_LABEL_BACKGROUND_COLOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorColors.SELECTED_WORK_BORDER_COLOR
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -181,6 +182,7 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
     label.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent?) {
         client.getEntry(work.id)?.let { nonNullEntry ->
+          client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT)
           selectionModel.selectedEntry = nonNullEntry
         }
       }

@@ -21,5 +21,7 @@ iml_module(
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",
         "//tools/adt/idea/codenavigation[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )

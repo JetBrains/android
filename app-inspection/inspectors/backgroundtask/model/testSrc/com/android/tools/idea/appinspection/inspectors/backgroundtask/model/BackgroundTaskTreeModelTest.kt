@@ -54,7 +54,7 @@ class BackgroundTaskTreeModelTest {
     workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
     client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                            WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope)
+                                           scope, StubBackgroundTaskInspectorTracker())
     model = BackgroundTaskTreeModel(client, scope, dispatcher)
   }
 

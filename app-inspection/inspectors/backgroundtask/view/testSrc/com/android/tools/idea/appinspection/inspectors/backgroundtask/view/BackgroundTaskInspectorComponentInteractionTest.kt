@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.StubBackgroundTaskInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
@@ -94,7 +95,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
       workMessenger = FakeAppInspectorMessenger(scope)
       client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                              WmiMessengerTarget.Resolved(workMessenger),
-                                             scope)
+                                             scope, StubBackgroundTaskInspectorTracker())
       tab = BackgroundTaskInspectorTab(client, AppInspectionIdeServicesAdapter(), IntellijUiComponentsProvider(projectRule.project), scope,
                                        uiDispatcher)
       tab.isDetailsViewVisible = true
