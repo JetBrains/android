@@ -324,6 +324,12 @@ public class MotionEditor extends JPanel {
   public void selectTag(MTag tag, int flags) {
     mFlags = flags;
     String tagName = tag != null ? tag.getTagName() : null;
+    if (tagName != null && tagName.equals("Transition")) {
+      if (mTransitionPanel.mTimeLinePanel.isPlaying()) {
+        return;
+      }
+      mTransitionPanel.mTimeLinePanel.resetMotionProgress();
+    }
     if (tag != null && tagName != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
       mLayoutPanel.clearSelection();
