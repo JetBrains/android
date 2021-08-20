@@ -42,6 +42,7 @@ iml_module(
     test_tags = [
         "no_test_windows",
     ],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/.idea/libraries:sqlite"],
     # do not sort: must match IML order
