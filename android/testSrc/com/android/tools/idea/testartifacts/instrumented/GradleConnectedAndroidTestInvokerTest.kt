@@ -24,12 +24,19 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.junit.Before
 import org.junit.Rule
@@ -40,11 +47,11 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyList
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
 import org.mockito.Mockito.nullable
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
-import org.mockito.quality.Strictness
 import java.util.concurrent.ExecutorService
 
 /**
@@ -53,7 +60,7 @@ import java.util.concurrent.ExecutorService
 @RunWith(JUnit4::class)
 class GradleConnectedAndroidTestInvokerTest {
   @get:Rule val projectRule = ProjectRule()
-  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule()
 
   @Mock lateinit var mockExecutor: Executor
   @Mock lateinit var mockHandler: ProcessHandler
@@ -64,6 +71,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   private lateinit var mockDevices: List<IDevice>
+  private lateinit var mockGradleTestResultAdapters: List<GradleTestResultAdapter>
 
   private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
 
@@ -83,10 +91,26 @@ class GradleConnectedAndroidTestInvokerTest {
         `when`(version).thenReturn(AndroidVersion(29))
       }
     }.toList()
+    mockGradleTestResultAdapters = (1..numDevices).map { deviceIndex ->
+      mock<GradleTestResultAdapter>().apply {
+        `when`(device).thenReturn(AndroidDevice(
+          id = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
+          deviceName = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
+          avdName = "avdName",
+          deviceType = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
+          version = AndroidVersion(29)
+        ))
+        `when`(iDevice).thenReturn(mockDevices[deviceIndex - 1])
+      }
+    }
     return  GradleConnectedAndroidTestInvoker(
       numDevices,
       backgroundTaskExecutor = directExecutor::submit,
-      gradleTaskManagerFactory = { mockGradleTaskManager })
+      gradleTaskManagerFactory = { mockGradleTaskManager },
+      gradleTestResultAdapterFactory = { iDevice, _, _, _ ->
+        mockGradleTestResultAdapters[mockDevices.indexOf(iDevice)]
+      },
+    )
   }
 
   @Test
@@ -375,5 +399,73 @@ class GradleConnectedAndroidTestInvokerTest {
       nullable(String::class.java),
       any()
     )
+  }
+
+  @Test
+  fun retryExecuteTaskAfterInstallationFailure() {
+    `when`(mockGradleTaskManager.executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )).then {
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
+      listener.onEnd(externalTaskId)
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker(numDevices = 2)
+
+    var attempt = 0
+    `when`(mockGradleTestResultAdapters[1].needRerunWithUninstallIncompatibleApkOption()).then {
+      attempt++
+      attempt == 1
+    }
+    `when`(mockGradleTestResultAdapters[1].showRerunWithUninstallIncompatibleApkOptionDialog(any(), any())).thenReturn(true)
+
+    mockDevices.forEach {
+      gradleConnectedTestInvoker.schedule(
+        projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+        waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+        it, RetentionConfiguration())
+    }
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    inOrder(mockGradleTaskManager, mockProcessHandler).apply {
+      verify(mockGradleTaskManager).executeTasks(
+        any(),
+        anyList(),
+        anyString(),
+        argThat {
+          it?.run {
+            !arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
+            env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
+          } ?: false
+        },
+        nullable(String::class.java),
+        any()
+      )
+      verify(mockGradleTaskManager).executeTasks(
+        any(),
+        anyList(),
+        anyString(),
+        argThat {
+          it?.run {
+            arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
+            env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_2"
+          } ?: false
+        },
+        nullable(String::class.java),
+        any()
+      )
+      verify(mockProcessHandler).detachProcess()
+      verifyNoMoreInteractions()
+    }
   }
 }

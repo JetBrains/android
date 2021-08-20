@@ -17,12 +17,14 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
@@ -39,10 +41,10 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.ui.AppUIUtil
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
-import java.lang.Exception
 import java.util.concurrent.Future
 
 /**
@@ -52,13 +54,19 @@ import java.util.concurrent.Future
  */
 class GradleConnectedAndroidTestInvoker(
   private val selectedDevices: Int,
+  private val uninstallIncompatibleApks: Boolean = false,
   private val backgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
-  private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() }
+  private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() },
+  private val gradleTestResultAdapterFactory: (IDevice, String, IdeAndroidArtifact?, AndroidTestResultListener) -> GradleTestResultAdapter
+  = { iDevice, testSuiteDisplayName, artifact, listener ->
+    GradleTestResultAdapter(iDevice, testSuiteDisplayName, artifact, listener)
+  },
 ) {
 
   companion object {
     const val RETENTION_ENABLE_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures"
     const val RETENTION_COMPRESS_SNAPSHOT_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.compressSnapshots"
+    const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
   }
 
   private val scheduledDeviceList: MutableList<IDevice> = mutableListOf()
@@ -111,10 +119,10 @@ class GradleConnectedAndroidTestInvoker(
     consolePrinter.stdout("Running tests\n")
 
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-    val adapters = scheduledDeviceList.map {
-      val adapter = GradleTestResultAdapter(it, taskId, androidModuleModel.artifactForAndroidTest, androidTestResultListener)
+    val adapters = scheduledDeviceList.associate {
+      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.artifactForAndroidTest, androidTestResultListener)
       adapter.device.id to adapter
-    }.toMap()
+    }
 
     val path: File = Projects.getBaseDirPath(project)
     val taskNames: List<String> = getTaskNames(androidModuleModel)
@@ -148,8 +156,47 @@ class GradleConnectedAndroidTestInvoker(
       override fun onEnd(id: ExternalSystemTaskId) {
         super.onEnd(id)
         outputLineProcessor.close()
-        processHandler.detachProcess()
         adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
+
+        // If there is an APK installation error due to incompatible APKs installed on device,
+        // display a popup and ask a user to rerun the Gradle task with UNINSTALL_INCOMPATIBLE_APKS
+        // option.
+        val rerunDevices = adapters.values.filter {
+          it.needRerunWithUninstallIncompatibleApkOption()
+        }
+        if (rerunDevices.isNotEmpty()) {
+          AppUIUtil.invokeOnEdt {
+            if (rerunDevices.first().showRerunWithUninstallIncompatibleApkOptionDialog(project)) {
+              val rerunInvoker = GradleConnectedAndroidTestInvoker(
+                rerunDevices.size,
+                uninstallIncompatibleApks = true,
+                backgroundTaskExecutor,
+                gradleTaskManagerFactory,
+                gradleTestResultAdapterFactory,
+              )
+              rerunDevices.forEach {
+                // rerunInvoker will call detachProcess() so we should not detach it in this if-branch.
+                rerunInvoker.schedule(
+                  project,
+                  taskId,
+                  processHandler,
+                  consolePrinter,
+                  androidModuleModel,
+                  waitForDebugger,
+                  testPackageName,
+                  testClassName,
+                  testMethodName,
+                  it.iDevice,
+                  retentionConfiguration
+                )
+              }
+            } else {
+              processHandler.detachProcess()
+            }
+          }
+        } else {
+          processHandler.detachProcess()
+        }
       }
     }
 
@@ -220,6 +267,10 @@ class GradleConnectedAndroidTestInvoker(
       // Enable debug flag for run with debugger.
       if (waitForDebugger) {
         withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
+      }
+
+      if (uninstallIncompatibleApks) {
+        withArgument("-P${UNINSTALL_INCOMPATIBLE_APKS_PROPERTY}=true")
       }
     }
   }
