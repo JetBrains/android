@@ -15,12 +15,12 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:sources",
-    "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-gradle-plugin.1.5.10",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/android/lib:sampleData",
     "//tools/adt/idea/android/testData:projects",
     "//tools/adt/idea/android/testData:snapshots",
     "//tools/adt/idea/artwork:device-art-resources",
+    "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.10",
 ]
 
 COMMON_MAVEN_DEPS = [
