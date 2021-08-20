@@ -63,6 +63,11 @@ interface ExternalAndroidLibrary {
     val resFolder: ResourceFolder?
 
     /**
+     * Path to the folder containing assets. Or null for libraries that contain no assets.
+     */
+    val assetsFolder: PathString?
+
+    /**
      * Path to the symbol file (`R.txt`) containing information necessary to generate the
      * non-namespaced R class for this library. Null if no such file exists.
      */
@@ -126,6 +131,11 @@ data class ExternalLibraryImpl(
      * for libraries that contain no resources.
      */
     override val resFolder: ResourceFolder? = null,
+
+    /**
+     * Path to the folder containing assets. Or null for libraries that contain no assets.
+     */
+    override val assetsFolder: PathString? = null,
 
   /**
      * Path to the symbol file (`R.txt`) containing information necessary to generate the
