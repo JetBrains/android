@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
@@ -25,10 +26,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -159,8 +157,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // Make sure the app module depends on the vector drawable library:
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(appModule);
-    assertTrue(GradleUtil.dependsOn(gradleModel, VECTOR_DRAWABLE_DEPENDENCY.getId()));
+    assertNotNull(getModuleSystem(appModule).getResolvedDependency(VECTOR_DRAWABLE_DEPENDENCY));
 
     // Now check that the vector drawable library is NOT an explicit dependency:
     List<GradleCoordinate> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
@@ -170,12 +167,12 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   }
 
   private boolean isRecyclerViewRegistered() {
-    return ProjectSystemUtil.getModuleSystem(TestModuleUtil.findAppModule(getProject()))
+    return getModuleSystem(TestModuleUtil.findAppModule(getProject()))
              .getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 
   private boolean isRecyclerViewResolved() {
-    return ProjectSystemUtil.getModuleSystem(TestModuleUtil.findAppModule(getProject()))
+    return getModuleSystem(TestModuleUtil.findAppModule(getProject()))
              .getResolvedDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 }
