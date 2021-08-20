@@ -102,7 +102,10 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
     if (abortDeleteRunnable == null) return
 
     try {
-      adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")
+      val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
+      if (app == process.name) {
+        adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")
+      }
     }
     catch (ex: Exception) {
       abortDeleteRunnable!!.stop()

@@ -120,4 +120,19 @@ class DebugViewAttributesTest {
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
+
+  @Test
+  fun testClearWhenAppIsSetToDifferentProcess() {
+    debugViewAttributes.set()
+    assertThat(commandHandler.debugViewAttributes).isNull()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+
+    commandHandler.debugViewAttributesApplicationPackage = "com.example.MyOtherApp"
+
+    debugViewAttributes.clear()
+    assertThat(commandHandler.debugViewAttributes).isNull()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo("com.example.MyOtherApp")
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+  }
 }
