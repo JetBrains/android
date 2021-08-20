@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -125,13 +126,31 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
 
   private void update(@NotNull MotionSceneTag.Root root, @Nullable String commandName) {
     WriteCommandAction.runWriteCommandAction(root.mProject, commandName, null, () -> {
+      boolean hasVerticalConstraint = false;
+      boolean hasHorizontalConstraint = false;
       CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
       CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
       for (String key : mNewAttrList.keySet()) {
         Attribute attr = mNewAttrList.get(key);
+        hasVerticalConstraint |= MotionSceneAttrs.VERTICAL_CONSTRAINT_ATTRS.contains(attr.mAttribute);
+        hasHorizontalConstraint |= MotionSceneAttrs.HORIZONTAL_CONSTRAINT_ATTRS.contains(attr.mAttribute);
         String namespace = MotionSceneAttrs.lookupName(attr);
         myXmlTag.setAttribute(attr.mAttribute, namespace, attr.mValue);
         mTag.getAttrList().put(attr.mAttribute, attr);
+      }
+      if (hasVerticalConstraint) {
+        myXmlTag.setAttribute(MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, SdkConstants.AUTO_URI, null);
+        Attribute a = new Attribute();
+        a.mAttribute = MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
+        a.mNamespace = SdkConstants.AUTO_URI;
+        mTag.getAttrList().put(MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, a);
+      }
+      if (hasHorizontalConstraint) {
+        myXmlTag.setAttribute(MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, SdkConstants.AUTO_URI, null);
+        Attribute a = new Attribute();
+        a.mAttribute = MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
+        a.mNamespace = SdkConstants.AUTO_URI;
+        mTag.getAttrList().put(MotionSceneAttrs.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, a);
       }
     }, root.mXmlFile, root.mModel.getFile());
 

@@ -502,6 +502,17 @@ public class TimeLinePanel extends JPanel {
     myPlaybackSpeedPopupMenu.show(mTimeLineTopLeft.mSlow, 0, 20);
   }
 
+  public boolean isPlaying() {
+    return mIsPlaying;
+  }
+
+  public void resetMotionProgress() {
+    mMotionProgress = 0;
+    notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, mMotionProgress);
+    notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
+    repaint();
+  }
+
   private void performCommand(TimelineCommands e, int mode) {
     watchdog();
     switch (e) {
@@ -613,8 +624,7 @@ public class TimeLinePanel extends JPanel {
           if (mDuration == 0) {
             mDuration = 1000;
           }
-          mCurrentSpeed = 2;
-          myProgressPerMillisecond = 1 / (float)mDuration;
+          myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed] / (float)mDuration;
         }
         catch (NumberFormatException e) {
         }
