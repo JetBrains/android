@@ -69,8 +69,8 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.io.File
 import java.util.HashSet
 import java.util.concurrent.TimeUnit
@@ -244,7 +244,7 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
   @Suppress("UnstableApiUsage")
-  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(SYSTEM_ID))
   return facet
 }
 
