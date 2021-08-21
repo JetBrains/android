@@ -24,6 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -87,7 +88,8 @@ class TopDownDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(Range(), emptyList(), capture) as CaptureDetails.TopDown
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, Range(), emptyList(), capture)
+      as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
     val noDataInstructions = TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -99,7 +101,8 @@ class TopDownDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(Range(), listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, Range(),
+                                                     listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                      capture) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
@@ -117,7 +120,8 @@ class TopDownDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
+                                                     listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                      capture) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
@@ -131,7 +135,8 @@ class TopDownDetailsViewTest {
   @Test
   fun rootIsHiddenOnInvalidNodeId() {
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(range, listOf(newNode("", 0, 10)), capture) as CaptureDetails.TopDown
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
+                                                     listOf(newNode("", 0, 10)), capture) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
     assertThat(tree.isRootVisible).isFalse()
@@ -140,7 +145,8 @@ class TopDownDetailsViewTest {
   @Test
   fun maintainsExpandedStateWhenRangeChanges() {
     val range = Range(capture.range)
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(ClockType.GLOBAL, range,
+                                                     listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                      capture) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()

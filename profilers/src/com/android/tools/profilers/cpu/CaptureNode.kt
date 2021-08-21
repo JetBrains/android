@@ -21,12 +21,17 @@ import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.filter.FilterResult
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.google.common.annotations.VisibleForTesting
 import java.util.PriorityQueue
 import java.util.function.Predicate
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
 
-open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
+open class CaptureNode(val data: CaptureNodeModel, var clockType: ClockType) : HNode<CaptureNode> {
+
+  @VisibleForTesting
+  constructor(data: CaptureNodeModel) : this(data, ClockType.GLOBAL) {}
+
   /**
    * Start time with GLOBAL clock.
    */
@@ -48,7 +53,6 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
   var endThread = 0L
   @JvmField
   protected val childrenList = mutableListOf<CaptureNode>()
-  var clockType = ClockType.GLOBAL
 
   /**
    * The parent of its child is set to it when it is added [.addChild]
@@ -222,11 +226,10 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
   /**
    * Return a copy of this node (same start, end, etc.) with custom data and empty children list
    */
-  private fun clonedWithData(data: CaptureNodeModel) = CaptureNode(data).also { clone ->
+  private fun clonedWithData(data: CaptureNodeModel) = CaptureNode(data, clockType).also { clone ->
     clone.copyFrom(this,
                    CaptureNode::startGlobal, CaptureNode::endGlobal,
-                   CaptureNode::startThread, CaptureNode::endThread,
-                   CaptureNode::clockType)
+                   CaptureNode::startThread, CaptureNode::endThread)
   }
 
   enum class FilterType {

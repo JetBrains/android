@@ -16,13 +16,14 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class TopDownTreeModel extends CpuTreeModel<TopDownNode> {
-  public TopDownTreeModel(@NotNull Range range, @NotNull TopDownNode node) {
-    super(range, node);
+  public TopDownTreeModel(@NotNull ClockType clockType, @NotNull Range range, @NotNull TopDownNode node) {
+    super(clockType, range, node);
   }
 
   @Override

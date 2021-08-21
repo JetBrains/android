@@ -111,7 +111,8 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
       .map(node -> node.applyFilter(filter))
       .reduce(FilterResult::combine)
       .orElse(FilterResult.EMPTY_RESULT);
-    return new CaptureDetailsWithFilterResult(myDetailsType.build(myCaptureConvertedRange, nodes, myCapture), combinedResult);
+    return new CaptureDetailsWithFilterResult(
+      myDetailsType.build(myClockType, myCaptureConvertedRange, nodes, myCapture), combinedResult);
   }
 
   @NotNull
@@ -173,7 +174,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
       setConvertedRange(selection);
       return;
     }
-    CaptureNode node = myCaptureNodesExtractor.apply(getDataSeries().get(0)).iterator().next();
+    CaptureNode node = findScalingNode();
     double convertedMin = node.getStartThread() + node.threadGlobalRatio() * (selection.getMin() - node.getStartGlobal());
     double convertedMax = convertedMin + node.threadGlobalRatio() * selection.getLength();
     setConvertedRange(new Range(convertedMin, convertedMax));
@@ -189,12 +190,39 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
       setSelectionRange(myCaptureConvertedRange);
       return;
     }
-    // Use the ratio of the first node.
-    CaptureNode node = myCaptureNodesExtractor.apply(getDataSeries().get(0)).iterator().next();
+    CaptureNode node = findScalingNode();
     double threadToGlobal = 1 / node.threadGlobalRatio();
     double convertedMin = node.getStartGlobal() + threadToGlobal * (myCaptureConvertedRange.getMin() - node.getStartThread());
     double convertedMax = convertedMin + threadToGlobal * myCaptureConvertedRange.getLength();
     setSelectionRange(new Range(convertedMin, convertedMax));
+  }
+
+  /**
+   * Each thread has its own ClockType.GLOBAL to ClockType.THREAD mapping, so it's flawed to one fixed ratio when
+   * there are multiple threads involved. As a best effort, we choose the one with the maximum threadGlobalRatio
+   * to cover every thread.
+   *
+   * For example, if the GLOBAL range is 0 to 10 seconds. Thread 1 runs for 2 seconds, implying a threadGlobalRatio
+   * of 0.2; Threads 2 runs for 5 seconds and its threadGlobalRatio is 0.5. updateCaptureConvertedRange() is
+   * being called for the entire GLOBAL range. If choosing Thread 1's ratio 0.2, the converted range would be
+   * 2 seconds in the context of thread time. It's shorter than Thread 2's 5 seconds, so some of Thread 2's data would
+   * NOT be considered selected even though the entire GLOBAL range is selected. If choosing Thread 2's ratio 0.5,
+   * the converted range would be 5 seconds of thread time and can fully cover data of the two threads.
+   *
+   * TODO: make the range translation respect each thread's nature.
+   *
+   * @return the Capture node that represents the thread should be used for scaling.
+   */
+  private CaptureNode findScalingNode() {
+    CaptureNode node = myCaptureNodesExtractor.apply(getDataSeries().get(0)).iterator().next();
+    double maxRatio = node.threadGlobalRatio();
+    for (CaptureNode n : myCaptureNodesExtractor.apply(getDataSeries().get(0))) {
+      if (n.threadGlobalRatio() > maxRatio) {
+        maxRatio = node.threadGlobalRatio();
+        node = n;
+      }
+    }
+    return node;
   }
 
   /**
@@ -216,7 +244,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
    * This prevents from updating each other in a loop.
    */
   private void setConvertedRange(Range range) {
-    if(!myCaptureConvertedRange.isSameAs(range)) {
+    if (!myCaptureConvertedRange.isSameAs(range)) {
       myCaptureConvertedRange.set(range);
     }
   }

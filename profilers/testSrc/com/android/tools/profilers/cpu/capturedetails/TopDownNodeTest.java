@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -98,13 +99,13 @@ public class TopDownNodeTest {
     root.addChild(newNode("E", 7, 9));
 
     TopDownNode topDown = new TopDownNode(root);
-    topDown.update(new Range(root.getStart(), root.getEnd()));
+    topDown.update(ClockType.GLOBAL, new Range(root.getStart(), root.getEnd()));
     for (TopDownNode child : topDown.getChildren()) {
-      child.update(new Range(root.getStart(), root.getEnd()));
+      child.update(ClockType.GLOBAL, new Range(root.getStart(), root.getEnd()));
     }
 
     assertEquals(10, topDown.getGlobalTotal(), 0);
-    assertEquals(6, topDown.getSelf(), 0);
+    assertEquals(6, topDown.getSelf(ClockType.GLOBAL), 0);
 
     topDown.reset();
     assertEquals(0, topDown.getGlobalTotal(), 0);
@@ -113,7 +114,7 @@ public class TopDownNodeTest {
   @Test
   public void testTreeData() {
     CaptureNodeModel rootModel = new JavaMethodModel("A", "com.package.Class");
-    TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
+    TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10, ClockType.GLOBAL));
 
     CaptureNodeModel model = topDown.getMethodModel();
     assertEquals(rootModel, topDown.getMethodModel());
@@ -125,18 +126,18 @@ public class TopDownNodeTest {
 
   @Test
   public void testThreadTime() {
-    CaptureNode root = newNode("A", 0, 10);
+    CaptureNode root = newNode(new SingleNameModel("A"), 0, 10, ClockType.THREAD);
     root.addChild(newNode("D", 3, 5));
     root.addChild(newNode("E", 7, 9));
 
     TopDownNode topDown = new TopDownNode(root);
-    topDown.update(new Range(root.getStart(), root.getEnd()));
+    topDown.update(ClockType.THREAD, new Range(root.getStart(), root.getEnd()));
     for (TopDownNode child : topDown.getChildren()) {
-      child.update(new Range(root.getStart(), root.getEnd()));
+      child.update(ClockType.THREAD, new Range(root.getStart(), root.getEnd()));
     }
 
     assertEquals(9, topDown.getThreadTotal(), 0);
-    assertEquals(6, topDown.getSelf(), 0);
+    assertEquals(7, topDown.getSelf(ClockType.THREAD), 0);
 
     topDown.reset();
     assertEquals(0, topDown.getThreadTotal(), 0);
@@ -176,11 +177,11 @@ public class TopDownNodeTest {
   }
 
   static CaptureNode newNode(String method, long start, long end) {
-    return newNode(new SingleNameModel(method), start, end);
+    return newNode(new SingleNameModel(method), start, end, ClockType.GLOBAL);
   }
 
-  static CaptureNode newNode(CaptureNodeModel method, long start, long end) {
-    CaptureNode node = new CaptureNode(method);
+  static CaptureNode newNode(CaptureNodeModel method, long start, long end, ClockType clockType) {
+    CaptureNode node = new CaptureNode(method, clockType);
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     node.setStartThread(start);

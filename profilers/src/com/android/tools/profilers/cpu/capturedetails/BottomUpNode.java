@@ -131,9 +131,10 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   }
 
   @Override
-  public void update(@NotNull Range range) {
+  public void update(@NotNull ClockType clockType, @NotNull Range range) {
     // how much time was spent in this call stack path, and in the functions it called
     myGlobalTotal = 0;
+    myThreadTotal = 0;
     // how much time was spent doing work directly in this call stack path
     double self = 0;
 
@@ -156,22 +157,25 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
           // |outerSoFarByParent| is at the top of the call stack
-          myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
+          myGlobalTotal += getIntersection(range, outerSoFar, clockType);
+          myThreadTotal += getIntersection(range, outerSoFar, clockType);
         }
         outerSoFarByParent.put(root, node);
       }
 
-      self += getIntersection(range, node, ClockType.GLOBAL);
+      self += getIntersection(range, node, clockType);
       for (CaptureNode child : node.getChildren()) {
-        self -= getIntersection(range, child, ClockType.GLOBAL);
+        self -= getIntersection(range, child, clockType);
       }
     }
 
     for(CaptureNode outerSoFar : outerSoFarByParent.values()) {
       // |outerSoFarByParent| is at the top of the call stack
-      myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
+      myGlobalTotal += getIntersection(range, outerSoFar, clockType);
+      myThreadTotal += getIntersection(range, outerSoFar, clockType);
     }
     myGlobalChildrenTotal = myGlobalTotal - self;
+    myThreadChildrenTotal = myThreadTotal - self;
   }
 
   @NotNull

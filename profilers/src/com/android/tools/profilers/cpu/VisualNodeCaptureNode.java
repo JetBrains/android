@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
  * when we want to rebase children visually but not destroy the data hierarchy.
  */
 public class VisualNodeCaptureNode extends CaptureNode {
-  public VisualNodeCaptureNode(@NotNull CaptureNodeModel model) {
-    super(model);
+  public VisualNodeCaptureNode(@NotNull CaptureNodeModel model, @NotNull ClockType clockType) {
+    super(model, clockType);
   }
   /**
    * By default {@link #addChild(CaptureNode)} is destructive. It rebases the parent of a child node. When creating

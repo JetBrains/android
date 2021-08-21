@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
@@ -147,7 +148,7 @@ public class CpuTreeSorterTest {
 
   private static CpuTreeModel createTreeModel(CaptureNode tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    return new TopDownTreeModel(range, new TopDownNode(tree));
+    return new TopDownTreeModel(ClockType.GLOBAL, range, new TopDownNode(tree));
   }
 
   /**

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.PathFilter;
 import com.google.common.annotations.VisibleForTesting;
@@ -202,7 +203,7 @@ public class SimpleperfTraceParser implements TraceParser {
 
   @NotNull
   private static CaptureNode createCaptureNode(CaptureNodeModel model, long timestamp) {
-    CaptureNode node = new CaptureNode(model);
+    CaptureNode node = new CaptureNode(model, ClockType.GLOBAL);
     setNodeStartTime(node, timestamp);
     node.setDepth(0);
     return node;

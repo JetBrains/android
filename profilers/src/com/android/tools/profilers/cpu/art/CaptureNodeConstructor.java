@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.art;
 
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.TraceAction;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -62,7 +63,7 @@ class CaptureNodeConstructor {
   }
 
   private void enterMethod(CaptureNodeModel captureNodeModel, int threadTime, int globalTime) {
-    CaptureNode node = new CaptureNode(captureNodeModel);
+    CaptureNode node = new CaptureNode(captureNodeModel, ClockType.GLOBAL);
     node.setStartGlobal(globalTime);
     node.setStartThread(threadTime);
 
@@ -90,7 +91,7 @@ class CaptureNodeConstructor {
     } else {
       // We are exiting out of a method that was entered into before tracing was started.
       // In such a case, create this method
-      CaptureNode node = new CaptureNode(captureNodeModel);
+      CaptureNode node = new CaptureNode(captureNodeModel, ClockType.GLOBAL);
       // All the previous nodes at the top level are now assumed to have been called from
       // this method. So mark this method as having called all of those methods, and reset
       // the top level to only include this method

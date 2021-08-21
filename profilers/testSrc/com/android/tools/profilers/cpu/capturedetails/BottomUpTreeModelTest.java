@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class BottomUpTreeModelTest {
   @Before
   public void setUp() {
     myRange = new Range(0, 40);
-    myModel = new BottomUpTreeModel(myRange, new BottomUpNode(BottomUpNodeTest.createComplexTree()));
+    myModel = new BottomUpTreeModel(ClockType.GLOBAL, myRange, new BottomUpNode(BottomUpNodeTest.createComplexTree()));
   }
 
   @Test

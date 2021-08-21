@@ -80,7 +80,7 @@ public class CaptureNodeTest {
   public void addChild() {
     CaptureNode realParent = new CaptureNode(new StubCaptureNodeModel());
     CaptureNode childA = new CaptureNode(new StubCaptureNodeModel());
-    VisualNodeCaptureNode visualParent = new VisualNodeCaptureNode(new StubCaptureNodeModel());
+    VisualNodeCaptureNode visualParent = new VisualNodeCaptureNode(new StubCaptureNodeModel(), ClockType.GLOBAL);
 
     realParent.addChild(childA);
 
