@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -25,8 +24,8 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl;
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -153,12 +152,5 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     ModuleDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
     assertSame(libModule, dependency.getModule());
-  }
-
-  public void testGetDependencyDisplayName() {
-    assertThat(getDependencyDisplayName("com.google.guava:guava:11.0.2")).isEqualTo("guava:11.0.2");
-    assertThat(getDependencyDisplayName("android.arch.lifecycle:extensions:1.0.0-beta1@aar")).isEqualTo("lifecycle:extensions:1.0.0-beta1");
-    assertThat(getDependencyDisplayName("com.android.support.test.espresso:espresso-core:3.0.1@aar")).isEqualTo("espresso-core:3.0.1");
-    assertThat(getDependencyDisplayName("foo:bar:1.0")).isEqualTo("foo:bar:1.0");
   }
 }
