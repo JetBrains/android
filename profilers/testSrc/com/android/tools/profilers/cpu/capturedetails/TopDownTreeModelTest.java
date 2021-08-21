@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Truth;
@@ -36,7 +37,7 @@ public class TopDownTreeModelTest {
     TopDownNode topDown = new TopDownNode(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    CpuTreeModel model = new TopDownTreeModel(range, topDown);
+    CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
 
     TreeNode root = (TreeNode)model.getRoot();
     assertEquals("A", getId(root));
@@ -108,11 +109,11 @@ public class TopDownTreeModelTest {
   public void testRootNodeIdValid() {
     TopDownNode topDown = new TopDownNode(newNode("", 0, 10));
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    CpuTreeModel model = new TopDownTreeModel(range, topDown);
+    CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
     Truth.assertThat(model.isRootNodeIdValid()).isFalse();
 
     topDown = new TopDownNode(newNode("Valid", 0, 10));
-    model = new TopDownTreeModel(range, topDown);
+    model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
     Truth.assertThat(model.isRootNodeIdValid()).isTrue();
   }
 
@@ -122,7 +123,7 @@ public class TopDownTreeModelTest {
     TopDownNode topDown = new TopDownNode(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    CpuTreeModel model = new TopDownTreeModel(range, topDown);
+    CpuTreeModel model = new TopDownTreeModel(ClockType.GLOBAL, range, topDown);
 
     AspectObserver observer = new AspectObserver();
     int[] treeModelChangeCount = new int[]{0};

@@ -208,7 +208,7 @@ public class CaptureModel {
         suggestedType = myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType();
       }
       List<CaptureNode> nodes = node == null ? Collections.emptyList() : Collections.singletonList(node);
-      myDetails = suggestedType.build(myCaptureConvertedRange, nodes, myCapture);
+      myDetails = suggestedType.build(myClockType, myCaptureConvertedRange, nodes, myCapture);
     }
     else {
       // If we don't have a capture clear the filter state and the details.

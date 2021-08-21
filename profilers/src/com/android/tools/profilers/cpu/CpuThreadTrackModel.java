@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisEventsTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
@@ -57,8 +58,10 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
                              @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
+    // CallChart always uses wall-clock time, a.k.a. ClockType.GLOBAL
     myCallChartModel =
-      new CaptureDetails.CallChart(timeline.getViewRange(), Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
+      new CaptureDetails.CallChart(ClockType.GLOBAL, timeline.getViewRange(),
+                                   Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
     myCapture = capture;
     myThreadInfo = threadInfo;
     myTimeline = timeline;

@@ -26,6 +26,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -91,7 +92,8 @@ class CallChartDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), listOf(capture.getCaptureNode(1)), capture) as CaptureDetails.CallChart
+    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(), listOf(capture.getCaptureNode(1)),
+                                                         capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
     val noDataInstructions = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -104,7 +106,8 @@ class CallChartDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(),
+                                                         listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                          capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
@@ -126,7 +129,7 @@ class CallChartDetailsViewTest {
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
     val aTraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
 
-    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
+    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                          listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)),
                                                          aTraceCapture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
@@ -138,7 +141,8 @@ class CallChartDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val callChart = CaptureDetails.Type.CALL_CHART.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, range,
+                                                         listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                          capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 

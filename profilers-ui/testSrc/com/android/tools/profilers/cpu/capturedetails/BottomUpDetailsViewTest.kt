@@ -24,6 +24,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -82,7 +83,8 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), emptyList(), capture) as CaptureDetails.BottomUp
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(), emptyList(),
+                                                       capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -95,7 +97,8 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
@@ -114,7 +117,8 @@ class BottomUpDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, range,
+                                                       listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                        capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import java.util.ArrayList;
@@ -271,15 +272,15 @@ public class BottomUpNodeTest {
     BottomUpNode node = new BottomUpNode(root);
 
     BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals("A")).findAny().orElseThrow(AssertionError::new);
-    nodeA.update(new Range(0, 100));
+    nodeA.update(ClockType.GLOBAL, new Range(0, 100));
     assertEquals(100, nodeA.getGlobalTotal(), EPS);
     assertEquals(61, nodeA.getGlobalChildrenTotal(), EPS);
 
-    nodeA.update(new Range(21, 40));
+    nodeA.update(ClockType.GLOBAL, new Range(21, 40));
     assertEquals(19, nodeA.getGlobalTotal(), EPS);
     assertEquals(16, nodeA.getGlobalChildrenTotal(), EPS);
 
-    nodeA.update(new Range(66, 71));
+    nodeA.update(ClockType.GLOBAL, new Range(66, 71));
     assertEquals(5, nodeA.getGlobalTotal(), EPS);
     assertEquals(1, nodeA.getGlobalChildrenTotal(), EPS);
   }
@@ -341,7 +342,7 @@ public class BottomUpNodeTest {
     traverse(new BottomUpNode(root), traverseOrder);
 
     Range viewRange = new Range(root.getStart(), root.getEnd());
-    traverseOrder.forEach(node -> node.update(viewRange));
+    traverseOrder.forEach(node -> node.update(ClockType.GLOBAL, viewRange));
     checkTraverseOrder(expectedNodes, traverseOrder);
   }
 

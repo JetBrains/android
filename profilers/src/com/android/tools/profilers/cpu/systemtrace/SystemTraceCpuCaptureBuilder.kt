@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
@@ -61,7 +62,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
     for (thread in mainProcessModel.getThreads()) {
       val threadInfo = CpuThreadSliceInfo(thread.id, thread.name, mainProcessModel.id, mainProcessModel.name)
-      val root = CaptureNode(nodeFactory.getNode(thread.name))
+      val root = CaptureNode(nodeFactory.getNode(thread.name), ClockType.GLOBAL)
       root.startGlobal = model.getCaptureStartTimestampUs()
       root.endGlobal = model.getCaptureEndTimestampUs()
       threadToCaptureNodeMap[threadInfo] = root
@@ -81,7 +82,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    * @return The [CaptureNode] that mirrors the [TraceEventModel] passed in.
    */
   private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int, nodeFactory: SystemTraceNodeFactory): CaptureNode {
-    val node = CaptureNode(nodeFactory.getNode(traceEventModel.name))
+    val node = CaptureNode(nodeFactory.getNode(traceEventModel.name), ClockType.GLOBAL)
     node.startGlobal = traceEventModel.startTimestampUs
     node.endGlobal = traceEventModel.endTimestampUs
     // Should we drop these thread times, as SystemTrace does not support dual clock?

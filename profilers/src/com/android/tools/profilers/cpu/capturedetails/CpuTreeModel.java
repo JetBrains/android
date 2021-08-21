@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,14 +39,16 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
     TREE_MODEL
   }
 
+  private final ClockType myClockType;
   private final Range myRange;
   private final Range myCurrentRange;
   private final AspectObserver myAspectObserver;
   private final AspectModel<Aspect> myAspectModel;
   private final boolean myIsRootNodeIdValid;
 
-  public CpuTreeModel(@NotNull Range range, @NotNull T node) {
+  public CpuTreeModel(@NotNull ClockType clockType, @NotNull Range range, @NotNull T node) {
     super(new DefaultMutableTreeNode(node));
+    myClockType = clockType;
     myIsRootNodeIdValid = !node.getId().isEmpty();
     myRange = range;
     myCurrentRange = new Range();
@@ -120,7 +123,7 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
           removeNodeFromParent(entry.getValue());
         }
       }
-      data.update(range);
+      data.update(myClockType, range);
       nodeChanged(node);
     }
   }
@@ -128,6 +131,11 @@ public abstract class CpuTreeModel<T extends CpuTreeNode<T>> extends DefaultTree
   @NotNull
   public Range getRange() {
     return myRange;
+  }
+
+  @NotNull
+  public ClockType getClockType() {
+    return myClockType;
   }
 
   public boolean isEmpty() {

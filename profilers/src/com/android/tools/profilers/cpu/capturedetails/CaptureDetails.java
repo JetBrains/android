@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
@@ -45,15 +46,20 @@ public abstract class CaptureDetails {
       myBuilder = builder;
     }
 
-    public CaptureDetails build(@NotNull Range range, @NotNull List<CaptureNode> node, @NotNull CpuCapture cpuCapture) {
-      return myBuilder.build(range, node, cpuCapture);
+    public CaptureDetails build(@NotNull ClockType clockType, @NotNull Range range, @NotNull List<CaptureNode> node,
+                                @NotNull CpuCapture cpuCapture) {
+      return myBuilder.build(clockType, range, node, cpuCapture);
     }
   }
 
   @NotNull
+  final ClockType myClockType;
+
+  @NotNull
   private final CpuCapture myCapture;
 
-  protected CaptureDetails(@NotNull CpuCapture cpuCapture) {
+  protected CaptureDetails(@NotNull ClockType clockType, @NotNull CpuCapture cpuCapture) {
+    myClockType = clockType;
     myCapture = cpuCapture;
   }
 
@@ -73,12 +79,14 @@ public abstract class CaptureDetails {
      *                     Note: This reparenting is done via the {@link VisualNodeCaptureNode} so no CaptureNode data is mutated.
      * @param cpuCapture The capture which the captureNodes were referenced from.
      */
-    CaptureDetails build(Range range, List<CaptureNode> captureNodes, CpuCapture cpuCapture);
+    CaptureDetails build(@NotNull ClockType clockType, Range range, List<CaptureNode> captureNodes,
+                         CpuCapture cpuCapture);
   }
 
   static abstract class ChartDetails extends CaptureDetails {
-    protected ChartDetails(@NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
+
+    protected ChartDetails(@NotNull ClockType clockType, @NotNull CpuCapture cpuCapture) {
+      super(clockType, cpuCapture);
     }
     @Nullable
     abstract CaptureNode getNode();
@@ -87,18 +95,25 @@ public abstract class CaptureDetails {
   public static class TopDown extends CaptureDetails {
     @Nullable private final TopDownTreeModel myModel;
 
-    TopDown(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
+    TopDown(@NotNull ClockType clockType, @NotNull Range range, @NotNull List<CaptureNode> nodes,
+            @NotNull CpuCapture cpuCapture) {
+      super(clockType, cpuCapture);
       if (nodes.isEmpty()) {
         myModel = null;
         return;
       }
       Range captureRange = cpuCapture.getRange();
-      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""), clockType);
       nodes.forEach(visual::addChild);
-      visual.setStartGlobal((long)captureRange.getMin());
-      visual.setEndGlobal((long)captureRange.getMax());
-      myModel = new TopDownTreeModel(range, new TopDownNode(visual));
+      Long minGlobal = nodes.stream().mapToLong(n -> n.getStartGlobal()).min().orElse((long)captureRange.getMin());
+      Long maxGlobal = nodes.stream().mapToLong(n -> n.getEndGlobal()).max().orElse((long)captureRange.getMax());
+      Long minThread = nodes.stream().mapToLong(n -> n.getStartThread()).min().orElse((long)captureRange.getMin());
+      Long maxThread = nodes.stream().mapToLong(n -> n.getEndThread()).max().orElse((long)captureRange.getMax());
+      visual.setStartGlobal(minGlobal);
+      visual.setEndGlobal(maxGlobal);
+      visual.setStartThread(minThread);
+      visual.setEndThread(maxThread);
+      myModel = new TopDownTreeModel(clockType, range, new TopDownNode(visual));
     }
 
     @Nullable
@@ -116,20 +131,27 @@ public abstract class CaptureDetails {
   public static class BottomUp extends CaptureDetails {
     @Nullable private BottomUpTreeModel myModel;
 
-    BottomUp(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
+    BottomUp(@NotNull ClockType clockType, @NotNull Range range, @NotNull List<CaptureNode> nodes,
+             @NotNull CpuCapture cpuCapture) {
+      super(clockType, cpuCapture);
       if (nodes.isEmpty()) {
         myModel = null;
         return;
       }
       Range captureRange = cpuCapture.getRange();
-      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""), clockType);
       nodes.forEach(visual::addChild);
-      visual.setStartGlobal((long)captureRange.getMin());
-      visual.setEndGlobal((long)captureRange.getMax());
+      Long minGlobal = nodes.stream().mapToLong(n -> n.getStartGlobal()).min().orElse((long)captureRange.getMin());
+      Long maxGlobal = nodes.stream().mapToLong(n -> n.getEndGlobal()).max().orElse((long)captureRange.getMax());
+      Long minThread = nodes.stream().mapToLong(n -> n.getStartThread()).min().orElse((long)captureRange.getMin());
+      Long maxThread = nodes.stream().mapToLong(n -> n.getEndThread()).max().orElse((long)captureRange.getMax());
+      visual.setStartGlobal(minGlobal);
+      visual.setEndGlobal(maxGlobal);
+      visual.setStartThread(minThread);
+      visual.setEndThread(maxThread);
       BottomUpNode buNode = new BottomUpNode(visual);
-      buNode.update(range);
-      myModel = new BottomUpTreeModel(range, buNode);
+      buNode.update(clockType, range);
+      myModel = new BottomUpTreeModel(clockType, range, buNode);
     }
 
     @Nullable
@@ -148,8 +170,9 @@ public abstract class CaptureDetails {
     @NotNull private final Range myRange;
     @Nullable private CaptureNode myNode;
 
-    public CallChart(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
+    public CallChart(@NotNull ClockType clockType, @NotNull Range range, @NotNull List<CaptureNode> nodes,
+                     @NotNull CpuCapture cpuCapture) {
+      super(clockType, cpuCapture);
       myRange = range;
       if (nodes.isEmpty()) {
         myNode = null;
@@ -193,8 +216,8 @@ public abstract class CaptureDetails {
     @NotNull private final Range mySelectionRange;
     @NotNull private final AspectModel<Aspect> myAspectModel;
 
-    FlameChart(@NotNull Range selectionRange, @NotNull List<CaptureNode> captureNodes, @NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
+    FlameChart(@NotNull ClockType clockType, @NotNull Range selectionRange, @NotNull List<CaptureNode> captureNodes, @NotNull CpuCapture cpuCapture) {
+      super(clockType, cpuCapture);
       mySelectionRange = selectionRange;
       myFlameRange = new Range();
       myAspectModel = new AspectModel<>();
@@ -204,15 +227,16 @@ public abstract class CaptureDetails {
         myTopDownNode = null;
         return;
       }
-      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
+      VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""), clockType);
       captureNodes.sort(Comparator.comparingLong(CaptureNode::getStartGlobal));
       captureNodes.forEach(visual::addChild);
       // This needs to be the start of the earliest node to have an accurate range for multi-selected items.
       visual.setStartGlobal(captureNodes.get(0).getStartGlobal());
+      visual.setStartThread(captureNodes.get(0).getStartThread());
 
       // Update the node to compute the total children time.
       myTopDownNode = new TopDownNode(visual);
-      myTopDownNode.update(new Range(0, Double.MAX_VALUE));
+      myTopDownNode.update(myClockType, new Range(0, Double.MAX_VALUE));
 
       // This gets mapped to the sum of all children. this makes an assumption that this node has 0 self time.
       // Because we are creating this node that is a valid assumption.
@@ -221,6 +245,7 @@ public abstract class CaptureDetails {
       // be accurate as when we compute the capture space to screen space calculations for the graph we need to know what
       // 100% is.
       visual.setEndGlobal(visual.getStartGlobal() + (long)myTopDownNode.getGlobalChildrenTotal());
+      visual.setEndThread(visual.getStartThread() + (long)myTopDownNode.getThreadChildrenTotal());
       selectionRange.addDependency(myAspectModel).onChange(Range.Aspect.RANGE, this::selectionRangeChanged);
       selectionRangeChanged();
     }
@@ -229,13 +254,13 @@ public abstract class CaptureDetails {
       assert myTopDownNode != null;
       // This range needs to account for the multiple children,
       // does it need to account for the merged children?
-      myTopDownNode.update(mySelectionRange);
+      myTopDownNode.update(myClockType, mySelectionRange);
       // If the new selection range intersects the root node, we should reconstruct the flame chart node.
       // Otherwise, clear the flame chart node and show an empty chart.
-      if (myTopDownNode.getGlobalTotal() > 0) {
+      if (myTopDownNode.getTotal(myClockType) > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
         myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
-        // The intersection check (root.getGlobalTotal() > 0) may be a false positive because the root's global total is the
+        // The intersection check (root.getTotal() > 0) may be a false positive because the root's global total is the
         // sum of all its children for the purpose of mapping a multi-node tree to flame chart space. Thus we need to look at
         // its children to find out the actual intersection.
         if (myFlameNode.getLastChild() != null) {
@@ -285,9 +310,9 @@ public abstract class CaptureDetails {
      * building a {@link TopDownNode} instance only on creation gives a performance improvement in every update.
      */
     private CaptureNode convertToFlameChart(@NotNull TopDownNode topDown, double start, int depth) {
-      assert topDown.getGlobalTotal() > 0;
+      assert topDown.getTotal(myClockType) > 0;
 
-      CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData());
+      CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData(), myClockType);
       node.setFilterType(topDown.getNodes().get(0).getFilterType());
       node.setStartGlobal((long)start);
       node.setStartThread((long)start);
@@ -297,7 +322,7 @@ public abstract class CaptureDetails {
       node.setDepth(depth);
 
       for (TopDownNode child : topDown.getChildren()) {
-        child.update(mySelectionRange);
+        child.update(myClockType, mySelectionRange);
       }
 
       List<TopDownNode> sortedChildren = new ArrayList<>(topDown.getChildren());
@@ -306,16 +331,16 @@ public abstract class CaptureDetails {
       // List#sort api is stable, i.e it keeps order of the appearance if sorting arguments are equal.
       sortedChildren.sort((o1, o2) -> {
         int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
-        return cmp == 0 ? Double.compare(o2.getGlobalTotal(), o1.getGlobalTotal()) : cmp;
+        return cmp == 0 ? Double.compare(o2.getTotal(myClockType), o1.getTotal(myClockType)) : cmp;
       });
 
       for (TopDownNode child : sortedChildren) {
-        if (child.getGlobalTotal() == 0) {
+        if (child.getTotal(myClockType) == 0) {
           // Sorted in descending order, so starting from now every child's total is zero.
           continue;
         }
         node.addChild(convertToFlameChart(child, start, depth + 1));
-        start += child.getGlobalTotal();
+        start += child.getTotal(myClockType);
       }
 
       return node;
