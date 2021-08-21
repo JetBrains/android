@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplayName;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 

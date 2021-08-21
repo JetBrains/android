@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post
 
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration

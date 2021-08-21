@@ -37,6 +37,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.get
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -50,8 +51,6 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -60,10 +59,8 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
@@ -847,5 +844,41 @@ public final class GradleUtil {
       return gradleProjectPath + taskName;
     }
     return gradleProjectPath + GRADLE_PATH_SEPARATOR + taskName;
+  }
+
+  /**
+   * Computes a library name intended for display purposes; names may not be unique
+   * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
+   * it will include the last component of the group id (unless identical to the artifact id).
+   * <p>
+   * E.g.
+   * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
+   * android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
+   * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
+   */
+  @NotNull
+  public static String getDependencyDisplayName(@NotNull String artifactAddress) {
+    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
+    if (coordinates != null) {
+      String name = coordinates.getArtifactId();
+
+      // For something like android.arch.lifecycle:runtime, instead of just showing "runtime",
+      // we show "lifecycle:runtime"
+      if (!name.contains("-")) {
+        String groupId = coordinates.getGroupId();
+        int index = groupId.lastIndexOf('.'); // okay if it doesn't exist
+        String groupSuffix = groupId.substring(index + 1);
+        if (!groupSuffix.equals(name)) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
+          name = groupSuffix + ":" + name;
+        }
+      }
+
+      GradleVersion version = coordinates.getVersion();
+      if (version != null && !"unspecified".equals(version.toString())) {
+        name += ":" + version;
+      }
+      return name;
+    }
+    return trimLeading(artifactAddress, ':');
   }
 }
