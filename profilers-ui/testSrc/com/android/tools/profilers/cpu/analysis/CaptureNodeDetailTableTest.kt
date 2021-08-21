@@ -38,7 +38,7 @@ class CaptureNodeDetailTableTest {
     assertThat(table.getColumnName(0)).isEqualTo("Start Time")
     assertThat(table.getColumnName(1)).isEqualTo("Name")
     assertThat(table.getColumnName(2)).isEqualTo("Wall Duration")
-    assertThat(table.getColumnName(3)).isEqualTo("Self Time")
+    assertThat(table.getColumnName(3)).isEqualTo("Wall Self Time")
     assertThat(table.getColumnName(4)).isEqualTo("CPU Duration")
     assertThat(table.getColumnName(5)).isEqualTo("CPU Self Time")
     assertThat(table.getValueAt(0, 0)).isEqualTo(0)

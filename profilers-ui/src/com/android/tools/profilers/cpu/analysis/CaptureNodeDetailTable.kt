@@ -81,7 +81,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
       columnModel.getColumn(Column.NAME.ordinal).cellRenderer = CustomBorderTableCellRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
-      columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
+      columnModel.getColumn(Column.WALL_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
 
@@ -194,7 +194,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
         return compareBy { it.node.endGlobal - it.node.startGlobal }
       }
     },
-    SELF_TIME("Self Time", java.lang.Long::class.java) {
+    WALL_SELF_TIME("Wall Self Time", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.selfGlobal
       }
