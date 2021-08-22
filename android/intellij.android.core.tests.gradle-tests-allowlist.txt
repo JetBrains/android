@@ -157,7 +157,6 @@ com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProduc
 com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestRunnerTest
 com.android.tools.idea.testartifacts.scopes.AndroidTestAndGradleConfigurationConflictsTest
-com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopesTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopesRoomTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactsFindUsageTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactsRenameTest
