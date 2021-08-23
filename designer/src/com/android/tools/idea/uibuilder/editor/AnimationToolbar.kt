@@ -29,6 +29,10 @@ import icons.StudioIcons
 import java.awt.FlowLayout
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
@@ -41,10 +45,13 @@ import javax.swing.JSeparator
 import javax.swing.SwingConstants
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
+import kotlin.math.roundToLong
 
 internal const val DEFAULT_PLAY_TOOLTIP = "Play"
 internal const val DEFAULT_PAUSE_TOOLTIP = "Pause"
 internal const val DEFAULT_STOP_TOOLTIP = "Reset"
+internal const val DEFAULT_SPEED_CONTROL_TOOLTIP = "Speed control"
+internal const val NO_ANIMATION_TOOLTIP = "There is no animation to play"
 
 /**
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
@@ -77,6 +84,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    */
   private val myFrameControl: JSlider
   private var myTimeSliderModel: DefaultBoundedRangeModel? = null
+  protected val speedControlButton: ActionButton
 
   /**
    * The progress bar to indicate the current progress of animation. User can also click/drag the indicator to set the progress.
@@ -84,6 +92,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   protected var myTimeSlider: JSlider? = null
   private var myTimeSliderChangeModel: ChangeListener? = null
   private var myMaxTimeMs: Long
+  private var currentSpeedFactor: Double = PlaySpeed.x1.speedFactor
   private var myLoopEnabled = true
 
   /**
@@ -128,21 +137,20 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   /**
    * Set the enabled states of all the toolbar controls
    */
-  protected fun setEnabledState(play: Boolean, pause: Boolean, stop: Boolean, frame: Boolean) {
+  protected fun setEnabledState(play: Boolean, pause: Boolean, stop: Boolean, frame: Boolean, speed: Boolean) {
     myPlayButton.isEnabled = play
     myPauseButton.isEnabled = pause
     myStopButton.isEnabled = stop
     myFrameControl.isEnabled = frame
+    speedControlButton.isEnabled = speed
   }
 
   /**
    * Set the visibilities of all the toolbar controls
    */
-  protected fun setVisibilityState(play: Boolean, pause: Boolean, stop: Boolean, frame: Boolean) {
-    myPlayButton.isVisible = play
-    myPauseButton.isVisible = pause
-    myStopButton.isVisible = stop
-    myFrameControl.isVisible = frame
+  protected fun setPlayButtonStatus(playing: Boolean) {
+    myPlayButton.isVisible = !playing
+    myPauseButton.isVisible = playing
   }
 
   /**
@@ -164,7 +172,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         val now = System.currentTimeMillis()
         val elapsed = now - myLastTickMs
         myLastTickMs = now
-        onTick(elapsed)
+        onTick((elapsed * currentSpeedFactor).roundToLong())
         if (myMaxTimeMs != -1L && myFramePositionMs >= myMaxTimeMs) {
           myTicker?.cancel(false)
           myTicker = null
@@ -313,7 +321,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP,
       AnimationToolbarAction.PAUSE
     ) { pause() }
-    myPauseButton.isEnabled = true
+    myPauseButton.isEnabled = false
+    myPauseButton.isVisible = false
     // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
     myStopButton = newControlButton(
       StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
@@ -324,10 +333,12 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         setUI(DesignSurfaceToolbarUI())
       }
     }
+    speedControlButton = createPlaySpeedActionButton { currentSpeedFactor = it }
     val buttonsPanel = Box.createHorizontalBox()
     buttonsPanel.add(myStopButton)
     buttonsPanel.add(myPlayButton)
     buttonsPanel.add(myPauseButton)
+    buttonsPanel.add(speedControlButton)
     controlBar.add(buttonsPanel)
     if (isUnlimitedAnimationToolbar) {
       myTimeSlider = null
@@ -387,20 +398,20 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     override fun onPlayStatusChanged(newStatus: PlayStatus) {
       when (newStatus) {
         PlayStatus.PLAY -> {
-          setEnabledState(play = false, pause = true, stop = true, frame = false)
-          setVisibilityState(play = false, pause = true, stop = true, frame = true)
+          setEnabledState(play = false, pause = true, stop = true, frame = false, speed = true)
+          setPlayButtonStatus(true)
         }
         PlayStatus.PAUSE -> {
-          setEnabledState(play = true, pause = false, stop = true, frame = true)
-          setVisibilityState(play = true, pause = false, stop = true, frame = true)
+          setEnabledState(play = true, pause = false, stop = true, frame = true, speed = true)
+          setPlayButtonStatus(false)
         }
         PlayStatus.STOP -> {
-          setEnabledState(play = true, pause = false, stop = false, frame = false)
-          setVisibilityState(play = true, pause = false, stop = true, frame = true)
+          setEnabledState(play = true, pause = false, stop = false, frame = false, speed = true)
+          setPlayButtonStatus(false)
         }
         PlayStatus.COMPLETE -> {
-          setVisibilityState(play = false, pause = true, stop = true, frame = true)
-          setEnabledState(play = false, pause = false, stop = true, frame = true)
+          setEnabledState(play = false, pause = false, stop = true, frame = true, speed = true)
+          setPlayButtonStatus(true)
         }
       }
     }
@@ -416,4 +427,15 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       }
     }
   }
+}
+
+private fun createPlaySpeedActionButton(callback: (Double) -> Unit): ActionButton {
+  val action = AnimationSpeedActionGroup(callback)
+  val presentation = PresentationFactory().getPresentation(action)
+  val button = ActionButton(action, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  button.addPropertyChangeListener("enabled") {
+    presentation.description = if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
+    button.update()
+  }
+  return button
 }

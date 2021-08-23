@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.runInEdtAndGet
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -30,8 +31,9 @@ class AnimationToolbarTest {
 
   @Test
   fun testControlFunctions() {
-    val toolbar = AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER,
-                                                                     10L, 0L)
+    val toolbar = runInEdtAndGet {
+      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
+    }
     val listener = MockitoKt.mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
 
@@ -55,8 +57,9 @@ class AnimationToolbarTest {
   @Test
   fun testAnimationComplete() {
     // Set animation length as 2 second.
-    val toolbar = AnimationToolbar.createAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER,
-                                                          10L, 0L, 2 * 1000L)
+    val toolbar = runInEdtAndGet {
+      AnimationToolbar.createAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L, 2 * 1000L)
+    }
     toolbar.setLooping(false)
     val listener = MockitoKt.mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
@@ -66,7 +69,7 @@ class AnimationToolbarTest {
     assertEquals(PlayStatus.PLAY, toolbar.getPlayStatus())
 
     // Wait for animation complete. Wait for 5 seconds in case of race condition.
-    Mockito.verify(listener, Mockito.after(5 * 1000)).onPlayStatusChanged(PlayStatus.COMPLETE)
+    Mockito.verify(listener, Mockito.after(5 * 1000L)).onPlayStatusChanged(PlayStatus.COMPLETE)
     assertEquals(PlayStatus.COMPLETE, toolbar.getPlayStatus())
   }
 }
