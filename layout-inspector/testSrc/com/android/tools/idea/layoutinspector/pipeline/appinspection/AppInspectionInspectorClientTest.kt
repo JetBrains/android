@@ -15,14 +15,38 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
+import com.android.repository.Revision
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.RemotePackage
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.impl.meta.TypeDetails
+import com.android.repository.testframework.FakePackage
+import com.android.repository.testframework.FakeRepoManager
+import com.android.repository.testframework.MockFileOp
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.repository.IdDisplay
+import com.android.sdklib.repository.targets.SystemImage
+import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
+import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
+import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.testutils.file.someRoot
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -39,8 +63,10 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED
@@ -48,8 +74,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.verify
+import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
@@ -241,7 +270,6 @@ class AppInspectionInspectorClientTest {
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerErrorCallback { error.complete(it) }
     }
-
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
   }
@@ -461,6 +489,155 @@ class AppInspectionInspectorClientTest {
 
     assertThat(banner.text.text).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+  }
+}
+
+class AppInspectionInspectorClientWithUnsupportedApi29 {
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val adbRule = FakeAdbRule()
+
+  @Test
+  fun testApi29VersionBanner() = runBlocking {
+    val processDescriptor = setUpDevice(29)
+    val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
+
+    checkBannerForTag(processDescriptor, sdkRoot, DEFAULT_TAG, MIN_API_29_AOSP_SYSIMG_REV, true)
+    checkBannerForTag(processDescriptor, sdkRoot, GOOGLE_APIS_TAG, MIN_API_29_GOOGLE_APIS_SYSIMG_REV, true)
+    checkBannerForTag(processDescriptor, sdkRoot, PLAY_STORE_TAG, 999, false)
+
+    // Set up an API 30 device and the inspector should be created successfully
+    val processDescriptor2 = setUpDevice(30)
+
+    val sdkPackage = setUpSdkPackage(sdkRoot, 1, 30, null, false) as LocalPackage
+    val avdInfo = setUpAvd(sdkPackage, null, 30)
+    val packages = RepositoryPackages(listOf(sdkPackage), listOf())
+    val sdkHandler = AndroidSdkHandler(sdkRoot, null, MockFileOp(sdkRoot.fileSystem), FakeRepoManager(sdkRoot, packages))
+    val banner = InspectorBanner(projectRule.project)
+    assertThat(banner.isVisible).isFalse()
+
+    setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
+      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor2, model(projectRule.project) {}, mock(),
+                                                disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      // shouldn't get an exception
+      client.connect()
+    })
+
+  }
+
+  private suspend fun checkBannerForTag(
+    processDescriptor: ProcessDescriptor,
+    sdkRoot: Path,
+    tag: IdDisplay?,
+    minRevision: Int,
+    checkUpdate: Boolean
+  ) {
+    // Set up an AOSP api 29 device below the required system image revision, with no update available
+    val sdkPackage = setUpSdkPackage(sdkRoot, minRevision - 1, 29, tag, false) as LocalPackage
+    val avdInfo = setUpAvd(sdkPackage, tag, 29)
+    val packages = RepositoryPackages(listOf(sdkPackage), listOf())
+    val sdkHandler = AndroidSdkHandler(sdkRoot, null, MockFileOp(sdkRoot.fileSystem), FakeRepoManager(sdkRoot, packages))
+    val banner = InspectorBanner(projectRule.project)
+    assertThat(banner.isVisible).isFalse()
+
+    setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
+      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, model(projectRule.project) {}, mock(),
+                                                disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      assertFailsWith<ConnectionFailedException> { client.connect() }
+      assertThat(banner.isVisible).isTrue()
+      assertThat(banner.text.text).isEqualTo(API_29_BUG_MESSAGE)
+    })
+    banner.isVisible = false
+
+    if (!checkUpdate) {
+      return
+    }
+
+    // Now there is an update available
+    val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
+    packages.setRemotePkgInfos(listOf(remotePackage))
+    setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
+      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, model(projectRule.project) {}, mock(),
+                                                disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      assertFailsWith<ConnectionFailedException> { client.connect() }
+      assertThat(banner.isVisible).isTrue()
+      assertThat(banner.text.text).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
+    })
+    banner.isVisible = false
+  }
+
+  private suspend fun setUpAvdManagerAndRun(sdkHandler: AndroidSdkHandler, avdInfo: AvdInfo, body: suspend () -> Unit) {
+    val connection = object : AvdManagerConnection(sdkHandler, sdkHandler.fileOp.fileSystem.someRoot.resolve("android/avds"),
+                                                   MoreExecutors.newDirectExecutorService()) {
+      fun setFactory() {
+        setConnectionFactory { _, _ -> this }
+      }
+
+      override fun findAvd(avdId: String) = if (avdId == avdInfo.name) avdInfo else null
+
+      fun resetFactory() {
+        resetConnectionFactory()
+      }
+    }
+    try {
+      connection.setFactory()
+      body()
+    }
+    finally {
+      connection.resetFactory()
+    }
+  }
+
+  private fun setUpAvd(sdkPackage: LocalPackage, tag: IdDisplay?, apiLevel: Int): AvdInfo {
+    val systemImage = SystemImage(sdkPackage.location, tag, null, "x86", arrayOf(), sdkPackage)
+    val properties = mutableMapOf<String, String>()
+    if (tag != null) {
+      properties[AvdManager.AVD_INI_TAG_ID] = tag.id
+      properties[AvdManager.AVD_INI_TAG_DISPLAY] = tag.display
+    }
+    return AvdInfo("myAvd-$apiLevel", File("myIni"), "/android/avds/myAvd-$apiLevel", systemImage, properties)
+  }
+
+  private fun setUpSdkPackage(sdkRoot: Path, revision: Int, apiLevel: Int, tag: IdDisplay?, isRemote: Boolean): FakePackage {
+    val sdkPackage =
+      if (isRemote) FakePackage.FakeRemotePackage("mySysImg-$apiLevel")
+      else FakePackage.FakeLocalPackage("mySysImg-$apiLevel", sdkRoot.resolve("mySysImg"))
+    sdkPackage.setRevision(Revision(revision))
+    val packageDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
+    packageDetails.apiLevel = apiLevel
+    tag?.let { packageDetails.tags.add(it) }
+    sdkPackage.typeDetails = packageDetails as TypeDetails
+    return sdkPackage
+  }
+
+  private fun setUpDevice(apiLevel: Int): ProcessDescriptor {
+    val processDescriptor = object : ProcessDescriptor {
+      override val device = object: DeviceDescriptor {
+        override val manufacturer = "mfg"
+        override val model = "model"
+        override val serial = "emulator-$apiLevel"
+        override val isEmulator = true
+        override val apiLevel = apiLevel
+        override val version = "10.0.0"
+        override val codename: String? = null
+      }
+      override val abiCpuArch = "x86_64"
+      override val name = "my name"
+      override val isRunning = true
+      override val pid = 1234
+      override val streamId = 4321L
+    }
+
+    adbRule.attachDevice(processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
+                         processDescriptor.device.version, processDescriptor.device.apiLevel.toString(),
+                         DeviceState.HostConnectionType.LOCAL, "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel")
+
+    return processDescriptor
   }
 }
 

@@ -17,9 +17,16 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.repository.Revision
+import com.android.repository.api.RepoManager
+import com.android.repository.api.RepoPackage
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -37,10 +44,20 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.progress.StudioProgressRunner
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -51,6 +68,16 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import java.util.EnumSet
 
+
+@com.google.common.annotations.VisibleForTesting
+const val API_29_BUG_MESSAGE = "Live Inspection not available on this system image revision."
+@com.google.common.annotations.VisibleForTesting
+const val API_29_BUG_UPGRADE = "Please update to the latest revision."
+@com.google.common.annotations.VisibleForTesting
+const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
+@com.google.common.annotations.VisibleForTesting
+const val MIN_API_29_AOSP_SYSIMG_REV = 8
+
 /**
  * An [InspectorClient] that talks to an app-inspection based inspector running on a target device.
  *
@@ -60,13 +87,14 @@ import java.util.EnumSet
  *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
-  adb: AndroidDebugBridge,
+  private val adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
   private val stats: SessionStatistics,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
+  @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 ) : AbstractInspectorClient(process, parentDisposable) {
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
@@ -119,6 +147,8 @@ class AppInspectionInspectorClient(
     get() = InspectorClientSettings.isCapturingModeOn
 
   override fun doConnect(): ListenableFuture<Nothing> {
+    checkApi29Version(process, model.project, adb, sdkHandler)
+
     val future = SettableFuture.create<Nothing>()
 
     val exceptionHandler = CoroutineExceptionHandler { ctx, t ->
@@ -223,6 +253,79 @@ class AppInspectionInspectorClient(
     val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
+
+  private fun checkApi29Version(
+    process: ProcessDescriptor,
+    project: Project,
+    adb: AndroidDebugBridge,
+    sdkHandler: AndroidSdkHandler
+  ) {
+    val (success, image) = checkSystemImageForAppInspectionCompatibility(process, adb, sdkHandler)
+    if (success || image == null) {
+      return
+    }
+
+    val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
+
+    val bannerService = InspectorBannerService.getInstance(project)
+    if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
+      val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
+      val showBanner = RepoManager.RepoLoadedListener { packages ->
+        val message: String
+        val actions: List<AnAction>
+        val remote = packages.consolidatedPkgs[image.path]?.remote
+        if (remote != null &&
+            ((tags.contains(SystemImage.GOOGLE_APIS_TAG) && remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+             (tags.contains(SystemImage.DEFAULT_TAG) && remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))) {
+          message = "$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE"
+          actions = listOf(object : AnAction("Download Update") {
+            override fun actionPerformed(e: AnActionEvent) {
+              if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
+                Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
+              }
+            }
+          }, bannerService.DISMISS_ACTION)
+        }
+        else {
+          message = API_29_BUG_MESSAGE
+          actions = listOf(bannerService.DISMISS_ACTION)
+        }
+        bannerService.setNotification(message, actions)
+      }
+      sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
+                                            StudioProgressRunner(false, false, "Checking available system images", null),
+                                            StudioDownloader(), StudioSettingsController.getInstance())
+    }
+    else {
+      bannerService.setNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
+    }
+    throw ConnectionFailedException("Unsupported system image revision")
+  }
+}
+
+/**
+ * Check whether the current target's system image is compatible with app inspection.
+ */
+fun checkSystemImageForAppInspectionCompatibility(
+  process: ProcessDescriptor,
+  adb: AndroidDebugBridge,
+  sdkHandler: AndroidSdkHandler
+): Pair<Boolean, RepoPackage?> {
+  if (process.device.isEmulator && process.device.apiLevel == 29) {
+    val avdName = adb.devices.find { it.serialNumber == process.device.serial }?.avdName
+    val avd = avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
+    val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
+    if (imagePackage != null) {
+      if ((SystemImage.GOOGLE_APIS_TAG == avd.tag && imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+          (SystemImage.DEFAULT_TAG == avd.tag && imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
+           // We don't know when the play store images will be updated yet
+           SystemImage.PLAY_STORE_TAG == avd.tag)
+      ) {
+        return Pair(false, imagePackage)
+      }
+    }
+  }
+  return Pair(true, null)
 }
 
 class ConnectionFailedException(message: String): Exception(message)
