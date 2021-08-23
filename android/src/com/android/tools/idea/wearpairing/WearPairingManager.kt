@@ -44,10 +44,8 @@ import com.intellij.util.net.NetUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.util.AndroidBundle.message
 
 private val LOG get() = logger<WearPairingManager>()
@@ -67,6 +65,50 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   )
 
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
+
+  internal fun loadSettings(pairedDevices: List<PairingDeviceState>, pairedDeviceConnections: List<PairingConnectionsState>) {
+    pairedDevicesTable.clear()
+    val deviceMap = pairedDevices.associateBy { it.deviceID }
+
+    pairedDeviceConnections.forEach { connection ->
+      // Note: At the moment we only support one phone connected to one wear
+      assert(connection.wearDeviceIds.size == 1) {"At the moment one phone connected to one wear is supported"}
+      val phoneId = connection.phoneId
+      val wearId = connection.wearDeviceIds[0]
+      val phoneWearPair = PhoneWearPair(
+        phone = deviceMap[phoneId]!!.toPairingDevice(ConnectionState.DISCONNECTED),
+        wear = deviceMap[wearId]!!.toPairingDevice(ConnectionState.DISCONNECTED),
+        allDevicesOnline = false,
+        hostPort = 0
+      )
+      pairedDevicesTable[phoneId] = phoneWearPair
+      pairedDevicesTable[wearId] = phoneWearPair
+    }
+  }
+
+  private fun saveSettings() {
+    val pairedDevicesState = mutableListOf<PairingDeviceState>()
+    val pairedDeviceConnectionsState = ArrayList<PairingConnectionsState>()
+
+    pairedDevicesTable.forEach { (key, value) ->
+      // Only save values where the key is a phone (other entries are just for performance)
+      if (key == value.phone.deviceID) {
+        pairedDevicesState.add(value.phone.toPairingDeviceState())
+        pairedDevicesState.add(value.wear.toPairingDeviceState())
+        pairedDeviceConnectionsState.add(
+          PairingConnectionsState().apply {
+            phoneId = value.phone.deviceID
+            wearDeviceIds.add(value.wear.deviceID)
+          }
+        )
+      }
+    }
+
+    WearPairingSettings.getInstance().let {
+      it.pairedDevicesState = pairedDevicesState
+      it.pairedDeviceConnectionsState = pairedDeviceConnectionsState
+    }
+  }
 
   @Synchronized
   fun setDeviceListListener(model: WearDevicePairingModel,
@@ -109,6 +151,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
     pairedDevicesTable[phone.deviceID] = phoneWearPair
     pairedDevicesTable[wear.deviceID] = phoneWearPair
+    saveSettings()
 
     if (connect) {
       phoneDevice.runCatching { createForward(hostPort, 5601) }
@@ -127,6 +170,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
       pairedDevicesTable.remove(phoneDeviceID)
       pairedDevicesTable.remove(wearDeviceID)
+      saveSettings()
 
       val connectedDevices = getConnectedDevices()
       connectedDevices[phoneDeviceID]?.apply {
@@ -188,7 +232,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     val connectedDevices = getConnectedDevices()
     connectedDevices.forEach { (deviceID, iDevice) ->
       val avdDevice = deviceTable[deviceID]
-      // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR, etc), so we only check for physical devices
+      // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR, etc.), so we only check for physical devices
       if (iDevice.isPhysicalPhone() || avdDevice != null) {
         deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = avdDevice)
       }
@@ -228,7 +272,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     val bothDeviceOnline = onlinePhone != null && onlineWear != null
     try {
       if (bothDeviceOnline && !phoneWearPair.allDevicesOnline) {
-        // Both device are online, and before one (or both) were offline. Time to bridge
+        // Both devices are online, and before one (or both) were offline. Time to bridge
         createPairedDeviceBridge(phoneWearPair.phone, onlinePhone!!, phoneWearPair.wear, onlineWear!!)
         showReconnectMessageBalloon(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
       }
