@@ -41,3 +41,32 @@ iml_module(
         "//tools/adt/idea/codenavigation[module]",
     ],
 )
+
+# managed by go/iml_to_build
+iml_module(
+    name = "app-inspection.inspectors.backgroundtask.view.tests",
+    iml_files = ["app-inspection.inspectors.backgroundtask.view.tests.iml"],
+    test_class = "com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorViewTestSuite",
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:app-inspection.inspectors.backgroundtask.model[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:app-inspection.inspectors.backgroundtask.view[module, test]",
+        "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module, test]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto[test]",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+    ],
+)
