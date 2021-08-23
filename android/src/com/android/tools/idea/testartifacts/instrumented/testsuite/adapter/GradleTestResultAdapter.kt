@@ -160,7 +160,6 @@ class GradleTestResultAdapter(
       onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.getDefaultInstance())
     }
     myTestSuite.result = testSuiteResult.testStatus.toAndroidTestSuiteResult()
-    listener.onTestSuiteFinished(device, myTestSuite)
   }
 
   /**

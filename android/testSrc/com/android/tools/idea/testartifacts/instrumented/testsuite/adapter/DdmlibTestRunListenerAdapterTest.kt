@@ -412,6 +412,7 @@ class DdmlibTestRunListenerAdapterTest {
 
       override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {}
       override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {}
+      override fun onRerunScheduled(device: AndroidDevice) {}
     })
 
     adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)

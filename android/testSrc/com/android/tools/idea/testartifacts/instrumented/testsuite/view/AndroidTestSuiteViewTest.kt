@@ -583,14 +583,6 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun testHistoryIsSavedAfterTestExecution() {
-    fun getTestHistory(): List<ImportTestsFromHistoryAction> {
-      val mockEvent = mock<AnActionEvent>()
-      `when`(mockEvent.project).thenReturn(projectRule.project)
-      return ImportTestGroup().getChildren(mockEvent).map {
-        it as? ImportTestsFromHistoryAction
-      }.filterNotNull()
-    }
-
     val initialTestHistoryCount = getTestHistory().size
 
     val runConfig = mock<RunConfiguration>().apply {
@@ -598,21 +590,16 @@ class AndroidTestSuiteViewTest {
       `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
     }
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig)
-
-    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
-      view.onTestCaseStarted(device, suite, testcase)
-      testcase.result = result
-      view.onTestCaseFinished(device, suite, testcase)
-    }
-
     val device1 = device("deviceId1", "deviceName1")
 
     view.onTestSuiteScheduled(device1)
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
 
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
@@ -623,6 +610,66 @@ class AndroidTestSuiteViewTest {
       }
       true
     }).isTrue()
+  }
+
+  @Test
+  fun testHistoryIsSavedAfterRerunTestExecution() {
+    val initialTestHistoryCount = getTestHistory().size
+
+    val runConfig = mock<RunConfiguration>().apply {
+      `when`(name).thenReturn("mockRunConfig")
+      `when`(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    }
+    val initialCurrentTimeMillis = System.currentTimeMillis()
+    `when`(mockClock.millis()).thenReturn(initialCurrentTimeMillis)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, myClock=mockClock)
+    val device1 = device("deviceId1", "deviceName1")
+
+    // First test run fails by error.
+    view.onTestSuiteScheduled(device1)
+    val failedTestsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 0)
+    view.onTestSuiteStarted(device1, failedTestsuiteOnDevice1)
+    view.onTestSuiteFinished(device1, failedTestsuiteOnDevice1)
+
+    // Rerun is scheduled.
+    view.onRerunScheduled(device1)
+
+    `when`(mockClock.millis()).thenReturn(initialCurrentTimeMillis + Duration.ofMinutes(1).toMillis())
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(ProgressIndicatorUtils.withTimeout(30000) {
+      while(getTestHistory().size != initialTestHistoryCount + 2) {
+        ProgressManager.checkCanceled()
+        sleep(100)
+      }
+      true
+    }).isTrue()
+  }
+
+  private fun getTestHistory(): List<ImportTestsFromHistoryAction> {
+    val mockEvent = mock<AnActionEvent>()
+    `when`(mockEvent.project).thenReturn(projectRule.project)
+    return ImportTestGroup().getChildren(mockEvent).mapNotNull {
+      it as? ImportTestsFromHistoryAction
+    }
+  }
+
+  private fun runTestCase(view: AndroidTestSuiteView,
+                          device: AndroidDevice,
+                          suite: AndroidTestSuite,
+                          testcase: AndroidTestCase,
+                          result: AndroidTestCaseResult) {
+    view.onTestCaseStarted(device, suite, testcase)
+    testcase.result = result
+    view.onTestCaseFinished(device, suite, testcase)
   }
 
   @Test

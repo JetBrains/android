@@ -26,7 +26,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -35,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
@@ -186,8 +186,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   // Number of devices which we will run tests against.
   private val myScheduledDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
-  private var myStartedDevices = 0
-  private var myFinishedDevices = 0
+  private var myStartedDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
+  private var myFinishedDevices: MutableSet<AndroidDevice> = sortedSetOf(compareBy { it.id })
 
   private var scheduledTestCases = 0
   private var passedTestCases = 0
@@ -311,7 +311,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
     else {
       myProgressBar.maximum = scheduledTestCases * myScheduledDevices.size
-      myProgressBar.value = completedTestCases * myStartedDevices
+      myProgressBar.value = completedTestCases * myStartedDevices.size
       myProgressBar.isIndeterminate = false
       if (failedTestCases > 0) {
         myProgressBar.foreground = ColorProgressBar.RED
@@ -394,7 +394,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {
     AppUIUtil.invokeOnEdt {
       scheduledTestCases += testSuite.testCaseCount
-      myStartedDevices++
+      myStartedDevices.add(device)
       updateProgress()
     }
   }
@@ -434,8 +434,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
     AppUIUtil.invokeOnEdt {
-      myFinishedDevices++
-      if (myFinishedDevices == myScheduledDevices.size) {
+      myFinishedDevices.add(device)
+      if (myFinishedDevices.size == myScheduledDevices.size) {
         myTestFinishedTimeMillis = myClock.millis()
         showSystemNotification()
         showNotificationBalloonIfToolWindowIsNotActive()
@@ -454,6 +454,15 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       myResultsTableView.setTestSuiteResultForDevice(
         device, testSuite.result ?: AndroidTestSuiteResult.CANCELLED)
       myDetailsView.reloadAndroidTestResults()
+    }
+  }
+
+  @AnyThread
+  override fun onRerunScheduled(device: AndroidDevice) {
+    AppUIUtil.invokeOnEdt {
+      myFinishedDevices.remove(device)
+      myStartedDevices.remove(device)
+      myResultsTableView.setTestSuiteResultForDevice(device, null)
     }
   }
 
@@ -538,7 +547,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
           indicator.isIndeterminate = true
           val historyFileName =
             PathUtil.suggestFileName(runConfiguration.name) + " - " +
-            SimpleDateFormat(SMTestRunnerResultsForm.HISTORY_DATE_FORMAT, Locale.US).format(Date()) + ".xml"
+            SimpleDateFormat(SMTestRunnerResultsForm.HISTORY_DATE_FORMAT, Locale.US).format(Date(myClock.millis())) + ".xml"
           val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject), historyFileName)
           FileUtilRt.createParentDirs(outputFile)
 

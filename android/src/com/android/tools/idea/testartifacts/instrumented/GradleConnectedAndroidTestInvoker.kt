@@ -169,6 +169,7 @@ class GradleConnectedAndroidTestInvoker(
                 gradleTestResultAdapterFactory,
               )
               rerunDevices.forEach {
+                androidTestResultListener.onRerunScheduled(it.device)
                 // rerunInvoker will call detachProcess() so we should not detach it in this if-branch.
                 rerunInvoker.schedule(
                   project,

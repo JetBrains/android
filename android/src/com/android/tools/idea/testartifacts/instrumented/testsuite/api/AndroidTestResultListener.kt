@@ -74,4 +74,12 @@ interface AndroidTestResultListener {
    */
   @AnyThread
   fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite)
+
+  /**
+   * Called when a re-run test execution is scheduled on a given device.
+   *
+   * @param device a device which a test suite to be executed on
+   */
+  @AnyThread
+  fun onRerunScheduled(device: AndroidDevice)
 }
