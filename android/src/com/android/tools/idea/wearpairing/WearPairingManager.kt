@@ -206,7 +206,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       updateSelectedDevice(phones, model.selectedPhoneDevice)
       updateSelectedDevice(wears, model.selectedWearDevice)
 
-      pairedDevicesTable.forEach { (_, phoneWearPair) ->
+      // Don't loop directly on the map, because its values may be updated (ie added/removed)
+      pairedDevicesTable.map { it.value }.forEach { phoneWearPair ->
         updateForwardState(phoneWearPair, connectedDevices)
       }
     }
@@ -249,7 +250,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     val deviceID = device.deviceID
     if (!deviceTable.contains(deviceID)) {
       if (device.isEmulator) {
-         removePairedDevices(deviceID) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+        removePairedDevices(deviceID) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
       }
       else {
         deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
@@ -290,6 +291,7 @@ suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String
     if (ignoreNullOutput) replace("null", "") else this
   }.trim()
 }
+
 suspend fun IDevice.retrieveUpTime(): Double {
   runCatching {
     val uptimeRes = runShellCommand("cat /proc/uptime")
