@@ -49,9 +49,9 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withContext
@@ -167,7 +167,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiNeedsFactoryReset(model.selectedWearDevice.value.displayName)
       return
     }
-    val isNewWearPairingDevice = WearPairingManager.getPairedDevices(phonePairingDevice.deviceID).second?.deviceID != wearPairingDevice.deviceID
+    val isNewWearPairingDevice =
+      WearPairingManager.getPairedDevices(phonePairingDevice.deviceID).second?.deviceID != wearPairingDevice.deviceID
     WearPairingManager.removePairedDevices(phonePairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {
@@ -215,17 +216,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiPairingNonInteractive(phoneDevice, wearDevice)
       NonInteractivePairing.startPairing(phoneDevice, wearDevice.avdName!!, companionAppId, wearDevice.loadNodeID()).use {
         withTimeoutOrNull(Duration.ofMinutes(1)) {
-          launch {
-            it.pairingState.collect { state ->
-              if (state.needsAttention) {
-                if (state.successful == null) {
-                  showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.consent"))
-                }
-                else {
-                  // We have a result.
-                  cancel()
-                }
-              }
+          it.pairingState.takeWhile { it.successful == null }.collect { state ->
+            if (state.needsAttention) {
+              showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.consent"))
             }
           }
         }
