@@ -47,7 +47,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   private final Function<IDevice, AndroidDevice> myAndroidDeviceFactory;
 
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker checker) {
-    this(androidDebugBridge, checker, AppExecutorUtil.getAppExecutorService(), device -> new ConnectedAndroidDevice(device, null));
+    this(androidDebugBridge, checker, AppExecutorUtil.getAppExecutorService(), device -> new ConnectedAndroidDevice(device));
   }
 
   @VisibleForTesting

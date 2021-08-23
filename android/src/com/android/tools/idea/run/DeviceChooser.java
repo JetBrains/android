@@ -501,7 +501,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
           // This value is also used in the method isRowCompatible(). Update that if there's a change here.
-          AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
+          AndroidDevice connectedDevice = new ConnectedAndroidDevice(device);
           try {
             return myMinSdkVersion.isDone() ? connectedDevice
               .canRun(myMinSdkVersion.get(), myProjectTarget, myFacet, LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures,
