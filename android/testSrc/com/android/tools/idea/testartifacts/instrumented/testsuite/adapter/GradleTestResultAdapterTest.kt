@@ -134,6 +134,8 @@ class GradleTestResultAdapterTest {
       testStatus = TestStatusProto.TestStatus.PASSED
     }.build())
 
+    adapter.onGradleTaskFinished()
+
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.PASSED
     })
@@ -185,6 +187,8 @@ class GradleTestResultAdapterTest {
     adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
       testStatus = TestStatusProto.TestStatus.FAILED
     }.build())
+
+    adapter.onGradleTaskFinished()
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
@@ -258,6 +262,8 @@ class GradleTestResultAdapterTest {
     adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
       testStatus = TestStatusProto.TestStatus.FAILED
     }.build())
+
+    adapter.onGradleTaskFinished()
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
@@ -449,6 +455,7 @@ class GradleTestResultAdapterTest {
   fun onTestSuiteFinishedIsCalledBeforeTestSuiteEvenStarts() {
     val adapter = createAdapter().apply {
       onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.getDefaultInstance())
+      onGradleTaskFinished()
     }
 
     inOrder(mockListener).apply {

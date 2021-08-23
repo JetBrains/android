@@ -137,7 +137,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   }
 
   @UiThread
-  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult?) {
     myModel.myRootAggregationRow.setTestSuiteResultForDevice(device, result)
     refreshTable()
   }
@@ -1197,8 +1197,12 @@ private class AggregationRow(override val packageName: String = "",
   /**
    * Sets the test suite result of the given device.
    */
-  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
-    myTestSuiteResult[device.id] = result
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult?) {
+    if (result != null) {
+      myTestSuiteResult[device.id] = result
+    } else {
+      myTestSuiteResult.remove(device.id)
+    }
   }
 
   override val methodName: String = ""

@@ -439,7 +439,7 @@ class GradleConnectedAndroidTestInvokerTest {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
 
-    inOrder(mockGradleTaskManager, mockProcessHandler).apply {
+    inOrder(mockGradleTaskManager, mockProcessHandler, mockAndroidTestResultListener).apply {
       verify(mockGradleTaskManager).executeTasks(
         any(),
         anyList(),
@@ -453,6 +453,7 @@ class GradleConnectedAndroidTestInvokerTest {
         nullable(String::class.java),
         any()
       )
+      verify(mockAndroidTestResultListener).onRerunScheduled(argThat { it.id == "DEVICE_SERIAL_NUMBER_2" })
       verify(mockGradleTaskManager).executeTasks(
         any(),
         anyList(),

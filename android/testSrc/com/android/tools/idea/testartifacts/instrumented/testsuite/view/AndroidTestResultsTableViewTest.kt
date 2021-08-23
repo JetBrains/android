@@ -879,6 +879,12 @@ class AndroidTestResultsTableViewTest {
 
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.CANCELLED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.CANCELLED)
+
+    // Clear the test suite result. This is used when a re-run is scheduled after an APK installation failure.
+    table.setTestSuiteResultForDevice(device1, null)
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
   }
 
   @Test
