@@ -17,27 +17,14 @@ package com.android.tools.adtui.common
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import com.intellij.ui.JBColor
 import java.awt.Color
 import java.io.InputStream
 import java.io.InputStreamReader
 import kotlin.math.abs
 
-/**
- * Helper class to deserialize the color json palette. This is based on the format of the auto-generated data-visualization-palette.json.
- */
-private data class DataVisualizationTheme(
-  @SerializedName("name")
-  val name: String,
-  @SerializedName("light")
-  val light: List<String>,
-  @SerializedName("dark")
-  val dark: List<String>,
-  @SerializedName("lightModeDarkText")
-  val lightModeDarkText: List<Boolean>,
-  @SerializedName("darkModeLightText")
-  val darkModeLightText: List<Boolean>)
+private data class ColorDefinition(val foreground: String, val background: String)
+private data class ColorPalette(val name: String, val light: List<ColorDefinition>, val dark: List<ColorDefinition>)
 
 /**
  * Palette file is visible for testing.
@@ -54,9 +41,11 @@ object DataVisualizationColors {
   val DEFAULT_DARK_TEXT_COLOR: Color = Color.BLACK
 
   @VisibleForTesting
-  val dataPalette = LinkedHashMap<String, List<JBColor>>()
+  val backgroundPalette = LinkedHashMap<String, List<JBColor>>()
+
   @VisibleForTesting
-  val fontPalette = LinkedHashMap<String, List<JBColor>>()
+  val foregroundPalette = LinkedHashMap<String, List<JBColor>>()
+
   @VisibleForTesting
   var numberOfTonesPerColor = 0
   private var isInitialized = false
@@ -65,7 +54,7 @@ object DataVisualizationColors {
    * Initialize colors with a palette file if not already initialized. Tests that use custom palette file should use [doInitialize] instead.
    */
   private fun initialize(paletteStream: InputStream = javaClass.getResourceAsStream("/palette/data-visualization-palette.json")
-                                              ?: throw IllegalArgumentException("Palette not found")) {
+                                                      ?: throw IllegalArgumentException("Palette not found")) {
     if (isInitialized) {
       return
     }
@@ -78,7 +67,7 @@ object DataVisualizationColors {
   @VisibleForTesting
   fun doInitialize(paletteStream: InputStream) {
     loadColorPalette(paletteStream)
-    numberOfTonesPerColor = dataPalette.values.first().size
+    numberOfTonesPerColor = backgroundPalette.values.first().size
     isInitialized = true
   }
 
@@ -99,13 +88,15 @@ object DataVisualizationColors {
 
   fun getColor(index: Int, isFocused: Boolean): JBColor = getColor(index, 0, isFocused)
 
-  fun getColor(index: Int, toneIndex: Int, isFocused: Boolean): JBColor = getColorFromPalette(index, toneIndex, isFocused, dataPalette)
+  fun getColor(index: Int, toneIndex: Int, isFocused: Boolean): JBColor =
+    getColorFromPalette(index, toneIndex, isFocused, backgroundPalette)
 
   fun getColor(name: String, toneIndex: Int): JBColor = getColor(name, toneIndex, false)
 
   fun getColor(name: String, isFocused: Boolean): JBColor = getColor(name, 0, isFocused)
 
-  fun getColor(name: String, toneIndex: Int, isFocused: Boolean): JBColor = getColorFromPalette(name, toneIndex, isFocused, dataPalette)
+  fun getColor(name: String, toneIndex: Int, isFocused: Boolean): JBColor = getColorFromPalette(name, toneIndex, isFocused,
+                                                                                                backgroundPalette)
 
   /**
    * Returns a new color that represents the focused state.
@@ -115,12 +106,12 @@ object DataVisualizationColors {
   /**
    * Returns the matching font color for the data color with the same index.
    */
-  fun getFontColor(index: Int): JBColor = getColorFromPalette(index, 0, false, fontPalette)
+  fun getFontColor(index: Int): JBColor = getColorFromPalette(index, 0, false, foregroundPalette)
 
   /**
    * Returns the matching font color for the data color with the same name.
    */
-  fun getFontColor(name: String): JBColor = getColorFromPalette(name, 0, false, fontPalette)
+  fun getFontColor(name: String): JBColor = getColorFromPalette(name, 0, false, foregroundPalette)
 
   /**
    * Returns the computed grayscale version of the passed in color
@@ -158,39 +149,30 @@ object DataVisualizationColors {
    * Helper function to parse and load the color palette json. The format of the json is expected to contain light, and dark mode colors
    * along with an array of tones for each color. The array of tones is expected to be a fixed length for all colors defined in the palette.
    *
-   * Note: The data-visualization-palette.json is an auto generated file and should be updated when the design team creates new colors.
+   * TODO(albert): Add a link to the location of the auto generator
+   * Note: The data-visualization-palette.json is an
+   * [auto generated file](https://source.cloud.google.com/google.com:adux-source/studio-palettes/+/master:client/app/index.js;l=176)
+   * and should be updated when the design team creates new colors.
    */
   private fun loadColorPalette(paletteStream: InputStream) {
     val gsonParser = Gson()
-    dataPalette.clear()
-    fontPalette.clear()
+    backgroundPalette.clear()
+    foregroundPalette.clear()
 
-    val colors = gsonParser.fromJson(InputStreamReader(paletteStream), Array<DataVisualizationTheme>::class.java)
+    val colors = gsonParser.fromJson(InputStreamReader(paletteStream), Array<ColorPalette>::class.java)
     colors.forEach {
       // Data colors
       assert(it.light.size == it.dark.size) {
         "Expected light (${it.light.size}), and dark (${it.dark.size}) palette to have same number of colors"
       }
-      val dataColors = mutableListOf<JBColor>()
+      val backgroundColors = mutableListOf<JBColor>()
+      val foregroundColors = mutableListOf<JBColor>()
       it.light.forEachIndexed { idx, color ->
-        dataColors.add(JBColor(Integer.parseInt(color, 16), Integer.parseInt(it.dark[idx], 16)))
+        backgroundColors.add(JBColor(Integer.parseInt(color.background, 16), Integer.parseInt(it.dark[idx].background, 16)))
+        foregroundColors.add(JBColor(Integer.parseInt(color.foreground, 16), Integer.parseInt(it.dark[idx].foreground, 16)))
       }
-      dataPalette[it.name] = dataColors
-
-      // Font colors
-      assert(it.lightModeDarkText.size == it.light.size) {
-        "Expected font (${it.lightModeDarkText.size}), and data (${it.light.size}) palette to have same number of colors"
-      }
-      assert(it.lightModeDarkText.size == it.darkModeLightText.size) {
-        "Expected light (${it.lightModeDarkText.size}), and dark (${it.darkModeLightText.size}) palette to have same number of font colors"
-      }
-      val fontColors = mutableListOf<JBColor>()
-      it.lightModeDarkText.forEachIndexed { idx, lightModeDarkText ->
-        val lightModeColor = if (lightModeDarkText) DEFAULT_DARK_TEXT_COLOR else DEFAULT_LIGHT_TEXT_COLOR
-        val darkModeColor = if (it.darkModeLightText[idx]) DEFAULT_LIGHT_TEXT_COLOR else DEFAULT_DARK_TEXT_COLOR
-        fontColors.add(JBColor(lightModeColor, darkModeColor))
-      }
-      fontPalette[it.name] = fontColors
+      foregroundPalette[it.name] = foregroundColors
+      backgroundPalette[it.name] = backgroundColors
     }
   }
 }

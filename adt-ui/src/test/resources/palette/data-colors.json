@@ -2,63 +2,95 @@
   {
     "name": "Gray",
     "light": [
-      "97b1c0",
-      "a6bcc9",
-      "b6c8d3",
-      "c6d4dd",
-      "d6e0e6"
-    ],
-    "lightModeDarkText": [
-      true,
-      true,
-      true,
-      true,
-      true
+      {
+        "foreground": "000000",
+        "background": "97b1c0"
+      },
+      {
+        "foreground": "000000",
+        "background": "a6bcc9"
+      },
+      {
+        "foreground": "000000",
+        "background": "b6c8d3"
+      },
+      {
+        "foreground": "000000",
+        "background": "c6d4dd"
+      },
+      {
+        "foreground": "000000",
+        "background": "d6e0e6"
+      }
     ],
     "dark": [
-      "97b1c0",
-      "86a5b6",
-      "7699ad",
-      "668da3",
-      "5a8096"
-    ],
-    "darkModeLightText": [
-      false,
-      false,
-      false,
-      false,
-      false
+      {
+        "foreground": "000000",
+        "background": "97b1c0"
+      },
+      {
+        "foreground": "000000",
+        "background": "86a5b6"
+      },
+      {
+        "foreground": "000000",
+        "background": "7699ad"
+      },
+      {
+        "foreground": "000000",
+        "background": "668da3"
+      },
+      {
+        "foreground": "000000",
+        "background": "5a8096"
+      }
     ]
   },
   {
     "name": "Light Blue",
     "light": [
-      "a2dffe",
-      "aee4fe",
-      "b8e7fe",
-      "c2eafe",
-      "cdeefe"
-    ],
-    "lightModeDarkText": [
-      false,
-      true,
-      true,
-      true,
-      true
+      {
+        "foreground": "ffffff",
+        "background": "a2dffe"
+      },
+      {
+        "foreground": "000000",
+        "background": "aee4fe"
+      },
+      {
+        "foreground": "000000",
+        "background": "b8e7fe"
+      },
+      {
+        "foreground": "000000",
+        "background": "c2eafe"
+      },
+      {
+        "foreground": "000000",
+        "background": "cdeefe"
+      }
     ],
     "dark": [
-      "74a1b8",
-      "6b9bb3",
-      "6194ae",
-      "578da8",
-      "51859e"
-    ],
-    "darkModeLightText": [
-      true,
-      false,
-      false,
-      true,
-      true
+      {
+        "foreground": "ffffff",
+        "background": "74a1b8"
+      },
+      {
+        "foreground": "000000",
+        "background": "6b9bb3"
+      },
+      {
+        "foreground": "000000",
+        "background": "6194ae"
+      },
+      {
+        "foreground": "ffffff",
+        "background": "578da8"
+      },
+      {
+        "foreground": "ffffff",
+        "background": "51859e"
+      }
     ]
   }
 ]
