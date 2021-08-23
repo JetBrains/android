@@ -60,17 +60,17 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
   @Test
   fun validateFileFormat() {
     assumeFalse(isDarkMode)
-    assertThat(DataVisualizationColors.dataPalette).isNotEmpty()
-    assertThat(DataVisualizationColors.fontPalette).isNotEmpty()
+    assertThat(DataVisualizationColors.backgroundPalette).isNotEmpty()
+    assertThat(DataVisualizationColors.foregroundPalette).isNotEmpty()
   }
 
   @Test
   fun validateFileHasSameNumberVariantsForEachColor() {
     assumeFalse(isDarkMode)
-    DataVisualizationColors.dataPalette.values.forEach {
+    DataVisualizationColors.backgroundPalette.values.forEach {
       assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
     }
-    DataVisualizationColors.fontPalette.values.forEach {
+    DataVisualizationColors.foregroundPalette.values.forEach {
       assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
     }
   }
@@ -85,7 +85,7 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
 
   @Test
   fun colorsByIndexHandlesOutOfBounds() {
-    val palette = DataVisualizationColors.dataPalette
+    val palette = DataVisualizationColors.backgroundPalette
     val numberOfColors = palette.size
     val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
     assertThat(DataVisualizationColors.getColor(-1)).isEqualTo(
