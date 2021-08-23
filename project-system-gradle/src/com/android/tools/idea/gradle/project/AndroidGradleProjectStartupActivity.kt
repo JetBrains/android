@@ -285,7 +285,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           .singleOrNull() // None or one node is expected here.
           ?.data
         ?: return { /* Nothing to do if no model present. */ }
-      if (!model.validate()) requestSync("invalid model found for $dataKey in ${module.name}")
+      if (!model.validate()) {
+        requestSync("invalid model found for $dataKey in ${module.name}")
+        return null
+      }
       val facet = getFacet(module, moduleDataNode) ?: run {
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
