@@ -46,8 +46,6 @@ import java.io.File
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
 
-private const val NO_ANIMATION_TOOLTIP = "There is no animation to play"
-
 /**
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
  */
@@ -106,15 +104,13 @@ private constructor(
    */
   private fun updateControlBar(canPlay: Boolean) {
     if (canPlay) {
-      setEnabledState(/*play*/ true, /*pause*/ false, /*stop*/ true, /*frame*/ true)
-      setVisibilityState(/*play*/ true, /*pause*/ false, /*stop*/ true, /*frame*/ true)
-      setTooltips(DEFAULT_PLAY_TOOLTIP,
-                  DEFAULT_PAUSE_TOOLTIP,
-                  DEFAULT_STOP_TOOLTIP)
+      setEnabledState(play = true, pause = false, stop = true, frame = true, speed = true)
+      setPlayButtonStatus(false)
+      setTooltips(DEFAULT_PLAY_TOOLTIP, DEFAULT_PAUSE_TOOLTIP, DEFAULT_STOP_TOOLTIP)
     }
     else {
-      setEnabledState(/*play*/ false, /*pause*/ false, /*stop*/ false, /*frame*/ false)
-      setVisibilityState(/*play*/ true, /*pause*/ false, /*stop*/ true, /*frame*/ true)
+      setEnabledState(play = false, pause = false, stop = false, frame = false, speed = false)
+      setPlayButtonStatus(false)
       setTooltips(NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP, NO_ANIMATION_TOOLTIP)
     }
   }
