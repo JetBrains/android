@@ -126,7 +126,9 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   private void showPopupMenu() {
     JMenuItem item = new JBMenuItem("Pair device");
 
-    // TODO Call item::setEnabled as appropriate
+    assert myDevice != null;
+    item.setEnabled(myDevice.isOnline() && myDevice.isPhoneOrTablet());
+
     item.addActionListener(event -> pairDevice());
 
     JPopupMenu menu = new JBPopupMenu();
