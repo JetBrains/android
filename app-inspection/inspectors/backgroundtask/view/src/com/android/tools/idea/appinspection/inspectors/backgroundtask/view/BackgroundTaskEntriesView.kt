@@ -180,6 +180,9 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
   private val graphView: WorkDependencyGraphView
 
   init {
+    tableView = BackgroundTaskTreeTableView(client, selectionModel, scope, uiDispatcher)
+    graphView = WorkDependencyGraphView(client, selectionModel, scope, uiDispatcher)
+
     layout = TabularLayout("*", "Fit,*")
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
 
@@ -187,8 +190,6 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     // Remove redundant borders from left, right and bottom.
     contentScrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
     contentScrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
-    tableView = BackgroundTaskTreeTableView(client, selectionModel, scope, uiDispatcher)
-    graphView = WorkDependencyGraphView(client, selectionModel, scope, uiDispatcher)
     contentScrollPane.setViewportView(tableView.component)
     add(contentScrollPane, TabularLayout.Constraint(1, 0))
 
