@@ -103,9 +103,9 @@ class DeviceExplorerController(
   private val myWorkEstimator = FileTransferWorkEstimator(myEdtExecutor, taskExecutor)
   private val myTransferringNodes: MutableSet<DeviceFileEntryNode> = HashSet()
   private val myLoadingChildren: MutableSet<DeviceFileEntryNode> = HashSet()
-  private val myLoadingNodesAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
-  private val myTransferringNodesAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
-  private val myLoadingChildrenAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
+  private val myLoadingNodesAlarms = Alarm()
+  private val myTransferringNodesAlarms = Alarm()
+  private val myLoadingChildrenAlarms = Alarm()
   private val mySetupFuture = SettableFuture.create<Unit>()
   private var myLongRunningOperationTracker: LongRunningOperationTracker? = null
 
