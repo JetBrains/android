@@ -19,9 +19,7 @@ import com.android.ddmlib.Log
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
-import com.intellij.util.containers.MultiMap
 import org.junit.Test
-import java.awt.Color
 
 /**
  * Tests for [LogcatColors]
@@ -38,58 +36,29 @@ class LogcatColorsTest {
 
   @Test
   fun tagColors_areJBColors() {
-    for (color in logcatColors.availableTagColors) {
-      assertJBColors(color)
-    }
+    assertJBColors(logcatColors.getTagColor("tag"))
   }
 
   @Test
-  fun tagColors_cycle() {
-    val colors = MultiMap<TextAttributes, String>()
-    for (i in 1..logcatColors.availableTagColors.size * 2) {
-      val tag = "tag$i"
-      val color = logcatColors.getTagColor(tag)
-      colors.putValue(color, tag)
-    }
+  fun tagColors_areDiverse() {
+    val colors = mutableMapOf<TextAttributes, MutableList<Int>>()
+    repeat(100) { colors.computeIfAbsent(logcatColors.getTagColor("tag$it")) { mutableListOf() }.add(it) }
 
-    assertThat(colors.size()).isEqualTo(logcatColors.availableTagColors.size)
-    colors.toHashMap().forEach { (_, tags) -> assertThat(tags).hasSize(2) }
+    assertThat(colors.size).isAtLeast(50)
+    colors.forEach { (_, tags) -> assertThat(tags.size).isAtMost(10) }
   }
 
   @Test
   fun tagColors_retainPerTag() {
     val colors = mutableListOf<TextAttributes>()
-    for (i in 0 until 10) {
-      colors.add(logcatColors.getTagColor("tag$i"))
-    }
+    repeat(10) { colors.add(logcatColors.getTagColor("tag$it")) }
 
-    for (i in 0 until 10) {
-      assertThat(colors[i]).isEqualTo(logcatColors.getTagColor("tag$i"))
-    }
+    repeat(10) { assertThat(colors[it]).isSameAs(logcatColors.getTagColor("tag$it")) }
   }
 
   @Test
   fun tagColors_doNotHaveBackground() {
-    val defaultTxtAttributes = TextAttributes()
-
-    for (textAttributes in logcatColors.availableTagColors) {
-      assertThat(textAttributes.backgroundColor).isEqualTo(defaultTxtAttributes.backgroundColor)
-    }
-  }
-
-  @Test
-  fun tagColors_haveUniqueForeground() {
-    val colors = mutableSetOf<Color>()
-    val darkColors = mutableSetOf<Color>()
-
-    for (textAttributes in logcatColors.availableTagColors) {
-      colors.add(textAttributes.foregroundColor)
-      @Suppress("UnstableApiUsage")
-      darkColors.add((textAttributes.foregroundColor as JBColor).darkVariant)
-    }
-
-    assertThat(colors).hasSize(logcatColors.availableTagColors.size)
-    assertThat(darkColors).hasSize(logcatColors.availableTagColors.size)
+    assertThat(logcatColors.getTagColor("tag").backgroundColor).isEqualTo(TextAttributes().backgroundColor)
   }
 }
 
