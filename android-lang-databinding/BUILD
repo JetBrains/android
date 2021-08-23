@@ -70,7 +70,7 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven_tests//:androidx.activity.activity_1.3.0",
+        "@maven_tests//:androidx.activity.activity_1.3.1",
         "@maven_tests//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven_tests//:androidx.appcompat.appcompat_1.3.0",
         "@maven_tests//:androidx.constraintlayout.constraintlayout_2.0.4",
