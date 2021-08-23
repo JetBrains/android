@@ -17,6 +17,8 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.profilers.cpu.nodemodel.*;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
@@ -29,6 +31,9 @@ import org.jetbrains.annotations.Nullable;
 public class NodeNameParser {
 
   private static final Pattern JAVA_SEPARATOR_PATTERN = Pattern.compile("\\.");
+
+  private static final String[] COMMON_PATH_PREFIXES = {"/apex/", "/system/", "/vendor/"};
+  private static final String[] COMMON_PATH_PREFIXES_DISPLAY = {"/apex/*", "/system/*", "/vendor/*"};
 
   private static Logger getLogger() {
     return Logger.getInstance(NodeNameParser.class);
@@ -52,11 +57,11 @@ public class NodeNameParser {
     }
     else if (fullName.contains(".")) {
       // Method is in the format "java.package.Class.method". Parse it into a JavaMethodModel.
-      return createJavaMethodModel(fullName, fileName);
+      return createJavaMethodModel(fullName);
     }
     else {
       // Node represents a syscall.
-      return new SyscallModel(fileName, fullName);
+      return new SyscallModel(tagFromFileName(fileName), fullName);
     }
   }
 
@@ -108,6 +113,7 @@ public class NodeNameParser {
       .setIsUserCode(isUserWritten)
       .setParameters(removeTemplateInfo(parameters))
       .setFileName(fileName)
+      .setTag(tagFromFileName(fileName))
       .setVAddress(vAddress)
       .build();
   }
@@ -224,7 +230,7 @@ public class NodeNameParser {
    * Receives a full method name and returns a {@link JavaMethodModel} containing its class name and its (simple) name.
    * @param fullName The method's full qualified name (e.g. java.lang.Object.equals)
    */
-  private static JavaMethodModel createJavaMethodModel(String fullName, String fileName) {
+  private static JavaMethodModel createJavaMethodModel(String fullName) {
     // First, we should extract the method name, which is the name after the last "." character.
     String[] splittedMethod = JAVA_SEPARATOR_PATTERN.split(fullName);
     int methodNameIndex = splittedMethod.length - 1;
@@ -236,6 +242,14 @@ public class NodeNameParser {
       className.append(".");
       className.append(splittedMethod[i]);
     }
-    return new JavaMethodModel(methodName, className.toString(), "", fileName);
+    return new JavaMethodModel(methodName, className.toString(), "");
+  }
+
+  private static String tagFromFileName(String fileName) {
+    return fileName == null ? null :
+           IntStream.range(0, COMMON_PATH_PREFIXES.length)
+             .filter(i -> fileName.startsWith(COMMON_PATH_PREFIXES[i]))
+             .mapToObj(i -> COMMON_PATH_PREFIXES_DISPLAY[i])
+             .findAny().orElse(fileName);
   }
 }

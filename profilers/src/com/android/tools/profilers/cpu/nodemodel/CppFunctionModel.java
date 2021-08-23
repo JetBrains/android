@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents characteristics of C/C++ functions.
@@ -63,6 +64,8 @@ public class CppFunctionModel extends NativeNodeModel {
 
   private String myId;
 
+  private final String myTag;
+
   private CppFunctionModel(Builder builder) {
     myName = builder.myName;
     myClassOrNamespace = builder.myClassOrNamespace;
@@ -70,6 +73,7 @@ public class CppFunctionModel extends NativeNodeModel {
     myIsUserCode = builder.myIsUserCode;
     myFileName = builder.myFileName;
     myVAddress = builder.myVAddress;
+    myTag = builder.myTag;
   }
 
   @NotNull
@@ -86,9 +90,13 @@ public class CppFunctionModel extends NativeNodeModel {
     return myIsUserCode;
   }
 
-  @Override
   public String getFileName() {
     return myFileName;
+  }
+
+  @Override
+  public String getTag() {
+    return myTag;
   }
 
   public long getVAddress() {
@@ -135,6 +143,7 @@ public class CppFunctionModel extends NativeNodeModel {
     @NotNull private String myParameters;
     private String myFileName;
     private long myVAddress;
+    private String myTag;
 
     public Builder(@NotNull String name) {
       myName = name;
@@ -159,6 +168,11 @@ public class CppFunctionModel extends NativeNodeModel {
 
     public Builder setFileName(String fileName) {
       myFileName = fileName;
+      return this;
+    }
+
+    public Builder setTag(String tag) {
+      myTag = tag;
       return this;
     }
 

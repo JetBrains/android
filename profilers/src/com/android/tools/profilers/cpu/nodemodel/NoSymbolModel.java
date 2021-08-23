@@ -28,12 +28,16 @@ public class NoSymbolModel extends NativeNodeModel {
    */
   private boolean myKernel;
 
-  @NotNull private final String myFileName;
+  @NotNull private final String myTag;
 
-  public NoSymbolModel(@NotNull String fileName, @NotNull String name) {
+  /**
+   * @param tag a tag as a coarser specification of this node, used for collapsing
+   * @param name the name to display this symbol by
+   */
+  public NoSymbolModel(@NotNull String tag, @NotNull String name) {
     myName = name;
     myKernel = name.startsWith(KERNEL_ELF);
-    myFileName = fileName;
+    myTag = tag;
   }
 
   public boolean isKernel() {
@@ -41,7 +45,7 @@ public class NoSymbolModel extends NativeNodeModel {
   }
 
   @Override
-  public String getFileName() {
-    return myFileName;
+  public String getTag() {
+    return myTag;
   }
 }

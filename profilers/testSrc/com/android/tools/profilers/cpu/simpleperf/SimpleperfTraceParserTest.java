@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -36,6 +37,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -235,6 +238,14 @@ public class SimpleperfTraceParserTest {
     assertTrue(capture.getRange().isEmpty());
     assertTrue(capture.getCaptureNodes().isEmpty());
     assertEquals(capture.getMainThreadId(), BaseCpuCapture.NO_THREAD_ID);
+  }
+
+  @Test
+  public void tagsSortedByExpectedOrder() {
+    List<String> tags = Arrays.asList("/a/b/c", "/c/d/e", "[java]", "/a/*");
+    Collections.shuffle(tags);
+    tags.sort(SimpleperfTraceParser.TAG_COMPARATOR);
+    assertThat(tags).isEqualTo(Arrays.asList("/a/b/c", "/c/d/e", "[java]", "/a/*"));
   }
 
   /**

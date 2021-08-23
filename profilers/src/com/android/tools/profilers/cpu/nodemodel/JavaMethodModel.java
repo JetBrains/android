@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.nodemodel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -44,23 +45,20 @@ public class JavaMethodModel implements CaptureNodeModel {
 
   private String myId;
 
-  private final String myFileName;
-
-  public JavaMethodModel(@NotNull String name, @NotNull String className, @NotNull String signature, @NotNull String fileName) {
+  public JavaMethodModel(@NotNull String name, @NotNull String className, @NotNull String signature) {
     myName = name;
     myClassName = className;
     mySignature = signature;
-    myFileName = fileName;
   }
 
   @VisibleForTesting
   public JavaMethodModel(@NotNull String name, @NotNull String className) {
-    this(name, className, "", "");
+    this(name, className, "");
   }
 
   @Override
-  public @NotNull String getFileName() {
-    return myFileName;
+  public @Nullable String getTag() {
+    return "Java code";
   }
 
   @Override

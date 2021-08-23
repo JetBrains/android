@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
-import com.android.tools.profilers.cpu.PathFilter;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
@@ -39,10 +38,9 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,8 +62,6 @@ public class SimpleperfTraceParser implements TraceParser {
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
    */
   private static final int INVALID_SYMBOL_ID = -1;
-
-  private static final String[] COMMON_PATH_PREFIXES = {"/apex/", "/system/", "/vendor/"};
 
   /**
    * Directory containing files (.art, .odex, .so, .apk) related to app's. Each app's files are located in a subdirectory whose name starts
@@ -151,7 +147,7 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private String myAppDataFolderPrefix;
 
-  private Set<String> myPaths = new HashSet<>();
+  private Set<String> myTags = new TreeSet<>(TAG_COMPARATOR);
 
   public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
@@ -198,18 +194,9 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(@NotNull File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    Set<PathFilter> pathFilters = new TreeSet<>((l, r) ->
-      l instanceof PathFilter.Literal && r instanceof PathFilter.Prefix ? -1
-      : l instanceof PathFilter.Prefix && r instanceof PathFilter.Literal ? 1
-      : l.toString().compareTo(r.toString())
-    );
-    for (String path : myPaths) {
-      String prefix = Arrays.stream(COMMON_PATH_PREFIXES).filter(path::startsWith).findFirst().orElse(null);
-      pathFilters.add(prefix != null ? new PathFilter.Prefix(prefix) : new PathFilter.Literal(path));
-    }
     return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF,
                               isThreadTimeSupported(), isThreadTimeSupported() ? null : DUAL_CLOCK_DISABLED_MESSAGE,
-                              myCaptureRange, getCaptureTrees(), pathFilters);
+                              myCaptureRange, getCaptureTrees(), myTags);
   }
 
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
@@ -519,16 +506,38 @@ public class SimpleperfTraceParser implements TraceParser {
     if (symbolFile == null) {
       throw new IllegalStateException("Symbol file with id \"" + callChainEntry.getFileId() + "\" not found.");
     }
-    myPaths.add(symbolFile.getPath());
     if (symbolId == INVALID_SYMBOL_ID) {
       // if symbol_id is -1, we report the method as fileName+vAddress (e.g. program.so+0x3039)
       String hexAddress = "0x" + Long.toHexString(callChainEntry.getVaddrInFile());
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
-      return new NoSymbolModel(symbolFile.getPath(), methodName);
+      return nodeWithTagAdded(new NoSymbolModel(symbolFile.getPath(), methodName));
     }
     // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
     // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
     boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten, symbolFile.getPath(), parentVAddress);
+    return nodeWithTagAdded(NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId),
+                                                         isUserWritten, symbolFile.getPath(), parentVAddress));
   }
+
+  private CaptureNodeModel nodeWithTagAdded(CaptureNodeModel node) {
+    if (node.getTag() != null) {
+      myTags.add(node.getTag());
+    }
+    return node;
+  }
+
+  // Order the tags coarsely depending on whether they're full paths or wild cards
+  private static TagClass tagClass(String tag) {
+    return tag.contains("*") ? TagClass.PREFIXED_PATH :
+           tag.contains("[") ? TagClass.DESCRIPTION :
+           TagClass.EXACT_PATH;
+  }
+
+  private enum TagClass {
+    EXACT_PATH, DESCRIPTION, PREFIXED_PATH
+  }
+
+  @VisibleForTesting
+  static Comparator<String> TAG_COMPARATOR =
+    Comparator.comparing(SimpleperfTraceParser::tagClass).thenComparing(String::compareTo);
 }
