@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
@@ -181,7 +182,8 @@ class GradleConnectedAndroidTestInvokerTest {
       argThat {
         it?.run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
-          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1"
+          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
+          it.getUserData(AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
         } ?: false
       },
       nullable(String::class.java),

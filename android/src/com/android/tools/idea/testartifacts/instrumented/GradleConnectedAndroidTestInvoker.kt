@@ -20,6 +20,7 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
@@ -265,6 +266,11 @@ class GradleConnectedAndroidTestInvoker(
       if (uninstallIncompatibleApks) {
         withArgument("-P${UNINSTALL_INCOMPATIBLE_APKS_PROPERTY}=true")
       }
+
+      // Don't switch focus to build tool window even after build failure because
+      // if there is a test failure, AGP handles it as a build failure and it hides
+      // the test result panel if this option is not set.
+      putUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE, true)
     }
   }
 

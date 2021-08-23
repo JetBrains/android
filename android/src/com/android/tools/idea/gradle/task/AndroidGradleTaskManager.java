@@ -28,6 +28,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,14 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
+
+  /**
+   * You can use this key to put a user data to {@link GradleExecutionSettings} when you run a
+   * Gradle task from Android Studio. The value is passed to the request and set by
+   * {@link GradleBuildInvoker.Request.Builder#setDoNotShowBuildOutputOnFailure(boolean)}.
+   */
+  public static final Key<Boolean> ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE =
+    Key.create("ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE");
 
   /**
    * @deprecated use {@link #executeTasks(ExternalSystemTaskId, List, String, GradleExecutionSettings, String, ExternalSystemTaskNotificationListener)}
@@ -76,7 +85,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       setupGradleScriptDebugging(effectiveSettings);
       setupDebuggerDispatchPort(effectiveSettings);
       appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings);
-      GradleBuildInvoker.Request request =
+      GradleBuildInvoker.Request.Builder builder =
         GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), new File(projectPath), taskNames)
           .setTaskId(id)
           .setJvmArguments(effectiveSettings.getJvmArguments())
@@ -84,9 +93,13 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
           .withEnvironmentVariables(effectiveSettings.getEnv())
           .passParentEnvs(effectiveSettings.isPassParentEnvs())
           .setListener(listener)
-          .waitForCompletion()
-          .build();
-
+          .waitForCompletion();
+      Boolean doNotShowBuildOutputOnFailure =
+        effectiveSettings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE);
+      if (doNotShowBuildOutputOnFailure != null) {
+        builder.setDoNotShowBuildOutputOnFailure(doNotShowBuildOutputOnFailure);
+      }
+      GradleBuildInvoker.Request request = builder.build();
       gradleBuildInvoker.executeTasks(request);
       return true;
     }
