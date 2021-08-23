@@ -19,23 +19,27 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.GradleIntegrationTest;
-import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.truth.Expect;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -91,6 +95,23 @@ public class GradleProjectsTest implements GradleIntegrationTest {
       validateModuleGradlePath(project, "composite4");
       return Unit.INSTANCE;
     });
+  }
+
+  @Test
+  public void testGradlePathWithModulePerSourceSet() {
+    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(   true);
+    prepareGradleProject(this,  TestProjectPaths.SIMPLE_APPLICATION, "project");
+    openPreparedProject(this, "project", project -> {
+      List<Module> modules = Arrays.stream(ModuleManager.getInstance(project).getModules()).sorted(Comparator.comparing(Module::getName))
+        .collect(Collectors.toList());
+      expect.that(GradleProjects.getGradleModulePath(modules.get(0))).isEqualTo(":");
+      expect.that(GradleProjects.getGradleModulePath(modules.get(1))).isEqualTo(":app"); // holder module
+      expect.that(GradleProjects.getGradleModulePath(modules.get(2))).isEqualTo(":app"); // android test module
+      expect.that(GradleProjects.getGradleModulePath(modules.get(3))).isEqualTo(":app"); // main module
+      expect.that(GradleProjects.getGradleModulePath(modules.get(4))).isEqualTo(":app"); // unit test module
+      return Unit.INSTANCE;
+    });
+    StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride();
   }
 
   private void validateModuleGradlePath(Project project, String s) {
