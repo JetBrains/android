@@ -135,9 +135,9 @@ public interface CpuCapture extends ConfigurableDurationData {
   }
 
   /**
-   * Updates the set of paths whose frames should be hidden
+   * Updates the set of tags whose corresponding nodes should be hidden
    */
-  void setHideNodesFromPaths(@NotNull Set<PathFilter> pathsToHide);
-  @NotNull Set<PathFilter> getHiddenFilePaths();
-  @NotNull Set<PathFilter> getHidablePaths();
+  void collapseNodesWithTags(@NotNull Set<String> tagsToCollapse);
+  @NotNull Set<String> getCollapsedTags();
+  @NotNull Set<String> getTags();
 }

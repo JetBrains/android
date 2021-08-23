@@ -29,7 +29,7 @@ class CaptureNodeModelTest {
 
   @Test
   fun testJavaMethodModel() {
-    val model = JavaMethodModel("someName", "MyClass", "signature", "")
+    val model = JavaMethodModel("someName", "MyClass", "signature")
     assertThat(model.name).isEqualTo("someName")
     assertThat(model.className).isEqualTo("MyClass")
     assertThat(model.signature).isEqualTo("signature")

@@ -120,10 +120,10 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private final JButton myCollapseFrameButton = DropDownButton.of(
     "Collapse frames",
     () ->
-      ComboCheckBox.of(new ArrayList<>(getStage().getCapture().getHidablePaths()),
-                       getStage().getCapture().getHiddenFilePaths(),
+      ComboCheckBox.of(new ArrayList<>(getStage().getCapture().getTags()),
+                       getStage().getCapture().getCollapsedTags(),
                             selected -> {
-                              getStage().getCapture().setHideNodesFromPaths(new HashSet<>(selected));
+                              getStage().getCapture().collapseNodesWithTags(new HashSet<>(selected));
                               onTrackGroupSelectionChange();
                               updateComponents();
                               return Unit.INSTANCE;
@@ -200,7 +200,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       getComponent().revalidate();
       // Request focus to enable keyboard shortcuts once loading finishes.
       myTrackGroupList.getComponent().requestFocusInWindow();
-      myCollapseFrameButton.setVisible(!getStage().getCapture().getHidablePaths().isEmpty());
+      myCollapseFrameButton.setVisible(!getStage().getCapture().getTags().isEmpty());
     }
   }
 

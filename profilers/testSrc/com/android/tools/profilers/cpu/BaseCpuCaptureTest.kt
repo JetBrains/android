@@ -34,7 +34,7 @@ class BaseCpuCaptureTest {
   }
 
   @Test
-  fun `frames from paths to hide are hidden and can be restored`() {
+  fun `nodes with tags to collapse are collapsed and can be restored`() {
     val captureTrees = mapOf<CpuThreadInfo, CaptureNode>(
       CpuThreadSliceInfo(1, "main", 1, "foo") to CaptureNode(SingleNameModel("foo")).apply {
         addChild(CaptureNode(NoSymbolModel("path","bar")).apply {
@@ -46,11 +46,11 @@ class BaseCpuCaptureTest {
       }
     )
     val capture = BaseCpuCapture(42, Cpu.CpuTraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
-                                 setOf(PathFilter.Literal("path")))
+                                 setOf("path"))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
-    capture.setHideNodesFromPaths(setOf(PathFilter.Literal("path")))
+    capture.collapseNodesWithTags(setOf("path"))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data !is NoSymbolModel)
-    capture.setHideNodesFromPaths(setOf())
+    capture.collapseNodesWithTags(setOf())
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
   }
 
