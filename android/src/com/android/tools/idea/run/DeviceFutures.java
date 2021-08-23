@@ -76,7 +76,7 @@ public final class DeviceFutures {
   public static DeviceFutures forDevices(@NotNull Iterable<IDevice> devices) {
     ImmutableList.Builder<AndroidDevice> futures = ImmutableList.builder();
     for (IDevice device : devices) {
-      futures.add(new ConnectedAndroidDevice(device, null));
+      futures.add(new ConnectedAndroidDevice(device));
     }
     return new DeviceFutures(futures.build());
   }
