@@ -70,8 +70,8 @@ final class Battery {
     Optional<Boolean> ac = parseBoolean(AC, output.get(1));
     Optional<Boolean> usb = parseBoolean(USB, output.get(2));
     Optional<Boolean> wireless = parseBoolean(WIRELESS, output.get(3));
-    OptionalInt level = parseInt(LEVEL, output.get(10));
-    OptionalInt scale = parseInt(SCALE, output.get(11));
+    OptionalInt level = Patterns.parseInt(LEVEL, output.get(10));
+    OptionalInt scale = Patterns.parseInt(SCALE, output.get(11));
 
     if (!(ac.isPresent() && usb.isPresent() && wireless.isPresent() && level.isPresent() && scale.isPresent())) {
       return Optional.empty();
@@ -89,17 +89,6 @@ final class Battery {
     }
 
     return Optional.of(Boolean.parseBoolean(matcher.group(1)));
-  }
-
-  private static @NotNull OptionalInt parseInt(@NotNull Pattern pattern, @NotNull String string) {
-    Matcher matcher = pattern.matcher(string);
-
-    if (!matcher.matches()) {
-      Logger.getInstance(Battery.class).warn(string);
-      return OptionalInt.empty();
-    }
-
-    return OptionalInt.of(Integer.parseInt(matcher.group(1)));
   }
 
   @Override

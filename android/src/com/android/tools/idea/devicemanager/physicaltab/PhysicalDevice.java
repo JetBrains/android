@@ -47,6 +47,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @Nullable Resolution myResolution;
   private final int myDensity;
   private final @NotNull ImmutableCollection<@NotNull String> myAbis;
+  private final @Nullable StorageDevice myStorageDevice;
 
   public static final class Builder extends Device.Builder {
     private @Nullable Instant myLastOnlineTime;
@@ -58,6 +59,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     private @Nullable Resolution myResolution;
     private int myDensity = -1;
     private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
+    private @Nullable StorageDevice myStorageDevice;
 
     public @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
@@ -124,6 +126,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
+    @NotNull Builder setStorageDevice(@Nullable StorageDevice storageDevice) {
+      myStorageDevice = storageDevice;
+      return this;
+    }
+
     @Override
     public @NotNull PhysicalDevice build() {
       return new PhysicalDevice(this);
@@ -145,6 +152,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
     myAbis = ImmutableList.copyOf(builder.myAbis);
+    myStorageDevice = builder.myStorageDevice;
   }
 
   @Nullable Instant getLastOnlineTime() {
@@ -206,6 +214,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return myAbis;
   }
 
+  @Nullable StorageDevice getStorageDevice() {
+    return myStorageDevice;
+  }
+
   @Override
   public int hashCode() {
     int hashCode = myKey.hashCode();
@@ -221,6 +233,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
     hashCode = 31 * hashCode + myAbis.hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(myStorageDevice);
 
     return hashCode;
   }
@@ -244,7 +257,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            Objects.equals(myPower, device.myPower) &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
-           myAbis.equals(device.myAbis);
+           myAbis.equals(device.myAbis) &&
+           Objects.equals(myStorageDevice, device.myStorageDevice);
   }
 
   @Override
