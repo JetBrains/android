@@ -26,7 +26,6 @@ import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import javax.swing.JTable;
@@ -73,8 +72,6 @@ public final class DeviceTableCellRendererTest {
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
     PairingDevice wearDevice = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE, false);
     PairingDevice phoneDevice = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE, false);
-    phoneDevice.launch = project -> Futures.immediateFailedFuture(new RuntimeException());
-    wearDevice.launch = project -> Futures.immediateFailedFuture(new RuntimeException());
     IDevice device = Mockito.mock(IDevice.class);
 
     assert renderer.getPairedLabel().getIcon() == null;

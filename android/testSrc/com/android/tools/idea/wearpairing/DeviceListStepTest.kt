@@ -219,9 +219,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
     val fakeUi = createDeviceListStepUi()
-
-    phoneDevice.launch = { throw RuntimeException("Can't launch on tests") } // launch fields needs some value, so it can be copied
-    wearDevice.launch = phoneDevice.launch
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
