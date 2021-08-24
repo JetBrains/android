@@ -191,21 +191,33 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: VisualLintIssue
   }
 }
 
+/** Create [VisualLintRenderIssue] and add to [issues]. */
 fun createIssue(view: ViewInfo,
                 model: NlModel,
                 message: String,
-                htmlContent: HtmlBuilder,
+                contentDescription: HtmlBuilder,
                 type: VisualLintErrorType,
                 issues: VisualLintIssues) {
+  return createIssue(view, model, message, type, issues) { contentDescription }
+}
+
+/** Create [VisualLintRenderIssue] and add to [issues]. */
+fun createIssue(view: ViewInfo,
+                model: NlModel,
+                message: String,
+                type: VisualLintErrorType,
+                issues: VisualLintIssues,
+                contentDescriptionProvider: (Int) -> HtmlBuilder) {
   val component = componentFromViewInfo(view, model)
-  val issue = VisualLintRenderIssue(RenderErrorModel.Issue.builder()
-                                      .setSummary(message)
-                                      .setHtmlContent(htmlContent)
-                                      .setSeverity(HighlightSeverity.WARNING)
-                                      .build(),
-                                    model,
-                                    if (component == null) mutableListOf() else mutableListOf(component))
-  issues.add(type, issue)
+  issues.add(
+    type,
+    VisualLintRenderIssue.builder()
+      .summary(message)
+      .severity(HighlightSeverity.WARNING)
+      .model(model)
+      .components(if (component == null) mutableListOf() else mutableListOf(component))
+      .contentDescriptionProvider(contentDescriptionProvider).build()
+  )
 }
 
 private fun simpleName(view: ViewInfo): String {
