@@ -128,15 +128,14 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
 
-    if (StudioFlags.NL_COLORBLIND_MODE.get()) {
-      DefaultActionGroup colorBlindMode = DefaultActionGroup.createPopupGroup(() -> "Color Blind Modes");
-      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOPES, nlDesignSurface));
-      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, nlDesignSurface));
-      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, nlDesignSurface));
-      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, nlDesignSurface));
-      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.TRITANOPES, nlDesignSurface));
-      designSurfaceMenu.addAction(colorBlindMode);
-    }
+    DefaultActionGroup colorBlindMode = DefaultActionGroup.createPopupGroup(() -> "Color Blind Modes");
+    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOPES, nlDesignSurface));
+    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, nlDesignSurface));
+    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, nlDesignSurface));
+    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, nlDesignSurface));
+    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.TRITANOPES, nlDesignSurface));
+    designSurfaceMenu.addAction(colorBlindMode);
+
     designSurfaceMenu.addSeparator();
     // Get the action instead of creating a new one, to make the popup menu display the shortcut.
     designSurfaceMenu.addAction(RefreshRenderAction.getInstance());
