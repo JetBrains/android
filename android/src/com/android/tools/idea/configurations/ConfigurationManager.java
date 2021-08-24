@@ -16,7 +16,6 @@
 package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
 
@@ -39,6 +38,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -221,7 +221,14 @@ public class ConfigurationManager implements Disposable {
     if (platform == null) {
       return ImmutableList.of();
     }
-    return ImmutableList.copyOf(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
+
+    ImmutableList.Builder<Device> builder = new ImmutableList.Builder<>();
+    builder.addAll(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
+    AdditionalDeviceService ads = AdditionalDeviceService.getInstance();
+    if (ads != null) {
+      builder.addAll(ads.getWindowSizeDevices());
+    }
+    return builder.build();
   }
 
   @Nullable

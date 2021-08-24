@@ -23,8 +23,10 @@ import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
@@ -47,6 +49,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.keymap.KeymapUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
@@ -97,9 +100,16 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(nightModeAction);
 
     group.addSeparator();
-    DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
-    appendShortcutText(menuAction, NextDeviceAction.getInstance());
-    group.add(menuAction);
+    if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
+      DeviceMenuAction2 menuAction2 = new DeviceMenuAction2(() -> mySurface.getConfigurations().stream().findFirst().orElse(null));
+      appendShortcutText(menuAction2, NextDeviceAction.getInstance());
+      group.add(menuAction2);
+    }
+    else {
+      DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
+      appendShortcutText(menuAction, NextDeviceAction.getInstance());
+      group.add(menuAction);
+    }
 
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));

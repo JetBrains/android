@@ -15,41 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.resources.Density
-import com.android.resources.ScreenOrientation
-import com.android.resources.ScreenRound
-import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.Hardware
-import com.android.sdklib.devices.Screen
-import com.android.sdklib.devices.Software
-import com.android.sdklib.devices.State
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import kotlin.math.sqrt
 
-data class WindowSizeData(val id: String,
-                          val name: String,
-                          val width: Int,
-                          val height: Int,
-                          val density: Density,
-                          val orientation: ScreenOrientation)
-
-val PREDEFINED_WINDOW_SIZES_DEFINITIONS = mutableListOf(
-  WindowSizeData("window_size_small", "Small", 412, 892, Density.XHIGH, ScreenOrientation.PORTRAIT),
-  WindowSizeData("window_size_medium", "Medium", 1024, 640, Density.XHIGH, ScreenOrientation.LANDSCAPE),
-  WindowSizeData("window_size_large", "Large", 1280, 800, Density.XHIGH, ScreenOrientation.LANDSCAPE),
-  WindowSizeData("window_size_x-large", "X-Large", 1600, 900, Density.XHIGH, ScreenOrientation.LANDSCAPE),
-)
+private const val PORTRAIT_DEVICE_KEYWORD = "phone"
 
 object WindowSizeModelsProvider : VisualizationModelsProvider {
 
@@ -68,15 +46,12 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
 
     val models = mutableListOf<NlModel>()
 
-    val devices = deviceCaches.getOrPut(configurationManager) {
-      val windowSizeDevices: List<Device> = createWindowDevices()
-      Disposer.register(configurationManager) { deviceCaches.remove(configurationManager) }
-      windowSizeDevices
-    }
+    val devices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return emptyList()
 
     for (device in devices) {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
+      config.deviceState = device.getState(if (device.id.contains(PORTRAIT_DEVICE_KEYWORD)) "portrait" else "landscape")
       val builder = NlModel.builder(facet, virtualFile, config)
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(device.displayName)
@@ -86,36 +61,4 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
     }
     return models
   }
-
-  private fun createWindowDevices(): List<Device> =
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.map { windowSizeDef ->
-      Device.Builder().apply {
-        setTagId("")
-        setId(windowSizeDef.id)
-        setName(windowSizeDef.name)
-        setManufacturer("")
-        addSoftware(Software())
-        addState(State().apply { isDefaultState = true })
-      }.build().also { device ->
-        device.defaultState.apply {
-          orientation = windowSizeDef.orientation
-          hardware = Hardware().apply {
-            screen = Screen().apply {
-              xDimension = windowSizeDef.width
-              yDimension = windowSizeDef.height
-              pixelDensity = windowSizeDef.density
-
-              val dpi = pixelDensity.dpiValue.toDouble()
-              val width = windowSizeDef.width / dpi
-              val height = windowSizeDef.height / dpi
-              diagonalLength = sqrt(width * width + height * height)
-              size = ScreenSize.getScreenSize(diagonalLength)
-              ratio = AvdScreenData.getScreenRatio(windowSizeDef.width, windowSizeDef.height)
-              screenRound = ScreenRound.NOTROUND
-              chin = 0
-            }
-          }
-        }
-      }
-    }
 }

@@ -19,6 +19,7 @@ package com.android.tools.idea.configurations
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
+import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.avdmanager.AvdManagerUtils
 import com.intellij.openapi.application.ApplicationManager
@@ -28,6 +29,7 @@ import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
+import kotlin.math.roundToInt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
@@ -133,3 +135,19 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
     manifest.usesFeatures.any { usesFeature -> usesFeature.name.value == WEAR_OS_USE_FEATURE_TAG }
   })
 }
+
+/**
+ * Convert dp to px.
+ * The formula is "px = dp * (dpi / 160)"
+ */
+internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
+/**
+ * Convert dp to px.
+ * The formula is "px = dp * (dpi / 160)"
+ */
+internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
+/**
+ * Convert px to dp.
+ * The formula is "px = dp * (dpi / 160)"
+ */
+internal fun Int.toDp(density: Density): Double = (this.toDouble() * 160 / density.dpiValue)
