@@ -111,7 +111,7 @@ public class ResourceNotificationManager {
   private final @NotNull Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = new HashMap<>();
 
   /**
-   * Project wide observer: a single one will do.
+   * Project wide observer: a single one is sufficient.
    */
   @GuardedBy("myObserverLock")
   private @Nullable ProjectPsiTreeObserver myProjectPsiTreeObserver;
@@ -132,7 +132,7 @@ public class ResourceNotificationManager {
   private long myModificationCount;
 
   /**
-   * Set of events we've observed since the last notification
+   * Set of events we've observed since the last notification.
    */
   private @NotNull EnumSet<Reason> myEvents = EnumSet.noneOf(Reason.class);
 
@@ -181,7 +181,7 @@ public class ResourceNotificationManager {
    * @param file          an optional file to observe for any edits. Note that this is not currently
    *                      limited to this listener; all listeners in the module will be notified when
    *                      there is an edit of this file.
-   * @param configuration if file is non null, this is an optional configuration
+   * @param configuration if file is not null, this is an optional configuration
    *                      you can listen for changes in (must be a configuration corresponding to the file)
    * @return the current resource modification stamp of the given module
    */
@@ -280,7 +280,7 @@ public class ResourceNotificationManager {
   }
 
   /**
-   * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as
+   * Returns an implementation of {@link PsiTreeChangeListener} that is not registered and is used as
    * a delegate (e.g in {@link AndroidFileChangeListener}).
    * <p>
    * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
@@ -306,10 +306,10 @@ public class ResourceNotificationManager {
       }
 
       if (source == null) {
-        // Ensure that the notify happens after all pending Swing Runnables
+        // Ensure that the notification happens after all pending Swing Runnables
         // have been processed, including any created *after* the initial notice()
         // call which scheduled this runnable, since they could for example be
-        // ResourceFolderRepository#rescan() Runnables, and we want those to finish
+        // ResourceFolderRepository.rescan() Runnables, and we want those to finish
         // before the final notify. Notice how we clear the pending notify flag
         // above though, such that if another event appears between the first
         // invoke later and the second, it will schedule another complete notification
@@ -407,7 +407,7 @@ public class ResourceNotificationManager {
         // Ensure that project resources have been initialized first, since
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
-        // before our own update listener attempts a re-render).
+        // before our own update listener attempts to re-render).
         ResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
@@ -431,7 +431,7 @@ public class ResourceNotificationManager {
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
-        // such as a variant change, then notify regardless.
+        // such as a variant change, then notify regardless.)
         return;
       }
 
@@ -477,7 +477,7 @@ public class ResourceNotificationManager {
     private boolean myIgnoreBuildEvents;
 
     private void startListening() {
-      if (!myAlreadyAddedBuildListener) { // See comment in stopListening
+      if (!myAlreadyAddedBuildListener) { // See comment in stopListening.
         myAlreadyAddedBuildListener = true;
         AndroidProjectBuildNotifications.subscribe(myProject, this);
       }
