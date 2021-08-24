@@ -183,14 +183,8 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 }
 
 @VisibleForTesting
-fun shouldRecommendUpgrade(current: GradleVersion, recommended: GradleVersion) : Boolean {
-  // Do not upgrade to snapshot version when major versions are same.
-  if (recommended.isSnapshot && current.compareIgnoringQualifiers(recommended) == 0) return false
-  // Upgrade from preview to non-snapshot preview version is handled by force upgrade.
-  if (current.isPreview && recommended.isPreview && !recommended.isSnapshot) return false
-  // Stable to new preview version. e.g 3.3.0 to 3.4.0-alpha01
-  if (!current.isPreview && recommended.isPreview && current.compareIgnoringQualifiers(recommended) < 0) return true
-  return current < recommended
+fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion) : Boolean {
+  return computeGradlePluginUpgradeState(current, latestKnown, setOf()).importance == RECOMMEND
 }
 
 class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
