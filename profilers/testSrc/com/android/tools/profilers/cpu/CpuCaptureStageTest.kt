@@ -204,7 +204,7 @@ class CpuCaptureStageTest {
     assertThat(stage.trackGroupModels.size).isEqualTo(5)
 
     val displayTrackGroup = stage.trackGroupModels[1]
-    assertThat(displayTrackGroup.title).startsWith("Frame Lifecycle")
+    assertThat(displayTrackGroup.title).isEqualTo("Frame Lifecycle (android.com.java.profilertester.MainActivity#0)")
     assertThat(displayTrackGroup.size).isEqualTo(4)
     assertThat(displayTrackGroup[0].title).isEqualTo("Application")
     assertThat(displayTrackGroup[1].title).isEqualTo("Wait for GPU")
