@@ -225,7 +225,8 @@ fun shouldForcePluginUpgrade(
   if (DISABLE_FORCED_UPGRADES.get()) {
     return false
   }
-  
+
+  if (current == null) return false
   // Now we can check the actual version information.
   return versionsShouldForcePluginUpgrade(current, recommended)
 }
@@ -236,10 +237,10 @@ fun shouldForcePluginUpgrade(
  * recommended version.
  */
 fun versionsShouldForcePluginUpgrade(
-  current: GradleVersion?,
+  current: GradleVersion,
   recommended: GradleVersion
 ) : Boolean {
-  if (current?.previewType == null) return false
+  if (current.previewType == null) return false
   // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
   if (recommended.isSnapshot && current.compareIgnoringQualifiers(recommended) == 0) return false
 

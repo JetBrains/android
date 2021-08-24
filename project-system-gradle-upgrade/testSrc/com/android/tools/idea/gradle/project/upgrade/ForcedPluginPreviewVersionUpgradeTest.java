@@ -27,7 +27,7 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link GradlePluginUpgrade#shouldPreviewBeForcedToUpgrade(GradleVersion, GradleVersion)}.
+ * Tests for {@link GradlePluginUpgrade#versionsShouldForcePluginUpgrade(GradleVersion, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
 public class ForcedPluginPreviewVersionUpgradeTest {
