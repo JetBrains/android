@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 
@@ -40,7 +41,7 @@ data class PairingDevice(
 
   fun disconnectedCopy(isPaired: Boolean = false): PairingDevice {
     val res = copy(state = ConnectionState.DISCONNECTED, isPaired = isPaired)
-    res.launch = this.launch
+    res.launch = { Futures.immediateFailedFuture(RuntimeException("DISCONNECTED")) }
     return res
   }
 }

@@ -47,8 +47,6 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   override fun setUp() {
     super.setUp()
 
-    phoneDevice.launch = { throw RuntimeException("Can't launch on tests") }
-    wearDevice.launch = phoneDevice.launch
     model.selectedPhoneDevice.value = phoneDevice
     model.selectedWearDevice.value = wearDevice
 
@@ -76,9 +74,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldShowIfPreviousPairingIsActive() {
-    val previousPairedWear = wearDevice.copy(deviceID = "id3", isPaired = true).apply {
-      launch = wearDevice.launch
-    }
+    val previousPairedWear = wearDevice.copy(deviceID = "id3", isPaired = true)
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
 
