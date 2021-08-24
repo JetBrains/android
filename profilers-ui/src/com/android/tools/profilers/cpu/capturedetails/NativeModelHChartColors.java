@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
-import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -27,8 +27,8 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *  Defines the fill color of the rectangles used to represent {@link NativeNodeModel} nodes in a
- *  {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
+ * Defines the fill color of the rectangles used to represent {@link NativeNodeModel} nodes in a
+ * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
 public class NativeModelHChartColors {
 
@@ -63,7 +63,8 @@ public class NativeModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       if (isDeselected) {
-        color = DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
+        color = DataVisualizationColors.getPaletteManager().getBackgroundColor(
+          DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, isFocused);
       }
       else if (isUserFunction(model)) {
         color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;

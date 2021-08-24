@@ -18,7 +18,8 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
-import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.adtui.common.ColorPaletteManager;
+import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
@@ -41,7 +42,8 @@ class SystemTraceNodeModelHChartColors {
   /**
    * For cpu idle time (time the node is scheduled wall clock, but not thread time), we match thread colors.
    */
-  static Color getIdleCpuColor(@NotNull CaptureNodeModel model,
+  static Color getIdleCpuColor(@NotNull ColorPaletteManager colorPaletteManager,
+                               @NotNull CaptureNodeModel model,
                                CaptureDetails.Type chartType,
                                boolean isUnmatched,
                                boolean isFocused,
@@ -50,13 +52,13 @@ class SystemTraceNodeModelHChartColors {
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
       if (JBColor.isBright()) {
-        color = ColorUtil.darker(DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused), 5);
+        color = ColorUtil.darker(colorPaletteManager.getBackgroundColor(index, isFocused), 5);
       }
       else {
-        color = ColorUtil.brighter(DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused), 5);
+        color = ColorUtil.brighter(colorPaletteManager.getBackgroundColor(index, isFocused), 5);
       }
       if (isDeselected && !isFocused) {
-        color = DataVisualizationColors.INSTANCE.toGrayscale(color);
+        color = colorPaletteManager.toGrayscale(color);
       }
     }
     else {
@@ -70,7 +72,8 @@ class SystemTraceNodeModelHChartColors {
    * We use the usage captured color. This gives the UI a consistent look
    * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model,
+  static Color getFillColor(@NotNull ColorPaletteManager colorPaletteManager,
+                            @NotNull CaptureNodeModel model,
                             CaptureDetails.Type chartType,
                             boolean isUnmatched,
                             boolean isFocused,
@@ -79,9 +82,9 @@ class SystemTraceNodeModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      color = DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused);
+      color = colorPaletteManager.getBackgroundColor(index, isFocused);
       if (isDeselected && !isFocused) {
-        color = DataVisualizationColors.INSTANCE.toGrayscale(color);
+        color = colorPaletteManager.toGrayscale(color);
       }
     }
     else {
@@ -91,13 +94,14 @@ class SystemTraceNodeModelHChartColors {
     return isUnmatched ? toUnmatchColor(color) : color;
   }
 
-  static Color getTextColor(@NotNull CaptureNodeModel model,
+  static Color getTextColor(@NotNull ColorPaletteManager colorPaletteManager,
+                            @NotNull CaptureNodeModel model,
                             CaptureDetails.Type chartType,
                             boolean isDeselected) {
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      return isDeselected ? DataVisualizationColors.INSTANCE.getForegroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR)
-                          : DataVisualizationColors.INSTANCE.getForegroundColor(index);
+      return isDeselected ? colorPaletteManager.getForegroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME)
+                          : colorPaletteManager.getForegroundColor(index);
     }
     return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }

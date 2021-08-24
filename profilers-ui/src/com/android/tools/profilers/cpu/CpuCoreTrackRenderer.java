@@ -18,9 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
+import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
@@ -52,7 +52,7 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel> {
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return ProfilerColors.DEFAULT_BACKGROUND;
       }
-      return DataVisualizationColors.INSTANCE.getBackgroundColor(value.getId(), isMouseOver);
+      return DataVisualizationColors.getPaletteManager().getBackgroundColor(value.getId(), isMouseOver);
     }
 
     @NotNull
@@ -62,7 +62,7 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel> {
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return AdtUiUtils.DEFAULT_FONT_COLOR;
       }
-      return DataVisualizationColors.INSTANCE.getForegroundColor(value.getId());
+      return DataVisualizationColors.getPaletteManager().getForegroundColor(value.getId());
     }
   }
 }

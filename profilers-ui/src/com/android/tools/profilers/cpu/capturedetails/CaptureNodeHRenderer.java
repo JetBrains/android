@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -43,10 +43,10 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   private static final int MARGIN_PX = 3; // Padding on left and right of node label
 
   @NotNull
-  private CaptureDetails.Type myType;
+  private final CaptureDetails.Type myType;
 
   @NotNull
-  private TextFitsPredicate myTextFitsPredicate;
+  private final TextFitsPredicate myTextFitsPredicate;
 
   @VisibleForTesting
   CaptureNodeHRenderer(@NotNull CaptureDetails.Type type, @NotNull TextFitsPredicate textFitPredicate) {
@@ -77,7 +77,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
     else if (nodeModel instanceof SystemTraceNodeModel) {
-      return SystemTraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
+      return SystemTraceNodeModelHChartColors.getFillColor(
+        DataVisualizationColors.getPaletteManager(), nodeModel, myType, node.isUnmatched(), isFocused, isDeselected
+      );
     }
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
@@ -92,7 +94,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof SystemTraceNodeModel) {
-      return SystemTraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
+      return SystemTraceNodeModelHChartColors.getIdleCpuColor(
+        DataVisualizationColors.getPaletteManager(), nodeModel, myType, node.isUnmatched(), isFocused, isDeselected
+      );
     }
     return getFillColor(node, isFocused, isDeselected);
   }
@@ -100,7 +104,8 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   private Color getTextColor(CaptureNode node, boolean isDeselected) {
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof SystemTraceNodeModel) {
-      return SystemTraceNodeModelHChartColors.getTextColor(nodeModel, myType, isDeselected);
+      return SystemTraceNodeModelHChartColors
+        .getTextColor(DataVisualizationColors.getPaletteManager(), nodeModel, myType, isDeselected);
     }
     return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }
@@ -111,6 +116,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   @NotNull
   static Color toUnmatchColor(@NotNull Color color) {
     // TODO: maybe cache for performance?
+    //noinspection UseJBColor
     return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255 * 0.2));
   }
 
@@ -122,10 +128,9 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
                      boolean isFocused,
                      boolean isDeselected) {
     // Draw rectangle background
-    CaptureNode captureNode = node;
     CaptureNodeModel nodeModel = node.getData();
-    Color nodeColor = getFillColor(captureNode, isFocused, isDeselected);
-    Color idleColor = getIdleCpuColor(captureNode, isFocused, isDeselected);
+    Color nodeColor = getFillColor(node, isFocused, isDeselected);
+    Color idleColor = getIdleCpuColor(node, isFocused, isDeselected);
     g.setPaint(nodeColor);
     g.fill(drawingArea);
 
@@ -155,10 +160,10 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     Font font = g.getFont();
     Font restoreFont = font;
     Color textColor = getTextColor(node, isDeselected);
-    if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
+    if (node.getFilterType() == CaptureNode.FilterType.MATCH) {
       g.setPaint(textColor);
     }
-    else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
+    else if (node.getFilterType() == CaptureNode.FilterType.UNMATCH) {
       g.setPaint(toUnmatchColor(textColor));
     }
     else {

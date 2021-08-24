@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.adtui.common.DataVisualizationColors
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.common.ColorPaletteManager
+import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
@@ -27,12 +28,12 @@ import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
 import com.google.common.truth.Truth.assertThat
+import com.google.gson.Gson
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail
-import org.junit.Before
 import org.junit.Test
 import java.awt.Color
 import java.awt.FontMetrics
@@ -40,15 +41,14 @@ import java.awt.Paint
 import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
+import java.io.InputStreamReader
 import java.nio.file.Files
 
 class CaptureNodeHRendererTest {
 
-  @Before
-  fun setup() {
-    DataVisualizationColors.doInitialize(
-        Files.newInputStream(resolveWorkspacePath ("tools/adt/idea/profilers-ui/testData/data-colors.json")))
-  }
+  private val colorPaletteManager = ColorPaletteManager(Gson().fromJson(
+    InputStreamReader(Files.newInputStream(TestUtils.resolveWorkspacePath("tools/adt/idea/profilers-ui/testData/data-colors.json"))),
+    Array<ColorPaletteManager.ColorPalette>::class.java))
 
   @Test
   fun renderIdleCpuTime() {
@@ -58,7 +58,7 @@ class CaptureNodeHRendererTest {
     simpleNode.startThread = 10
     simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
-    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, false)
     assertThat(fakeGraphics.fillShapes).hasSize(2)
@@ -78,7 +78,7 @@ class CaptureNodeHRendererTest {
     }
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
     // Test clamp width.
-    var renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    var renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f, 10.0f)
     var clampedRenderWindow = Rectangle2D.Float(0.0f, 0.0f, 6.0f, 6.0f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, clampedRenderWindow, false, false)
@@ -90,7 +90,7 @@ class CaptureNodeHRendererTest {
     fakeGraphics.fillShapes.clear()
 
     // Test clamp start and width
-    renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f, 10.0f)
     clampedRenderWindow = Rectangle2D.Float(3.0f, 0.0f, 1.0f, 6.0f)
     renderer.render(fakeGraphics, simpleNode, renderWindow, clampedRenderWindow, false, false)
     assertThat(fakeGraphics.fillShapes).hasSize(2)
@@ -108,7 +108,7 @@ class CaptureNodeHRendererTest {
     simpleNode.startThread = 10
     simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
-    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, false)
     assertThat(fakeGraphics.fillShapes).hasSize(1)
@@ -125,7 +125,7 @@ class CaptureNodeHRendererTest {
     simpleNode.startThread = 10
     simpleNode.endThread = 15
     val renderer = CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART)
-    val renderWindow = Rectangle2D.Float(-100.0f, 0.0f, 300.0f,10.0f)
+    val renderWindow = Rectangle2D.Float(-100.0f, 0.0f, 300.0f, 10.0f)
     val clampWindow = Rectangle2D.Float(0f, 0f, 10f, 10f)
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, clampWindow, false, false)
@@ -201,7 +201,10 @@ class CaptureNodeHRendererTest {
   fun testSystemTraceColors() {
     val invalidModel = SyscallModel("write")
     try {
-      SystemTraceNodeModelHChartColors.getFillColor(invalidModel, CaptureDetails.Type.CALL_CHART, false, false, false)
+      SystemTraceNodeModelHChartColors.getFillColor(
+        colorPaletteManager, invalidModel, CaptureDetails.Type.CALL_CHART, false,
+        false,
+        false)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -214,20 +217,28 @@ class CaptureNodeHRendererTest {
     val model3 = factory.getNode("Color 1234")
     val model4 = factory.getNode("Color 4321")
 
-    val notFocused = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, false)
-    val focused = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, true, false)
+    val notFocused = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val focused = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, true, false)
     assertThat(notFocused).isNotEqualTo(focused)
 
-    val colorModel = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, false)
-    val colorModel2 = SystemTraceNodeModelHChartColors.getFillColor(model2, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val colorModel = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val colorModel2 = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model2, CaptureDetails.Type.CALL_CHART, false, false, false)
     assertThat(colorModel).isNotEqualTo(colorModel2)
 
-    val colorModel3 = SystemTraceNodeModelHChartColors.getFillColor(model3, CaptureDetails.Type.CALL_CHART, false, false, false)
-    val colorModel4 = SystemTraceNodeModelHChartColors.getFillColor(model4, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val colorModel3 = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model3, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val colorModel4 = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model4, CaptureDetails.Type.CALL_CHART, false, false, false)
     assertThat(colorModel3).isEqualTo(colorModel4)
 
-    val idleModel = SystemTraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, false)
-    val idleModel2 = SystemTraceNodeModelHChartColors.getIdleCpuColor(model2, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val idleModel = SystemTraceNodeModelHChartColors.getIdleCpuColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val idleModel2 = SystemTraceNodeModelHChartColors.getIdleCpuColor(
+      colorPaletteManager, model2, CaptureDetails.Type.CALL_CHART, false, false, false)
     assertThat(idleModel).isNotEqualTo(idleModel2)
     assertThat(idleModel).isNotEqualTo(focused)
     assertThat(idleModel).isNotEqualTo(model)
@@ -235,29 +246,39 @@ class CaptureNodeHRendererTest {
     // In light mode we darken the colors as such our idle colors are less bright than the non idle ones.
     assertThat(ColorUtil.getLuminance(idleModel)).isLessThan(ColorUtil.getLuminance(focused))
 
-    var color = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, false, false)
+    var color = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.FLAME_CHART, false, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
 
-    color = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, true, false)
+    color = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.FLAME_CHART, false, true, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER)
 
-    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, false, false)
+    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(
+      colorPaletteManager, model, CaptureDetails.Type.FLAME_CHART, false, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_IDLE)
 
-    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, true, false)
+    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(
+      colorPaletteManager, model, CaptureDetails.Type.FLAME_CHART, false, true, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE)
 
-    color = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(DataVisualizationColors.getBackgroundColor(model.fullName.hashCode(), false)))
+    color = SystemTraceNodeModelHChartColors.getFillColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, false, true)
+    assertThat(color).isEqualTo(
+      colorPaletteManager.toGrayscale(
+        colorPaletteManager.getBackgroundColor(model.fullName.hashCode(), false)))
 
-    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(color))
+    color = SystemTraceNodeModelHChartColors.getIdleCpuColor(
+      colorPaletteManager, model, CaptureDetails.Type.CALL_CHART, false, false, true)
+    assertThat(color).isEqualTo(colorPaletteManager.toGrayscale(color))
 
     // Validate text colors using nodes that map to dark and light text colors respectively.
     val darkTextNode = factory.getNode(" ")
     val lightTextNode = factory.getNode("!")
-    val darkText = SystemTraceNodeModelHChartColors.getTextColor(darkTextNode, CaptureDetails.Type.CALL_CHART, false)
-    val lightText = SystemTraceNodeModelHChartColors.getTextColor(lightTextNode, CaptureDetails.Type.CALL_CHART, false)
+    val darkText = SystemTraceNodeModelHChartColors.getTextColor(
+      colorPaletteManager, darkTextNode, CaptureDetails.Type.CALL_CHART, false)
+    val lightText = SystemTraceNodeModelHChartColors.getTextColor(
+      colorPaletteManager, lightTextNode, CaptureDetails.Type.CALL_CHART, false)
     assertThat(darkText).isEqualTo(DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR)
     assertThat(lightText).isEqualTo(DataVisualizationColors.DEFAULT_LIGHT_TEXT_COLOR)
   }
@@ -313,23 +334,23 @@ class CaptureNodeHRendererTest {
   @Test
   fun testFittingTextForJavaMethod() {
     checkFittingText(nodeModel = JavaMethodModel("toString", "com.example.MyClass"), expectedTexts = listOf(
-        "com.example.MyClass.toString",
-        "c.example.MyClass.toString",
-        "c.e.MyClass.toString",
-        "c.e.M.toString",
-        "toString",
-        "toSt..."
+      "com.example.MyClass.toString",
+      "c.example.MyClass.toString",
+      "c.e.MyClass.toString",
+      "c.e.M.toString",
+      "toString",
+      "toSt..."
     ))
   }
 
   @Test
   fun testFittingTextForNativeMethod() {
     checkFittingText(nodeModel = CppFunctionModel.Builder("myNativeMethod").setParameters("int, float")
-        .setClassOrNamespace("MyNativeClass").build(), expectedTexts = listOf(
-        "MyNativeClass::myNativeMethod",
-        "M::myNativeMethod",
-        "myNativeMethod",
-        "myNativeMe..."
+      .setClassOrNamespace("MyNativeClass").build(), expectedTexts = listOf(
+      "MyNativeClass::myNativeMethod",
+      "M::myNativeMethod",
+      "myNativeMethod",
+      "myNativeMe..."
     ))
   }
 
@@ -399,7 +420,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(flameChartFillHover)
     // Deselection color
     color = JavaMethodHChartColors.getFillColor(model, callChart, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+    assertThat(color).isEqualTo(colorPaletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
   }
 
   private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color,
@@ -429,7 +450,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(flameChartFillHover)
     // Deselection color
     color = NativeModelHChartColors.getFillColor(model, callChart, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+    assertThat(color).isEqualTo(colorPaletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
   }
 
   private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
@@ -458,7 +479,7 @@ class CaptureNodeHRendererTest {
     }
   }
 
-  private class TestTextFitPredicate: CaptureNodeHRenderer.TextFitsPredicate {
+  private class TestTextFitPredicate : CaptureNodeHRenderer.TextFitsPredicate {
     var fittingLength: Int = 0
     override fun test(text: String,
                       metrics: FontMetrics,

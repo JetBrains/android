@@ -15,31 +15,17 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.chart.linechart.AbstractDurationDataRenderer
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineConfig
-import com.android.tools.adtui.common.DataVisualizationColors.toGrayscale
-import com.android.tools.adtui.instructions.IconInstruction
-import com.android.tools.adtui.instructions.InstructionsPanel
-import com.android.tools.adtui.instructions.NewRowInstruction
-import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerFonts
-import com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER
-import com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING
-import com.intellij.ui.components.JBPanel
-import com.intellij.util.IconUtil
-import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.UIUtilities
-import icons.StudioIcons
 import java.awt.Color
-import java.util.function.Consumer
 import javax.swing.JComponent
 
 class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: JComponent)
-      : BaseMemoryTimelineComponent<MainMemoryProfilerStage>(stageView, timeAxis) {
+  : BaseMemoryTimelineComponent<MainMemoryProfilerStage>(stageView, timeAxis) {
   val gcDurationDataRenderer = makeGcDurationDataRenderer()
   private val heapDumpRenderer = makeHeapDumpRenderer()
 
@@ -66,12 +52,12 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
   }
 
   private fun makeHeapDumpRenderer() = HeapDumpRenderer(stage.heapDumpSampleDurations, stage.timeline.viewRange).apply {
-    addHeapDumpHoverListener(Consumer { hovered ->
+    addHeapDumpHoverListener { hovered ->
       when {
         hovered -> stage.tooltip = null
         stage.tooltip == null -> stage.tooltip = MemoryUsageTooltip(stage)
       }
-    })
+    }
     rangeSelectionComponent.setRangeOcclusionTest(::isMouseOverHeapDump)
   }
 
@@ -93,9 +79,9 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
     makeAllocationRenderer(stage.allocationInfosDurations, "Allocation").grayOut()
 
   private fun DurationDataRenderer<*>.grayOut() = apply {
-    for (series in stage.detailedMemoryUsage.series.filterNot { it.name == "Allocated"}) {
+    for (series in stage.detailedMemoryUsage.series.filterNot { it.name == "Allocated" }) {
       val config = lineChart.getLineConfig(series)
-      val newConfig = LineConfig.copyOf(config).setColor(toGrayscale(config.color))
+      val newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.paletteManager.toGrayscale(config.color))
       addCustomLineConfig(series!!, newConfig)
     }
   }
