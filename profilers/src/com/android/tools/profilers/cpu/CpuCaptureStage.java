@@ -502,7 +502,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
       phase -> {
         AndroidFrameEventTrackModel phaseTrack = new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange());
-        AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, phaseTrack.getSeries().get(0));
+        AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, phaseTrack);
         String trackTitle = AndroidFrameEventTrackModel.getDisplayName(phase.getPhaseName());
         frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle)
                                    .setDefaultTooltipModel(tooltip));
