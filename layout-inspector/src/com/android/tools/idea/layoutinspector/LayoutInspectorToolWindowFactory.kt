@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -63,16 +61,6 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
  */
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewPanel: DataProvider): DataProvider =
   DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
-
-/**
- * Return true if the process it represents is inspectable in the Layout Inspector.
- *
- * Currently, a process is deemed inspectable if the device it's running on is M+ and if it's debuggable. The latter condition is
- * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
- */
-private fun ProcessDescriptor.isInspectableInLayoutInspector(): Boolean {
-  return this.device.apiLevel >= AndroidVersion.VersionCodes.M
-}
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -133,7 +121,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   fun createProcessesModel(project: Project, processNotifier: ProcessNotifier, executor: Executor) = ProcessesModel(
     executor = executor,
     processNotifier = processNotifier,
-    acceptProcess = { it.isInspectableInLayoutInspector() },
     isPreferred = { RecentProcess.isRecentProcess(it, project) }
   )
 }
