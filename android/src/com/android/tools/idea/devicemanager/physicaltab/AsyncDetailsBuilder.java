@@ -15,20 +15,13 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
-import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
@@ -80,37 +73,10 @@ final class AsyncDetailsBuilder {
       .setName(myDevice.getName())
       .setTarget(myDevice.getTarget())
       .setApi(myDevice.getApi())
-      .setResolution(getResolution(device))
+      .setPower(myExecutor.execute(device, "dumpsys battery").flatMap(Battery::newBattery).orElse(null))
+      .setResolution(myExecutor.execute(device, "wm size").flatMap(Resolution::newResolution).orElse(null))
       .setDensity(device.getDensity())
       .addAllAbis(device.getAbis())
       .build();
-  }
-
-  private @Nullable Resolution getResolution(@NotNull IDevice device) {
-    try {
-      return newResolution(myExecutor.execute(device, "wm size"));
-    }
-    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException exception) {
-      Logger.getInstance(AsyncDetailsBuilder.class).warn(exception);
-      return null;
-    }
-  }
-
-  private static @Nullable Resolution newResolution(@NotNull AdbShellCommandResult result) {
-    List<String> output = result.getOutput();
-
-    if (result.isError()) {
-      String separator = System.lineSeparator();
-
-      StringBuilder builder = new StringBuilder("Command failed:")
-        .append(separator);
-
-      output.forEach(line -> builder.append(line).append(separator));
-
-      Logger.getInstance(AsyncDetailsBuilder.class).warn(builder.toString());
-      return null;
-    }
-
-    return Resolution.newResolution(output.get(0));
   }
 }

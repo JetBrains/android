@@ -18,11 +18,10 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.TimeoutException;
-import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.google.common.util.concurrent.Futures;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -53,8 +52,7 @@ public final class AsyncDetailsBuilderTest {
   @Test
   public void buildAsync() throws Exception {
     // Arrange
-    Mockito.when(myExecutor.execute(myDevice, "wm size"))
-      .thenReturn(new AdbShellCommandResult("wm size", Arrays.asList("Physical size: 1080x2160", ""), false));
+    Mockito.when(myExecutor.execute(myDevice, "wm size")).thenReturn(Optional.of(Arrays.asList("Physical size: 1080x2160", "")));
 
     // Act
     Future<PhysicalDevice> future = myBuilder.buildAsync();
@@ -69,30 +67,5 @@ public final class AsyncDetailsBuilderTest {
       .build();
 
     assertEquals(device, future.get(32, TimeUnit.MILLISECONDS));
-  }
-
-  @Test
-  public void getResolution() throws Exception {
-    // Arrange
-    Mockito.when(myExecutor.execute(myDevice, "wm size")).thenThrow(new TimeoutException());
-
-    // Act
-    Future<PhysicalDevice> future = myBuilder.buildAsync();
-
-    // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(32, TimeUnit.MILLISECONDS));
-  }
-
-  @Test
-  public void newResolution() throws Exception {
-    // Arrange
-    Mockito.when(myExecutor.execute(myDevice, "wm size"))
-      .thenReturn(new AdbShellCommandResult("wm size", Collections.singletonList("Error"), true));
-
-    // Act
-    Future<PhysicalDevice> future = myBuilder.buildAsync();
-
-    // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(32, TimeUnit.MILLISECONDS));
   }
 }
