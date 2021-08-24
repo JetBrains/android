@@ -73,10 +73,17 @@ class AnimatedProperty<A> private constructor(
       val valueClass = units.values.first()::class
       if (units.values.any { it::class != valueClass }) return null
       // Check all max and min values are correct
-      val maxValues: List<Double> = List(dimension) { index -> units.values.map { it.componentAsDouble(index) }.max() }.filterNotNull()
-      val minValues: List<Double> = List(dimension) { index -> units.values.map { it.componentAsDouble(index) }.min() }.filterNotNull()
-      if (maxValues.size == units.values.size && minValues.size == units.values.size) return null
-
+      val maxValues: List<Double> = List(dimension) { index ->
+        units.values.map {
+          it.componentAsDouble(index)
+        }.maxOrNull()
+      }.filterNotNull()
+      val minValues: List<Double> = List(dimension) { index ->
+        units.values.map {
+          it.componentAsDouble(index)
+        }.minOrNull()
+      }.filterNotNull()
+      if (maxValues.size != dimension && minValues.size != dimension) return null
       return AnimatedProperty(
         startMs = startMs,
         endMs = endMs,

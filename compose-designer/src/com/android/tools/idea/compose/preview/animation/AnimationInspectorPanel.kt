@@ -113,6 +113,9 @@ private const val TIMELINE_CURVE_OFFSET = 45
 /** Offset from the top of timeline to the first animation curve. */
 private const val TIMELINE_TOP_OFFSET = 20
 
+/** Offset between the curve and the label. */
+private const val LABEL_OFFSET = 10
+
 /** Number of ticks per label in the timeline. */
 private const val TICKS_PER_LABEL = 5
 
@@ -1071,8 +1074,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Leave the track empty if feature is not enabled
         if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
         if (selectedProperties.isEmpty()) return
-        val minX = xPositionForValue(slider.minimum)
-        val maxX = xPositionForValue(slider.maximum)
         var rowIndex = 0
         for ((index, animation) in transition.properties) {
           if (animation == null) continue
@@ -1080,12 +1081,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
             val minY = TIMELINE_HEADER_HEIGHT - 1 + TIMELINE_ROW_HEIGHT * rowIndex + TIMELINE_TOP_OFFSET
             val maxY = minY + TIMELINE_ROW_HEIGHT
             val curveInfo = createCurveInfo(animation, componentId, minY, (maxY - TIMELINE_CURVE_OFFSET))
-            if (selectedProperties.size > index) {
-              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, minX, maxY - TIMELINE_CURVE_OFFSET + 7)
-            }
-
             if (curveInfo != null)
               CurvePainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
+
+            if (selectedProperties.size > index) {
+              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, xPositionForValue(animation.startMs),
+                                                      maxY - TIMELINE_CURVE_OFFSET + LABEL_OFFSET)
+            }
             rowIndex++
           }
         }
@@ -1120,7 +1122,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         g.fillRect(0, TIMELINE_HEADER_HEIGHT, width, height - TIMELINE_HEADER_HEIGHT)
         g.color = tickColor
         val tickIncrement = max(1, slider.majorTickSpacing / TICKS_PER_LABEL)
-        for (tick in 0..slider.majorTickSpacing step tickIncrement) {
+        for (tick in 0..slider.maximum step tickIncrement) {
           val xPos = xPositionForValue(tick)
           g.drawLine(xPos, tickRect.y + TIMELINE_HEADER_HEIGHT, xPos, tickRect.height)
         }
