@@ -215,6 +215,13 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     myTableView.resetLastReportedValues()
   }
 
+  @UiThread
+  fun selectAndroidTestCase(testCase: AndroidTestCase) {
+    myModel.getTestResultsRow(testCase)?.let { row ->
+      myTableView.addSelection(row)
+    }
+  }
+
   /**
    * Returns a root component of the table view.
    */
@@ -736,6 +743,13 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
     }
     row.addTestCase(device, testCase)
     return row
+  }
+
+  /**
+   * Returns [AndroidTestResultsRow] for a given test case if exists, otherwise null.
+   */
+  fun getTestResultsRow(testCase: AndroidTestCase): AndroidTestResultsRow? {
+    return myTestResultsRows[testCase.id]
   }
 
   /**
