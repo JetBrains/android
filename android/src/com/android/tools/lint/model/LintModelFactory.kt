@@ -115,7 +115,7 @@ class LintModelFactory : LintModelModuleLoader {
     /**
      * Returns the list of Lint Rule file, no matter what the AGP version is.
      */
-    private fun IdeAndroidProject.getLintRuleJarsForAnyAgpVersion() = lintRuleJars ?: listOf(
+    private fun IdeAndroidProject.getLintRuleJarsForAnyAgpVersion() = lintChecksJars ?: listOf(
       FileUtils.join(buildFolder, "intermediates", "lint", "lint.jar"),
       FileUtils.join(buildFolder, "intermediates", "lint_jar", "lint.jar"),
       FileUtils.join(

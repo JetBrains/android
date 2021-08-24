@@ -114,7 +114,8 @@ private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   ideAndroidModel.dynamicFeatures.forEach { prop("DynamicFeatures") { it } }
   ideAndroidModel.viewBindingOptions?.let { dump(it) }
   ideAndroidModel.dependenciesInfo?.let { dump(it) }
-  ideAndroidModel.lintRuleJars?.forEach { prop("LintRuleJars") { it.path.toPrintablePath() } }
+  ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }
+
   head("DefaultConfig")
     nest {
       this.dump(ideAndroidModel.defaultConfig)
@@ -239,8 +240,7 @@ private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
         .replaceKnownPatterns()
     }
   }
-  // TODO(191006100): LintJars are not available yet from V2 models.
-  if (ideLibrary !is IdeModuleLibrary) prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
+  prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
   when (ideLibrary) {
     is IdeAndroidLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
     is IdeJavaLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }

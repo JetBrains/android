@@ -179,7 +179,7 @@ interface IdeAndroidProject : Serializable {
    * If null, the model does not contain the information because AGP was an older version, and
    * alternative ways to get the information should be used.
    */
-  val lintRuleJars: List<File>?
+  val lintChecksJars: List<File>?
 
   /**
    * Returns the testNamespace of the main artifact.

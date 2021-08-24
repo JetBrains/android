@@ -459,7 +459,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       aidlFolder = androidLibrary.aidlFolder?.path ?: "",
       renderscriptFolder = androidLibrary.renderscriptFolder?.path ?: "",
       proguardRules = androidLibrary.proguardRules?.path ?: "",
-      lintJar = androidLibrary.lintJar?.path ?: "",
+      lintJar = androidLibrary.lintJar?.path,
       externalAnnotations = androidLibrary.externalAnnotations?.path ?: "",
       publicResources = androidLibrary.publicResources?.path ?: "",
       artifact = androidLibrary.artifact ?: File(""),
@@ -1092,7 +1092,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     val dependenciesInfoCopy: IdeDependenciesInfo? = copyNewModel(androidDsl::dependenciesInfo, ::dependenciesInfoFrom)
     val buildToolsVersionCopy = copy(androidDsl::buildToolsVersion)
     val groupId = androidDsl.groupId
-    val lintRuleJarsCopy: List<File>? = copy(project::lintRuleJars, ::deduplicateFile)
+    val lintChecksJarsCopy: List<File>? = copy(project::lintChecksJars, ::deduplicateFile)
     val isBaseSplit = project.projectType == ProjectType.APPLICATION
     val agpFlags: IdeAndroidGradlePluginProjectFlags = androidGradlePluginProjectFlagsFrom(project.flags)
 
@@ -1108,7 +1108,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       bootClasspath = bootClasspathCopy,
       signingConfigs = signingConfigsCopy,
       lintOptions = lintOptionsCopy,
-      lintRuleJars = lintRuleJarsCopy,
+      lintChecksJars = lintChecksJarsCopy,
       javaCompileOptions = javaCompileOptionsCopy,
       aaptOptions = aaptOptionsCopy,
       buildFolder = project.buildFolder,
