@@ -31,6 +31,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -44,11 +45,11 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-  private static final String ANDROID_PREFS_ROOT = "/android-home";
+  private static final String ANDROID_PREFS_ROOT = "android-home";
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
-  private File mAvdFolder;
+  private Path mAvdFolder;
   private SystemImage mSystemImage;
   private final MockFileOp mFileOp = new MockFileOp();
 
@@ -59,24 +60,25 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.recordExistingFile("/sdk/tools/lib/emulator/snapshots.img");
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
+    Path root = InMemoryFileSystems.getSomeRoot(mFileOp.getFileSystem());
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(root.resolve("sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, "avd"), new NullLogger());
+    mAvdManager = AvdManager.getInstance(androidSdkHandler, root.resolve(ANDROID_PREFS_ROOT + "/avd"), new NullLogger());
 
     assert mAvdManager != null;
-    mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
+    mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), false);
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
   }
 
-  public void testWipeAvd() throws Exception {
+  public void testWipeAvd() {
     MockLog log = new MockLog();
     // Create an AVD
     AvdInfo avd = mAvdManager.createAvd(
-      mFileOp.toPath(mAvdFolder),
+      mAvdFolder,
       getName(),
       mSystemImage,
       null,
@@ -92,23 +94,23 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertNotNull("Could not create AVD", avd);
 
     // Make a userdata-qemu.img so we can see if 'wipe-data' deletes it
-    File userQemu = new File(mAvdFolder, AvdManager.USERDATA_QEMU_IMG);
-    mFileOp.createNewFile(userQemu);
-    assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder, mFileOp.exists(userQemu));
+    Path userQemu = mAvdFolder.resolve(AvdManager.USERDATA_QEMU_IMG);
+    InMemoryFileSystems.recordExistingFile(userQemu);
+    assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder, Files.exists(userQemu));
     // Also make a 'snapshots' sub-directory with a file
-    File snapshotsDir = new File(mAvdFolder, AvdManager.SNAPSHOTS_DIRECTORY);
-    String snapshotFile = snapshotsDir.getAbsolutePath() + "/aSnapShotFile.txt";
-    mFileOp.recordExistingFile(snapshotFile, "Some contents for the file");
-    assertTrue("Could not create " + snapshotFile, mFileOp.exists(new File(snapshotFile)));
+    Path snapshotsDir = mAvdFolder.resolve(AvdManager.SNAPSHOTS_DIRECTORY);
+    Path snapshotFile = snapshotsDir.resolve("aSnapShotFile.txt");
+    InMemoryFileSystems.recordExistingFile(snapshotFile, "Some contents for the file");
+    assertTrue("Could not create " + snapshotFile, Files.exists(snapshotFile));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
 
-    assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data", mFileOp.exists(userQemu));
-    assertFalse("wipe-data did not remove the '" + AvdManager.SNAPSHOTS_DIRECTORY + "' directory", mFileOp.exists(snapshotsDir));
+    assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userQemu));
+    assertFalse("wipe-data did not remove the '" + AvdManager.SNAPSHOTS_DIRECTORY + "' directory", Files.exists(snapshotsDir));
 
-    File userData = new File(mAvdFolder, AvdManager.USERDATA_IMG);
-    assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data", mFileOp.exists(userData));
+    Path userData = mAvdFolder.resolve(AvdManager.USERDATA_IMG);
+    assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userData));
   }
 
   public void testEmulatorVersionIsAtLeast() {
@@ -196,12 +198,12 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create an AVD with a skin
     String skinnyAvdName = "skinnyAvd";
-    File skinnyAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinnyAvdName, mFileOp, false);
+    Path skinnyAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinnyAvdName, false);
     File skinFolder = new File(ANDROID_PREFS_ROOT, "skinFolder");
     mFileOp.mkdirs(skinFolder);
 
     AvdInfo skinnyAvd = mAvdManager.createAvd(
-      mFileOp.toPath(skinnyAvdFolder),
+      skinnyAvdFolder,
       skinnyAvdName,
       mSystemImage,
       mFileOp.toPath(skinFolder),
@@ -245,7 +247,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // previous list of packages
     AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
     AvdManagerConnection managerConnection =
-      new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
+      new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
 
     Path bogusEmulatorFile = managerConnection.getEmulatorBinary();
     if (bogusEmulatorFile != null) {
@@ -262,10 +264,10 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create an AVD without a skin
     String skinlessAvdName = "skinlessAvd";
-    File skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, mFileOp, false);
+    Path skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, false);
 
     AvdInfo skinlessAvd = mAvdManager.createAvd(
-      mFileOp.toPath(skinlessAvdFolder),
+      skinlessAvdFolder,
       skinlessAvdName,
       mSystemImage,
       null,
