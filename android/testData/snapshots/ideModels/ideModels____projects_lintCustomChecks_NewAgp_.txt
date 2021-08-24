@@ -49,7 +49,7 @@ MODULE                        : project.app
     DependenciesInfo
         IncludeInApk                  : true
         IncludeInBundle               : true
-    LintRuleJars                  : <ROOT>/lint/build/libs/lint.jar [-]
+    lintChecksJars                : <ROOT>/lint/build/libs/lint.jar [-]
     DefaultConfig
         ProductFlavor
             MinSdkVersion
@@ -256,6 +256,7 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -290,6 +291,7 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -320,6 +322,7 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -586,6 +589,7 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -612,6 +616,7 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -878,6 +883,7 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -904,6 +910,7 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>

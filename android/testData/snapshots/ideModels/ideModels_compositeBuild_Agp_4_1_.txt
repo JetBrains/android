@@ -806,10 +806,12 @@ MODULE                        : TestCompositeLib1.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -1409,10 +1411,12 @@ MODULE                        : TestCompositeLib1.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -2008,10 +2012,12 @@ MODULE                        : TestCompositeLib1.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -2783,6 +2789,7 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -3347,10 +3354,12 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -3916,10 +3925,12 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -4729,6 +4740,7 @@ MODULE                        : TestCompositeLib3.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5325,6 +5337,7 @@ MODULE                        : TestCompositeLib3.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5917,6 +5930,7 @@ MODULE                        : TestCompositeLib3.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -7200,6 +7214,7 @@ MODULE                        : TestCompositeLib3.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -7741,6 +7756,7 @@ MODULE                        : TestCompositeLib3.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -8554,14 +8570,17 @@ MODULE                        : project.app
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -9158,14 +9177,17 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -9758,14 +9780,17 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -11084,6 +11109,7 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -11643,6 +11669,7 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>

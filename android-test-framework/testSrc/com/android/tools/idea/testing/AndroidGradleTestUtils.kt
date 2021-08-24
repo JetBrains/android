@@ -788,7 +788,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     variantsBuildInformation = variants.map {
       IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)
     },
-    lintRuleJars = listOf()
+    lintChecksJars = listOf()
   )
 }
 

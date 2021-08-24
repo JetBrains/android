@@ -2181,6 +2181,7 @@ MODULE                        : MainActivity.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2744,6 +2745,7 @@ MODULE                        : MainActivity.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>

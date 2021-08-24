@@ -797,6 +797,7 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1387,6 +1388,7 @@ MODULE                        : My_First_App.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1981,6 +1983,7 @@ MODULE                        : My_First_App.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3299,6 +3302,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3866,6 +3870,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp

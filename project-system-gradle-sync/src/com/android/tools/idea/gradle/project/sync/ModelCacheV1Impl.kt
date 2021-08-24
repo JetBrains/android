@@ -1140,7 +1140,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       bootClasspath = bootClasspathCopy,
       signingConfigs = signingConfigsCopy,
       lintOptions = lintOptionsCopy,
-      lintRuleJars = lintRuleJarsCopy,
+      lintChecksJars = lintRuleJarsCopy,
       javaCompileOptions = javaCompileOptionsCopy,
       aaptOptions = aaptOptionsCopy,
       buildFolder = project.buildFolder,
