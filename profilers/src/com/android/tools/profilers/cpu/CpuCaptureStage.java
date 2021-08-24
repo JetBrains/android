@@ -492,8 +492,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
                                                                 @NotNull Timeline timeline) {
+    // Layer name takes the form of "app_name/surface_name", shorten it by omitting the app_name.
+    String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
-      .setTitle("Frame Lifecycle (" + layer.getLayerName() + ")")
+      .setTitle(title)
       .setTitleHelpText(AndroidFrameEventTrackModel.getTitleHelpText())
       .build();
 
