@@ -56,6 +56,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssues;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -182,7 +183,7 @@ public class VisualizationForm
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
-  private final Map<VisualLintErrorType, Map<String, List<Issue>>> myIssues = new HashMap<>();
+  private final VisualLintIssues myIssues = new VisualLintIssues();
   private final VisualLintBaseConfigIssues myBaseConfigIssues = new VisualLintBaseConfigIssues();
   private final ReentrantLock myLintIssueProviderLock = new ReentrantLock();
   @GuardedBy("myLintIssueProviderLock")
@@ -661,7 +662,7 @@ public class VisualizationForm
               VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager, myIssues, myBaseConfigIssues);
 
               if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                CommonLintUserDataHandler.INSTANCE.updateVisualLintIssues(model.getFile(), myIssues.values());
+                CommonLintUserDataHandler.INSTANCE.updateVisualLintIssues(model.getFile(), myIssues);
               }
             }
 

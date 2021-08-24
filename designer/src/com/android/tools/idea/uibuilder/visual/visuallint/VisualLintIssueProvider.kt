@@ -22,13 +22,16 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.google.common.collect.ImmutableCollection
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.xml.XmlChildRole
 
 class VisualLintIssueProvider(
-  private val issuesMap: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>,
+  private val issuesMap: VisualLintIssues,
 ) : IssueProvider() {
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-    issuesMap.values.forEach { it.values.forEach { issues -> issueListBuilder.addAll(issues) } }
+    issueListBuilder.addAll(issuesMap.list)
   }
 
   data class VisualLintIssueSource(val model: NlModel, val components: List<NlComponent>) : IssueSource {
@@ -49,8 +52,42 @@ class VisualLintRenderIssue(myIssue: RenderErrorModel.Issue,
     return sourceModel == model || components.any { it.model == model }
   }
 
-  fun addComponent(component: NlComponent?) {
-    component?.let { components.add(it) }
+  /** Number of times the same issue appears */
+  var count: Int = 0
+
+  /** Returns the text range of the issue. */
+  private var range: TextRange? = null
+
+  init {
+    updateRange()
+  }
+
+  private fun updateRange() {
+    source.components.forEach { component ->
+      component.let {
+        range = getTextRange(it)
+        return@forEach
+      }
+    }
+  }
+
+  private fun getTextRange(component: NlComponent): TextRange? {
+    component.tag?.let { tag ->
+      val nameElement: ASTNode? = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.node)
+      return nameElement?.textRange
+    }
+    return null
+  }
+
+  /** Hash code that depends on xml range rather than component. */
+  fun rangeBasedHashCode(): Int {
+    var result = 13
+    result += 17 * severity.hashCode()
+    result += 19 * summary.hashCode()
+    result += 23 * description.hashCode()
+    result += 29 * category.hashCode()
+    result += 31 * range.hashCode()
+    return result
   }
 }
 

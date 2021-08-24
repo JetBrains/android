@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
@@ -33,7 +32,7 @@ import com.android.utils.HtmlBuilder
 fun analyzeLocaleText(renderResult: RenderResult,
                       baseConfigIssues: VisualLintBaseConfigIssues,
                       model: NlModel,
-                      output: MutableMap<String, MutableList<Issue>>) {
+                      output: VisualLintIssues) {
   val config = renderResult.renderContext?.configuration
 
   if (isBaseConfig(config)) {
@@ -77,7 +76,7 @@ private fun isBaseConfig(config: Configuration?): Boolean {
 private fun findLocaleTextIssue(root: ViewInfo,
                                 baseConfigIssues: VisualLintBaseConfigIssues,
                                 model: NlModel,
-                                output: MutableMap<String, MutableList<Issue>>) {
+                                output: VisualLintIssues) {
   root.children.forEach {
     findLocaleTextIssue(it, baseConfigIssues, model, output)
   }
@@ -97,7 +96,7 @@ private fun createEllipsizedIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: MutableMap<String, MutableList<Issue>>) {
+                                  output: VisualLintIssues) {
 
   if (value != null && !value.hasI18NEllipsis) {
     // Base locale is not ellipsized but current locale is.
@@ -107,6 +106,7 @@ private fun createEllipsizedIssue(value: BaseConfigComponentState?,
       "The text is ellipsized in locale \"$locale\".",
       htmlBuilder("""The text is ellipsized in locale \"$locale\" but not in default locale.
                   This might not be the intended behaviour. Consider increasing the text view size.""".trimMargin()),
+      VisualLintErrorType.LOCALE_TEXT,
       output)
   }
 }
@@ -120,7 +120,7 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: MutableMap<String, MutableList<Issue>>) {
+                                  output: VisualLintIssues) {
   if (value == null) {
     // We cannot find the base locale information. Create an issue nonetheless to warn users.
     createIssue(
@@ -128,6 +128,7 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
       model,
       "The text might be cut off.",
       htmlBuilder("The text is too large in locale \"$locale\" to fit inside the TextView."),
+      VisualLintErrorType.LOCALE_TEXT,
       output)
   } else if (!value.hasI18NTextTooBig) {
     // Base locale is not cut off but this locale is - create an issue with appropriate message
@@ -137,6 +138,7 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
       "The text might be cut off.",
       htmlBuilder("""The text is too large in locale \"$locale\" to fit inside the TextView.
            This behavior is different from default locale and might not be intended behavior.""".trimMargin()),
+      VisualLintErrorType.LOCALE_TEXT,
       output)
   }
   // TODO: As a follow up, create a render lint that captures base locale text being cut off.

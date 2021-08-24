@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import android.view.View
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -49,38 +48,39 @@ enum class VisualLintErrorType {
  */
 fun analyzeAfterModelUpdate(result: RenderResult,
                             sceneManager: LayoutlibSceneManager,
-                            issues: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>,
+                            issues: VisualLintIssues,
                             baseConfigIssues: VisualLintBaseConfigIssues) {
   // TODO: Remove explicit use of mutable collections as argument for this method
   val model = sceneManager.model
-  analyzeBounds(result, model, issues.getOrPut(VisualLintErrorType.BOUNDS) { mutableMapOf() })
-  analyzeBottomNavigation(result, sceneManager, issues.getOrPut(VisualLintErrorType.BOTTOM_NAV) { mutableMapOf() })
-  analyzeOverlap(result, model, issues.getOrPut(VisualLintErrorType.OVERLAP) { mutableMapOf() })
-  analyzeLongText(result, model, issues.getOrPut(VisualLintErrorType.LONG_TEXT) { mutableMapOf() })
-  analyzeLocaleText(result, baseConfigIssues, model, issues.getOrPut(VisualLintErrorType.LOCALE_TEXT) { mutableMapOf() })
+  analyzeBounds(result, model, issues)
+  analyzeBottomNavigation(result, sceneManager, issues)
+  analyzeOverlap(result, model, issues)
+  analyzeLongText(result, model, issues)
+  analyzeLocaleText(result, baseConfigIssues, model, issues)
 }
 
 /**
  * Collects in [issues] all the [VisualLintAtfIssue] found when analyzing the given [RenderResult] after render is complete.
  */
-fun analyzeAfterRenderComplete(renderResult: RenderResult, model: NlModel, issues: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>) {
-  // TODO: This might change to return list of issues instead.
+fun analyzeAfterRenderComplete(renderResult: RenderResult, model: NlModel,
+                               issues: VisualLintIssues) {
   val atfAnalyzer = VisualLintAtfAnalysis(model)
-  val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
-  issues.computeIfAbsent(VisualLintErrorType.ATF) { mutableMapOf() }.computeIfAbsent("") { mutableListOf() }.addAll(atfIssues)
+  val atfIssues: List<VisualLintAtfIssue> = atfAnalyzer.validateAndUpdateLint(renderResult)
+  // TODO: Equals and hashcode might need to change here.
+  issues.addAll(VisualLintErrorType.ATF, atfIssues)
 }
 
 /**
  * Analyze the given [RenderResult] for issues where a child view is not fully contained within
  * the bounds of its parent, and collect all such issues in [issues].
  */
-private fun analyzeBounds(renderResult: RenderResult, model: NlModel, issues: MutableMap<String, MutableList<Issue>>) {
+private fun analyzeBounds(renderResult: RenderResult, model: NlModel, issues: VisualLintIssues) {
   for (root in renderResult.rootViews) {
     findBoundIssues(root, model, issues)
   }
 }
 
-private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableMap<String, MutableList<Issue>>) {
+private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: VisualLintIssues) {
   val rootWidth = root.right - root.left
   val rootHeight = root.bottom - root.top
   for (child in root.children) {
@@ -89,7 +89,7 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableMap<S
       val content = HtmlBuilder().add("${simpleName(child)} is not entirely contained within the bounds of its parent.")
         .newline()
         .add("This may result in this component being partially hidden from view.")
-      createIssue(child, model, "${simpleName(child)} is not fully visible in layout", content, issues)
+      createIssue(child, model, "${simpleName(child)} is not fully visible in layout", content, VisualLintErrorType.BOUNDS, issues)
     }
     findBoundIssues(child, model, issues)
   }
@@ -100,7 +100,7 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableMap<S
  */
 private fun analyzeBottomNavigation(renderResult: RenderResult,
                                     sceneManager: LayoutlibSceneManager,
-                                    issues: MutableMap<String, MutableList<Issue>>) {
+                                    issues: VisualLintIssues) {
   for (root in renderResult.rootViews) {
     findBottomNavigationIssue(root, sceneManager, issues)
   }
@@ -108,11 +108,17 @@ private fun analyzeBottomNavigation(renderResult: RenderResult,
 
 private fun findBottomNavigationIssue(root: ViewInfo,
                                       sceneManager: LayoutlibSceneManager,
-                                      issues: MutableMap<String, MutableList<Issue>>) {
+                                      issues: VisualLintIssues) {
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
     if (widthInDp > 600) {
-      createIssue(root, sceneManager.model, BOTTOM_NAVIGATION_ISSUE_MESSAGE, BOTTOM_NAVIGATION_ISSUE_CONTENT, issues)
+      createIssue(
+        root,
+        sceneManager.model,
+        BOTTOM_NAVIGATION_ISSUE_MESSAGE,
+        BOTTOM_NAVIGATION_ISSUE_CONTENT,
+        VisualLintErrorType.BOTTOM_NAV,
+        issues)
     }
   }
   for (child in root.children) {
@@ -124,13 +130,13 @@ private fun findBottomNavigationIssue(root: ViewInfo,
  * Analyze the given [RenderResult] for issues where a view is covered by another sibling view, and collect all such issues in [issues].
  * Limit to covered [TextView] as they are the most likely to be wrongly covered by another view.
  */
-private fun analyzeOverlap(renderResult: RenderResult, model: NlModel, issues: MutableMap<String, MutableList<Issue>>) {
+private fun analyzeOverlap(renderResult: RenderResult, model: NlModel, issues: VisualLintIssues) {
   for (root in renderResult.rootViews) {
     findOverlapIssues(root, model, issues)
   }
 }
 
-private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableMap<String, MutableList<Issue>>) {
+private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: VisualLintIssues) {
   val children = root.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
   for (i in children.indices) {
     val firstView = children[i]
@@ -146,7 +152,8 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableMap
         val content = HtmlBuilder().add("The content of ${simpleName(firstView)} is partially hidden.")
           .newline()
           .add("This may pose a problem for the readability of the text it contains.")
-        createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}", content, issues)
+        createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}", content,
+                    VisualLintErrorType.OVERLAP, issues)
       }
     }
   }
@@ -161,19 +168,20 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableMap
  */
 private fun analyzeLongText(renderResult: RenderResult,
                             model: NlModel,
-                            issues: MutableMap<String, MutableList<Issue>>) {
+                            issues: VisualLintIssues) {
   for (root in renderResult.rootViews) {
     findLongText(root, model, issues)
   }
 }
 
-private fun findLongText(root: ViewInfo, model: NlModel, issues: MutableMap<String, MutableList<Issue>>) {
+private fun findLongText(root: ViewInfo, model: NlModel, issues: VisualLintIssues) {
   if (root.viewObject is TextView) {
     val layout = (root.viewObject as TextView).layout
     for (i in 0 until layout.lineCount) {
       val numChars = layout.getLineVisibleEnd(i) - layout.getLineStart(i) + 1
       if (numChars > 120) {
-        createIssue(root, model, "${simpleName(root)} has lines containing more than 120 characters", LONG_TEXT_ISSUE_CONTENT, issues)
+        createIssue(root, model, "${simpleName(root)} has lines containing more than 120 characters", LONG_TEXT_ISSUE_CONTENT,
+                    VisualLintErrorType.LONG_TEXT, issues)
         break
       }
     }
@@ -187,27 +195,17 @@ fun createIssue(view: ViewInfo,
                 model: NlModel,
                 message: String,
                 htmlContent: HtmlBuilder,
-                issues: MutableMap<String, MutableList<Issue>>) {
-  val idString = (view.cookie as? TagSnapshot)?.getAttribute("id")
+                type: VisualLintErrorType,
+                issues: VisualLintIssues) {
   val component = componentFromViewInfo(view, model)
-  if (idString == null) {
-    val issue = VisualLintRenderIssue(RenderErrorModel.Issue.builder()
-                                        .setSummary(message)
-                                        .setHtmlContent(htmlContent)
-                                        .setSeverity(HighlightSeverity.WARNING)
-                                        .build(), model, mutableListOf())
-    issue.addComponent(component)
-    issues.getOrPut("") { mutableListOf() }.add(issue)
-  }
-  else {
-    (issues.getOrPut(idString) {
-      mutableListOf(VisualLintRenderIssue(RenderErrorModel.Issue.builder()
-                                            .setSummary(message)
-                                            .setHtmlContent(htmlContent)
-                                            .setSeverity(HighlightSeverity.WARNING)
-                                            .build(), model, mutableListOf()))
-    }.first() as VisualLintRenderIssue).addComponent(component)
-  }
+  val issue = VisualLintRenderIssue(RenderErrorModel.Issue.builder()
+                                      .setSummary(message)
+                                      .setHtmlContent(htmlContent)
+                                      .setSeverity(HighlightSeverity.WARNING)
+                                      .build(),
+                                    model,
+                                    if (component == null) mutableListOf() else mutableListOf(component))
+  issues.add(type, issue)
 }
 
 private fun simpleName(view: ViewInfo): String {
