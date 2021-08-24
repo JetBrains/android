@@ -147,6 +147,19 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     assertThat(wizardAction.restartCalled).isTrue()
   }
 
+  @Test
+  fun shouldShowErrorIfWatchGsmcoreIsOld() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0", 0) // Simulate Companion App
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      fakeUi.findComponent<JLabel> { it.text == "Restart pairing" } != null
+    }
+  }
+
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()
@@ -163,7 +176,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     findComponent<JBLabel> { it.name == "header" && it.text == text } != null
   }
 
-  private fun createTestDevice(companionAppVersion: String): IDevice {
+  private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
     Mockito.`when`(
       iDevice.executeShellCommand(
@@ -178,6 +191,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
         request.contains("grep versionName") -> companionAppVersion
+        request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         else -> "Unknown executeShellCommand request $request"
       }
 

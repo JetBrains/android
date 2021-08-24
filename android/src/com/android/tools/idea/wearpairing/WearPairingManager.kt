@@ -99,7 +99,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   suspend fun createPairedDeviceBridge(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice, connect: Boolean = true) {
     removePairedDevices(wear.deviceID, restartWearGmsCore = false)
 
-    val hostPort = runCatching { NetUtils.findAvailableSocketPort() }.getOrDefault(5602)
+    val hostPort = NetUtils.tryToFindAvailableSocketPort(5602)
     val phoneWearPair = PhoneWearPair(
       phone = phone.disconnectedCopy(isPaired = true),
       wear = wear.disconnectedCopy(isPaired = true),
