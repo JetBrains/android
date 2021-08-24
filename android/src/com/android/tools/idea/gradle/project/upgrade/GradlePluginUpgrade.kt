@@ -28,6 +28,9 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
@@ -323,6 +326,48 @@ fun displayForceUpdatesDisabledMessage(project: Project) {
             "'${DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
   val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
   notification.notify(project)
+}
+
+data class GradlePluginUpgradeState(
+  val importance: Importance,
+  val target: GradleVersion,
+) {
+  enum class Importance {
+    NO_UPGRADE,
+    RECOMMEND,
+    FORCE,
+  }
+}
+
+fun computeGradlePluginUpgradeState(
+  current: GradleVersion,
+  latestKnown: GradleVersion,
+  published: Set<GradleVersion>
+): GradlePluginUpgradeState {
+  if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
+
+  if (!current.isPreview || current.previewType == "rc") {
+    // If our latestKnown is stable, recommend it.
+    if (!latestKnown.isPreview || latestKnown.previewType == "rc") return GradlePluginUpgradeState(RECOMMEND, latestKnown)
+    // Otherwise, look for a newer published stable.
+    val laterStable = published.filter { !it.isPreview }.filter { it > current }.maxOrNull()
+                      ?: return GradlePluginUpgradeState(NO_UPGRADE, current)
+    return GradlePluginUpgradeState(RECOMMEND, laterStable)
+  }
+  else if (current.previewType == "alpha" || current.previewType == "beta") {
+    if (latestKnown.isSnapshot) {
+      // If latestKnown is -dev and current is in the same series, leave it alone.
+      if (latestKnown.compareIgnoringQualifiers(current) == 0) return GradlePluginUpgradeState(NO_UPGRADE, current)
+      // If latestKnown is -dev and current is a preview from an earlier series, recommend an upgrade.
+      return GradlePluginUpgradeState(RECOMMEND, latestKnown)
+    }
+    // In all other cases where latestKnown is later than an alpha or beta current, force an upgrade.
+    return GradlePluginUpgradeState(FORCE, latestKnown)
+  }
+  else {
+    // Current is a snapshot, probably -dev, and is less than latestKnown.  Force an upgrade to latestKnown.
+    return GradlePluginUpgradeState(FORCE, latestKnown)
+  }
 }
 
 fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
