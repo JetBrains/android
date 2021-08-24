@@ -17,8 +17,8 @@ package com.android.tools.profilers.memory.chart
 
 import com.android.tools.adtui.chart.hchart.HRenderer
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.common.DataVisualizationColors.getColor
-import com.android.tools.adtui.common.DataVisualizationColors.getFontColor
+import com.android.tools.adtui.common.DataVisualizationColors.getBackgroundColor
+import com.android.tools.adtui.common.DataVisualizationColors.getForegroundColor
 import com.android.tools.adtui.common.DataVisualizationColors.toGrayscale
 import com.intellij.ui.ColorUtil
 import java.awt.Color
@@ -35,7 +35,7 @@ class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode?> {
                       isDeselected: Boolean) {
     // Draw rectangle background
     val index = node.name.hashCode()
-    var color: Color = getColor(index, isFocused)
+    var color: Color = getBackgroundColor(index, isFocused)
     if (isDeselected && !isFocused) {
       color = toGrayscale(color)
     }
@@ -45,7 +45,7 @@ class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode?> {
     // Draw text
     var font = g.font
     val restoreFont = font
-    val textColor: Color = getFontColor(index)
+    val textColor: Color = getForegroundColor(index)
     g.paint = textColor
     if (node.isFiltered && node.isMatched) {
       font = font.deriveFont(Font.BOLD)

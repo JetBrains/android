@@ -33,7 +33,7 @@ class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel> {
   override fun render(trackModel: TrackModel<RssMemoryTrackModel, *>): JComponent {
     val lineChart = LineChart(trackModel.dataModel).apply {
       configure(trackModel.dataModel.memoryCounterSeries,
-                LineConfig(DataVisualizationColors.getColor(trackModel.title.hashCode())).setFilled(true))
+                LineConfig(DataVisualizationColors.getBackgroundColor(trackModel.title.hashCode())).setFilled(true))
       setFillEndGap(true)
     }
     val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT).apply {

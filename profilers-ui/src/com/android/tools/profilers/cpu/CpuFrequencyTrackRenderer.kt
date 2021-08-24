@@ -34,7 +34,7 @@ class CpuFrequencyTrackRenderer : TrackRenderer<CpuFrequencyTrackModel> {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel).apply {
         configure(lineChartModel.cpuFrequencySeries,
-                  LineConfig(DataVisualizationColors.getColor(trackModel.title.hashCode())).setFilled(true).setStepped(true))
+                  LineConfig(DataVisualizationColors.getBackgroundColor(trackModel.title.hashCode())).setFilled(true).setStepped(true))
         setFillEndGap(true)
       }
       add(lineChart)

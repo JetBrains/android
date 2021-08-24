@@ -248,7 +248,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE)
 
     color = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(DataVisualizationColors.getColor(model.fullName.hashCode(), false)))
+    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(DataVisualizationColors.getBackgroundColor(model.fullName.hashCode(), false)))
 
     color = SystemTraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
     assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(color))
@@ -399,7 +399,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(flameChartFillHover)
     // Deselection color
     color = JavaMethodHChartColors.getFillColor(model, callChart, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+    assertThat(color).isEqualTo(DataVisualizationColors.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
   }
 
   private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color,
@@ -429,7 +429,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(flameChartFillHover)
     // Deselection color
     color = NativeModelHChartColors.getFillColor(model, callChart, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+    assertThat(color).isEqualTo(DataVisualizationColors.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
   }
 
   private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {

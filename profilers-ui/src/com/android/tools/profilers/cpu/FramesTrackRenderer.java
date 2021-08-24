@@ -50,7 +50,7 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
         case BAD:
           return isMouseOver ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED : ProfilerColors.SLOW_FRAME_COLOR;
         case GOOD:
-          return DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isMouseOver);
+          return DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isMouseOver);
         default:
           return ProfilerColors.CPU_STATECHART_DEFAULT_STATE;
       }

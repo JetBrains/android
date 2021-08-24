@@ -59,7 +59,7 @@ class JavaMethodHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       if (isDeselected) {
-        color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
+        color = DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
       }
       else if (isMethodVendor(model)) {
         color = isFocused ? ProfilerColors.CPU_CALLCHART_VENDOR_HOVER : ProfilerColors.CPU_CALLCHART_VENDOR;
