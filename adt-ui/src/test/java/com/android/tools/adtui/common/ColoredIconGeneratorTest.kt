@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.common
 
-import com.android.testutils.TestResources
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
@@ -33,7 +32,6 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.io.FileInputStream
 import javax.swing.Icon
 
 private const val LIGHT_COLOR = 0xF1F2F3
@@ -49,7 +47,6 @@ class ColoredIconGeneratorTest {
   @Before
   fun setUp() {
     wasDarkMode = !JBColor.isBright()
-    DataVisualizationColors.doInitialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
     IconManager.activate()
     IconLoader.activate()
   }

@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.profilers.ui.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     test_class = "com.android.tools.profilers.ProfilersUiTestSuite",
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],

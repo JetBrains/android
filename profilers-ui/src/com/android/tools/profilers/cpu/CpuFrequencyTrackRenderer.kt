@@ -17,9 +17,9 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.LineConfig
-import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
+import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -33,8 +33,8 @@ class CpuFrequencyTrackRenderer : TrackRenderer<CpuFrequencyTrackModel> {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel).apply {
-        configure(lineChartModel.cpuFrequencySeries,
-                  LineConfig(DataVisualizationColors.getBackgroundColor(trackModel.title.hashCode())).setFilled(true).setStepped(true))
+        val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
+        configure(lineChartModel.cpuFrequencySeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
         setFillEndGap(true)
       }
       add(lineChart)

@@ -17,9 +17,9 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.LineConfig
-import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
+import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -33,9 +33,10 @@ class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel> {
     return JPanel(BorderLayout()).apply {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel)
-      lineChart.configure(lineChartModel.bufferQueueSeries,
-                          LineConfig(DataVisualizationColors.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
-                            .setStepped(true))
+      lineChart.configure(
+        lineChartModel.bufferQueueSeries,
+        LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
+          .setStepped(true))
       lineChart.setFillEndGap(true)
       add(lineChart)
     }

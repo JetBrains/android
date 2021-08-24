@@ -16,7 +16,9 @@
 package com.android.tools.adtui.common
 
 import com.android.testutils.TestResources
+import com.android.tools.adtui.common.ColorPaletteManager.ColorPalette
 import com.google.common.truth.Truth.assertThat
+import com.google.gson.Gson
 import com.intellij.ui.JBColor
 import org.junit.After
 import org.junit.Assume.assumeFalse
@@ -25,9 +27,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.FileInputStream
+import java.io.InputStreamReader
 
 @RunWith(Parameterized::class)
-class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
+class ColorPaletteManagerTest(private val isDarkMode: Boolean) {
   companion object {
     /**
      * JBColor equality only checks dark variant if the current theme is Darcular, so we need to programmatically set dark mode.
@@ -39,11 +42,14 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
 
   private var wasDarkMode = false // Restore dark mode after test runs
 
+  private val colorPaletteManager = ColorPaletteManager(Gson().fromJson(
+    InputStreamReader(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json"))),
+    Array<ColorPalette>::class.java))
+
   @Before
   fun setUp() {
     wasDarkMode = !JBColor.isBright()
     JBColor.setDark(isDarkMode)
-    DataVisualizationColors.doInitialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
   }
 
   @After
@@ -59,86 +65,86 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
   @Test
   fun validateFileFormat() {
     assumeFalse(isDarkMode)
-    assertThat(DataVisualizationColors.backgroundPalette).isNotEmpty()
-    assertThat(DataVisualizationColors.foregroundPalette).isNotEmpty()
+    assertThat(colorPaletteManager.backgroundPalette).isNotEmpty()
+    assertThat(colorPaletteManager.foregroundPalette).isNotEmpty()
   }
 
   @Test
   fun validateFileHasSameNumberVariantsForEachColor() {
     assumeFalse(isDarkMode)
-    DataVisualizationColors.backgroundPalette.values.forEach {
-      assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
+    colorPaletteManager.backgroundPalette.values.forEach {
+      assertThat(it.size).isEqualTo(colorPaletteManager.numberOfTonesPerColor)
     }
-    DataVisualizationColors.foregroundPalette.values.forEach {
-      assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
+    colorPaletteManager.foregroundPalette.values.forEach {
+      assertThat(it.size).isEqualTo(colorPaletteManager.numberOfTonesPerColor)
     }
   }
 
   @Test
   fun requestingBackgroundColorsByIndexIsDeterministic() {
-    val initialColor = DataVisualizationColors.getBackgroundColor(0)
-    val nextColor = DataVisualizationColors.getBackgroundColor(1)
+    val initialColor = colorPaletteManager.getBackgroundColor(0)
+    val nextColor = colorPaletteManager.getBackgroundColor(1)
     assertThat(initialColor).isNotEqualTo(nextColor)
-    assertThat(initialColor).isEqualTo(DataVisualizationColors.getBackgroundColor(0))
+    assertThat(initialColor).isEqualTo(colorPaletteManager.getBackgroundColor(0))
   }
 
   @Test
   fun requestingForegroundColorsByIndexIsDeterministic() {
-    val initialColor = DataVisualizationColors.getForegroundColor(0)
-    val nextColor = DataVisualizationColors.getForegroundColor(1)
+    val initialColor = colorPaletteManager.getForegroundColor(0)
+    val nextColor = colorPaletteManager.getForegroundColor(1)
     assertThat(initialColor).isNotEqualTo(nextColor)
-    assertThat(initialColor).isEqualTo(DataVisualizationColors.getForegroundColor(0))
+    assertThat(initialColor).isEqualTo(colorPaletteManager.getForegroundColor(0))
   }
 
   @Test
   fun backgroundColorsByIndexHandlesOutOfBounds() {
-    val palette = DataVisualizationColors.backgroundPalette
+    val palette = colorPaletteManager.backgroundPalette
     val numberOfColors = palette.size
-    val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
-    assertThat(DataVisualizationColors.getBackgroundColor(-1)).isEqualTo(
-      DataVisualizationColors.getBackgroundColor(1))
-    assertThat(DataVisualizationColors.getBackgroundColor(numberOfColors * numberOfTones)).isEqualTo(
-      DataVisualizationColors.getBackgroundColor(0))
+    val numberOfTones = colorPaletteManager.numberOfTonesPerColor
+    assertThat(colorPaletteManager.getBackgroundColor(-1)).isEqualTo(
+      colorPaletteManager.getBackgroundColor(1))
+    assertThat(colorPaletteManager.getBackgroundColor(numberOfColors * numberOfTones)).isEqualTo(
+      colorPaletteManager.getBackgroundColor(0))
   }
 
   @Test
   fun foregroundColorsByIndexHandlesOutOfBounds() {
-    val palette = DataVisualizationColors.foregroundPalette
+    val palette = colorPaletteManager.foregroundPalette
     val numberOfColors = palette.size
-    val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
-    assertThat(DataVisualizationColors.getForegroundColor(-1)).isEqualTo(
-      DataVisualizationColors.getForegroundColor(1))
-    assertThat(DataVisualizationColors.getForegroundColor(numberOfColors * numberOfTones)).isEqualTo(
-      DataVisualizationColors.getForegroundColor(0))
+    val numberOfTones = colorPaletteManager.numberOfTonesPerColor
+    assertThat(colorPaletteManager.getForegroundColor(-1)).isEqualTo(
+      colorPaletteManager.getForegroundColor(1))
+    assertThat(colorPaletteManager.getForegroundColor(numberOfColors * numberOfTones)).isEqualTo(
+      colorPaletteManager.getForegroundColor(0))
   }
 
   @Test
   fun getBackgroundColorByName() {
-    assertThat(DataVisualizationColors.getBackgroundColor("Gray", 0)).isEqualTo(
-      DataVisualizationColors.getBackgroundColor(0, 0, false))
+    assertThat(colorPaletteManager.getBackgroundColor("Gray", 0)).isEqualTo(
+      colorPaletteManager.getBackgroundColor(0, 0, false))
   }
 
   @Test
   fun getFocusColor() {
-    val color = DataVisualizationColors.getBackgroundColor(0)
-    assertThat(DataVisualizationColors.getFocusColor(color)).isNotEqualTo(color)
+    val color = colorPaletteManager.getBackgroundColor(0)
+    assertThat(colorPaletteManager.getFocusColor(color)).isNotEqualTo(color)
   }
 
   @Test
   fun getFocusedColors() {
-    val color = DataVisualizationColors.getBackgroundColor(0, false)
-    val focusedColor = DataVisualizationColors.getBackgroundColor(0, true)
+    val color = colorPaletteManager.getBackgroundColor(0, false)
+    val focusedColor = colorPaletteManager.getBackgroundColor(0, true)
     assertThat(focusedColor).isNotEqualTo(color)
 
-    val gray = DataVisualizationColors.getBackgroundColor("Gray", false)
-    val focusedGray = DataVisualizationColors.getBackgroundColor("Gray", true)
+    val gray = colorPaletteManager.getBackgroundColor("Gray", false)
+    val focusedGray = colorPaletteManager.getBackgroundColor("Gray", true)
     assertThat(gray).isNotEqualTo(focusedGray)
   }
 
   @Test
   fun testGrayscaleColorConversion() {
     val color = JBColor(0x545454, 0xCACACA)
-    val grayscaleColor = DataVisualizationColors.toGrayscale(color)
+    val grayscaleColor = colorPaletteManager.toGrayscale(color)
     assertThat(grayscaleColor.red).isEqualTo(grayscaleColor.green)
     assertThat(grayscaleColor.green).isEqualTo(grayscaleColor.blue)
   }
