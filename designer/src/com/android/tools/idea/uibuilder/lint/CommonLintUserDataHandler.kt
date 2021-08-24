@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.ATF_ISSUES_LATCH
 import com.android.tools.idea.actions.VISUAL_LINT_ISSUES
 import com.android.tools.idea.actions.VISUAL_LINT_ISSUES_LATCH
 import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssues
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiFile
@@ -69,11 +70,11 @@ object CommonLintUserDataHandler {
   }
 
   /** Update visual lint issues to be displayed in the common problems panel */
-  fun updateVisualLintIssues(file: PsiFile, values: Collection<MutableMap<String, MutableList<Issue>>>) {
+  fun updateVisualLintIssues(file: PsiFile, issues: VisualLintIssues) {
     val visualLintIssues = getOrCreateNew(VISUAL_LINT_ISSUES, file)
 
     ApplicationManager.getApplication().runReadAction {
-      values.flatMap { it.values }.flatten().forEach {
+      issues.list.forEach {
         visualLintIssues.add(CommonProblemsPanelIssue(it))
       }
     }
