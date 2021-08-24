@@ -85,6 +85,7 @@ private val LOG = Logger.getInstance("Upgrade Assistant")
 class ToolWindowModel(
   val project: Project,
   val currentVersionProvider: () -> GradleVersion?,
+  val recommended: GradleVersion? = null,
   val knownVersionsRequester: () -> Set<GradleVersion> = { IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle") }
 ) : GradleSyncListener, Disposable {
 
@@ -92,7 +93,7 @@ class ToolWindowModel(
 
   var current: GradleVersion? = currentVersionProvider()
     private set
-  private var _selectedVersion: GradleVersion? = latestKnownVersion
+  private var _selectedVersion: GradleVersion? = recommended ?: latestKnownVersion
   val selectedVersion: GradleVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
@@ -289,8 +290,8 @@ class ToolWindowModel(
   }
 
   fun suggestedVersionsList(gMavenVersions: Set<GradleVersion>): List<GradleVersion> = gMavenVersions
-    // Make sure the current (if known) and latest known versions are present, whether published or not
-    .union(listOfNotNull(current, latestKnownVersion))
+    // Make sure the current (if known), recommended, and latest known versions are present, whether published or not
+    .union(listOfNotNull(current, recommended, latestKnownVersion))
     // Keep only versions that are later than or equal to current
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support
@@ -467,10 +468,11 @@ class ContentManager(val project: Project) {
       RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
   }
 
-  fun showContent() {
+  fun showContent(recommended: GradleVersion? = null) {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     toolWindow.contentManager.removeAllContents(true)
-    val model = ToolWindowModel(project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion })
+    val model = ToolWindowModel(
+      project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion }, recommended = recommended)
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.setDisposer(model)

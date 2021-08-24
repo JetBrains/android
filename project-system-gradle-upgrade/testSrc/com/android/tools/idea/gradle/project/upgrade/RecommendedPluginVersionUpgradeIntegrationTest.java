@@ -105,8 +105,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
-    GradleVersion current = GradleVersion.parse("2.2.0");
-    GradleVersion recommended = GradleVersion.parse("2.3.0");
+    GradleVersion current = GradleVersion.parse("4.0.0");
+    GradleVersion recommended = GradleVersion.parse("4.1.0");
 
     // Simulate user declined upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(false);
@@ -124,8 +124,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion current = GradleVersion.parse("2.2.0");
-    GradleVersion recommended = GradleVersion.parse("2.3.0");
+    GradleVersion current = GradleVersion.parse("4.0.0");
+    GradleVersion recommended = GradleVersion.parse("4.1.0");
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
@@ -138,7 +138,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   }
 
   private void verifyUpgradeAssistantWasInvoked() {
-    verify(myContentManager).showContent();
+    verify(myContentManager).showContent(any());
     verify(myAssistantInvoker).createProcessor(same(myProject), any(), any());
   }
 
