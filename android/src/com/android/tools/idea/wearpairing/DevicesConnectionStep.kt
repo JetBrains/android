@@ -162,6 +162,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
+    if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD, null)) {
+      showDeviceGmscoreNeedsUpdate(wearDevice)
+      wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
+      return
+    }
     showUiBridgingDevices()
     if (checkWearMayNeedFactoryReset(phoneDevice, wearDevice)) {
       showUiNeedsFactoryReset(model.selectedWearDevice.value.displayName)
@@ -177,6 +182,20 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
     else {
       showUiInstallCompanionAppInstructions(phoneDevice)
+    }
+  }
+
+  private fun showDeviceGmscoreNeedsUpdate(device: IDevice) {
+    GlobalScope.launch(ioThread) {
+      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error", device.name))
+      body.add(
+        LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ ->
+          wizardAction.restart(project)
+        }.addBorder(
+          empty(10, 0)),
+        gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START)
+      )
+      showUI(header = currentUiHeader, description = currentUiDescription, body = body)
     }
   }
 
@@ -694,7 +713,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
 private fun createWarningPanel(errorMessage: String): JPanel = JPanel(GridBagLayout()).apply {
   add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 0))
-  add(JBLabel(errorMessage), gridConstraint(x = 1, y = 0, weightx = 1.0, fill = HORIZONTAL))
+  add(HtmlLabel().apply {
+    name = "errorMessage"
+    HtmlLabel.setUpAsHtmlLabel(this)
+    text = errorMessage
+  }, gridConstraint(x = 1, y = 0, weightx = 1.0, fill = HORIZONTAL))
 }
 
 suspend fun <T> Future<T>.await(): T {
