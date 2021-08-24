@@ -19,7 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -132,7 +132,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     assert dirName != null;
     PsiDirectory resourceDirectory = getResourceDirectory(myDataContext);
     if (resourceDirectory == null) {
-      Module module = LangDataKeys.MODULE.getData(myDataContext);
+      Module module = PlatformCoreDataKeys.MODULE.getData(myDataContext);
       Messages.showErrorDialog(AndroidBundle.message("check.resource.dir.error", module),
                                CommonBundle.getErrorTitle());
       // Not much the user can do, just close the dialog.
@@ -177,7 +177,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
       return myResDirectory;
     }
     if (context != null) {
-      Module module = LangDataKeys.MODULE.getData(context);
+      Module module = PlatformCoreDataKeys.MODULE.getData(context);
       assert module != null;
       return CreateResourceDialogUtils.getOrCreateResourceDirectory(mySourceSetCombo, module);
     }

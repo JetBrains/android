@@ -19,7 +19,6 @@ import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE_ARRAY;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
@@ -54,6 +53,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -288,7 +288,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
     }
 
-    if (MODULE.is(dataId)) {
+    if (PlatformCoreDataKeys.MODULE.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;

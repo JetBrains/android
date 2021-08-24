@@ -19,8 +19,8 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys.MODULE
 import com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -45,7 +45,7 @@ class EnableInstantAppsSupportAction : AnAction() {
 
   private fun getSelectedModule(dataContext: DataContext): Module? {
     val modules = dataContext.getData(MODULE_CONTEXT_ARRAY)
-    return if (modules.isNullOrEmpty()) dataContext.getData(MODULE) else modules[0]
+    return if (modules.isNullOrEmpty()) dataContext.getData(PlatformCoreDataKeys.MODULE) else modules[0]
   }
 
   companion object {

@@ -19,7 +19,7 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.idea.actions.EnableInstantAppsSupportAction.Companion.addInstantAppSupportToManifest
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.MapDataContext
@@ -45,7 +45,7 @@ class EnableInstantAppsSupportActionTest {
 
   @Test
   fun `check action is enabled with parent module`() {
-    context.put(LangDataKeys.MODULE, rule.module)
+    context.put(PlatformCoreDataKeys.MODULE, rule.module)
 
     val action = EnableInstantAppsSupportAction()
     action.update(event)
@@ -56,7 +56,7 @@ class EnableInstantAppsSupportActionTest {
 
   @Test
   fun `check action is disabled with no parent module`() {
-    context.put(LangDataKeys.MODULE, null)
+    context.put(PlatformCoreDataKeys.MODULE, null)
 
     val action = EnableInstantAppsSupportAction()
     action.update(event)

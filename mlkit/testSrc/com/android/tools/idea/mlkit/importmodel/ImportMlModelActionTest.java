@@ -28,7 +28,7 @@ import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.TestActionEvent;
@@ -59,7 +59,7 @@ public class ImportMlModelActionTest {
     myEvent = new TestActionEvent(new MapDataContext(
       ImmutableMap.of(
         CommonDataKeys.PROJECT, projectRule.getProject(),
-        LangDataKeys.MODULE, gradleModule(projectRule.getProject(), ":")
+        PlatformCoreDataKeys.MODULE, gradleModule(projectRule.getProject(), ":")
       )
     ));
   }

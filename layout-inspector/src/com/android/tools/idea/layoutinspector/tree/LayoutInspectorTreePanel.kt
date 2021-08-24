@@ -39,7 +39,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
@@ -56,7 +56,7 @@ import javax.swing.JTree
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
-  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
+  ToolContent.getToolContent(this.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 

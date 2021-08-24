@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.build.events
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
@@ -32,7 +32,7 @@ class AndroidSyncIssueQuickFix(private val hyperlink: NotificationHyperlink) : B
     val future = CompletableFuture<Any>()
     invokeLater {
       try {
-        val source = PlatformDataKeys.CONTEXT_COMPONENT.getData(dataContext) ?: dataContext
+        val source = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) ?: dataContext
         hyperlink.executeIfClicked(project, HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, null, id))
         future.complete(null)
       }

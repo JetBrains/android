@@ -20,7 +20,7 @@ import com.android.tools.property.panel.api.LinkPropertyItem
 import com.android.tools.property.ptable.PTable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
@@ -56,7 +56,7 @@ class ShowMoreElementsItem(
     ShowMoreElementsItem(array)
 
   private fun findTable(event: AnActionEvent): PTable? {
-    val component = event.getData(PlatformDataKeys.CONTEXT_COMPONENT) ?: return null
+    val component = event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT) ?: return null
     return generateSequence(component) { it.parent }.firstIsInstanceOrNull()
   }
 }

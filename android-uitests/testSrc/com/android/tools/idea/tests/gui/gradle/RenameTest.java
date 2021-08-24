@@ -24,7 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -62,7 +62,7 @@ public class RenameTest {
     DataContext dataContext = SimpleDataContext.getSimpleContext(
       ImmutableMap.of(CommonDataKeys.PSI_ELEMENT.getName(), directory,
                       CommonDataKeys.PROJECT.getName(), project,
-                      LangDataKeys.MODULE.getName(), appModule),
+                      PlatformCoreDataKeys.MODULE.getName(), appModule),
       null
     );
 

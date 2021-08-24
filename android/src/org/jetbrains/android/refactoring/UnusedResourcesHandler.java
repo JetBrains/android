@@ -18,6 +18,7 @@ package org.jetbrains.android.refactoring;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -70,7 +71,7 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
       Collections.addAll(moduleSet, modules);
     }
     else {
-      Module module = LangDataKeys.MODULE.getData(dataContext);
+      Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
       if (module != null) {
         moduleSet.add(module);
       }

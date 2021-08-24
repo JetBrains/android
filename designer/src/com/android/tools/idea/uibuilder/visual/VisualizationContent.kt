@@ -20,6 +20,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -63,7 +64,7 @@ object VisualizationFormProvider : VisualizationContentProvider {
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
     contentManager.addDataProvider { dataId: String? ->
-      if (LangDataKeys.MODULE.`is`(dataId) || LangDataKeys.IDE_VIEW.`is`(dataId) || CommonDataKeys.VIRTUAL_FILE.`is`(dataId)) {
+      if (PlatformCoreDataKeys.MODULE.`is`(dataId) || LangDataKeys.IDE_VIEW.`is`(dataId) || CommonDataKeys.VIRTUAL_FILE.`is`(dataId)) {
         val fileEditor = visualizationForm.editor
         if (fileEditor != null) {
           return@addDataProvider DataManager.getDataProvider(fileEditor.component)?.getData(dataId!!)

@@ -28,7 +28,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
@@ -52,7 +52,7 @@ class NewAndroidFragmentAction
 
   override fun actionPerformed(e: AnActionEvent) {
     val dataContext = e.dataContext
-    val module = LangDataKeys.MODULE.getData(dataContext) ?: return
+    val module = PlatformCoreDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
     val targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext)
     if (facet == null || AndroidModel.get(facet) == null || targetDirectory == null) {

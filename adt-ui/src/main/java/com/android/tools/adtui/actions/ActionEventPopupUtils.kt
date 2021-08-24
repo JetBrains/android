@@ -16,7 +16,7 @@
 package com.android.tools.adtui.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -50,5 +50,5 @@ fun AnActionEvent.componentToRestoreFocusTo(): Component? {
 }
 
 private fun AnActionEvent.componentFromEvent(): Component? {
-  return PlatformDataKeys.CONTEXT_COMPONENT.getData(this.dataContext) ?: this.inputEvent?.component
+  return PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(this.dataContext) ?: this.inputEvent?.component
 }

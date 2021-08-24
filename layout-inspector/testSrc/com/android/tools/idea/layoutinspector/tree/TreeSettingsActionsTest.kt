@@ -41,7 +41,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTEXT_COMPONENT
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.treeStructure.Tree
@@ -200,7 +200,7 @@ class TreeSettingsActionsTest {
       override fun <T> getData(key: DataKey<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return when (key) {
-          CONTEXT_COMPONENT -> panel as T
+          PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
           LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
           else -> null
         }

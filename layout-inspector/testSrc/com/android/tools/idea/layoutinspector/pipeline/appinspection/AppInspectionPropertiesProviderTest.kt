@@ -47,7 +47,7 @@ import com.android.tools.property.ptable.PTableGroupModification
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
@@ -404,7 +404,7 @@ class AppInspectionPropertiesProviderTest {
     }.`when`(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table1.component
-    }.`when`(event1).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    }.`when`(event1).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     val list = last.children.last() as ParameterGroupItem
     moreListElements1.runInEdt {
       val showMoreItem = list.children[2] as ShowMoreElementsItem
@@ -434,7 +434,7 @@ class AppInspectionPropertiesProviderTest {
     }.`when`(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
     doAnswer {
       table2.component
-    }.`when`(event2).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    }.`when`(event2).getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
     moreListElements2.runInEdt {
       val showMoreItem = list.children[4] as ShowMoreElementsItem
       // Click the "Show more" link:

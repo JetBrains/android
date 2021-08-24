@@ -25,7 +25,7 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -97,7 +97,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
  * When producing the configuration from the gutter icon, update its [ComposePreviewRunConfiguration.TriggerSource] so we can keep track.
  */
 private fun updateConfigurationTriggerToGutterIfNeeded(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext) {
-  if (PlatformDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
+  if (PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(context.dataContext) is EditorGutter) {
     configuration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
   }
 }

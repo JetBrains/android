@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
@@ -35,6 +34,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -234,7 +234,7 @@ public class GradleProjectInfo {
       }
       return modules;
     }
-    Module module = MODULE.getData(dataContext);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     if (module != null) {
       return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
     }

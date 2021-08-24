@@ -45,7 +45,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
@@ -181,7 +181,7 @@ class TemplateManager private constructor() {
     val instance = TemplateManager()
 
     private fun updateAction(event: AnActionEvent, actionText: String?, visible: Boolean, disableIfNotReady: Boolean) {
-      val module = event.getData(LangDataKeys.MODULE)
+      val module = event.getData(PlatformCoreDataKeys.MODULE)
       val facet = module?.androidFacet
       val isProjectReady = facet != null && AndroidModel.get(facet) != null
       event.presentation.apply {
@@ -193,7 +193,7 @@ class TemplateManager private constructor() {
 
     private fun showWizardDialog(e: AnActionEvent, category: String, commandName: String, dialogTitle: String) {
       val projectSyncInvoker: ProjectSyncInvoker = DefaultProjectSyncInvoker()
-      val module = LangDataKeys.MODULE.getData(e.dataContext)!!
+      val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext)!!
       val targetFile = CommonDataKeys.VIRTUAL_FILE.getData(e.dataContext)!!
       var targetDirectory = targetFile
       if (!targetDirectory.isDirectory) {
