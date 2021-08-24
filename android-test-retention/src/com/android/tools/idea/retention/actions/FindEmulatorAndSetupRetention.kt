@@ -110,7 +110,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
           }
           val avdManager = AvdManager.getInstance(
             androidSdkHandler,
-            baseAvdFolder.toFile(),
+            baseAvdFolder,
             logWrapper
           )
           val avdInfo = avdManager?.getAvd(deviceName, true)
@@ -132,7 +132,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
             val deviceFuture = bootEmulator(project,
                                             avdInfo,
                                             isManagedDevice,
-                                            (dataContext.getData(EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS) ?: listOf<String>()) as List<String>
+                                            (dataContext.getData(EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS) ?: listOf())
             )
             val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
             ProgressIndicatorUtils.awaitWithCheckCanceled { device.isOnline }

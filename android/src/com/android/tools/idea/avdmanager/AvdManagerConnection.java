@@ -251,6 +251,11 @@ public class AvdManagerConnection {
     ourConnectionFactory = factory;
   }
 
+  @VisibleForTesting
+  protected static void resetConnectionFactory() {
+    setConnectionFactory(AvdManagerConnection::new);
+  }
+
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
    */
@@ -267,7 +272,7 @@ public class AvdManagerConnection {
       try {
         myAvdManager = AvdManager.getInstance(
           mySdkHandler,
-          myAvdHomeFolder.toFile(),
+          myAvdHomeFolder,
           SDK_LOG);
       }
       catch (AndroidLocationsException e) {
@@ -545,7 +550,7 @@ public class AvdManagerConnection {
       myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
       String baseFolder;
       try {
-        baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
+        baseFolder = myAvdManager.getBaseAvdFolder().toAbsolutePath().toString();
       }
       catch (Throwable e) {
         baseFolder = "$HOME";
@@ -617,7 +622,7 @@ public class AvdManagerConnection {
     Optional<Collection<String>> params = Optional.ofNullable(System.getenv("studio.emu.params")).map(Splitter.on(',')::splitToList);
 
     return factory.newEmulatorCommandBuilder(emulator, avd)
-      .setAvdHome(myAvdManager.getBaseAvdFolder().toPath())
+      .setAvdHome(myAvdManager.getBaseAvdFolder())
       .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
       .setStudioParams(writeParameterFile().orElse(null))
       .setLaunchInToolWindow(shouldLaunchInToolWindow(project))
@@ -892,7 +897,7 @@ public class AvdManagerConnection {
       }
       else {
         assert myAvdManager != null;
-        avdFolder = mySdkHandler.toCompatiblePath(AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, mySdkHandler.getFileOp(), true));
+        avdFolder = AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, true);
       }
     }
     catch (Throwable e) {

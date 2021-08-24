@@ -341,6 +341,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
+        "//tools/base/common:studio.android.sdktools.common.testfixtures[module, test]",
     ],
 )
 

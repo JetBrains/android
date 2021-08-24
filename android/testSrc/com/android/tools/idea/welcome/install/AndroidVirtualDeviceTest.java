@@ -37,6 +37,8 @@ import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.EnvironmentProvider;
+import com.android.prefs.AndroidLocationsSingletonRule;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -95,7 +97,10 @@ public final class AndroidVirtualDeviceTest {
   }
 
   private AndroidSdkHandler sdkHandler;
-  private MockFileOp fop;
+  private MockFileOp fop = new MockFileOp();
+
+  @Rule
+  public AndroidLocationsSingletonRule environmentRule = new AndroidLocationsSingletonRule(fop.getFileSystem());
 
   @Rule
   public final DisposableRule disposableRule = new DisposableRule();
@@ -105,7 +110,6 @@ public final class AndroidVirtualDeviceTest {
 
   @Before
   public void setUp() throws Exception {
-    fop = new MockFileOp();
     recordPlatform23(fop);
     recordGoogleApisAddon23(fop);
     recordGoogleApisSysImg23(fop);
@@ -192,7 +196,7 @@ public final class AndroidVirtualDeviceTest {
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 
-    // SDK installed, System image, matching AVD -> Selected by default
+    // SDK installed, System image, matching AVD -> Not selected by default
     createAvd(avd, sdkHandler);
 
     assertFalse(avd.isSelectedByDefault());
