@@ -151,14 +151,14 @@ object CurvePainter {
       val extraColorOffset = if (color != null) COLOR_BOX_SIZE + OFFSET else 0
       val textBoxWidth = (labelLayout.bounds.width + valueLayout.bounds.width + OFFSET * 3 + extraColorOffset).toInt()
 
-      //Background box
+      // Background box
       g.color = BOX_COLOR
-      g.fillRoundRect(x, y, textBoxWidth, textBoxHeight, OFFSET, OFFSET)
+      g.fillRoundRect(x - OFFSET, y, textBoxWidth, textBoxHeight, OFFSET, OFFSET)
       // Label
       g.color = LABEL_COLOR
-      g.drawString(label, x + OFFSET, y - OFFSET + textBoxHeight)
+      g.drawString(label, x, y - OFFSET + textBoxHeight)
       // Colored box
-      val xPos = x + 2 * OFFSET + labelLayout.bounds.width.toInt()
+      val xPos = x + OFFSET + labelLayout.bounds.width.toInt()
       color?.let {
         g.color = color
         g.fillRoundRect(xPos, y + OFFSET, COLOR_BOX_SIZE, COLOR_BOX_SIZE, COLOR_BOX_ARC, COLOR_BOX_ARC)
