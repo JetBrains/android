@@ -24,9 +24,11 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import javax.swing.event.HyperlinkListener
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
 private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should not be used in layouts larger than 600dp"
@@ -34,10 +36,6 @@ private val BOTTOM_NAVIGATION_ISSUE_CONTENT = HtmlBuilder()
   .add("Material Design recommends that bottom navigation should only be used for displays less than 600dp in width.")
   .newline()
   .add("Consider using a navigation rail or navigation drawer instead for larger screens.")
-private val LONG_TEXT_ISSUE_CONTENT = HtmlBuilder()
-  .add("Material Design recommends that lines of text should not be longer than 120 characters.")
-  .newline()
-  .add("Consider reducing the width of this component or using a multi-columns layout.")
 
 enum class VisualLintErrorType {
   BOUNDS, BOTTOM_NAV, OVERLAP, LONG_TEXT, ATF, LOCALE_TEXT
@@ -189,8 +187,18 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: VisualLintIssue
     for (i in 0 until layout.lineCount) {
       val numChars = layout.getLineVisibleEnd(i) - layout.getLineStart(i) + 1
       if (numChars > 120) {
-        createIssue(root, model, "${simpleName(root)} has lines containing more than 120 characters", LONG_TEXT_ISSUE_CONTENT,
-                    VisualLintErrorType.LONG_TEXT, issues)
+        val viewName = simpleName(root)
+        val summary = "$viewName has lines containing more than 120 characters"
+        val url = "https://material.io/design/layout/responsive-layout-grid.html#breakpoints"
+        val provider = { count: Int ->
+          HtmlBuilder()
+            .add("$viewName has lines containing more than 120 characters in ${previewConfigurations(count)}.")
+            .newline()
+            .add("Material Design recommends reducing the width of TextView or switching to a [multi-column layout] ")
+            .addLink("($url)", url)
+            .add(" for breakpoints over 600dp.")
+        }
+        createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issues, provider, createDefaultHyperLinkListener(url))
         break
       }
     }
@@ -207,7 +215,7 @@ fun createIssue(view: ViewInfo,
                 contentDescription: HtmlBuilder,
                 type: VisualLintErrorType,
                 issues: VisualLintIssues) {
-  return createIssue(view, model, message, type, issues) { contentDescription }
+  return createIssue(view, model, message, type, issues, { contentDescription })
 }
 
 /** Create [VisualLintRenderIssue] and add to [issues]. */
@@ -216,7 +224,8 @@ fun createIssue(view: ViewInfo,
                 message: String,
                 type: VisualLintErrorType,
                 issues: VisualLintIssues,
-                contentDescriptionProvider: (Int) -> HtmlBuilder) {
+                contentDescriptionProvider: (Int) -> HtmlBuilder,
+                hyperlinkListener: HyperlinkListener? = null) {
   val component = componentFromViewInfo(view, model)
   issues.add(
     type,
@@ -225,9 +234,12 @@ fun createIssue(view: ViewInfo,
       .severity(HighlightSeverity.WARNING)
       .model(model)
       .components(if (component == null) mutableListOf() else mutableListOf(component))
-      .contentDescriptionProvider(contentDescriptionProvider).build()
+      .contentDescriptionProvider(contentDescriptionProvider)
+      .hyperlinkListener(hyperlinkListener)
+      .build()
   )
 }
+
 
 private fun simpleName(view: ViewInfo): String {
   val tagName = (view.cookie as? TagSnapshot)?.tagName ?: view.className

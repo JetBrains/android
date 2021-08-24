@@ -20,12 +20,15 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.xml.XmlChildRole
+import org.jetbrains.kotlin.idea.debugger.readAction
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 
@@ -63,7 +66,9 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   private var range: TextRange? = null
 
   init {
-    updateRange()
+    ApplicationManager.getApplication().readAction {
+      updateRange()
+    }
   }
 
   private fun updateRange() {
@@ -73,14 +78,6 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
         return@forEach
       }
     }
-  }
-
-  private fun getTextRange(component: NlComponent): TextRange? {
-    component.tag?.let { tag ->
-      val nameElement: ASTNode? = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.node)
-      return nameElement?.textRange
-    }
-    return null
   }
 
   /** Hash code that depends on xml range rather than component. */
@@ -108,7 +105,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
     fun contentDescriptionProvider(provider: (Int) -> HtmlBuilder) = apply { this.contentDescriptionProvider = provider }
     fun model(model: NlModel) = apply { this.model = model }
     fun components(components: MutableList<NlComponent>) = apply { this.components = components }
-    fun hyperlinkListener(hyperlinkListener: HyperlinkListener) = apply { this.hyperlinkListener = hyperlinkListener }
+    fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply { this.hyperlinkListener = hyperlinkListener }
 
     fun build(): VisualLintRenderIssue {
       assertNotNull(summary)
