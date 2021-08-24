@@ -42,6 +42,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   @VisibleForTesting
   static final class SummarySection extends InfoSection {
     @VisibleForTesting final @NotNull JLabel myApiLevelLabel;
+    private final @NotNull JLabel myPowerLabel;
     @VisibleForTesting final @NotNull JLabel myResolutionLabel;
     @VisibleForTesting final @NotNull JLabel myDpLabel;
     @VisibleForTesting final @NotNull JLabel myAbiListLabel;
@@ -50,6 +51,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       super("Summary");
 
       myApiLevelLabel = addNameAndValueLabels("API level");
+      myPowerLabel = addNameAndValueLabels("Power");
       myResolutionLabel = addNameAndValueLabels("Resolution");
       myDpLabel = addNameAndValueLabels("dp");
       myAbiListLabel = addNameAndValueLabels("ABI list");
@@ -72,6 +74,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       assert device != null;
 
       setText(mySection.myApiLevelLabel, device.getApi());
+      setText(mySection.myPowerLabel, device.getPower());
       setText(mySection.myResolutionLabel, device.getResolution());
       setText(mySection.myDpLabel, device.getDp());
       setText(mySection.myAbiListLabel, device.getAbis());

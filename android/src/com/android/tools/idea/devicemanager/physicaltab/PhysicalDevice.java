@@ -43,6 +43,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull String myApi;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final boolean myPhoneOrTablet;
+  private final @Nullable Battery myPower;
   private final @Nullable Resolution myResolution;
   private final int myDensity;
   private final @NotNull ImmutableCollection<@NotNull String> myAbis;
@@ -53,6 +54,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private boolean myPhoneOrTablet = true;
+    private @Nullable Battery myPower;
     private @Nullable Resolution myResolution;
     private int myDensity = -1;
     private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
@@ -102,6 +104,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
+    @NotNull Builder setPower(@Nullable Battery power) {
+      myPower = power;
+      return this;
+    }
+
     @NotNull Builder setResolution(@Nullable Resolution resolution) {
       myResolution = resolution;
       return this;
@@ -134,6 +141,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPhoneOrTablet = builder.myPhoneOrTablet;
+    myPower = builder.myPower;
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
     myAbis = ImmutableList.copyOf(builder.myAbis);
@@ -167,6 +175,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   boolean isPhoneOrTablet() {
     return myPhoneOrTablet;
+  }
+
+  @Nullable Battery getPower() {
+    return myPower;
   }
 
   @Nullable Resolution getResolution() {
@@ -205,6 +217,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + myApi.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
     hashCode = 31 * hashCode + Boolean.hashCode(myPhoneOrTablet);
+    hashCode = 31 * hashCode + Objects.hashCode(myPower);
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
     hashCode = 31 * hashCode + myAbis.hashCode();
@@ -228,6 +241,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            myApi.equals(device.myApi) &&
            myConnectionTypes.equals(device.myConnectionTypes) &&
            myPhoneOrTablet == device.myPhoneOrTablet &&
+           Objects.equals(myPower, device.myPower) &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
            myAbis.equals(device.myAbis);

@@ -21,12 +21,38 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.android.tools.idea.adb.AdbShellCommandsUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 final class AdbShellCommandExecutor {
-  @NotNull AdbShellCommandResult execute(@NotNull IDevice device, @NotNull String command)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    return AdbShellCommandsUtil.executeCommand(device, command);
+  @NotNull Optional<@NotNull List<@NotNull String>> execute(@NotNull IDevice device, @NotNull String command) {
+    try {
+      return getOutput(AdbShellCommandsUtil.executeCommand(device, command));
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException exception) {
+      Logger.getInstance(AdbShellCommandExecutor.class).warn(exception);
+      return Optional.empty();
+    }
+  }
+
+  private static @NotNull Optional<@NotNull List<@NotNull String>> getOutput(@NotNull AdbShellCommandResult result) {
+    List<String> output = result.getOutput();
+
+    if (result.isError()) {
+      String separator = System.lineSeparator();
+
+      StringBuilder builder = new StringBuilder("Command failed:")
+        .append(separator);
+
+      output.forEach(line -> builder.append(line).append(separator));
+
+      Logger.getInstance(AdbShellCommandExecutor.class).warn(builder.toString());
+      return Optional.empty();
+    }
+
+    return Optional.of(output);
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -32,15 +34,16 @@ final class Resolution {
     myHeight = height;
   }
 
-  static @Nullable Resolution newResolution(@NotNull String string) {
+  static @NotNull Optional<@NotNull Resolution> newResolution(@NotNull List<@NotNull String> output) {
+    String string = output.get(0);
     Matcher matcher = PATTERN.matcher(string);
 
     if (!matcher.matches()) {
       Logger.getInstance(Resolution.class).warn(string);
-      return null;
+      return Optional.empty();
     }
 
-    return new Resolution(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+    return Optional.of(new Resolution(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
   }
 
   int getWidth() {
