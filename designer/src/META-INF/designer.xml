@@ -30,6 +30,10 @@
                     interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
   </extensionPoints>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.configurations.AdditionalDeviceService" />
+  </extensions>
+
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">

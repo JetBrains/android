@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -150,7 +151,7 @@ public class DeviceMenuAction extends DropDownAction {
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
           Icon icon = getDeviceClassIcon(device);
-          add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
+          add(new SetDeviceAction(myRenderContext, label, this::updatePresentation, device, icon, device == current));
         }
         addSeparator();
       }
@@ -189,7 +190,7 @@ public class DeviceMenuAction extends DropDownAction {
       add(new DeviceCategory(getGroupTitle(group), null, getDeviceClassIcon(devices.get(0))));
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        add(new SetDeviceAction(myRenderContext, label, device, null, current == device));
+        add(new SetDeviceAction(myRenderContext, label, this::updatePresentation, device, null, current == device));
       }
       addSeparator();
     }
@@ -201,7 +202,7 @@ public class DeviceMenuAction extends DropDownAction {
       add(new DeviceCategory(getGroupTitle(DeviceGroup.WEAR), null, getDeviceClassIcon(devices.get(0))));
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        add(new SetWearDeviceAction(myRenderContext, label, device, null, current == device));
+        add(new SetWearDeviceAction(myRenderContext, label, this::updatePresentation, device, null, current == device));
       }
       addSeparator();
     }
@@ -231,7 +232,7 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   private void addCustomDeviceSection(@Nullable Device currentDevice) {
-    add(new SetCustomDeviceAction(myRenderContext, currentDevice));
+    add(new SetCustomDeviceAction(myRenderContext, this::updatePresentation, currentDevice));
     addSeparator();
   }
 
@@ -242,7 +243,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        add(new SetAvdAction(myRenderContext, device, avdDisplayName, selected));
+        add(new SetAvdAction(myRenderContext, this::updatePresentation, device, avdDisplayName, selected));
       }
       addSeparator();
     }
@@ -253,7 +254,12 @@ public class DeviceMenuAction extends DropDownAction {
       DefaultActionGroup genericGroup = DefaultActionGroup.createPopupGroup(() -> "_Generic Phones and Tablets");
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        genericGroup.add(new SetDeviceAction(myRenderContext, label, device, null, current == device));
+        genericGroup.add(new SetDeviceAction(myRenderContext,
+                                             label,
+                                             this::updatePresentation,
+                                             device,
+                                             null,
+                                             current == device));
       }
       add(genericGroup);
     }
@@ -311,31 +317,35 @@ public class DeviceMenuAction extends DropDownAction {
     }
   }
 
-  protected abstract class DeviceAction extends ConfigurationAction {
+  static abstract class DeviceAction extends ConfigurationAction {
+    @NotNull final private Consumer<Presentation> myUpdatePresentationCallback;
 
     DeviceAction(@NotNull ConfigurationHolder renderContext,
-                 @Nullable String title) {
+                 @Nullable String title,
+                 @NotNull Consumer<Presentation> updatePresentationCallback) {
       super(renderContext, title);
+      myUpdatePresentationCallback = updatePresentationCallback;
     }
 
     @Override
     protected final void updatePresentation(@NotNull Presentation presentation) {
-      DeviceMenuAction.this.updatePresentation(presentation);
+      myUpdatePresentationCallback.accept(presentation);
     }
 
     @Nullable
     abstract public Device getDevice();
   }
 
-  private class SetDeviceAction extends DeviceAction {
+  static class SetDeviceAction extends DeviceAction {
     @NotNull protected final Device myDevice;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
+                           @NotNull Consumer<Presentation> updatePresentationCallback,
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
                            final boolean select) {
-      super(renderContext, null);
+      super(renderContext, null, updatePresentationCallback);
       myDevice = device;
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
@@ -398,14 +408,15 @@ public class DeviceMenuAction extends DropDownAction {
     }
   }
 
-  private class SetWearDeviceAction extends SetDeviceAction {
+  static class SetWearDeviceAction extends SetDeviceAction {
 
     public SetWearDeviceAction(@NotNull ConfigurationHolder renderContext,
                                @NotNull final String title,
+                               @NotNull Consumer<Presentation> updatePresentationCallback,
                                @NotNull final Device device,
                                @Nullable Icon defaultIcon,
                                final boolean select) {
-      super(renderContext, title, device, defaultIcon, select);
+      super(renderContext, title, updatePresentationCallback, device, defaultIcon, select);
     }
 
     @Override
@@ -448,13 +459,15 @@ public class DeviceMenuAction extends DropDownAction {
     }
   }
 
-  private class SetCustomDeviceAction extends DeviceAction {
+  static class SetCustomDeviceAction extends DeviceAction {
     private static final String CUSTOM_DEVICE_NAME = "Custom";
     @Nullable private final Device myDevice;
     @Nullable private Device myCustomDevice;
 
-    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext, @Nullable Device device) {
-      super(renderContext, CUSTOM_DEVICE_NAME);
+    public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext,
+                                 @NotNull Consumer<Presentation> updatePresentationCallback,
+                                 @Nullable Device device) {
+      super(renderContext, CUSTOM_DEVICE_NAME, updatePresentationCallback);
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
         getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
@@ -480,21 +493,26 @@ public class DeviceMenuAction extends DropDownAction {
     }
   }
 
-  private class SetAvdAction extends ConfigurationAction {
+  static class SetAvdAction extends ConfigurationAction {
+    @Nullable private final Consumer<Presentation> myUpdatePresentationCallback;
     @NotNull private final Device myAvdDevice;
 
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
+                        @Nullable Consumer<Presentation> updatePresentationCallback,
                         @NotNull Device avdDevice,
                         @NotNull String displayName,
                         final boolean select) {
       super(renderContext, displayName);
+      myUpdatePresentationCallback = updatePresentationCallback;
       myAvdDevice = avdDevice;
       getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 
     @Override
     protected void updatePresentation(@NotNull Presentation presentation) {
-      DeviceMenuAction.this.updatePresentation(presentation);
+      if (myUpdatePresentationCallback != null) {
+        myUpdatePresentationCallback.accept(presentation);
+      }
     }
 
     @Override

@@ -16,12 +16,9 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
-import com.intellij.openapi.util.Disposer
-import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 
 class WindowSizeModelsProviderTest : LayoutTestCase() {
@@ -45,7 +42,7 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
 
     assertNotEmpty(nlModels)
 
-    val windowSizeDeviceIds = PREDEFINED_WINDOW_SIZES_DEFINITIONS.map { it.id }
+    val windowSizeDeviceIds = listOf("_device_class_phone", "_device_class_foldable", "_device_class_tablet", "_device_class_desktop")
     for (nlModel in nlModels) {
       assertTrue(windowSizeDeviceIds.contains(nlModel.configuration.device!!.id))
     }
@@ -57,16 +54,6 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
     val modelsProvider = WindowSizeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertEmpty(nlModels)
-  }
-
-  fun testDisposedConfigurationManagerShouldCleanTheCached() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
-    val modelsProvider = WindowSizeModelsProvider
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
-    modelsProvider.createNlModels(testRootDisposable, file, myFacet)
-    TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
-    Disposer.dispose(manager)
-    TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
   }
 }
 

@@ -16,21 +16,31 @@
 package com.android.tools.idea.configurations;
 
 import com.android.tools.adtui.actions.ActionTestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.actionSystem.impl.Utils;
-import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DeviceMenuActionTest extends AndroidTestCase {
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    StudioFlags.NELE_NEW_DEVICE_MENU.override(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    StudioFlags.NELE_NEW_DEVICE_MENU.clearOverride();
+    super.tearDown();
+  }
 
   public void testActions() {
     Configuration configuration = mock(Configuration.class);

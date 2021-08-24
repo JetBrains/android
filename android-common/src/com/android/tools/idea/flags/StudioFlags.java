@@ -306,6 +306,11 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
+  public static final Flag<Boolean> NELE_NEW_DEVICE_MENU = Flag.create(
+    NELE, "new.device.menu", "New Device Menu in Layout Editor",
+    "Use the new designed device menu to support device classes",
+    true);
+
   public static final Flag<Boolean> NELE_VISUALIZATION_WINDOW_SIZE_MODE = Flag.create(
     NELE, "visualization.window.sizes", "Use Window Sizes Category in Layout Validation Tool",
     "Use Window Sizes as default group and replace the pixel devices category with it in Layout Validation Tool",
