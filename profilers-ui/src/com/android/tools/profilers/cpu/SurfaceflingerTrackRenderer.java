@@ -43,7 +43,7 @@ public class SurfaceflingerTrackRenderer implements TrackRenderer<Surfaceflinger
     public Color getColor(boolean isMouseOver, @NotNull SurfaceflingerEvent value) {
       switch (value.getType()) {
         case PROCESSING:
-          return DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isMouseOver);
+          return DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isMouseOver);
         case IDLE: // fallthrough
         default:
           return ProfilerColors.CPU_STATECHART_DEFAULT_STATE;

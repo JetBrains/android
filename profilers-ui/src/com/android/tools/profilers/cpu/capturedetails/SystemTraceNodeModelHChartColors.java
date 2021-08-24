@@ -20,8 +20,8 @@ import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRendere
 
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import java.awt.Color;
@@ -50,10 +50,10 @@ class SystemTraceNodeModelHChartColors {
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
       if (JBColor.isBright()) {
-        color = ColorUtil.darker(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
+        color = ColorUtil.darker(DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused), 5);
       }
       else {
-        color = ColorUtil.brighter(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
+        color = ColorUtil.brighter(DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused), 5);
       }
       if (isDeselected && !isFocused) {
         color = DataVisualizationColors.INSTANCE.toGrayscale(color);
@@ -79,7 +79,7 @@ class SystemTraceNodeModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      color = DataVisualizationColors.INSTANCE.getColor(index, isFocused);
+      color = DataVisualizationColors.INSTANCE.getBackgroundColor(index, isFocused);
       if (isDeselected && !isFocused) {
         color = DataVisualizationColors.INSTANCE.toGrayscale(color);
       }
@@ -96,8 +96,8 @@ class SystemTraceNodeModelHChartColors {
                             boolean isDeselected) {
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      return isDeselected ? DataVisualizationColors.INSTANCE.getFontColor(DataVisualizationColors.BACKGROUND_DATA_COLOR)
-                          : DataVisualizationColors.INSTANCE.getFontColor(index);
+      return isDeselected ? DataVisualizationColors.INSTANCE.getForegroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR)
+                          : DataVisualizationColors.INSTANCE.getForegroundColor(index);
     }
     return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }

@@ -84,19 +84,19 @@ object DataVisualizationColors {
    * Index 2 maps to COLORA_TONE1
    * Index 3 maps to COLORB_TONE1.
    */
-  fun getColor(index: Int): JBColor = getColor(index, false)
+  fun getBackgroundColor(index: Int): JBColor = getBackgroundColor(index, false)
 
-  fun getColor(index: Int, isFocused: Boolean): JBColor = getColor(index, 0, isFocused)
+  fun getBackgroundColor(index: Int, isFocused: Boolean): JBColor = getBackgroundColor(index, 0, isFocused)
 
-  fun getColor(index: Int, toneIndex: Int, isFocused: Boolean): JBColor =
+  fun getBackgroundColor(index: Int, toneIndex: Int, isFocused: Boolean): JBColor =
     getColorFromPalette(index, toneIndex, isFocused, backgroundPalette)
 
-  fun getColor(name: String, toneIndex: Int): JBColor = getColor(name, toneIndex, false)
+  fun getBackgroundColor(name: String, toneIndex: Int): JBColor = getBackgroundColor(name, toneIndex, false)
 
-  fun getColor(name: String, isFocused: Boolean): JBColor = getColor(name, 0, isFocused)
+  fun getBackgroundColor(name: String, isFocused: Boolean): JBColor = getBackgroundColor(name, 0, isFocused)
 
-  fun getColor(name: String, toneIndex: Int, isFocused: Boolean): JBColor = getColorFromPalette(name, toneIndex, isFocused,
-                                                                                                backgroundPalette)
+  fun getBackgroundColor(name: String, toneIndex: Int, isFocused: Boolean): JBColor =
+    getColorFromPalette(name, toneIndex, isFocused, backgroundPalette)
 
   /**
    * Returns a new color that represents the focused state.
@@ -106,12 +106,12 @@ object DataVisualizationColors {
   /**
    * Returns the matching font color for the data color with the same index.
    */
-  fun getFontColor(index: Int): JBColor = getColorFromPalette(index, 0, false, foregroundPalette)
+  fun getForegroundColor(index: Int): JBColor = getColorFromPalette(index, 0, false, foregroundPalette)
 
   /**
    * Returns the matching font color for the data color with the same name.
    */
-  fun getFontColor(name: String): JBColor = getColorFromPalette(name, 0, false, foregroundPalette)
+  fun getForegroundColor(name: String): JBColor = getColorFromPalette(name, 0, false, foregroundPalette)
 
   /**
    * Returns the computed grayscale version of the passed in color

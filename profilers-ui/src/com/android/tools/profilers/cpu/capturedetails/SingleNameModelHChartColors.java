@@ -46,7 +46,7 @@ class SingleNameModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       if (isDeselected) {
-        color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
+        color = DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
       }
       else {
         color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;

@@ -84,8 +84,8 @@ class HeapSetNodeHRendererTest {
     fakeGraphics.expectFillShapes(renderWindow)
 
     assertThat(fakeGraphics.colors).hasSize(2)
-    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.getColor(name.hashCode()),
-                                                    DataVisualizationColors.getFontColor(name.hashCode()))
+    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.getBackgroundColor(name.hashCode()),
+                                                    DataVisualizationColors.getForegroundColor(name.hashCode()))
 
     assertThat(fakeGraphics.fonts).hasSize(1)
     assertThat(fakeGraphics.fonts).containsExactly(fakeGraphics.font)
@@ -106,8 +106,8 @@ class HeapSetNodeHRendererTest {
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = true)
     assertThat(fakeGraphics.colors).hasSize(2)
-    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.toGrayscale(DataVisualizationColors.getColor(name.hashCode())),
-                                                    DataVisualizationColors.getFontColor(name.hashCode()))
+    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.toGrayscale(DataVisualizationColors.getBackgroundColor(name.hashCode())),
+                                                    DataVisualizationColors.getForegroundColor(name.hashCode()))
   }
 
   @Test
@@ -123,9 +123,9 @@ class HeapSetNodeHRendererTest {
     val fakeGraphics = TestGraphics2D()
     renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = false)
     assertThat(fakeGraphics.colors).hasSize(3)
-    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.getColor(name.hashCode()),
-                                                    DataVisualizationColors.getFontColor(name.hashCode()),
-                                                    ColorUtil.withAlpha(DataVisualizationColors.getFontColor(name.hashCode()), .2))
+    assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.getBackgroundColor(name.hashCode()),
+                                                    DataVisualizationColors.getForegroundColor(name.hashCode()),
+                                                    ColorUtil.withAlpha(DataVisualizationColors.getForegroundColor(name.hashCode()), .2))
   }
 
   @Test

@@ -36,7 +36,7 @@ public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel> {
     VsyncTrackModel lineChartModel = trackModel.getDataModel();
     LineChart lineChart = new LineChart(lineChartModel);
     lineChart.configure(lineChartModel.getVsyncCounterSeries(),
-                        new LineConfig(DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+                        new LineConfig(DataVisualizationColors.INSTANCE.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
                           .setStepped(true));
     lineChart.setFillEndGap(true);
     JPanel panel = new JPanel(new BorderLayout());

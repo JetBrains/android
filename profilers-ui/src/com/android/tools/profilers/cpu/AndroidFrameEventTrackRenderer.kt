@@ -23,7 +23,6 @@ import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
 import java.awt.Color
@@ -42,12 +41,12 @@ class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {
   override fun getColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
-    is AndroidFrameEvent.Data -> DataVisualizationColors.getColor(value.frameNumber, isMouseOver)
+    is AndroidFrameEvent.Data -> DataVisualizationColors.getBackgroundColor(value.frameNumber, isMouseOver)
     is AndroidFrameEvent.Padding -> ProfilerColors.CPU_STATECHART_DEFAULT_STATE
   }
 
   override fun getFontColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
-    is AndroidFrameEvent.Data -> DataVisualizationColors.getFontColor(value.frameNumber)
+    is AndroidFrameEvent.Data -> DataVisualizationColors.getForegroundColor(value.frameNumber)
     is AndroidFrameEvent.Padding -> AdtUiUtils.DEFAULT_FONT_COLOR
   }
 }

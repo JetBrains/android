@@ -24,7 +24,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.awt.Color
 import java.io.FileInputStream
 
 @RunWith(Parameterized::class)
@@ -76,51 +75,64 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
   }
 
   @Test
-  fun requestingColorsByIndexIsDeterministic() {
-    val initialColor = DataVisualizationColors.getColor(0)
-    val nextColor = DataVisualizationColors.getColor(1)
+  fun requestingBackgroundColorsByIndexIsDeterministic() {
+    val initialColor = DataVisualizationColors.getBackgroundColor(0)
+    val nextColor = DataVisualizationColors.getBackgroundColor(1)
     assertThat(initialColor).isNotEqualTo(nextColor)
-    assertThat(initialColor).isEqualTo(DataVisualizationColors.getColor(0))
+    assertThat(initialColor).isEqualTo(DataVisualizationColors.getBackgroundColor(0))
   }
 
   @Test
-  fun colorsByIndexHandlesOutOfBounds() {
+  fun requestingForegroundColorsByIndexIsDeterministic() {
+    val initialColor = DataVisualizationColors.getForegroundColor(0)
+    val nextColor = DataVisualizationColors.getForegroundColor(1)
+    assertThat(initialColor).isNotEqualTo(nextColor)
+    assertThat(initialColor).isEqualTo(DataVisualizationColors.getForegroundColor(0))
+  }
+
+  @Test
+  fun backgroundColorsByIndexHandlesOutOfBounds() {
     val palette = DataVisualizationColors.backgroundPalette
     val numberOfColors = palette.size
     val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
-    assertThat(DataVisualizationColors.getColor(-1)).isEqualTo(
-      DataVisualizationColors.getColor(1))
-    assertThat(DataVisualizationColors.getColor(numberOfColors * numberOfTones)).isEqualTo(
-      DataVisualizationColors.getColor(0))
+    assertThat(DataVisualizationColors.getBackgroundColor(-1)).isEqualTo(
+      DataVisualizationColors.getBackgroundColor(1))
+    assertThat(DataVisualizationColors.getBackgroundColor(numberOfColors * numberOfTones)).isEqualTo(
+      DataVisualizationColors.getBackgroundColor(0))
   }
 
   @Test
-  fun getColorByName() {
-    assertThat(DataVisualizationColors.getColor("Gray", 0)).isEqualTo(
-      DataVisualizationColors.getColor(0, 0, false))
+  fun foregroundColorsByIndexHandlesOutOfBounds() {
+    val palette = DataVisualizationColors.foregroundPalette
+    val numberOfColors = palette.size
+    val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
+    assertThat(DataVisualizationColors.getForegroundColor(-1)).isEqualTo(
+      DataVisualizationColors.getForegroundColor(1))
+    assertThat(DataVisualizationColors.getForegroundColor(numberOfColors * numberOfTones)).isEqualTo(
+      DataVisualizationColors.getForegroundColor(0))
+  }
+
+  @Test
+  fun getBackgroundColorByName() {
+    assertThat(DataVisualizationColors.getBackgroundColor("Gray", 0)).isEqualTo(
+      DataVisualizationColors.getBackgroundColor(0, 0, false))
   }
 
   @Test
   fun getFocusColor() {
-    val color = DataVisualizationColors.getColor(0)
+    val color = DataVisualizationColors.getBackgroundColor(0)
     assertThat(DataVisualizationColors.getFocusColor(color)).isNotEqualTo(color)
   }
 
   @Test
   fun getFocusedColors() {
-    val color = DataVisualizationColors.getColor(0, false)
-    val focusedColor = DataVisualizationColors.getColor(0, true)
+    val color = DataVisualizationColors.getBackgroundColor(0, false)
+    val focusedColor = DataVisualizationColors.getBackgroundColor(0, true)
     assertThat(focusedColor).isNotEqualTo(color)
 
-    val gray = DataVisualizationColors.getColor("Gray", false)
-    val focusedGray = DataVisualizationColors.getColor("Gray", true)
+    val gray = DataVisualizationColors.getBackgroundColor("Gray", false)
+    val focusedGray = DataVisualizationColors.getBackgroundColor("Gray", true)
     assertThat(gray).isNotEqualTo(focusedGray)
-  }
-
-  @Test
-  fun getFontColors() {
-    assertThat(DataVisualizationColors.getFontColor(0)).isEqualTo(JBColor(Color.BLACK, Color.BLACK))
-    assertThat(DataVisualizationColors.getFontColor("Light Blue")).isEqualTo(JBColor(Color.WHITE, Color.WHITE))
   }
 
   @Test

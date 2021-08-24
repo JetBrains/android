@@ -3,45 +3,45 @@
     "name": "Gray",
     "light": [
       {
-        "foreground": "000000",
+        "foreground": "684e3f",
         "background": "97b1c0"
       },
       {
-        "foreground": "000000",
+        "foreground": "594336",
         "background": "a6bcc9"
       },
       {
-        "foreground": "000000",
+        "foreground": "49372c",
         "background": "b6c8d3"
       },
       {
-        "foreground": "000000",
+        "foreground": "392b22",
         "background": "c6d4dd"
       },
       {
-        "foreground": "000000",
+        "foreground": "291f19",
         "background": "d6e0e6"
       }
     ],
     "dark": [
       {
-        "foreground": "000000",
+        "foreground": "684e3f",
         "background": "97b1c0"
       },
       {
-        "foreground": "000000",
+        "foreground": "795a49",
         "background": "86a5b6"
       },
       {
-        "foreground": "000000",
+        "foreground": "896652",
         "background": "7699ad"
       },
       {
-        "foreground": "000000",
+        "foreground": "99725c",
         "background": "668da3"
       },
       {
-        "foreground": "000000",
+        "foreground": "a57f69",
         "background": "5a8096"
       }
     ]
@@ -50,45 +50,45 @@
     "name": "Light Blue",
     "light": [
       {
-        "foreground": "ffffff",
+        "foreground": "5d2001",
         "background": "a2dffe"
       },
       {
-        "foreground": "000000",
+        "foreground": "511b01",
         "background": "aee4fe"
       },
       {
-        "foreground": "000000",
+        "foreground": "471801",
         "background": "b8e7fe"
       },
       {
-        "foreground": "000000",
+        "foreground": "3d1501",
         "background": "c2eafe"
       },
       {
-        "foreground": "000000",
+        "foreground": "321101",
         "background": "cdeefe"
       }
     ],
     "dark": [
       {
-        "foreground": "ffffff",
+        "foreground": "8b5e47",
         "background": "74a1b8"
       },
       {
-        "foreground": "000000",
+        "foreground": "94644c",
         "background": "6b9bb3"
       },
       {
-        "foreground": "000000",
+        "foreground": "9e6b51",
         "background": "6194ae"
       },
       {
-        "foreground": "ffffff",
+        "foreground": "a87257",
         "background": "578da8"
       },
       {
-        "foreground": "ffffff",
+        "foreground": "ae7a61",
         "background": "51859e"
       }
     ]
