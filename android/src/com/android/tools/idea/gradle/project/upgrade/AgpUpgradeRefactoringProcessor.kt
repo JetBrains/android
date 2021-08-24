@@ -585,7 +585,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
 internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
   DumbService.getInstance(project).smartInvokeLater {
     val contentManager = ServiceManager.getService(project, ContentManager::class.java)
-    contentManager.showContent()
+    contentManager.showContent(new)
   }
 }
 
