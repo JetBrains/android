@@ -23,35 +23,32 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent.Data
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent.Padding
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.TimeUnit
 
 /**
  * Track model for a frame lifecycle track representing Android frames in a specific phase.
  */
-class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>,
-                                  viewRange: Range) : StateChartModel<AndroidFrameEvent>() {
-  init {
-    // Organize frame events by depth so that they show up as different lanes in the state chart.
-    val eventsByDepth = androidFrameEvents.groupBy { it.depth }.toSortedMap().values
-    for (events in eventsByDepth) {
-      val eventSeries = mutableListOf<SeriesData<AndroidFrameEvent>>()
-      var lastEndTimeNs = 0L
-      for (event in events) {
-        // Add a fake event as padding between real events, needed for StateChart rendering.
-        if (event.timestampNanoseconds > lastEndTimeNs) {
-          eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), Padding))
-        }
-        lastEndTimeNs = event.timestampNanoseconds + event.durationNanoseconds
-        // Add the real event.
-        eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds), Data(event)))
-      }
-      // Add another padding event at the end to properly end the last event.
-      eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), Padding))
+class AndroidFrameEventTrackModel
+    @VisibleForTesting
+    constructor(eventSeries: List<RangedSeries<AndroidFrameEvent>>) : StateChartModel<AndroidFrameEvent>() {
 
-      if (eventSeries.isNotEmpty()) {
-        addSeries(RangedSeries(viewRange, LazyDataSeries { eventSeries }))
+  constructor(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>, viewRange: Range)
+    : this(androidFrameEvents.groupBy { it.depth }.toSortedMap().values
+             .map { it.padded() }
+             .filterNot { it.isEmpty() }
+             .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) })
+
+  var activeSeriesIndex = -1
+    set(index) {
+      if (field != index) {
+        field = index
+        changed(Aspect.MODEL_CHANGED)
       }
     }
+
+  init {
+    eventSeries.forEach(::addSeries)
   }
 
   /**
@@ -60,6 +57,21 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
   private data class TrackMetadata(val sortOrder: Int, val displayName: String, val tooltipText: String)
 
   companion object {
+    /**
+     * Fill in the gaps between events
+     */
+    private fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
+      mutableListOf<SeriesData<AndroidFrameEvent>>().also { paddedEvents ->
+        var lastEndUs = 0L
+        forEach { event ->
+          val t = TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds)
+          if (t > lastEndUs) paddedEvents.add(SeriesData(lastEndUs, Padding)) // add pad if there's gap between events
+          lastEndUs = t + TimeUnit.NANOSECONDS.toMicros(event.durationNanoseconds)
+          paddedEvents.add(SeriesData(t, Data(event))) // add real event
+        }
+        paddedEvents.add(SeriesData(lastEndUs, Padding)) // add another padding to properly end last event
+      }
+
     /**
      * Mapping from phase name to metadata, e.g. sort order.
      */

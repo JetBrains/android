@@ -33,7 +33,11 @@ import javax.swing.JComponent
  */
 class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel> {
   override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>) =
-    StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
+    StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider()).apply {
+      addRowIndexChangeListener {
+        trackModel.dataModel.activeSeriesIndex = it
+      }
+    }
 }
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {

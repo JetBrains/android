@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -32,19 +33,29 @@ class AndroidFrameEventTooltipViewTest {
       dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
       viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
     }
-    val tooltip = AndroidFrameEventTooltip(timeline, RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }))
+    val model = AndroidFrameEventTrackModel(listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
+                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })))
+    val tooltip = AndroidFrameEventTooltip(timeline, model)
     val tooltipView = AndroidFrameEventTooltipView(JPanel(), tooltip)
 
     timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
     assertThat(tooltipView.labelContainer.isVisible).isFalse()
 
+    model.activeSeriesIndex = 0
     timeline.tooltipRange.set(MICROS_TO_MILLIS + 1.0, MICROS_TO_MILLIS + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
     assertThat(tooltipView.labelContainer.isVisible).isTrue()
     assertThat(tooltipView.frameNumberLabel.text).isEqualTo("Frame number: 123")
     assertThat(tooltipView.startTimeLabel.text).isEqualTo("Start time: 00:00.001")
     assertThat(tooltipView.durationLabel.text).isEqualTo("Duration: 2 ms")
+
+    model.activeSeriesIndex = 1
+    assertThat(tooltipView.headingText).isEqualTo("00:00.001")
+    assertThat(tooltipView.labelContainer.isVisible).isTrue()
+    assertThat(tooltipView.frameNumberLabel.text).isEqualTo("Frame number: 234")
+    assertThat(tooltipView.startTimeLabel.text).isEqualTo("Start time: 00:00.001")
+    assertThat(tooltipView.durationLabel.text).isEqualTo("Duration: 1 ms")
   }
 
   private companion object {
@@ -52,5 +63,8 @@ class AndroidFrameEventTooltipViewTest {
     val FRAME_EVENTS = listOf<SeriesData<AndroidFrameEvent>>(
       SeriesData(0, AndroidFrameEvent.Padding),
       SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(123, 1000, 2000)))
+    val FRAME_EVENTS_1 = listOf<SeriesData<AndroidFrameEvent>>(
+      SeriesData(0, AndroidFrameEvent.Padding),
+      SeriesData(MICROS_TO_MILLIS, AndroidFrameEvent.Data(234, 1500, 1000)))
   }
 }
