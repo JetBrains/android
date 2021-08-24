@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import android.view.View
 import android.widget.TextView
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
@@ -24,10 +25,12 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.event.HyperlinkListener
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
@@ -147,26 +150,63 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: VisualLint
   val children = root.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
   for (i in children.indices) {
     val firstView = children[i]
+    // TODO: Can't create unit test due to this check. Figure out a way around later.
     if (firstView.viewObject !is TextView) {
       continue
     }
-    for (j in (i + 1) until children.size) {
+    for (j in children.indices) {
       val secondView = children[j]
+      if (firstView == secondView) {
+        continue
+      }
       if (firstView.right <= secondView.left || firstView.left >= secondView.right) {
         continue
       }
       if (firstView.bottom > secondView.top && firstView.top < secondView.bottom) {
-        val content = HtmlBuilder().add("The content of ${simpleName(firstView)} is partially hidden.")
-          .newline()
-          .add("This may pose a problem for the readability of the text it contains.")
-        createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}", content,
-                    VisualLintErrorType.OVERLAP, issues)
+        if (isPartiallyHidden(firstView, i, secondView, j, model)) {
+          val content = HtmlBuilder().add("The content of ${simpleName(firstView)} is partially hidden.")
+            .newline()
+            .add("This may pose a problem for the readability of the text it contains.")
+          // TODO: Highlight both first and second view in design surface
+          createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}",
+                      content,
+                      VisualLintErrorType.OVERLAP, issues)
+        }
       }
     }
   }
   for (child in children) {
     findOverlapIssues(child, model, issues)
   }
+}
+
+/**
+ * Given two view info that overlaps in bounds, and their respective indices in layout,
+ * figure out of [firstViewInfo] is being overlapped and partially hidden by [secondViewInfo]
+ */
+@VisibleForTesting
+fun isPartiallyHidden(firstViewInfo: ViewInfo, i: Int, secondViewInfo: ViewInfo, j: Int, model: NlModel): Boolean {
+
+  val comp1 = componentFromViewInfo(firstViewInfo, model)
+  val comp2 = componentFromViewInfo(secondViewInfo, model)
+
+  // Try to see if we can compare elevation attribute if it exists.
+  if (comp1 != null && comp2 != null) {
+    val elev1 = ConstraintComponentUtilities.getDpValue(
+      comp1, comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION))
+    val elev2 = ConstraintComponentUtilities.getDpValue(
+      comp2, comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION))
+
+    if (elev1 < elev2) {
+      return true
+    } else if (elev1 > elev2) {
+      return false
+    }
+    // If they're the same, leave it to the index to resolve overlapping logic.
+  }
+
+  // else rely on index.
+  return i < j
 }
 
 /**
