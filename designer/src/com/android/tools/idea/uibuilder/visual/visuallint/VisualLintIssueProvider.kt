@@ -57,7 +57,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   override val description: String get() = builder.contentDescriptionProvider!!.invoke(count).stringBuilder.toString()
 
   /** Number of times the same issue appears */
-  var count: Int = 0
+  var count: Int = 1
 
   /** Returns the text range of the issue. */
   private var range: TextRange? = null

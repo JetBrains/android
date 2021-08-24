@@ -86,13 +86,22 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: VisualLintIs
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
-      val content = HtmlBuilder().add("${simpleName(child)} is not entirely contained within the bounds of its parent.")
-        .newline()
-        .add("This may result in this component being partially hidden from view.")
-      createIssue(child, model, "${simpleName(child)} is not fully visible in layout", content, VisualLintErrorType.BOUNDS, issues)
+      val viewName = simpleName(child)
+      val summary = "$viewName is partially hidden in layout"
+      val provider = { count: Int ->
+        HtmlBuilder()
+          .add("$viewName is partially hidden in layout because it is not contained within the bounds of its parent in ${previewConfigurations(count)}.")
+          .newline()
+          .add("Fix this issue by adjusting the size or position of $viewName.")
+      }
+      createIssue(child, model, summary, VisualLintErrorType.BOUNDS, issues, provider)
     }
     findBoundIssues(child, model, issues)
   }
+}
+
+private fun previewConfigurations(count: Int): String {
+  return if (count == 1) "a preview configuration" else "$count preview configurations"
 }
 
 /**
