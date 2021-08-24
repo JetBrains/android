@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
@@ -26,7 +27,11 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.helpText
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
+import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -38,6 +43,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.snapshots.CaptureSnapshotAction
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -52,6 +58,7 @@ import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.JBColor
+import com.intellij.ui.LayeredIcon
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
@@ -89,6 +96,12 @@ private const val MIN_ZOOM = 10
 
 private const val TOOLBAR_INSET = 14
 
+@VisibleForTesting
+val ICON_LEGACY_PHONE = LayeredIcon(ICON_PHONE, AllIcons.General.WarningDecorator)
+
+@VisibleForTesting
+val ICON_LEGACY_EMULATOR = LayeredIcon(ICON_EMULATOR, AllIcons.General.WarningDecorator)
+
 @TestOnly
 const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
@@ -116,19 +129,39 @@ class DeviceViewPanel(
   private var lastPanMouseLocation: Point? = null
 
   private val selectProcessAction: SelectProcessAction? = if (processes != null) {
-    SelectProcessAction(processes,
-                        supportsOffline = false,
-                        createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
-                        stopPresentation = SelectProcessAction.StopPresentation(
-                          "Stop inspector",
-                          "Stop running the layout inspector against the current process"),
-                        onStopAction = { stopInspectors() })
-  } else null
+    SelectProcessAction(
+      model = processes,
+      supportsOffline = false,
+      createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
+      stopPresentation = SelectProcessAction.StopPresentation(
+        "Stop inspector",
+        "Stop running the layout inspector against the current process"),
+      onStopAction = { stopInspectors() },
+      customDeviceAttribution = ::deviceAttribution
+    )
+  }
+  else null
 
   private val contentPanel = DeviceViewContentPanel(
     layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
     { layoutInspector.currentClient }, this, selectProcessAction, disposableParent
   )
+
+  private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
+    device.apiLevel < AndroidVersion.VersionCodes.M -> {
+      event.presentation.isEnabled = false
+      event.presentation.text = "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
+    }
+    device.apiLevel < AndroidVersion.VersionCodes.Q -> {
+      event.presentation.icon = device.toLegacyIcon()
+      event.presentation.text = "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"
+    }
+    else -> {
+    }
+  }
+
+  private fun DeviceDescriptor?.toLegacyIcon() =
+    if (this?.isEmulator == true) ICON_LEGACY_EMULATOR else ICON_LEGACY_PHONE
 
   private fun showGrab() {
     cursor = if (isPanning) {
@@ -200,7 +233,7 @@ class DeviceViewPanel(
 
   private val bubbleLabel = JLabel()
 
-  private val bubble = object: JPanel(FlowLayout()) {
+  private val bubble = object : JPanel(FlowLayout()) {
     init {
       add(JLabel(StudioIcons.Common.INFO_INLINE))
       add(bubbleLabel)
@@ -225,7 +258,7 @@ class DeviceViewPanel(
     }
 
   init {
-    loadingPane.addListener(object: JBLoadingPanelListener {
+    loadingPane.addListener(object : JBLoadingPanelListener {
       override fun onLoadingStart() {
         contentPanel.showEmptyText = false
       }
@@ -435,7 +468,7 @@ class DeviceViewPanel(
     get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
-    set(_) { }
+    set(_) {}
 
   private fun createToolbar(selectProcessAction: AnAction?): ActionToolbar {
     val leftGroup = DefaultActionGroup()
@@ -544,14 +577,14 @@ class MyViewportLayoutManager(
             Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
           }
           else -> {
-            val position = SwingUtilities.convertPoint(viewport, Point(viewport.width/2, viewport.height/2), viewport.view)
+            val position = SwingUtilities.convertPoint(viewport, Point(viewport.width / 2, viewport.height / 2), viewport.view)
             val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
             val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
 
             origLayout.layoutContainer(parent)
 
             val newPosition = Point((viewport.view.width * xPercent).toInt(), (viewport.view.height * yPercent).toInt())
-            newPosition.translate(-viewport.extentSize.width/2, -viewport.extentSize.height/2)
+            newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
             newPosition
           }
         }
@@ -573,4 +606,3 @@ class MyViewportLayoutManager(
     lastViewSize = viewport.view.size
   }
 }
-

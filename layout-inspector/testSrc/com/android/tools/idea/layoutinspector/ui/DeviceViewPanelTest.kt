@@ -25,7 +25,9 @@ import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -36,6 +38,7 @@ import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.OLDER_LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
@@ -59,7 +62,9 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
@@ -70,6 +75,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import icons.StudioIcons
 import junit.framework.TestCase
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
@@ -85,12 +91,15 @@ import java.awt.Point
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
+private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
@@ -109,7 +118,8 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(EdtRule()).around(disposableRule)!!
+  val ruleChain =
+    RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(IconLoaderRule()).around(EdtRule()).around(disposableRule)!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -342,7 +352,34 @@ class DeviceViewPanelWithFullInspectorTest {
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
     assertThat(contentPanel.showEmptyText).isTrue()
+  }
 
+  @Test
+  fun testSelectProcessDropDown() {
+    val settings = EditorDeviceViewSettings()
+    val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
+                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val selectProcessAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectProcessAction!!
+    connect(MODERN_PROCESS)
+    connect(LEGACY_PROCESS)
+    connect(OLDER_LEGACY_PROCESS)
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectProcessAction.getChildren(null)
+    assertThat(children).hasLength(4)
+    checkDeviceAction(children[0], enabled = true, ICON_PHONE, "Google Modern Model")
+    checkDeviceAction(children[1], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
+    checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
+    checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop inspector")
+  }
+
+  private fun checkDeviceAction(action: AnAction, enabled: Boolean, icon: Icon?, text: String) {
+    val presentation = action.templatePresentation.clone()
+    val event: AnActionEvent = mock()
+    `when`(event.presentation).thenReturn(presentation)
+    action.update(event)
+    assertThat(presentation.text).isEqualTo(text)
+    assertThat(presentation.icon).isSameAs(icon)
+    assertThat(presentation.isEnabled).isEqualTo(enabled)
   }
 
   private fun installCommandHandlers() {

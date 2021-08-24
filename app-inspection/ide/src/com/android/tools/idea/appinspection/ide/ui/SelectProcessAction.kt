@@ -42,8 +42,8 @@ val NO_DEVICE_ACTION = object : AnAction(AppInspectionBundle.message("action.no.
 }
 
 private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
-private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
-private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
+val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
+val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
 /**
  * An action that presents a list of devices and processes, allowing the user to select a process,
@@ -204,7 +204,7 @@ class SelectProcessAction(
   }
 }
 
-private fun DeviceDescriptor.buildDeviceName(): String {
+fun DeviceDescriptor.buildDeviceName(): String {
   var displayModel = model
   val deviceNameBuilder = StringBuilder()
 
