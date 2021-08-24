@@ -23,6 +23,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -170,7 +171,7 @@ public class VisualizationManager implements Disposable {
       else if (LangDataKeys.IDE_VIEW.is(dataId)) {
         return ((DataProvider)fileEditor).getData(dataId);
       }
-      else if (LangDataKeys.MODULE.is(dataId)) {
+      else if (PlatformCoreDataKeys.MODULE.is(dataId)) {
         VirtualFile file = fileEditor.getFile();
         return file == null ? null : ModuleUtilCore.findModuleForFile(file, myProject);
       }

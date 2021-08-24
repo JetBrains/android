@@ -19,8 +19,8 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys.MODULE
 import com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.codeStyle.CodeStyleManager

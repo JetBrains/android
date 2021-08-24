@@ -16,13 +16,12 @@
 
 package com.android.tools.idea.actions
 
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.LangDataKeys
-
 import com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath
 import com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY
 import com.intellij.openapi.actionSystem.ActionPlaces.MAIN_MENU
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 
 class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a new module to the project", null) {
   override fun update(e: AnActionEvent) {
@@ -39,7 +38,7 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
   }
 
   override fun getModulePath(e: AnActionEvent): String {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return ":"
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return ":"
 
     return getGradleModulePath(module) ?: ":"
   }

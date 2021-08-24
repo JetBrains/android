@@ -31,7 +31,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -454,7 +454,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public Object getData(@NotNull @NonNls String dataId) {
     // This is required since the Image Editor's actions are dependent on the context
     // being a ImageFileEditor.
-    return PlatformDataKeys.FILE_EDITOR.is(dataId) ? myImageFileEditor : null;
+    return PlatformCoreDataKeys.FILE_EDITOR.is(dataId) ? myImageFileEditor : null;
   }
 
   @Nullable

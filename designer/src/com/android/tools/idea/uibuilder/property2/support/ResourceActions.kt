@@ -34,14 +34,14 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
-import java.util.Locale
+import java.util.*
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
@@ -191,7 +191,7 @@ open class TestableColorSelectionAction(
   }
 
   private fun componentFromEvent(event: AnActionEvent): Component? {
-    return PlatformDataKeys.CONTEXT_COMPONENT.getData(event.dataContext) ?: event.inputEvent?.component
+    return PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(event.dataContext) ?: event.inputEvent?.component
   }
 
   private fun componentToRestoreFocusTo(event: AnActionEvent): Component? {

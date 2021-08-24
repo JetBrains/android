@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.tools.idea.uibuilder.property2.getPropertiesToolContent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTEXT_COMPONENT
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.CONTEXT_COMPONENT
 import com.intellij.openapi.actionSystem.ToggleAction
 
 val neleDesignPropertySections = listOf(

@@ -25,7 +25,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -51,7 +51,7 @@ public class ImportMlModelAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+    Module module = e.getData(PlatformCoreDataKeys.MODULE);
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
     if (!moduleTemplates.isEmpty() && module != null && e.getProject() != null) {
       String title = "Import TensorFlow Lite model";
@@ -72,7 +72,7 @@ public class ImportMlModelAction extends AnAction {
       return;
     }
 
-    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+    Module module = PlatformCoreDataKeys.MODULE.getData(e.getDataContext());
     if (module == null) {
       presentation.setEnabled(false);
       return;
@@ -118,7 +118,7 @@ public class ImportMlModelAction extends AnAction {
     if (e.getProject() == null) {
       return Collections.emptyList();
     }
-    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+    Module module = PlatformCoreDataKeys.MODULE.getData(e.getDataContext());
     VirtualFile virtualFile = e.getProject().getProjectFile();
     if (module == null || virtualFile == null) {
       return Collections.emptyList();

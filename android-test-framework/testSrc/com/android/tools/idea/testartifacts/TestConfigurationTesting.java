@@ -29,7 +29,7 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -137,8 +137,8 @@ public class TestConfigurationTesting {
   public static ConfigurationContext createContext(@NotNull Project project, @NotNull PsiElement psiElement) {
     MapDataContext dataContext = new MapDataContext();
     dataContext.put(CommonDataKeys.PROJECT, project);
-    if (LangDataKeys.MODULE.getData(dataContext) == null) {
-      dataContext.put(LangDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
+    if (PlatformCoreDataKeys.MODULE.getData(dataContext) == null) {
+      dataContext.put(PlatformCoreDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
     }
     dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement));
     return ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN);

@@ -9,6 +9,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -32,7 +33,7 @@ import org.jetbrains.android.util.ErrorReporter
 import javax.swing.JCheckBox
 
 internal val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
-internal val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
+internal val DataContext.module: Module? get() = PlatformCoreDataKeys.MODULE.getData(this)
 
 internal fun getParentStyle(style: Style): StyleRefData? {
   val parentStyleRefValue = style.parentStyle.value

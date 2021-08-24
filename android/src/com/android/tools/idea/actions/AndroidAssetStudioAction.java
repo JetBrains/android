@@ -26,10 +26,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
-import java.awt.Dimension;
+import java.awt.*;
 import java.net.URL;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
   }
 
   protected static boolean isAvailable(@NotNull DataContext dataContext) {
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
     VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
@@ -85,7 +86,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return;
     }
