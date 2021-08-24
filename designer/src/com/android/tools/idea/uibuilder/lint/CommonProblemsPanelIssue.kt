@@ -54,14 +54,6 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
       return null
     }
 
-  private fun getTextRange(component: NlComponent): TextRange? {
-    component.tag?.let { tag ->
-      val nameElement: ASTNode? = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.node)
-      return nameElement?.textRange
-    }
-    return null
-  }
-
   /** Returns formatted plain strings (from html description) */
   val formattedDescription: String get() = Jsoup.parse(this.description).text()
 

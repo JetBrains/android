@@ -31,6 +31,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.handlers.IncludeHandler
+import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
 import com.android.tools.idea.validator.ValidatorData
@@ -38,13 +39,8 @@ import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
-import java.awt.Desktop
-import java.net.URL
 import java.util.EnumSet
 import java.util.stream.Stream
-import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 /**
@@ -254,16 +250,7 @@ open class NlAtfIssue(
       if (result.mHelpfulUrl.isNullOrEmpty()) {
         return null
       }
-      return HyperlinkListener {
-        if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-          try {
-            Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
-          } catch (exception: Exception) {
-            val project : Project? = null
-            Messages.showErrorDialog(project, "Unable to open a browser", "Error")
-          }
-        }
-      }
+      return createDefaultHyperLinkListener(result.mHelpfulUrl)
     }
 
   /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
