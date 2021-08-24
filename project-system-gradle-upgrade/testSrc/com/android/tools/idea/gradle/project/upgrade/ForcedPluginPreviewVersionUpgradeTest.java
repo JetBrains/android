@@ -44,27 +44,30 @@ public class ForcedPluginPreviewVersionUpgradeTest {
       {"1.5.0-beta1", "2.0.0-alpha10", true},
       {"1.5.0", "2.0.0-alpha10", false},
       {"2.3.0-alpha1", "2.3.0-dev", false},
-      {"2.4.0-alpha7", "2.4.0-alpha8", false},
-      {"2.4.0-alpha6", "2.4.0-alpha8", false},
       {"2.4.0-alpha8", "2.4.0-alpha8", false},
       {"2.4.0-alpha9", "2.4.0-alpha8", false},
       {"2.5.0", "2.4.0-alpha8", false},
       {"2.5.0-alpha1", "2.4.0-alpha8", false},
       {"2.3.0-alpha1", "2.4.0-alpha8", true},
 
-      // Allow recent rc builds in canaries
-      {"3.3.1-rc01", "3.5.0-dev", true}, // must be previous
-      {"3.3.1-rc01", "3.5.0-alpha01", true}, // dev==alpha
-      {"3.4.0-rc02", "3.4.0-rc03", true}, // within single release require latest
-      {"3.4.0-rc02", "3.4.0", true}, // old rc's only allowed from previews, not stable
-      {"3.4.0-rc02", "3.5.0", true}, // old rc's only allowed from previews, not stable
+      // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
+      {"3.3.1-rc01", "3.5.0-dev", false},
+      {"3.3.1-rc01", "3.5.0-alpha01", false},
+      {"3.4.0-rc02", "3.4.0-rc03", false},
+      {"3.4.0-rc02", "3.4.0", false},
+      {"3.4.0-rc02", "3.5.0", false},
 
+      {"3.4.0-alpha03", "3.4.0-rc01", true},
+      {"3.4.0-beta03", "3.4.0-rc02", true},
       {"3.4.0-alpha03", "3.5.0", true},
       {"3.4.0-alpha05", "3.4.0", true},
 
       {"3.4.0-rc01", "3.5.0-alpha01", false},
       {"3.4.0-rc02", "3.5.0-alpha01", false},
       {"3.3.1", "3.5.0-alpha01", false},
+
+      // Force upgrades from -dev to any stable version.
+      {"3.4.0-dev", "3.4.0", true}
     });
   }
 

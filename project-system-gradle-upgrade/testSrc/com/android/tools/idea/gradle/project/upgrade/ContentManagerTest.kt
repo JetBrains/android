@@ -447,7 +447,7 @@ class ContentManagerTest {
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
     val toolWindowModel = ToolWindowModel(project, { currentAgpVersion })
-    val knownVersions = listOf("4.1.0", "4.2.0-alpha01", "4.2.0").map { GradleVersion.parse(it) }.toSet()
+    val knownVersions = listOf("4.1.0", "4.2.0-dev", "4.2.0").map { GradleVersion.parse(it) }.toSet()
     val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions)
       .isEqualTo(setOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion).toList().sortedDescending())

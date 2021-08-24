@@ -228,50 +228,22 @@ fun shouldForcePluginUpgrade(
   if (DISABLE_FORCED_UPGRADES.get()) {
     return false
   }
-
   if (current == null) return false
+
   // Now we can check the actual version information.
   return versionsShouldForcePluginUpgrade(current, recommended)
 }
 
 /**
- * Returns whether, given the [current] version of AGP and the [recommended] version to upgrade to (which should be the
+ * Returns whether, given the [current] version of AGP and the [latestKnown] version to upgrade to (which should be the
  * version returned by [LatestKnownPluginVersionProvider] except for tests), we should force a plugin upgrade to that
  * recommended version.
  */
 fun versionsShouldForcePluginUpgrade(
   current: GradleVersion,
-  recommended: GradleVersion
+  latestKnown: GradleVersion
 ) : Boolean {
-  if (current.previewType == null) return false
-  // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
-  if (recommended.isSnapshot && current.compareIgnoringQualifiers(recommended) == 0) return false
-
-  if (recommended.isAtLeast(2, 4, 0, "alpha", 8, false)) {
-    // 2.4.0-alpha8 introduces many API changes that may break users' builds. Because of this, Studio will allow users to
-    // switch to older previews of 2.4.0.
-    if (current >= recommended) {
-      // The plugin is newer or equal to 2.4.0-alpha8
-      return false
-    }
-
-    // Allow recent RCs. For example, when using a 3.5 canary IDE, allow 3.4-rc as a Gradle
-    // plugin, but not 3.3-rc or 3.4-beta.
-    if (current.previewType == "rc" &&
-        recommended.previewType != null &&
-        current.major == recommended.major &&
-        current.minor == recommended.minor - 1) {
-      return false
-    }
-
-    val isOlderPluginAllowed = current.isPreview &&
-                               current.major == 2 &&
-                               current.minor == 4 &&
-                               current < recommended
-    return !isOlderPluginAllowed
-  }
-
-  return current < recommended
+  return computeGradlePluginUpgradeState(current, latestKnown, setOf()).importance == FORCE
 }
 
 /**
