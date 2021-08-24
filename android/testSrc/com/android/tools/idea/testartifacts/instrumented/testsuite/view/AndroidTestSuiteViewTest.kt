@@ -477,13 +477,6 @@ class AndroidTestSuiteViewTest {
   @Test
   fun singleDeviceStatusText() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
-
-    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
-      view.onTestCaseStarted(device, suite, testcase)
-      testcase.result = result
-      view.onTestCaseFinished(device, suite, testcase)
-    }
-
     val device1 = device("deviceId1", "deviceName1")
 
     view.onTestSuiteScheduled(device1)
@@ -492,8 +485,10 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
@@ -503,13 +498,6 @@ class AndroidTestSuiteViewTest {
   @Test
   fun multipleDevicesStatusText() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
-
-    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
-      view.onTestCaseStarted(device, suite, testcase)
-      testcase.result = result
-      view.onTestCaseFinished(device, suite, testcase)
-    }
-
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -520,14 +508,18 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.SKIPPED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.SKIPPED)
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice2)
-    runTestCase(device2, testsuiteOnDevice2, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(device2, testsuiteOnDevice2, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device2, testsuiteOnDevice2,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(view, device2, testsuiteOnDevice2,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     assertThat(view.myStatusText.text)
@@ -540,12 +532,6 @@ class AndroidTestSuiteViewTest {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
     view.testExecutionDurationOverride = Duration.ofSeconds(10)
 
-    fun runTestCase(device: AndroidDevice, suite: AndroidTestSuite, testcase: AndroidTestCase, result: AndroidTestCaseResult) {
-      view.onTestCaseStarted(device, suite, testcase)
-      testcase.result = result
-      view.onTestCaseFinished(device, suite, testcase)
-    }
-
     val device1 = device("deviceId1", "deviceName1")
 
     view.onTestSuiteScheduled(device1)
@@ -554,8 +540,10 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(device1, testsuiteOnDevice1, AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
@@ -713,6 +701,52 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteScheduled(sameDeviceId)
 
     assertThat(view.myResultsTableView.getTableViewForTesting().columnCount).isEqualTo(3)
+  }
+
+  @Test
+  fun firstFailedTestCaseShouldBeSelectedAutomatically() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId3", "method3", "class3", "package3"), AndroidTestCaseResult.PASSED)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    // Verifies the details view is visible now.
+    assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
+    assertThat(view.myDetailsView.titleTextView.text).isEqualTo("package2.class2.method2")
+    assertThat(view.myDetailsView.selectedDevice).isEqualTo(device1)
+  }
+
+  @Test
+  fun rootTableItemIsSelectedWhenAllTestsPassed() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.PASSED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId3", "method3", "class3", "package3"), AndroidTestCaseResult.PASSED)
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    // Verifies the details view is visible now.
+    assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
+    assertThat(view.myDetailsView.titleTextView.text).isEqualTo("Test Results")
+    assertThat(view.myDetailsView.selectedDevice).isEqualTo(device1)
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {

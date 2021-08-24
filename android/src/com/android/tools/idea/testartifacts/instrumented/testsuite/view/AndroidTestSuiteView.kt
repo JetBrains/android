@@ -422,7 +422,13 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
       when (Preconditions.checkNotNull(testCase.result)) {
         AndroidTestCaseResult.PASSED -> passedTestCases++
-        AndroidTestCaseResult.FAILED -> failedTestCases++
+        AndroidTestCaseResult.FAILED -> {
+          if (failedTestCases == 0) {
+            myDetailsView.selectDevice(device)
+            myResultsTableView.selectAndroidTestCase(testCase)
+          }
+          failedTestCases++
+        }
         AndroidTestCaseResult.SKIPPED -> skippedTestCases++
       }
       updateProgress()
