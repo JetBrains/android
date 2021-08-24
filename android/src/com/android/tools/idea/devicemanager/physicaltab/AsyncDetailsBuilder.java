@@ -77,6 +77,7 @@ final class AsyncDetailsBuilder {
       .setResolution(myExecutor.execute(device, "wm size").flatMap(Resolution::newResolution).orElse(null))
       .setDensity(device.getDensity())
       .addAllAbis(device.getAbis())
+      .setStorageDevice(myExecutor.execute(device, "df /data").flatMap(StorageDevice::newStorageDevice).orElse(null))
       .build();
   }
 }

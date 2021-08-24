@@ -46,6 +46,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     @VisibleForTesting final @NotNull JLabel myResolutionLabel;
     @VisibleForTesting final @NotNull JLabel myDpLabel;
     @VisibleForTesting final @NotNull JLabel myAbiListLabel;
+    private final @NotNull JLabel myAvailableStorageLabel;
 
     private SummarySection() {
       super("Summary");
@@ -55,6 +56,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myResolutionLabel = addNameAndValueLabels("Resolution");
       myDpLabel = addNameAndValueLabels("dp");
       myAbiListLabel = addNameAndValueLabels("ABI list");
+      myAvailableStorageLabel = addNameAndValueLabels("Available storage");
 
       setLayout();
     }
@@ -78,6 +80,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       setText(mySection.myResolutionLabel, device.getResolution());
       setText(mySection.myDpLabel, device.getDp());
       setText(mySection.myAbiListLabel, device.getAbis());
+      setText(mySection.myAvailableStorageLabel, device.getStorageDevice());
     }
   }
 
