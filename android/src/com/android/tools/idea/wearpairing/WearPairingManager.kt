@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.EmulatorConsole
@@ -67,6 +68,28 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 
+  init {
+    loadSettings()
+  }
+
+  @WorkerThread
+  private fun loadSettings() {
+    if (ApplicationManager.getApplication()?.isUnitTestMode != false) return
+    ApplicationManager.getApplication().assertIsNonDispatchThread()
+
+    WearPairingSettings.getInstance().apply {
+      loadSettings(pairedDevicesState, pairedDeviceConnectionsState)
+    }
+
+    val wizardAction = object : WizardAction {
+      override fun restart(project: Project) {
+        WearDevicePairingWizard().show(project, null)
+      }
+    }
+    // Launch WearPairingManager
+    setDeviceListListener(WearDevicePairingModel(), wizardAction)
+  }
+
   internal fun loadSettings(pairedDevices: List<PairingDeviceState>, pairedDeviceConnections: List<PairingConnectionsState>) {
     pairedDevicesTable.clear()
     val deviceMap = pairedDevices.associateBy { it.deviceID }
@@ -88,6 +111,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private fun saveSettings() {
+    if (ApplicationManager.getApplication()?.isUnitTestMode != false) return
     val pairedDevicesState = mutableListOf<PairingDeviceState>()
     val pairedDeviceConnectionsState = ArrayList<PairingConnectionsState>()
 
