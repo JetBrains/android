@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.app-inspection.api",
+    name = "app-inspection.api",
     srcs = ["src"],
-    iml_files = ["intellij.android.app-inspection.api.iml"],
+    iml_files = ["app-inspection.api.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -24,7 +24,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
