@@ -89,7 +89,8 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
         selectionModel.addListSelectionListener {
           if (selectedRow >= 0) {
-            extendedCaptureNodes[convertRowIndexToModel(selectedRow)].node.let {
+            val selectedModelIndex = convertRowIndexToModel(selectedRow) + tableModel.pageIndex * tableModel.pageSize
+            extendedCaptureNodes[selectedModelIndex].node.let {
               viewRange.set(it.startGlobal.toDouble(), it.endGlobal.toDouble())
             }
           }

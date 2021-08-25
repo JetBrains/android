@@ -88,6 +88,17 @@ class CaptureNodeDetailTableTest {
   }
 
   @Test
+  fun rowSelectionUpdatesViewRangeWhenTableIsPaginated() {
+    val viewRange = Range(0.0, 100.0)
+    val table = CaptureNodeDetailTable(NODES_TO_SORT, Range(0.0, 100.0), viewRange, 2).table
+    assertThat(viewRange.isSameAs(Range(0.0, 100.0))).isTrue()
+    // Go to the next page and make sure the selection selects the items on that page.
+    (table.model as AbstractPaginatedTableModel).goToNextPage()
+    table.selectionModel.setSelectionInterval(0, 0)
+    assertThat(viewRange.isSameAs(Range(300.0, 302.0))).isTrue()
+  }
+
+  @Test
   fun rowSortingDoesNotUpdateViewRange() {
     val viewRange = Range(0.0, 100.0)
     val table = CaptureNodeDetailTable(NODE.children, Range(0.0, 100.0), viewRange).table
