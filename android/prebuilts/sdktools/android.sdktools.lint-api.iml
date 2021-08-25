@@ -4,37 +4,28 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="asm-tools" level="project" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
-    <orderEntry type="library" exported="" name="Guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-model" exported="" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
-    <orderEntry type="module" module-name="intellij.java.psi" exported="" />
-    <orderEntry type="module" module-name="intellij.java.psi.impl" exported="" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" exported="" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" name="kotlin-reflect" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.uast" exported="" />
-    <orderEntry type="module" module-name="intellij.java.uast" exported="" />
-    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" exported="" scope="PROVIDED" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api:27.2.0.0" />
+      <library name="precompiled-lint-api">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-api/27.2.0.0/studio.android.sdktools.lint-api-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-api.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint-api-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api_test:27.2.0.0" />
+      <library name="precompiled-lint-api-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-api_test/27.2.0.0/studio.android.sdktools.lint-api_test-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-api_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

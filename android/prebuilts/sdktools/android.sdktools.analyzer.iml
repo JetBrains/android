@@ -4,34 +4,31 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module-library">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:explainer:27.2.0.0" />
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/27.2.0.0/explainer-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/prebuilts/tools/common/archive-patcher/explainer.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:generator:27.2.0.0" />
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/27.2.0.0/generator-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/prebuilts/tools/common/archive-patcher/generator.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:shared:27.2.0.0" />
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/27.2.0.0/shared-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/prebuilts/tools/common/archive-patcher/shared.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -40,7 +37,6 @@
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
@@ -48,20 +44,18 @@
     <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analyzer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer:27.2.0.0" />
+      <library name="precompiled-analyzer">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/27.2.0.0/studio.android.sdktools.analyzer-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/analyzer/studio.android.sdktools.analyzer.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-analyzer-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer_test:27.2.0.0" />
+      <library name="precompiled-analyzer-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/27.2.0.0/studio.android.sdktools.analyzer_test-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/analyzer/studio.android.sdktools.analyzer_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

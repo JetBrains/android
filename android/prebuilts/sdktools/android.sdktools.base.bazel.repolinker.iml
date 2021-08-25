@@ -5,22 +5,20 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-binary-resources">
+      <library name="precompiled-repolinker">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/bazel/repolinker/studio.android.sdktools.base.bazel.repolinker.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-binary-resources-test">
+      <library name="precompiled-repolinker-test">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources_test.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/bazel/repolinker/studio.android.sdktools.base.bazel.repolinker_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

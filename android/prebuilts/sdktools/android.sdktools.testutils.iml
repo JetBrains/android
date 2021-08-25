@@ -2,41 +2,31 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../../testutils">
-      <sourceFolder url="file://$MODULE_DIR$/../../../testutils/testSrc" isTestSource="true" />
-    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" scope="TEST" name="javax.annotation-api" level="project" />
-    <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-testutils" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:27.2.0.0" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-testutils">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/27.2.0.0/studio.android.sdktools.testutils-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/testutils/studio.android.sdktools.testutils.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-testutils-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:27.2.0.0" />
+      <library name="precompiled-testutils-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/27.2.0.0/studio.android.sdktools.testutils_test-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/testutils/studio.android.sdktools.testutils_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
   </component>
 </module>

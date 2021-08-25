@@ -5,22 +5,24 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-binary-resources">
+      <library name="precompiled-common">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/dynamic-layout-inspector/common/studio.dynamic-layout-inspector.common.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-binary-resources-test">
+      <library name="precompiled-common-test">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources_test.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/dynamic-layout-inspector/common/studio.dynamic-layout-inspector.common_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

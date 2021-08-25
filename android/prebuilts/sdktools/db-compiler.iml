@@ -14,11 +14,11 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="db-baseLibrary" exported="" />
     <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="db-compilerCommon" />
-    <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module-library">
       <library name="juniversalchardet" type="repository">
         <properties maven-id="com.googlecode.juniversalchardet:juniversalchardet:1.0.3" />
@@ -39,11 +39,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="module-library">
       <library name="javapoet" type="repository">
         <properties maven-id="com.squareup:javapoet:1.10.0" />
@@ -54,11 +50,9 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module-library">
       <library name="auto-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.google.auto:auto-common:0.10" />
+        <properties maven-id="com.google.auto:auto-common:0.10" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar!/" />
         </CLASSES>
@@ -67,23 +61,19 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" name="jaxb-api" level="project" />
-    <orderEntry type="library" name="javax.activation" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-db-compiler" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:27.2.0.0" />
+      <library name="precompiled-db-compiler">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/27.2.0.0/studio.compiler-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compiler.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-db-compiler-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler_test:27.2.0.0" />
+      <library name="precompiled-db-compiler-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler_test/27.2.0.0/studio.compiler_test-27.2.0.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compiler_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

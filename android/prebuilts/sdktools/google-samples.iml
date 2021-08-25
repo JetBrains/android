@@ -5,22 +5,22 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-binary-resources">
+      <library name="precompiled-google-samples">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/studio/google/samples/google-samples.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-binary-resources-test">
+      <library name="precompiled-google-samples-test">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources_test.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/studio/google/samples/google-samples_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
