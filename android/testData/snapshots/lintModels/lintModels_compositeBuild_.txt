@@ -40,6 +40,7 @@ MODULE                        : TestCompositeLib1.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
@@ -80,6 +81,7 @@ MODULE                        : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -129,6 +131,7 @@ MODULE                        : TestCompositeLib1.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -170,6 +173,7 @@ MODULE                        : TestCompositeLib1.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
@@ -226,6 +230,7 @@ MODULE                        : TestCompositeLib1.app
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
@@ -260,6 +265,7 @@ MODULE                        : TestCompositeLib1.app
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
@@ -1451,6 +1457,7 @@ MODULE                        : TestCompositeLib3.app
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -1490,6 +1497,7 @@ MODULE                        : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
@@ -1536,6 +1544,7 @@ MODULE                        : TestCompositeLib3.app
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
@@ -1576,6 +1585,7 @@ MODULE                        : TestCompositeLib3.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -1629,6 +1639,7 @@ MODULE                        : TestCompositeLib3.app
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                 artifacts::                   : null => artifacts:::unspecified
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
@@ -1662,6 +1673,7 @@ MODULE                        : TestCompositeLib3.app
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
@@ -2745,6 +2757,7 @@ MODULE                        : TestCompositeLib3.lib
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
+MODULE                        : com.test.compositeNest3.compositeNest
 MODULE                        : composite2
 MODULE                        : composite4
 MODULE                        : compositeNest
