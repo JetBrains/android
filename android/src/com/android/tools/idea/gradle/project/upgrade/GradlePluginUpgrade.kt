@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
@@ -95,12 +97,18 @@ fun shouldRecommendPluginUpgrade(project: Project): Boolean {
   return shouldRecommendPluginUpgrade(project, current, recommended)
 }
 
-fun shouldRecommendPluginUpgrade(project: Project, current: GradleVersion, recommended: GradleVersion) : Boolean {
+@JvmOverloads
+fun shouldRecommendPluginUpgrade(
+  project: Project,
+  current: GradleVersion,
+  latestKnown: GradleVersion,
+  published: Set<GradleVersion> = setOf()
+): Boolean {
   // Needed internally for development of Android support lib.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
 
   if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
-  return shouldRecommendUpgrade(current, recommended)
+  return shouldRecommendUpgrade(current, latestKnown, published)
 }
 
 /**
@@ -145,21 +153,27 @@ fun recommendPluginUpgrade(project: Project) {
 fun performRecommendedPluginUpgrade(
   project: Project,
   currentVersion: GradleVersion? = project.findPluginInfo()?.pluginVersion,
-  recommendedVersion: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+  latestKnown: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
   dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
 ) : Boolean {
   if (currentVersion == null) return false
 
-  LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
+  LOG.info("Gradle model version: $currentVersion, latest known version for IDE: $latestKnown")
+
+  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  val state = computeGradlePluginUpgradeState(currentVersion, latestKnown, published)
+
+  LOG.info("Gradle upgrade state: $state")
+  if (state.importance != RECOMMEND) return false
 
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-    val updateDialog = dialogFactory.create(project, currentVersion, recommendedVersion)
+    val updateDialog = dialogFactory.create(project, currentVersion, state.target)
     updateDialog.showAndGet()
   }
 
   if (userAccepted) {
     // The user accepted the upgrade
-    showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, recommendedVersion)
+    showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, state.target)
   }
 
   return false
@@ -183,8 +197,9 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 }
 
 @VisibleForTesting
-fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion) : Boolean {
-  return computeGradlePluginUpgradeState(current, latestKnown, setOf()).importance == RECOMMEND
+@JvmOverloads
+fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, published: Set<GradleVersion> = setOf()) : Boolean {
+  return computeGradlePluginUpgradeState(current, latestKnown, published).importance == RECOMMEND
 }
 
 class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
@@ -338,8 +353,11 @@ fun computeGradlePluginUpgradeState(
 
 fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
   this.pluginVersion?.let { currentAgpVersion ->
-    val recommendedAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (shouldRecommendPluginUpgrade(project, currentAgpVersion, recommendedAgpVersion)) recommendPluginUpgrade(project)
+    val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    executeOnPooledThread {
+      val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+      if (shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)) recommendPluginUpgrade(project)
+    }
   }
 }
 
