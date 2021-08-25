@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wearpairing
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
@@ -23,6 +24,8 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
@@ -30,6 +33,7 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
+import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
 
 // Keep an instance, so if the wizard is already running, just bring it to the front
@@ -80,5 +84,20 @@ internal class WearDevicePairingWizard {
       .build(SimpleStudioWizardLayout())
 
     wizardDialog?.show()
+  }
+
+  @UiThread
+  fun show(project: Project, selectedDeviceId: String) {
+    object : Task.Modal(project, message("wear.assistant.device.connection.balloon.link"), true) {
+      var selectedDevice: PairingDevice? = null
+
+      override fun run(indicator: ProgressIndicator) {
+          selectedDevice = WearPairingManager.findDevice(selectedDeviceId)
+      }
+
+      override fun onFinished() {
+        show(project, selectedDevice)
+      }
+    }.queue()
   }
 }

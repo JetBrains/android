@@ -216,7 +216,10 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Slow
-  private suspend fun updateListAndForwardState() {
+  internal fun findDevice(deviceID: String): PairingDevice? = getAvailableDevices().second[deviceID]
+
+  @Slow
+  private fun getAvailableDevices(): Pair<Map<String, IDevice>, HashMap<String, PairingDevice>> {
     @Suppress("UnstableApiUsage")
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
@@ -237,6 +240,13 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = avdDevice)
       }
     }
+
+    return Pair(connectedDevices, deviceTable)
+  }
+
+  @Slow
+  private suspend fun updateListAndForwardState() {
+    val (connectedDevices, deviceTable) = getAvailableDevices()
 
     pairedDevicesTable.forEach { (_, phoneWearPair) ->
       addDisconnectedPairedDeviceIfMissing(phoneWearPair.phone, deviceTable)
