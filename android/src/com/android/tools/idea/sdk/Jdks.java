@@ -62,6 +62,10 @@ public final class Jdks {
     myIdeInfo = ideInfo;
   }
 
+  public Jdks() {
+    myIdeInfo = IdeInfo.getInstance();
+  }
+
   @Nullable
   public JavaSdkVersion findVersion(@NotNull Path jdkRoot) {
     return getVersion(jdkRoot.toString());
