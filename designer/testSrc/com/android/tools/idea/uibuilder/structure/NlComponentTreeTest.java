@@ -66,7 +66,8 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
-import java.awt.*;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -107,15 +108,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  // flush should be performed (at least) each time after:
-  //  0. new NlComponentTree(...)
-  //  1. mySurface.setModel(...)
-  //  2. myTree.expandRow(...);
-  private void flushUpdateQueue() throws InterruptedException {
-    myTree.myUpdateQueue.flush();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
   public void testTreeStructure() {

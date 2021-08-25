@@ -463,14 +463,14 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
   }
 
-  override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/syncedProjects"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
     ".single_variant", // TODO(b/168452472): Rename snapshots and remove.
     ""
   )
 
-  override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData/snapshots"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
   protected fun <T> importSyncAndDumpProject(
     projectDir: String,

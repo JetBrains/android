@@ -45,13 +45,13 @@ public class DbParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public @NotNull PsiParser createParser(Project project) {
+  public PsiParser createParser(Project project) {
     return new DbParser();
   }
 
   @NotNull
   @Override
-  public @NotNull IFileElementType getFileNodeType() {
+  public IFileElementType getFileNodeType() {
     return FILE_ELEMENT_TYPE;
   }
 
@@ -81,13 +81,13 @@ public class DbParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
+  public PsiFile createFile(FileViewProvider viewProvider) {
     return new DbFile(viewProvider);
   }
 
   @NotNull
   @Override
-  public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
+  public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MAY;
   }
 }

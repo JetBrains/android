@@ -51,7 +51,7 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
 
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }

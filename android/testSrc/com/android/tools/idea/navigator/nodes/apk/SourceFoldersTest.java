@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk;
 
 import static com.android.tools.idea.testing.ProjectFiles.createFolder;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
@@ -46,7 +47,7 @@ public class SourceFoldersTest extends HeavyPlatformTestCase {
     myAppModule = createModuleAt("app", getProject(), getModuleType(), appFolder.toNioPath());
     mySrcFolder = createFolder(appFolder, "src");
     myMypackageFolder = createFolder(mySrcFolder, "mypackage");
-    myLibFolder = createFolder(virtualAppDir, "lib");
+    myLibFolder = createFolder(appFolder, "lib");
   }
 
   public void testIsInSourceFolderForProject() {

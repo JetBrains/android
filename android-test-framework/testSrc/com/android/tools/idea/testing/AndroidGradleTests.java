@@ -25,7 +25,9 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -33,6 +35,8 @@ import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertNotNull;
@@ -51,6 +55,7 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -68,6 +73,7 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
@@ -651,7 +657,7 @@ public class AndroidGradleTests {
   }
 
   public static void overrideJdkTo8() throws IOException {
-    String jdk8Path = TestUtils.getEmbeddedJdk8Path();
+    String jdk8Path = getEmbeddedJdk8Path();
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
     LOG.info("Using JDK from " + jdk8Path);
     ideSdks.overrideJdkEnvVariable(jdk8Path);
@@ -680,5 +686,24 @@ public class AndroidGradleTests {
 
   public static void restoreJdk() {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
+  }
+
+  public static String getEmbeddedJdk8Path() throws IOException {
+    String sourcesRoot = getSourcesRoot();
+    String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
+    String relativePath = toSystemDependentName(jdkDevPath);
+    File jdkRootPath = new File(toCanonicalPath(relativePath));
+    if (SystemInfo.isWindows) {
+      // For JDK8 we have 32 and 64 bits versions on Windows
+      jdkRootPath = new File(jdkRootPath, "win64");
+    }
+    else if (SystemInfo.isLinux) {
+      jdkRootPath = new File(jdkRootPath, "linux");
+    }
+    else if (SystemInfo.isMac) {
+      jdkRootPath = new File(jdkRootPath, "mac");
+      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
+    }
+    return jdkRootPath.getCanonicalPath();
   }
 }

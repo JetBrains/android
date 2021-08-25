@@ -90,11 +90,11 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryAdtIdeaRelativePath(): String = "android/testData/snapshots"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
-  override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/lintModels"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/lintModels"
 
   @Test
   fun testLintModels() {

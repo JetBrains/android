@@ -36,7 +36,7 @@ interface SnapshotComparisonTest {
   /**
    * A testData subdirectory name where to look for snapshots.
    */
-  val snapshotDirectoryAdtIdeaRelativePath: String
+  val snapshotDirectoryWorkspaceRelativePath: String
 
   /**
    * The list of file name suffixes applicable to the currently running test.

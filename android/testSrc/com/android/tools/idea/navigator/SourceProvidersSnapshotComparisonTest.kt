@@ -16,7 +16,11 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.testing.*
+import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
@@ -39,8 +43,8 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
 --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed
  */
 class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/sourceProviders"
-  override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData/snapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos() =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 

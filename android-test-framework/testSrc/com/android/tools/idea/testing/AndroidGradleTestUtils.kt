@@ -1164,7 +1164,7 @@ interface GradleIntegrationTest {
   /**
    * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
    */
-  fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String
+  fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String
 
   /**
    * The collection of additional repositories to be added to the Gradle project.

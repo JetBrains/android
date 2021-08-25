@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
-import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.setPortableUiFont
@@ -91,7 +90,7 @@ import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
-private val TEST_DATA_PATH = AndroidTestPaths.adtSources().resolve("layout-inspector/testData").toFile()
+private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.02
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 

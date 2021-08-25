@@ -34,7 +34,7 @@ import java.io.File
  * To use it, simply set the path to the target project using the provided [fixture] (see
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
-class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndependent String = "android/testData") : NamedExternalResource() {
+class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData") : NamedExternalResource() {
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
@@ -42,7 +42,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   @Ignore("TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.")
   private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
-    override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
+    override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
 
     fun invokeTasks(project: Project, timeoutMillis: Long?, vararg tasks: String): GradleInvocationResult {
       return invokeGradleTasks(project, timeoutMillis, *tasks)
