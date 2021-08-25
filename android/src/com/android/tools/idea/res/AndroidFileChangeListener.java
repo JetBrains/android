@@ -75,6 +75,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
+import org.jetbrains.plugins.gradle.config.GradleFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
@@ -248,18 +249,20 @@ public class AndroidFileChangeListener implements Disposable {
     return parentName.startsWith(FD_RES_RAW);
   }
 
-  public static boolean isGradleFile(@NotNull PsiFile file) {
-    if (file.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || file.getFileType().getName().equals("Kotlin")) {
-      if (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS)) {
-        return true;
-      }
-    }
-    // Do not test getFileType() as this will differ depending on whether the toml plugin is active or not.
-    if (file.getName().endsWith(".versions.toml")) {
+  public static boolean isGradleFile(@NotNull PsiFile psiFile) {
+    if (GradleFileType.isGradleFile(psiFile)) {
       return true;
     }
-    if (file.getFileType() == PropertiesFileType.INSTANCE) {
-      if (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName())) {
+    FileType fileType = psiFile.getFileType();
+    if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
+      return true;
+    }
+    // Do not test getFileType() as this will differ depending on whether the toml plugin is active or not.
+    if (psiFile.getName().endsWith(".versions.toml")) {
+      return true;
+    }
+    if (fileType == PropertiesFileType.INSTANCE) {
+      if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
         return true;
       }
     }
