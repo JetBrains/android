@@ -38,7 +38,7 @@ import java.beans.PropertyChangeListener
 /**
  * Automatically shows quick documentation for Compose functions during code completion
  */
-internal class AndroidComposeAutoDocumentation(private val project: Project) {
+class ComposeAutoDocumentation(private val project: Project) {
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->

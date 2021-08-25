@@ -81,7 +81,7 @@ private fun ProcessDescriptor.isInspectableInLayoutInspector(): Boolean {
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
-internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
