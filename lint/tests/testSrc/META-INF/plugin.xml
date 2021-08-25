@@ -28,9 +28,4 @@
   <depends>JUnit</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
-  <!-- Make .gradle files associated with groovy file types. Depending on the Gradle plugin was not enough. -->
-  <extensions defaultExtensionNs="com.intellij">
-    <fileType name="Groovy" extensions="gradle"/>
-  </extensions>
 </idea-plugin>
