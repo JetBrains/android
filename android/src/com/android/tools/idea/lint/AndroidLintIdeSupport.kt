@@ -24,9 +24,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
+import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
 import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintEditorResult
@@ -220,7 +225,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun recommendedAgpVersion(project: Project): GradleVersion? {
-    return GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val current = project.findPluginInfo()?.pluginVersion ?: return null
+    val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+    val state = computeGradlePluginUpgradeState(current, latestKnown, published)
+    return when (state.importance) {
+      RECOMMEND -> state.target
+      else -> null
+    }
   }
   override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
     return shouldRecommendPluginUpgrade(project)

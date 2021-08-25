@@ -93,8 +93,9 @@ class RecommendedUpgradeReminder(
 fun shouldRecommendPluginUpgrade(project: Project): Boolean {
   // If we don't know the current plugin version then we don't upgrade.
   val current = project.findPluginInfo()?.pluginVersion ?: return false
-  val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  return shouldRecommendPluginUpgrade(project, current, recommended)
+  val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  return shouldRecommendPluginUpgrade(project, current, latestKnown, published)
 }
 
 @JvmOverloads
