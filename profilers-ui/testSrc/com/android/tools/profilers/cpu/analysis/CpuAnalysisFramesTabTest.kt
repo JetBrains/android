@@ -52,6 +52,28 @@ class CpuAnalysisFramesTabTest {
     assertThat(table2.getValueAt(0, 0)).isEqualTo(3)
   }
 
+  @Test
+  fun selectingTableRowUpdatedViewRange() {
+    val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
+      Mockito.`when`(getAndroidFrameLayers()).thenReturn(LAYERS.subList(0, 1))
+    }
+    val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(systemTraceData).thenReturn(traceData)
+    }
+    val framesTabModel = CpuAnalysisFramesTabModel(Range()).apply {
+      dataSeries.add(cpuCapture)
+    }
+    val viewRange = Range()
+    val studioProfilersView: StudioProfilersView = Mockito.mock(StudioProfilersView::class.java, Mockito.RETURNS_DEEP_STUBS).apply {
+      Mockito.`when`(studioProfilers.stage.timeline.viewRange).thenReturn(viewRange)
+    }
+    val framesTab = CpuAnalysisFramesTab(studioProfilersView, framesTabModel)
+    val treeWalker = TreeWalker(framesTab)
+    val table = treeWalker.descendants().filterIsInstance<JTable>().first()
+    table.selectionModel.setSelectionInterval(1, 1)
+    assertThat(viewRange.isSameAs(Range(10.0, 27.0))).isTrue()
+  }
+
   private companion object {
     fun makeFrame(frameNumber: Int, timestamp: Long, duration: Long, depth: Int): TraceProcessor.AndroidFrameEventsResult.FrameEvent =
       TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder()

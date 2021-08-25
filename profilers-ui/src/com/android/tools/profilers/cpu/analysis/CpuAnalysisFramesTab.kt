@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import javax.swing.ListSelectionModel
 
 class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
                            model: CpuAnalysisFramesTabModel
@@ -40,6 +41,16 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
           columnModel.getColumn(FrameEventTableColumn.APP.ordinal).cellRenderer = DurationRenderer()
           columnModel.getColumn(FrameEventTableColumn.GPU.ordinal).cellRenderer = DurationRenderer()
           columnModel.getColumn(FrameEventTableColumn.COMPOSITION.ordinal).cellRenderer = DurationRenderer()
+
+          setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+          selectionModel.addListSelectionListener {
+            if (selectedRow >= 0) {
+              val selectedEventIndex = convertRowIndexToModel(selectedRow) + model.pageIndex * model.pageSize
+              model.frameEvents[selectedEventIndex].let {
+                profilersView.studioProfilers.stage.timeline.viewRange.set(it.startTimeUs.toDouble(), it.endTimeUs.toDouble())
+              }
+            }
+          }
         }
       }
       tableContainer.removeAll()
