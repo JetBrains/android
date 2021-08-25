@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
-import org.apache.log4j.Logger
+import com.intellij.openapi.diagnostic.Logger
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -91,7 +91,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
       ddmClient.device.getScreenshot(5, TimeUnit.SECONDS)
     }
     catch (ex: Exception) {
-      Logger.getLogger(LegacyTreeLoader::class.java).warn("Couldn't get screenshot from device", ex)
+      Logger.getInstance(LegacyTreeLoader::class.java).warn("Couldn't get screenshot from device", ex)
       return null
     }
     val bufferedImage = rawImage.asBufferedImage()
