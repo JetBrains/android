@@ -284,7 +284,12 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.INCLUDE_GRADLE_EXTRA_OPTIONS = myIncludeGradleExtraParams;
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       configuration.RETENTION_ENABLED = myEnableEmulatorSnapshotItemsComboBox.getItem();
-      configuration.RETENTION_MAX_SNAPSHOTS = Integer.parseInt(myMaxSnapshots.get());
+      try {
+        configuration.RETENTION_MAX_SNAPSHOTS = Integer.parseInt(myMaxSnapshots.get());
+      } catch (NumberFormatException _) {
+        // When editing, the number string might temporarily become "".
+        // No-op
+      }
       configuration.RETENTION_COMPRESS_SNAPSHOTS = myCompressSnapshots.get();
     }
   }
