@@ -44,7 +44,7 @@ class SnapshotMetadata(
         Metadata.Source.STUDIO -> DynamicLayoutInspectorSnapshotInfo.SaveSource.STUDIO
         else -> DynamicLayoutInspectorSnapshotInfo.SaveSource.UNKNOWN
       }
-      saveVersion = sourceVersion
+      sourceVersion?.let { saveVersion = it }
       liveDuringCapture?.let { liveWhenSaved = it }
       saveDuration?.let { saveDurationMs = it.toInt() }
       loadDuration?.let { loadDurationMs = it.toInt() }
