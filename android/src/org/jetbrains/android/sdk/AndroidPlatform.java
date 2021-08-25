@@ -6,6 +6,7 @@ import static com.android.SdkConstants.FD_PLATFORMS;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -16,7 +17,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
@@ -115,7 +115,7 @@ public class AndroidPlatform {
         }
         IAndroidTarget resultTarget = null;
         for (IAndroidTarget target : sdkData.getTargets()) {
-          String targetsFrameworkLibPath = FileUtil.toCanonicalPath(target.getPath(ANDROID_JAR));
+          String targetsFrameworkLibPath = target.getPath(ANDROID_JAR).normalize().toString();
           if (frameworkLibrary.getPath().equals(targetsFrameworkLibPath)) {
             if (target.isPlatform()) {
               if (resultTarget == null) resultTarget = target;
@@ -129,7 +129,7 @@ public class AndroidPlatform {
               }
               else {
                 for (OptionalLibrary optionalLibrary : libraries) {
-                  if (!jarPaths.contains(FileUtil.toCanonicalPath(optionalLibrary.getJar().getAbsolutePath()))) {
+                  if (!jarPaths.contains(toCanonicalPath(optionalLibrary.getJar().toAbsolutePath().toString()))) {
                     ok = false;
                   }
                 }

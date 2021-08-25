@@ -134,7 +134,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
   private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
     val ideSdks = IdeSdks.getInstance()
     val jdkFromHome = IdeSdks.getJdkFromJavaHome()
-    if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
+    if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
       composer.addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
     }
   }

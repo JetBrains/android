@@ -30,7 +30,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
-import java.io.File;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,7 +103,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     String pathToJdk8 = "/path/to/jdk8";
     when(jdk.getHomePath()).thenReturn(pathToJdk8);
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(new File(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(Paths.get(pathToJdk8))).thenReturn(JavaSdkVersion.JDK_1_8);
 
     assertThat(runCheckJdkErrorMessage(jdk)).startsWith(
       "The Jdk installation is invalid.\n" +
@@ -143,7 +142,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
 
     String jdkPath = myValidJdk.getHomePath();
     assertThat(jdkPath).isNotNull();
-    when(myMockJdks.findVersion(new File(jdkPath))).thenReturn(javaVersion);
+    when(myMockJdks.findVersion(Paths.get(jdkPath))).thenReturn(javaVersion);
 
     String message = runCheckJdkErrorMessage(myValidJdk);
 

@@ -63,8 +63,8 @@ public final class Jdks {
   }
 
   @Nullable
-  public JavaSdkVersion findVersion(@NotNull File jdkRoot) {
-    return getVersion(jdkRoot.getPath());
+  public JavaSdkVersion findVersion(@NotNull Path jdkRoot) {
+    return getVersion(jdkRoot.toString());
   }
 
   @Nullable

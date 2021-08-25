@@ -105,8 +105,7 @@ class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model,
   override fun canGoForward(): ObservableBool = isValidJdkPath
 
   override fun onProceeding() {
-    val path = jdkLocation.absolutePath
-    IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, File(path))
+    IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, jdkLocation.toAbsolutePath())
   }
 
   override fun getPreferredFocusComponent() = jdkPanel

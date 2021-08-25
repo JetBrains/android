@@ -225,7 +225,7 @@ public class EmbeddedDistributionPaths {
       String sourcesRoot = StudioPathManager.getSourcesRoot();
       String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
       String relativePath = toSystemDependentName(jdkDevPath);
-      File jdkRootPath = new File(toCanonicalPath(relativePath), "jdk11");
+      Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {
         jdkRootPath = jdkRootPath.resolve("win");
       }
@@ -239,7 +239,7 @@ public class EmbeddedDistributionPaths {
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      File jdkRootPath = new File(ideHomePath, "jre");
+      Path jdkRootPath = Paths.get(ideHomePath, "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }

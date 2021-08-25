@@ -237,7 +237,7 @@ public class AndroidSdkInitializer implements Runnable {
       }
     }
     LOG.info("Using default SDK path: " + ANDROID_SDK_DEFAULT_INSTALL_DIR);
-    return toSystemDependentPath(ANDROID_SDK_DEFAULT_INSTALL_DIR);
+    return FilePaths.stringToFile(ANDROID_SDK_DEFAULT_INSTALL_DIR);
   }
 
   /**

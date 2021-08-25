@@ -217,7 +217,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     myDiagnostics = diagnostics;
 
     registerResources(renderContext.getModule());
-    cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
+    cache.setDependencies(ContainerUtil.map(getExternalJars(), Path::toString));
   }
 
   @NotNull

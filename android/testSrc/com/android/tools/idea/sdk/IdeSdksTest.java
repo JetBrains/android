@@ -336,7 +336,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     assertThat(homePath).isNotEqualTo("");
 
     Sdk jdk8 = IdeSdks.findOrCreateJdk(AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME,
-                                       new File(getEmbeddedJdk8Path()));
+                                       Paths.get(getEmbeddedJdk8Path()));
     assertThat(jdk8).isNotNull();
     Sdk newJdk = myIdeSdks.getJdk();
     assertThat(newJdk).isSameAs(jdk8);
