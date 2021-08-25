@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -37,20 +41,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ServiceContainerUtil;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class AndroidVirtualDeviceTest extends AndroidTestBase {
+public final class AndroidVirtualDeviceTest {
   private static final String DEVICE_ID =  "pixel_3a";
 
   private static Map<String, String> getReferenceMap() {
@@ -92,15 +97,14 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
   private AndroidSdkHandler sdkHandler;
   private MockFileOp fop;
 
-  @Override
+  @Rule
+  public final DisposableRule disposableRule = new DisposableRule();
+
+  @Rule
+  public final ApplicationRule applicationRule = new ApplicationRule();
+
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    myFixture.setUp();
-    myFixture.setTestDataPath(getTestDataPath());
-    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
     fop = new MockFileOp();
     recordPlatform23(fop);
     recordGoogleApisAddon23(fop);
@@ -111,22 +115,13 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     IdeSdks ideSdks = spy(IdeSdks.getInstance());
     when(ideSdks.getAndroidSdkPath()).thenReturn(fop.toFile(sdkPath));
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, ideSdks, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, ideSdks, disposableRule.getDisposable());
     AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
     when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), AndroidSdks.class, androidSdks, disposableRule.getDisposable());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myFixture.tearDown();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
+  @Test
   public void testCreateDevice() throws Exception {
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
@@ -150,6 +145,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     assertEquals(DEVICE_ID, skin.getName());
   }
 
+  @Test
   public void testRequiredSysimgPath() {
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
@@ -169,6 +165,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     assertEquals("system-images;android-23;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
   }
 
+  @Test
   public void testSelectedByDefault() throws Exception {
 
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
@@ -344,7 +341,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
-    disposeOnTearDown(() -> connection.deleteAvd(avdInfo));
+    Disposer.register(disposableRule.getDisposable(), () -> connection.deleteAvd(avdInfo));
     connection.getAvds(true); // Force refresh
 
     return avdInfo;
