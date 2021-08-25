@@ -30,7 +30,7 @@ class CpuAnalysisFramesTabModelTest {
   fun tableModelIsPopulated() {
     val framesTabModel = CpuAnalysisFramesTabModel(Range())
     framesTabModel.dataSeries.add(CPU_CAPTURE)
-    val tableModel = framesTabModel.layerToTableModel["com.example.MainActivity#0"]!!
+    val tableModel = framesTabModel.tableModels[0]
 
     assertThat(tableModel.rowCount).isEqualTo(4)
     assertThat(tableModel.columnCount).isEqualTo(5)
@@ -56,7 +56,7 @@ class CpuAnalysisFramesTabModelTest {
   fun tableShouldBeSortedByValue() {
     val framesTabModel = CpuAnalysisFramesTabModel(Range())
     framesTabModel.dataSeries.add(CPU_CAPTURE)
-    val tableModel = framesTabModel.layerToTableModel["com.example.MainActivity#0"]!!
+    val tableModel = framesTabModel.tableModels[0]
 
     // Sort by Frame number ascending.
     tableModel.sortData(listOf(RowSorter.SortKey(0, SortOrder.ASCENDING)))

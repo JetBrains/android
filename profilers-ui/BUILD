@@ -34,5 +34,13 @@ iml_module(
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/codenavigation[module]",
+        "//tools/adt/idea/profilers-ui:traceprocessor-proto[test]",
     ],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "traceprocessor-proto",
+    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
+    visibility = ["//visibility:public"],
 )

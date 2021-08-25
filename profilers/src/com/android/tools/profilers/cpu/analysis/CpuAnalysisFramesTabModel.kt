@@ -29,10 +29,10 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
   /**
    * Frame table data by layer. This is lazily initialized because at the time of construction, the [CpuCapture] data is not yet available.
    */
-  val layerToTableModel: Map<String, FrameEventTableModel> by lazy {
+  val tableModels: List<FrameEventTableModel> by lazy {
     val layers = dataSeries.flatMap { it.systemTraceData?.getAndroidFrameLayers() ?: listOf() }
     // Transform frame event proto (grouped by phase) into table model (grouped by frame number).
-    layers.associate { layer ->
+    layers.map { layer ->
       val frameNumberToRow = mutableMapOf<Int, FrameEventRow>().also {
         layer.phaseList.forEach { phase ->
           phase.frameEventList.forEach { frameEvent ->
@@ -54,7 +54,7 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
           }
         }
       }
-      Pair(layer.layerName, FrameEventTableModel(frameNumberToRow.values.toMutableList()))
+      FrameEventTableModel(layer.layerName, frameNumberToRow.values.toMutableList())
     }
   }
 }
@@ -75,7 +75,7 @@ data class FrameEventRow(val frameNumber: Int,
 /**
  * Table model for the frame events table.
  */
-class FrameEventTableModel(val frameEvents: MutableList<FrameEventRow>) : AbstractPaginatedTableModel(25) {
+class FrameEventTableModel(val layerName: String, val frameEvents: MutableList<FrameEventRow>) : AbstractPaginatedTableModel(25) {
   override fun getDataSize(): Int {
     return frameEvents.size
   }
@@ -107,6 +107,10 @@ class FrameEventTableModel(val frameEvents: MutableList<FrameEventRow>) : Abstra
 
   override fun getColumnName(column: Int): String {
     return FrameEventTableColumn.values()[column].displayName
+  }
+
+  override fun toString(): String {
+    return layerName.substring(layerName.lastIndexOf('/') + 1)
   }
 }
 
