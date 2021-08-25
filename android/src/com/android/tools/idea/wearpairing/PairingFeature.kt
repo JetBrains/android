@@ -37,7 +37,6 @@ private val VERSION_CODE_PATTERN = "versionCode=(\\d+)".toRegex()
 private const val OEM_COMPANION_SETTING_KEY = "cw.oem_companion_package"
 private const val OEM_COMPANION_PROPERTY_KEY = "ro.oem.companion_package"
 
-@VisibleForTesting
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
 private suspend fun IDevice.getVersionCode(appId: String) =

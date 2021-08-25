@@ -105,6 +105,19 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   }
 
   @Test
+  fun shouldWarnAboutWear3CompanionApp_ifNotInstalled() {
+    val iDevice = createTestDevice(companionAppVersion = "", Int.MAX_VALUE, "some.unknown.companion.app")
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null
+    }
+  }
+
+  @Test
   fun stepShouldEnableGoForwardIfCompanionAppFound() {
     val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
     phoneDevice.launch = { Futures.immediateFuture(iDevice) }
@@ -176,7 +189,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     findComponent<JBLabel> { it.name == "header" && it.text == text } != null
   }
 
-  private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE): IDevice {
+  private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE, companionAppId: String? = null): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
     Mockito.`when`(
       iDevice.executeShellCommand(
@@ -192,6 +205,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
         request.contains("grep 'local: '") -> "local: TestNodeId"
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
+        request.contains("settings get secure") -> companionAppId.toString()
         else -> "Unknown executeShellCommand request $request"
       }
 
@@ -201,6 +215,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
 
     Mockito.`when`(iDevice.arePropertiesSet()).thenReturn(true)
     Mockito.`when`(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
+    Mockito.`when`(iDevice.getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
 
     return iDevice
   }
