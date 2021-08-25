@@ -1937,6 +1937,35 @@ PROJECT                       : testWithCompositeBuild
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         ORDER_ENTRY                   : composite4
+    MODULE                        : com.test.compositeNest3.compositeNest
+        ExternalModuleGroup           : com.test.compositeNest3
+        ExternalModuleVersion         : 1.0
+        LinkedProjectId               : testWithCompositeBuild-TestCompositeLibNested_3
+        LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested_3/com.test.compositeNest3.compositeNest.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            GradlePath                    : :
+        FACET                         : Java-Gradle
+            TypeId                        : java-gradle
+            Buildable                     : true
+        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
+            JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/java
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/main/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
     MODULE                        : composite2
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleVersion         : 1.0
@@ -1996,17 +2025,17 @@ PROJECT                       : testWithCompositeBuild
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : compositeNest
-        ExternalModuleGroup           : com.test.compositeNest
+        ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : compositeNest
-        LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested
+        LinkedProjectId               : testWithCompositeBuild-TestCompositeLibNested_1
+        LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build/classes/java/test [-]
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested/compositeNest.iml
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLibNested_1/compositeNest.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
@@ -2014,13 +2043,13 @@ PROJECT                       : testWithCompositeBuild
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
             Buildable                     : true
-        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested
-            JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/main/java
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/main/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/test/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/test/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
+            JavaSource                    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/java
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/main/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

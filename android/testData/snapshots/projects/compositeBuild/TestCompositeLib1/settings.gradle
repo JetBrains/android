@@ -1,1 +1,4 @@
 include ':app', ':lib'
+
+includeBuild 'TestCompositeLibNested_1'
+

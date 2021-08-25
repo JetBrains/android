@@ -817,6 +817,9 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
                             ProjectPath                   : :
@@ -1413,6 +1416,9 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
                             ProjectPath                   : :
@@ -2007,6 +2013,9 @@ MODULE                        : TestCompositeLib1.app
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
                         ModuleDependency
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
@@ -4771,6 +4780,9 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
                             ProjectPath                   : :lib
@@ -5360,6 +5372,9 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
                             ProjectPath                   : :app
@@ -5947,6 +5962,9 @@ MODULE                        : TestCompositeLib3.app
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
                         ModuleDependency
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -7801,6 +7819,7 @@ MODULE                        : TestCompositeLib3.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : com.test.compositeNest3.compositeNest
 MODULE                        : composite2
 MODULE                        : composite4
 MODULE                        : compositeNest
