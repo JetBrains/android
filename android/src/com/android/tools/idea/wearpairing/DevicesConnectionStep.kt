@@ -237,7 +237,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         withTimeoutOrNull(Duration.ofMinutes(1)) {
           it.pairingState.takeWhile { it.successful == null }.collect { state ->
             if (state.needsAttention) {
-              showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.consent"))
+              showUiPairingNonInteractive(phoneDevice, wearDevice,
+                                          message("wear.assistant.device.connection.pairing.auto.consent", phoneDevice.name))
             }
           }
         }
