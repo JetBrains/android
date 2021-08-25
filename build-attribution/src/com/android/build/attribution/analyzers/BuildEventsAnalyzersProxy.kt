@@ -117,7 +117,7 @@ class BuildEventsAnalyzersProxy(
   /** Time that includes task graph computation and other configuration activities before the tasks execution starts. */
   override fun getConfigurationPhaseTimeMs(): Long {
     return criticalPathAnalyzer.result.run {
-      val firstTaskStartTime = tasksDeterminingBuildDuration.minBy { it.executionStartTime } ?.executionStartTime
+      val firstTaskStartTime = tasksDeterminingBuildDuration.minByOrNull { it.executionStartTime } ?.executionStartTime
       // TODO (b/183590011): also change starting point based on first configuration event
       // If there are no tasks on critical path (no-op build?) let's use buildFinishedTimestamp.
       (firstTaskStartTime ?: buildFinishedTimestamp) - buildStartedTimestamp

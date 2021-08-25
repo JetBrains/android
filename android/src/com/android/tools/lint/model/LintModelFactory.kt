@@ -534,7 +534,7 @@ class LintModelFactory : LintModelModuleLoader {
                 .map {
                     val index = artifactAddress.indexOf(it, startIndex = this + 1)
                     if (index == -1) artifactAddress.length else index
-                }.min() ?: artifactAddress.length
+                }.minOrNull() ?: artifactAddress.length
         }
 
         val lastDelimiterIndex = 0
