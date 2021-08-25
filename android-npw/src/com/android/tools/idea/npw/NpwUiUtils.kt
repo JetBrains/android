@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.npw
 
-import com.android.tools.idea.observable.BindingsManager
-import com.android.tools.idea.observable.ObservableValue
-import com.android.tools.idea.observable.SettableValue
-import com.android.tools.idea.observable.expressions.Expression
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.ContextHelpLabel
@@ -29,20 +25,15 @@ import java.awt.Component
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
-fun <T, O> BindingsManager.bindExpression(dest: SettableValue<T>, listenTo: ObservableValue<O>, supplier: () -> T) {
-  bind(dest, object: Expression<T>(listenTo) {
-    override fun get(): T = supplier()
-  })
-}
-
-fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) =
+// TODO: Move this to `intellij.android.common`.
+internal fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) =
   ApplicationManager.getApplication().invokeLater(f, modalityState)
 
 /**
  * Creates a [JLabel], sets [JLabel.labelFor] and an optional [ContextHelpLabel].
  * It is recommended to create it inside of a cell if context help is used.
  */
-fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
+internal fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
   val label = if (contextHelpText == null) {
     JBLabel(text)
   }
@@ -59,7 +50,7 @@ fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String
   return label
 }
 
-fun LayoutBuilder.verticalGap() {
+internal fun LayoutBuilder.verticalGap() {
   row {
     label("")
   }

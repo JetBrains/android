@@ -34,11 +34,12 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.npw.invokeLater
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
 import com.intellij.ide.DataManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
@@ -123,9 +124,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       // If startup is in progress we have to wait until after so tools windows are opened and the window is its final size.
       // TODO: save zoom in editor state
       StartupManager.getInstance(project).runAfterOpened {
-        invokeLater {
-          deviceViewPanel.zoom(ZoomType.FIT)
-        }
+        invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
       }
       metrics = LayoutInspectorMetrics(project, snapshotLoader.processDescriptor, stats, snapshotMetadata = metadata)
       metrics?.logEvent(SNAPSHOT_LOADED)

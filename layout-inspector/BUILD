@@ -47,7 +47,6 @@ iml_module(
         "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
-        "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
     ],
 )
 
