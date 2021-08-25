@@ -11,9 +11,9 @@
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="network_inspector_java_proto" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.view" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.network.view" scope="TEST" />
+    <orderEntry type="module" module-name="app-inspection.inspectors.network.model" scope="TEST" />
+    <orderEntry type="module" module-name="app-inspection.inspector.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />

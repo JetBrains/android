@@ -94,7 +94,7 @@ iml_module(
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/studio[module, test]",
-        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
+        "//tools/adt/idea/app-inspection/api:app-inspection.api[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",

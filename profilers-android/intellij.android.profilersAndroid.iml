@@ -46,7 +46,7 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
+    <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="module" module-name="codenavigation" />
   </component>
 </module>

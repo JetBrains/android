@@ -18,7 +18,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
-        "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
+        "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],

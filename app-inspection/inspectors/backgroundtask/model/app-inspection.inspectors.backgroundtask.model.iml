@@ -9,8 +9,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="app-inspection.api" />
+    <orderEntry type="module" module-name="app-inspection.inspector.api" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
