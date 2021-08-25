@@ -1,6 +1,6 @@
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
-load("//tools/base/bazel:utils.bzl", "dir_archive")
+load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
 
 def _zipper(ctx, desc, map, out, deps = []):
@@ -258,12 +258,6 @@ _studio_plugin = rule(
     implementation = _studio_plugin_impl,
 )
 
-def _is_release():
-    return select({
-        "//tools/base/bazel:release": True,
-        "//conditions:default": False,
-    })
-
 def _searchable_options_impl(ctx):
     searchable_options = {}
     for f in ctx.files.searchable_options:
@@ -310,7 +304,7 @@ _searchable_options = rule(
 def searchable_options(name, files, **kwargs):
     _searchable_options(
         name = name,
-        compress = _is_release(),
+        compress = is_release(),
         searchable_options = files,
         **kwargs
     )
@@ -344,7 +338,7 @@ def studio_plugin(
         jars = jars,
         resources = resources_list,
         resources_dirs = resources_dirs,
-        compress = _is_release(),
+        compress = is_release(),
         **kwargs
     )
 
@@ -667,7 +661,7 @@ def android_studio(
         **kwargs):
     _android_studio(
         name = name,
-        compress = _is_release(),
+        compress = is_release(),
         **kwargs
     )
 
@@ -805,7 +799,7 @@ def intellij_platform(
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
-        compress = _is_release(),
+        compress = is_release(),
         mac_bundle_name = spec.mac_bundle_name,
         studio_data = name + ".data",
         visibility = ["//visibility:public"],
