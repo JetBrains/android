@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
-import com.android.tools.idea.gradle.dsl.GradleUtil;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.GradleUtil;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.google.common.collect.ImmutableSet;
@@ -357,7 +358,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
     RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
 
-    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("7.0.0"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(repositoriesModel, GradleVersion.parse("7.0.0"));
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
   }
@@ -370,7 +371,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
 
     repositoriesModel.removeRepository(repositoriesModel.repositories().get(0));
-    repositoriesModel.addGoogleMavenRepository(GradleVersion.parse("7.0.0"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(repositoriesModel, GradleVersion.parse("7.0.0"));
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
   }

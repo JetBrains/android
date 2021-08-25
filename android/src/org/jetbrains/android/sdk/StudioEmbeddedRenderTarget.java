@@ -273,4 +273,8 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   public int compareTo(IAndroidTarget o) {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
+
+  public static void resetInstance() {
+    ourStudioEmbeddedTarget = null;
+  }
 }

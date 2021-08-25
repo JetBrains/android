@@ -57,6 +57,7 @@ import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeListener
 import java.nio.file.Path
+import java.util.function.IntFunction
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -340,10 +341,10 @@ class EmulatorToolWindowPanel(
         is LeafNode -> {
           val display = displayDescriptors[layoutNode.rectangleIndex]
           val displayId = display.displayId
-          displayPanels.computeIfAbsent(displayId) {
+          displayPanels.computeIfAbsent(displayId, IntFunction {
             assert(displayId != PRIMARY_DISPLAY_ID)
             EmulatorDisplayPanel(contentDisposable!!, emulator, displayId, display.size, zoomToolbarVisible)
-          }
+          })
         }
         is SplitNode -> {
           EmulatorSplitPanel(layoutNode).apply {
@@ -365,10 +366,10 @@ class EmulatorToolWindowPanel(
       else {
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
-        displayPanels.computeIfAbsent(displayId) {
+        displayPanels.computeIfAbsent(displayId, IntFunction {
           assert(displayId != PRIMARY_DISPLAY_ID)
           EmulatorDisplayPanel(contentDisposable!!, emulator, displayId, display.size, zoomToolbarVisible)
-        }
+        })
       }
     }
 

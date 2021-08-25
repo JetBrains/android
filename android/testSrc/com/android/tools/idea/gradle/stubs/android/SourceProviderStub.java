@@ -28,7 +28,7 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myAidlDirectories = new HashSet<File>();
   @NotNull private final Set<File> myAssetsDirectories = new HashSet<File>();
   @NotNull private final Set<File> myJavaDirectories = new HashSet<File>();
-  @NotNull private final Set<File> myKotlinDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myKotlinDirectories = new HashSet<>();
   @NotNull private final Set<File> myCppDirectories = new HashSet<File>();
   @NotNull private final Set<File> myCDirectories = new HashSet<File>();
   @NotNull private final Set<File> myRenderscriptDirectories = new HashSet<File>();

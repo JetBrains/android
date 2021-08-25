@@ -94,24 +94,24 @@ class AgpUpgradeComponentNecessityTest : AndroidTestCase() {
   }
 
   fun testStandardPointNecessityThrows() {
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardPointNecessity(two, one, one) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardPointNecessity(two, one, two) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardPointNecessity(two, one, three) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardPointNecessity(three, two, one) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardPointNecessity(two, one, one) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardPointNecessity(two, one, two) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardPointNecessity(two, one, three) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardPointNecessity(three, two, one) })
   }
 
   fun testStandardRegionNecessityThrows() {
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(two, one, one, two) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(two, one, two, three) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(two, one, three, four) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(three, two, one, two) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(four, three, one, two) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(two, one, one, two) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(two, one, two, three) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(two, one, three, four) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(three, two, one, two) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(four, three, one, two) })
 
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(one, two, two, one) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(two, three, two, one) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(three, four, two, one) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(one, two, three, two) })
-    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable { standardRegionNecessity(one, two, four, three) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(one, two, two, one) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(two, three, two, one) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(three, four, two, one) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(one, two, three, two) })
+    assertThrows(IllegalArgumentException::class.java, ThrowableRunnable<RuntimeException> { standardRegionNecessity(one, two, four, three) })
   }
 
   fun testStandardPointNecessityReturnsOrIllegalArgument() {
