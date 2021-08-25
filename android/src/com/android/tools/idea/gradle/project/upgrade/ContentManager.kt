@@ -518,9 +518,10 @@ class ContentManager(val project: Project) {
         init {
           selectedItem = model.selectedVersion
           myListeners.listen(model.suggestedVersions) { suggestedVersions ->
+            val selectedVersion = model.selectedVersion
             removeAllElements()
-            selectedItem = model.selectedVersion
             suggestedVersions.orElse(emptyList()).forEach { addElement(it) }
+            selectedItem = selectedVersion
           }
           placeHolderValue = "Select new version"
         }
