@@ -655,8 +655,10 @@ class ContentManager(val project: Project) {
           // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
           invokeLater(ModalityState.NON_MODAL) {
             tree.setHoldSize(false)
-            TreeUtil.expandAll(tree)
-            tree.setHoldSize(true)
+            TreeUtil.expandAll(tree) {
+              tree.setHoldSize(true)
+              content.revalidate()
+            }
           }
         }
       })
