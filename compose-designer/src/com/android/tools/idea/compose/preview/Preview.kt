@@ -44,6 +44,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
+import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
@@ -69,6 +70,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
@@ -609,6 +611,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                 && !hasSyntaxErrors()) requestBuildForSurface(surface, false)
                           }, this)
     }
+
+    setupChangeListener(
+      project,
+      psiFile,
+      {
+        ApplicationManager.getApplication().invokeLater {
+          LOG.debug("changeListener triggered")
+          // Only refresh when in static
+          if (interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) refresh()
+        }
+      },
+      this)
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, {
