@@ -388,6 +388,12 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       Truth.assertThat(okButton).isNotNull()
       fakeUi.clickOn(okButton)
 
+      // Digits should be disabled once "Pair" is clicked
+      for (index in 0..5) {
+        val digit = fakeUi.getComponent<JTextField> { c -> c.name == "PairingCode-Digit-${index}" }
+        Truth.assertThat(digit.isEnabled).isFalse()
+      }
+
       pumpAndWait(pairingView.showDialogTracker.consume())
       pumpAndWait(pairingView.showPairingInProgressTracker.consume())
 

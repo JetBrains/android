@@ -91,6 +91,7 @@ class PairingCodePairingDialog(project: Project) {
 
   fun showPairingInProgress(text: String) {
     pairingPanel.showProgress(text)
+    pairingPanel.setDigitsEnabled(false)
     dialog.okButtonEnabled = false
     dialog.cancelButtonEnabled = false
   }
@@ -105,6 +106,7 @@ class PairingCodePairingDialog(project: Project) {
 
   fun showPairingError() {
     pairingPanel.showPairingError()
+    pairingPanel.setDigitsEnabled(true)
     dialog.okButtonEnabled = true
     dialog.cancelButtonEnabled = true
   }
