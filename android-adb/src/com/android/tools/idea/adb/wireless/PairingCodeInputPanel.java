@@ -125,4 +125,8 @@ public class PairingCodeInputPanel {
     myPairingProgressAsyncIcon.setVisible(false);
     myPairingProgressLabel.setText("There was an error pairing the device");
   }
+
+  public void setDigitsEnabled(boolean enabled) {
+    myAllDigitTextFields.forEach(textField -> textField.setEnabled(enabled));
+  }
 }
