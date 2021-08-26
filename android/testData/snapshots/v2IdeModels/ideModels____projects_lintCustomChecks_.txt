@@ -258,7 +258,7 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :library
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -288,11 +288,11 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :library
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -318,11 +318,11 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :library
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library
     ModelVersion                  : <AGP_VERSION>
@@ -588,7 +588,7 @@ MODULE                        : project.library
                         ModuleDependency
                             ProjectPath                   : :library
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -614,7 +614,7 @@ MODULE                        : project.library
                         ModuleDependency
                             ProjectPath                   : :library
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library-remote
     ModelVersion                  : <AGP_VERSION>
@@ -880,7 +880,7 @@ MODULE                        : project.library-remote
                         ModuleDependency
                             ProjectPath                   : :library-remote
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -906,7 +906,7 @@ MODULE                        : project.library-remote
                         ModuleDependency
                             ProjectPath                   : :library-remote
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.lint
 MODULE                        : project.lintpublish

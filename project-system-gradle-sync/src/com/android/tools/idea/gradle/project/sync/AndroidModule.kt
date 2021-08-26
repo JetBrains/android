@@ -35,6 +35,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import java.io.File
 
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
@@ -77,6 +78,8 @@ class JavaModule(
 @UsedInBuildAction
 class AndroidModule internal constructor(
   val modelVersion: GradleVersion?,
+  val buildName: String?,
+  val buildNameMap: Map<String, File>?,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProject,
   /** All configured variant names if supported by the AGP version. */

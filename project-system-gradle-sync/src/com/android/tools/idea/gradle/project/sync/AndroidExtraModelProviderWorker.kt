@@ -25,6 +25,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.models.AndroidDsl
+import com.android.builder.model.v2.models.BuildMap
 import com.android.builder.model.v2.models.GlobalLibraryMap
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
@@ -51,6 +52,7 @@ import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
+import java.io.File
 import java.util.LinkedList
 
 internal class AndroidExtraModelProviderWorker(
@@ -100,12 +102,23 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   sealed class AndroidProjectResult {
-    class V1Project(val androidProject: AndroidProject) : AndroidProjectResult()
+    class V1Project(val androidProject: AndroidProject) : AndroidProjectResult() {
+      override val buildName: String? = null
+      override val buildNameMap: Map<String, File>? = null
+    }
+
     class V2Project(
+      val buildMap: BuildMap,
       val androidProject: V2AndroidProject,
       val modelVersions: Versions,
       val androidDsl: AndroidDsl
-      ) : AndroidProjectResult()
+    ) : AndroidProjectResult() {
+      override val buildName: String = androidProject.buildName
+      override val buildNameMap: Map<String, File> = buildMap.buildIdMap
+    }
+
+    abstract val buildName: String?
+    abstract val buildNameMap: Map<String, File>?
   }
 
   private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
@@ -125,7 +138,7 @@ internal class AndroidExtraModelProviderWorker(
    *
    * If single variant sync is enabled then [findParameterizedAndroidModel] will use Gradle parameterized model builder API
    * in order to stop Gradle from building the variant.
-   * All of the requested models are registered back to the external project system via the
+   * All the requested models are registered back to the external project system via the
    * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
   private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<GradleModule> {
@@ -134,6 +147,7 @@ internal class AndroidExtraModelProviderWorker(
       is SingleVariantSyncActionOptions -> false
       // Note: No other cases.
     }
+
     val modules: List<GradleModule> = actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule {
@@ -148,6 +162,8 @@ internal class AndroidExtraModelProviderWorker(
                 verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp) &&
                 canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
               val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
+              val buildMap = controller.findNonParameterizedV2Model(gradleProject, BuildMap::class.java)
+                             ?: error("Failed to obtain BuildMap model for ${gradleProject.projectDirectory}")
               val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
               if (androidProject != null && androidDsl != null)  {
@@ -156,7 +172,7 @@ internal class AndroidExtraModelProviderWorker(
                 } else if (canFetchV2Models == false) {
                   error("Cannot initiate V2 models for Sync.")
                 }
-                androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
+                androidProjectResult = AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl)
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                 val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isAllVariantsSync)
                 val nativeAndroidProject: NativeAndroidProject? =
@@ -572,7 +588,14 @@ internal class AndroidExtraModelProviderWorker(
         // We need the GlobalLibraryMap for only Variants fetching, so we won't be fetching it alongside the AndroidProject.
         //TODO(b/187689291): add support for fullSyncActionOptions with V2.
         val globalLibraryMap = controller.findNonParameterizedV2Model(module.gradleProject, GlobalLibraryMap::class.java) ?: return null
-        ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion, variantDependencies, globalLibraryMap)
+        ideVariant = modelCache.variantFrom(
+          module.androidProject,
+          variant,
+          module.modelVersion,
+          variantDependencies,
+          globalLibraryMap,
+          module.buildNameMap ?: error("Build name map not available for: ${module.id}")
+        )
       }
       else {
         val androidModuleId = ModuleId(module.gradleProject.path, module.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
@@ -850,6 +873,8 @@ private fun createAndroidModule(
 
   val androidModule = AndroidModule(
     modelVersion,
+    androidProjectResult.buildName,
+    androidProjectResult.buildNameMap,
     gradleProject,
     ideAndroidProject,
     allVariantNames,

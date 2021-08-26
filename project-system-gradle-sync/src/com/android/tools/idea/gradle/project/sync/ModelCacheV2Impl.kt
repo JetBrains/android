@@ -489,7 +489,11 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
-  fun createFromDependencies(dependencies: ArtifactDependencies, libraryMap: GlobalLibraryMap): IdeDependencies {
+  fun createFromDependencies(
+    dependencies: ArtifactDependencies,
+    libraryMap: GlobalLibraryMap,
+    buildNameMap: Map<String, File>
+  ): IdeDependencies {
     // Map from unique artifact address to level2 library instance. The library instances are
     // supposed to be shared by all artifacts. When creating IdeLevel2Dependencies, check if current library is available in this map,
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
@@ -501,11 +505,11 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       artifactAddress: String,
       variant: String?,
       lintJar: File?,
-      buildId: String?
+      buildId: String
     ) {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
-        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildId, variant, lintJar) }
+        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar) }
       }
     }
 
@@ -651,8 +655,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   /**
    * Create [IdeDependencies] from [BaseArtifact].
    */
-  fun dependenciesFrom(artifactDependencies: ArtifactDependencies, libraryMap: GlobalLibraryMap): IdeDependencies {
-    return createFromDependencies(artifactDependencies, libraryMap)
+  fun dependenciesFrom(artifactDependencies: ArtifactDependencies, libraryMap: GlobalLibraryMap, buildNameMap: Map<String, File>): IdeDependencies {
+    return createFromDependencies(artifactDependencies, libraryMap, buildNameMap)
   }
 
   fun convertV2Execution(execution: TestInfo.Execution?): IdeTestOptions.Execution? {
@@ -693,7 +697,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     name: String,
     artifact: AndroidArtifact,
     artifactDependencies: ArtifactDependencies,
-    libraryMap: GlobalLibraryMap
+    libraryMap: GlobalLibraryMap,
+    buildNameMap: Map<String, File>,
   ): IdeAndroidArtifactImpl {
     val testInfo = artifact.testInfo
     val bundleInfo = artifact.bundleInfo
@@ -708,7 +713,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       variantSourceProvider = copyNewModel(artifact::variantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::multiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = additionalClassesFoldersFrom(artifact.classesFolders),
-      level2Dependencies = dependenciesFrom(artifactDependencies, libraryMap),
+      level2Dependencies = dependenciesFrom(artifactDependencies, libraryMap, buildNameMap),
       applicationId = "",
       generatedResourceFolders = copy(artifact::generatedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
@@ -740,7 +745,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     name: String,
     artifact: JavaArtifact,
     variantDependencies: ArtifactDependencies,
-    libraryMap: GlobalLibraryMap
+    libraryMap: GlobalLibraryMap,
+    buildNameMap: Map<String, File>
   ): IdeJavaArtifactImpl {
     return IdeJavaArtifactImpl(
       name = convertV2ArtifactName(name),
@@ -753,7 +759,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       variantSourceProvider = copyNewModel(artifact::variantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::multiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = additionalClassesFoldersFrom(artifact.classesFolders).toList(),
-      level2Dependencies = dependenciesFrom(variantDependencies, libraryMap),
+      level2Dependencies = dependenciesFrom(variantDependencies, libraryMap, buildNameMap),
       mockablePlatformJar = copy(artifact::mockablePlatformJar),
       isTestArtifact = name == "_unit_test_"
     )
@@ -774,7 +780,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     variant: Variant,
     modelVersion: GradleVersion?,
     variantDependencies: VariantDependencies,
-    libraryMap: GlobalLibraryMap
+    libraryMap: GlobalLibraryMap,
+    buildNameMap: Map<String, File>
   ): IdeVariantImpl {
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
@@ -798,16 +805,16 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return IdeVariantImpl(
       name = variant.name,
       displayName = variant.displayName,
-      mainArtifact = copyModel(variant.mainArtifact) { androidArtifactFrom("_main_", it, variantDependencies.mainArtifact, libraryMap) },
+      mainArtifact = copyModel(variant.mainArtifact) { androidArtifactFrom("_main_", it, variantDependencies.mainArtifact, libraryMap, buildNameMap) },
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       unitTestArtifact = copyModel(variant.unitTestArtifact) {
-        javaArtifactFrom("_unit_test_", it, variantDependencies.unitTestArtifact!!, libraryMap)
+        javaArtifactFrom("_unit_test_", it, variantDependencies.unitTestArtifact!!, libraryMap, buildNameMap)
       },
       androidTestArtifact = copyModel(variant.androidTestArtifact) {
-        androidArtifactFrom("_android_test_", it, variantDependencies.androidTestArtifact!!, libraryMap)
+        androidArtifactFrom("_android_test_", it, variantDependencies.androidTestArtifact!!, libraryMap, buildNameMap)
       },
       testFixturesArtifact = copyModel(variant.testFixturesArtifact) {
-        androidArtifactFrom("_test_fixtures_", it, variantDependencies.testFixturesArtifact!!, libraryMap)
+        androidArtifactFrom("_test_fixtures_", it, variantDependencies.testFixturesArtifact!!, libraryMap, buildNameMap)
       },
       buildType = variant.buildType ?: "",
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
@@ -1132,8 +1139,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       variant: Variant,
       modelVersion: GradleVersion?,
       variantDependencies: VariantDependencies,
-      libraryMap: GlobalLibraryMap
-    ): IdeVariantImpl = variantFrom(androidProject, variant, modelVersion, variantDependencies, libraryMap)
+      libraryMap: GlobalLibraryMap,
+      buildNameMap: Map<String, File>
+    ): IdeVariantImpl = variantFrom(androidProject, variant, modelVersion, variantDependencies, libraryMap, buildNameMap)
 
     override fun androidProjectFrom(project: com.android.builder.model.AndroidProject): IdeAndroidProjectImpl =
       throw UnsupportedOperationException()

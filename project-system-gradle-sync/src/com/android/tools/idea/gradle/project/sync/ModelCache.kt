@@ -58,7 +58,8 @@ interface ModelCache {
     variant: com.android.builder.model.v2.ide.Variant,
     modelVersion: GradleVersion?,
     variantDependencies: VariantDependencies,
-    libraryMap: GlobalLibraryMap
+    libraryMap: GlobalLibraryMap,
+    buildNameMap: Map<String, File>
   ): IdeVariantImpl
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
   fun androidProjectFrom(

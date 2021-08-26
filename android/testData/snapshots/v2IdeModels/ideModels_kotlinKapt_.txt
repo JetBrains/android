@@ -681,7 +681,7 @@ MODULE                        : MainActivity.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -841,7 +841,7 @@ MODULE                        : MainActivity.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : MainActivity.lib
     ModelVersion                  : <AGP_VERSION>
@@ -2183,7 +2183,7 @@ MODULE                        : MainActivity.lib
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2746,5 +2746,5 @@ MODULE                        : MainActivity.lib
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : : [-]
+                            BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
