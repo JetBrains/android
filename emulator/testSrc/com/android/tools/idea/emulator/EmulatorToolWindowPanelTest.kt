@@ -23,7 +23,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -449,7 +449,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun createDropTarget(): DnDTarget {
-    val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
+    val adb = resolveWorkspacePath("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
       Disposer.register(testRootDisposable) { System.setProperty(ADB_PATH_PROPERTY, savedAdbPath) }
@@ -564,7 +564,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("$TEST_DATA_PATH/golden/${name}.png")
+    return resolveWorkspacePath("$TEST_DATA_PATH/golden/${name}.png")
   }
 }
 

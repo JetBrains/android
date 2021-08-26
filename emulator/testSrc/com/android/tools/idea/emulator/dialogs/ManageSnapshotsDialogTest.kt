@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -31,7 +31,6 @@ import com.android.tools.idea.emulator.EmulatorViewRule
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
@@ -453,7 +452,7 @@ class ManageSnapshotsDialogTest {
 
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/${name}.png")
+    return resolveWorkspacePath("$GOLDEN_FILE_PATH/${name}.png")
   }
 }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.tests;
 
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
@@ -102,7 +101,7 @@ public class IdeaTestSuiteBase {
    */
   private static void setRealJdkPathForGradle() {
     try {
-      Path jdk = TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
+      Path jdk = TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
       if (Files.exists(jdk)) {
         Path file = jdk.resolve("BUILD").toRealPath();
         System.setProperty("studio.dev.jdk", file.getParent().toString());
@@ -118,7 +117,7 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
+    File outDir = TestUtils.resolveWorkspacePath(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -185,7 +184,7 @@ public class IdeaTestSuiteBase {
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
+    Path file = TestUtils.resolveWorkspacePath(relativePath);
     if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }

@@ -21,9 +21,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
-import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
@@ -37,6 +35,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.InvalidPictureException
@@ -71,7 +71,7 @@ class AppInspectionTreeLoaderTest {
     val bytes: ByteArray
 
     init {
-      val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/$filename").readImage()
+      val origImage = resolveWorkspacePath("$TEST_DATA_PATH/$filename").readImage()
       image = LayoutInspectorUtils.createImage565(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
                                                   origImage.height)
       val graphics = image.graphics

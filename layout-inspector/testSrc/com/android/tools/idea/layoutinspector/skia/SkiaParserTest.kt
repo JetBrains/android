@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.skia
 import com.android.flags.junit.SetFlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
@@ -87,15 +87,15 @@ class SkiaParserTest {
 
     val child1 = root.children[0]
     assertThat(child1.id).isEqualTo(1)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg1.png"), child1.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePath("$TEST_DATA_PATH/buildTreeImg1.png"), child1.image as BufferedImage, 0.0)
 
     val child2 = root.children[1]
     assertThat(child2.id).isEqualTo(4)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg2.png"), child2.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePath("$TEST_DATA_PATH/buildTreeImg2.png"), child2.image as BufferedImage, 0.0)
 
     val child3 = root.children[2]
     assertThat(child3.id).isEqualTo(1)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg3.png"), child3.image as BufferedImage, 0.0)
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePath("$TEST_DATA_PATH/buildTreeImg3.png"), child3.image as BufferedImage, 0.0)
   }
 }
 

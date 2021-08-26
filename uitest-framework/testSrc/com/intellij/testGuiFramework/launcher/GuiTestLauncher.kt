@@ -181,7 +181,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-          getWorkspaceRoot().resolve("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+          resolveWorkspacePath("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
