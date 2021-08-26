@@ -681,7 +681,6 @@ class DeviceViewContentPanelTest {
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
-  @Ignore("b/195258169")
   @Suppress("UndesirableClassUsage")
   @Test
   fun testPaintWithImagesBetweenChildren() {
