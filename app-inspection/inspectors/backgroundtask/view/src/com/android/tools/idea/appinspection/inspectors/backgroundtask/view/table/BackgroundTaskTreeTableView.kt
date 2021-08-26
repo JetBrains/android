@@ -79,14 +79,14 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
       }
     }
 
-    selectionModel.registerWorkSelectionListener { entry ->
+    selectionModel.registerEntrySelectionListener { entry ->
       if (entry == null) {
         with(tree.selectionPath) {
           tree.removeSelectionPath(this)
         }
       }
       else {
-        val node = treeModel.getTreeNode(entry.id) ?: return@registerWorkSelectionListener
+        val node = treeModel.getTreeNode(entry.id) ?: return@registerEntrySelectionListener
         tree.selectionModel.selectionPath = TreePath(node.path)
       }
     }
@@ -108,9 +108,6 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
                                          row: Int,
                                          hasFocus: Boolean) {
         when (val data = (value as DefaultMutableTreeNode).userObject) {
-          is String -> {
-            append(data)
-          }
           is BackgroundTaskEntry -> {
             append(data.className)
           }

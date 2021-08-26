@@ -17,10 +17,8 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
@@ -37,7 +35,6 @@ import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -48,20 +45,10 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeTableView {
-
-  private class FakeAppInspectorMessenger(
-    override val scope: CoroutineScope
-  ) : AppInspectorMessenger {
-    override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = ByteArray(0)
-    override val eventFlow = emptyFlow<ByteArray>()
-  }
-
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var scope: CoroutineScope
-  private lateinit var backgroundTaskInspectorMessenger: FakeAppInspectorMessenger
-  private lateinit var workManagerInspectorMessenger: FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var selectionModel: EntrySelectionModel
   private lateinit var entriesView: BackgroundTaskEntriesView
@@ -70,11 +57,7 @@ class BackgroundTaskTreeTableView {
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
-    workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
-    client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
-                                           WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                           scope)
+    client = BackgroundTaskInspectorTestUtils.getFakeClient(scope)
     uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     withContext(uiDispatcher) {
       selectionModel = EntrySelectionModel()
