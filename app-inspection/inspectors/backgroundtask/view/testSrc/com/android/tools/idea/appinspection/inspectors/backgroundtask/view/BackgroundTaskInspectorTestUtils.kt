@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Even
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
+import javax.swing.tree.DefaultMutableTreeNode
 
 object BackgroundTaskInspectorTestUtils {
   private class FakeAppInspectorMessenger(
@@ -105,4 +106,13 @@ object BackgroundTaskInspectorTestUtils {
       }
     }
   }
+
+  private fun DefaultMutableTreeNode.getCategoryNode(type: String): DefaultMutableTreeNode {
+    return children().asSequence().first { (it as DefaultMutableTreeNode).userObject == type } as DefaultMutableTreeNode
+  }
+
+  fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Works")
+  fun DefaultMutableTreeNode.getAlarmsCategoryNode() = getCategoryNode("Alarms")
+  fun DefaultMutableTreeNode.getJobsCategoryNode() = getCategoryNode("Jobs")
+  fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")
 }
