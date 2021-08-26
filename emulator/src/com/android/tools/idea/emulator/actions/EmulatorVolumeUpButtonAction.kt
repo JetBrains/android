@@ -18,4 +18,4 @@ package com.android.tools.idea.emulator.actions
 /**
  * Simulates pressing the Volume Up button on an Android virtual device.
  */
-class EmulatorVolumeUpButtonAction : DeviceButtonAction("AudioVolumeUp")
+class EmulatorVolumeUpButtonAction : EmulatorPushButtonAction("AudioVolumeUp")

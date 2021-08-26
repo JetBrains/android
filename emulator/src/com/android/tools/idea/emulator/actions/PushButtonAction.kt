@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.emulator.control.KeyboardEvent
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -30,55 +28,48 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
 /**
- * Simulates pressing and releasing a button on an Android virtual device.
+ * An action represented by a push button that may do two different things when the button is
+ * pressed and when the button is released. Classes implementing this interface should not do
+ * anything in the [actionPerformed] method since it is never called. The [buttonPressed] and
+ * [buttonReleased] methods are used instead.
  */
-open class DeviceButtonAction(private val keyName: String) : AbstractEmulatorAction(), CustomComponentAction {
+interface PushButtonAction : CustomComponentAction {
 
   /**
    * Called when the left mouse button is pressed over the corresponding toolbar button.
    */
-  fun buttonPressed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
-  }
+  fun buttonPressed(event: AnActionEvent)
 
   /**
    * Called when the left mouse button is released.
    */
-  fun buttonReleased(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
-  }
+  fun buttonReleased(event: AnActionEvent)
 
-  /**
-   * This method is a no-op. Real action happens in the [buttonPressed] and [buttonReleased] methods.
-   */
-  final override fun actionPerformed(event: AnActionEvent) {}
-
+  @JvmDefault
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return MyActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 
   private class MyActionButton(
-    action: DeviceButtonAction,
+    action: PushButtonAction,
     presentation: Presentation,
     place: String,
     minimumSize: Dimension
-  ) : ActionButton(action, presentation, place, minimumSize) {
+  ) : ActionButton(action as AnAction, presentation, place, minimumSize) {
 
     init {
       // Pressing the SPACE key is the same as clicking the button.
       addKeyListener(object : KeyAdapter() {
         override fun keyPressed(keyEvent: KeyEvent) {
-          if (keyEvent.modifiers == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createFromAnAction(action, keyEvent, myPlace, dataContext)
+          if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+            val event = AnActionEvent.createFromAnAction(myAction, keyEvent, myPlace, dataContext)
             action.buttonPressed(event)
           }
         }
 
         override fun keyReleased(keyEvent: KeyEvent) {
-          if (keyEvent.modifiers == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createFromAnAction(action, keyEvent, myPlace, dataContext)
+          if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+            val event = AnActionEvent.createFromAnAction(myAction, keyEvent, myPlace, dataContext)
             action.buttonReleased(event)
           }
         }
@@ -87,17 +78,17 @@ open class DeviceButtonAction(private val keyName: String) : AbstractEmulatorAct
 
     override fun onMousePressed(mouseEvent: MouseEvent) {
       super.onMousePressed(mouseEvent)
-      val event = AnActionEvent.createFromAnAction(action, mouseEvent, myPlace, dataContext)
+      val event = AnActionEvent.createFromAnAction(myAction, mouseEvent, myPlace, dataContext)
       action.buttonPressed(event)
     }
 
     override fun onMouseReleased(mouseEvent: MouseEvent) {
       super.onMouseReleased(mouseEvent)
-      val event = AnActionEvent.createFromAnAction(action, mouseEvent, myPlace, dataContext)
+      val event = AnActionEvent.createFromAnAction(myAction, mouseEvent, myPlace, dataContext)
       action.buttonReleased(event)
     }
 
     private val action
-      get() = myAction as DeviceButtonAction
+      get() = myAction as PushButtonAction
   }
 }
