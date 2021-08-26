@@ -20,6 +20,7 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt
 import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
@@ -88,7 +89,7 @@ public final class TransformedImageAsset {
     myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() :
                        asset instanceof TextAsset ? ((TextAsset)asset).getXmlDrawable() : null;
     myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
-    myTint = asset instanceof TextAsset && asset.color().equals(tint) ? null : tint;
+    myTint = asset instanceof TextAsset && asset.color().getValue().equals(tint) ? null : tint;
     myOpacity = asset instanceof TextAsset ? 1 : asset.opacityPercent().get() / 100.;
     myIsTrimmed = asset.trimmed().get();
     myTargetSize = targetSize;
@@ -134,9 +135,8 @@ public final class TransformedImageAsset {
 
   /**
    * Returns the text of an XML drawable suitable for use in an icon, or null if this object doesn't represent a drawable.
-   * <p>
-   * This method is potentially long running. Avoid calling on the UI thread.
    */
+  @Slow
   @Nullable
   public String getTransformedDrawable() {
     if (myDrawableFuture == null) {
@@ -163,9 +163,8 @@ public final class TransformedImageAsset {
 
   /**
    * Returns the raster image of the given size. If the image cannot be rendered, the returned image is empty.
-   * <p>
-   * This method is potentially long running. Avoid calling on the UI thread.
    */
+  @Slow
   @NotNull
   public BufferedImage getTransformedImage(@NotNull Dimension imageSize) {
     if (isDrawable()) {
