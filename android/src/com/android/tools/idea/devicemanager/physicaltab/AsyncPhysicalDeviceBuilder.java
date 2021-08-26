@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice.HardwareFeature;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.util.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -44,9 +45,9 @@ final class AsyncPhysicalDeviceBuilder {
   private final @Nullable Instant myLastOnlineTime;
 
   private final @NotNull ListenableFuture<@NotNull AndroidVersion> myVersionFuture;
+  private final @NotNull ListenableFuture<@NotNull DeviceType> myTypeFuture;
   private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
   private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
-  private final @NotNull ListenableFuture<@NotNull Boolean> myPhoneOrTabletFuture;
 
   @UiThread
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key, @Nullable Instant lastOnlineTime) {
@@ -57,44 +58,43 @@ final class AsyncPhysicalDeviceBuilder {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     myVersionFuture = service.submit(device::getVersion);
+    myTypeFuture = service.submit(this::getType);
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
-    myPhoneOrTabletFuture = service.submit(this::isPhoneOrTablet);
   }
 
   /**
    * Called by an application pool thread
    */
   @WorkerThread
-  private boolean isPhoneOrTablet() {
+  private DeviceType getType() {
     String string = myDevice.getProperty(IDevice.PROP_BUILD_CHARACTERISTICS);
 
     if (string == null) {
-      return true;
+      return DeviceType.PHONE;
     }
 
     Collection<String> collection = Arrays.asList(string.split(","));
 
     if (collection.contains(HardwareFeature.WATCH.getCharacteristic())) {
-      return false;
+      return DeviceType.WEAR_OS;
     }
 
     if (collection.contains(HardwareFeature.TV.getCharacteristic())) {
-      return false;
+      return DeviceType.TV;
     }
 
-    // noinspection RedundantIfStatement
     if (collection.contains(HardwareFeature.AUTOMOTIVE.getCharacteristic())) {
-      return false;
+      return DeviceType.AUTOMOTIVE;
     }
 
-    return true;
+    return DeviceType.PHONE;
   }
 
   @UiThread
   @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(myVersionFuture, myModelFuture, myManufacturerFuture, myPhoneOrTabletFuture)
+    return Futures.whenAllComplete(myVersionFuture, myTypeFuture, myModelFuture, myManufacturerFuture)
       .call(this::build, EdtExecutorService.getInstance());
   }
 
@@ -105,14 +105,13 @@ final class AsyncPhysicalDeviceBuilder {
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
       .setKey(myKey)
       .setLastOnlineTime(myLastOnlineTime)
+      .setType(getDoneOrElse(myTypeFuture, DeviceType.PHONE))
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(myModelFuture), FutureUtils.getDoneOrNull(myManufacturerFuture)))
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString());
 
     if (myDevice.isOnline()) {
-      builder
-        .addConnectionType(myKey.getConnectionType())
-        .setPhoneOrTablet(getDoneOrElse(myPhoneOrTabletFuture, true));
+      builder.addConnectionType(myKey.getConnectionType());
     }
 
     return builder.build();

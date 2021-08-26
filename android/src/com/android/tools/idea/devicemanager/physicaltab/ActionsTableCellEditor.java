@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
@@ -128,7 +129,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     JMenuItem item = new JBMenuItem("Pair device");
 
     assert myDevice != null;
-    item.setEnabled(myDevice.isOnline() && myDevice.isPhoneOrTablet());
+    item.setEnabled(myDevice.getType().equals(DeviceType.PHONE) && myDevice.isOnline());
 
     item.addActionListener(event -> pairDevice());
 

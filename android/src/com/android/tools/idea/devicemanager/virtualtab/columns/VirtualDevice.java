@@ -16,8 +16,8 @@
 package com.android.tools.idea.devicemanager.virtualtab.columns;
 
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
-import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +37,11 @@ final class VirtualDevice extends Device {
 
     @NotNull Builder setCpuArchitecture(@NotNull String cpuArchitecture) {
       myCpuArchitecture = cpuArchitecture;
+      return this;
+    }
+
+    @NotNull Builder setType(@NotNull DeviceType type) {
+      myType = type;
       return this;
     }
 
@@ -75,7 +80,7 @@ final class VirtualDevice extends Device {
 
   @Override
   protected @NotNull Icon getIcon() {
-    return StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+    return myType.getVirtualIcon();
   }
 
   @Override
