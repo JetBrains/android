@@ -21,6 +21,7 @@ import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
@@ -58,7 +59,8 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
-      configuration.setModule(context.module)
+      // We don't want to be able to create a run configuration from individual source set modules so we use their container module instead
+      configuration.setModule(context.module.getHolderModule())
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       it.valueParameters.forEach { parameter ->
