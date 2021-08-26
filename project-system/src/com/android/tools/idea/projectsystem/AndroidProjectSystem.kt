@@ -21,6 +21,7 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -146,3 +147,17 @@ fun AndroidFacet.getModuleSystem(): AndroidModuleSystem {
  * Returns the instance of [AndroidModuleSystem] that applies to the given [PsiElement], if it can be determined.
  */
 fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModuleForPsiElement(this)?.getModuleSystem()
+
+
+/**
+ * Returns a list of all Android holder modules. These are the intellij [Module] objects that correspond to an emptyish (no roots/deps)
+ * module that contains the other source set modules as children. If you need to obtain the actual module for the currently active source
+ * set then please you [getMainModule] on the return [Module] objects.
+ *
+ * If [additionalFilter] is supplied then the modules list returns will also only contain modules passing that filter.
+ */
+fun Project.getAndroidModulesForDisplay(additionalFilter: ((Module) -> Boolean)? = null) : List<Module> {
+  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).filter { module ->
+    module.isHolderModule() && (additionalFilter?.invoke(module) ?: true)
+  }
+}

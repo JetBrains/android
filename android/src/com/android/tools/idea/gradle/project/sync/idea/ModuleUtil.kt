@@ -19,14 +19,17 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.openapi.diagnostic.logger
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -99,9 +102,6 @@ object ModuleUtil {
 
   @JvmStatic
   fun Module.getAndroidTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
-
-  @JvmStatic
-  fun Module.getHolderModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
 
   /**
    * Utility method to find out if a module is derived from an Android Gradle project. This will return true

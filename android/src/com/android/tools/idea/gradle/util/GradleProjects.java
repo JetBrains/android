@@ -21,15 +21,14 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isE
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -97,7 +96,7 @@ public final class GradleProjects {
     if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
       return null;
     }
-    Module holderModule = ModuleUtil.getHolderModule(module);
+    Module holderModule = ModuleSystemUtil.getHolderModule(module);
     ExternalSystemModulePropertyManager moduleProperties = ExternalSystemModulePropertyManager.getInstance(holderModule);
     String linkedProjectId = moduleProperties.getLinkedProjectId();
     if (linkedProjectId == null) {
