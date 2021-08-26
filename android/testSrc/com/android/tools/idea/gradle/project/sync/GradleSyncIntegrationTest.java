@@ -130,6 +130,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import junit.framework.AssertionFailedError;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -537,8 +538,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     try {
       requestSyncAndWait();
     }
-    catch (Throwable expected) {
-      // TODO(b/186899123): Update this exception to AssertionFailedError once JUnit has been updated
+    catch (AssertionFailedError expected) {
       // Sync issues are expected.
     }
 
