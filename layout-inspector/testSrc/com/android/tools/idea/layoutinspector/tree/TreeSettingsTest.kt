@@ -29,6 +29,7 @@ import com.intellij.ide.util.PropertiesComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 
 class InspectorTreeSettingsTest {
@@ -128,7 +129,9 @@ class EditorTreeSettingsTest {
 
   @Test
   fun testSettings() {
-    val settings1 = EditorTreeSettings()
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(setOf(Capability.SUPPORTS_SYSTEM_NODES))
+    val settings1 = EditorTreeSettings(client.capabilities)
     assertThat(settings1.composeAsCallstack).isEqualTo(DEFAULT_COMPOSE_AS_CALLSTACK)
     assertThat(settings1.hideSystemNodes).isEqualTo(DEFAULT_HIDE_SYSTEM_NODES)
     assertThat(settings1.highlightSemantics).isEqualTo(DEFAULT_HIGHLIGHT_SEMANTICS)
@@ -139,8 +142,9 @@ class EditorTreeSettingsTest {
     assertThat(settings1.supportLines).isEqualTo(!DEFAULT_SUPPORT_LINES)
     assertThat(settings1.hideSystemNodes).isEqualTo(!DEFAULT_HIDE_SYSTEM_NODES)
 
-    val settings2 = EditorTreeSettings()
-    assertThat(settings2.hideSystemNodes).isEqualTo(DEFAULT_HIDE_SYSTEM_NODES)
+    `when`(client.capabilities).thenReturn(setOf())
+    val settings2 = EditorTreeSettings(client.capabilities)
+    assertThat(settings2.hideSystemNodes).isEqualTo(false)
     assertThat(settings2.supportLines).isEqualTo(DEFAULT_SUPPORT_LINES)
   }
 }

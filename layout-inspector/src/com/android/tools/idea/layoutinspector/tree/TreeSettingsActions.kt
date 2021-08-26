@@ -39,11 +39,6 @@ object FilterGroupAction : DropDownAction("Filter", "View options for Component 
     add(CallstackAction)
     add(SupportLines)
   }
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_SEMANTICS)
-  }
 }
 
 /**

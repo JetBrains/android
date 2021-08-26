@@ -90,8 +90,8 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
  * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by the
  * [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
  */
-class EditorTreeSettings() : TreeSettings {
-  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES
+class EditorTreeSettings(capabilities: Set<Capability>) : TreeSettings {
+  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES && capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
   override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
   override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES

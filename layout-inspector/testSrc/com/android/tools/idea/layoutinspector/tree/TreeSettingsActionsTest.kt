@@ -65,13 +65,6 @@ class TreeSettingsActionsTest {
   private var isConnected = false
 
   @Test
-  fun testFilterGroupAction() {
-    val event = createEvent()
-    FilterGroupAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
-    FilterGroupAction.testActionVisibility(event, Capability.SUPPORTS_SEMANTICS)
-  }
-
-  @Test
   fun testFilterSystemNodeAction() {
     val event = createEvent()
     SystemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)

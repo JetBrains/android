@@ -94,13 +94,8 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       contentPanel.add(workbench, BorderLayout.CENTER)
 
       // TODO: error handling
-      val loader = SnapshotLoader.createSnapshotLoader(file)
-      snapshotLoader = loader
+      snapshotLoader = SnapshotLoader.createSnapshotLoader(file)
       val model = InspectorModel(project)
-      // TODO: persisted tree setting scoped to file
-      val treeSettings = EditorTreeSettings()
-
-      stats = SessionStatistics(model, treeSettings)
 
       metadata = snapshotLoader?.loadFile(file, model) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
@@ -108,10 +103,24 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
           get() = snapshotLoader.propertiesProvider
 
         override val capabilities: Set<InspectorClient.Capability>
-          get() = if (model.pictureType == AndroidWindow.ImageType.SKP) setOf(InspectorClient.Capability.SUPPORTS_SKP) else setOf()
+          get() = mutableSetOf<InspectorClient.Capability>().apply {
+            if (model.pictureType == AndroidWindow.ImageType.SKP) {
+              add(InspectorClient.Capability.SUPPORTS_SKP)
+            }
+            addAll(snapshotLoader.capabilities)
+          }
 
         override val process = snapshotLoader.processDescriptor
+
+        override val isConnected
+          get() = true
       }
+
+      // TODO: persisted tree setting scoped to file
+      val treeSettings = EditorTreeSettings(client.capabilities)
+
+      stats = SessionStatistics(model, treeSettings)
+
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
       val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))

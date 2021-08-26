@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -51,6 +52,8 @@ interface SnapshotLoader {
       override val pid: Int get() = -1
       override val streamId: Long = -1
     }
+
+  val capabilities: Collection<InspectorClient.Capability>
 
   fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata?
 
