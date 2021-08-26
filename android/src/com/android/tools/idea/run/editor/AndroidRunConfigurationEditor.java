@@ -75,6 +75,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private AndroidDebuggerPanel myAndroidDebuggerPanel;
   private final AndroidProfilersPanel myAndroidProfilersPanel;
 
+  public static final String LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART = "Layout Inspection Without Activity Restart";
+
   public AndroidRunConfigurationEditor(Project project,
                                        Predicate<AndroidFacet> libraryProjectValidator,
                                        T config,
@@ -193,6 +195,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
     myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
     myEnableLayoutInspectionWithoutActivityRestart.setSelected(configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART);
+    myEnableLayoutInspectionWithoutActivityRestart.setName(LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART);
 
     myConfigurationSpecificEditor.resetFrom(configuration);
 

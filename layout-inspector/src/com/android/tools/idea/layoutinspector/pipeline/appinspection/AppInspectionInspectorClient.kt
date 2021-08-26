@@ -168,6 +168,9 @@ class AppInspectionInspectorClient(
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
       debugViewAttributesChanged = debugViewAttributes.set()
+      if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
+        showActivityRestartedInBanner(model.project, process)
+      }
 
       lateinit var updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
       updateListener = { _, _, _ ->
