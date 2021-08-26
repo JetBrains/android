@@ -64,8 +64,6 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
-import org.jetbrains.kotlin.idea.util.application.runReadAction
-import org.jetbrains.kotlin.idea.util.ifFalse
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.Icon
