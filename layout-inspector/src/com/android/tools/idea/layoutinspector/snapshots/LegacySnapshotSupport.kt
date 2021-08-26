@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
 import com.intellij.openapi.application.ApplicationInfo
@@ -43,6 +44,9 @@ class LegacySnapshotLoader : SnapshotLoader {
   override val propertiesProvider = LegacyPropertiesProvider()
   override lateinit var metadata: SnapshotMetadata
     private set
+
+  override val capabilities: Collection<InspectorClient.Capability>
+    get() = setOf()
 
   override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()

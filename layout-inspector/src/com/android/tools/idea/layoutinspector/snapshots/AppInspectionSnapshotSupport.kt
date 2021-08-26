@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
@@ -46,6 +47,9 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
     private set
   override lateinit var metadata: SnapshotMetadata
     private set
+
+  override val capabilities: Collection<InspectorClient.Capability>
+    get() = setOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
   override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
