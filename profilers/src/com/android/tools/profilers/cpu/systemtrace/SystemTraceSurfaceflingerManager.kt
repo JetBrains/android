@@ -40,27 +40,11 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
     return buildSfEventsFromThread(mainThread)
   }
 
-  private fun buildSfEventsFromThread(mainThread: ThreadModel): List<SeriesData<SurfaceflingerEvent>> {
-    val result = mutableListOf<SeriesData<SurfaceflingerEvent>>()
-    var lastEndTime = 0L
-    // We only need the granularity at the top level (i.e. onMessageReceived).
-    for (event in mainThread.traceEvents) {
-      val startTime = event.startTimestampUs
-      val endTime = event.endTimestampUs
-
-      // Add an IDLE event as padding between PROCESSING events, needed for UI rendering.
-      if (startTime > lastEndTime) {
-        result.add(SeriesData(lastEndTime, SurfaceflingerEvent(lastEndTime, startTime, SurfaceflingerEvent.Type.IDLE)))
-      }
-      lastEndTime = endTime
-
-      // Add the real event.
-      result.add(SeriesData(startTime, SurfaceflingerEvent(startTime, endTime, SurfaceflingerEvent.Type.PROCESSING, event.name)))
-    }
-    // Add one last IDLE event to properly terminate the series.
-    result.add(SeriesData(lastEndTime, SurfaceflingerEvent(lastEndTime, Long.MAX_VALUE, SurfaceflingerEvent.Type.IDLE)))
-    return result
-  }
+  private fun buildSfEventsFromThread(mainThread: ThreadModel): List<SeriesData<SurfaceflingerEvent>> =
+    mainThread.traceEvents.padded({ it.startTimestampUs }, { it.endTimestampUs },
+                                  { SurfaceflingerEvent(it.startTimestampUs, it.endTimestampUs,
+                                                        SurfaceflingerEvent.Type.PROCESSING, it.name) },
+                                  { start, end -> SurfaceflingerEvent(start, end, SurfaceflingerEvent.Type.IDLE)})
 
   /**
    * Extracts the VSYNC-sf counter and builds a data series for [vsyncCounterValues].
