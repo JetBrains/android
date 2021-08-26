@@ -142,11 +142,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       mySummarySection = new SummarySection();
       Futures.addCallback(future, newSummarySectionCallback.apply(mySummarySection), executor);
 
-      myDeviceSection = new DeviceSection();
-      Futures.addCallback(future, newDeviceSectionCallback.apply(myDeviceSection), executor);
+      // myDeviceSection = new DeviceSection();
+      // Futures.addCallback(future, newDeviceSectionCallback.apply(myDeviceSection), executor);
+      myDeviceSection = null;
 
       myInfoSections.add(mySummarySection);
-      myInfoSections.add(myDeviceSection);
+      // myInfoSections.add(myDeviceSection);
     }
     else {
       mySummarySection = null;

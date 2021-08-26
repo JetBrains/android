@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -89,6 +90,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     return new CountDownLatchFutureCallback<>(new SummarySectionCallback(section), latch);
   }
 
+  @Ignore
   @Test
   public void deviceSectionCallbackOnSuccess() throws InterruptedException {
     // Arrange
