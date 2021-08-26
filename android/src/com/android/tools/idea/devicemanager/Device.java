@@ -22,11 +22,13 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class Device {
   protected final @NotNull Key myKey;
+  protected final @NotNull DeviceType myType;
   protected final @NotNull String myName;
   protected final @NotNull String myTarget;
 
   protected static abstract class Builder {
     protected @Nullable Key myKey;
+    protected @NotNull DeviceType myType = DeviceType.PHONE;
     protected @Nullable String myName;
     protected @Nullable String myTarget;
 
@@ -37,6 +39,8 @@ public abstract class Device {
     assert builder.myKey != null;
     myKey = builder.myKey;
 
+    myType = builder.myType;
+
     assert builder.myName != null;
     myName = builder.myName;
 
@@ -46,6 +50,10 @@ public abstract class Device {
 
   public final @NotNull Key getKey() {
     return myKey;
+  }
+
+  public final @NotNull DeviceType getType() {
+    return myType;
   }
 
   protected abstract @NotNull Icon getIcon();

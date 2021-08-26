@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
 import com.android.tools.idea.util.xmlb.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
@@ -96,6 +97,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "lastOnlineTime", nameAttribute = "", converter = InstantConverter.class)
     private final @Nullable Instant lastOnlineTime;
 
+    @OptionTag(tag = "type", nameAttribute = "")
+    private final @NotNull DeviceType type;
+
     @OptionTag(tag = "name", nameAttribute = "")
     private final @Nullable String name;
 
@@ -112,6 +116,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     private PhysicalDeviceState() {
       key = null;
       lastOnlineTime = null;
+      type = DeviceType.PHONE;
       name = null;
       nameOverride = "";
       target = null;
@@ -121,6 +126,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
       key = new KeyState(device.getKey());
       lastOnlineTime = device.getLastOnlineTime();
+      type = device.getType();
       name = device.getName();
       nameOverride = "";
       target = device.getTarget();
@@ -143,6 +149,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       return new PhysicalDevice.Builder()
         .setKey(key)
         .setLastOnlineTime(lastOnlineTime)
+        .setType(type)
         .setName(name)
         .setNameOverride(nameOverride)
         .setTarget(target)
@@ -155,6 +162,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       int hashCode = Objects.hashCode(key);
 
       hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
+      hashCode = 31 * hashCode + type.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(name);
       hashCode = 31 * hashCode + nameOverride.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(target);
@@ -173,6 +181,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       return Objects.equals(key, device.key) &&
              Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
+             type.equals(device.type) &&
              Objects.equals(name, device.name) &&
              nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&

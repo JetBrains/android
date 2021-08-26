@@ -17,10 +17,10 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.resources.Density;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import icons.StudioIcons;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +42,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull String myNameOverride;
   private final @NotNull String myApi;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
-  private final boolean myPhoneOrTablet;
   private final @Nullable Battery myPower;
   private final @Nullable Resolution myResolution;
   private final int myDensity;
@@ -54,7 +53,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     private @NotNull String myNameOverride = "";
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
-    private boolean myPhoneOrTablet = true;
     private @Nullable Battery myPower;
     private @Nullable Resolution myResolution;
     private int myDensity = -1;
@@ -68,6 +66,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     @NotNull Builder setLastOnlineTime(@Nullable Instant lastOnlineTime) {
       myLastOnlineTime = lastOnlineTime;
+      return this;
+    }
+
+    @NotNull Builder setType(@NotNull DeviceType type) {
+      myType = type;
       return this;
     }
 
@@ -98,11 +101,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     @NotNull Builder addAllConnectionTypes(@NotNull Collection<@NotNull ConnectionType> connectionTypes) {
       myConnectionTypes.addAll(connectionTypes);
-      return this;
-    }
-
-    @NotNull Builder setPhoneOrTablet(boolean phoneOrTablet) {
-      myPhoneOrTablet = phoneOrTablet;
       return this;
     }
 
@@ -147,7 +145,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     myApi = builder.myApi;
 
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
-    myPhoneOrTablet = builder.myPhoneOrTablet;
     myPower = builder.myPower;
     myResolution = builder.myResolution;
     myDensity = builder.myDensity;
@@ -161,7 +158,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   @Override
   public @NotNull Icon getIcon() {
-    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
+    return myType.getPhysicalIcon();
   }
 
   @NotNull String getNameOverride() {
@@ -179,10 +176,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   @NotNull Collection<@NotNull ConnectionType> getConnectionTypes() {
     return myConnectionTypes;
-  }
-
-  boolean isPhoneOrTablet() {
-    return myPhoneOrTablet;
   }
 
   @Nullable Battery getPower() {
@@ -223,12 +216,12 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     int hashCode = myKey.hashCode();
 
     hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
-    hashCode = 31 * hashCode + myNameOverride.hashCode();
+    hashCode = 31 * hashCode + myType.hashCode();
     hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + myNameOverride.hashCode();
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myApi.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
-    hashCode = 31 * hashCode + Boolean.hashCode(myPhoneOrTablet);
     hashCode = 31 * hashCode + Objects.hashCode(myPower);
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
@@ -248,12 +241,12 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     return myKey.equals(device.myKey) &&
            Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
-           myNameOverride.equals(device.myNameOverride) &&
+           myType.equals(device.myType) &&
            myName.equals(device.myName) &&
+           myNameOverride.equals(device.myNameOverride) &&
            myTarget.equals(device.myTarget) &&
            myApi.equals(device.myApi) &&
            myConnectionTypes.equals(device.myConnectionTypes) &&
-           myPhoneOrTablet == device.myPhoneOrTablet &&
            Objects.equals(myPower, device.myPower) &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&
