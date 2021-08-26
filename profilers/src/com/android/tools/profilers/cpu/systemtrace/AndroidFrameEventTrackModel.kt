@@ -60,17 +60,10 @@ class AndroidFrameEventTrackModel
     /**
      * Fill in the gaps between events
      */
-    private fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
-      mutableListOf<SeriesData<AndroidFrameEvent>>().also { paddedEvents ->
-        var lastEndUs = 0L
-        forEach { event ->
-          val t = TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds)
-          if (t > lastEndUs) paddedEvents.add(SeriesData(lastEndUs, Padding)) // add pad if there's gap between events
-          lastEndUs = t + TimeUnit.NANOSECONDS.toMicros(event.durationNanoseconds)
-          paddedEvents.add(SeriesData(t, Data(event))) // add real event
-        }
-        paddedEvents.add(SeriesData(lastEndUs, Padding)) // add another padding to properly end last event
-      }
+    fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
+      padded({ TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds) },
+             { TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds + it.durationNanoseconds) },
+             ::Data, { _, _ -> Padding })
 
     /**
      * Mapping from phase name to metadata, e.g. sort order.

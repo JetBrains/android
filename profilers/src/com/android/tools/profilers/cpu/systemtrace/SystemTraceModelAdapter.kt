@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
@@ -159,3 +160,21 @@ data class CpuCoreModel(
     val serialVersionUID = 8233672032802842718L
   }
 }
+
+/**
+ * Given a list of events X with starts and ends, return a list of padded events SeriesData<Y>,
+ * where Y subsumes X and padding values.
+ * @param data injects source's event type to target's event type
+ * @param pad makes padding event with start and end
+ */
+fun<X,Y> Iterable<X>.padded(start: (X) -> Long, end: (X) -> Long, data: (X) -> Y, pad: (Long, Long) -> Y): List<SeriesData<Y>> =
+  mutableListOf<SeriesData<Y>>().also { paddedEvents ->
+    var lastEnd = 0L
+    forEach { event ->
+      val t = start(event)
+      if (lastEnd < t) paddedEvents.add(SeriesData(lastEnd, pad(lastEnd, t))) // add pad if there's gap between events
+      lastEnd = end(event)
+      paddedEvents.add(SeriesData(t, data(event))) // add real event
+    }
+    paddedEvents.add(SeriesData(lastEnd, pad(lastEnd, Long.MAX_VALUE))) // add another padding to properly end last event
+  }
