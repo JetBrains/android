@@ -22,6 +22,7 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
@@ -389,3 +390,7 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
     else -> ScopeType.ANDROID_TEST
   }
 }
+
+fun Module.getHolderModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+
+fun Module.isHolderModule() = getHolderModule() == this

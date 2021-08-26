@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getHolderModule
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isLinkedAndroidModule
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.ProjectTopics
 import com.intellij.openapi.components.ComponentManager
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -30,8 +28,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ModuleRootManager
-import java.util.function.Predicate
-import java.util.stream.Collectors
 
 class GradleModuleHierarchyProvider(private val project: Project) {
   private var moduleSubmodules: Map<ComponentManager, List<Module>>? = null // Keys: Modules and the project.
