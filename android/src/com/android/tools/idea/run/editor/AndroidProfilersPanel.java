@@ -15,28 +15,15 @@
  */
 package com.android.tools.idea.run.editor;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.ui.BrowserHyperlinkListener;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
@@ -48,16 +35,11 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 /**
  * The configuration panel for the Android profiler settings.
  */
-public class AndroidProfilersPanel implements HyperlinkListener {
-
-  private static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.4.0";
-  private static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+public class AndroidProfilersPanel {
 
   private final Project myProject;
   private JPanel myDescription;
@@ -65,7 +47,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   // TODO(b/112536124): vertical gap between checkbox and text doesn't toggle the checkbox
   private JCheckBox myAdvancedProfilingCheckBox;
   private ClickableLabel myAdvancedProfilingLabel;
-  private HyperlinkLabel myHyperlinkLabel;
   private JEditorPane myAdvancedProfilingDescription;
   private JCheckBox myStartupProfileCheckBox;
   private ClickableLabel myStartupProfileLabel;
@@ -81,7 +62,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
   public AndroidProfilersPanel(Project project, ProfilerState state) {
     myProject = project;
-    updateHyperlink("");
     addActionListenersToLabels();
     setUpStartupProfiling();
     resetFrom(state);
@@ -175,10 +155,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   }
 
   private void createUIComponents() {
-    // TODO: Hyperlink label has a fixed 2 pixel offset at the beginning and cannot be indented. Change for a good component later.
-    myHyperlinkLabel = new HyperlinkLabel();
-    myHyperlinkLabel.addHyperlinkListener(this);
-
     myAdvancedProfilingDescription =
       SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
     myAdvancedProfilingDescription.setText(
@@ -186,68 +162,5 @@ public class AndroidProfilersPanel implements HyperlinkListener {
       " running API level < 26. May slightly increase build time due to compile-time instrumentation. Has no effect on devices running" +
       " API level >= 26. <a href=\"https://developer.android.com/r/studio-ui/profiler/support-for-older-devices\">Learn more</a></html>");
     myAdvancedProfilingDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-  }
-
-  private void updateHyperlink(String message) {
-    boolean supported = true;
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
-      if (model != null) {
-        GradleVersion modelVersion = model.getModelVersion();
-        supported = modelVersion != null && modelVersion.compareIgnoringQualifiers(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
-        if (!supported) {
-          break;
-        }
-      }
-    }
-    myHyperlinkLabel
-      .setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ", "Update project", "");
-    myHyperlinkLabel.setVisible(!supported);
-    myHyperlinkLabel.setVisible(!supported);
-    myDescription.setEnabled(supported);
-    myAdvancedProfilingCheckBox.setEnabled(supported);
-    myAdvancedProfilingLabel.setEnabled(supported);
-  }
-
-  @Override
-  public void hyperlinkUpdate(HyperlinkEvent e) {
-    GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
-
-    // Don't bother sync'ing if latest is less than our minimum requirement.
-    if (MINIMUM_GRADLE_PLUGIN_VERSION.compareIgnoringQualifiers(pluginVersion) > 0) {
-      updateHyperlink("(No matching gradle version found)");
-      return;
-    }
-
-    // Update plugin version
-    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
-    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion, null);
-    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
-      requestSync();
-    }
-    else {
-      updateHyperlink("(Update failed)");
-    }
-  }
-
-  private void requestSync() {
-    SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
-
-    ApplicationManager.getApplication().invokeLater(() -> {
-      updateHyperlink("(Syncing...)");
-
-      // TODO change trigger to plugin upgrade trigger if it is created
-      syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
-                             .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
-    });
-
-    // Block until sync finishes
-    if (Futures.getUnchecked(syncResult).isSuccessful()) {
-      updateHyperlink("");
-    }
-    else {
-      updateHyperlink("(Sync failed)");
-    }
   }
 }

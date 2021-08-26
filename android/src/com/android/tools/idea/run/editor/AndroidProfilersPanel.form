@@ -22,14 +22,6 @@
           <text value=""/>
         </properties>
       </component>
-      <component id="f7ff" class="com.intellij.ui.HyperlinkLabel" binding="myHyperlinkLabel" custom-create="true" default-binding="true">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="7" anchor="9" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="20"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
       <vspacer id="70ba8">
         <constraints>
           <grid row="6" column="0" row-span="1" col-span="4" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
