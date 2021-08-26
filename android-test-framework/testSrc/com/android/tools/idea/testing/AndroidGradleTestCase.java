@@ -78,6 +78,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import junit.framework.AssertionFailedError;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -466,8 +467,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       requestConfigurator.consume(request);
       requestSyncAndWait(request);
-    } catch (Throwable error) {
-      // TODO(b/186899123): Update this exception to AssertionFailedError once JUnit has been updated
+    } catch (AssertionFailedError error) {
       return error.getMessage();
     }
 
