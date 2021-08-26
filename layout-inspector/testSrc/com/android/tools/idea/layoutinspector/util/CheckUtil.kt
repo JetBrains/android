@@ -32,6 +32,8 @@ import java.awt.image.BufferedImage
  */
 object CheckUtil {
 
+  const val ANY_DRAW_ID = Long.MIN_VALUE
+
   /**
    * Return the line at the [offset] of the specified [file] as a string.
    */
@@ -47,7 +49,9 @@ object CheckUtil {
    * Right now the check is pretty cursory, but it can be expanded as needed.
    */
   fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode, treeSettings: TreeSettings = FakeTreeSettings()) {
-    assertEquals(expected.drawId, actual.drawId)
+    if (expected.drawId != ANY_DRAW_ID) {
+      assertEquals(expected.drawId, actual.drawId)
+    }
     ViewNode.readAccess {
       assertEquals("for node ${expected.drawId}", expected.drawChildren.size, actual.drawChildren.size)
       expected.drawChildren.zip(actual.drawChildren).forEach {

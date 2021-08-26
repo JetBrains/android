@@ -18,12 +18,16 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.util.CheckUtil.ANY_DRAW_ID
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.ProjectRule
+import layoutinspector.snapshots.Metadata
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Files
+import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -31,45 +35,67 @@ class LegacySnapshotLoaderTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  private val testDataPath = TestUtils.getWorkspaceRoot().resolve(TEST_DATA_PATH)
+
   @Test
   fun loadV1Snapshot() {
-    val file =
-      VirtualFileManager.getInstance().findFileByNioPath(TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/legacy-inspector.li"))!!
+    val file = VirtualFileManager.getInstance().findFileByNioPath(testDataPath.resolve("legacy-snapshot-v1.li"))!!
     val model = InspectorModel(projectRule.project)
     val snapshotMetadata = LegacySnapshotLoader().loadFile(file, model)
     // We don't get any metadata from V1, so just verify the version
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version1)
 
+    validateModel(model)
+  }
+
+  @Test
+  fun loadV3Snapshot() {
+    val file = VirtualFileManager.getInstance().findFileByNioPath(testDataPath.resolve("legacy-snapshot-v3.li"))!!
+    val model = InspectorModel(projectRule.project)
+    val snapshotMetadata = LegacySnapshotLoader().loadFile(file, model)
+    assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version3)
+    assertThat(snapshotMetadata.apiLevel).isEqualTo(27)
+    assertThat(snapshotMetadata.processName).isEqualTo("com.example.myapplication")
+    assertThat(snapshotMetadata.containsCompose).isFalse()
+    assertThat(snapshotMetadata.liveDuringCapture).isFalse()
+    assertThat(snapshotMetadata.source).isEqualTo(Metadata.Source.STUDIO)
+    assertThat(snapshotMetadata.sourceVersion).isEqualTo("dev build")
+
+    validateModel(model)
+  }
+
+  private fun validateModel(model: InspectorModel) {
+    val window = model.windows.values.single()
+    window.refreshImages(1.0)
     val expected = model {
-      view(7845444) {
-        view(61730318) {
-          view(47129653)
-          view(170119739) {
-            view(267431256) {
-              view(140168881) {
-                view(126492566) {
-                  view(119317741)
+      view(ANY_DRAW_ID) {
+        Files.newInputStream(testDataPath.resolve("legacy-snapshot.png")).use { imageInput ->
+          image(ImageIO.read(imageInput))
+        }
+        view(ANY_DRAW_ID) {
+          view(ANY_DRAW_ID)
+          view(ANY_DRAW_ID) {
+            view(ANY_DRAW_ID) {
+              view(ANY_DRAW_ID) {
+                view(ANY_DRAW_ID) {
+                  view(ANY_DRAW_ID)
                 }
               }
-              view(11124779) {
-                view(139183649) {
-                  view(193202595)
-                  view(154793120)
+              view(ANY_DRAW_ID) {
+                view(ANY_DRAW_ID) {
+                  view(ANY_DRAW_ID)
+                  view(ANY_DRAW_ID)
                 }
-                view(257538764)
+                view(ANY_DRAW_ID)
               }
             }
           }
         }
-        view(99016981)
-        view(119565354)
+        view(ANY_DRAW_ID)
+        view(ANY_DRAW_ID)
       }
     }
 
     assertDrawTreesEqual(expected.root, model.root)
-  }
-
-  fun loadV3Snapshot() {
-
   }
 }
