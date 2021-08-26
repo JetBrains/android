@@ -18,7 +18,6 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -32,17 +31,16 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.CardLayout;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Panel that shows all the packages corresponding to an AndroidVersion.
@@ -95,6 +93,9 @@ public class PlatformComponentsPanel {
     myStates.clear();
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
+    // Sort in reverse API level, and then forward comparing extension level.
+    versions.sort(((Comparator<AndroidVersion>)(o1, o2) -> o1.compareTo(o2.getApiLevel(), o2.getCodename()) * -1)
+                    .thenComparing(AndroidVersion::compareTo));
     for (AndroidVersion version : versions) {
       // When an API level is not parsed correctly, it is given API level 0, which is undefined and we should not show the package.
       if (version.equals(AndroidVersion.VersionCodes.UNDEFINED)) {
@@ -117,7 +118,7 @@ public class PlatformComponentsPanel {
         myPlatformDetailsRootNode.add(marker);
       }
       SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes);
-      if (node != null) {
+      if (node != null && version.isBaseExtension()) {
         myPlatformSummaryRootNode.add(node);
       }
     }

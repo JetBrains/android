@@ -46,6 +46,36 @@ class PlatformComponentsPanelTest {
   }
 
   @Test
+  fun testSdkExtensions() {
+    val panel = PlatformComponentsPanel()
+    panel.setConfigurable(myConfigurable)
+    val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
+    panel.setPackages(ImmutableMultimap.of(
+      AndroidVersion(30), UpdatablePackage(createLocalPackage("android-30", 1, typeDetails = typeDetails)),
+      AndroidVersion(30, null, 1, false), UpdatablePackage(createLocalPackage("android-30-1", 1, typeDetails = typeDetails)),
+      AndroidVersion(30, null, 2, false), UpdatablePackage(createLocalPackage("android-30-2", 1, typeDetails = typeDetails)),
+      AndroidVersion(30, "Codename"), UpdatablePackage(createLocalPackage("android-Codename", 2, typeDetails = typeDetails))
+    ))
+    assertEquals("""
+      Root
+       Android Codename Preview
+       Android 11.0 (R)
+    """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
+
+    assertEquals("""
+      Root
+       Android Codename Preview
+        android-Codename
+       Android 11.0 (R)
+        android-30
+       Android 11.0 (R), Extension Level 1
+        android-30-1
+       Android 11.0 (R), Extension Level 2
+        android-30-2
+    """.trimIndent(), panel.myPlatformDetailsRootNode.asString())
+  }
+
+  @Test
   fun testInvalidSdk() {
     //SDKs with AndroidVersion api 0 will be ignored (b/191014630)
     val panel = PlatformComponentsPanel()
