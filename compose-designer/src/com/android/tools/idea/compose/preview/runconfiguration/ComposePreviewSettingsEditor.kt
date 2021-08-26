@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.run.editor.AndroidDebuggerPanel
 import com.intellij.application.options.ModulesComboBox
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
@@ -74,11 +74,11 @@ class ComposePreviewSettingsEditor(private val project: Project, private val con
   }
 
   private fun resetComboBoxModules() {
-    modulesComboBox.setModules(ModuleManager.getInstance(project).modules.filter {
+    modulesComboBox.setModules(project.getAndroidModulesForDisplay {
       AndroidFacet.getInstance(it)?.let { facet ->
-        return@filter !facet.configuration.isLibraryProject
+        return@getAndroidModulesForDisplay !facet.configuration.isLibraryProject
       }
-      return@filter false
+      return@getAndroidModulesForDisplay false
     })
   }
 
