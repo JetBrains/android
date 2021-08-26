@@ -217,7 +217,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       val projectSettings = GradleProjectSettings()
       gradleSettings.setupGradleSettings()
       @Suppress("UnstableApiUsage")
-      projectSettings.setupGradleProjectSettings(File(externalProjectPath).toPath())
+      projectSettings.setupGradleProjectSettings(newProject, File(externalProjectPath).toPath())
       // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
       ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)

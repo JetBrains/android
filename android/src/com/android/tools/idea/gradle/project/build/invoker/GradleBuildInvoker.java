@@ -514,7 +514,7 @@ public class GradleBuildInvoker {
 
         private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
           if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-            BuildAttributionManager manager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+            BuildAttributionManager manager = myProject.getService(BuildAttributionManager.class);
             if (manager != null && manager.shouldShowBuildOutputLink()) {
               String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
               onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", true);

@@ -167,7 +167,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val inDescriptor = nameExpression.getResolutionScope(bindingContext, resolutionFacade).ownerDescriptor
 
-    val basicLookupElementFactory = BasicLookupElementFactory(nameExpression.project, InsertHandlerProvider(CallType.DOT) { emptyList() })
+    val basicLookupElementFactory = BasicLookupElementFactory(nameExpression.project, InsertHandlerProvider(CallType.DOT, parameters.editor) { emptyList() })
 
     return LookupElementFactory(
       basicLookupElementFactory, receiverTypes,

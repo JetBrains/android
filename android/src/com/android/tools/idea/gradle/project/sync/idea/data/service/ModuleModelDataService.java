@@ -62,7 +62,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                                                    @NotNull ProjectData projectData,
                                                                    @NotNull Project project,
                                                                    @NotNull IdeModifiableModelsProvider modelsProvider) {
-    final Map<String, T> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
+    final Map<String, DataNode<T>> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
     return () -> {
       List<Module> orphanIdeModules = new SmartList<>();
 
@@ -105,7 +105,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
         if (!dataNode.getKey().equals(AndroidProjectKeys.ANDROID_MODEL)) {
           // Do not propagate android model to nested modules representing source sets, because android modules do not have nested modules.
           // (source sets may be added by KMPP, e.g. iOS, Common, Jvm, etc., and they should not be considered as Android app sources)
-          indexModulesForSourceSetsByModuleName(index, dataNode, model);
+          indexModulesForSourceSetsByModuleName(index, dataNode, dataNode);
         }
       }
       index.put(moduleName, dataNode);
@@ -113,7 +113,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
     return index;
   }
 
-  private void indexModulesForSourceSetsByModuleName(@NotNull Map<String, T> index, @NotNull DataNode<T> dataNode, @NotNull T model) {
+  private void indexModulesForSourceSetsByModuleName(@NotNull Map<String, DataNode<T>> index, @NotNull DataNode<T> dataNode, @NotNull DataNode<T> model) {
     if (dataNode.getParent() == null) return;
 
     for (DataNode<?> node : dataNode.getParent().getChildren()){

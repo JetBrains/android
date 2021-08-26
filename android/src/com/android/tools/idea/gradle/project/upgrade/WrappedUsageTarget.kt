@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.PsiElementNavigationItem
-import com.intellij.openapi.actionSystem.TypeSafeDataProvider
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.psi.PsiFile
@@ -44,7 +44,7 @@ import javax.swing.Action
 internal class WrappedUsageTarget(
   private val usageTarget: PsiElement2UsageTargetAdapter
 ): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
+   DataProvider by usageTarget,
    PsiElementNavigationItem by usageTarget,
    ItemPresentation by usageTarget,
    UsageTarget by usageTarget {
@@ -69,7 +69,7 @@ internal class WrappedConfigurableUsageTarget(
   private val usageTarget: PsiElement2UsageTargetAdapter,
   private val showSettingsAction: Action
 ): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
+   DataProvider by usageTarget,
    PsiElementNavigationItem by usageTarget,
    ItemPresentation by usageTarget,
    ConfigurableUsageTarget by usageTarget {

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.projectRoots.JavaSdk
 import org.junit.Test
 
 /**
@@ -33,9 +34,11 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
   fun testDescriptionContainsGradleJdk() {
     loadSimpleApplication()
     val description = SendFeedbackAction.getDescription(project)
-    val jdk = AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, project.basePath!!)
-    assertThat(jdk).isNotNull()
-    assertThat(description).contains("Gradle JDK: ${jdk!!.versionString}")
+    val jdkPath = AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath!!)
+    assertThat(jdkPath).isNotNull()
+
+    val jdkVersion = JavaSdk.getInstance().getVersionString(jdkPath)
+    assertThat(description).contains("Gradle JDK: ${jdkVersion}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")
   }
 

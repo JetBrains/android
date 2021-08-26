@@ -130,10 +130,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   /**
    * Set the layout (code, split or only design) of the panel explicitly.
    */
-  protected fun setLayout(layout: Layout?) {
-    if (layout != null) {
-      layoutSetExplicitly = true
-      setEditorLayout(layout)
-    }
+  override fun setLayout(layout: Layout) {
+    layoutSetExplicitly = true
+    setEditorLayout(layout)
   }
 }
