@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.util.ActionToolbarUtil
@@ -26,15 +27,19 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Point
 import javax.swing.JComponent
@@ -176,8 +181,12 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     }
 
   private val contentScrollPane: JScrollPane
-  private val tableView: BackgroundTaskTreeTableView
-  private val graphView: WorkDependencyGraphView
+
+  @VisibleForTesting
+  val tableView: BackgroundTaskTreeTableView
+
+  @VisibleForTesting
+  val graphView: WorkDependencyGraphView
 
   init {
     tableView = BackgroundTaskTreeTableView(client, selectionModel, scope, uiDispatcher)
@@ -193,7 +202,7 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     contentScrollPane.setViewportView(tableView.component)
     add(contentScrollPane, TabularLayout.Constraint(1, 0))
 
-    selectionModel.registerWorkSelectionListener { entry ->
+    selectionModel.registerEntrySelectionListener { entry ->
       if (entry == null) {
         contentMode = Mode.TABLE
       }
@@ -225,6 +234,17 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
   private fun getContentView(): JComponent = when (contentMode) {
     Mode.TABLE -> tableView.component
     Mode.GRAPH -> graphView
+  }
+
+  /**
+   * @return a list of actions from the drop down menu that filter works with a tag.
+   */
+  @TestOnly
+  fun getFilterActionList(): List<ToggleAction> {
+    val toolbar = TreeWalker(this).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
+    val selectFilterAction = toolbar.actions[2] as TagsDropDownAction
+    selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
+    return selectFilterAction.getChildren(null).map { it as ToggleAction }
   }
 }
 

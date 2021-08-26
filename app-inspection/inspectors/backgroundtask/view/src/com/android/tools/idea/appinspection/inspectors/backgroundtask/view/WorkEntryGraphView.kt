@@ -62,7 +62,7 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
     border = EmptyBorder(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
 
     client.addEntryUpdateEventListener { _, _ -> scope.launch(uiDispatcher) { updateWorks() } }
-    selectionModel.registerWorkSelectionListener { updateWorks() }
+    selectionModel.registerEntrySelectionListener { updateWorks() }
 
     registerDirectionKeyStroke(KeyEvent.VK_UP, "Up", -1, 0)
     registerDirectionKeyStroke(KeyEvent.VK_DOWN, "Down", 1, 0)

@@ -39,7 +39,7 @@ class EntrySelectionModel {
   /**
    * Registers a [EntrySelectionListener] for [selectedEntry] updates.
    */
-  fun registerWorkSelectionListener(listener: EntrySelectionListener) {
+  fun registerEntrySelectionListener(listener: EntrySelectionListener) {
     listeners.add(listener)
   }
 

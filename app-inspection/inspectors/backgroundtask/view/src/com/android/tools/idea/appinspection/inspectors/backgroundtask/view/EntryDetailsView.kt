@@ -38,6 +38,7 @@ import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -54,7 +55,7 @@ class EntryDetailsView(
   private val tab: BackgroundTaskInspectorTab,
   private val client: BackgroundTaskInspectorClient,
   private val ideServices: AppInspectionIdeServices,
-  private val selectionModel: EntrySelectionModel,
+  @VisibleForTesting val selectionModel: EntrySelectionModel,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher
@@ -80,7 +81,7 @@ class EntryDetailsView(
     scrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
     add(scrollPane, TabularLayout.Constraint(1, 0))
 
-    selectionModel.registerWorkSelectionListener { entry ->
+    selectionModel.registerEntrySelectionListener { entry ->
       if (entry != null) {
         tab.isDetailsViewVisible = true
         updateSelectedTask()
