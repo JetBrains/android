@@ -72,20 +72,24 @@ class ResourceLookup(private val project: Project) {
   fun updateConfiguration(folderConfig: FolderConfiguration, appContext: AppContext, stringTable: StringTable, process: ProcessDescriptor) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue ?: DEFAULT_DENSITY
     fontScale = if (appContext.fontScale != 0.0f) appContext.fontScale else DEFAULT_FONT_SCALE
-    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) }
-    if (facet == null) {
-      resolver = null
+    resolver = createResolver(folderConfig, appContext, stringTable, process)
+  }
+
+  private fun createResolver(
+    folderConfig: FolderConfiguration,
+    appContext: AppContext,
+    stringTable: StringTable,
+    process: ProcessDescriptor
+  ): ResourceLookupResolver? {
+    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) } ?: return null
+    val theme = appContext.theme.createReference(stringTable)
+    val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
+    val mgr = ConfigurationManager.getOrCreateInstance(facet)
+    val cache = mgr.resolverCache
+    val resourceResolver = ReadAction.compute<ResourceResolver, RuntimeException> {
+      cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
     }
-    else {
-      val theme = appContext.theme.createReference(stringTable)
-      val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: ""
-      val mgr = ConfigurationManager.getOrCreateInstance(facet)
-      val cache = mgr.resolverCache
-      val resourceResolver = ReadAction.compute<ResourceResolver, RuntimeException> {
-        cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
-      }
-      resolver = ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
-    }
+    return ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
   }
 
   /**
