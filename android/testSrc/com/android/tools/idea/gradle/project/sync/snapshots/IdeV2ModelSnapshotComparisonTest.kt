@@ -68,8 +68,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-      // disabled until composite support is fixed
-      //TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
+      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
