@@ -20,12 +20,12 @@ import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 /**
- * Tests for {@link AndroidStudioSystemHealthMonitor}.
+ * Tests for {@link SystemHealthMonitor}.
  */
-public class AndroidStudioSystemHealthMonitorTest extends LightPlatformTestCase {
+public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
 
   public void testGetActionName() {
     // normal class in our packages should yield simple name
