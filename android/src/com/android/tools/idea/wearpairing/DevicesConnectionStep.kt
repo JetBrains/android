@@ -173,7 +173,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       return
     }
     val isNewWearPairingDevice =
-      WearPairingManager.getPairedDevices(phonePairingDevice.deviceID).second?.deviceID != wearPairingDevice.deviceID
+      WearPairingManager.getPairedDevices(phonePairingDevice.deviceID)?.wear?.deviceID != wearPairingDevice.deviceID
     WearPairingManager.removePairedDevices(phonePairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {

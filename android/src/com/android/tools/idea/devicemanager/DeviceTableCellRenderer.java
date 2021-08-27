@@ -124,7 +124,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     myPairedLabel.setForeground(foreground);
 
-    boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()).getFirst() != null;
+    boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()) != null;
     setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
 
     myPanel.setBackground(Tables.getBackground(table, selected));

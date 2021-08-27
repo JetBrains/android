@@ -268,19 +268,19 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices(listDevice.deviceID)
-          if (listDevice.isPaired && pairedPhone != null && pairedWear != null) {
-            val peerDevice = if (pairedPhone.deviceID == listDevice.deviceID) pairedWear else pairedPhone
+          val phoneWearPair = WearPairingManager.getPairedDevices(listDevice.deviceID)
+          if (listDevice.isPaired && phoneWearPair != null) {
+            val peerDevice = if (phoneWearPair.phone.deviceID == listDevice.deviceID) phoneWearPair.wear else phoneWearPair.phone
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
               val process = Runnable {
                 val cloudSyncIsEnabled = runBlocking(context = ioThread) {
                   withTimeoutOrNull(5_000) {
-                    WearPairingManager.checkCloudSyncIsEnabled(pairedPhone)
+                    WearPairingManager.checkCloudSyncIsEnabled(phoneWearPair.phone)
                   }
                 }
                 if (cloudSyncIsEnabled == true) {
-                  ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(pairedPhone) }, ModalityState.any())
+                  ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
                 GlobalScope.launch(ioThread) {
                   WearPairingManager.removePairedDevices(listDevice.deviceID)

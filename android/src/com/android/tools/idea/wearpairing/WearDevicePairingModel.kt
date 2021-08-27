@@ -41,7 +41,7 @@ class WearDevicePairingModel : WizardModel() {
       .filter { it.isOnline() && it.deviceID != selectedWearId}
       .filter {
         // If this WearOS Emulator is not paired, or is paired with the selected phone, we can kill it.
-        val pairedPhoneId = WearPairingManager.getPairedDevices(it.deviceID).first?.deviceID
+        val pairedPhoneId = WearPairingManager.getPairedDevices(it.deviceID)?.phone?.deviceID
         pairedPhoneId == null || pairedPhoneId == selectedPhoneId
       }
   }
