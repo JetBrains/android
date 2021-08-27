@@ -15,7 +15,8 @@
  */
 package com.intellij.testGuiFramework.impl
 
-import com.intellij.openapi.application.PathManager
+import com.android.tools.idea.tests.gui.framework.deleteConsentFile
+import com.android.tools.idea.tests.gui.framework.setupConsentFile
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.JUnitClientListener
 import com.intellij.testGuiFramework.remote.client.ClientHandler
@@ -28,7 +29,6 @@ import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 import com.intellij.testGuiFramework.remote.transport.RunTestMessage
 import org.junit.runner.JUnitCore
 import org.junit.runner.Request
-import java.nio.file.Files
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -84,18 +84,8 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
   private fun port(): Int = System.getProperty(GuiTestStarter.GUI_TEST_PORT).toInt()
 
   private fun runTest(testContainer: JUnitTestContainer) {
-    deleteConsentFile()
+    setupConsentFile()
     core.run(Request.method(testContainer.testClass, testContainer.methodName))
     deleteConsentFile()
-  }
-
-  /*
-  Removes the consent options file which suppresses the consent dialog during startup
-  */
-  private fun deleteConsentFile() {
-    val consentsFile = PathManager.getCommonDataPath()
-      .resolve("consentOptions/accepted")
-
-    Files.deleteIfExists(consentsFile)
   }
 }

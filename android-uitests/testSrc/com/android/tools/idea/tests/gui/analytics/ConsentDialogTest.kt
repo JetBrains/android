@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.analytics
 
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.consentFileExists
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.PathManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
@@ -29,12 +30,12 @@ class ConsentDialogTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.SECONDS)
 
-  // When running from IntelliJ, set -Ddisable.android.analytics.consent.dialog.for.test=false
+  // When running from IntelliJ, set -enable.android.analytics.consent.dialog.for.test=true
   // in the run configuration
   @Test
   fun testConsentDialog() {
     // This file is deleted in GuiTestThread.runTest before the test is run.
-    val path = PathManager.getCommonDataPath().resolve("consentOptions/accepted").toFile()
-    assertThat(path.exists()).isTrue()
+    assertThat(consentFileExists()).isTrue()
+    assertThat(AnalyticsSettings.optedIn).isTrue()
   }
 }
