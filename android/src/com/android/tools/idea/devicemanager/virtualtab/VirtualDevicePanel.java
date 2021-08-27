@@ -101,6 +101,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     myAvdDisplayList = new VirtualDisplayList(project);
     JTable table = myAvdDisplayList.getTable();
 
+    table.setShowGrid(false);
     table.getTableHeader().setReorderingAllowed(false);
     table.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
