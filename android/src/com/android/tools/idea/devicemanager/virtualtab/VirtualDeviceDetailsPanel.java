@@ -40,6 +40,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initPropertiesSection();
 
     myInfoSections.add(mySummarySection);
+    InfoSection.newPairedDeviceSection(VirtualDevices.build(device)).ifPresent(myInfoSections::add);
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
@@ -51,21 +52,21 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private void initSummarySection() {
     mySummarySection = new InfoSection("Summary");
 
-    setText(mySummarySection.addNameAndValueLabels("Name:"), myDevice.getName());
-    setText(mySummarySection.addNameAndValueLabels("CPU/ABI:"), AvdInfo.getPrettyAbiType(myDevice));
-    setText(mySummarySection.addNameAndValueLabels("Path:"), myDevice.getDataFolderPath());
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("Name"), myDevice.getName());
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("CPU/ABI"), AvdInfo.getPrettyAbiType(myDevice));
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("Path"), myDevice.getDataFolderPath());
 
     if (!myDevice.getStatus().equals(AvdStatus.OK)) {
-      setText(mySummarySection.addNameAndValueLabels("Error:"), myDevice.getErrorMessage());
+      InfoSection.setText(mySummarySection.addNameAndValueLabels("Error"), myDevice.getErrorMessage());
     }
     else {
       Object target = myDevice.getTag() + " (API level " + myDevice.getAndroidVersion().getApiString() + ')';
-      setText(mySummarySection.addNameAndValueLabels("Target:"), target);
+      InfoSection.setText(mySummarySection.addNameAndValueLabels("Target"), target);
 
       Object skin = myDevice.getProperty(AvdManager.AVD_INI_SKIN_NAME);
 
       if (skin != null) {
-        setText(mySummarySection.addNameAndValueLabels("Skin:"), skin);
+        InfoSection.setText(mySummarySection.addNameAndValueLabels("Skin"), skin);
       }
 
       Object sdCard = myDevice.getProperty(AvdManager.AVD_INI_SDCARD_SIZE);
@@ -75,13 +76,13 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       }
 
       if (sdCard != null) {
-        setText(mySummarySection.addNameAndValueLabels("SD Card:"), sdCard);
+        InfoSection.setText(mySummarySection.addNameAndValueLabels("SD Card"), sdCard);
       }
 
       Object snapshot = myDevice.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
-        setText(mySummarySection.addNameAndValueLabels("Snapshot:"), snapshot);
+        InfoSection.setText(mySummarySection.addNameAndValueLabels("Snapshot"), snapshot);
       }
     }
 
@@ -109,7 +110,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
 
     myPropertiesSection = new InfoSection("Properties");
 
-    properties.forEach((name, value) -> setText(myPropertiesSection.addNameAndValueLabels(name + ": "), value));
+    properties.forEach((name, value) -> InfoSection.setText(myPropertiesSection.addNameAndValueLabels(name), value));
     myPropertiesSection.setLayout();
   }
 }

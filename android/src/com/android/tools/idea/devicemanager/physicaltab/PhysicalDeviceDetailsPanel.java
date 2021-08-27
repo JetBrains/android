@@ -75,12 +75,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     public void onSuccess(@Nullable PhysicalDevice device) {
       assert device != null;
 
-      setText(mySection.myApiLevelLabel, device.getApi());
-      setText(mySection.myPowerLabel, device.getPower());
-      setText(mySection.myResolutionLabel, device.getResolution());
-      setText(mySection.myDpLabel, device.getDp());
-      setText(mySection.myAbiListLabel, device.getAbis());
-      setText(mySection.myAvailableStorageLabel, device.getStorageDevice());
+      InfoSection.setText(mySection.myApiLevelLabel, device.getApi());
+      InfoSection.setText(mySection.myPowerLabel, device.getPower());
+      InfoSection.setText(mySection.myResolutionLabel, device.getResolution());
+      InfoSection.setText(mySection.myDpLabel, device.getDp());
+      InfoSection.setText(mySection.myAbiListLabel, device.getAbis());
+      InfoSection.setText(mySection.myAvailableStorageLabel, device.getStorageDevice());
     }
   }
 
@@ -108,7 +108,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
     @Override
     public void onSuccess(@Nullable PhysicalDevice device) {
       assert device != null;
-      setText(mySection.myNameLabel, device.getName());
+      InfoSection.setText(mySection.myNameLabel, device.getName());
     }
   }
 
@@ -147,6 +147,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myDeviceSection = null;
 
       myInfoSections.add(mySummarySection);
+      InfoSection.newPairedDeviceSection(device).ifPresent(myInfoSections::add);
       // myInfoSections.add(myDeviceSection);
     }
     else {

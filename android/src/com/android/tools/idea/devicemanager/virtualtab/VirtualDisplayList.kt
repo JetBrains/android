@@ -33,7 +33,6 @@ import com.android.tools.idea.avdmanager.RunAvdAction
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
-import com.android.tools.idea.devicemanager.virtualtab.columns.VirtualDeviceTableCellRenderer
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets
 import com.google.common.util.concurrent.FutureCallback
