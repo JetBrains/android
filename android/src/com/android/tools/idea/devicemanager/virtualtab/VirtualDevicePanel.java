@@ -86,7 +86,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
 
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
-    myHelpButton.addActionListener(event -> BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html"));
+    myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/virtual"));
 
     if (enableHalfBakedFeatures()) {
       mySearchTextField = new SearchTextField(true);
