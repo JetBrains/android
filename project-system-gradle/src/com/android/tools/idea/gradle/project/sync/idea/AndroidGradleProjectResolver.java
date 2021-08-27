@@ -874,7 +874,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
       // TODO: check if we should move JdkImportCheck to platform (IDEA-268384)
       JdkImportCheck.validateProjectGradleJdk(project, projectPath);
-      validateGradleWrapper(projectPath);
 
       displayInternalWarningIfForcedUpgradesAreDisabled();
     }
