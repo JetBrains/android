@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.testFramework.runInEdtAndGet
-import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -37,21 +36,19 @@ class AnimationToolbarTest {
     val listener = MockitoKt.mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
 
+    // We use callback to test only.
+
     toolbar.play()
     Mockito.verify(listener).onPlayStatusChanged(PlayStatus.PLAY)
-    assertEquals(PlayStatus.PLAY, toolbar.getPlayStatus())
 
     toolbar.pause()
     Mockito.verify(listener).onPlayStatusChanged(PlayStatus.PAUSE)
-    assertEquals(PlayStatus.PAUSE, toolbar.getPlayStatus())
 
     toolbar.play()
     Mockito.verify(listener, Mockito.times(2)).onPlayStatusChanged(PlayStatus.PLAY)
-    assertEquals(PlayStatus.PLAY, toolbar.getPlayStatus())
 
     toolbar.stop()
     Mockito.verify(listener).onPlayStatusChanged(PlayStatus.STOP)
-    assertEquals(PlayStatus.STOP, toolbar.getPlayStatus())
   }
 
   @Test
@@ -66,11 +63,9 @@ class AnimationToolbarTest {
 
     toolbar.play()
     Mockito.verify(listener).onPlayStatusChanged(PlayStatus.PLAY)
-    assertEquals(PlayStatus.PLAY, toolbar.getPlayStatus())
 
     // Wait for animation complete. Wait for 5 seconds in case of race condition.
     Mockito.verify(listener, Mockito.after(5 * 1000L)).onPlayStatusChanged(PlayStatus.COMPLETE)
-    assertEquals(PlayStatus.COMPLETE, toolbar.getPlayStatus())
   }
 }
 

@@ -199,15 +199,6 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.STOP) }
   }
 
-  final override fun getPlayStatus(): PlayStatus {
-    return when {
-      myTicker != null -> PlayStatus.PLAY
-      myFramePositionMs == myMaxTimeMs -> PlayStatus.COMPLETE
-      myFramePositionMs == myMinTimeMs -> PlayStatus.STOP
-      else -> PlayStatus.PAUSE
-    }
-  }
-
   final override fun setFrameMs(frameMs: Long) {
     val calibratedFramePosition = when {
       frameMs < myMinTimeMs -> if (myLoopEnabled) myMaxTimeMs else myMinTimeMs

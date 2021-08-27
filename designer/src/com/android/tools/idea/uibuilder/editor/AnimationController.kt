@@ -22,7 +22,6 @@ interface AnimationController {
   fun play()
   fun pause()
   fun stop()
-  fun getPlayStatus(): PlayStatus
 
   /**
    * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
