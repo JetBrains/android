@@ -3,7 +3,7 @@ package org.jetbrains.android.formatter;
 
 import static com.android.tools.idea.testing.Facets.withAndroidFacet;
 
-import com.android.tools.idea.util.AndroidTestPaths;
+import com.android.testutils.TestUtils;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.LanguageFormatting;
 import com.intellij.lang.xml.XMLLanguage;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidXmlFormattingModelBuilderTest extends LightJavaCodeInsightFixtureTestCase {
 
-  public static final String LAYOUT_FILE = AndroidTestPaths.adtSources().resolve("android/testData/nonAndroidResources/res/layout/test.xml")
+  public static final String LAYOUT_FILE = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/nonAndroidResources/res/layout/test.xml")
     .toAbsolutePath().toString();
 
   public void testNotEngagedWhenNoAndroidFacet() {
