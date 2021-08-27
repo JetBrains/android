@@ -233,6 +233,9 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     myDetailsPanel = new VirtualDeviceDetailsPanel(device);
 
     myDetailsPanel.getCloseButton().addActionListener(event -> {
+      assert myAvdDisplayList != null;
+      myAvdDisplayList.getTable().clearSelection();
+
       removeDetailsPanel();
       layOut();
     });
