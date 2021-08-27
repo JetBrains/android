@@ -220,6 +220,9 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     myDetailsPanel = new PhysicalDeviceDetailsPanel(device, myProject);
 
     myDetailsPanel.getCloseButton().addActionListener(event -> {
+      assert myTable != null;
+      myTable.clearSelection();
+
       removeDetailsPanel();
       layOut();
     });
