@@ -38,6 +38,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -98,7 +99,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
   private void initVirtualDisplayList(@Nullable Project project) {
     myAvdDisplayList = new VirtualDisplayList(project);
-    myAvdDisplayList.getTable().getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+    JTable table = myAvdDisplayList.getTable();
+
+    table.getTableHeader().setReorderingAllowed(false);
+    table.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 
   private @NotNull GroupLayout createGroupLayout() {
