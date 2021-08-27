@@ -36,9 +36,9 @@ open class EmulatorPushButtonAction(private val keyName: String) : AbstractEmula
   }
 
   /**
-   * This method is never called. Real action happens in the [buttonPressed] and [buttonReleased] methods.
+   * This method is called by the framework but does nothing. Real action happens in
+   * the [buttonPressed] and [buttonReleased] methods.
    */
   final override fun actionPerformed(event: AnActionEvent) {
-    throw UnsupportedOperationException()
   }
 }
