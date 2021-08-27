@@ -127,7 +127,6 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     : DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
 
     public override fun init() {
-      options.preferredFocusProvider()?.let { super.myPreferredFocusedComponent = it }
       options.cancelButtonText?.let { setCancelButtonText(it) }
       options.okButtonText?.let { setOKButtonText(it) }
       if (!options.hasOkButton) {
@@ -183,6 +182,10 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
 
     override fun doValidate(): ValidationInfo? {
       return options.validationHandler()
+    }
+
+    override fun getPreferredFocusedComponent(): JComponent? {
+      return options.preferredFocusProvider() ?: super.getPreferredFocusedComponent()
     }
   }
 }
