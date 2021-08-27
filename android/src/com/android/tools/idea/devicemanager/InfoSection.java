@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.wearpairing.PairingDevice;
+import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -82,8 +84,25 @@ public class InfoSection extends JBPanel<InfoSection> {
   }
 
   public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device) {
-    // TODO Use the Wear OS pairing API
-    PairingDevice otherDevice = null;
+    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString());
+
+    if (pair == null) {
+      return Optional.empty();
+    }
+
+    PairingDevice otherDevice;
+
+    switch (device.getType()) {
+      case PHONE:
+        otherDevice = pair.getWear();
+        break;
+      case WEAR_OS:
+        otherDevice = pair.getPhone();
+        break;
+      default:
+        otherDevice = null;
+        break;
+    }
 
     if (otherDevice == null) {
       return Optional.empty();
