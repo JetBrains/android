@@ -57,7 +57,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
 
-  private data class PhoneWearPair(
+  data class PhoneWearPair(
     val phone: PairingDevice,
     val wear: PairingDevice,
     var allDevicesOnline: Boolean,
@@ -133,10 +133,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun getPairedDevices(deviceID: String): Pair<PairingDevice?, PairingDevice?> {
-    val phoneWearPair = pairedDevicesTable[deviceID]
-    return Pair(phoneWearPair?.phone, phoneWearPair?.wear)
-  }
+  fun getPairedDevices(deviceID: String): PhoneWearPair? = pairedDevicesTable[deviceID]
 
   suspend fun createPairedDeviceBridge(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice, connect: Boolean = true) {
     removePairedDevices(wear.deviceID, restartWearGmsCore = false)

@@ -48,9 +48,9 @@ class NewConnectionAlertStep(
     }
 
     // Check if this phone is already paired
-    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices(selectedPhone.deviceID)
-    return pairedPhone != null && pairedWear != null &&
-           (pairedPhone.deviceID != selectedPhone.deviceID || pairedWear.deviceID != selectedWear.deviceID)
+    val phoneWearPair = WearPairingManager.getPairedDevices(selectedPhone.deviceID)
+    return phoneWearPair != null &&
+           (phoneWearPair.phone.deviceID != selectedPhone.deviceID || phoneWearPair.wear.deviceID != selectedWear.deviceID)
   }
 
   override fun onEntering() {
@@ -65,9 +65,9 @@ class NewConnectionAlertStep(
       )
     }
     else {
-      val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices(model.selectedPhoneDevice.value.deviceID)
-      val pairedPhoneName = pairedPhone?.displayName ?: ""
-      val pairedWearName = pairedWear?.displayName ?: ""
+      val phoneWearPair = WearPairingManager.getPairedDevices(model.selectedPhoneDevice.value.deviceID)
+      val pairedPhoneName = phoneWearPair?.phone?.displayName ?: ""
+      val pairedWearName = phoneWearPair?.wear?.displayName ?: ""
       showUi(
         header = message("wear.assistant.connection.alert.disconnect.pairing.title"),
         description = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",

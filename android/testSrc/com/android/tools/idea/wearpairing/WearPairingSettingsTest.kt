@@ -37,7 +37,7 @@ class WearPairingSettingsTest {
 
   @Test
   fun loadSettingsShouldSetPairedDevices() {
-    assert(WearPairingManager.getPairedDevices(phoneDevice.deviceID).first == null)
+    assert(WearPairingManager.getPairedDevices(phoneDevice.deviceID) == null)
 
     val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
     val pairedConnectionState = PairingConnectionsState().apply {
@@ -47,13 +47,11 @@ class WearPairingSettingsTest {
 
     WearPairingManager.loadSettings(pairedDevices, listOf(pairedConnectionState))
 
-    WearPairingManager.getPairedDevices(phoneDevice.deviceID).apply {
-      assertThat(first).isNotNull()
-      assertThat(second).isNotNull()
-      assertThat(first!!.deviceID).isEqualTo(phoneDevice.deviceID)
-      assertThat(second!!.deviceID).isEqualTo(wearDevice.deviceID)
-      assertThat(first!!.state).isEqualTo(ConnectionState.DISCONNECTED)
-      assertThat(second!!.state).isEqualTo(ConnectionState.DISCONNECTED)
-    }
+    val phoneWearPair = WearPairingManager.getPairedDevices(phoneDevice.deviceID)
+    assertThat(phoneWearPair).isNotNull()
+    assertThat(phoneWearPair!!.phone.deviceID).isEqualTo(phoneDevice.deviceID)
+    assertThat(phoneWearPair.wear.deviceID).isEqualTo(wearDevice.deviceID)
+    assertThat(phoneWearPair.phone.state).isEqualTo(ConnectionState.DISCONNECTED)
+    assertThat(phoneWearPair.wear.state).isEqualTo(ConnectionState.DISCONNECTED)
   }
 }
