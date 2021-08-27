@@ -33,27 +33,33 @@ class AndroidFrameEventTooltipViewTest {
       dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
       viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
     }
-    val model = AndroidFrameEventTrackModel(listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
-                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
+    val model = AndroidFrameEventTrackModel("App", listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
+                                                          RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
                                             RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }))
     val tooltip = AndroidFrameEventTooltip(timeline, model)
     val tooltipView = AndroidFrameEventTooltipView(JPanel(), tooltip)
 
     timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.labelContainer.isVisible).isFalse()
+    assertThat(tooltipView.helpTextLabel.isVisible).isTrue()
+    assertThat(tooltipView.frameNumberLabel.isVisible).isFalse()
+    assertThat(tooltipView.startTimeLabel.isVisible).isFalse()
+    assertThat(tooltipView.durationLabel.isVisible).isFalse()
 
     model.activeSeriesIndex = 0
     timeline.tooltipRange.set(MICROS_TO_MILLIS + 1.0, MICROS_TO_MILLIS + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
-    assertThat(tooltipView.labelContainer.isVisible).isTrue()
+    assertThat(tooltipView.helpTextLabel.text).contains("the app")
+    assertThat(tooltipView.helpTextLabel.isVisible).isTrue()
     assertThat(tooltipView.frameNumberLabel.text).isEqualTo("Frame number: 123")
+    assertThat(tooltipView.frameNumberLabel.isVisible).isTrue()
     assertThat(tooltipView.startTimeLabel.text).isEqualTo("Start time: 00:00.001")
+    assertThat(tooltipView.startTimeLabel.isVisible).isTrue()
     assertThat(tooltipView.durationLabel.text).isEqualTo("Duration: 2 ms")
+    assertThat(tooltipView.durationLabel.isVisible).isTrue()
 
     model.activeSeriesIndex = 1
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
-    assertThat(tooltipView.labelContainer.isVisible).isTrue()
     assertThat(tooltipView.frameNumberLabel.text).isEqualTo("Frame number: 234")
     assertThat(tooltipView.startTimeLabel.text).isEqualTo("Start time: 00:00.001")
     assertThat(tooltipView.durationLabel.text).isEqualTo("Duration: 1 ms")

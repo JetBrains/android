@@ -30,14 +30,15 @@ import java.util.concurrent.TimeUnit
  * Track model for a frame lifecycle track representing Android frames in a specific phase.
  */
 class AndroidFrameEventTrackModel
-    @VisibleForTesting
-    constructor(eventSeries: List<RangedSeries<AndroidFrameEvent>>, val vsyncSeries: RangedSeries<Long>)
+@VisibleForTesting
+constructor(phaseName: String, eventSeries: List<RangedSeries<AndroidFrameEvent>>, val vsyncSeries: RangedSeries<Long>)
           : StateChartModel<AndroidFrameEvent>() {
 
-  constructor(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>,
+  constructor(phase: TraceProcessor.AndroidFrameEventsResult.Phase,
               viewRange: Range,
               vsyncSeries: List<SeriesData<Long>>)
-    : this(androidFrameEvents.groupBy { it.depth }
+    : this(phase.phaseName,
+           phase.frameEventList.groupBy { it.depth }
              .toSortedMap(compareByDescending { it }) // Display lower depth on top.
              .values
              .map { it.padded() }
@@ -45,6 +46,7 @@ class AndroidFrameEventTrackModel
              .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) },
            RangedSeries(viewRange, LazyDataSeries { vsyncSeries }))
 
+  val androidFramePhase = AndroidFramePhase.valueOf(phaseName)
   var activeSeriesIndex = -1
     set(index) {
       if (field != index) {
@@ -57,16 +59,11 @@ class AndroidFrameEventTrackModel
     eventSeries.forEach(::addSeries)
   }
 
-  /**
-   * Wrapper class for organizing track sort order, display name, etc.
-   */
-  private data class TrackMetadata(val sortOrder: Int, val displayName: String, val tooltipText: String)
-
   companion object {
     /**
      * Fill in the gaps between events
      */
-    fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
+    private fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
       padded({ TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds) },
              {
                // Frame events from Perfetto may have -1 duration when the event is still ongoing (or if it's missing the end slice) so we
@@ -75,37 +72,6 @@ class AndroidFrameEventTrackModel
                else Long.MAX_VALUE
              },
              ::Data, { _, _ -> Padding })
-
-    /**
-     * Mapping from phase name to metadata, e.g. sort order.
-     */
-    private val trackMetadataMap = mapOf(
-      "App" to TrackMetadata(0, "Application", "Application is processing the frame buffer."),
-      "GPU" to TrackMetadata(1, "Wait for GPU", "Waiting for GPU to process the frame buffer."),
-      "Composition" to TrackMetadata(2, "Composition", "Surfaceflinger is compositing the surface frame."),
-      "Display" to TrackMetadata(3, "Frames on display", "When each frame on display starts and ends."),
-    )
-
-    /**
-     * Comparator for sorting Android frame phases.
-     */
-    @JvmStatic
-    val trackComparator = compareBy<TraceProcessor.AndroidFrameEventsResult.Phase> { trackMetadataMap[it.phaseName]?.sortOrder }
-
-    /**
-     * Track group help text.
-     */
-    @JvmStatic
-    val titleHelpText = "This section shows the lifecycle of frames." +
-                        trackMetadataMap.values.sortedBy { it.sortOrder }.joinToString(separator = "") {
-                          "<p><b>${it.displayName}</b>:${it.tooltipText}</p>"
-                        }
-
-    /**
-     * @return the display name of a given phase.
-     */
-    @JvmStatic
-    fun getDisplayName(phaseName: String): String = trackMetadataMap[phaseName]?.displayName ?: ""
   }
 }
 
@@ -124,4 +90,16 @@ sealed class AndroidFrameEvent {
   }
 
   object Padding : AndroidFrameEvent()
+}
+
+enum class AndroidFramePhase(val displayName: String, val tooltipText: String) {
+  App("Application", "<html><b>The time from when the buffer was dequeued by the app to when it<br>" +
+                     "was enqueued back.</b></html>"),
+  GPU("Wait for GPU", "<html><b>Duration for which the buffer was owned by GPU. This is the time from when the buffer<br>" +
+                      "was sent to GPU to the time when GPU finishes its work on the buffer.<br>" +
+                      "This does not mean the time GPU was working solely on the buffer during this time.</b></html>"),
+  Composition("Composition",
+              "<html><b>The time from when SurfaceFlinger latched on to the buffer and sent<br>" +
+              "for composition to when it was sent to the display.</b></html>"),
+  Display("Frames on display", "<html><b>The time when this frame was on screen.</b></html>");
 }
