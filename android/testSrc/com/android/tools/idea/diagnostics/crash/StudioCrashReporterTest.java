@@ -26,12 +26,14 @@ import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HeapReportProperties;
+import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpCrashReport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import java.util.HashMap;
 import java.util.TreeMap;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -55,7 +57,9 @@ import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class StudioCrashReporterTest {
   public static final String STACK_TRACE =
@@ -174,6 +178,40 @@ public class StudioCrashReporterTest {
     String request = getSerializedContent(crashReport);
 
     assertRequestContainsFile(request, "heapReport", "heapReport.txt", "heap report text");
+  }
+
+  @Test
+  public void sendHistogramReportField() throws IOException {
+    String reasonName = "foobar";
+    MemoryReportReason mockMemoryReportReason = mock(MemoryReportReason.class);
+    when(mockMemoryReportReason.name()).thenReturn(reasonName);
+    HistogramReport histogramReport =
+      new HistogramReport(null,
+                          null,
+                          mockMemoryReportReason,
+                          "description");
+    CrashReport crashReport = histogramReport.asCrashReport();
+    String request = getSerializedContent(crashReport);
+
+    assertRequestContainsField(request, "reason", reasonName);
+  }
+
+  @Test
+  public void sendFreezeReportFields() throws IOException {
+    Boolean timedOut = true;
+    Long totalDuration = 100L;
+    String description = "description";
+    FreezeReport freezeReport =
+      new FreezeReport(null,
+                          new HashMap(),
+                          timedOut,
+                          totalDuration,
+                          description);
+    CrashReport crashReport = freezeReport.asCrashReport();
+    String request = getSerializedContent(crashReport);
+
+    assertRequestContainsField(request, "totalDuration", totalDuration.toString());
+    assertRequestContainsField(request, "timedOut", timedOut.toString());
   }
 
   private static void assertRequestContainsFile(final String requestBody, final String name, final String filename, final String value) {
