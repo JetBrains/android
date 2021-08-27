@@ -32,6 +32,7 @@ class AndroidFrameEventTooltip(
     VALUE_CHANGED,
   }
 
+  val androidFramePhase: AndroidFramePhase = model.androidFramePhase
   var activeFrameEvent: AndroidFrameEvent = AndroidFrameEvent.Padding
     private set
 

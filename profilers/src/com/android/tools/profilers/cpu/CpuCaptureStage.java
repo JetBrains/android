@@ -77,6 +77,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -505,20 +506,22 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
       .setTitle(title)
-      .setTitleHelpText(AndroidFrameEventTrackModel.getTitleHelpText())
+      .setTitleHelpText("This section shows the lifecycle of every frame.")
+      .setTitleHelpLink("Learn more", "https://d.android.com/r/studio-ui/profiler/frame-lifecycle")
       .setCollapsedInitially(collapseInitially)
       .build();
 
-    layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
-      phase -> {
-        AndroidFrameEventTrackModel phaseTrack =
-          new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange(), data.getVsyncCounterValues());
-        AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, phaseTrack);
-        String trackTitle = AndroidFrameEventTrackModel.getDisplayName(phase.getPhaseName());
-        frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle)
-                                   .setDefaultTooltipModel(tooltip));
-      }
-    );
+    layer.getPhaseList().stream()
+      .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), data.getVsyncCounterValues()))
+      .sorted(Comparator.comparingInt(trackModel -> trackModel.getAndroidFramePhase().ordinal()))
+      .forEach(
+        trackModel -> {
+          AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, trackModel);
+          frameLayer.addTrackModel(TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_FRAME_EVENT,
+                                                         trackModel.getAndroidFramePhase().getDisplayName())
+                                     .setDefaultTooltipModel(tooltip));
+        }
+      );
     return frameLayer;
   }
 

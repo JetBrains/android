@@ -37,6 +37,9 @@ class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrame
   @VisibleForTesting
   val durationLabel = createTooltipLabel()
 
+  @VisibleForTesting
+  val helpTextLabel = createTooltipLabel().apply { text = tooltip.androidFramePhase.tooltipText }
+
   override fun createTooltip(): JComponent {
     return labelContainer
   }
@@ -44,23 +47,34 @@ class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrame
   private fun updateView() {
     val activeEvent = tooltip.activeFrameEvent
     if (activeEvent is AndroidFrameEvent.Data) {
-      labelContainer.isVisible = true
-      frameNumberLabel.text = "Frame number: ${activeEvent.frameNumber}"
-      startTimeLabel.text = "Start time: ${
-        TimeFormatter.getSemiSimplifiedClockString(activeEvent.timestampUs - timeline.dataRange.min.toLong())
-      }"
-      durationLabel.text = "Duration: ${TimeFormatter.getSingleUnitDurationString(activeEvent.durationUs)}"
+      frameNumberLabel.apply {
+        isVisible = true
+        text = "Frame number: ${activeEvent.frameNumber}"
+      }
+      startTimeLabel.apply {
+        isVisible = true
+        text = "Start time: ${
+          TimeFormatter.getSemiSimplifiedClockString(activeEvent.timestampUs - timeline.dataRange.min.toLong())
+        }"
+      }
+      durationLabel.apply {
+        isVisible = true
+        text = "Duration: ${TimeFormatter.getSingleUnitDurationString(activeEvent.durationUs)}"
+      }
     }
     else {
-      labelContainer.isVisible = false
+      frameNumberLabel.isVisible = false
+      startTimeLabel.isVisible = false
+      durationLabel.isVisible = false
     }
   }
 
   init {
     labelContainer.apply {
-      add(frameNumberLabel, TabularLayout.Constraint(0, 0))
-      add(startTimeLabel, TabularLayout.Constraint(1, 0))
-      add(durationLabel, TabularLayout.Constraint(2, 0))
+      add(helpTextLabel, TabularLayout.Constraint(0, 0))
+      add(frameNumberLabel, TabularLayout.Constraint(1, 0))
+      add(startTimeLabel, TabularLayout.Constraint(2, 0))
+      add(durationLabel, TabularLayout.Constraint(3, 0))
     }
     tooltip.addDependency(this).onChange(AndroidFrameEventTooltip.Aspect.VALUE_CHANGED, this::updateView)
     updateView()
