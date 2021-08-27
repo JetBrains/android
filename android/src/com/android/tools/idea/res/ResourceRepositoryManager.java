@@ -416,7 +416,6 @@ public final class ResourceRepositoryManager implements Disposable {
           }
           myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
           registerIfDisposable(this, myModuleResources);
-            // catch (Throwable t) { FIXME-ank2
         }
         return myModuleResources;
       }
@@ -489,7 +488,6 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
-    // catch (Throwable t) { FIXME-ank2
   }
 
   /**
@@ -760,7 +758,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private Map<ExternalAndroidLibrary, AarResourceRepository> computeLibraryResourceMap() {
-    Collection<ExternalAndroidLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule(), true).values();
+    Collection<ExternalAndroidLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
     Function<ExternalAndroidLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?

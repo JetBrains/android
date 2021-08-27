@@ -41,9 +41,8 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroid
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
-    // Don't iterate *all* project modules *recursively*, as this is O(n*n) complexity, where n is the modules count.
-    .map{findDependenciesWithResources(it, recursively = false)}
-    .fold(HashMap<String, ExternalLibrary>()) { inProject, inModule ->
+    .map(::findDependenciesWithResources)
+    .fold(HashMap()) { inProject, inModule ->
       inProject.putAll(inModule)
       inProject
     }

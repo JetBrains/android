@@ -16,7 +16,10 @@
 package com.android.tools.idea.project
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.FD_RES
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
+import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
@@ -24,7 +27,19 @@ import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CapabilityNotSupported
+import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.ManifestOverrides
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
@@ -147,15 +162,13 @@ class DefaultModuleSystem(override val module: Module) :
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     val libraries = mutableListOf<ExternalAndroidLibrary>()
 
-    val orderEnumerator = ModuleRootManager.getInstance(module)
+    ModuleRootManager.getInstance(module)
       .orderEntries()
       .librariesOnly()
-
-    if (includeExportedTransitiveDeps) {
-      orderEnumerator.recursively().exportedOnly()
-    }
-
-    orderEnumerator.forEachLibrary { library ->
+      // Don't iterate *all* project modules *recursively*, as this is O(n*n) complexity, where n is the modules count.
+      .recursively()
+      .exportedOnly()
+      .forEachLibrary { library ->
         // Typically, a library xml looks like the following:
         //     <CLASSES>
         //      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/res" />
