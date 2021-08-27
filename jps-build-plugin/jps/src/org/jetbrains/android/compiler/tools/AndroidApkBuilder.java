@@ -8,6 +8,7 @@ import static org.jetbrains.android.util.AndroidCompilerMessageKind.WARNING;
 import com.android.SdkConstants;
 import com.android.ide.common.signing.KeytoolException;
 import com.android.prefs.AndroidLocation;
+import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
@@ -332,7 +333,7 @@ public class AndroidApkBuilder {
     catch (KeytoolException e) {
       return addExceptionMessage(e, result);
     }
-    catch (AndroidLocation.AndroidLocationException e) {
+    catch (AndroidLocationsException e) {
       return addExceptionMessage(e, result);
     }
     catch (NoSuchAlgorithmException e) {
@@ -364,7 +365,7 @@ public class AndroidApkBuilder {
                                                                                 UnrecoverableEntryException,
                                                                                 IOException,
                                                                                 KeytoolException,
-                                                                                AndroidLocation.AndroidLocationException {
+                                                                                AndroidLocationsException {
 
     return new DebugKeyProvider(path, null);
   }

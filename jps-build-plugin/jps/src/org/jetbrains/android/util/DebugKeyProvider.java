@@ -4,6 +4,8 @@ package org.jetbrains.android.util;
 import com.android.ide.common.signing.KeystoreHelper;
 import com.android.ide.common.signing.KeytoolException;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
+import com.android.prefs.AndroidLocationsException;
+import com.android.prefs.AndroidLocationsSingleton;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +28,14 @@ public class DebugKeyProvider {
   private static final String CERTIFICATE_DESC = "CN=Android Debug,O=Android,C=US";
   private PrivateKeyEntry mEntry;
 
-  public DebugKeyProvider(@Nullable String osKeyStorePath, String storeType) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, IOException, KeytoolException, AndroidLocationException {
+  public DebugKeyProvider(@Nullable String osKeyStorePath, String storeType) throws
+                                                                             KeyStoreException,
+                                                                             NoSuchAlgorithmException,
+                                                                             CertificateException,
+                                                                             UnrecoverableEntryException,
+                                                                             IOException,
+                                                                             KeytoolException,
+                                                                             AndroidLocationsException {
     if (osKeyStorePath == null) {
       osKeyStorePath = getDefaultKeyStoreOsPath();
     }
@@ -36,8 +45,8 @@ public class DebugKeyProvider {
     }
   }
 
-  public static String getDefaultKeyStoreOsPath() throws AndroidLocationException {
-    return KeystoreHelper.defaultDebugKeystoreLocation();
+  public static String getDefaultKeyStoreOsPath() throws AndroidLocationsException {
+    return KeystoreHelper.defaultDebugKeystoreLocation(AndroidLocationsSingleton.INSTANCE).getAbsolutePath();
   }
 
   public PrivateKey getDebugKey() {
@@ -48,7 +57,8 @@ public class DebugKeyProvider {
     return this.mEntry != null ? this.mEntry.getCertificate() : null;
   }
 
-  private boolean loadKeyEntry(String osKeyStorePath, String storeType) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException {
+  private boolean loadKeyEntry(String osKeyStorePath, String storeType)
+    throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException {
     try {
       KeyStore keyStore = KeyStore.getInstance(storeType != null ? storeType : KeyStore.getDefaultType());
       FileInputStream fis = new FileInputStream(osKeyStorePath);
@@ -56,13 +66,16 @@ public class DebugKeyProvider {
       fis.close();
       this.mEntry = (PrivateKeyEntry)keyStore.getEntry(DEBUG_ALIAS, new PasswordProtection(PASSWORD_CHAR));
       return true;
-    } catch (FileNotFoundException var5) {
+    }
+    catch (FileNotFoundException var5) {
       return false;
     }
   }
 
-  private void createNewStore(String osKeyStorePath, String storeType) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, IOException, KeytoolException {
-    if (KeystoreHelper.createNewStore(storeType, new File(osKeyStorePath), PASSWORD_STRING, PASSWORD_STRING, DEBUG_ALIAS, CERTIFICATE_DESC, 30)) {
+  private void createNewStore(String osKeyStorePath, String storeType)
+    throws KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, IOException, KeytoolException {
+    if (KeystoreHelper.createNewStore(storeType, new File(osKeyStorePath), PASSWORD_STRING, PASSWORD_STRING, DEBUG_ALIAS, CERTIFICATE_DESC,
+                                      30)) {
       this.loadKeyEntry(osKeyStorePath, storeType);
     }
   }
