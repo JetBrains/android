@@ -18,7 +18,6 @@ package com.android.tools.profilers.energy;
 import static com.android.tools.profilers.ProfilerColors.ENERGY_BACKGROUND;
 import static com.android.tools.profilers.ProfilerColors.ENERGY_LOCATION;
 import static com.android.tools.profilers.ProfilerColors.ENERGY_WAKE_LOCK;
-import static com.android.tools.profilers.ProfilerColors.TRANSPARENT_COLOR;
 
 import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
@@ -30,6 +29,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.Common;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.JOB, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
     .add(EnergyDuration.Kind.LOCATION, ENERGY_LOCATION)
-    .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
+    .add(EnergyDuration.Kind.UNKNOWN, UIUtil.TRANSPARENT_COLOR)
     .build();
 
   private static final StateChartColorProvider<Common.Event> DURATION_STATE_COLOR_PROVIDER = new StateChartColorProvider<Common.Event>() {
@@ -52,7 +52,7 @@ public final class EnergyEventStateChart {
     @Override
     public Color getColor(boolean isMouseOver, @NotNull Common.Event value) {
       if (value.getIsEnded()) {
-        return TRANSPARENT_COLOR;
+        return UIUtil.TRANSPARENT_COLOR;
       }
       return DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(value.getEnergyEvent()));
     }

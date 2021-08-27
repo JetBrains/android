@@ -21,23 +21,19 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
  * Track renderer for System Trace BufferQueue counter.
  */
 class BufferQueueTrackRenderer : TrackRenderer<BufferQueueTrackModel> {
-  override fun render(trackModel: TrackModel<BufferQueueTrackModel, *>): JComponent =
-    JPanel(BorderLayout()).apply {
-      val lineChartModel = trackModel.dataModel
-      val lineChart = LineChart(lineChartModel)
-      lineChart.configure(
-        lineChartModel.bufferQueueSeries,
-        LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
-          .setStepped(true))
-      lineChart.setFillEndGap(true)
-      add(lineChart)
-    }.let { VsyncPanel.of(it, trackModel.dataModel.viewRange, trackModel.dataModel.systemTraceData.getVsyncCounterValues())}
+  override fun render(trackModel: TrackModel<BufferQueueTrackModel, *>): JComponent = trackModel.dataModel.let { lineChartModel ->
+    val lineChart = LineChart(lineChartModel)
+    lineChart.configure(
+      lineChartModel.bufferQueueSeries,
+      LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
+        .setStepped(true))
+    lineChart.setFillEndGap(true)
+    VsyncPanel.of(lineChart, lineChartModel.viewRange, lineChartModel.systemTraceData.getVsyncCounterValues())
+  }
 }

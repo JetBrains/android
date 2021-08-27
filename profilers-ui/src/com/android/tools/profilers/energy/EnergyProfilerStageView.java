@@ -63,6 +63,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -246,7 +247,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     // The total usage series is only added in the LineChartModel so it can calculate the max Y value across all usages because the
     // LineChartModel currently does not calculate the max y Range value based on stacked but individual values.
     // We don't want to draw it as an extra line so we hide it by setting it to transparent.
-    lineChart.configure(usage.getTotalUsageDataSeries(), new LineConfig(ProfilerColors.TRANSPARENT_COLOR));
+    lineChart.configure(usage.getTotalUsageDataSeries(), new LineConfig(UIUtil.TRANSPARENT_COLOR));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 

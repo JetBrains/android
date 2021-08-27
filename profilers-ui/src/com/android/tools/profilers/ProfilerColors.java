@@ -126,8 +126,6 @@ public class ProfilerColors {
            new JBColor(0xC1D6F6, 0x5A6E7D),
            new JBColor(0xC1D6F6, 0x5A6E7D));
 
-  public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
-
   public static final Color CPU_AXIS_GUIDE_COLOR = StandardColors.AXIS_MARKER_COLOR;
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
