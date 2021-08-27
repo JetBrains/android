@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.analytics.crash.GoogleCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.common.base.Charsets
 import com.google.gson.stream.JsonWriter
@@ -53,15 +54,15 @@ constructor(val threadDumpPath: Path?,
         val edtStack = threadDump?.let { ThreadDumper.getEdtStackForCrash(it, EXCEPTION_TYPE) }
                        ?: EMPTY_OOM_STACKTRACE
 
-        builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
+        GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
         reason?.let {
-          builder.addTextBody("reason", it.name)
+          GoogleCrashReporter.addBodyToBuilder(builder, "reason", it.name)
         }
         histogram?.let {
-          builder.addTextBody("histogram", it, ContentType.create("text/plain", Charsets.UTF_8))
+          GoogleCrashReporter.addBodyToBuilder(builder, "histogram", it, ContentType.create("text/plain", Charsets.UTF_8))
         }
         threadDump?.let {
-          builder.addTextBody("threadDump", it, ContentType.create("text/plain", Charsets.UTF_8))
+          GoogleCrashReporter.addBodyToBuilder(builder, "threadDump", it, ContentType.create("text/plain", Charsets.UTF_8))
         }
       }
 

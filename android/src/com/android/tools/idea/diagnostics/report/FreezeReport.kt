@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.analytics.crash.GoogleCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.common.base.Charsets
 import com.google.gson.stream.JsonWriter
@@ -60,12 +61,11 @@ constructor(val threadDumpPath: Path?,
     return object : DiagnosticCrashReport(type, properties) {
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
-        totalDuration?.let { builder.addTextBody("totalDuration", it.toString()) }
-        builder.addTextBody("timedOut", timedOut.toString())
-        builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
+        totalDuration?.let { GoogleCrashReporter.addBodyToBuilder(builder, "totalDuration", it.toString()) }
+        GoogleCrashReporter.addBodyToBuilder(builder, "timedOut", timedOut.toString())
+        GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
         contents.forEach { name, contents ->
-          builder.addTextBody(name, contents,
-                              ContentType.create("text/plain", Charsets.UTF_8))
+          GoogleCrashReporter.addBodyToBuilder(builder, name, contents, ContentType.create("text/plain", Charsets.UTF_8))
         }
       }
     }

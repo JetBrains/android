@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.tools.idea.diagnostics.crash.exception.JvmCrashException;
 import com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException;
 import com.google.common.base.Joiner;
@@ -68,13 +69,13 @@ public class StudioCrashReport extends BaseStudioReport {
     // Cut stacktrace to necessary minimum (only first two lines: Exception name and first stack frame)
     String[] exceptionInfoAllLines = Throwables.getStackTraceAsString(exception).split("[\\r\\n]+");
     String exceptionInfo = Arrays.stream(exceptionInfoAllLines).limit(2).collect(Collectors.joining("\n"));
-    builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, exceptionInfo);
+    GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, exceptionInfo);
 
     if (isJvmCrash) {
-      builder.addTextBody("errorSignal", errorSignal);
-      builder.addTextBody("errorFrame", errorFrame);
-      builder.addTextBody("errorThread", errorThread);
-      builder.addTextBody("nativeStack", nativeStack);
+      GoogleCrashReporter.addBodyToBuilder(builder, "errorSignal", errorSignal);
+      GoogleCrashReporter.addBodyToBuilder(builder, "errorFrame", errorFrame);
+      GoogleCrashReporter.addBodyToBuilder(builder, "errorThread", errorThread);
+      GoogleCrashReporter.addBodyToBuilder(builder, "nativeStack", nativeStack);
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.analytics.crash.GoogleCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.common.base.Charsets
 import com.google.common.base.Joiner
@@ -81,9 +82,7 @@ class PerformanceThreadDumpCrashReport(properties: DiagnosticReportProperties,
     super.serializeTo(builder)
     val edtStack = ThreadDumper.getEdtStackForCrash(threadDump, EXCEPTION_TYPE)
 
-    builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO,
-                        edtStack ?: EMPTY_ANR_STACKTRACE)
-    builder.addTextBody(fileName, threadDump,
-                        ContentType.create("text/plain", Charsets.UTF_8))
+    GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack ?: EMPTY_ANR_STACKTRACE)
+    GoogleCrashReporter.addBodyToBuilder(builder, fileName, threadDump, ContentType.create("text/plain", Charsets.UTF_8))
   }
 }
