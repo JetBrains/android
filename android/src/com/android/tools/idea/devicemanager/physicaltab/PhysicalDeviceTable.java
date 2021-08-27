@@ -45,6 +45,7 @@ final class PhysicalDeviceTable extends JBTable {
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
+    tableHeader.setReorderingAllowed(false);
   }
 
   @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
