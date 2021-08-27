@@ -20,9 +20,9 @@ import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.DataVisualizationColors;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerEvent;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +49,7 @@ public class SurfaceflingerTrackRenderer implements TrackRenderer<Surfaceflinger
             DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, isMouseOver);
         case IDLE: // fallthrough
         default:
-          return ProfilerColors.CPU_STATECHART_DEFAULT_STATE;
+          return UIUtil.TRANSPARENT_COLOR;
       }
     }
   }

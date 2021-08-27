@@ -21,6 +21,7 @@ import com.android.tools.adtui.LegendConfig.IconType;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StageView;
+import com.intellij.util.ui.UIUtil;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,7 @@ class MemoryUsageTooltipView extends TooltipView {
       legend.configure(legends.getSamplingRateDurationLegend(),
                        new LegendConfig(legendStr -> MemoryTimelineComponent.getIconForSamplingMode(
                          MainMemoryProfilerStage.LiveAllocationSamplingMode.getModeFromDisplayName(legendStr)),
-                                        ProfilerColors.TRANSPARENT_COLOR));
+                                        UIUtil.TRANSPARENT_COLOR));
     }
     else {
       legend.configure(legends.getJavaLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_JAVA));

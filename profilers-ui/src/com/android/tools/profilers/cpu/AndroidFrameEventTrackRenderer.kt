@@ -18,15 +18,13 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider
 import com.android.tools.adtui.chart.statechart.StateChartTextConverter
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.DataVisualizationColors
-import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
-import javax.swing.JComponent
 
 /**
  * Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase.
@@ -43,12 +41,12 @@ class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {
   override fun getColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
     is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getBackgroundColor(value.frameNumber, isMouseOver)
-    is AndroidFrameEvent.Padding -> ProfilerColors.CPU_STATECHART_DEFAULT_STATE
+    is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
   }
 
   override fun getFontColor(isMouseOver: Boolean, value: AndroidFrameEvent): Color = when (value) {
     is AndroidFrameEvent.Data -> DataVisualizationColors.paletteManager.getForegroundColor(value.frameNumber)
-    is AndroidFrameEvent.Padding -> AdtUiUtils.DEFAULT_FONT_COLOR
+    is AndroidFrameEvent.Padding -> UIUtil.TRANSPARENT_COLOR
   }
 }
 

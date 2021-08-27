@@ -36,6 +36,7 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -64,7 +65,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange(),
                                                            trackModel.isCollapsed());
-    traceEventChart.setBackground(ProfilerColors.TRANSPARENT_COLOR);
+    traceEventChart.setBackground(UIUtil.TRANSPARENT_COLOR);
     traceEventChart.setDrawDebugInfo(
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();

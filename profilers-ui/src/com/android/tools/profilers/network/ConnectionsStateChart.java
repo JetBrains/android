@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ public final class ConnectionsStateChart {
     .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
     .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
     .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
-    .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
+    .add(NetworkState.NONE, UIUtil.TRANSPARENT_COLOR, UIUtil.TRANSPARENT_COLOR)
     .build();
 
   @NotNull private final StateChart<NetworkState> myChart;
