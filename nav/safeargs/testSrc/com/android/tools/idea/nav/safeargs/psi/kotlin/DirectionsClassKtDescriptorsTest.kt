@@ -20,6 +20,7 @@ import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -109,7 +110,8 @@ class DirectionsClassKtDescriptorsTest {
   }
 
   @Test
-  fun testOverriddenArguments() {
+  fun testOverriddenArguments_After_AdjustParamsWithDefaultsFix() {
+    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -127,13 +129,12 @@ class DirectionsClassKtDescriptorsTest {
               android:id="@+id/action_fragment1_to_fragment2"
               app:destination="@id/fragment2" >
               <argument
-                android:name="overriddenArg"
-                app:argType="string" />
-                
-              <argument
                   android:name="overriddenArgWithDefaultValue"
                   app:argType="integer"
                   android:defaultValue="1" />
+              <argument
+                android:name="overriddenArg"
+                app:argType="string" />
             </action>
           </fragment>
           
@@ -193,7 +194,7 @@ class DirectionsClassKtDescriptorsTest {
         "test.safeargs.Fragment1Directions.Companion"
       )
       assertThat(directionsClass.companionObject!!.functions.map { it.toString() }).containsExactly(
-        "actionFragment1ToFragment2(overriddenArg: kotlin.String, overriddenArgWithDefaultValue: kotlin.Int, arg: kotlin.String)" +
+        "actionFragment1ToFragment2(overriddenArg: kotlin.String, arg: kotlin.String, overriddenArgWithDefaultValue: kotlin.Int)" +
         ": androidx.navigation.NavDirections"
       )
       assertThat(directionsClass.functions).isEmpty()

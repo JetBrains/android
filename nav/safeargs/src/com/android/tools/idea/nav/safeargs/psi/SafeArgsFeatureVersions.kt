@@ -25,6 +25,7 @@ internal val GRADLE_VERSION_ZERO = GradleVersion(0, 0)
 object SafeArgsFeatureVersions {
   val FROM_SAVED_STATE_HANDLE = GradleVersion.parse("2.4.0-alpha01")
   val TO_SAVED_STATE_HANDLE = GradleVersion.parse("2.4.0-alpha07")
+  val ADJUST_PARAMS_WITH_DEFAULTS = GradleVersion.parse("2.4.0-alpha08")
 }
 
 /**
