@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.devicemanager.virtualtab.columns.VirtualDeviceTableCellRenderer;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;

@@ -34,10 +34,8 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
-import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DetailsPanel extends JBPanel<DetailsPanel> {
   private final @NotNull Component myHeadingLabel;
@@ -64,18 +62,6 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
     label.setFont(label.getFont().deriveFont(Font.BOLD));
 
     return label;
-  }
-
-  protected static void setText(@NotNull JLabel label, @Nullable Object value) {
-    if (value == null) {
-      return;
-    }
-
-    label.setText(value.toString());
-  }
-
-  protected static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
-    label.setText(String.join(", ", values));
   }
 
   protected final void init() {

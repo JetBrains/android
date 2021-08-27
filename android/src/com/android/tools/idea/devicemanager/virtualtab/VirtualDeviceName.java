@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.virtualtab.columns;
+package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
