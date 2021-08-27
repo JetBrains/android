@@ -48,7 +48,7 @@ public class PairingCodeContentPanel {
     myEmptyPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myDeviceListScrollPane.setBorder(JBUI.Borders.empty());
     myDeviceList.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
-    myDeviceLineupLabel.setIcon(AndroidIcons.DeviceExplorer.DevicesLineup);
+    myDeviceLineupLabel.setIcon(AndroidIcons.Explorer.DevicesLineup);
   }
 
   @NotNull
