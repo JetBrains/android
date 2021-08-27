@@ -16,10 +16,12 @@
 package com.android.tools.idea.concurrency
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import java.util.concurrent.ExecutorService
 
+@Service
 class AndroidIoManager {
   companion object {
     private const val NAME = "Android IO tasks"
