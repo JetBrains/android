@@ -61,7 +61,6 @@ class StartUpTest(unittest.TestCase):
           "-Didea.plugins.path=%s/config/plugins\n" % work_dir,
           "-Didea.system.path=%s/system\n" % work_dir,
           "-Didea.log.path=%s/system/log\n" % work_dir,
-          "-Ddisable.android.analytics.consent.dialog.for.test=true\n"
           "-Duser.home=%s/home\n" % work_dir
       ])
 

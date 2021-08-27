@@ -137,8 +137,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       // as it would block the test & IDE from proceeding.
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
-      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
-          !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
         ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
       }
     }
