@@ -43,6 +43,7 @@ final class PhysicalDeviceTable extends JBTable {
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
     setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    setShowGrid(false);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
     tableHeader.setReorderingAllowed(false);
