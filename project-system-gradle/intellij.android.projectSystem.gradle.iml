@@ -39,8 +39,6 @@
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-idea" />

@@ -4,7 +4,6 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" exported="" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="easymock" level="project" />

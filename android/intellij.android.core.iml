@@ -194,13 +194,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
-    <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-host-retention-proto">
         <CLASSES>

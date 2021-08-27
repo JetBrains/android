@@ -7,7 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="library" name="studio-grpc" level="project" />

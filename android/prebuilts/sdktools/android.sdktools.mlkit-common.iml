@@ -4,7 +4,6 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module-library">
       <library name="flatbuffers-java" type="repository">
         <properties maven-id="com.google.flatbuffers:flatbuffers-java:1.12.0" />

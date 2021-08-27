@@ -154,13 +154,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.server-flags" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-java-ide-customization" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-java-i18n" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-host-retention-proto">
         <CLASSES>
