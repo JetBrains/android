@@ -101,8 +101,13 @@ class LightArgsKtClass(
 
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
+      val resolvedArguments = if (navigationVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+        destination.arguments.sortedBy { it.defaultValue != null }
+      else
+        destination.arguments
+
       var index = 0
-      destination.arguments
+      resolvedArguments
         .asSequence()
         .map { arg ->
           val pName = Name.identifier(arg.name.toCamelCase())

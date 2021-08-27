@@ -16,10 +16,12 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
@@ -96,6 +98,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightDirectionsKtClass(
+  private val navigationVersion: GradleVersion,
   name: Name,
   private val destination: NavDestinationData,
   private val navResourceData: NavXmlData,
@@ -204,8 +207,13 @@ class LightDirectionsKtClass(
                   if (entry.value.size > 1) checkArguments(entry)
                   entry.value.first()
                 }
+
               object : NavActionData by action {
-                override val arguments: List<NavArgumentData> = resolvedArguments
+                override val arguments: List<NavArgumentData> =
+                  if (navigationVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+                    resolvedArguments.sortedBy { it.defaultValue != null }
+                  else
+                    resolvedArguments
               }
             }
             .toList()
