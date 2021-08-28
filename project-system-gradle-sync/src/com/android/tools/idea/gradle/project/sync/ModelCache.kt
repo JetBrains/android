@@ -25,7 +25,6 @@ import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.GlobalLibraryMap
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -58,7 +57,6 @@ interface ModelCache {
     variant: com.android.builder.model.v2.ide.Variant,
     modelVersion: GradleVersion?,
     variantDependencies: VariantDependencies,
-    libraryMap: GlobalLibraryMap,
     buildNameMap: Map<String, File>
   ): IdeVariantImpl
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
