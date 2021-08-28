@@ -1,6 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
-load("//tools/base/bazel:maven.bzl", "maven_repository", "maven_java_library")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
