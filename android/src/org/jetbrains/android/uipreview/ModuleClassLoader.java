@@ -277,7 +277,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     Module module = getModule();
     if (module == null) return true;
     // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
-    return CachedValuesManager.getManager(module.getProject()).getCachedValue(module, () ->
+    return CachedValuesManager.getManager(module.getProject()).getCachedValue(myImpl, () ->
       CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(), PsiModificationTracker.MODIFICATION_COUNT));
   }
 
