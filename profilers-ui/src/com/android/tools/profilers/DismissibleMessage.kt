@@ -24,6 +24,8 @@ import com.intellij.util.ui.JBEmptyBorder
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.FlowLayout
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
@@ -54,7 +56,14 @@ object DismissibleMessage {
           val label = JBLabel(message).apply {
             isOpaque = false
             verticalAlignment = SwingConstants.CENTER
+            toolTipText = message
           }
+          label.addComponentListener(object : ComponentAdapter() {
+            val textWidth = getFontMetrics(label.font).stringWidth(message)
+            override fun componentResized(e: ComponentEvent) {
+              label.toolTipText = message.takeIf { e.component.width <= textWidth }
+            }
+          })
 
           val linkPanel = JBPanel<Nothing>(FlowLayout()).apply {
             isOpaque = false
