@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.analytics.CommonMetricsData;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -85,6 +89,17 @@ public class HaxmAlert extends JPanel {
     refresh();
   }
 
+  @VisibleForTesting
+  static String getWarningTextForX86HostsUsingNonX86Image(@NonNull SystemImageDescription description,
+                                                          ProductDetails.CpuArchitecture arch) {
+    Abi abi = Abi.getEnum(description.getAbiType());
+    boolean isX86Host = arch == ProductDetails.CpuArchitecture.X86 || arch == ProductDetails.CpuArchitecture.X86_64;
+    if (isX86Host && abi != Abi.X86 && abi != Abi.X86_64) {
+      return "Consider using an x86 system image on an x86 host for better emulation performance.";
+    }
+    return null;
+  }
+
   private void refresh() {
     if (myImageDescription == null) {
       setVisible(false);
@@ -127,12 +142,12 @@ public class HaxmAlert extends JPanel {
             warningTextBuilder.append("This API Level is Deprecated<br>");
           }
 
-          Abi abi = Abi.getEnum(myImageDescription.getAbiType());
-          if (abi != Abi.X86 && abi != Abi.X86_64) {
+          String nonX86ImageWarning = getWarningTextForX86HostsUsingNonX86Image(myImageDescription, CommonMetricsData.getOsArchitecture());
+          if (nonX86ImageWarning != null) {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }
-            warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
+            warningTextBuilder.append(nonX86ImageWarning + "<br>");
           }
 
           if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
