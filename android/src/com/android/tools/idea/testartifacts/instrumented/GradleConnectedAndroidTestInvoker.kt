@@ -40,7 +40,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import com.intellij.ui.AppUIUtil
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
@@ -155,39 +154,39 @@ class GradleConnectedAndroidTestInvoker(
         // If there is an APK installation error due to incompatible APKs installed on device,
         // display a popup and ask a user to rerun the Gradle task with UNINSTALL_INCOMPATIBLE_APKS
         // option.
+        var isRerunRequested = false
         val rerunDevices = adapters.values.filter {
           it.needRerunWithUninstallIncompatibleApkOption()
         }
         if (rerunDevices.isNotEmpty()) {
-          AppUIUtil.invokeOnEdt {
-            if (rerunDevices.first().showRerunWithUninstallIncompatibleApkOptionDialog(project)) {
-              val rerunInvoker = GradleConnectedAndroidTestInvoker(
-                rerunDevices.size,
-                uninstallIncompatibleApks = true,
-                backgroundTaskExecutor,
-                gradleTaskManagerFactory,
-                gradleTestResultAdapterFactory,
-              )
-              rerunDevices.forEach {
-                androidTestResultListener.onRerunScheduled(it.device)
-                // rerunInvoker will call detachProcess() so we should not detach it in this if-branch.
-                rerunInvoker.schedule(
-                  project,
-                  taskId,
-                  processHandler,
-                  consolePrinter,
-                  androidModuleModel,
-                  waitForDebugger,
-                  testPackageName,
-                  testClassName,
-                  testMethodName,
-                  it.iDevice,
-                  retentionConfiguration
-                )
-              }
-            } else {
-              processHandler.detachProcess()
-            }
+          ApplicationManager.getApplication().invokeAndWait {
+            isRerunRequested = rerunDevices.first().showRerunWithUninstallIncompatibleApkOptionDialog(project)
+          }
+        }
+        if (isRerunRequested) {
+          // rerunInvoker will call detachProcess().
+          val rerunInvoker = GradleConnectedAndroidTestInvoker(
+            rerunDevices.size,
+            uninstallIncompatibleApks = true,
+            backgroundTaskExecutor,
+            gradleTaskManagerFactory,
+            gradleTestResultAdapterFactory,
+          )
+          rerunDevices.forEach {
+            androidTestResultListener.onRerunScheduled(it.device)
+            rerunInvoker.schedule(
+              project,
+              taskId,
+              processHandler,
+              consolePrinter,
+              androidModuleModel,
+              waitForDebugger,
+              testPackageName,
+              testClassName,
+              testMethodName,
+              it.iDevice,
+              retentionConfiguration
+            )
           }
         } else {
           processHandler.detachProcess()
