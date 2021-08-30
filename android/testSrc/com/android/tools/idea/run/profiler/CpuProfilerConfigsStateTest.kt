@@ -25,10 +25,10 @@ class CpuProfilerConfigsStateTest {
   fun testDefaultConfigs() {
     val configs = CpuProfilerConfigsState.getDefaultConfigs()
     assertThat(configs.map { it.name }).containsExactly(
-        CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
-        CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
         CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
-        CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()
+        CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
+        CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
+        CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
     ).inOrder()
   }
 

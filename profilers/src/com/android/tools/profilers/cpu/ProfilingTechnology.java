@@ -22,23 +22,23 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 public enum ProfilingTechnology {
-  ART_SAMPLED("Java Method Sample Recording",
-              "Samples Java code using Android Runtime."),
+  ART_SAMPLED("Java/Kotlin Method Sample Recording (legacy)",
+              "Samples Java/Kotlin code using Android Runtime."),
 
-  ART_INSTRUMENTED("Java Method Trace Recording",
-                   "Instruments Java code using Android Runtime."),
+  ART_INSTRUMENTED("Java/Kotlin Method Trace Recording",
+                   "Instruments Java/Kotlin code using Android Runtime."),
 
   // This technology used by imported ART Trace configurations.
   // "Unspecified" because there is no way of telling if the trace was generated using sampling or instrumentations.
-  ART_UNSPECIFIED("Java Method Recording",
-                  "Profiles Java code using Android Runtime."),
+  ART_UNSPECIFIED("Java/Kotlin Method Recording",
+                  "Profiles method calls using Android Runtime."),
 
-  SIMPLEPERF("C/C++ Function Recording",
-             "Samples native code using simpleperf.",
+  SIMPLEPERF("Callstack Sample Recording",
+             "Samples Java/Kotlin and native code using simpleperf.",
              "Available for Android 8.0 (API level 26) and higher."),
 
   SYSTEM_TRACE("System Trace Recording",
-               "Traces Java and native code at the Android platform level.",
+               "Traces Java/Kotlin and native code at the Android platform level.",
                "Available for Android 7.0 (API level 24) and higher.");
 
   @NotNull private final String myName;
