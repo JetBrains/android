@@ -145,7 +145,7 @@ import org.mockito.ArgumentCaptor;
 /**
  * Integration tests for 'Gradle Sync'.
  */
-public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
+public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   private IdeComponents myIdeComponents;
 
   @Override

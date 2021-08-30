@@ -29,9 +29,8 @@ import java.io.File;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 
-public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTest {
+public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
-  @Override
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
