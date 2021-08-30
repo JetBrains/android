@@ -26,21 +26,57 @@ import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.*;
-import javax.swing.table.*;
-import javax.swing.tree.AbstractLayoutCache;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.Adjustable;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+import javax.swing.BoundedRangeModel;
+import javax.swing.DefaultRowSorter;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTree;
+import javax.swing.JViewport;
+import javax.swing.RowSorter;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
+import javax.swing.SortOrder;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import javax.swing.tree.AbstractLayoutCache;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+
 
 /**
  * A ColumnTree is an alternative to TreeTables with slightly less functionality but
@@ -69,7 +105,7 @@ public class ColumnTreeBuilder {
   private final JTree myTree;
 
   @NotNull
-  private final ColumnTreeCellRenderer myCellRenderer;
+  private ColumnTreeCellRenderer myCellRenderer;
 
   @NotNull
   private final JTable myTable;
@@ -97,6 +133,9 @@ public class ColumnTreeBuilder {
   @NotNull
   private final ColumnTreeScrollPanel myHScrollBarPanel;
 
+  @Nullable
+  private TreeCellRenderer myHeaderRowCellRenderer = null;
+
   private static final String LAST_TREE_PREFERRED_WIDTH = "last.tree.width";
 
   private static final String PREFERRED_TREE_WIDTH = "tree.width";
@@ -115,7 +154,6 @@ public class ColumnTreeBuilder {
     myTable.setAutoCreateColumnsFromModel(true);
     myTable.setShowVerticalLines(false);
     myTable.setFocusable(false);
-    myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myColumnBuilders = new LinkedList<>();
   }
 
@@ -164,17 +202,39 @@ public class ColumnTreeBuilder {
     return this;
   }
 
+  /**
+   * Optionally sets a different renderer for header rows.
+   *
+   * A header row is a row that contains the top-most parent. For example:
+   *  ---------
+   *  >parent1
+   *     child1
+   *     child2
+   *  >parent2
+   *     child3
+   *  ---------
+   *  parent1 and parent2 are header rows.
+   * @param renderer
+   * @return
+   */
+  @NotNull
+  public ColumnTreeBuilder setHeaderRowCellRenderer(@NotNull TreeCellRenderer renderer) {
+    myHeaderRowCellRenderer = renderer;
+    return this;
+  }
+
   public JComponent build() {
+    myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel(), myHeaderRowCellRenderer);
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
-    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+    setTreeUi(hoverListener);
 
     myTree.addPropertyChangeListener(evt -> {
       if (evt.getPropertyName().equals("UI")) {
         // We need to preserve ColumnTreeUI always,
         // Otherwise width of rows will be wrong and the table will lose its formatting.
         if (!(evt.getNewValue() instanceof ColumnTreeUI)) {
-          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+          setTreeUi(hoverListener);
         }
       }
     });
@@ -259,6 +319,15 @@ public class ColumnTreeBuilder {
     }
     myHScrollBarPanel.setBorder(scrollPane.getBorder());
     return outerPanel;
+  }
+
+  private void setTreeUi(@Nullable ColumnTreeHoverListener hoverListener) {
+    if (myHeaderRowCellRenderer == null) {
+      myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+    }
+    else {
+      myTree.setUI(new HeaderColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+    }
   }
 
   private static int getTreeColumnWidth(JTable table) {
@@ -437,8 +506,12 @@ public class ColumnTreeBuilder {
    * widgets.
    */
   private static class ColumnTreeCellRenderer extends JPanel implements TreeCellRenderer {
-    public ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel) {
+    @Nullable
+    private final TreeCellRenderer myHeaderRowCellRenderer;
+
+    public ColumnTreeCellRenderer(JTree tree, TableColumnModel columnModel, @Nullable TreeCellRenderer headerRowCellRenderer) {
       super(new ColumnLayout(tree, columnModel));
+      myHeaderRowCellRenderer = headerRowCellRenderer;
     }
 
     @Override
@@ -449,6 +522,14 @@ public class ColumnTreeBuilder {
                                                   boolean leaf,
                                                   int row,
                                                   boolean hasFocus) {
+      // Return custom component for immediate children of root.
+      if (myHeaderRowCellRenderer != null && value instanceof TreeNode) {
+        TreeNode parent = ((TreeNode)value).getParent();
+        if (parent != null && parent.getParent() == null) {
+          return myHeaderRowCellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+        }
+      }
+
       setFont(tree.getFont());
       String toolTip = null;
       for (int i = 0; i < getComponentCount(); i++) {
@@ -602,6 +683,31 @@ public class ColumnTreeBuilder {
       myHScrollBarPanel.updateScrollBar();
     }
 
+    /**
+     * Called before the row is painted.
+     *
+     * This is mainly used to perform necessary painting work that should happen
+     * before everything else is painted.
+     */
+    protected void onPaintRow(
+      Graphics g,
+      Rectangle clipBounds,
+      Insets insets,
+      Rectangle bounds,
+      TreePath path,
+      int row,
+      boolean isExpanded,
+      boolean hasBeenExpanded,
+      boolean isLeaf
+    ) {
+      if (row == myHoverConfig.getHoveredRow() && !tree.isPathSelected(path)) {
+        Color originalColor = g.getColor();
+        g.setColor(myHoverColor);
+        g.fillRect(0, bounds.y, tree.getWidth(), bounds.height);
+        g.setColor(originalColor);
+      }
+    }
+
     @Override
     protected void paintRow(Graphics g,
                             Rectangle clipBounds,
@@ -612,12 +718,7 @@ public class ColumnTreeBuilder {
                             boolean isExpanded,
                             boolean hasBeenExpanded,
                             boolean isLeaf) {
-      if (row == myHoverConfig.getHoveredRow() && !tree.isPathSelected(path)) {
-        Color originalColor = g.getColor();
-        g.setColor(myHoverColor);
-        g.fillRect(0, bounds.y, tree.getWidth(), bounds.height);
-        g.setColor(originalColor);
-      }
+      onPaintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
 
       super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
 
@@ -654,6 +755,35 @@ public class ColumnTreeBuilder {
         columnX.add(x - 1);
       }
       return columnX;
+    }
+  }
+
+  private static class HeaderColumnTreeUI extends ColumnTreeUI {
+
+    HeaderColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig,
+                       @Nullable JTable table, @Nullable ColumnTreeScrollPanel hsb) {
+      super(hoverColor, hoverConfig, table, hsb);
+    }
+
+    @Override
+    protected void onPaintRow(Graphics g,
+                              Rectangle clipBounds,
+                              Insets insets,
+                              Rectangle bounds,
+                              TreePath path,
+                              int row,
+                              boolean isExpanded,
+                              boolean hasBeenExpanded, boolean isLeaf) {
+      super.onPaintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+      if (path.getPathCount() == 2) {
+        // Paint the background.
+        final int containerWidth = tree.getParent() instanceof JViewport ? tree.getParent().getWidth() : tree.getWidth();
+        final int xOffset = tree.getParent() instanceof JViewport ? ((JViewport)tree.getParent()).getViewPosition().x : 0;
+        Color originalColor = g.getColor();
+        g.setColor(StudioColorsKt.getPrimaryPanelBackground());
+        g.fillRect(xOffset, bounds.y, containerWidth, bounds.height);
+        g.setColor(originalColor);
+      }
     }
   }
 
