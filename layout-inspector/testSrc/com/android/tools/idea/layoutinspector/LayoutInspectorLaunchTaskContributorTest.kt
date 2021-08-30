@@ -100,6 +100,30 @@ class LayoutInspectorLaunchTaskContributorTest {
   }
 
   @Test
+  fun testLaunchWithDebugAttributesAlreadySet() {
+    commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
+
+    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
+
+    // Start the process
+    val project = projectRule.project
+    val handler = AndroidProcessHandler(project, PROCESS_NAME)
+    val status = ProcessHandlerLaunchStatus(handler)
+    val launchContext = LaunchContext(project, DefaultRunExecutor(), iDevice, status, mock(), handler, mock())
+    task.run(launchContext)
+    handler.startNotify()
+
+    // Make sure the debug attributes are untouched.
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+
+    // Kill process p1 and check that the debug attributes are still untouched.
+    handler.killProcess()
+    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+  }
+
+  @Test
   fun testLaunchWithDebugAttributesOnLegacyDevice() {
     val (iDevice, task) = createLaunchTask(LEGACY_DEVICE, debugAttributes = true)
 

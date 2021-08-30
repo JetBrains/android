@@ -208,6 +208,22 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun testViewDebugAttributesApplicationUntouchedIfAlreadySet() {
+    inspectorRule.adbProperties.debugViewAttributesApplicationPackage = MODERN_PROCESS.name
+
+    inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(MODERN_PROCESS.name)
+
+    // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy way to wait for the disconnect to
+    // happen on a background thread
+    inspectorRule.launcher.disconnectActiveClient()
+    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
+    assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(MODERN_PROCESS.name)
+  }
+
+  @Test
   fun testViewDebugAttributesApplicationPackageOverriddenAndReset() {
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.adbRule.bridge.executeShellCommand(MODERN_PROCESS.device,

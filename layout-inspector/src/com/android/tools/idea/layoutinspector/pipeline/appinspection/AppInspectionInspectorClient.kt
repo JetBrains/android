@@ -121,6 +121,7 @@ class AppInspectionInspectorClient(
   }
 
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
+  private var debugViewAttributesChanged = false
 
   private val metrics = LayoutInspectorMetrics(model.project, process, stats)
 
@@ -165,7 +166,7 @@ class AppInspectionInspectorClient(
 
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributes.set()
+      debugViewAttributesChanged = debugViewAttributes.set()
 
       lateinit var updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
       updateListener = { _, _, _ ->
@@ -187,7 +188,9 @@ class AppInspectionInspectorClient(
     val future = SettableFuture.create<Nothing>()
     // Create a new scope since we might be disconnecting because the original one died.
     model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
-      debugViewAttributes.clear()
+      if (debugViewAttributesChanged) {
+        debugViewAttributes.clear()
+      }
       viewInspector.disconnect()
       composeInspector?.disconnect()
       skiaParser.shutdown()
