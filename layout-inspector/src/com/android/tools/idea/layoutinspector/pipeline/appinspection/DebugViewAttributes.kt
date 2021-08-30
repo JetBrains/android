@@ -41,27 +41,30 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
    * Enable debug view attributes for the current process.
    *
    * Ignore failures since we are able to inspect the process without debug view attributes.
+   * @return true if the global attributes were changed.
    */
   @Slow
-  fun set() {
-    if (abortDeleteRunnable != null) return
+  fun set(): Boolean {
+    if (abortDeleteRunnable != null) return false
 
     var errorMessage: String
+    var settingsUpdated = false
     try {
       if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") !in listOf("null", "0")) {
         // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
-        return
+        return false
       }
       val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
       if (app == process.name) {
         // A return value of process.name means: the debug_view_attributes are already turned on for this process.
-        return
+        return false
       }
       errorMessage =
         adb.executeShellCommand(process.device, "settings put global debug_view_attributes_application_package ${process.name}")
 
       if (errorMessage.isEmpty()) {
         // A return value of "" means: "debug_view_attributes_application_package" were successfully overridden.
+        settingsUpdated = true
 
         // Later, we'll try to clear the setting via `clear`, but we also register additional logic to trigger
         // automatically if the user forcefully closes the connection under us (e.g. closing the emulator or
@@ -90,6 +93,7 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
       AndroidNotification.getInstance(project).showBalloon("Could not enable resolution traces",
                                                            text, NotificationType.WARNING)
     }
+    return settingsUpdated
   }
 
   /**

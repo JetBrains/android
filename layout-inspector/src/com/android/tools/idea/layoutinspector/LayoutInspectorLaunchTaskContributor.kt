@@ -72,19 +72,20 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
       }
       val adb = AdbUtils.getAdbFuture(project).get()
       val attrs = DebugViewAttributes(adb, project, process)
-      attrs.set()
-      launchContext.processHandler.addProcessListener(object : ProcessAdapter() {
-        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-          // TODO(b/195152579) Consider creating a proper API on ProcessListener for debugger attachment
-          // This is a workaround:
-          if (event.source != launchContext.launchStatus.processHandler) {
-            launchContext.launchStatus.processHandler.addProcessListener(this)
+      if (attrs.set()) {
+        launchContext.processHandler.addProcessListener(object : ProcessAdapter() {
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+            // TODO(b/195152579) Consider creating a proper API on ProcessListener for debugger attachment
+            // This is a workaround:
+            if (event.source != launchContext.launchStatus.processHandler) {
+              launchContext.launchStatus.processHandler.addProcessListener(this)
+            }
+            else {
+              attrs.clear()
+            }
           }
-          else {
-            attrs.clear()
-          }
-        }
-      })
+        })
+      }
     }
   }
 
