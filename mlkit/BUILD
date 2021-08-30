@@ -27,6 +27,7 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
+        "//tools/adt/idea/android-templates:intellij.android.templates[module]",
     ],
 )
 
@@ -79,6 +80,7 @@ iml_module(
         "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
     ],
 )
 

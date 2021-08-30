@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
@@ -24,10 +25,15 @@ import org.junit.runner.RunWith;
   TemplateTestSuite.class,  // a suite mustn't contain itself
 })
 public class TemplateTestSuite extends IdeaTestSuiteBase {
+  public static final String DATA_BINDING_RUNTIME_ZIP = "tools/data-binding/data_binding_runtime.zip";
+
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/android-templates/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
-    unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
+
+    if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
+      unzipIntoOfflineMavenRepo(DATA_BINDING_RUNTIME_ZIP);
+    }
   }
 }

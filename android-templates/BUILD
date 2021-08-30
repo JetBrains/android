@@ -4,29 +4,63 @@ load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
+    name = "intellij.android.templates",
+    srcs = ["src"],
+    iml_files = ["intellij.android.templates.iml"],
+    resources = ["resources"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
     name = "intellij.android.templates.tests",
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.templates.tests.iml"],
+    split_test_targets = {
+        "TemplateTest": {
+            "tags": [
+                "cpu:3",
+                "no_test_mac",
+            ],
+            "shard_count": 10,
+            "data": [
+                "//prebuilts/studio/jdk",
+                "//prebuilts/studio/sdk:build-tools/latest",
+                "//prebuilts/studio/sdk:cmake",
+                "//prebuilts/studio/sdk:ndk",
+                "//tools/data-binding:data_binding_runtime.zip",
+            ],
+            "test_filter": "com.android.tools.idea.templates.TemplateTest",
+        },
+        "other": {
+            "data": [
+                "//tools/adt/idea/android/testData",
+            ],
+        },
+    },
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:cmake",
-        "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
-        "//tools/data-binding:data_binding_runtime.zip",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/base/build-system:gradle-distrib",
     ],
-    test_shard_count = 10,
     test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "block-network",
-        "no_test_mac",
-    ],
+    test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -55,6 +89,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
+        "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
     ],
 )
 

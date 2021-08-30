@@ -456,17 +456,6 @@
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
-
-    <defaultLiveTemplates file="liveTemplates/Android"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidKotlin"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidComments"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidCommentsKotlin"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidLog"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidLogKotlin"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidParcelable"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidXML"/>
-    <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
-
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <completion.contributor language="JAVA"
                             id="AndroidJavaCompletionContributor"
@@ -892,8 +881,6 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.templates.additionalTemplateActionsProvider"
-                    interface="com.android.tools.idea.templates.AdditionalTemplateActionsProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
                     dynamic="false"/>
