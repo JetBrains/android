@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
@@ -166,6 +167,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
             when (val data = (value as DefaultMutableTreeNode).userObject) {
               is BackgroundTaskEntry -> {
                 append(data.status)
+                val stateIcon = data.icon()
+                icon = if (selected && stateIcon != null) ColoredIconGenerator.generateWhiteIcon(stateIcon) else stateIcon
               }
             }
           }
