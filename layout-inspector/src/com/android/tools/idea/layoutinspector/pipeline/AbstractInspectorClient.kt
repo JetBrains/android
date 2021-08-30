@@ -131,3 +131,5 @@ abstract class AbstractInspectorClient(
 
   protected abstract fun doDisconnect(): ListenableFuture<Nothing>
 }
+
+class ConnectionFailedException(message: String): Exception(message)

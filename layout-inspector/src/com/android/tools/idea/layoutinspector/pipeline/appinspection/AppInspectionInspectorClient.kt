@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -98,7 +99,7 @@ class AppInspectionInspectorClient(
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 ) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
 
-  private lateinit var viewInspector: ViewLayoutInspectorClient
+  private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
@@ -134,7 +135,7 @@ class AppInspectionInspectorClient(
 
   private val skiaParser = SkiaParserImpl(
     {
-      viewInspector.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
+      viewInspector?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
       capabilities.remove(Capability.SUPPORTS_SKP)
     })
 
@@ -149,9 +150,14 @@ class AppInspectionInspectorClient(
     get() = InspectorClientSettings.isCapturingModeOn
 
   override fun doConnect(): ListenableFuture<Nothing> {
-    checkApi29Version(process, model.project, adb, sdkHandler)
-
     val future = SettableFuture.create<Nothing>()
+    try {
+      checkApi29Version(process, model.project, adb, sdkHandler)
+    }
+    catch (exception: ConnectionFailedException) {
+      future.setException(exception)
+      return future
+    }
 
     val exceptionHandler = CoroutineExceptionHandler { ctx, t ->
       bannerExceptionHandler.handleException(ctx, t)
@@ -161,9 +167,10 @@ class AppInspectionInspectorClient(
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, launchMonitor)
-      viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
+      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
                                                        launchMonitor)
-      propertiesProvider = AppInspectionPropertiesProvider(viewInspector.propertiesCache, composeInspector?.parametersCache, model)
+      propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
+      viewInspector = viewIns
 
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
@@ -195,7 +202,7 @@ class AppInspectionInspectorClient(
       if (debugViewAttributesChanged) {
         debugViewAttributes.clear()
       }
-      viewInspector.disconnect()
+      viewInspector?.disconnect()
       composeInspector?.disconnect()
       skiaParser.shutdown()
       metrics.logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
@@ -213,7 +220,7 @@ class AppInspectionInspectorClient(
 
   private suspend fun startFetchingInternal() {
     stats.live.toggledToLive()
-    viewInspector.startFetching(continuous = true)
+    viewInspector?.startFetching(continuous = true)
   }
 
   override fun stopFetching() {
@@ -223,10 +230,10 @@ class AppInspectionInspectorClient(
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
       }
       else {
-        viewInspector.updateScreenshotType(null, 1.0f)
+        viewInspector?.updateScreenshotType(null, 1.0f)
       }
       stats.live.toggledToRefresh()
-      viewInspector.stopFetching()
+      viewInspector?.stopFetching()
     }
   }
 
@@ -238,12 +245,12 @@ class AppInspectionInspectorClient(
 
   private suspend fun refreshInternal() {
     stats.live.toggledToRefresh()
-    viewInspector.startFetching(continuous = false)
+    viewInspector?.startFetching(continuous = false)
   }
 
   override fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float) {
     if (model.pictureType != type || scale >= 0f) {
-      viewInspector.updateScreenshotType(type?.protoType, scale)
+      viewInspector?.updateScreenshotType(type?.protoType, scale)
     }
   }
 
@@ -254,8 +261,8 @@ class AppInspectionInspectorClient(
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
-    val metadata = viewInspector.saveSnapshot(path)
-    metadata.saveDuration = System.currentTimeMillis() - startTime
+    val metadata = viewInspector?.saveSnapshot(path)
+    metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
@@ -334,5 +341,3 @@ fun checkSystemImageForAppInspectionCompatibility(
   }
   return Pair(true, null)
 }
-
-class ConnectionFailedException(message: String): Exception(message)

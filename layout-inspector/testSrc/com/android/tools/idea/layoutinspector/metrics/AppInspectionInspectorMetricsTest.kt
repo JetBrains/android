@@ -63,7 +63,6 @@ class AppInspectionInspectorMetricsTest {
       runnable.run()
     }
     else {
-      asyncLaunchLatch = CountDownLatch(1)
       Thread {
         runnable.run()
         asyncLaunchLatch.countDown()
@@ -155,18 +154,17 @@ class AppInspectionInspectorMetricsTest {
   @Test
   fun testInitialRenderLogging() {
     launchSynchronously = false
-    var latch = CountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ true }) {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
-      latch.countDown()
     }
 
     val getUsages = { usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
 
+    asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    latch.await()
     asyncLaunchLatch.await()
+    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
       `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
@@ -191,14 +189,19 @@ class AppInspectionInspectorMetricsTest {
                                                                                      inspectorRule.inspectorClient.process)!!
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
-
+    // disconnecting causes two separate events
+    asyncLaunchLatch = CountDownLatch(2)
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
     asyncLaunchLatch.await()
-    latch = CountDownLatch(1)
+    waitForCondition(1, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
+
+    asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    latch.await()
     asyncLaunchLatch.await()
+    asyncLaunchLatch = CountDownLatch(1)
+    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
+
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
     val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
                                                                                      ResourceLookup(inspectorRule.project),

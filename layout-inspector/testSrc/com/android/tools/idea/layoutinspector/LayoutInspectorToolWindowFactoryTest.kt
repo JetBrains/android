@@ -19,6 +19,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -42,6 +43,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()

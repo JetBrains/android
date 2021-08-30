@@ -24,8 +24,10 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CountDownLatch
@@ -45,6 +47,7 @@ import java.util.concurrent.TimeUnit
 class InspectorClientLauncher(private val adb: AndroidDebugBridge,
                               private val processes: ProcessesModel,
                               private val clientCreators: List<(Params) -> InspectorClient?>,
+                              private val project: Project,
                               private val parentDisposable: Disposable,
                               @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
@@ -73,6 +76,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
           },
           { params -> LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable) }
         ),
+        model.project,
         parentDisposable)
     }
   }
@@ -130,7 +134,16 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
     }
 
     if (!validClientConnected) {
+      val bannerService = InspectorBannerService.getInstance(project)
+      // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
+      val currentBanner = bannerService.notification
       activeClient = DisconnectedClient
+      if (enabled) {
+        // If we're enabled, don't show the process as selected anymore. If we're not (the window is minimized), we'll try to reconnect
+        // when we're reenabled, so leave the process selected.
+        processes.selectedProcess = null
+      }
+      bannerService.notification = currentBanner
     }
   }
 

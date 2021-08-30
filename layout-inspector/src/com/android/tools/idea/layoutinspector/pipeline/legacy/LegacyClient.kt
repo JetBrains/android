@@ -32,8 +32,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import java.nio.file.Path
 
-private const val MAX_CONNECTION_ATTEMPTS = 5
-
 /**
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually fired.
@@ -42,7 +40,7 @@ class LegacyClient(
   adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
-  model: InspectorModel,
+  val model: InspectorModel,
   stats: SessionStatistics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
@@ -55,7 +53,6 @@ class LegacyClient(
 
   override val provider = LegacyPropertiesProvider()
 
-  private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
   private val metrics = LayoutInspectorMetrics(model.project, process, stats)
@@ -89,15 +86,12 @@ class LegacyClient(
   }
 
   override fun doConnect(): ListenableFuture<Nothing> {
-    attach()
-    return Futures.immediateFuture(null)
-  }
-
-  private fun attach() {
-    loggedInitialAttach = false
-    if (!doAttach()) {
-      // TODO: create a different event for when there are no windows
-      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+    return try {
+      doAttach()
+      Futures.immediateFuture(null)
+    }
+    catch (exception: Exception) {
+      Futures.immediateFailedFuture(exception)
     }
   }
 
@@ -106,25 +100,20 @@ class LegacyClient(
    *
    * Return <code>true</code> if windows were found otherwise false.
    */
-  private fun doAttach(): Boolean {
-    if (!loggedInitialAttach) {
-      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
-      loggedInitialAttach = true
-    }
-
-    var attempts = 0
+  private fun doAttach() {
+    metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
     while (!reloadAllWindows()) {
-      // The windows may not be available yet, try again: b/185936377
-      if (++attempts > MAX_CONNECTION_ATTEMPTS) {
-        return false
+      // We were killed by InspectorClientLaunchMonitor
+      if (state == InspectorClient.State.DISCONNECTED) {
+        return
       }
-      Thread.sleep(500) // wait 0.5 secs
+      // The windows may not be available yet, try again: b/185936377
+      Thread.sleep(1000) // wait 1 second
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
     invokeLater {
       composeWarning.performCheck(this)
     }
-    return true
   }
 
   override fun refresh() {

@@ -46,6 +46,8 @@ import com.intellij.openapi.util.Disposer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
@@ -97,14 +99,17 @@ fun DeviceDescriptor.createProcess(
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
 interface InspectorClientProvider {
-  fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient
+  fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient?
 }
 
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
 class LegacyClientProvider(
-  private val parentDisposable: Disposable, private val treeLoaderOverride: LegacyTreeLoader? = null
+  private val parentDisposable: Disposable,
+  private val treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
+    Mockito.`when`(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
+  }
 ) : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
     return LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
@@ -191,6 +196,7 @@ class LayoutInspectorRule(
     launcher = InspectorClientLauncher(adbRule.bridge,
                                        processes,
                                        listOf { params -> clientProvider.create(params, inspector) },
+                                       project,
                                        launcherDisposable,
                                        launcherExecutor)
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
