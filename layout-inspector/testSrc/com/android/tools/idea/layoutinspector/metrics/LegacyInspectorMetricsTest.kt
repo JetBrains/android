@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
@@ -36,17 +39,27 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class LegacyInspectorMetricsTest {
 
   private val disposableRule = DisposableRule()
+  private val scheduler = VirtualTimeScheduler()
+  private val launchMonitor = InspectorClientLaunchMonitor(scheduler)
+  private val windowIdsRetrievedLock = CountDownLatch(1)
 
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = object : InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
       val loader = Mockito.mock(LegacyTreeLoader::class.java)
-      Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
-      return LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+      Mockito.`when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
+        windowIdsRetrievedLock.countDown()
+        windowIds
+      }
+      val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+      client.launchMonitor = launchMonitor
+      return client
     }
   }
 
@@ -86,10 +99,17 @@ class LegacyInspectorMetricsTest {
   @Test
   fun testAttachFailAfterProcessConnected() {
     Assert.assertTrue(windowIds.isEmpty()) // No window IDs will cause attaching to fail
-    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
-
+    val connectThread = Thread {
+      inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    }
+    connectThread.start()
+    windowIdsRetrievedLock.await()
+    // Launch monitor will kill the connection attempt
+    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    connectThread.join()
     val usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT &&
+                it.studioEvent.dynamicLayoutInspectorEvent.type != DynamicLayoutInspectorEventType.SESSION_DATA }
     Assert.assertEquals(2, usages.size)
     var studioEvent = usages[0].studioEvent
 
@@ -104,7 +124,6 @@ class LegacyInspectorMetricsTest {
 
     studioEvent = usages[1].studioEvent
     Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
-    Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE, studioEvent.dynamicLayoutInspectorEvent.type)
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
+    Assert.assertEquals(DynamicLayoutInspectorEventType.ATTACH_ERROR, studioEvent.dynamicLayoutInspectorEvent.type)
   }
 }

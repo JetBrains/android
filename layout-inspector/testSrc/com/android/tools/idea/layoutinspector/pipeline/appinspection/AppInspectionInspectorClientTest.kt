@@ -42,6 +42,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -50,6 +51,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -692,7 +694,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
                                                 mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
-      assertFailsWith<ConnectionFailedException> { client.connect() }
+      client.connect()
+      waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo(API_29_BUG_MESSAGE)
     })
@@ -708,7 +711,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
       val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
                                                 mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
-      assertFailsWith<ConnectionFailedException> { client.connect() }
+      client.connect()
+      waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
     })

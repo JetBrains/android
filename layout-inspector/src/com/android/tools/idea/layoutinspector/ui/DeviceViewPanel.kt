@@ -310,6 +310,9 @@ class DeviceViewPanel(
           loadingPane.startLoading()
         }
       }
+      if (processes.selectedProcess == null) {
+        loadingPane.stopLoading()
+      }
     }
     model.modificationListeners.add { old, new, _ ->
       if (old == null && new != null) {

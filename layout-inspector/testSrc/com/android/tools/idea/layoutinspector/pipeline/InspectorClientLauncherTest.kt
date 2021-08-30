@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -23,6 +24,7 @@ import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -30,7 +32,9 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
@@ -41,6 +45,9 @@ class InspectorClientLauncherTest {
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private open class FakeInspectorClient(
     val name: String, process: ProcessDescriptor, parentDisposable: Disposable
@@ -64,7 +71,8 @@ class InspectorClientLauncherTest {
   @Test
   fun initialInspectorLauncherStartsWithDisconnectedClient() {
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+                                           MoreExecutors.directExecutor())
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
@@ -72,7 +80,8 @@ class InspectorClientLauncherTest {
   @Test
   fun emptyInspectorLauncherIgnoresProcessChanges() {
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+                                           MoreExecutors.directExecutor())
 
     var clientChangedCount = 0
     launcher.addClientChangedListener { clientChangedCount++ }
@@ -94,16 +103,19 @@ class InspectorClientLauncherTest {
           "Modern client", params.process, disposableRule.disposable)
         else null
       },
+      projectRule.project,
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+    assertThat(processes.selectedProcess).isNull()
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(FakeInspectorClient::class.java)
 
     processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+    assertThat(processes.selectedProcess).isNull()
   }
 
   @Test
@@ -120,6 +132,7 @@ class InspectorClientLauncherTest {
         client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
         client
       },
+      projectRule.project,
       launcherDisposable,
       MoreExecutors.directExecutor())
 
@@ -161,6 +174,7 @@ class InspectorClientLauncherTest {
           FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
         }
       ),
+      projectRule.project,
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 
@@ -217,6 +231,7 @@ class InspectorClientLauncherTest {
           FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
         }
       ),
+      projectRule.project,
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 
@@ -260,6 +275,7 @@ class InspectorClientLauncherTest {
           }
         }
       ),
+      projectRule.project,
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 
@@ -272,6 +288,7 @@ class InspectorClientLauncherTest {
 
     processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+    assertThat(processes.selectedProcess).isNull()
   }
 
   @Test
@@ -286,6 +303,7 @@ class InspectorClientLauncherTest {
       adbRule.bridge,
       processes,
       listOf { params -> FakeInspectorClient("Unused", params.process, disposableRule.disposable) },
+      projectRule.project,
       disposableRule.disposable,
       MoreExecutors.directExecutor())
 
