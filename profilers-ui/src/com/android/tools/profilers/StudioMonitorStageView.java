@@ -50,6 +50,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -266,7 +267,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_PROFILEABLE_MESSAGE,
                                      "Only CPU and Memory profilers are enabled for profileable processes",
-                                     () -> Unit.INSTANCE);
+                                     SupportLevel.DOC_LINK);
     }
     return new JPanel();
   }
