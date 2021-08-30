@@ -59,6 +59,8 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
   }
 
   companion object {
+    const val DOC_LINK = "https://d.android.com/r/studio-ui/profiler/profileable"
+
     @JvmStatic
     fun of(level: ExposureLevel) = when (level) {
       ExposureLevel.UNKNOWN, ExposureLevel.RELEASE, ExposureLevel.UNRECOGNIZED -> NONE

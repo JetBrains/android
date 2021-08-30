@@ -17,6 +17,7 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.common.linkForeground
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.intellij.ide.BrowserUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBEmptyBorder
@@ -29,10 +30,16 @@ import java.awt.font.TextAttribute
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
+
 object DismissibleMessage {
   /**
    * @param key Key for use in persistent profiler preferences
    */
+  @JvmStatic @JvmOverloads
+  fun of(profilers: StudioProfilers, key: String, message: String, learnMoreLink: String,
+         color: Color = secondaryPanelBackground): JPanel =
+    of(profilers, key, message, { BrowserUtil.browse(learnMoreLink) }, color)
+
   @JvmStatic @JvmOverloads
   fun of(profilers: StudioProfilers, key: String, message: String, learnMore: () -> Unit,
          color: Color = secondaryPanelBackground): JPanel =
