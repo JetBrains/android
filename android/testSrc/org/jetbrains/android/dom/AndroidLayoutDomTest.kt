@@ -21,7 +21,6 @@ import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.lang.documentation.DocumentationProvider
@@ -748,48 +747,6 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testAttributeNameInheritedAttributesForViewTag() {
     // TextClock inherits "bufferType" attr from TextView.
     toTestCompletion("inheritedAttributesForViewTag.xml", "inheritedAttributesForViewTag_after.xml")
-  }
-
-  fun testLiveTemplateAttributeCompletion() {
-    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
-    val virtualFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
-        <LinearLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                ${caret}
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-        </LinearLayout>
-      """.trimIndent()).virtualFile
-    myFixture.configureFromExistingVirtualFile(virtualFile)
-    myFixture.type("too")
-    myFixture.completeBasic()
-    val lookupElementStrings = myFixture.lookupElementStrings
-    assertThat(lookupElementStrings).contains("toolsNs")
-  }
-
-  fun testLiveTemplateTagCompletion() {
-    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
-    val virtualFile = myFixture.addFileToProject(
-      "res/layout/layout.xml",
-      //language=XML
-      """
-        <LinearLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                ${caret}
-        </LinearLayout>
-      """.trimIndent()).virtualFile
-    myFixture.configureFromExistingVirtualFile(virtualFile)
-    myFixture.type("too")
-    myFixture.completeBasic()
-    val lookupElementStrings = myFixture.lookupElementStrings
-    assertThat(lookupElementStrings).doesNotContain("toolsNs")
   }
 
   fun testOpenDrawerAttributeNameCompletion() {
