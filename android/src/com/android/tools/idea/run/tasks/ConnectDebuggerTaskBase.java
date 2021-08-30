@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
-  private static final int POLL_TIMEOUT = 15;
+  private int myPollTimeoutSeconds = 15;
   private static final TimeUnit POLL_TIMEUNIT = TimeUnit.SECONDS;
 
   // The first entry in the list contains the main package name, and an optional second entry contains test package name.
@@ -94,6 +94,16 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   }
 
   @Override
+  public void setTimeoutSeconds(int timeoutSeconds) {
+    myPollTimeoutSeconds = timeoutSeconds;
+  }
+
+  @Override
+  public int getTimeoutSeconds() {
+    return myPollTimeoutSeconds;
+  }
+
+  @Override
   public ProcessHandler perform(@NotNull final LaunchInfo launchInfo,
                                 @NotNull IDevice device,
                                 @NotNull final ProcessHandlerLaunchStatus state,
@@ -108,7 +118,11 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
 
   @Nullable
   protected Client waitForClient(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
-    for (int i = 0; i < POLL_TIMEOUT; i++) {
+    int pollTimeoutSeconds = myPollTimeoutSeconds;
+    if (pollTimeoutSeconds <= 0) {
+      pollTimeoutSeconds = Integer.MAX_VALUE;
+    }
+    for (int i = 0; i < pollTimeoutSeconds; i++) {
       if (state.isLaunchTerminated()) {
         return null;
       }
