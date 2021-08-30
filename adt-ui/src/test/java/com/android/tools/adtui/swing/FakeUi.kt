@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 @file:JvmName("FakeUiUtil")
+
 package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
+import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
@@ -54,6 +57,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
 
   @JvmField
   val keyboard: FakeKeyboard = FakeKeyboard()
+
   @JvmField
   val mouse: FakeMouse = FakeMouse(this, keyboard)
 
@@ -95,7 +99,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    */
   fun layout() {
     val layoutRoot = UIUtil.getParentOfType(JRootPane::class.java, root) ?: root
-    TreeWalker(layoutRoot).descendantStream().forEach { obj: Component -> obj.doLayout() }
+    TreeWalker(layoutRoot).descendantStream().forEach(Component::doLayout)
   }
 
   /**
@@ -112,16 +116,14 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   /**
    * Renders the root component and returns the image reflecting its appearance.
    */
-  fun render(): BufferedImage {
-    return render(root)
-  }
+  fun render(): BufferedImage = render(root)
 
   /**
    * Renders the given component and returns the image reflecting its appearance.
    */
   fun render(component: Component): BufferedImage {
     val image =
-        createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+      createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
     component.printAll(graphics)
@@ -165,21 +167,26 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   /**
-   * Simulates pressing and releasing the left mouse button over the given component.
+   * Simulates pressing and releasing a mouse button over the given component.
    */
-  fun clickOn(component: Component) {
-    clickRelativeTo(component, component.width / 2, component.height / 2)
+  fun clickOn(component: Component, button: FakeMouse.Button = LEFT) {
+    clickRelativeTo(component, component.width / 2, component.height / 2, button)
   }
-
 
   /**
-   * Simulates pressing and releasing the left mouse button over the given component.
+   * Simulates pressing and releasing the right mouse button over the given component.
    */
-  fun clickRelativeTo(component: Component, x: Int, y: Int) {
-    val location = getPosition(component)
-    mouse.click(location.x + x, location.y + y)
+  fun rightClickOn(component: Component) {
+    clickRelativeTo(component, component.width / 2, component.height / 2, RIGHT)
   }
 
+  /**
+   * Simulates pressing and releasing a mouse button over the given component.
+   */
+  fun clickRelativeTo(component: Component, x: Int, y: Int, button: FakeMouse.Button = LEFT) {
+    val location = getPosition(component)
+    mouse.click(location.x + x, location.y + y, button)
+  }
 
   /**
    * Returns the first component of the given type satisfying the given predicate by doing breadth-first
@@ -208,21 +215,15 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return null
   }
 
-  inline fun <reified T> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
-    return findComponent(T::class.java) { predicate(it) }
-  }
+  inline fun <reified T> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? =
+    findComponent(T::class.java) { predicate(it) }
 
-  fun <T> findComponent(type: Class<T>, predicate: Predicate<T>): T? {
-    return findComponent(type) { predicate.test(it) }
-  }
+  fun <T> findComponent(type: Class<T>, predicate: Predicate<T>): T? = findComponent(type, predicate::test)
 
-  inline fun <reified T> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
-    return findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
-  }
+  inline fun <reified T> getComponent(crossinline predicate: (T) -> Boolean = { true }): T =
+    findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
 
-  fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T {
-    return findComponent(type) { predicate.test(it) } ?: throw AssertionError()
-  }
+  fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T = findComponent(type, predicate::test) ?: throw AssertionError()
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first
@@ -252,13 +253,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return result
   }
 
-  inline fun <reified T> findAllComponents(crossinline predicate: (T) -> Boolean = { true }) : List<T> {
-    return findAllComponents(T::class.java) { predicate(it) }
-  }
+  inline fun <reified T> findAllComponents(crossinline predicate: (T) -> Boolean = { true }): List<T> =
+    findAllComponents(T::class.java) { predicate(it) }
 
-  fun targetMouseEvent(x: Int, y: Int): RelativePoint? {
-    return findTarget(root, x, y)
-  }
+  fun targetMouseEvent(x: Int, y: Int): RelativePoint? = findTarget(root, x, y)
 
   private fun findTarget(component: Component, x: Int, y: Int): RelativePoint? {
     if (component.contains(x, y)) {
@@ -313,48 +311,28 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     private val transform: AffineTransform = AffineTransform.getScaleInstance(scale, scale)
     private val device: GraphicsDevice = FakeGraphicsDevice(this)
 
-    override fun getDevice(): GraphicsDevice {
-      return device
-    }
+    override fun getDevice(): GraphicsDevice = device
 
-    override fun getColorModel(): ColorModel {
-      return ColorModel.getRGBdefault()
-    }
+    override fun getColorModel(): ColorModel = ColorModel.getRGBdefault()
 
-    override fun getColorModel(transparency: Int): ColorModel {
-      return ColorModel.getRGBdefault()
-    }
+    override fun getColorModel(transparency: Int): ColorModel = ColorModel.getRGBdefault()
 
-    override fun getDefaultTransform(): AffineTransform {
-      return transform
-    }
+    override fun getDefaultTransform(): AffineTransform = transform
 
-    override fun getNormalizingTransform(): AffineTransform {
-      return transform
-    }
+    override fun getNormalizingTransform(): AffineTransform = transform
 
-    override fun getBounds(): Rectangle {
-      return Rectangle()
-    }
+    override fun getBounds(): Rectangle = Rectangle()
   }
 
   private class FakeGraphicsDevice constructor(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
 
-    override fun getType(): Int {
-      return TYPE_RASTER_SCREEN
-    }
+    override fun getType(): Int = TYPE_RASTER_SCREEN
 
-    override fun getIDstring(): String {
-      return "FakeDevice"
-    }
+    override fun getIDstring(): String = "FakeDevice"
 
-    override fun getConfigurations(): Array<GraphicsConfiguration> {
-      return emptyArray()
-    }
+    override fun getConfigurations(): Array<GraphicsConfiguration> = emptyArray()
 
-    override fun getDefaultConfiguration(): GraphicsConfiguration {
-      return defaultConfiguration
-    }
+    override fun getDefaultConfiguration(): GraphicsConfiguration = defaultConfiguration
   }
 }
 
