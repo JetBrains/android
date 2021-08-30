@@ -19,6 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -58,7 +59,14 @@ public final class VirtualTableView extends TableView<AvdInfo> {
     OptionalInt width = IntStream.range(-1, getRowCount())
       .map(rowIndex -> getPreferredCellWidth(rowIndex, viewColumnIndex))
       .max();
-    return width.orElse(0);
+
+    int minWidth = JBUIScale.scale(65);
+
+    if (!width.isPresent()) {
+      return minWidth;
+    }
+
+    return Math.max(width.getAsInt(), minWidth);
   }
 
   private int getPreferredCellWidth(int viewRowIndex, int viewColumnIndex) {
