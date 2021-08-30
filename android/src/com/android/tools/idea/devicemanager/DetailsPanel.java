@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -141,7 +142,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
                   .addComponent(myHeadingLabel)
                   .addComponent(myCloseButton))
       .addPreferredGap(ComponentPlacement.RELATED)
-      .addComponent(myScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, 242);
+      .addComponent(myScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, JBUIScale.scale(242));
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
