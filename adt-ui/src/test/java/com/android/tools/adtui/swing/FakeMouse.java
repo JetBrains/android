@@ -68,7 +68,7 @@ public final class FakeMouse {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before pressing again.");
     }
-    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount, false);
+    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount, button == Button.RIGHT);
     myCursor = new Cursor(button, x, y);
   }
 
@@ -148,7 +148,7 @@ public final class FakeMouse {
     Cursor cursor = myCursor;
     release();
     // PRESSED + RELEASED should additionally fire a CLICKED event
-    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, cursor.button == Button.RIGHT);
+    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false);
   }
 
   /**
