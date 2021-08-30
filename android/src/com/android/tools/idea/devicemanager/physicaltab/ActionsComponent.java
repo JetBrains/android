@@ -20,6 +20,7 @@ import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.AbstractButton;
@@ -43,17 +44,21 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     myMoreButton = new IconButton(AllIcons.Actions.More);
 
     GroupLayout layout = new GroupLayout(this);
+    int size = JBUIScale.scale(12);
 
     Group horizontalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
       .addComponent(myActivateDeviceFileExplorerWindowButton)
+      .addGap(size)
       // .addComponent(myEditDeviceNameButton)
       .addComponent(myRemoveButton);
 
     boolean pairingAssistantEnabled = StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get();
 
     if (pairingAssistantEnabled) {
-      horizontalGroup.addComponent(myMoreButton);
+      horizontalGroup
+        .addGap(size)
+        .addComponent(myMoreButton);
     }
 
     Group group = layout.createParallelGroup()
