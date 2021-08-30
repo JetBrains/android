@@ -50,6 +50,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.ProductDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -309,6 +310,54 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
         assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_TAG, isArmHostOs));
         assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_PLAY_STORE_TAG, isArmHostOs));
       }
+  }
+
+  public void testWarningTextOnX86HostsWithNonX86Images() {
+    // Should not get any warning if x86 image on any host os.
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86_64), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
+
+    // Should get a warning if non-x86 image on x86 host.
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
+    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
+
+    // Shouldn't get warning if non-x86 image on non-x86 host.
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.ARM), null);
+    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
   }
 
   public void testClassificationForDevice_x86() {
