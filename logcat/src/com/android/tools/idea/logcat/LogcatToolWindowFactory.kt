@@ -21,6 +21,7 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.util.text.UniqueNameGenerator
@@ -38,8 +39,8 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
-  override fun generateChildComponent(project: Project, clientState: String?): JComponent =
-    LogcatMainPanel(project, logcatColors, LogcatPanelConfig.fromJson(clientState)).also(::printFakeLogs)
+  override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
+    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState)).also(::printFakeLogs)
 }
 
 // Use a LoremGenerator to generate random tags, app names and messages to be used in fake LogCatMessage's to demonstrate the behavior.

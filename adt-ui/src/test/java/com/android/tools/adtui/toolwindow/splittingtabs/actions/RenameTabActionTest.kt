@@ -16,8 +16,10 @@
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
 import com.android.testutils.MockitoKt
+import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
@@ -26,6 +28,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -67,7 +70,9 @@ class RenameTabActionTest {
   @Test
   fun update_splittingTabContent_visible() {
     val content = contentFactory.createContent(null, "Content", false).also {
-      it.component = SplittingPanel(it, null) { JPanel() }
+      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
+        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+      })
     }
 
     action.update(event, toolWindow, content)

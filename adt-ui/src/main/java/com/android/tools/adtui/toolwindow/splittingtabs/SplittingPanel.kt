@@ -17,25 +17,25 @@ package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation.HORIZONTAL
 import com.android.tools.adtui.toolwindow.splittingtabs.SplitOrientation.VERTICAL
+import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsBundle.lazyMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
+import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JMenuItem
 import javax.swing.JPanel
-import javax.swing.JPopupMenu
 
 /**
  * A [JPanel] that can split itself in the specified [SplitOrientation].
@@ -48,37 +48,24 @@ import javax.swing.JPopupMenu
  *
  * This code was inspired by `org.jetbrains.plugins.terminal.TerminalContainer`
  */
-internal class SplittingPanel(private val content: Content, clientState: String?, private val createChildComponent: (String?) -> JComponent)
-  : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
+internal class SplittingPanel(
+  private val content: Content,
+  clientState: String?,
+  private val childComponentFactory: ChildComponentFactory
+) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
-  val component = createChildComponent(clientState)
-
-  private val menu = JPopupMenu().apply {
-    add(SplitMenuItem(VERTICAL))
-    add(SplitMenuItem(HORIZONTAL))
-    add(JMenuItem(SplittingTabsBundle.message("SplittingTabsToolWindow.close"),
-                  AllIcons.Actions.Close).apply { addActionListener { close() } })
+  private val popupActionGroup = SimpleActionGroup().apply {
+    name = "Foobar"
+    add(SplitPanelAction(VERTICAL))
+    add(SplitPanelAction(HORIZONTAL))
+    add(ClosePanelAction())
   }
+
+  val component = childComponentFactory.createChildComponent(clientState, popupActionGroup)
 
   init {
     addToCenter(component)
     Disposer.register(content, this)
-
-    addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(e: MouseEvent) {
-        maybeShowPopupMenu(e)
-      }
-
-      override fun mouseReleased(e: MouseEvent) {
-        maybeShowPopupMenu(e)
-      }
-
-      private fun maybeShowPopupMenu(e: MouseEvent) {
-        if (e.isPopupTrigger) {
-          menu.show(this@SplittingPanel, e.x, e.y)
-        }
-      }
-    })
   }
 
   override fun dispose() {
@@ -89,7 +76,7 @@ internal class SplittingPanel(private val content: Content, clientState: String?
 
   fun split(orientation: SplitOrientation) {
     val parent = parent
-    val splitter = createSplitter(orientation, this, SplittingPanel(content, clientState = null, createChildComponent))
+    val splitter = createSplitter(orientation, this, SplittingPanel(content, clientState = null, childComponentFactory))
 
     if (parent is OnePixelSplitter) {
       if (parent.firstComponent == this) {
@@ -151,15 +138,19 @@ internal class SplittingPanel(private val content: Content, clientState: String?
     }
   }
 
-  private inner class SplitMenuItem(val orientation: SplitOrientation) : JMenuItem(orientation.text, orientation.icon) {
-    init {
-      addActionListener {
-        split(orientation)
-      }
+  override fun getState(): String? = (component as? SplittingTabsStateProvider)?.getState()
+
+  private inner class SplitPanelAction(private val orientation: SplitOrientation) : DumbAwareAction(orientation::text, orientation.icon) {
+    override fun actionPerformed(e: AnActionEvent) {
+      split(orientation)
     }
   }
 
-  override fun getState(): String? = (component as? SplittingTabsStateProvider)?.getState()
+  private inner class ClosePanelAction : DumbAwareAction(lazyMessage("SplittingTabsToolWindow.close"), AllIcons.Actions.Close) {
+    override fun actionPerformed(e: AnActionEvent) {
+      close()
+    }
+  }
 
   companion object {
     /**
@@ -193,15 +184,15 @@ internal class SplittingPanel(private val content: Content, clientState: String?
     internal fun buildComponentFromState(
       content: Content,
       panelState: PanelState?,
-      createChildComponent: (String?) -> JComponent
+      childComponentFactory: ChildComponentFactory
     ): JComponent =
       when {
-        panelState == null -> SplittingPanel(content, clientState = null, createChildComponent)
-        panelState.isLeaf() -> SplittingPanel(content, panelState.clientState, createChildComponent)
+        panelState == null -> SplittingPanel(content, clientState = null, childComponentFactory)
+        panelState.isLeaf() -> SplittingPanel(content, panelState.clientState, childComponentFactory)
         else -> {
           OnePixelSplitter(panelState.orientation!!.toSplitter(), panelState.proportion!!).also {
-            it.firstComponent = buildComponentFromState(content, panelState.first!!, createChildComponent)
-            it.secondComponent = buildComponentFromState(content, panelState.second!!, createChildComponent)
+            it.firstComponent = buildComponentFromState(content, panelState.first!!, childComponentFactory)
+            it.secondComponent = buildComponentFromState(content, panelState.second!!, childComponentFactory)
           }
         }
       }

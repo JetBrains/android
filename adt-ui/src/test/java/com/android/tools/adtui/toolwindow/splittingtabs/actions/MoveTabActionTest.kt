@@ -16,8 +16,10 @@
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
 import com.android.testutils.MockitoKt
+import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
@@ -25,6 +27,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.content.Content
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
@@ -115,5 +118,9 @@ class MoveTabActionTest {
   }
 
   private fun createContent(toolWindow: ToolWindowHeadlessManagerImpl.MockToolWindow) =
-    toolWindow.contentManager.factory.createContent(null, "Content", false).also { it.component = SplittingPanel(it, null) { JPanel() } }
+    toolWindow.contentManager.factory.createContent(null, "Content", false).also {
+      it.component = SplittingPanel(it, null, object : ChildComponentFactory {
+        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+      })
+    }
 }
