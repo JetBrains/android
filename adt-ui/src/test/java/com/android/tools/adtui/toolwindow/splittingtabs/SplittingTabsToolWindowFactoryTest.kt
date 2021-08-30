@@ -24,6 +24,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl.MockToolWindow
@@ -152,7 +153,8 @@ class SplittingTabsToolWindowFactoryTest {
   ) : SplittingTabsToolWindowFactory() {
     override fun generateTabName(tabNames: Set<String>): String = generateName()
 
-    override fun generateChildComponent(project: Project, clientState: String?): JComponent = generateChild(clientState)
+    override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
+      generateChild(clientState)
   }
 
   private class FakeToolWindow(project: Project, val toolWindowId: String) : MockToolWindow(project) {

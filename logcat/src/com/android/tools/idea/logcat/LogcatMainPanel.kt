@@ -21,10 +21,13 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.android.tools.idea.ddms.DeviceContext
 import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.project.Project
@@ -37,6 +40,7 @@ import java.time.ZoneId
  */
 internal class LogcatMainPanel(
   project: Project,
+  private val popupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   zoneId: ZoneId = ZoneId.systemDefault()
@@ -71,7 +75,9 @@ internal class LogcatMainPanel(
     UndoUtil.disableUndoFor(document)
     val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
 
-    // TODO(aalbert): Install popup handler with: EditorEx#.installPopupHandler()
+    editor.installPopupHandler(object :ContextMenuPopupHandler() {
+      override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
+    })
 
     editor.document.setCyclicBufferSize(if (ConsoleBuffer.useCycleBuffer()) ConsoleBuffer.getCycleBufferSize() else 0)
 

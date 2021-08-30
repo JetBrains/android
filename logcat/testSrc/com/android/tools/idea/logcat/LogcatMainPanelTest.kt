@@ -18,19 +18,36 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
+import com.intellij.tools.SimpleActionGroup
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.`when`
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
+import java.awt.Dimension
 import java.time.Instant
 import java.time.ZoneId
+import javax.swing.JComponent
+import javax.swing.JPopupMenu
 
 /**
  * Tests for [LogcatMainPanel]
@@ -52,7 +69,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun createsComponents() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, LogcatColors(), state = null)
+    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
 
     val borderLayout = logcatMainPanel.layout as BorderLayout
 
@@ -63,7 +80,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun setsUpEditor() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, LogcatColors(), state = null)
+    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
 
     assertThat(logcatMainPanel.editor.gutterComponentEx.isPaintBackground).isFalse()
     val editorSettings = logcatMainPanel.editor.settings
@@ -84,7 +101,7 @@ class LogcatMainPanelTest {
   fun setsDocumentCyclicBuffer() {
     // Set a buffer of 1k
     System.setProperty("idea.cycle.buffer.size", "1")
-    logcatMainPanel = LogcatMainPanel(projectRule.project, LogcatColors(), state = null)
+    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
     val document = logcatMainPanel.editor.document as DocumentImpl
 
     // Insert 2000 chars
@@ -100,10 +117,54 @@ class LogcatMainPanelTest {
    */
   @Test
   fun print() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
 
     logcatMainPanel.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", Instant.ofEpochMilli(1000)), "message"))
 
     assertThat(logcatMainPanel.editor.document.text).isEqualTo("1970-01-01 04:00:01.000      1-2      tag app W message\n")
+  }
+
+  @Test
+  fun installPopupHandler() {
+    val popupActionGroup = SimpleActionGroup().apply {
+      add(object : AnAction("An Action") {
+        override fun actionPerformed(e: AnActionEvent) {}
+      })
+    }
+    var latestPopup: ActionPopupMenu? = null
+    val actionManager = mock<ActionManager>()
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
+    `when`(actionManager.getAction(anyString())).thenReturn(
+      object : AnAction("An FakeAction") {
+        override fun actionPerformed(e: AnActionEvent) {}
+      })
+    `when`(actionManager.createActionPopupMenu(anyString(), any(ActionGroup::class.java))).thenAnswer {
+      latestPopup = FakeActionPopupMenu(it.getArgument(1))
+      latestPopup
+    }
+    logcatMainPanel = LogcatMainPanel(projectRule.project, popupActionGroup, LogcatColors(), state = null).apply {
+      size = Dimension(100, 100)
+    }
+    val fakeUi = FakeUi(logcatMainPanel)
+
+    fakeUi.rightClickOn(logcatMainPanel)
+
+    assertThat(latestPopup!!.actionGroup).isSameAs(popupActionGroup)
+  }
+
+  private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {
+    override fun getComponent(): JPopupMenu {
+      throw UnsupportedOperationException()
+    }
+
+    override fun getPlace(): String {
+      throw UnsupportedOperationException()
+    }
+
+    override fun getActionGroup(): ActionGroup = actionGroup
+
+    override fun setTargetComponent(component: JComponent) {
+      throw UnsupportedOperationException()
+    }
   }
 }

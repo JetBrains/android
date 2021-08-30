@@ -19,6 +19,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateManager
 import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -51,7 +52,7 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
 
   abstract fun generateTabName(tabNames: Set<String>): String
 
-  abstract fun generateChildComponent(project: Project, clientState: String?): JComponent
+  abstract fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent
 
   private fun restoreTabs(project: Project, contentManager: ContentManager, toolwindowState: ToolWindowState) {
     toolwindowState.run {
@@ -69,9 +70,10 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     val tabName = tabState?.tabName ?: generateTabName(contentManager.contents.mapTo(hashSetOf()) { it.displayName })
     return contentManager.factory.createContent(null, tabName, false).also { content ->
       content.isCloseable = true
-      content.component = SplittingPanel.buildComponentFromState(content, tabState?.panelState) { state ->
-        generateChildComponent(project, state)
-      }
+      content.component = SplittingPanel.buildComponentFromState(content, tabState?.panelState, object : ChildComponentFactory {
+        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent =
+          createChildComponent(project, popupActionGroup, state)
+      })
     }
   }
 }
