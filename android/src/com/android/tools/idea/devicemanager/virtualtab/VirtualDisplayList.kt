@@ -128,9 +128,9 @@ class VirtualDisplayList @TestOnly constructor(
         }
       })
     }
-    refreshAvds()
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
+    refreshAvds()
   }
 
   /**
