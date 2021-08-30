@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view.tabl
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.common.ColumnTreeBuilder
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
@@ -129,7 +130,7 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
         }
       }
 
-    builder.setCustomRenderer { _, value, _, _, _, _, _ ->
+    builder.setHeaderRowCellRenderer { _, value, _, _, _, _, _ ->
       JLabel((value as DefaultMutableTreeNode).userObject as String).apply {
         preferredSize = Dimension(preferredSize.width, 30)
       }
