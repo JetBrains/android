@@ -76,10 +76,10 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   @NotNull
   public static List<CpuProfilerConfig> getDefaultConfigs() {
     ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE));
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
     return configs.build();
   }
 
