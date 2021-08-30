@@ -652,6 +652,12 @@
     <option name="manage" hit="Automatically start and manage server" />
     <option name="server" hit="Automatically start and manage server" />
     <option name="start" hit="Automatically start and manage server" />
+    <option name="adb" hit="Enable adb mDNS for wireless debugging" />
+    <option name="debugging" hit="Enable adb mDNS for wireless debugging" />
+    <option name="enable" hit="Enable adb mDNS for wireless debugging" />
+    <option name="for" hit="Enable adb mDNS for wireless debugging" />
+    <option name="mdns" hit="Enable adb mDNS for wireless debugging" />
+    <option name="wireless" hit="Enable adb mDNS for wireless debugging" />
     <option name="existing" hit="Use existing manually managed server" />
     <option name="managed" hit="Use existing manually managed server" />
     <option name="manually" hit="Use existing manually managed server" />
