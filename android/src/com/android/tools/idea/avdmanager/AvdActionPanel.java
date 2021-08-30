@@ -32,10 +32,13 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
@@ -88,7 +91,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     setBorder(JBUI.Borders.empty(10));
     myAvdInfo = avdInfo;
     List<AvdUiAction> actions = getActions(logDeviceManagerEvents, projectOpen);
-    setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 0));
+    setLayout(new FlowLayout(FlowLayout.RIGHT, JBUIScale.scale(12), 0));
     int visibleActionCount = 0;
     boolean errorState = false;
     if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
@@ -261,6 +264,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       setIcon(icon);
       setOpaque(false);
       setUseIconAsLink(true);
+
+      if (text.isEmpty()) {
+        setMaximumSize(new JBDimension(22, 22));
+      }
+
       if (icon != null) {
         myHighlightedIcon = ColoredIconGenerator.generateWhiteIcon(myIcon);
       }
@@ -287,6 +295,15 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
         }
         theIcon.paintIcon(this, g, 0, (getHeight() - theIcon.getIconHeight()) / 2);
       }
+    }
+
+    @Override
+    public @NotNull Dimension getPreferredSize() {
+      if (myText.isEmpty()) {
+        return new JBDimension(22, 22);
+      }
+
+      return super.getPreferredSize();
     }
   }
 }
