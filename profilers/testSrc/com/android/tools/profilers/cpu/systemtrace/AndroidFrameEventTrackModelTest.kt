@@ -53,6 +53,20 @@ class AndroidFrameEventTrackModelTest {
     )
   }
 
+  @Test
+  fun ongoingEventsShouldHaveMaxEndTimestamp() {
+    val frameEvents = listOf(
+      makeFrame(0, 0, 1000, 0),
+      makeFrame(1, 5000, -1, 0)
+    )
+    val trackModel = AndroidFrameEventTrackModel(frameEvents, Range(0.0, 10.0))
+    assertThat(trackModel.series[0].series).containsExactly(
+      SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
+      SeriesData(1L, AndroidFrameEvent.Padding),
+      SeriesData(5L, AndroidFrameEvent.Data(1, 5, Long.MAX_VALUE))
+    ).inOrder()
+  }
+
   private companion object {
     fun makeFrame(frameNumber: Int, timestamp: Long, duration: Long, depth: Int): TraceProcessor.AndroidFrameEventsResult.FrameEvent =
       TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder()

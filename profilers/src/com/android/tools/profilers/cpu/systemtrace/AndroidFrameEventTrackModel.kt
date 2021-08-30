@@ -62,7 +62,12 @@ class AndroidFrameEventTrackModel
      */
     fun Iterable<TraceProcessor.AndroidFrameEventsResult.FrameEvent>.padded(): List<SeriesData<AndroidFrameEvent>> =
       padded({ TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds) },
-             { TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds + it.durationNanoseconds) },
+             {
+               // Frame events from Perfetto may have -1 duration when the event is still ongoing (or if it's missing the end slice) so we
+               // assign max long to the end timestamp.
+               if (it.durationNanoseconds >= 0) TimeUnit.NANOSECONDS.toMicros(it.timestampNanoseconds + it.durationNanoseconds)
+               else Long.MAX_VALUE
+             },
              ::Data, { _, _ -> Padding })
 
     /**
@@ -108,7 +113,8 @@ sealed class AndroidFrameEvent {
     constructor(frameEvent: TraceProcessor.AndroidFrameEventsResult.FrameEvent) : this(
       frameEvent.frameNumber,
       TimeUnit.NANOSECONDS.toMicros(frameEvent.timestampNanoseconds),
-      TimeUnit.NANOSECONDS.toMicros(frameEvent.durationNanoseconds))
+      // Frame events from Perfetto may have -1 duration when the event is still ongoing (or if it's missing the end slice).
+      if (frameEvent.durationNanoseconds >= 0) TimeUnit.NANOSECONDS.toMicros(frameEvent.durationNanoseconds) else Long.MAX_VALUE)
   }
 
   object Padding : AndroidFrameEvent()

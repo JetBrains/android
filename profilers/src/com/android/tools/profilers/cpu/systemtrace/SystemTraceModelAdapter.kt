@@ -176,5 +176,8 @@ fun<X,Y> Iterable<X>.padded(start: (X) -> Long, end: (X) -> Long, data: (X) -> Y
       lastEnd = end(event)
       paddedEvents.add(SeriesData(t, data(event))) // add real event
     }
-    paddedEvents.add(SeriesData(lastEnd, pad(lastEnd, Long.MAX_VALUE))) // add another padding to properly end last event
+    // Add another padding to properly end last event.
+    if (lastEnd < Long.MAX_VALUE) {
+      paddedEvents.add(SeriesData(lastEnd, pad(lastEnd, Long.MAX_VALUE)))
+    }
   }
