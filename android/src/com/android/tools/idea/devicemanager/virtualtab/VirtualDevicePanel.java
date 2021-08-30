@@ -28,6 +28,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -134,8 +135,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   }
 
   private @NotNull Group createToolbarHorizontalGroup(@NotNull GroupLayout groupLayout) {
-    Group toolbarHorizontalGroup = groupLayout.createSequentialGroup();
-    toolbarHorizontalGroup.addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+    Group toolbarHorizontalGroup = groupLayout.createSequentialGroup()
+      .addGap(JBUIScale.scale(5))
+      .addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addGap(JBUIScale.scale(4))
       .addComponent(mySeparator, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
 
     if (myRefreshButton != null) {

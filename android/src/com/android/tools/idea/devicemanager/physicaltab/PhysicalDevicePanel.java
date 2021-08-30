@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Component;
@@ -235,7 +236,9 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
     if (myPairUsingWiFiButton != null) {
       toolbarHorizontalGroup
+        .addGap(JBUIScale.scale(5))
         .addComponent(myPairUsingWiFiButton)
+        .addGap(JBUIScale.scale(4))
         .addComponent(mySeparator);
     }
 
