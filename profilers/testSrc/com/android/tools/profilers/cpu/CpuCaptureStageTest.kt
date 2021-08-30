@@ -203,13 +203,22 @@ class CpuCaptureStageTest {
 
     assertThat(stage.trackGroupModels.size).isEqualTo(5)
 
-    val displayTrackGroup = stage.trackGroupModels[1]
-    assertThat(displayTrackGroup.title).isEqualTo("Frame Lifecycle (android.com.java.profilertester.MainActivity#0)")
-    assertThat(displayTrackGroup.size).isEqualTo(4)
-    assertThat(displayTrackGroup[0].title).isEqualTo("Application")
-    assertThat(displayTrackGroup[1].title).isEqualTo("Wait for GPU")
-    assertThat(displayTrackGroup[2].title).isEqualTo("Composition")
-    assertThat(displayTrackGroup[3].title).isEqualTo("Frames on display")
+    // The Frames track is hidden when frame lifecycle data is available.
+    val displayTrackGroup = stage.trackGroupModels[0]
+    assertThat(displayTrackGroup.size).isEqualTo(3)
+    assertThat(displayTrackGroup[0].title).isEqualTo("SurfaceFlinger")
+    assertThat(displayTrackGroup[1].title).isEqualTo("VSYNC")
+    assertThat(displayTrackGroup[2].title).isEqualTo("BufferQueue")
+
+    // The Frame Lifecycle track group is displayed.
+    val frameLifecycleTrackGroup = stage.trackGroupModels[1]
+    assertThat(frameLifecycleTrackGroup.title).isEqualTo("Frame Lifecycle (android.com.java.profilertester.MainActivity#0)")
+    assertThat(frameLifecycleTrackGroup.size).isEqualTo(4)
+    assertThat(frameLifecycleTrackGroup.isCollapsedInitially).isFalse()
+    assertThat(frameLifecycleTrackGroup[0].title).isEqualTo("Application")
+    assertThat(frameLifecycleTrackGroup[1].title).isEqualTo("Wait for GPU")
+    assertThat(frameLifecycleTrackGroup[2].title).isEqualTo("Composition")
+    assertThat(frameLifecycleTrackGroup[3].title).isEqualTo("Frames on display")
   }
 
   @Test

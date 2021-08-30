@@ -395,9 +395,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createDisplayTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // Android frame lifecycle. Systrace only.
       if (!capture.getSystemTraceData().getAndroidFrameLayers().isEmpty()) {
-        capture.getSystemTraceData().getAndroidFrameLayers().forEach(
-          layer -> myTrackGroupModels.add(createFrameLifecycleTrackGroup(layer, getTimeline()))
-        );
+        for (int layerIndex = 0; layerIndex < capture.getSystemTraceData().getAndroidFrameLayers().size(); ++layerIndex) {
+          myTrackGroupModels.add(
+            createFrameLifecycleTrackGroup(capture.getSystemTraceData().getAndroidFrameLayers().get(layerIndex), getTimeline(),
+                                           // Collapse all but the first layer.
+                                           layerIndex > 0));
+        }
       }
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
@@ -463,13 +466,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .build();
 
     // Frame
-    CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
-      "Main", mainThreadId, SystemTraceFrame.FrameThread.MAIN,
-      systemTraceData, timeline.getViewRange());
-    CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
-    mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
-    display.addTrackModel(
-      TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
+    if (systemTraceData.getAndroidFrameLayers().isEmpty()) {
+      // Hide frames if we have Frame Lifecycle data.
+      CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
+        "Main", mainThreadId, SystemTraceFrame.FrameThread.MAIN,
+        systemTraceData, timeline.getViewRange());
+      CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
+      mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
+      display.addTrackModel(
+        TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
+    }
 
     // Surfaceflinger
     SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(systemTraceData, timeline.getViewRange());
@@ -491,12 +497,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
-                                                                @NotNull Timeline timeline) {
+                                                                @NotNull Timeline timeline,
+                                                                boolean collapseInitially) {
     // Layer name takes the form of "app_name/surface_name", shorten it by omitting the app_name.
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
       .setTitle(title)
       .setTitleHelpText(AndroidFrameEventTrackModel.getTitleHelpText())
+      .setCollapsedInitially(collapseInitially)
       .build();
 
     layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
