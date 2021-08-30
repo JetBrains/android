@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab
 
-import com.android.resources.Density
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel
 import com.android.tools.idea.avdmanager.ApiLevelComparator
@@ -27,31 +25,24 @@ import com.android.tools.idea.avdmanager.AvdDisplayList
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
 import com.android.tools.idea.avdmanager.DeleteAvdAction
-import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.EditAvdAction
 import com.android.tools.idea.avdmanager.RunAvdAction
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Sets
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.ColumnInfo
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
-import icons.StudioIcons
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -60,10 +51,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.AbstractAction
 import javax.swing.BoxLayout
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
@@ -93,7 +82,6 @@ class VirtualDisplayList @TestOnly constructor(
   }
 
   val table: VirtualTableView
-  private val listeners: MutableSet<AvdSelectionListener> = Sets.newHashSet()
   private val logger: Logger get() = logger<VirtualDisplayList>()
 
   private var latestSearchString: String = ""
@@ -138,30 +126,11 @@ class VirtualDisplayList @TestOnly constructor(
   }
 
   /**
-   * Components which wish to receive a notification when the user has selected an AVD from this
-   * table must implement this interface and register themselves through [.addSelectionListener]
-   */
-  interface AvdSelectionListener {
-    fun onAvdSelected(avdInfo: AvdInfo?)
-  }
-
-  fun addSelectionListener(listener: AvdSelectionListener) {
-    listeners.add(listener)
-  }
-
-  fun removeSelectionListener(listener: AvdSelectionListener) {
-    listeners.remove(listener)
-  }
-
-  /**
    * This class implements the table selection interface and passes the selection events on to its listeners.
    */
   override fun valueChanged(e: ListSelectionEvent) {
     // Required so the editor component is updated to know it's selected.
     table.editCellAt(table.selectedRow, table.selectedColumn)
-    for (listener in listeners) {
-      listener.onAvdSelected(table.selectedObject)
-    }
   }
 
   override fun getAvdInfo(): AvdInfo? = table.selectedObject
@@ -264,21 +233,6 @@ class VirtualDisplayList @TestOnly constructor(
     }
   }
 
-
-  @VisibleForTesting
-  class HighlightableIconPair(val baseIcon: Icon?) {
-    var highlightedIcon: Icon? = if (baseIcon != null) generateWhiteIcon(baseIcon) else null
-  }
-
-  enum class DeviceType {
-    VIRTUAL,
-    REAL,
-
-    // TODO(qumeric): should probably be a sealed class and provide data to facilitate download
-    PRECONFIGURED
-  }
-
-
   // needs an initialized table
   fun newColumns(): Collection<ColumnInfo<AvdInfo, *>> {
     return listOf(
@@ -344,17 +298,6 @@ class VirtualDisplayList @TestOnly constructor(
     }
   }
 
-  /**
-   * Renders a cell with borders.
-   */
-  class NoBorderCellRenderer(var defaultRenderer: TableCellRenderer) : TableCellRenderer {
-    override fun getTableCellRendererComponent(
-      table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
-    ): Component = (defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) as JComponent).apply {
-      border = JBUI.Borders.empty(10)
-    }
-  }
-
   inner class ModelListener(private val latch: CountDownLatch?) : VirtualDeviceModel.VirtualDeviceModelListener {
 
     override fun avdListChanged(avds: MutableList<AvdInfo>) {
@@ -364,62 +307,6 @@ class VirtualDisplayList @TestOnly constructor(
 
       refreshErrorCheck()
       latch?.countDown()
-    }
-  }
-
-  companion object {
-    private const val MOBILE_TAG_STRING = "mobile-device"
-    private val deviceClassIcons = hashMapOf<String, HighlightableIconPair>()
-    val deviceManager: DeviceManagerConnection get() = DeviceManagerConnection.getDefaultDeviceManagerConnection()
-
-    /**
-     * @return the device screen size of this AVD
-     */
-    @VisibleForTesting
-    fun getScreenSize(info: AvdInfo): Dimension? {
-      val device = deviceManager.getDevice(info.deviceName, info.deviceManufacturer) ?: return null
-      return device.getScreenSize(device.defaultState.orientation)
-    }
-
-    /**
-     * @return the resolution of a given AVD as a string of the format widthxheight - density
-     * (e.g. 1200x1920 - xhdpi) or "Unknown Resolution" if the AVD does not define a resolution.
-     */
-    @VisibleForTesting
-    fun getResolution(info: AvdInfo): String {
-      val device = deviceManager.getDevice(info.deviceName, info.deviceManufacturer)
-      val res: Dimension? = device?.getScreenSize(device.defaultState.orientation)
-      val density: Density? = device?.defaultHardware?.screen?.pixelDensity
-      val densityString = density?.resourceValue ?: "Unknown Density"
-
-      return if (res != null) "${res.width} \u00D7 ${res.height}: $densityString" else "Unknown Resolution"
-    }
-
-    /**
-     * Get the icons representing the device class of the given AVD (e.g. phone/tablet, Wear, TV)
-     */
-    fun getDeviceClassIconPair(info: AvdInfo): HighlightableIconPair {
-      val id = info.tag.id
-      var thisClassPair: HighlightableIconPair?
-      if (id.contains("android-")) {
-        // TODO(qumeric): replace icons
-        val path = "/studio/icons/avd/${id.replaceFirst("android", "device")}-large.svg"
-        thisClassPair = deviceClassIcons[path]
-        if (thisClassPair == null) {
-          thisClassPair = HighlightableIconPair(IconLoader.getIcon(path, VirtualDisplayList::class.java))
-          deviceClassIcons[path] = thisClassPair
-        }
-      }
-      else {
-        // Phone/tablet
-        thisClassPair = deviceClassIcons[MOBILE_TAG_STRING]
-        if (thisClassPair == null) {
-          thisClassPair = HighlightableIconPair(
-            StudioIcons.Avd.DEVICE_MOBILE_LARGE)
-          deviceClassIcons[MOBILE_TAG_STRING] = thisClassPair
-        }
-      }
-      return thisClassPair
     }
   }
 }
