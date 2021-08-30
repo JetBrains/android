@@ -108,8 +108,12 @@ class VirtualDisplayList @TestOnly constructor(
     table.apply {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
       selectionModel.addListSelectionListener(this)
-      addMouseListener(editingListener)
-      addMouseMotionListener(editingListener)
+
+      val adapter = avdActionPanelMouseAdapter()
+
+      addMouseListener(adapter)
+      addMouseMotionListener(adapter)
+
       addMouseListener(LaunchListener())
       getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).apply {
         put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
@@ -205,7 +209,7 @@ class VirtualDisplayList @TestOnly constructor(
     return tableModel.items
   }
 
-  private val editingListener: MouseAdapter = object : MouseAdapter() {
+  private fun avdActionPanelMouseAdapter(): MouseAdapter = object : MouseAdapter() {
     override fun mouseMoved(e: MouseEvent) {
       possiblySwitchEditors(e)
     }
