@@ -22,11 +22,11 @@
 
   <description>Provides a library for rendering Android resources</description>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
+<!--  <application-components>-->
+<!--    <component>-->
+<!--      <implementation-class>com.android.layoutlib.NativeCrashHandling</implementation-class>-->
+<!--      <headless-implementation-class/>-->
+<!--    </component>-->
+<!--  </application-components>-->
 
 </idea-plugin>
