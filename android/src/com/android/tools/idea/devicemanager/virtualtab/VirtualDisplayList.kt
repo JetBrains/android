@@ -244,9 +244,7 @@ class VirtualDisplayList @TestOnly constructor(
          * We override the comparator here to sort the API levels numerically (when possible;
          * with preview platforms codenames are compared alphabetically)
          */
-        override fun getComparator(): Comparator<AvdInfo> = with(ApiLevelComparator()) {
-          Comparator { o1, o2 -> compare(valueOf(o1), valueOf(o2)) }
-        }
+        override fun getComparator(): Comparator<AvdInfo> = Comparator.comparing(this::valueOf, ApiLevelComparator()).reversed()
       },
       SizeOnDiskColumn(table),
       AvdActionsColumnInfo("Actions", project != null, this)
