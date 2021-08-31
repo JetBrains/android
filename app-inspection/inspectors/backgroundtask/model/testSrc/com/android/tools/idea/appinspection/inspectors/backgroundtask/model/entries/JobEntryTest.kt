@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
 
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -30,7 +31,7 @@ class JobEntryTest {
         job = BackgroundTaskInspectorProtocol.JobInfo.newBuilder().apply {
           jobId = 222
           serviceName = "SERVICE"
-          extras = "EXTRA_WORK_SPEC_ID=12345&"
+          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
         }.build()
         result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
       }.build()
@@ -86,7 +87,7 @@ class JobEntryTest {
         job = BackgroundTaskInspectorProtocol.JobInfo.newBuilder().apply {
           jobId = 222
           serviceName = "SERVICE"
-          extras = "EXTRA_WORK_SPEC_ID=12345&"
+          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
         }.build()
         result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
       }.build()

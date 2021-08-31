@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWorksCategoryNode
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
@@ -132,15 +133,25 @@ class BackgroundTaskTreeModelTest {
       }
     }.build()
 
-    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
+    val newJobEvent = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
+      backgroundTaskEventBuilder.apply {
+        taskId = 0L
+        jobScheduledBuilder.apply {
+          jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+          jobBuilder.extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("test")
+        }
+      }
+    }.build()
 
-    var entryNode: DefaultMutableTreeNode? = null
+    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
+    client.handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, newJobEvent.toByteArray()))
+
     val root = model.root as DefaultMutableTreeNode
     assertThat(root.childCount).isEqualTo(4)
-    val workChild = root.firstChild as DefaultMutableTreeNode
+    val workChild = root.getWorksCategoryNode()
     assertThat(workChild.childCount).isEqualTo(1)
     assertThat(workChild.userObject).isEqualTo("Workers")
-    entryNode = workChild.firstChild as DefaultMutableTreeNode
+    val entryNode = workChild.firstChild as DefaultMutableTreeNode
     assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
 
     val removeWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
@@ -152,5 +163,6 @@ class BackgroundTaskTreeModelTest {
 
     assertThat(entryNode.parent).isNull()
     assertThat(model.getTreeNode("test")).isNull()
+    assertThat(model.getTreeNode("0")).isNull()
   }
 }

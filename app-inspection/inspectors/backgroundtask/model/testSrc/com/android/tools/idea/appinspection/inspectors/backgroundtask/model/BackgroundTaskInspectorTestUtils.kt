@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
+package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import androidx.work.inspection.WorkManagerInspectorProtocol.CallStack
@@ -23,9 +23,6 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.DataEntry
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 import javax.swing.tree.DefaultMutableTreeNode
@@ -118,4 +115,6 @@ object BackgroundTaskInspectorTestUtils {
   fun DefaultMutableTreeNode.getAlarmsCategoryNode() = getCategoryNode("Alarms")
   fun DefaultMutableTreeNode.getJobsCategoryNode() = getCategoryNode("Jobs")
   fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")
+
+  fun createJobInfoExtraWithWorkerId(id: String) = "{EXTRA_WORK_SPEC_ID=$id}"
 }
