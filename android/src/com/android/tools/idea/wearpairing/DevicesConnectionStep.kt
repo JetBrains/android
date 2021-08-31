@@ -28,6 +28,7 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
@@ -493,17 +494,21 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     progressBottomLabel = message("wear.assistant.device.connection.connecting.device.bottom.label")
   )
 
-  private suspend fun showUiInstallCompanionAppInstructions(phoneDevice: IDevice, wearDevice: IDevice) = showUiInstallCompanionApp(
-    phoneDevice = phoneDevice,
-    scanningLink = message("wear.assistant.device.connection.wear.os.skip"),
-    scanningListener = {
-      check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
-      runningJob = GlobalScope.launch(ioThread) {
-        goToNextStep(phoneDevice, wearDevice)
-      }
-    },
-    wearDevice = wearDevice
-  )
+  private suspend fun showUiInstallCompanionAppInstructions(phoneDevice: IDevice, wearDevice: IDevice) {
+    showUiInstallCompanionApp(
+      phoneDevice = phoneDevice,
+      scanningLink = message("wear.assistant.device.connection.wear.os.skip"),
+      scanningListener = {
+        check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
+        runningJob = GlobalScope.launch(ioThread) {
+          goToNextStep(phoneDevice, wearDevice)
+        }
+      },
+      wearDevice = wearDevice
+    )
+
+    WearPairingUsageTracker.log(WearPairingEvent.EventKind.SHOW_INSTALL_WEAR_OS_COMPANION)
+  }
 
   private suspend fun showUiInstallCompanionAppScanning(phoneDevice: IDevice,
                                                         wearDevice: IDevice,
@@ -651,6 +656,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         repaint()
       }
     }
+
+    WearPairingUsageTracker.log(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
   }
 
   private suspend fun showUiNeedsFactoryReset(wearDeviceName: String) {

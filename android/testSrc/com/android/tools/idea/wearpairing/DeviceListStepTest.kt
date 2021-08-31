@@ -16,13 +16,18 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
@@ -45,6 +50,8 @@ import javax.swing.PopupFactory
 class DeviceListStepTest : LightPlatform4TestCase() {
   private var defaultPopupFactory: PopupFactory = PopupFactory.getSharedInstance()
   private val invokeStrategy = TestInvokeStrategy()
+  /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
   private val model = WearDevicePairingModel()
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
@@ -58,12 +65,15 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   override fun setUp() {
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
+    UsageTracker.setWriterForTest(usageTracker)
   }
 
   override fun tearDown() {
     try {
       PopupFactory.setSharedInstance(defaultPopupFactory)
       BatchInvoker.clearOverrideStrategy()
+      usageTracker.close()
+      UsageTracker.cleanAfterTesting()
     }
     finally {
       super.tearDown()
@@ -102,6 +112,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     assertThat(fakeUi.getPhoneEmptyComponent().isVisible).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
+    assertThat(usageTracker.usages.last()!!.studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
+    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
   }
 
   @Test
@@ -149,6 +161,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(firstComponent).isNotNull()
       assertThat(secondComponent).isNull()
     }
+    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION)
   }
 
   @Test

@@ -24,6 +24,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.application.ApplicationManager
@@ -104,6 +105,14 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
         updateList(wearListPanel, model.wearList.get())
       }
     }
+  }
+
+  override fun onEntering() {
+    val eventType = if (model.selectedPhoneDevice.valueOrNull == null && model.selectedWearDevice.valueOrNull == null)
+      WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION
+    else
+      WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION
+    WearPairingUsageTracker.log(eventType)
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
