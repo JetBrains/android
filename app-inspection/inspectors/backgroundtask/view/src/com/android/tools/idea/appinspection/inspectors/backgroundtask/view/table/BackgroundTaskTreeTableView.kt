@@ -31,6 +31,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,6 +41,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
+import javax.swing.SwingConstants
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -70,6 +72,7 @@ val START_TIME_COMPARATOR = Comparator<DefaultMutableTreeNode> { o1, o2 ->
   ((o1.userObject as BackgroundTaskEntry).startTimeMs - (o2.userObject as BackgroundTaskEntry).startTimeMs).toInt()
 }
 
+val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
 
 /**
  * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
@@ -135,6 +138,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
     builder.addColumn(
       ColumnTreeBuilder.ColumnBuilder()
         .setName("Class")
+        .setHeaderAlignment(SwingConstants.LEFT)
+        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
         .setRenderer(object : ColoredTreeCellRenderer() {
           override fun customizeCellRenderer(tree: JTree,
                                              value: Any?,
@@ -156,6 +161,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
     builder.addColumn(
       ColumnTreeBuilder.ColumnBuilder()
         .setName("Status")
+        .setHeaderAlignment(SwingConstants.LEFT)
+        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
         .setRenderer(object : ColoredTreeCellRenderer() {
           override fun customizeCellRenderer(tree: JTree,
                                              value: Any?,
@@ -179,6 +186,8 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
     builder.addColumn(
       ColumnTreeBuilder.ColumnBuilder()
         .setName("Start")
+        .setHeaderAlignment(SwingConstants.LEFT)
+        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
         .setRenderer(object : ColoredTreeCellRenderer() {
           override fun customizeCellRenderer(tree: JTree,
                                              value: Any?,
