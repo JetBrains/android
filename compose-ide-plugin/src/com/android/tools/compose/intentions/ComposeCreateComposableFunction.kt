@@ -81,9 +81,13 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
     if (parentFunction.isComposableFunction()) {
       val functionInfo = createNewComposeFunctionInfo(unresolvedCall)
       if (functionInfo != null) {
-        return object : CreateCallableFromUsageFix<KtCallExpression>(unresolvedCall, listOf(functionInfo)) {
-          override fun getText() = ComposeBundle.message("create.composable.function") + " " + "'${callableInfos.first().name}'"
+        return CreateCallableFromUsageFix(unresolvedCall) {
+          listOf(functionInfo)
         }
+        // fixme-ank6:
+        //return object : CreateCallableFromUsageFix<KtCallExpression>(unresolvedCall, listOf(functionInfo)) {
+        //  override fun getText() = ComposeBundle.message("create.composable.function") + " " + "'${callableInfos.first().name}'"
+        //}
       }
     }
     return null

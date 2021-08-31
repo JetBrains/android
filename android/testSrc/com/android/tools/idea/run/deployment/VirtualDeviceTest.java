@@ -63,13 +63,13 @@ public final class VirtualDeviceTest {
 
   @Before
   public void activateIconLoader() {
-    IconManager.activate();
+    //IconManager.activate(); // fixme-ank6
     IconLoader.activate();
   }
 
   @After
   public void deactivateIconLoader() {
-    IconManager.deactivate();
+    //IconManager.deactivate();
     IconLoader.deactivate();
   }
 

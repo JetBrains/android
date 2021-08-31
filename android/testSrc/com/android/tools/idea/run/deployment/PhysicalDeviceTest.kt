@@ -49,13 +49,13 @@ class PhysicalDeviceTest {
 
   @Before
   fun activateIconLoader() {
-    IconManager.activate()
+    //IconManager.activate() // fixme-ank6
     IconLoader.activate()
   }
 
   @After
   fun deactivateIconLoader() {
-    IconManager.deactivate()
+    //IconManager.deactivate()
     IconLoader.deactivate()
   }
 
