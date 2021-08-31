@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 import javax.swing.JList;
 import javax.swing.JTable;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +91,7 @@ public class DeviceRenderer {
     if (avdName == null) {
       avdName = d.getSerialNumber();
     }
-    return String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
+    return String.format("%1$s %2$s ", "Emulator", avdName);
   }
 
   @NotNull

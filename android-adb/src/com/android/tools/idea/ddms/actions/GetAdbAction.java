@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.adb.AdbFileProvider;
 import com.android.tools.idea.adb.AdbService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -27,10 +28,10 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import org.jetbrains.annotations.Nullable;
 
 public class GetAdbAction extends AnAction {
   public GetAdbAction() {
@@ -40,7 +41,7 @@ public class GetAdbAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = getEventProject(e);
-    File adb = project == null ? null : AndroidSdkUtils.getAdb(project);
+    File adb = project == null ? null : getAdbFile(project);
     getTemplatePresentation().setEnabled(adb != null && adb.exists());
   }
 
@@ -48,7 +49,7 @@ public class GetAdbAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Notifications.Bus.notify(new Notification("Android", "ADB", "ADB requested.", NotificationType.INFORMATION));
     Project project = getEventProject(e);
-    File adb = project == null ? null : AndroidSdkUtils.getAdb(project);
+    File adb = project == null ? null : getAdbFile(project);
     if (adb == null) {
       return;
     }
@@ -65,5 +66,16 @@ public class GetAdbAction extends AnAction {
         Notifications.Bus.notify(new Notification("Android", "ADB", "ADB error: " + t.toString(), NotificationType.INFORMATION));
       }
     }, MoreExecutors.directExecutor());
+  }
+
+  @Nullable
+  private File getAdbFile(@NotNull Project project) {
+    AdbFileProvider provider = AdbFileProvider.fromProject(project);
+    if (provider != null) {
+      return provider.getAdbFile();
+    }
+    else {
+      return null;
+    }
   }
 }

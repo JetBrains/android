@@ -21,6 +21,11 @@
     <notificationGroup id="ADB Logs" displayType="NONE"/>
   </extensions>
 
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
+                    interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
+  </extensionPoints>
+
   <actions>
     <action id="Android.AdbDevicePairing"
             class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"
