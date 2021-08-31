@@ -34,6 +34,7 @@ import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +51,9 @@ class MemoryCaptureStageViewTest {
 
   private val transportService = FakeTransportService(myTimer)
   private val service = FakeMemoryService(transportService)
+
+  @get:Rule
+  val appRule = ApplicationRule()
 
   @Rule
   @JvmField
