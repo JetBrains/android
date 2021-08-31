@@ -42,6 +42,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
   private SystemImageDescription myJustDeprecatedApiImageDescription;
   private SystemImageDescription myPreviewApiImageDescription;
   private SystemImageDescription myUnknownApiImageDescription;
+  private SystemImageDescription myApiWithExtentionsImageDescriptions;
 
   @Override
   public void setUp() throws Exception {
@@ -99,10 +100,24 @@ public class SystemImageListModelTest extends AndroidTestCase {
     detailsUnknownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsUnknownApi.setApiLevel(99);
     // (Leaving codename null)
-    pkgUnknownApi.setTypeDetails((TypeDetails) detailsUnknownApi);
+    pkgUnknownApi.setTypeDetails((TypeDetails)detailsUnknownApi);
     fileOp.recordExistingFile(pkgUnknownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgKnownApi, pkgDeprecatedApi, pkgJustDeprecatedApi, pkgPreviewApi, pkgUnknownApi));
+    // Image that has extension level specified and is not the base SDK
+    String extentionsApiPath = "system-images;android-99-3;google_apis_playstore;x86";
+    FakePackage.FakeLocalPackage pkgExtensionsApi = new FakePackage.FakeLocalPackage(extentionsApiPath, fileOp);
+    DetailsTypes.SysImgDetailsType extensionsApi =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    extensionsApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
+    extensionsApi.setApiLevel(99);
+    extensionsApi.setBaseExtension(false);
+    extensionsApi.setExtensionLevel(3);
+
+    pkgExtensionsApi.setTypeDetails((TypeDetails)extensionsApi);
+    fileOp.recordExistingFile(pkgExtensionsApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(
+      ImmutableList.of(pkgKnownApi, pkgDeprecatedApi, pkgJustDeprecatedApi, pkgPreviewApi, pkgUnknownApi, pkgExtensionsApi));
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
@@ -122,12 +137,15 @@ public class SystemImageListModelTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(PreviewApiPath, progress).getLocation());
     ISystemImage unknownApiImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(unknownApiPath, progress).getLocation());
+    ISystemImage extensionsApiImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(extentionsApiPath, progress).getLocation());
 
     myKnownApiImageDescription = new SystemImageDescription(knownApiImage);
     myDeprecatedApiImageDescription = new SystemImageDescription(deprecatedApiImage);
     myJustDeprecatedApiImageDescription = new SystemImageDescription(justDeprecatedApiImage);
     myPreviewApiImageDescription = new SystemImageDescription(previewApiImage);
     myUnknownApiImageDescription = new SystemImageDescription(unknownApiImage);
+    myApiWithExtentionsImageDescriptions = new SystemImageDescription(extensionsApiImage);
   }
 
   public void testReleaseDisplayName() {
@@ -135,6 +153,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     assertEquals("Honeycomb (Deprecated)", SystemImageListModel.releaseDisplayName(myDeprecatedApiImageDescription));
     assertEquals("Zwieback-preview", SystemImageListModel.releaseDisplayName(myPreviewApiImageDescription));
     assertEquals("API 99", SystemImageListModel.releaseDisplayName(myUnknownApiImageDescription));
+    assertEquals("API 99 (Extension Level 3)", SystemImageListModel.releaseDisplayName(myApiWithExtentionsImageDescriptions));
 
     String justDeprecatedName = SystemImageListModel.releaseDisplayName(myJustDeprecatedApiImageDescription);
     assertTrue("'" + justDeprecatedName + "' should say '(Deprecated)'",

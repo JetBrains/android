@@ -705,10 +705,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (getModel().systemImage().get().isPresent()) {
       SystemImageDescription image = getModel().systemImage().getValue();
 
-      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getFeatureLevel());
+      AndroidVersion androidVersion = image.getVersion();
+      String codeName = SdkVersionInfo.getCodeName(androidVersion.getFeatureLevel());
       String displayName = codeName;
       if (displayName == null) {
-        displayName = image.getVersion().getCodename();
+        displayName = androidVersion.getCodename();
       }
       if (displayName == null) {
         displayName = "";
@@ -730,7 +731,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       mySystemImageName.setIcon(icon);
 
-      getModel().systemImageDetails().set(image.getName() + " " + image.getAbiType());
+      String descriptionLabel = image.getName() + " " + image.getAbiType();
+      if (!androidVersion.isBaseExtension() && androidVersion.getExtensionLevel() != null) {
+        descriptionLabel += " (Extension Level " + androidVersion.getExtensionLevel() + ")";
+      }
+      getModel().systemImageDetails().set(descriptionLabel);
       myAvdConfigurationOptionHelpPanel.setSystemImageDescription(image);
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
@@ -761,6 +766,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   @Nullable
   Icon getSystemImageIcon() {
     return mySystemImageName == null ? null : mySystemImageName.getIcon();
+  }
+
+  @NotNull
+  @VisibleForTesting
+  String getSystemImageDetailsText() {
+    return getModel().systemImageDetails().get();
   }
 
   private final ActionListener myToggleAdvancedSettingsListener = new ActionListener() {
