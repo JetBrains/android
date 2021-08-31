@@ -117,7 +117,7 @@ class EntryDetailsViewTest {
       assertThat(constraintsAtComponent.componentCount).isEqualTo(1)
       assertThat((constraintsAtComponent.getComponent(0) as JLabel).text).isEqualTo("Network must be connected")
       val frequencyComponent = executionPanel.getValueComponent("Frequency") as JLabel
-      assertThat(frequencyComponent.text).isEqualTo("One Time")
+      assertThat(frequencyComponent.text).isEqualTo("OneTime")
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Enqueued")
 
@@ -224,10 +224,54 @@ class EntryDetailsViewTest {
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
       val typeComponent = descriptionPanel.getValueComponent("Type") as JLabel
       assertThat(typeComponent.text).isEqualTo(alarmSet.type.name)
-      val intervalComponent = descriptionPanel.getValueComponent("Interval Time") as JLabel
+      val intervalComponent = descriptionPanel.getValueComponent("Interval time") as JLabel
       assertThat(intervalComponent.text).isEqualTo("5 s")
       val creatorComponent = descriptionPanel.getValueComponent("Creator") as JLabel
       assertThat(creatorComponent.text).isEqualTo("creator.package (UID: 100)")
+
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
+      assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+    }
+
+    client.sendBackgroundTaskEvent(10000) {
+      taskId = 1
+      alarmFiredBuilder.build()
+    }
+
+    withContext(uiDispatcher) {
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
+      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
+      assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+    }
+  }
+
+  @Test
+  fun alarmEntryWithListenerSelected() = runBlocking {
+    val event = client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      alarmSetBuilder.apply {
+        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+        intervalMs = 5000
+        listenerBuilder.apply {
+          tag = "tag"
+        }
+      }
+    }
+    val alarmSet = event.backgroundTaskEvent.alarmSet
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry("1")
+
+      val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
+      val typeComponent = descriptionPanel.getValueComponent("Type") as JLabel
+      assertThat(typeComponent.text).isEqualTo(alarmSet.type.name)
+      val intervalComponent = descriptionPanel.getValueComponent("Interval time") as JLabel
+      assertThat(intervalComponent.text).isEqualTo("5 s")
+      val creatorComponent = descriptionPanel.getValueComponent("Listener tag") as JLabel
+      assertThat(creatorComponent.text).isEqualTo("tag")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
@@ -317,7 +361,7 @@ class EntryDetailsViewTest {
       val constraintsComponent = executionPanel.getValueComponent("Constraints") as JPanel
       assertThat(constraintsComponent.getValueComponent("Network must be metered")).isNotNull()
       val frequencyComponent = executionPanel.getValueComponent("Frequency") as JLabel
-      assertThat(frequencyComponent.text).isEqualTo("One Time")
+      assertThat(frequencyComponent.text).isEqualTo("OneTime")
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("SCHEDULED")
 

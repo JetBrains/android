@@ -119,13 +119,13 @@ class EntryDetailsView(
 
     val descriptions = mutableListOf(buildKeyValuePair("Type", alarmSet.type))
     if (alarmSet.intervalMs > 0) {
-      descriptions.add(buildKeyValuePair("Interval Time", StringUtil.formatDuration(alarmSet.intervalMs)))
+      descriptions.add(buildKeyValuePair("Interval time", StringUtil.formatDuration(alarmSet.intervalMs)))
     }
     if (alarmSet.windowMs > 0) {
-      descriptions.add(buildKeyValuePair("Window Time", StringUtil.formatDuration(alarmSet.windowMs)))
+      descriptions.add(buildKeyValuePair("Window time", StringUtil.formatDuration(alarmSet.windowMs)))
     }
     if (alarmSet.hasListener()) {
-      descriptions.add(buildKeyValuePair("Listener Tag", alarmSet.listener.tag))
+      descriptions.add(buildKeyValuePair("Listener tag", alarmSet.listener.tag))
     }
     if (alarmSet.hasOperation()) {
       val operation = alarmSet.operation
@@ -178,7 +178,7 @@ class EntryDetailsView(
 
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
       buildKeyValuePair("Constraints", job, JobConstraintProvider),
-      buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "One Time"),
+      buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
       buildKeyValuePair("State", jobEntry.status)
     )))
 
@@ -189,7 +189,7 @@ class EntryDetailsView(
         results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
         results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - jobEntry.startTimeMs)))
         if (latestEvent.backgroundTaskEvent.hasJobFinished()) {
-          results.add(buildKeyValuePair("Needs Reschedule", latestEvent.backgroundTaskEvent.jobFinished.needsReschedule))
+          results.add(buildKeyValuePair("Needs reschedule", latestEvent.backgroundTaskEvent.jobFinished.needsReschedule))
         }
         if (latestEvent.backgroundTaskEvent.hasJobStopped()) {
           results.add(buildKeyValuePair("Reschedule", latestEvent.backgroundTaskEvent.jobStopped.reschedule))
@@ -218,7 +218,7 @@ class EntryDetailsView(
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
       buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope)),
       buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
-      buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "One Time"),
+      buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
       buildKeyValuePair("State", work.state, StateProvider)
     )))
 
