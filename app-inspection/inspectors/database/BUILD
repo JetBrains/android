@@ -35,13 +35,21 @@ iml_module(
 iml_module(
     name = "app-inspection.inspectors.database.tests",
     iml_files = ["app-inspection.inspectors.database.tests.iml"],
+    split_test_targets = {
+        "SqliteCliClientTest": {
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.sqlite.cli.SqliteCliClientTest",
+        },
+        "ExportToFileDialogTest": {
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
-    # b/182573662 tests disabled due to flaky failures
-    test_tags = [
-        "no_test_windows",
-    ],
+    test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/.idea/libraries:sqlite"],
