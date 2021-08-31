@@ -40,10 +40,12 @@ import com.intellij.openapi.module.Module
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.gradle.get
 import java.lang.reflect.Field
 import java.util.Arrays
 import java.util.Comparator
 import java.util.EnumMap
+import java.util.concurrent.atomic.AtomicLong
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
@@ -53,6 +55,7 @@ private const val FIRST_PACKAGE_ID: Byte = 0x02
 class ResourceIdManager private constructor(val module: Module) : ResourceClassGenerator.NumericIdProvider {
 
   private val facet = AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
+  private var generationCounter = 1L
 
   companion object {
     @JvmStatic
@@ -178,10 +181,14 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
 
   @Synchronized
   fun resetDynamicIds() {
+    generationCounter++
     resetProviders()
     dynamicToIdMap.clear()
     dynamicFromIdMap.clear()
   }
+
+  @Synchronized
+  override fun getGeneration(): Long = generationCounter
 
   @Synchronized
   fun loadCompiledIds(klass: Class<*>) {

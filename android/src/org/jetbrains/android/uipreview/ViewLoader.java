@@ -516,8 +516,6 @@ public class ViewLoader {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
         }
-
-        idManager.resetDynamicIds();
       }
       else {
         if (LOG.isDebugEnabled()) {
