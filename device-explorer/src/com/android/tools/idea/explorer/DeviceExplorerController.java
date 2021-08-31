@@ -21,7 +21,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.adb.AdbFileProvider;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;

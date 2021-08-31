@@ -18,8 +18,8 @@ package com.android.tools.idea.explorer;
 import static com.android.tools.idea.explorer.ExecutorUtil.executeInWriteSafeContextWithAnyModality;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.device.fs.DeviceFileId;
-import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.explorer.fs.DeviceFileId;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;

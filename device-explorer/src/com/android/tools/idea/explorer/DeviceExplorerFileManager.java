@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.ServiceManager;

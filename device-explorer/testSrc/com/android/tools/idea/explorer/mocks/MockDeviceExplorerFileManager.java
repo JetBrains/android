@@ -16,7 +16,7 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
 import com.android.tools.idea.FutureValuesTracker;

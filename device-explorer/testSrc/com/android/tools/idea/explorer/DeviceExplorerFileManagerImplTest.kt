@@ -17,7 +17,7 @@ package com.android.tools.idea.explorer
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.explorer.fs.DownloadProgress
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
