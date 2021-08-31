@@ -72,9 +72,16 @@ public class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
   interface NumericIdProvider {
+    /**
+     * Counter that tracks when the provider has been reset. This counter will be increased in every reset.
+     * If the ids returned by {@link #getOrGenerateId(ResourceReference)} are being cached, they must be invalidated when
+     * the generation changes.
+     */
+    long getGeneration();
     int getOrGenerateId(@NotNull ResourceReference resourceReference);
   }
 
+  private long myIdGeneratorGeneration = -1L;
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
   private Map<String, TIntArrayList> myStyleableCache;
@@ -125,8 +132,11 @@ public class ResourceClassGenerator {
       }
 
       cw.visitInnerClass(className, className.substring(0, index), typeName, ACC_PUBLIC + ACC_FINAL + ACC_STATIC);
-      if (myCache == null) {
+      long currentIdGeneration = myIdProvider.getGeneration();
+      if (myIdGeneratorGeneration != currentIdGeneration || myCache == null) {
         myCache = Maps.newHashMap();
+        myStyleableCache = null;
+        myIdGeneratorGeneration = currentIdGeneration;
       }
       if (type == ResourceType.STYLEABLE) {
         if (myStyleableCache == null) {

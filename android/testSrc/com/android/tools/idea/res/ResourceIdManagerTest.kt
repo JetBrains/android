@@ -36,6 +36,7 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testDynamicIds() {
+    val initialGeneration = idManager.generation
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     assertNotNull(stringId)
     val styleId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
@@ -48,10 +49,14 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"), idManager.findById(styleId))
     assertEquals(layoutId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout")))
     assertEquals(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"), idManager.findById(layoutId))
+    assertEquals("Generation must be constant if no calls to resetDynamicIds happened", initialGeneration, idManager.generation)
   }
 
   fun testResetDynamicIds() {
+    var lastGeneration = idManager.generation
     idManager.resetDynamicIds()
+    assertNotEquals(lastGeneration, idManager.generation)
+    lastGeneration = idManager.generation
 
     val id1 = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string1"))
     val id2 = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string2"))
@@ -61,6 +66,7 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertNotEquals(id2, id3)
 
     idManager.resetDynamicIds()
+    assertNotEquals(lastGeneration, idManager.generation)
 
     // They should be all gone now.
     assertNull(idManager.findById(id1))
