@@ -73,7 +73,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.UpdateTransitionLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.update.transition.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -81,7 +81,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
