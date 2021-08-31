@@ -39,6 +39,7 @@ public class ArtTraceParser implements TraceParser {
     Range range = new Range(
       myTraceHandler.getStartTimeUs(),
       myTraceHandler.getStartTimeUs() + myTraceHandler.getElapsedTimeUs());
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.ART, range, myTraceHandler.getThreadsGraph());
+    // ART traces always support dual clock mode.
+    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
   }
 }

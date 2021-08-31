@@ -26,7 +26,6 @@ import com.android.tools.adtui.model.formatter.PercentAxisFormatter;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is the base model for any {@link CpuAnalysisTabModel}'s that are backed by a {@link CaptureDetails}.
@@ -127,6 +127,11 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
 
   public boolean isCaptureDualClock() {
     return myCapture.isDualClock();
+  }
+
+  @Nullable
+  public String getDualClockDisabledMessage() {
+    return myCapture.getDualClockDisabledMessage();
   }
 
   @NotNull

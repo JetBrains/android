@@ -45,7 +45,8 @@ class BaseCpuCaptureTest {
         addChild(CaptureNode(SingleNameModel("bar")))
       }
     )
-    val capture = BaseCpuCapture(42, Cpu.CpuTraceType.SIMPLEPERF, Range(0.0, 1.0), captureTrees, setOf(PathFilter.Literal("path")))
+    val capture = BaseCpuCapture(42, Cpu.CpuTraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
+                                 setOf(PathFilter.Literal("path")))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
     capture.setHideNodesFromPaths(setOf(PathFilter.Literal("path")))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data !is NoSymbolModel)

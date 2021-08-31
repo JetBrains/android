@@ -127,6 +127,9 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       value == ClockType.GLOBAL ? "Wall Clock Time" :
       value == ClockType.THREAD ? "Thread Time" : ""));
     clockTypeSelector.setEnabled(getModel().isCaptureDualClock());
+    if (!getModel().isCaptureDualClock()) {
+      clockTypeSelector.setToolTipText(getModel().getDualClockDisabledMessage());
+    }
 
     JLabel helpIcon = new JLabel(StudioIcons.Common.HELP);
     HelpTooltip helpTooltip = new HelpTooltip()
