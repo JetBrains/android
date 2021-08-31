@@ -162,7 +162,7 @@ class EntryDetailsView(
       results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
       results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - wakeLock.startTimeMs)))
     }
-    detailsPanel.add(buildCategoryPanel("Execution", results))
+    detailsPanel.add(buildCategoryPanel("Results", results))
 
     detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Wake lock acquired", "Wake lock released"))
   }
@@ -172,9 +172,8 @@ class EntryDetailsView(
 
     val descriptions = mutableListOf(
       buildKeyValuePair("Service", job.serviceName, ClassNameProvider(ideServices, client.scope)),
-      buildKeyValuePair("Tags", jobEntry.tags, StringListProvider)
     )
-    jobEntry.targetWorkId?.let { uuid -> buildKeyValuePair("UUID", uuid) }
+    jobEntry.targetWorkId?.let { uuid -> descriptions.add(buildKeyValuePair("UUID", uuid)) }
     detailsPanel.add(buildCategoryPanel("Description", descriptions))
 
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
@@ -271,14 +270,16 @@ class EntryDetailsView(
 
   private fun ScrollablePanel.addStackTraceViews(traces: List<String>, labels: List<String>) {
     (labels zip traces).forEachIndexed { i, pair ->
-      when (i) {
-        0 -> {
-          stackTraceView1.updateTrace(pair.second)
-          add(buildCategoryPanel(pair.first, listOf(stackTraceView1.component)))
-        }
-        1 -> {
-          stackTraceView2.updateTrace(pair.second)
-          add(buildCategoryPanel(pair.first, listOf(stackTraceView2.component)))
+      if (pair.second.isNotEmpty()) {
+        when (i) {
+          0 -> {
+            stackTraceView1.updateTrace(pair.second)
+            add(buildCategoryPanel(pair.first, listOf(stackTraceView1.component)))
+          }
+          1 -> {
+            stackTraceView2.updateTrace(pair.second)
+            add(buildCategoryPanel(pair.first, listOf(stackTraceView2.component)))
+          }
         }
       }
     }
