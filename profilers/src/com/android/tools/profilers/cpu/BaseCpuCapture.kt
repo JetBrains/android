@@ -23,8 +23,8 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
-import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
+import com.google.common.annotations.VisibleForTesting
 import java.util.regex.Pattern
 
 open class BaseCpuCapture @JvmOverloads constructor(/**
@@ -35,9 +35,25 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
                                                      * Technology used to generate the capture.
                                                      */
                                                     private val type: CpuTraceType,
+                                                    /**
+                                                     * Whether this trace supports dual clock timing info.
+                                                     */
+                                                    private val dualClock: Boolean,
+                                                    /**
+                                                     * User-facing string when this trace doesn't supports dual clock
+                                                     */
+                                                    private val dualClockMessage: String?,
                                                     range: Range,
                                                     captureTrees: Map<CpuThreadInfo, CaptureNode>,
                                                     private val hidablePaths: Set<PathFilter> = setOf()) : CpuCapture {
+  @VisibleForTesting
+  constructor(traceId: Long,
+              type: CpuTraceType,
+              range: Range,
+              captureTrees: Map<CpuThreadInfo, CaptureNode>) :
+    this(traceId, type, true, null, range, captureTrees) {
+  }
+
   private val availableThreads: Set<CpuThreadInfo>
   private val threadIdToNode: Map<Int, CaptureNode>
   private val mainThreadId: Int
@@ -88,10 +104,8 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
     }
   }
 
-  // It would be better if we have this type of information embedded in the enum
-  // but the enum comes from a proto definition for now.
-  // Right now, the only trace technology that supports dual clock is ART.
-  override fun isDualClock() = type == CpuTraceType.ART
+  override fun isDualClock() = dualClock
+  override fun getDualClockDisabledMessage() = dualClockMessage
   override fun getType() = type
 
   override fun setHideNodesFromPaths(pathsToHide: Set<PathFilter>) {

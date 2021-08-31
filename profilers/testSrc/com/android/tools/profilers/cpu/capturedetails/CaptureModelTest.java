@@ -77,7 +77,8 @@ public class CaptureModelTest {
     CpuThreadInfo info = new CpuThreadInfo(101, "main");
     Range range = new Range(0, 30);
 
-    CpuCapture globalOnlyCapture = new BaseCpuCapture(200, Cpu.CpuTraceType.ATRACE, range, ImmutableMap.of(info, root));
+    CpuCapture globalOnlyCapture = new BaseCpuCapture(200, Cpu.CpuTraceType.ATRACE, false, null, range,
+                                                      ImmutableMap.of(info, root));
     CpuCapture dualCapture1 = new BaseCpuCapture(200, Cpu.CpuTraceType.ART, range, ImmutableMap.of(info, root));
     CpuCapture dualCapture2 = new BaseCpuCapture(200, Cpu.CpuTraceType.ART, range, ImmutableMap.of(info, root));
     myModel.setCapture(globalOnlyCapture);

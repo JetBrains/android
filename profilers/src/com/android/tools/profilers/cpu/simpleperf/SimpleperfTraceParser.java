@@ -75,6 +75,22 @@ public class SimpleperfTraceParser implements TraceParser {
   private static final String DATA_APP_DIR = "/data/app";
 
   /**
+   * The name of the event that should be used in simpleperf record command to support thread time.
+   * <p>
+   * Older versions of Android Studio used "cpu-cycles" which may have a better sampling cadence because it's
+   * hardware based. However, CPU cycles are harder to correlate to wall clock time. Therefore, we support thread
+   * time only if "cpu-clock" is used.
+   */
+  private static final String CPU_CLOCK_EVENT = "cpu-clock";
+
+  /**
+   * The message to surface to the user when dual clock isn't supported.
+   */
+  private static final String DUAL_CLOCK_DISABLED_MESSAGE =
+    "This imported trace supports Wall Clock Time only.<p>" +
+    "To view Thread Time, take a new recording using the latest version of Android Studio.";
+
+  /**
    * Version of the trace file to be parsed. Should be obtained from the file itself.
    */
   private int myTraceVersion;
@@ -108,6 +124,11 @@ public class SimpleperfTraceParser implements TraceParser {
    * Number of samples lost when recording the trace.
    */
   private long myLostSampleCount;
+
+  /**
+   * The ID (i.e., index) of the {@link CPU_CLOCK_EVENT} (i.e., "cpu-clock") event in {@link myEventTypes}.
+   */
+  private int myCpuClockEventTypeId = -1;
 
   /**
    * Capture range in absolute time, measured in microseconds.
@@ -186,7 +207,9 @@ public class SimpleperfTraceParser implements TraceParser {
       String prefix = Arrays.stream(COMMON_PATH_PREFIXES).filter(path::startsWith).findFirst().orElse(null);
       pathFilters.add(prefix != null ? new PathFilter.Prefix(prefix) : new PathFilter.Literal(path));
     }
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, myCaptureRange, getCaptureTrees(), pathFilters);
+    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF,
+                              isThreadTimeSupported(), isThreadTimeSupported() ? null : DUAL_CLOCK_DISABLED_MESSAGE,
+                              myCaptureRange, getCaptureTrees(), pathFilters);
   }
 
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
@@ -201,10 +224,18 @@ public class SimpleperfTraceParser implements TraceParser {
     return mySampleCount;
   }
 
+  /**
+   * @return whether this trace supports thread time. This is equivalent to supporting dual clock because simpleperf
+   *         traces always support wall clock time (ClockType.GLOBAL).
+   */
+  private boolean isThreadTimeSupported() {
+    return myCpuClockEventTypeId >= 0;
+  }
+
   @NotNull
-  private static CaptureNode createCaptureNode(CaptureNodeModel model, long timestamp) {
+  private static CaptureNode createCaptureNode(CaptureNodeModel model, long startGlobalNs, long startThreadNs) {
     CaptureNode node = new CaptureNode(model, ClockType.GLOBAL);
-    setNodeStartTime(node, timestamp);
+    setNodeStartTime(node, startGlobalNs, startThreadNs);
     node.setDepth(0);
     return node;
   }
@@ -277,6 +308,8 @@ public class SimpleperfTraceParser implements TraceParser {
       // TODO: create a trace file to test this exception is thrown when it should.
       throw new IllegalStateException("Samples count doesn't match the number of samples read.");
     }
+
+    myCpuClockEventTypeId = myEventTypes.indexOf(CPU_CLOCK_EVENT);
   }
 
   /**
@@ -335,16 +368,14 @@ public class SimpleperfTraceParser implements TraceParser {
     return threadSamples;
   }
 
-  // TODO: support thread time
-  private static void setNodeEndTime(CaptureNode node, long endTimeNs) {
-    node.setEndGlobal(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
-    node.setEndThread(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
+  private static void setNodeStartTime(CaptureNode node, long startGlobalNs, long startThreadNs) {
+    node.setStartGlobal(TimeUnit.NANOSECONDS.toMicros(startGlobalNs));
+    node.setStartThread(TimeUnit.NANOSECONDS.toMicros(startThreadNs));
   }
 
-  // TODO: support thread time
-  private static void setNodeStartTime(CaptureNode node, long startTimeNs) {
-    node.setStartGlobal(TimeUnit.NANOSECONDS.toMicros(startTimeNs));
-    node.setStartThread(TimeUnit.NANOSECONDS.toMicros(startTimeNs));
+  private static void setNodeEndTime(CaptureNode node, long endGlobalNs, long endThreadNs) {
+    node.setEndGlobal(TimeUnit.NANOSECONDS.toMicros(endGlobalNs));
+    node.setEndThread(TimeUnit.NANOSECONDS.toMicros(endThreadNs));
   }
 
   /**
@@ -362,15 +393,20 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
+    // Align the start of each thread's thread time to the start of wall-clock start time, to comply with the logic
+    // that synchronizes the two clocks in CpuAnalysisChartModel, similar to adjustNodesTimeAndDepth() in
+    // ArtTraceHandler.
+    long threadTimeNs = firstTimestamp;
     SimpleperfReport.Thread thread = myThreads.get(threadId);
-    CaptureNode root = createCaptureNode(new SingleNameModel(thread.getThreadName()), firstTimestamp);
+    CaptureNode root = createCaptureNode(new SingleNameModel(thread.getThreadName()), firstTimestamp, threadTimeNs);
     root.setDepth(0);
     myCaptureTrees.put(new CpuThreadInfo(threadId, thread.getThreadName(), threadId == thread.getProcessId()), root);
 
     // Parse the first call chain so we have a value for lastCallchain
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = Lists.reverse(threadSamples.get(0).getCallchainList());
     // Node used to traverse the tree. In the first traversal we pass an empty list as previous call chain and root as last visited node.
-    CaptureNode lastVisitedNode = parseCallChain(previousCallChain, Collections.emptyList(), threadSamples.get(0).getTime(), root);
+    CaptureNode lastVisitedNode = parseCallChain(previousCallChain, Collections.emptyList(), firstTimestamp,
+                                                 threadTimeNs, root);
 
     // Now parse all the rest of the samples collected for this thread
     for (int i = 1; i < threadSamples.size(); i++) {
@@ -378,40 +414,45 @@ public class SimpleperfTraceParser implements TraceParser {
       // Reverse the call chain order because simpleperf returns the call chains ordered from leaf to root,
       // so reversing it makes the traversal easier.
       List<SimpleperfReport.Sample.CallChainEntry> callChain = Lists.reverse(sample.getCallchainList());
+      // A sample may be triggered by the when the thread is scheduled off the CPU, if --trace-offcpu is used
+      // while collecting the trace.
+      if (isThreadTimeSupported() && sample.getEventTypeId() == myCpuClockEventTypeId) {
+        threadTimeNs += sample.getEventCount();
+      }
       // TODO: when --trace-offcpu is supported, we will need to call updateAncestorsEndTime if sample has a "schedule" out event.
-      lastVisitedNode = parseCallChain(callChain, previousCallChain, sample.getTime(), lastVisitedNode);
+      lastVisitedNode = parseCallChain(callChain, previousCallChain, sample.getTime(), threadTimeNs, lastVisitedNode);
       previousCallChain = callChain;
     }
 
     // Finally, update the end timestamp of the nodes in the last sample of the thread, which should be the last sample's timestamp.
     // TODO: when --trace-offcpu is supported, we need to check if the last sample has a "schedule" out event before updating the end time.
     long lastTimestamp = mySamples.get(mySamples.size() - 1).getTime();
-    updateAncestorsEndTime(lastTimestamp, lastVisitedNode);
+    updateAncestorsEndTime(lastTimestamp, threadTimeNs, lastVisitedNode);
     // update the root timestamp
-    setNodeEndTime(root, lastTimestamp);
+    setNodeEndTime(root, lastTimestamp, threadTimeNs);
   }
 
   /**
    * Updates the end timestamp of a node and all its ancestors except the root.
    */
-  private static void updateAncestorsEndTime(long endTimestamp, CaptureNode lastVisited) {
+  private static void updateAncestorsEndTime(long globalTimeNs, long threadTimeNs, CaptureNode lastVisited) {
     CaptureNode node = lastVisited;
     while (node.getParent() != null && node.getEnd() == 0) {
-      setNodeEndTime(node, endTimestamp);
+      setNodeEndTime(node, globalTimeNs, threadTimeNs);
       node = node.getParent();
       assert node != null;
     }
   }
 
   /**
-   * Given a {@link SimpleperfReport.Sample.CallChainEntry} and the previous one, add the new method calls as nodes to the tree and set
-   * their start time to the given timestamp. Also, check which methods are not on the call chain anymore and update their end time.
-   * Receives a {@link CaptureNode} as a starting point to traverse the tree when adding new nodes or visiting existing ones. Returns the
-   * last visited node.
+   * Given a {@link SimpleperfReport.Sample.CallChainEntry} and the previous one, add the new method calls as nodes to
+   * the tree and set their start time to the given timestamps (GLOBAL and THREAD). Also, check which methods are not
+   * on the call chain anymore and update their end time. Receives a {@link CaptureNode} as a starting point to
+   * traverse the tree when adding new nodes or visiting existing ones. Returns the last visited node.
    */
   private CaptureNode parseCallChain(List<SimpleperfReport.Sample.CallChainEntry> callChain,
                                      List<SimpleperfReport.Sample.CallChainEntry> previousCallChain,
-                                     long sampleTimestamp, CaptureNode lastVisitedNode) {
+                                     long globalTimeNs, long threadTimeNs, CaptureNode lastVisitedNode) {
     // Node used to traverse the tree when adding new nodes or going up to find the divergent node ancestor.
     CaptureNode traversalNode = lastVisitedNode;
 
@@ -425,12 +466,12 @@ public class SimpleperfTraceParser implements TraceParser {
     // If there is a divergence, we update the end time of the traversal node and go up in the tree until we find the divergent node parent.
     if (divergenceIndex < previousCallChain.size()) {
       int divergenceCount = previousCallChain.size() - divergenceIndex;
-      traversalNode = findDivergenceAndUpdateEndTime(divergenceCount, sampleTimestamp, traversalNode);
+      traversalNode = findDivergenceAndUpdateEndTime(divergenceCount, globalTimeNs, threadTimeNs, traversalNode);
     }
 
     // We add the new nodes (if any) present in the new call chain as descendants of the parent of the first divergent node.
     if (divergenceIndex < callChain.size()) {
-      traversalNode = addNewNodes(callChain, traversalNode, divergenceIndex, sampleTimestamp);
+      traversalNode = addNewNodes(callChain, traversalNode, divergenceIndex, globalTimeNs, threadTimeNs);
     }
 
     // Finally, return the traversal node.
@@ -441,10 +482,11 @@ public class SimpleperfTraceParser implements TraceParser {
    * Updates the end timestamp of a given node and go up in the tree N times, where N is the divergence count passed as an argument.
    * Returns the parent of the last visited node, meaning nodes that we have changed the end time.
    */
-  private static CaptureNode findDivergenceAndUpdateEndTime(int divergenceCount, long endTimestamp, CaptureNode node) {
+  private static CaptureNode findDivergenceAndUpdateEndTime(int divergenceCount, long endGlobalNs, long endThreadNs,
+                                                            CaptureNode node) {
     for (int i = 0; i < divergenceCount; i++) {
       assert node != null;
-      setNodeEndTime(node, endTimestamp);
+      setNodeEndTime(node, endGlobalNs, endThreadNs);
       node = node.getParent();
     }
 
@@ -456,12 +498,13 @@ public class SimpleperfTraceParser implements TraceParser {
    * Returns the last visited (added) node.
    */
   private CaptureNode addNewNodes(List<SimpleperfReport.Sample.CallChainEntry> callChain,
-                                  CaptureNode node, int startIndex, long startTimestamp) {
+                                  CaptureNode node, int startIndex, long startGlobalNs, long startThreadNs) {
     assert node != null;
     for (int i = startIndex; i < callChain.size(); i++) {
       // Get the parent function vAddress. That corresponds to the line of the parent function where the current function is called.
       long parentVAddress = i > 0 ? callChain.get(i - 1).getVaddrInFile() : -1;
-      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i), parentVAddress), startTimestamp);
+      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i), parentVAddress),
+                                            startGlobalNs, startThreadNs);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
       node = child;

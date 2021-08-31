@@ -69,7 +69,8 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
                                @NotNull SystemTraceFrameManager frameManager,
                                @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager,
                                @NotNull Range initialViewRangeUs) {
-    super(traceId, model.getSystemTraceTechnology(),
+    // System Traces don't support dual clock.
+    super(traceId, model.getSystemTraceTechnology(), false, null,
           new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()),
           captureNodes);
 

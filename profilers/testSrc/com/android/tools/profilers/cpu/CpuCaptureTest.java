@@ -209,15 +209,20 @@ public class CpuCaptureTest {
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ART);
     assertThat(capture.isDualClock()).isTrue();
 
-    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, range, captureTrees);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, true, null, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
+    assertThat(capture.isDualClock()).isTrue();
+
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, false, "fake message", range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
     assertThat(capture.isDualClock()).isFalse();
+    assertThat(capture.getDualClockDisabledMessage()).isEqualTo("fake message");
 
-    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.ATRACE, range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ATRACE);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.PERFETTO, false, null, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.PERFETTO);
     assertThat(capture.isDualClock()).isFalse();
 
-    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE, false, null, range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.isDualClock()).isFalse();
   }
