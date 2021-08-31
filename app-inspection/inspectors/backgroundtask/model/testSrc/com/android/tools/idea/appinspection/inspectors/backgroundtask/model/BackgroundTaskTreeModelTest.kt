@@ -107,7 +107,7 @@ class BackgroundTaskTreeModelTest {
     assertThat(root.childCount).isEqualTo(4)
     val workChild = root.firstChild as DefaultMutableTreeNode
     assertThat(workChild.childCount).isEqualTo(1)
-    assertThat(workChild.userObject).isEqualTo("Works")
+    assertThat(workChild.userObject).isEqualTo("Workers")
     assertThat(workChild.firstChild as DefaultMutableTreeNode).isEqualTo(model.getTreeNode("test"))
     val jobChild = root.getChildAfter(workChild) as DefaultMutableTreeNode
     assertThat(jobChild.childCount).isEqualTo(1)
@@ -139,7 +139,7 @@ class BackgroundTaskTreeModelTest {
     assertThat(root.childCount).isEqualTo(4)
     val workChild = root.firstChild as DefaultMutableTreeNode
     assertThat(workChild.childCount).isEqualTo(1)
-    assertThat(workChild.userObject).isEqualTo("Works")
+    assertThat(workChild.userObject).isEqualTo("Workers")
     entryNode = workChild.firstChild as DefaultMutableTreeNode
     assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
 
@@ -150,7 +150,7 @@ class BackgroundTaskTreeModelTest {
     }.build()
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, removeWorkEvent.toByteArray()))
 
-    assertThat(entryNode?.parent).isNull()
+    assertThat(entryNode.parent).isNull()
     assertThat(model.getTreeNode("test")).isNull()
   }
 }

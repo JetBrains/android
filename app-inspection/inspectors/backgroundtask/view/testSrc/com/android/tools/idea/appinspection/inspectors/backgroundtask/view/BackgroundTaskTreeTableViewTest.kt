@@ -86,7 +86,7 @@ class BackgroundTaskTreeTableView {
     val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
     val root = tree.model.root
     val labels = (root as DefaultMutableTreeNode).children().toList().map { (it as DefaultMutableTreeNode).userObject as String }
-    assertThat(labels.joinToString()).isEqualTo("Works, Jobs, Alarms, WakeLocks")
+    assertThat(labels.joinToString()).isEqualTo("Workers, Jobs, Alarms, WakeLocks")
   }
 
   @Test

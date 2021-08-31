@@ -56,7 +56,7 @@ class BackgroundTaskTreeModel(
 
   init {
     val mutableRoot = root as DefaultMutableTreeNode
-    val worksNode = DefaultMutableTreeNode("Works")
+    val worksNode = DefaultMutableTreeNode("Workers")
     val jobsNode = DefaultMutableTreeNode("Jobs")
     val alarmsNode = DefaultMutableTreeNode("Alarms")
     val wakesNode = DefaultMutableTreeNode("WakeLocks")

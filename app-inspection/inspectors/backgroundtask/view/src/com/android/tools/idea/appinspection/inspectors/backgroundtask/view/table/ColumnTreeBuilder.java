@@ -91,19 +91,19 @@ public class ColumnTreeBuilder {
   @NotNull
   private final JTree myTree;
   @NotNull
-  private ColumnTreeCellRenderer myCellRenderer;
-  @NotNull
   private final JTable myTable;
   @NotNull
   private final DefaultTableModel myTableModel;
   @NotNull
   private final ColumnTreeScrollPanel myHScrollBarPanel;
+  @NotNull
+  private final List<ColumnBuilder> myColumnBuilders;
+  @NotNull
+  private ColumnTreeCellRenderer myCellRenderer;
   @Nullable
   private TreeCellRenderer myCustomRenderer;
   @Nullable
   private TreeSorter myTreeSorter;
-  @NotNull
-  private final List<ColumnBuilder> myColumnBuilders;
   @Nullable
   private Border myBorder;
   @Nullable
@@ -523,9 +523,9 @@ public class ColumnTreeBuilder {
     @NotNull private final Color myHoverColor;
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
     @Nullable private final JTable myTable;
+    private final ArrayList<Integer> myTreeWidths = new ArrayList<>();
     private int myWidth = -1;
     private int myTreeColumnWidth = -1;
-    private final ArrayList<Integer> myTreeWidths = new ArrayList<>();
     private ChangeListener stateChangeListener;
 
     ColumnTreeUI() {
