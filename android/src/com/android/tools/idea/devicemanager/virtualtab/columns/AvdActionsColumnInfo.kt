@@ -44,11 +44,6 @@ class AvdActionsColumnInfo(
   private val ourActionPanelRendererEditor = hashMapOf<AvdInfo?, ActionRenderer?>()
   override fun valueOf(avdInfo: AvdInfo): AvdInfo = avdInfo
 
-  /**
-   * We override the comparator here so that we can sort by healthy vs not healthy AVDs
-   */
-  override fun getComparator(): java.util.Comparator<AvdInfo> = Comparator { o1, o2 -> o1.status.compareTo(o2.status) }
-
   override fun getRenderer(avdInfo: AvdInfo): TableCellRenderer = getComponent(avdInfo)
 
   fun getComponent(avdInfo: AvdInfo?): ActionRenderer {
