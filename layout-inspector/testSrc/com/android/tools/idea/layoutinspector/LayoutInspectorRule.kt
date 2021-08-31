@@ -107,7 +107,8 @@ class LegacyClientProvider(
   private val parentDisposable: Disposable, private val treeLoaderOverride: LegacyTreeLoader? = null
 ) : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    return LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, parentDisposable, treeLoaderOverride)
+    return LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
+                        parentDisposable, treeLoaderOverride)
   }
 }
 

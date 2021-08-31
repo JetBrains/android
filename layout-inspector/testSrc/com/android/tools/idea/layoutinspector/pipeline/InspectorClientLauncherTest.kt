@@ -44,7 +44,7 @@ class InspectorClientLauncherTest {
 
   private open class FakeInspectorClient(
     val name: String, process: ProcessDescriptor, parentDisposable: Disposable
-  ) : AbstractInspectorClient(process, parentDisposable) {
+  ) : AbstractInspectorClient(process, isInstantlyAutoConnected = false, parentDisposable) {
 
     override fun startFetching() = throw NotImplementedError()
     override fun stopFetching() = throw NotImplementedError()

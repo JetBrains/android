@@ -65,13 +65,13 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.adb, params.process, model, stats, parentDisposable)
+              AppInspectionInspectorClient(params.adb, params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable)
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.adb, params.process, model, stats, parentDisposable) }
+          { params -> LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable) }
         ),
         parentDisposable)
     }
@@ -80,12 +80,13 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
   interface Params {
     val adb: AndroidDebugBridge
     val process: ProcessDescriptor
+    val isInstantlyAutoConnected: Boolean
     val disposable: Disposable
   }
 
   init {
     processes.addSelectedProcessListeners(executor) {
-      handleProcess(processes.selectedProcess)
+      handleProcess(processes.selectedProcess, processes.isAutoConnected)
     }
 
     Disposer.register(parentDisposable) {
@@ -93,12 +94,13 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
     }
   }
 
-  private fun handleProcess(process: ProcessDescriptor?) {
+  private fun handleProcess(process: ProcessDescriptor?, isInstantlyAutoConnected: Boolean) {
     var validClientConnected = false
     if (process != null && process.isRunning && enabled) {
       val params = object : Params {
         override val adb: AndroidDebugBridge = this@InspectorClientLauncher.adb
         override val process: ProcessDescriptor = process
+        override val isInstantlyAutoConnected: Boolean = isInstantlyAutoConnected
         override val disposable: Disposable = parentDisposable
       }
 
@@ -167,7 +169,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
 
             if (runningProcess != null) {
               processes.selectedProcess = runningProcess // As a side effect, will ensure the pulldown is updated
-              executor.execute { handleProcess(processes.selectedProcess) }
+              executor.execute { handleProcess(processes.selectedProcess, isInstantlyAutoConnected = false) }
             }
           }
         }

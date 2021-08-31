@@ -89,13 +89,14 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
 class AppInspectionInspectorClient(
   private val adb: AndroidDebugBridge,
   process: ProcessDescriptor,
+  isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
   private val stats: SessionStatistics,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(process, parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
 
   private lateinit var viewInspector: ViewLayoutInspectorClient
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider

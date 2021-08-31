@@ -73,28 +73,42 @@ class ProcessesModel(
     get() = synchronized(lock) { _processes.toSet() }
 
   /**
+   * Returns true if [selectedProcess] auto connected.
+   *
+   * Ideally this should be accessed within the callback from the selectedProcessListeners
+   */
+  var isAutoConnected = false
+    private set
+
+  /**
    * Setting the currently selected process the side effect of firing listeners that the selected
    * process changed.
    *
    * You may set the selected process to null to clear it.
    *
    * Setting this value is a no-op if have previously called [stopIfSelected] on this model.
+   * Ideally this should be accessed within the callback from the selectedProcessListeners
    */
   var selectedProcess: ProcessDescriptor?
     get() = synchronized(lock) { _selectedProcess }
     set(value) {
-      synchronized(lock) {
-        if (_selectedProcess != value) {
-          // While we leave processes in the list when they die, once we update the active
-          // selection, we silently prune them at that point. Otherwise, dead processes would
-          // continue to build up. This also has the nice effect of making it feel that when a
-          // user starts running a new process, it neatly replaces the last dead one.
-          _processes.removeAll { it != value && !it.isRunning }
-          _selectedProcess = value
-          selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
-        }
+      setSelectedProcess(value)
+    }
+
+  private fun setSelectedProcess(process: ProcessDescriptor?, autoConnected: Boolean = false) {
+    synchronized(lock) {
+      if (_selectedProcess != process) {
+        // While we leave processes in the list when they die, once we update the active
+        // selection, we silently prune them at that point. Otherwise, dead processes would
+        // continue to build up. This also has the nice effect of making it feel that when a
+        // user starts running a new process, it neatly replaces the last dead one.
+        _processes.removeAll { it != process && !it.isRunning }
+        _selectedProcess = process
+        isAutoConnected = autoConnected && (process != null)
+        selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
       }
     }
+  }
 
   /**
    * Add a listener which will be triggered with the selected process when it changes.
@@ -115,7 +129,7 @@ class ProcessesModel(
       synchronized(lock) {
         _processes.add(process)
         if (isProcessPreferred(process) && !isProcessPreferred(selectedProcess)) {
-          selectedProcess = process
+          setSelectedProcess(process, autoConnected = true)
         }
       }
     }
