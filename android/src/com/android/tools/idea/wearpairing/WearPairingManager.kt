@@ -34,6 +34,7 @@ import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.wearpairing.GmscoreHelper.refreshEmulatorConnection
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -420,12 +421,15 @@ private fun updateSelectedDevice(deviceList: List<PairingDevice>, device: Option
   device.value = deviceList.firstOrNull { currentDevice.deviceID == it.deviceID } ?: currentDevice.disconnectedCopy()
 }
 
-private fun showReconnectMessageBalloon(phoneName: String, wearName: String, wizardAction: WizardAction?) =
+private fun showReconnectMessageBalloon(phoneName: String, wearName: String, wizardAction: WizardAction?) {
   showMessageBalloon(
     message("wear.assistant.device.connection.reconnected.title"),
     message("wear.assistant.device.connection.reconnected.message", wearName, phoneName),
     wizardAction
   )
+
+  WearPairingUsageTracker.log(WearPairingEvent.EventKind.AUTOMATIC_RECONNECT)
+}
 
 private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String, wearName: String, wizardAction: WizardAction?) =
   showMessageBalloon(
