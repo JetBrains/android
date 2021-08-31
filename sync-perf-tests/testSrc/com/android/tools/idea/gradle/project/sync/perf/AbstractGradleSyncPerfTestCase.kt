@@ -61,11 +61,7 @@ import java.util.logging.Logger
  */
 @RunsInEdt
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(Parameterized::class)
-@Parameterized.UseParametersRunnerFactory(NoBracketsParametersRunnerFactory::class)
-abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncInfrastructure: Boolean,
-                                              private val gradleVersion: String?,
-                                              private val agpVersion: String?) {
+abstract class AbstractGradleSyncPerfTestCase {
   protected val projectRule = AndroidGradleProjectRule()
   @get:Rule
   val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -75,13 +71,6 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     const val HISTOGRAM_SAMPLES = 80
     const val HISTOGRAM_LEVELS = 20
     const val BENCHMARK_PROJECT = "Android Studio Sync Test"
-
-    @JvmStatic
-    @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}")
-    fun testParameters() = arrayOf<Array<Any?>>(
-      // Keep first parameter even if it is the same to track results in perfgate
-      arrayOf(true, null, null)
-    )
   }
 
   private var myUsageTracker: TestUsageTracker? = null
@@ -130,7 +119,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
     }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION, gradleVersion = gradleVersion, agpVersion = agpVersion)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val log: Logger = getLogger()
     try { // Measure initial sync (already synced when loadProject was called)
       val initialStats: GradleSyncStats? = getLastSyncStats()
@@ -163,7 +152,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     val scenarioName = getScenarioName()
     val memoryThread = MemoryMeasurementThread(scenarioName)
     memoryThread.start()
-    projectRule.loadProject(relativePath, gradleVersion = gradleVersion, agpVersion = agpVersion)
+    projectRule.loadProject(relativePath)
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
@@ -305,13 +294,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
 
   private fun getScenarioName(): String {
     val scenarioName = StringBuilder(projectName)
-    scenarioName.append(if (useSingleVariantSyncInfrastructure) "_SVS" else "_FULL")
-    if (agpVersion != null) {
-      scenarioName.append("_AGP").append(agpVersion)
-    }
-    if (gradleVersion != null) {
-      scenarioName.append("_Gradle").append(gradleVersion)
-    }
+    scenarioName.append("_SVS")
     return scenarioName.toString()
   }
 
