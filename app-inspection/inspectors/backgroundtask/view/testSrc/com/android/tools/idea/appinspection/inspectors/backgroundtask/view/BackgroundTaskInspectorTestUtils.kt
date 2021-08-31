@@ -114,7 +114,7 @@ object BackgroundTaskInspectorTestUtils {
     return children().asSequence().first { (it as DefaultMutableTreeNode).userObject == type } as DefaultMutableTreeNode
   }
 
-  fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Works")
+  fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")
   fun DefaultMutableTreeNode.getAlarmsCategoryNode() = getCategoryNode("Alarms")
   fun DefaultMutableTreeNode.getJobsCategoryNode() = getCategoryNode("Jobs")
   fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")

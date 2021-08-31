@@ -138,7 +138,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
       val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
       val root = tree.model.root
-      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Works" }
+      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Workers" }
       tag1Filter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(2)
       tag2Filter.setSelected(event, true)
@@ -247,7 +247,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
       val root = tree.model.root
-      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Works" }
+      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Workers" }
       assertThat(works.childCount).isEqualTo(0)
     }
   }
