@@ -55,7 +55,7 @@ import org.junit.Test
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class BackgroundTaskTreeTableView {
+class BackgroundTaskTreeTableViewTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
