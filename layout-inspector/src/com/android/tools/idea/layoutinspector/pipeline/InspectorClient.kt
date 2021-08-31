@@ -179,6 +179,11 @@ interface InspectorClient: Disposable {
    */
   val process: ProcessDescriptor
 
+  /**
+   * Weather the process was auto connected or was manually selected.
+   */
+  val isInstantlyAutoConnected: Boolean
+
   val treeLoader: TreeLoader
 
   /**
@@ -231,6 +236,7 @@ object DisconnectedClient : InspectorClient {
     override val pid: Int = 0
     override val streamId: Long = 0
   }
+  override val isInstantlyAutoConnected = false
   override val treeLoader = object : TreeLoader {
     override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? = null
     override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()

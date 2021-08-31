@@ -669,7 +669,8 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   private val disposableRule = DisposableRule()
   private val inspectorRule = LayoutInspectorRule(object: InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector) =
-      LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, disposableRule.disposable).apply {
+      LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
+                   disposableRule.disposable).apply {
         launchMonitor = mock()
       }
   })

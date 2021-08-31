@@ -60,8 +60,8 @@ class AppInspectionClientProvider(
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
     val apiServices = getApiServices()
 
-    return AppInspectionInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, parentDisposable,
-                                        apiServices, getScope())
+    return AppInspectionInspectorClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
+                                        parentDisposable, apiServices, getScope())
   }
 }
 

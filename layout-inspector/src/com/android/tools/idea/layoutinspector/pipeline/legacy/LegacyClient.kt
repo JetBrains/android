@@ -41,11 +41,12 @@ private const val MAX_CONNECTION_ATTEMPTS = 5
 class LegacyClient(
   adb: AndroidDebugBridge,
   process: ProcessDescriptor,
+  isInstantlyAutoConnected: Boolean,
   model: InspectorModel,
   stats: SessionStatistics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process, parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
   private val project = model.project

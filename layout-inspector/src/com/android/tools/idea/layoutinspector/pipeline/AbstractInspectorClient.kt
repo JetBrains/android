@@ -30,7 +30,11 @@ import org.jetbrains.annotations.TestOnly
 /**
  * Base class for [InspectorClient] implementations with some boilerplate logic provided.
  */
-abstract class AbstractInspectorClient(final override val process: ProcessDescriptor, parentDisposable: Disposable) : InspectorClient {
+abstract class AbstractInspectorClient(
+  final override val process: ProcessDescriptor,
+  final override val isInstantlyAutoConnected: Boolean,
+  parentDisposable: Disposable
+) : InspectorClient {
   init {
     Disposer.register(parentDisposable, this)
   }
