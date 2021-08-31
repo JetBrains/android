@@ -782,6 +782,8 @@ public class ColumnTreeBuilder {
         Color originalColor = g.getColor();
         g.setColor(StudioColorsKt.getPrimaryPanelBackground());
         g.fillRect(xOffset, bounds.y, containerWidth, bounds.height);
+        g.setColor(StudioColorsKt.getBorder());
+        g.drawRect(xOffset, bounds.y, containerWidth, bounds.height);
         g.setColor(originalColor);
       }
     }
