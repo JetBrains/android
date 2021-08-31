@@ -22,6 +22,7 @@ import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
+import java.awt.Color
 import java.io.InputStreamReader
 
 /**
@@ -74,11 +75,15 @@ internal class LogcatColors {
   }
 }
 
-private val LEVEL_VERBOSE = TextAttributes().apply { foregroundColor = JBColor.WHITE; backgroundColor = JBColor.BLACK }
-private val LEVEL_DEBUG = TextAttributes().apply { foregroundColor = JBColor.WHITE; backgroundColor = JBColor.BLUE }
-private val LEVEL_INFO = TextAttributes().apply { foregroundColor = JBColor.BLACK; backgroundColor = JBColor.GREEN }
-private val LEVEL_WARNING = TextAttributes().apply { foregroundColor = JBColor.BLACK; backgroundColor = JBColor.YELLOW }
-private val LEVEL_ERROR = TextAttributes().apply { foregroundColor = JBColor.WHITE; backgroundColor = JBColor.RED }
+// TODO(aalbert): Remove when https://youtrack.jetbrains.com/issue/IDEA-277131 is fixed.
+val white = JBColor(Color(254, 254, 254), JBColor.background())
+val black = JBColor(Color(1, 1, 1), JBColor.foreground())
+
+private val LEVEL_VERBOSE = TextAttributes().apply { foregroundColor = white; backgroundColor = black }
+private val LEVEL_DEBUG = TextAttributes().apply { foregroundColor = white; backgroundColor = JBColor.BLUE }
+private val LEVEL_INFO = TextAttributes().apply { foregroundColor = black; backgroundColor = JBColor.GREEN }
+private val LEVEL_WARNING = TextAttributes().apply { foregroundColor = black; backgroundColor = JBColor.YELLOW }
+private val LEVEL_ERROR = TextAttributes().apply { foregroundColor = white; backgroundColor = JBColor.RED }
 private val LEVEL_ASSERT = LEVEL_ERROR
 
 private val LEVEL_COLORS = mapOf(
