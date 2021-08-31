@@ -74,6 +74,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
+  private AvdInfo myExtensionsAvdInfo;
   private ISystemImage mySnapshotSystemImage;
   private final Map<String, String> myPropertiesMap = Maps.newHashMap();
   private Device myFoldable;
@@ -128,10 +129,24 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
-    pkgZulu.setTypeDetails((TypeDetails) detailsZulu);
+    pkgZulu.setTypeDetails((TypeDetails)detailsZulu);
     fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu));
+
+    // Image that contains SDK extensions and is not the base SDK
+    String extensionsPath = "system-images;android-32-3;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, fileOp);
+    DetailsTypes.SysImgDetailsType detailsExtensions =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsExtensions.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    detailsExtensions.setAbi("x86");
+    detailsExtensions.setApiLevel(32);
+    detailsExtensions.setExtensionLevel(3);
+    detailsExtensions.setBaseExtension(false);
+    pkgExtensions.setTypeDetails((TypeDetails)detailsExtensions);
+    fileOp.recordExistingFile(pkgExtensions.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu, pkgExtensions));
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
@@ -149,6 +164,8 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(previewPath, progress).getLocation());
     ISystemImage ZuluImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
+    ISystemImage extensionsImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(extensionsPath, progress).getLocation());
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
@@ -164,6 +181,8 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
       new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
     myZuluAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", ZuluImage, myPropertiesMap);
+    myExtensionsAvdInfo =
+      new AvdInfo("name", new File("ini"), "folder", extensionsImage, myPropertiesMap);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -269,10 +288,18 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
+    assertEquals("Android API 99 x86", optionsStep.getSystemImageDetailsText());
     icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
     assertTrue("Wrong icon fetched for unknown API: " + iconUrl, iconUrl.contains("Default_32.png"));
+
+    optionsModel = new AvdOptionsModel(myExtensionsAvdInfo);
+
+    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
+    Disposer.register(getTestRootDisposable(), optionsStep);
+    optionsStep.updateSystemImageData();
+    assertEquals("Android API 32 x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
   }
 
   public void testPopulateSnapshotList() throws Exception {

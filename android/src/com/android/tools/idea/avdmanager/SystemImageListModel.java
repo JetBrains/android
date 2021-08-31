@@ -191,6 +191,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
   }
 
   @VisibleForTesting
+  @NotNull
   static String releaseDisplayName(@NotNull SystemImageDescription systemImage) {
     AndroidVersion version = systemImage.getVersion();
     String codeName = version.isPreview() ? version.getCodename()
@@ -198,9 +199,10 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     if (codeName == null) {
       codeName = "API " + version.getApiLevel();
     }
-    String maybeDeprecated = systemImage.obsolete() ||
-                             version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
-    return codeName + maybeDeprecated;
+    String maybeDeprecated = systemImage.obsolete() || version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
+    String extensionDetails =
+      !version.isBaseExtension() && version.getExtensionLevel() != null ? " (Extension Level " + version.getExtensionLevel() + ")" : "";
+    return codeName + extensionDetails + maybeDeprecated;
   }
 
   /**
@@ -209,28 +211,34 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
    */
   private final ColumnInfo[] ourColumnInfos = new ColumnInfo[] {
     new SystemImageColumnInfo("Release Name") {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return releaseDisplayName(systemImage);
       }
+
+      @NotNull
+      @Override
+      public Comparator<SystemImageDescription> getComparator() {
+        return Comparator.comparing(SystemImageDescription::getVersion);
+      }
     },
     new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
     new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getAbiType();
       }
     },
     new SystemImageColumnInfo("Target") {
-      @Nullable
+      @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
