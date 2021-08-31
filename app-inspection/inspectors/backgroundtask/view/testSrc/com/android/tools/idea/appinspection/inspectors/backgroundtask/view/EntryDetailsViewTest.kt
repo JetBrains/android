@@ -23,10 +23,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendWorkEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -339,7 +340,7 @@ class EntryDetailsViewTest {
         jobBuilder.apply {
           jobId = 222
           serviceName = "SERVICE"
-          extras = "EXTRA_WORK_SPEC_ID=12345&"
+          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
           networkType = BackgroundTaskInspectorProtocol.JobInfo.NetworkType.NETWORK_TYPE_METERED
           isPeriodic = false
         }

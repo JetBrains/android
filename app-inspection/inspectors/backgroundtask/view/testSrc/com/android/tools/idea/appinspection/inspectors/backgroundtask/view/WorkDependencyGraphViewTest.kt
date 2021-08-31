@@ -17,8 +17,9 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors

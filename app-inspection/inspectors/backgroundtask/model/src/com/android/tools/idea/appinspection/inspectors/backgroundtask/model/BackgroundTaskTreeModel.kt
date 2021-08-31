@@ -113,6 +113,9 @@ class BackgroundTaskTreeModel(
           }
           EntryUpdateEventType.REMOVE -> {
             val node = nodeMap.remove(entry)!!
+            workIdJobMap.remove(entry.id)?.let { jobEntry ->
+              nodeMap.remove(jobEntry)
+            }
             if (entry.acceptedByFilter()) {
               val parent = node.parent
               node.removeFromParent()
