@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.util.system.CpuArch;
 import com.sun.management.OperatingSystemMXBean;
+import java.io.IOException;
 import java.util.Locale;
 import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +78,12 @@ public class MemorySettingsUtil {
       return;
     }
     LOG.info("saving new Xmx value: " + newValue);
-    VMOptions.writeOption(VMOptions.MemoryKind.HEAP, newValue);
+    try {
+      VMOptions.setOption(VMOptions.MemoryKind.HEAP, newValue);
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+    }
   }
 
   public static void log(MemorySettingsEvent.EventKind kind,
