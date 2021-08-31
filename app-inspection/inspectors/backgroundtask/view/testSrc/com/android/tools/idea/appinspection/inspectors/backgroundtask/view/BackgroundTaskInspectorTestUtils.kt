@@ -82,13 +82,16 @@ object BackgroundTaskInspectorTestUtils {
     handleEvent(EventWrapper(EventWrapper.Case.WORK, WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray()))
   }
 
-  fun BackgroundTaskInspectorClient.sendBackgroundTaskEvent(timestamp: Long,
-                                                            map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit) {
+  fun BackgroundTaskInspectorClient.sendBackgroundTaskEvent(
+    timestamp: Long,
+    map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit)
+    : BackgroundTaskInspectorProtocol.Event {
     val event = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
       this.timestamp = timestamp
       backgroundTaskEventBuilder.map()
     }.build()
     handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, event.toByteArray()))
+    return event
   }
 
   fun BackgroundTaskInspectorClient.sendWorkRemovedEvent(id: String) {

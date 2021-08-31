@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -23,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTestUtils.sendWorkEvent
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -202,6 +204,143 @@ class EntryDetailsViewTest {
   }
 
   @Test
+  fun alarmEntrySelected() = runBlocking {
+    val event = client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      alarmSetBuilder.apply {
+        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+        intervalMs = 5000
+        operationBuilder.apply {
+          creatorPackage = "creator.package"
+          creatorUid = 100
+        }
+      }
+    }
+    val alarmSet = event.backgroundTaskEvent.alarmSet
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry("1")
+
+      val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
+      val typeComponent = descriptionPanel.getValueComponent("Type") as JLabel
+      assertThat(typeComponent.text).isEqualTo(alarmSet.type.name)
+      val intervalComponent = descriptionPanel.getValueComponent("Interval Time") as JLabel
+      assertThat(intervalComponent.text).isEqualTo("5 s")
+      val creatorComponent = descriptionPanel.getValueComponent("Creator") as JLabel
+      assertThat(creatorComponent.text).isEqualTo("creator.package (UID: 100)")
+
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
+      assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+    }
+
+    client.sendBackgroundTaskEvent(10000) {
+      taskId = 1
+      alarmFiredBuilder.build()
+    }
+
+    withContext(uiDispatcher) {
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
+      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
+      assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+    }
+  }
+
+  @Test
+  fun wakeLockEntrySelected() = runBlocking {
+    val event = client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      wakeLockAcquiredBuilder.apply {
+        tag = "tag"
+        level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
+      }
+    }
+    val wakeLockAcquired = event.backgroundTaskEvent.wakeLockAcquired
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry("1")
+
+      val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
+      val tagComponent = descriptionPanel.getValueComponent("Tag") as JLabel
+      assertThat(tagComponent.text).isEqualTo(wakeLockAcquired.tag)
+      val levelComponent = descriptionPanel.getValueComponent("Level") as JLabel
+      assertThat(levelComponent.text).isEqualTo(wakeLockAcquired.level.name)
+
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
+      assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+    }
+
+    client.sendBackgroundTaskEvent(10000) {
+      taskId = 1
+      wakeLockReleasedBuilder.build()
+    }
+
+    withContext(uiDispatcher) {
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
+      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
+      assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+    }
+  }
+
+  @Test
+  fun jobEntrySelected() = runBlocking {
+    val event = client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      jobScheduledBuilder.apply {
+        jobBuilder.apply {
+          jobId = 222
+          serviceName = "SERVICE"
+          extras = "EXTRA_WORK_SPEC_ID=12345&"
+          networkType = BackgroundTaskInspectorProtocol.JobInfo.NetworkType.NETWORK_TYPE_METERED
+          isPeriodic = false
+        }
+        result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
+      }
+    }
+    val jobScheduled = event.backgroundTaskEvent.jobScheduled
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry("1")
+
+      val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
+      val serviceComponent = descriptionPanel.getValueComponent("Service") as HyperlinkLabel
+      assertThat(serviceComponent.text).isEqualTo(jobScheduled.job.serviceName)
+      val workIdComponent = descriptionPanel.getValueComponent("UUID") as JLabel
+      assertThat(workIdComponent.text).isEqualTo("12345")
+
+      val executionPanel = detailsView.getCategoryPanel("Execution") as JPanel
+      val constraintsComponent = executionPanel.getValueComponent("Constraints") as JPanel
+      assertThat(constraintsComponent.getValueComponent("Network must be metered")).isNotNull()
+      val frequencyComponent = executionPanel.getValueComponent("Frequency") as JLabel
+      assertThat(frequencyComponent.text).isEqualTo("One Time")
+      val stateComponent = executionPanel.getValueComponent("State") as JLabel
+      assertThat(stateComponent.text).isEqualTo("SCHEDULED")
+
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
+      assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+    }
+
+    client.sendBackgroundTaskEvent(10000) {
+      taskId = 1
+      jobFinishedBuilder.build()
+    }
+
+    withContext(uiDispatcher) {
+      val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
+      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
+      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
+      assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+    }
+  }
+
+  @Test
   fun closeDetailsView() = runBlocking {
     val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
     client.sendWorkAddedEvent(workInfo)
@@ -218,9 +357,9 @@ class EntryDetailsViewTest {
     }
   }
 
-  fun JComponent.getValueComponent(key: String) =
+  private fun JComponent.getValueComponent(key: String) =
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent.getComponent(1)
 
-  fun JComponent.getCategoryPanel(key: String) =
+  private fun JComponent.getCategoryPanel(key: String) =
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent
 }
