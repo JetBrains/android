@@ -23,6 +23,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.DataEntry
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 import javax.swing.tree.DefaultMutableTreeNode
@@ -107,8 +108,8 @@ object BackgroundTaskInspectorTestUtils {
     }
   }
 
-  private fun DefaultMutableTreeNode.getCategoryNode(type: String): DefaultMutableTreeNode {
-    return children().asSequence().first { (it as DefaultMutableTreeNode).userObject == type } as DefaultMutableTreeNode
+  private fun DefaultMutableTreeNode.getCategoryNode(type: String): BackgroundTaskCategoryNode {
+    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type } as BackgroundTaskCategoryNode
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")
@@ -117,4 +118,9 @@ object BackgroundTaskInspectorTestUtils {
   fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")
 
   fun createJobInfoExtraWithWorkerId(id: String) = "{EXTRA_WORK_SPEC_ID=$id}"
+
+  fun BackgroundTaskCategoryNode.assertEmptyWithMessage(message: String) {
+    assertThat(childCount).isEqualTo(1)
+    assertThat((firstChild as EmptyMessageNode).message).isEqualTo(message)
+  }
 }

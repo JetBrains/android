@@ -165,4 +165,61 @@ class BackgroundTaskTreeModelTest {
     assertThat(model.getTreeNode("test")).isNull()
     assertThat(model.getTreeNode("0")).isNull()
   }
+
+  @Test
+  fun emptyMessageAddedAndRemoved() {
+    val root = model.root as DefaultMutableTreeNode
+    assertThat(root.childCount).isEqualTo(4)
+    val categoryNodes = root.children().toList().filterIsInstance<BackgroundTaskCategoryNode>().toList()
+    assertThat(categoryNodes).hasSize(4)
+
+    assertThat(categoryNodes.map { (it.firstChild as DefaultMutableTreeNode).userObject as String })
+      .containsExactly(
+        "No workers have been detected.",
+        "No jobs have been detected.",
+        "No alarms have been detected.",
+        "No wake locks have been detected.",
+      )
+
+    val newWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
+      workAddedBuilder.workBuilder.apply {
+        id = "test"
+        state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
+      }
+    }.build()
+
+    val newJobEvent = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
+      backgroundTaskEventBuilder.apply {
+        taskId = 0L
+        jobScheduledBuilder.apply {
+          jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+        }
+      }
+    }.build()
+
+    val newAlarmEvent = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
+      backgroundTaskEventBuilder.apply {
+        taskId = 1L
+        alarmSetBuilder.apply {
+          type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE
+        }
+      }
+    }.build()
+
+    val newWakeLockEvent = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
+      backgroundTaskEventBuilder.apply {
+        taskId = 2L
+        wakeLockAcquiredBuilder.apply {
+          level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
+        }
+      }
+    }.build()
+
+    listOf(newWakeLockEvent, newAlarmEvent, newJobEvent).forEach { event ->
+      client.handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, event.toByteArray()))
+    }
+    client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
+
+    assertThat(categoryNodes.map { (it.firstChild as DefaultMutableTreeNode).userObject }).isNotInstanceOf(String::class.java)
+  }
 }

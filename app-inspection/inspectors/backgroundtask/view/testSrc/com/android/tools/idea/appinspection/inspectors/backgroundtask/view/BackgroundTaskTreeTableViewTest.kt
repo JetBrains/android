@@ -20,13 +20,7 @@ import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.assertEmptyWithMessage
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getAlarmsCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getJobsCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWakeLocksCategoryNode
@@ -35,6 +29,17 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getAlarmsCategoryNode
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getJobsCategoryNode
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWakeLocksCategoryNode
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.CLASS_NAME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.START_TIME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.STATUS_COMPARATOR
@@ -117,24 +122,22 @@ class BackgroundTaskTreeTableViewTest {
     }
 
     withContext(uiDispatcher) {
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
-      val root = tree.model.root as DefaultMutableTreeNode
-      val works = root.getWorksCategoryNode()
+      val works = entriesView.getWorksCategoryNode()
       assertThat(works.childCount).isEqualTo(1)
       val newWorkEntry = (works.getChildAt(0) as DefaultMutableTreeNode).userObject as WorkEntry
       assertThat(newWorkEntry.id).isEqualTo(workInfo.id)
 
-      val alarms = root.getAlarmsCategoryNode()
+      val alarms = entriesView.getAlarmsCategoryNode()
       assertThat(alarms.childCount).isEqualTo(1)
       val newAlarm = (alarms.getChildAt(0) as DefaultMutableTreeNode).userObject as AlarmEntry
       assertThat(newAlarm.id).isEqualTo("1")
 
-      val jobs = root.getJobsCategoryNode()
+      val jobs = entriesView.getJobsCategoryNode()
       assertThat(jobs.childCount).isEqualTo(1)
       val newJob = (jobs.getChildAt(0) as DefaultMutableTreeNode).userObject as JobEntry
       assertThat(newJob.id).isEqualTo("2")
 
-      val wakeLocks = root.getWakeLocksCategoryNode()
+      val wakeLocks = entriesView.getWakeLocksCategoryNode()
       assertThat(wakeLocks.childCount).isEqualTo(1)
       val newWakeLock = (wakeLocks.getChildAt(0) as DefaultMutableTreeNode).userObject as WakeLockEntry
       assertThat(newWakeLock.id).isEqualTo("3")
@@ -147,19 +150,15 @@ class BackgroundTaskTreeTableViewTest {
     client.sendWorkAddedEvent(workInfo)
 
     withContext(uiDispatcher) {
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
-      val root = tree.model.root as DefaultMutableTreeNode
-      val works = root.getWorksCategoryNode()
+      val works = entriesView.getWorksCategoryNode()
       assertThat(works.childCount).isEqualTo(1)
       val newWorkEntry = (works.getChildAt(0) as DefaultMutableTreeNode).userObject as WorkEntry
       assertThat(newWorkEntry.id).isEqualTo(workInfo.id)
     }
     client.sendWorkRemovedEvent(workInfo.id)
     withContext(uiDispatcher) {
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
-      val root = tree.model.root as DefaultMutableTreeNode
-      val works = root.getWorksCategoryNode()
-      assertThat(works.childCount).isEqualTo(0)
+      val works = entriesView.getWorksCategoryNode()
+      works.assertEmptyWithMessage("No workers have been detected.")
     }
   }
 
@@ -177,9 +176,7 @@ class BackgroundTaskTreeTableViewTest {
     }
 
     withContext(uiDispatcher) {
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
-      val root = tree.model.root as DefaultMutableTreeNode
-      val works = root.getWorksCategoryNode()
+      val works = entriesView.getWorksCategoryNode()
       assertThat(works.childCount).isEqualTo(1)
       val newWorkNode = works.getChildAt(0) as DefaultMutableTreeNode
       val newWorkEntry = newWorkNode.userObject as WorkEntry
@@ -189,8 +186,8 @@ class BackgroundTaskTreeTableViewTest {
       val newJob = (newWorkNode.getChildAt(0) as DefaultMutableTreeNode).userObject as JobEntry
       assertThat(newJob.id).isEqualTo("2")
 
-      val jobs = root.getJobsCategoryNode()
-      assertThat(jobs.childCount).isEqualTo(0)
+      val jobs = entriesView.getJobsCategoryNode()
+      jobs.assertEmptyWithMessage("No jobs have been detected.")
     }
   }
 
