@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AdbCommandRejectedException
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -36,7 +37,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.nio.file.Path
@@ -67,7 +67,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       return Futures.immediateFuture(emptyMap())
     }
 
-    return deviceFileSystemService.start { AndroidSdkUtils.getAdb(project) }.transformAsyncNullable(edtExecutor) {
+    return deviceFileSystemService.start { AdbFileProvider.fromProject(project)?.adbFile }.transformAsyncNullable(edtExecutor) {
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
         val deviceFileSystem = devices!!.find { it.deviceSerialNumber == deviceSerialNumber }
         require(deviceFileSystem != null)

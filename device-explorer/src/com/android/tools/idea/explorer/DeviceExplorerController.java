@@ -19,6 +19,7 @@ import static com.android.tools.idea.concurrency.FutureUtils.ignoreResult;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.adb.AdbFileProvider;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
@@ -61,6 +62,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -89,7 +91,6 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -173,7 +174,7 @@ public class DeviceExplorerController {
   public void setup() {
     myView.setup();
     myView.startRefresh("Initializing ADB");
-    ListenableFuture<Void> future = myService.start(() -> AndroidSdkUtils.getAdb(myProject));
+    ListenableFuture<Void> future = myService.start(this::getAdbFile);
     myEdtExecutor.addListener(future, myView::stopRefresh);
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
@@ -192,7 +193,7 @@ public class DeviceExplorerController {
 
   public void restartService() {
     myView.startRefresh("Restarting ADB");
-    ListenableFuture<Void> future = myService.restart(() -> AndroidSdkUtils.getAdb(myProject));
+    ListenableFuture<Void> future = myService.restart(this::getAdbFile);
     myEdtExecutor.addListener(future, myView::stopRefresh);
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
@@ -206,6 +207,17 @@ public class DeviceExplorerController {
         myView.reportErrorRelatedToService(myService, "Error restarting ADB", t);
       }
     });
+  }
+
+  @Nullable
+  private File getAdbFile() {
+    AdbFileProvider provider = AdbFileProvider.fromProject(myProject);
+    if (provider != null) {
+      return provider.getAdbFile();
+    }
+    else {
+      return null;
+    }
   }
 
   void reportErrorFindingDevice(@NotNull String message) {
