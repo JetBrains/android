@@ -31,11 +31,15 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -290,7 +294,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   public void testNewEmulatorCommandHasWorkingDirectory() {
     MockLog log = new MockLog();
     AvdInfo avd = mAvdManager.createAvd(
-      mAvdFolder,
+      mFileOp.toPath(mAvdFolder),
       getName(),
       mSystemImage,
       null,
@@ -303,12 +307,13 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false,
       log);
     assertNotNull("Could not create AVD", avd);
-    File emulator = new File("sdk/emulator/emulator.exe");
+    Path emulator = Paths.get("sdk/emulator/emulator.exe");
 
-    GeneralCommandLine command = mAvdManagerConnection.newEmulatorCommand(null, emulator, avd, false, Collections.emptyList());
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(emulator, avd);
+    GeneralCommandLine command = builder.build();
 
-    assertEquals(emulator.getPath(), command.getExePath());
-    assertEquals("Emulator command should have a working directory. See IDEA-231313.", emulator.getParentFile(), command.getWorkDirectory());
+    assertEquals(emulator.toString(), command.getExePath());
+    assertEquals("Emulator command should have a working directory. See IDEA-231313.", emulator.getParent().toFile(), command.getWorkDirectory());
   }
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
