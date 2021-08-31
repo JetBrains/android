@@ -30,7 +30,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.RequestBuilder;
-import com.intellij.util.net.NetUtils;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -203,14 +202,14 @@ public class StudioDownloader implements Downloader {
       // If the range is specified, then the returned content length will be the length of the remaining content to download.
       // To simplify calculations, regard content length invariant: always keep the value as the full content length.
       long startOffset = interimExists ? CancellableFileIo.size(interimDownload) : 0;
-      long contentLength = startOffset  + request.getConnection().getContentLength();
+      long contentLength = startOffset + request.getConnection().getContentLengthLong();
       DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, target.getFileName().toString(),
                                                                                           contentLength, startOffset);
       Files.createDirectories(interimDownload.getParent());
 
       try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(interimDownload, StandardOpenOption.APPEND, StandardOpenOption.CREATE))) {
-        NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
-                                   request.getConnection().getContentLength());
+        StudioNetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
+                                         request.getConnection().getContentLengthLong());
       }
 
       try {
