@@ -20,6 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
 import org.junit.Test
+import java.awt.Color
 
 /**
  * Tests for [LogcatColors]
@@ -63,5 +64,12 @@ class LogcatColorsTest {
 }
 
 private fun assertJBColors(textAttributes: TextAttributes) {
-  assertThat(textAttributes.foregroundColor).isInstanceOf(JBColor::class.java)
+  assertJBColor(textAttributes.foregroundColor)
+  assertJBColor(textAttributes.backgroundColor)
+}
+
+private fun assertJBColor(color: Color?) {
+  color?.run {
+    assertThat(color).isInstanceOf(JBColor::class.java)
+  }
 }
