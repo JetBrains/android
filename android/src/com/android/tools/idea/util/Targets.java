@@ -36,6 +36,12 @@ public final class Targets {
       .append("Android ")
       .append(SdkVersionInfo.getVersionStringSanitized(version.getFeatureLevel()));
 
+    if (!version.isBaseExtension() && version.getExtensionLevel() != null) {
+      builder
+        .append(" Extension Level ")
+        .append(version.getExtensionLevel());
+    }
+
     if (tag.equals(SystemImage.DEFAULT_TAG)) {
       return builder.toString();
     }

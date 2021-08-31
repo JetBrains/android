@@ -48,4 +48,16 @@ public final class TargetsTest {
     // Assert
     assertEquals("Android 11.0 Google Play", string);
   }
+
+  @Test
+  public void testToStringAndroidVersionWithExtensionLevel() {
+    // Arrange
+    AndroidVersion versionWithExtensionLevel = new AndroidVersion(VersionCodes.R, null, 5, false);
+
+    // Act
+    Object string = Targets.toString(versionWithExtensionLevel);
+
+    // Assert
+    assertEquals("Android 11.0 Extension Level 5", string);
+  }
 }
