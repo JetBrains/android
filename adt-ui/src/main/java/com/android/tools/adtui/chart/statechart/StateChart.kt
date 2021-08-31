@@ -360,12 +360,12 @@ class StateChart<T>(private val model: StateChartModel<T>,
     val series = model.series
     if (series.isEmpty()) return null
 
-    val scaleX = width.toFloat()
+    val scaleX = width.toDouble()
     val seriesIndex = seriesIndexAtPoint(point)
     val seriesAtMouse = series[seriesIndex]
     val seriesData = seriesAtMouse.series
-    val min = seriesAtMouse.xRange.min.toFloat()
-    val max = seriesAtMouse.xRange.max.toFloat()
+    val min = seriesAtMouse.xRange.min
+    val max = seriesAtMouse.xRange.max
     val range = max - min
 
     // Convert mouseX into data/series coordinate space
@@ -398,27 +398,27 @@ class StateChart<T>(private val model: StateChartModel<T>,
   private fun getMouseRectanglesUnion(mousePoint: Point) = seriesIndexAtMouse(mousePoint)?.let { (seriesIndex, i) ->
     val series = model.series[seriesIndex]
     val seriesDataList = series.series
-    val min = series.xRange.min.toFloat()
-    val max = series.xRange.max.toFloat()
+    val min = series.xRange.min
+    val max = series.xRange.max
     val range = max - min
     val seriesSize = model.series.size
-    val scaleX = width.toFloat()
-    val scaleY = height.toFloat()
+    val scaleX = width.toDouble()
+    val scaleY = height.toDouble()
     val (leftIndex, rightIndex) = when (i) {
       in seriesDataList.indices -> max(0, i - 2) to min(i + 2, seriesDataList.size - 1)
       else -> (-i - 1).let { max(0, it - 2) to min(it + 2, seriesDataList.size - 1) }
     }
 
     // Transform the union of the left and right (or range max) index x values back into view space.
-    val modelXLeft = max(min, seriesDataList[leftIndex].x.toFloat())
-    val modelXRight = min(max, seriesDataList[rightIndex].x.toFloat())
+    val modelXLeft = max(min, seriesDataList[leftIndex].x.toDouble())
+    val modelXRight = min(max, seriesDataList[rightIndex].x.toDouble())
     val screenXLeft = floor((modelXLeft - min) * scaleX / range)
     val screenYTop = floor(scaleY - (seriesIndex + 1) * scaleY / seriesSize)
     val screenXRight = ceil((modelXRight - min) * scaleX / range)
     val screenYBottom = ceil(scaleY - seriesIndex * scaleY / seriesSize)
     val screenWidth = screenXRight - screenXLeft
     val screenHeight = screenYBottom - screenYTop
-    Rectangle2D.Float(screenXLeft, screenYTop, screenWidth, screenHeight)
+    Rectangle2D.Float(screenXLeft.toFloat(), screenYTop.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
   }
 
   companion object {
