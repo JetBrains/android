@@ -111,7 +111,7 @@ public final class DeployableFile {
 
   @NotNull
   public File getDir() {
-    if (myIsRunningFromSourcesSupplier.get()) {
+    if (IdeInfo.getInstance().isAndroidStudio() && myIsRunningFromSourcesSupplier.get()) {
       // Development mode
       return getDir(mySourcesRootSupplier.get(), myDevDir);
     } else {

@@ -209,14 +209,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.getAbsolutePath();
     return myInstallPathProvider.compute();
   }
 

@@ -133,7 +133,7 @@ public class EmbeddedDistributionPaths {
     }
       // Development mode
     assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
-    return new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/deploy/installer/android-installer").getAbsolutePath();
+    return new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer").getAbsolutePath();
   }
 
   @Nullable

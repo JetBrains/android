@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -49,6 +50,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -170,6 +172,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     List<ApkInfo> packages = myApkProvider.getApks(device).stream()
       .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
       .collect(Collectors.toList());
+
+    Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
     switch (getDeployType()) {
       case RUN_INSTANT_APP:
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
