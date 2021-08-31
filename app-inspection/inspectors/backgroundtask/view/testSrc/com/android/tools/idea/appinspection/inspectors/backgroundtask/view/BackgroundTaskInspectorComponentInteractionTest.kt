@@ -23,10 +23,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.assertEmptyWithMessage
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -246,10 +248,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkRemovedEvent(workInfo.id)
 
     withContext(uiDispatcher) {
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
-      val root = tree.model.root
-      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Workers" }
-      assertThat(works.childCount).isEqualTo(0)
+      val works = entriesView.getWorksCategoryNode()
+      works.assertEmptyWithMessage("No workers have been detected.")
     }
   }
 

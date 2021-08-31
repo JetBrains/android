@@ -56,10 +56,10 @@ class BackgroundTaskTreeModel(
 
   init {
     val mutableRoot = root as DefaultMutableTreeNode
-    val worksNode = DefaultMutableTreeNode("Workers")
-    val jobsNode = DefaultMutableTreeNode("Jobs")
-    val alarmsNode = DefaultMutableTreeNode("Alarms")
-    val wakesNode = DefaultMutableTreeNode("WakeLocks")
+    val worksNode = BackgroundTaskCategoryNode("Workers", "No workers have been detected.")
+    val jobsNode = BackgroundTaskCategoryNode("Jobs", "No jobs have been detected.")
+    val alarmsNode = BackgroundTaskCategoryNode("Alarms", "No alarms have been detected.")
+    val wakesNode = BackgroundTaskCategoryNode("WakeLocks", "No wake locks have been detected.")
     categoryRoots = listOf(worksNode, jobsNode, alarmsNode, wakesNode)
     categoryRoots.forEach { mutableRoot.add(it) }
     parentFinder = { entry ->

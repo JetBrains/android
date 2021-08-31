@@ -152,6 +152,10 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
               is BackgroundTaskEntry -> {
                 append(data.className)
               }
+              is String -> {
+                // The main use case here is to show the empty state message.
+                append(data)
+              }
             }
           }
         }
