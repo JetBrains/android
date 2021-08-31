@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
-class SantaTrackerPerfTestV1(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class SantaTrackerPerfTestV1 : AbstractGradleSyncPerfTestCase() {
   override val relativePath: String = TestProjectPaths.SANTA_TRACKER
   override val projectName: String = "SantaTracker_V1"
 }
 
-class SantaTrackerPerfTestV2(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class SantaTrackerPerfTestV2 : AbstractGradleSyncPerfTestCase() {
   override val relativePath: String = TestProjectPaths.SANTA_TRACKER
   override val projectName: String = "SantaTracker_V2"
   override val useModelV2: Boolean = true
