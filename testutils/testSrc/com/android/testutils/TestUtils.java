@@ -48,6 +48,9 @@ import java.util.jar.JarFile;
  * Utility methods to deal with loading the test data.
  */
 public class TestUtils {
+  public static final AndroidLayoutlibDownloaderProxy llDownloader = new AndroidLayoutlibDownloaderProxy();
+  public static final AndroidProfilerDownloaderProxy profilerDownloader = new AndroidProfilerDownloaderProxy();
+
   /** Default timeout for the {@link #eventually(Runnable)} check. */
   private static final Duration DEFAULT_EVENTUALLY_TIMEOUT = Duration.ofSeconds(10);
 
@@ -115,6 +118,10 @@ public class TestUtils {
     if (workspaceRoot == null) {
       workspaceRoot = Paths.get(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk");
     }
+
+    llDownloader.makeSureComponentIsInPlace();
+    profilerDownloader.makeSureComponentIsInPlace();
+
     assert Files.exists(workspaceRoot): "Please invoke 'cd community/build/dependencies && ./gradlew setupAndroidSdk'";
     return workspaceRoot;
   }
