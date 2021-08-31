@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer
+package com.android.tools.idea.explorer.fs
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AdbCommandRejectedException
@@ -23,13 +23,9 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.concurrency.transformAsyncNullable
 import com.android.tools.idea.concurrency.transformNullable
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.explorer.DeviceExplorerFileManager
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.fs.DeviceFileSystem
-import com.android.tools.idea.explorer.fs.DeviceFileSystemService
 import com.android.utils.FileUtils
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
