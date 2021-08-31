@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
@@ -44,7 +45,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
@@ -66,8 +66,14 @@ fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
   }
   val jdk: Sdk? =
     if (StringUtils.isNotBlank(projectPath)) {
-      @Suppress("UnstableApiUsage")
-      AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, projectPath!!)
+      val homePath: String? = AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, projectPath!!)
+      if (homePath == null) {
+        null
+      }
+      else {
+        val jdkProvider = ExternalSystemJdkProvider.getInstance()
+        jdkProvider.createJdk(null as String?, homePath)
+      }
     }
     else {
       null
