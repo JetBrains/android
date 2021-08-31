@@ -12,9 +12,10 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
-      <library name="background-inspector-proto">
+      <library name="background-inspector-proto" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/tools/base/app-inspection/inspectors/backgroundtask/backgroundtask_inspector_java_proto.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/27.3.0.0/backgroundtask_inspector_java_proto-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

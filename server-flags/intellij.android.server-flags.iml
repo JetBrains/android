@@ -12,9 +12,10 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="libserver-flag-test-proto">
+      <library name="libserver-flag-test-proto" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libserver-flag-test-proto:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/server-flags/libserver-flag-test-proto.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/27.3.0.0/libserver-flag-test-proto-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

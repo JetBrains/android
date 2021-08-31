@@ -7,18 +7,20 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module-library">
-      <library>
+      <library type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:google-api-services-storage-v1-rev1-1.18.0-rc:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/tools/studio/google/cloud/testing/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/google-api-services-storage-v1-rev1-1.18.0-rc/27.3.0.0/google-api-services-storage-v1-rev1-1.18.0-rc-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library>
+      <library type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:google-api-services-testing-v1-revsnapshot-1.20.0:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/tools/studio/google/cloud/testing/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/google-api-services-testing-v1-revsnapshot-1.20.0/27.3.0.0/google-api-services-testing-v1-revsnapshot-1.20.0-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -28,9 +30,10 @@
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="library" name="tightvnc" level="project" />
     <orderEntry type="module-library">
-      <library>
+      <library type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:google-api-services-toolresults-v1beta3-rev20151013-1.20.0:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/tools/studio/google/cloud/testing/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20151013-1.20.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/google-api-services-toolresults-v1beta3-rev20151013-1.20.0/27.3.0.0/google-api-services-toolresults-v1beta3-rev20151013-1.20.0-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -46,18 +49,20 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-firebase-testing">
+      <library name="precompiled-firebase-testing" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:firebase-testing:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/studio/google/cloud/testing/firebase-testing/firebase-testing.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/firebase-testing/27.3.0.0/firebase-testing-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-firebase-testing-test">
+      <library name="precompiled-firebase-testing-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:firebase-testing_test:27.3.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/studio/google/cloud/testing/firebase-testing/firebase-testing_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/firebase-testing_test/27.3.0.0/firebase-testing_test-27.3.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
