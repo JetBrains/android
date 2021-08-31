@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigura
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getFilePathPropertyOrSkipTest;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.getGradleHomePathOrSkipTest;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getUnsupportedGradleHomeOrSkipTest;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.skipTest;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
@@ -53,7 +52,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
@@ -150,27 +148,6 @@ public class GradleSyncTest {
       }
     }
     fail("No dependency for library3 found");
-  }
-
-  @Test
-  public void updatingGradleVersionWithLocalDistribution() throws IOException {
-    File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
-    File gradleHomePath = getGradleHomePathOrSkipTest();
-
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
-    delete(wrapperDirPath);
-    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
-      it.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
-
-      // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-      it.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
-
-      ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(guiTest.robot());
-      chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk().requireNotShowing();
-    });
   }
 
   @Test
