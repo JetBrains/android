@@ -56,12 +56,14 @@ class WakeLockEntryTest {
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("ACQUIRED")
       assertThat(callstacks).containsExactly(acquiredStacktrace)
+      assertThat(retries).isEqualTo(0)
     }
 
     entry.consumeAndAssert(wakeLockReleasedEvent) {
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("RELEASED")
       assertThat(callstacks).containsExactly(acquiredStacktrace, "RELEASED")
+      assertThat(retries).isEqualTo(0)
     }
   }
 
@@ -82,6 +84,7 @@ class WakeLockEntryTest {
       assertThat(status).isEqualTo("RELEASED")
       assertThat(callstacks).containsExactly("RELEASED")
       assertThat(isValid).isFalse()
+      assertThat(retries).isEqualTo(0)
     }
   }
 }

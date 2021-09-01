@@ -49,11 +49,13 @@ class AlarmEntryTest {
       assertThat(startTimeMs).isEqualTo(123)
       assertThat(callstacks).containsExactly("SET")
       assertThat(tags).containsExactly("TAG1")
+      assertThat(retries).isEqualTo(0)
     }
 
     alarmEntry.consumeAndAssert(cancelledEvent) {
       assertThat(status).isEqualTo("CANCELLED")
       assertThat(callstacks).containsExactly("SET", "CANCELLED")
+      assertThat(retries).isEqualTo(0)
     }
   }
 
@@ -93,12 +95,14 @@ class AlarmEntryTest {
       assertThat(callstacks).containsExactly(stacktrace)
       assertThat(tags).containsExactly("TAG1")
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
 
     alarmEntry.consumeAndAssert(firedEvent) {
       assertThat(status).isEqualTo("FIRED")
       assertThat(callstacks).containsExactly(stacktrace)
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
   }
 
@@ -114,6 +118,7 @@ class AlarmEntryTest {
     alarmEntry.consumeAndAssert(firedEvent) {
       assertThat(status).isEqualTo("FIRED")
       assertThat(isValid).isFalse()
+      assertThat(retries).isEqualTo(0)
     }
   }
 }

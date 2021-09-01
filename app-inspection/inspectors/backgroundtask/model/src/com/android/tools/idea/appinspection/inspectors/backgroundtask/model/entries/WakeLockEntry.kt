@@ -47,6 +47,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags = mutableListOf<String>()
   override val callstacks = mutableListOf<String>()
+  override val retries = 0
 
   var acquired: BackgroundTaskInspectorProtocol.Event? = null
   var released: BackgroundTaskInspectorProtocol.Event? = null

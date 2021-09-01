@@ -42,6 +42,13 @@ class WorkEntryTest {
       }.build()
     }.build()
 
+    val workRetriesUpdatedEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
+      workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
+        id = "1"
+        runAttemptCount = 2
+      }.build()
+    }.build()
+
     val workSucceededEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply {
       workUpdated = WorkManagerInspectorProtocol.WorkUpdatedEvent.newBuilder().apply {
         id = "1"
@@ -63,6 +70,9 @@ class WorkEntryTest {
     entry.consumeAndAssert(workUpdatedEvent)
     assertThat(entry.isValid).isTrue()
     assertThat(entry.status).isEqualTo("RUNNING")
+    assertThat(entry.retries).isEqualTo(0)
+    entry.consumeAndAssert(workRetriesUpdatedEvent)
+    assertThat(entry.retries).isEqualTo(1)
     entry.consumeAndAssert(workSucceededEvent)
     assertThat(entry.isValid).isTrue()
     assertThat(entry.status).isEqualTo("SUCCEEDED")

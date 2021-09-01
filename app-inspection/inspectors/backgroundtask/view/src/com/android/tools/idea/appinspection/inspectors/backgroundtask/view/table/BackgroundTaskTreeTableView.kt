@@ -226,6 +226,30 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
         )
         .setComparator(START_TIME_COMPARATOR)
     )
+    builder.addColumn(
+      ColumnTreeBuilder.ColumnBuilder()
+        .setName("Retries")
+        .setHeaderAlignment(SwingConstants.LEFT)
+        .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
+        .setRenderer(object : ColoredTreeCellRenderer() {
+          override fun customizeCellRenderer(tree: JTree,
+                                             value: Any?,
+                                             selected: Boolean,
+                                             expanded: Boolean,
+                                             leaf: Boolean,
+                                             row: Int,
+                                             hasFocus: Boolean) {
+            when (val data = (value as DefaultMutableTreeNode).userObject) {
+              is WorkEntry, is JobEntry -> {
+                append((data as BackgroundTaskEntry).retries.toString())
+              }
+              else -> append("-")
+            }
+          }
+        }
+        )
+        .setComparator(START_TIME_COMPARATOR)
+    )
 
     component = builder.build()
   }
