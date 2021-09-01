@@ -36,8 +36,11 @@ import java.util.function.BooleanSupplier
 
 class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<JankyFrameModel> {
   override fun render(trackModel: TrackModel<JankyFrameModel, *>) =
-    StateChart(trackModel.dataModel, ::renderJankyFrame)
-      .let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
+    StateChart(trackModel.dataModel, ::renderJankyFrame).apply {
+      addRowIndexChangeListener {
+        trackModel.dataModel.activeSeriesIndex = it
+      }
+    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
   private fun renderJankyFrame(g: Graphics2D,
                                rect: Rectangle2D.Float,

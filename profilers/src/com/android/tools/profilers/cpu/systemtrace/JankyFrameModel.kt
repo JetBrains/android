@@ -26,6 +26,14 @@ class JankyFrameModel(layers: List<List<AndroidFrameTimelineEvent>>,
                       viewRange: Range): StateChartModel<AndroidFrameTimelineEvent?>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 
+  var activeSeriesIndex = -1
+    set(index) {
+      if (index != field) {
+        field = index
+        changed(Aspect.MODEL_CHANGED)
+      }
+    }
+
   init {
     layers.forEach { frames ->
       val paddedJankyFrames = frames
