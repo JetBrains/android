@@ -161,6 +161,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     return myThreadInfo;
   }
 
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
+  }
+
   /**
    * @return data series of thread states, if the capture contains thread state data (e.g. SysTrace). Null otherwise.
    */
