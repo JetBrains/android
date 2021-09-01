@@ -51,6 +51,7 @@ class WakeLockEntryTest {
     val entry = WakeLockEntry("1")
 
     entry.consumeAndAssert(wakeLockAcquiredEvent) {
+      assertThat(startTimeMs).isEqualTo(123)
       assertThat(className).isEqualTo("WakeLockTask")
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("ACQUIRED")

@@ -46,7 +46,7 @@ class AlarmEntryTest {
       this as AlarmEntry
       assertThat(status).isEqualTo("SET")
       assertThat(alarmSet).isEqualTo(setEvent.alarmSet)
-      assertThat(startTimeMs).isEqualTo(2)
+      assertThat(startTimeMs).isEqualTo(123)
       assertThat(callstacks).containsExactly("SET")
       assertThat(tags).containsExactly("TAG1")
     }
@@ -89,7 +89,7 @@ class AlarmEntryTest {
       assertThat(className).isEqualTo("AlarmTask")
       assertThat(status).isEqualTo("SET")
       assertThat(alarmSet).isEqualTo(setEvent.alarmSet)
-      assertThat(startTimeMs).isEqualTo(2)
+      assertThat(startTimeMs).isEqualTo(123)
       assertThat(callstacks).containsExactly(stacktrace)
       assertThat(tags).containsExactly("TAG1")
       assertThat(isValid).isTrue()
