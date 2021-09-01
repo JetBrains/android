@@ -190,7 +190,14 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
     assertEquals("0", model.properties["", "uiMode"].defaultValue)
-    assertEquals(" ", model.properties["", "device"].defaultValue)
+    assertEquals(" ", model.properties["", "Device"].defaultValue)
+
+    // Hardware properties
+    assertEquals("width", model.properties["", "Width"].defaultValue)
+    assertEquals("height", model.properties["", "Height"].defaultValue)
+    assertEquals("px", model.properties["", "DimensionUnit"].defaultValue)
+    assertEquals("portrait", model.properties["", "Orientation"].defaultValue)
+    assertEquals("480", model.properties["", "Density"].defaultValue)
 
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)
@@ -265,7 +272,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
-    var expectedModificationsCountdown = 7
+    var expectedModificationsCountdown = 12
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -285,9 +292,30 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("32", model.properties["", "widthDp"].value)
     assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
 
+    // Device parameters modifications
+    model.properties["", "Width"].value = "720" // In pixels, this change should populate 'device' parameter in annotation
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;720;1920;px;480dpi;portrait")""",
+      noParametersPreview.annotationText()
+    )
+
+    model.properties["", "DimensionUnit"].value = "dp" // Should modify width and height in 'device' parameter
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;240;640;dp;480dpi;portrait")""",
+      noParametersPreview.annotationText()
+    )
+
+    model.properties["", "Density"].value = "240" // When changing back to pixels, the width and height should be different than originally
+    model.properties["", "DimensionUnit"].value = "px"
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;360;960;px;240dpi;portrait")""",
+      noParametersPreview.annotationText()
+    )
+
     // Clear values
     model.properties["", "group"].value = null
     model.properties["", "widthDp"].value = "    " // Blank value is the same as null value
+    model.properties["", "Device"].value = null
     assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
 
     model.properties["", "name"].value = null

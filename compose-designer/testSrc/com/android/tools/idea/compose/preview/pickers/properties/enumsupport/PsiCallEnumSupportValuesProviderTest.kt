@@ -94,7 +94,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
       ).withResDirectoryUrls(listOf(rule.fixture.findFileInTempDir("res").url)).build()
     )
 
-    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, null)
+    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(10, uiModeValues.size)
     // The Normal mode should go right after the header, remaining options are sorted on their resolved value
@@ -106,16 +106,17 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Night", (uiModeValues[5] as HeaderEnumValue).header)
     assertEquals("Normal", uiModeValues[6].display)
 
-    val deviceValues = valuesProvider.getValuesProvider("device")!!.invoke()
-    assertEquals(7, deviceValues.size)
-    // For Library devices order is: Default, Pixel family, Nexus family, everything else
-    assertEquals("Library", (deviceValues[0] as HeaderEnumValue).header)
-    assertEquals("Default", deviceValues[1].display)
-    assertEquals("Pixel ", deviceValues[2].display)
-    assertEquals("Pixel 4", deviceValues[3].display)
-    assertEquals("Nexus 10", deviceValues[4].display)
-    assertEquals("Nexus 7", deviceValues[5].display)
-    assertEquals("Automotive 1024p", deviceValues[6].display)
+    val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
+    assertEquals(15, deviceValues.size)
+    // Phones & Tablets, Generic Devices. Are not shown since they are empty when running on test
+    assertEquals("Canonical Devices", (deviceValues[0] as HeaderEnumValue).header)
+    assertEquals("Phone", deviceValues[1].display)
+    assertEquals("Tablet", deviceValues[2].display)
+    assertEquals("Foldable", deviceValues[3].display)
+    assertEquals("Desktop", deviceValues[4].display)
+    assertEquals("Wear", (deviceValues[5] as HeaderEnumValue).header)
+    assertEquals("Tv", (deviceValues[9] as HeaderEnumValue).header)
+    assertEquals("Auto", (deviceValues[13] as HeaderEnumValue).header)
 
     val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
     assertEquals(3, localeValues.size)
@@ -132,7 +133,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   fun testValuesProviderWithSdk() {
     Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, module)
 
-    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, null)
+    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(18, uiModeValues.size)
     // We only care of the order of the first 2 options, all else are sorted on their value and their availability depends on the sdk used
@@ -146,13 +147,14 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[++nightModeIndex].display)
     assertEquals("Undefined", uiModeValues[++nightModeIndex].display)
 
-    val deviceValues = valuesProvider.getValuesProvider("device")!!.invoke()
+    val deviceHeaders = valuesProvider.getValuesProvider("Device")!!.invoke().filterIsInstance<HeaderEnumValue>()
     // With Sdk we just check that there's a Device Manager separator, the Library options are constant from the test setup
-    assertEquals("Library", (deviceValues[0] as HeaderEnumValue).header)
-    assertEquals("Device Manager", (deviceValues[7] as HeaderEnumValue).header)
-    assertTrue(deviceValues.size > 8)
-    // Can't control what Devices may show up here, but we can at least validate part of the EnumValue
-    assertTrue(deviceValues[8].value!!.startsWith("id:"))
+    assertEquals("Canonical Devices", deviceHeaders[0].header)
+    assertEquals("Phones & Tablets", deviceHeaders[1].header) // Phones & Tablets is populated
+    assertEquals("Wear", deviceHeaders[2].header)
+    assertEquals("Tv", deviceHeaders[3].header)
+    assertEquals("Auto", deviceHeaders[4].header)
+    assertEquals("Generic Devices", deviceHeaders[5].header)
 
     // For api, we just check that there's at least an element available
     val apiLevelValues = valuesProvider.getValuesProvider("apiLevel")!!.invoke()
@@ -184,7 +186,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
         fun preview3() {}
       """.trimIndent())
 
-    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, file.virtualFile)
+    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, file.virtualFile)
     val groupEnumValues = valuesProvider.getValuesProvider("group")!!.invoke()
     assertEquals(2, groupEnumValues.size)
     assertEquals("group1", groupEnumValues[0].display)

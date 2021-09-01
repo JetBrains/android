@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -39,10 +40,10 @@ object PsiPickerManager {
   /**
    * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
    */
-  fun show(location: Point, model: PsiPropertyModel) {
+  fun show(location: Point, model: PsiPropertyModel, valuesProvider: EnumSupportValuesProvider) {
     val disposable = Disposer.newDisposable()
     val popup = createPopup(disposable)
-    val previewPickerPanel = createPreviewPickerPanel(disposable, popup::close, model)
+    val previewPickerPanel = createPreviewPickerPanel(disposable, popup::close, model, valuesProvider)
 
     popup.show(previewPickerPanel, null, location)
   }
@@ -51,8 +52,13 @@ object PsiPickerManager {
 private fun createPopup(disposable: Disposable) =
   LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) }, cancelCallBack = { Disposer.dispose(disposable) })
 
-private fun createPreviewPickerPanel(disposable: Disposable, closePopupCallBack: () -> Unit, model: PsiPropertyModel): JPanel {
-  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model)) }
+private fun createPreviewPickerPanel(
+  disposable: Disposable,
+  closePopupCallBack: () -> Unit,
+  model: PsiPropertyModel,
+  valuesProvider: EnumSupportValuesProvider
+): JPanel {
+  val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model, valuesProvider)) }
 
   return JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)

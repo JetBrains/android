@@ -206,7 +206,11 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     if (!model.editable) {
       inSetup = true
       try {
-        selectedIndex = model.getIndexOfCurrentValue()
+        val currentIndex = model.getIndexOfCurrentValue()
+        selectedIndex = currentIndex
+        if (currentIndex < 0) {
+          model.updateValueFromProperty()
+        }
       }
       finally {
         inSetup = false

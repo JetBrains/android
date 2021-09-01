@@ -19,13 +19,20 @@ import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DensityEnumSupport
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DimensionUnitEnumSupport
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.OrientationEnumSupport
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.createDeviceEnumSupport
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
-import com.intellij.util.text.nullize
 
 /**
  * Handles how [EnumValue]s are generated for [PsiPropertyItem]s.
@@ -59,28 +66,17 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
           return@uiMode uiMode
         }
       }
-      PARAMETER_DEVICE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-        val trimmedValue = stringValue.trim()
-        Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
-          // First try to parse to a pre-defined device
-          return@EnumSupportWithConstantData it
-        }
-
-        trimmedValue.nullize()?.let {
-          // Show an item with de initial value and make it better to read
-          val readableValue = it.substringAfter(':', it).replace('_', ' ')
-          return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
-        }
-
-        // For the scenario when there's no value or it's empty (Default device is an empty string)
-        return@EnumSupportWithConstantData Device.DEFAULT
-      }
       PARAMETER_GROUP,
       PARAMETER_LOCALE,
       PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
       PARAMETER_FONT_SCALE -> object : EnumSupport {
         override val values: List<EnumValue> = FontScale.values().toList()
       }
+      PARAMETER_DEVICE,
+      PARAMETER_HARDWARE_DEVICE -> createDeviceEnumSupport(enumSupportValuesProvider, property)
+      PARAMETER_HARDWARE_DIM_UNIT -> DimensionUnitEnumSupport
+      PARAMETER_HARDWARE_DENSITY -> DensityEnumSupport
+      PARAMETER_HARDWARE_ORIENTATION -> OrientationEnumSupport
       else -> null
     }
 }

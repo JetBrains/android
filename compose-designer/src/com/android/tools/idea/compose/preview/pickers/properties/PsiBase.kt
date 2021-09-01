@@ -20,6 +20,10 @@ import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
@@ -27,39 +31,31 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.InspectorBuilder
-import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertiesView
-import java.util.function.Consumer
 
 private const val PSI_PROPERTIES_VIEW_NAME = "PsiProperties"
 
 /**
  * Base class for properties of the [PsiPropertyModel].
  */
-interface PsiPropertyItem : NewPropertyItem
+interface PsiPropertyItem : NewPropertyItem {
+  override fun isSameProperty(qualifiedName: String): Boolean = false
+  override val namespace: String get() = ""
+}
 
 /**
  * Base [PropertiesModel] for pickers interacting with PSI elements.
  */
 abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
-
-  /**
-   * Provider used by [EnumSupport] instances to retrieve values in their executing thread.
-   *
-   * @see [PsiEnumProvider]
-   */
-  open val enumSupportValuesProvider: EnumSupportValuesProvider = EnumSupportValuesProvider.EMPTY
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
@@ -72,32 +68,32 @@ abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   }
 
   internal fun firePropertyValuesChanged() {
-    listeners.forEach(Consumer {
+    listeners.forEach {
       it.propertyValuesChanged(this)
-    })
+    }
   }
 
   override fun deactivate() {}
 }
 
-private class PsiPropertiesInspectorBuilder(private val editorProvider: EditorProvider<PsiPropertyItem>)
-  : InspectorBuilder<PsiPropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
-    properties.values.forEach {
-      inspector.addEditor(editorProvider.createEditor(it))
-    }
-  }
-}
-
 /**
  * A [PropertiesView] for editing [PsiPropertyModel]s.
  */
-internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
+internal class PsiPropertyView(
+  model: PsiPropertyModel,
+  enumSupportValuesProvider: EnumSupportValuesProvider
+) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
 
   init {
     addTab("").apply {
-      builders.add(PsiPropertiesInspectorBuilder(
-        EditorProvider.create(PsiEnumProvider(model.enumSupportValuesProvider), PsiPropertyItemControlTypeProvider)))
+      builders.add(
+        PsiPropertiesInspectorBuilder(
+          EditorProvider.create(
+            PsiEnumProvider(enumSupportValuesProvider),
+            PsiPropertyItemControlTypeProvider
+          )
+        )
+      )
     }
   }
 }
@@ -108,6 +104,10 @@ internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiProp
 object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
   override fun invoke(property: PsiPropertyItem): ControlType =
     when (property.name) {
+      PARAMETER_HARDWARE_DEVICE,
+      PARAMETER_HARDWARE_ORIENTATION,
+      PARAMETER_HARDWARE_DIM_UNIT,
+      PARAMETER_HARDWARE_DENSITY,
       PARAMETER_UI_MODE,
       PARAMETER_DEVICE -> ControlType.DROPDOWN
       PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR

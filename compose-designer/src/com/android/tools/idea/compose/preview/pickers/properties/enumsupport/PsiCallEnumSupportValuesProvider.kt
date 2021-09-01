@@ -17,16 +17,21 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.DeviceGroup
+import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -42,7 +47,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 /**
  * [EnumSupportValuesProvider] that uses a backing map to return the provider functions.
@@ -57,12 +61,9 @@ class PsiCallEnumSupportValuesProvider private constructor(
     @JvmStatic
     fun createPreviewValuesProvider(
       module: Module,
-      composeLibraryNamespace: ComposeLibraryNamespace,
       containingFile: VirtualFile?
     ): EnumSupportValuesProvider {
       val providersMap = mutableMapOf<String, EnumValuesProvider>()
-
-      providersMap[PARAMETER_DEVICE] = createDeviceEnumProvider(module, composeLibraryNamespace.composeDevicesClassName)
 
       providersMap[PARAMETER_UI_MODE] = createUiModeEnumProvider(module)
 
@@ -74,78 +75,65 @@ class PsiCallEnumSupportValuesProvider private constructor(
 
       providersMap[PARAMETER_LOCALE] = createLocaleEnumProvider(module)
 
+      providersMap[PARAMETER_HARDWARE_DEVICE] = createDeviceEnumProvider(module)
+
       return PsiCallEnumSupportValuesProvider(providersMap)
     }
   }
 }
 
-private fun createDeviceEnumProvider(module: Module, devicesClassName: String): EnumValuesProvider =
-  deviceProvider@{
-    val existingDevicesId = mutableSetOf("") // Empty String for DEFAULT device
+private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
+  {
+    val existingDevices = getGroupedDevices(module)
+    val devicesEnumValueBuilder = DeviceEnumValueBuilder()
+      .addDeviceDp("Phone", DeviceClass.Canonical, 360, 640)
+      .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
+      .addDeviceDp("Foldable", DeviceClass.Canonical, 673, 841)
+      .addDeviceDp("Desktop", DeviceClass.Canonical, 640, 360)
+      .addWearDevice(Shape.Square)
+      .addWearDevice(Shape.Round)
+      .addWearDevice(Shape.Chin)
+      .addTvDevice(3840, 2160, 55.0)
+      .addTvDevice(1920, 1080, 55.0)
+      .addTvDevice(1280, 720, 55.0)
+      .addAutoDevice(1024, 768, 8.4)
 
-    // Fetch devices from the Library class
-    val devicesClass = findClass(module, devicesClassName) ?: return@deviceProvider emptyList()
-    val devicesValues = devicesClass.fields.mapNotNull { device ->
-      (device.computeConstantValue() as? String)?.takeIf { it.startsWith("id:") || it.startsWith("name:") }?.let { resolvedValue ->
-        val fullName = device.name.replace('_', ' ')
-        val deviceName = fullName.substringBefore(' ', fullName).toLowerCaseAsciiOnly().capitalizeAsciiOnly()
-        val displayName = "$deviceName ${fullName.substringAfter(' ', "")}"
-        ClassEnumValueParams(device.name, displayName, resolvedValue)
-      }
-    }.sortedWith(DevicesComparator).map { uiModeParams ->
-      existingDevicesId.add(uiModeParams.resolvedValue)
-      DeviceEnumValueImpl(uiModeParams.value, uiModeParams.displayName, uiModeParams.resolvedValue, devicesClassName)
-    }
+    existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhoneTablet)
+    existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addPhoneTablet)
 
-    // Fetch devices from Device Manager
-    val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
-      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)
-    }
-    val studioDevicesValues = studioDevices?.filter { device ->
-      val deviceId = "id:${device.id}"
-      val deviceName = "name:${device.id}"
-      (existingDevicesId.contains(deviceId) || existingDevicesId.contains(deviceName)).not()
-    }?.map { device ->
-      EnumValue.indented("id:${device.id}", device.displayName)
-    } ?: emptyList()
+    existingDevices[DeviceGroup.GENERIC]?.forEach(devicesEnumValueBuilder::addGeneric)
 
-    return@deviceProvider listOf(
-      EnumValue.header(message("picker.preview.device.header.library")),
-      DeviceEnumValueImpl("DEFAULT", "Default", "", devicesClassName),
-      *devicesValues.toTypedArray()
-    ).plus(
-      // Add Device Manager header if the list is not empty
-      studioDevicesValues.ifNotEmpty studioDevices@{
-        listOf(EnumValue.header(message("picker.preview.device.header.manager")), *this@studioDevices.toTypedArray())
-      } ?: emptyList()
-    )
+    devicesEnumValueBuilder.build()
   }
+
+private fun DeviceEnumValueBuilder.addPhoneTablet(device: Device) {
+  val screen = device.defaultState.hardware.screen
+  addPhoneOrTablet(
+    displayName = device.displayName,
+    widthPx = screen.xDimension,
+    heightPx = screen.yDimension,
+    diagonalIn = screen.diagonalLength
+  )
+}
+
+private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
+  val screen = device.defaultState.hardware.screen
+  addGeneric(
+    displayName = device.displayName,
+    widthPx = screen.xDimension,
+    heightPx = screen.yDimension,
+    diagonalIn = screen.diagonalLength
+  )
+}
 
 /**
- * Custom [Comparator] for a more convenient order in Devices options.
+ * Returns grouped devices from the DeviceManager.
  */
-private object DevicesComparator : Comparator<ClassEnumValueParams> {
-  override fun compare(o1: ClassEnumValueParams, o2: ClassEnumValueParams): Int {
-    val display1 = o1.displayName
-    val display2 = o2.displayName
-    if (display1.getOrNull(0) == display2.getOrNull(0)) {
-      return display1.compareTo(display2)
-    }
-
-    if (display1.startsWith('p', true)) {
-      return -1
-    }
-    else if (display2.startsWith('p', true)) {
-      return 1
-    }
-    if (display1.startsWith('n', true)) {
-      return -1
-    }
-    else if (display2.startsWith('n', true)) {
-      return 1
-    }
-    return display1.compareTo(display2)
-  }
+private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
+  val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
+    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.toList()
+  } ?: emptyList()
+  return groupDevices(studioDevices)
 }
 
 private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
