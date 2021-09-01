@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.tools.idea.wearpairing.WearPairingManager.supportsMultipleWatchConnections
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
@@ -23,6 +24,7 @@ import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil.ComponentStyle.LARGE
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.GridBagConstraints
 import java.awt.GridBagConstraints.HORIZONTAL
@@ -38,12 +40,19 @@ class NewConnectionAlertStep(
   val project: Project
 ) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val mainPanel = JPanel()
+  private val selectedPhoneSupportsMultipleWatchConnections: Boolean by lazy {
+    runBlocking {
+      model.selectedPhoneDevice.valueOrNull?.supportsMultipleWatchConnections() == true
+    }
+  }
 
   override fun shouldShow(): Boolean {
     val selectedPhone = model.selectedPhoneDevice.valueOrNull ?: return false
     val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
 
-    if (model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
+    // In case the phone is already running, and we can detect that it has support for multiple emulator connections,
+    // we don't need to kill other wear emulators.
+    if (model.getNonSelectedRunningWearEmulators().isNotEmpty() && !selectedPhoneSupportsMultipleWatchConnections) {
       return true
     }
 
@@ -58,7 +67,7 @@ class NewConnectionAlertStep(
     val selectedPhoneName = model.selectedPhoneDevice.value.displayName
     val selectedWearName = model.selectedWearDevice.value.displayName
 
-    if (model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
+    if (model.getNonSelectedRunningWearEmulators().isNotEmpty() && !selectedPhoneSupportsMultipleWatchConnections) {
       showUi(
         header = message("wear.assistant.connection.alert.close.emulators.title"),
         description = message("wear.assistant.connection.alert.close.emulators.subtitle", selectedWearName, selectedPhoneName)
