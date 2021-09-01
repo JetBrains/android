@@ -91,6 +91,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    */
   protected var myTimeSlider: JSlider? = null
   private var myTimeSliderChangeModel: ChangeListener? = null
+  protected var timeSliderSeparator: JSeparator? = null
   private var myMaxTimeMs: Long
   private var currentSpeedFactor: Double = PlaySpeed.x1.speedFactor
   private var myLoopEnabled = true
@@ -352,7 +353,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       myTimeSlider!!.border = JBUI.Borders.empty()
       myTimeSliderModel!!.addChangeListener(myTimeSliderChangeModel)
       myTimeSlider!!.model = myTimeSliderModel
-      buttonsPanel.add(JSeparator(SwingConstants.VERTICAL))
+      timeSliderSeparator = JSeparator(SwingConstants.VERTICAL)
+      buttonsPanel.add(timeSliderSeparator)
       controlBar.add(myTimeSlider)
     }
     myFrameControl = JSlider(-5, 5, 0)
@@ -428,5 +430,8 @@ private fun createPlaySpeedActionButton(callback: (Double) -> Unit): ActionButto
     presentation.description = if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
     button.update()
   }
+  // The button has a down arrow in the bottom-right corner, which is close to the right bounds of button.
+  // Add a right border to make the visual effect balanced.
+  button.border = JBUI.Borders.emptyRight(4)
   return button
 }
