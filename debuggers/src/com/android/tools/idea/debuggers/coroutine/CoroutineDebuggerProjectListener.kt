@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 /**
  * Class responsible for setting up to coroutine debugger [DebuggerConnection]
  */
+// TODO(b/182023182) disable when running api lower than 28
 class CoroutineDebuggerProjectListener : ProjectManagerListener {
   private var connection: MessageBusConnection? = null
   private var executionListener = CoroutineDebuggerExecutionListener()

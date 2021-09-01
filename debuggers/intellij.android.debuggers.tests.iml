@@ -14,5 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>
