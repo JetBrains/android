@@ -28,10 +28,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -41,6 +43,7 @@ import java.util.function.Function;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -65,7 +68,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox mySkipNoOpApkInstallation;
   private JCheckBox myForceStopRunningApplicationCheckBox;
   private JCheckBox myEnableLayoutInspectionWithoutActivityRestart;
-  private JTextPane myActivityRestartDescription;
+  private JEditorPane myActivityRestartDescription;
 
   private JComponent anchor;
 
@@ -255,5 +258,15 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @VisibleForTesting
   DeploymentTargetOptions getDeploymentTargetOptions() {
     return myDeploymentTargetOptions;
+  }
+
+  private void createUIComponents() {
+    myActivityRestartDescription =
+      SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
+    myActivityRestartDescription.setText(
+      "<html>Enabling this option sets a required global flag on the device at deploy time. This avoids having to later restart the " +
+      "activity in order to enable the flag when connecting to the Layout Inspector. " +
+      "<a href=\"https://developer.android.com/r/studio-ui/layout-inspector-activity-restart\">Learn more</a></html>");
+    myActivityRestartDescription.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 }
