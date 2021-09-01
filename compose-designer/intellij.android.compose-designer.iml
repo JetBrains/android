@@ -49,7 +49,7 @@
     <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module-library">
-      <library name="commons.lang" type="repository">
+      <library name="commons-lang" type="repository">
         <properties include-transitive-deps="false" maven-id="commons-lang:commons-lang:2.6" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6.jar!/" />

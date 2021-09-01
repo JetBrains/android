@@ -9,7 +9,7 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module-library" exported="">
-      <library type="repository">
+      <library name="deploy_java_proto" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/27.3.0.0/deploy_java_proto-27.3.0.0.jar!/" />
@@ -19,7 +19,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="jb-r8" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/27.3.0.0/jb-r8-27.3.0.0.jar!/" />
@@ -29,7 +29,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="libjava_version" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/27.3.0.0/libjava_version-27.3.0.0.jar!/" />
@@ -57,7 +57,7 @@
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="libjava_sites" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/27.3.0.0/libjava_sites-27.3.0.0.jar!/" />

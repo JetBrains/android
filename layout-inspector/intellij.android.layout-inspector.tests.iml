@@ -50,16 +50,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutinspector-view-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="layoutinspector-compose-proto" level="project" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library name="skiaparser_test_support">
-        <CLASSES />
-        <JAVADOC />
-        <NATIVE>
-          <root url="file://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/layout-inspector" />
-        </NATIVE>
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />

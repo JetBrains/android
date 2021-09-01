@@ -42,8 +42,8 @@
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="library" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />

@@ -42,7 +42,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TLongObjectHashMap
-import org.jetbrains.org.objectweb.asm.Type
+import org.objectweb.asm.Type
 import java.io.OutputStream
 import java.util.TreeMap
 import java.util.concurrent.Executor
