@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.error;
 
-import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
+import org.jetbrains.android.diagnostics.error.ErrorBean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
