@@ -13,5 +13,4 @@ android_java_proto_library(
         "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto-proto",
         "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:_layout_inspector_view_java_proto_internal_srcs",
     ],
-    protoc_grpc_version = "1.21.1",
 )
