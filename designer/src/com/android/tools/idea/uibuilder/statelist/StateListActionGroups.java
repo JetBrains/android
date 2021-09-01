@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import java.util.Arrays;
@@ -37,6 +38,9 @@ public final class StateListActionGroups extends ToolbarActionGroups {
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     if (!StudioFlags.NELE_STATE_LIST_PICKER.get()) {
       Arrays.asList(State.values()).forEach(state -> group.add(new ToggleStateAction(state, mySurface)));
+    }
+    if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
+      group.add(new DrawableBackgroundMenuAction());
     }
     return group;
   }
