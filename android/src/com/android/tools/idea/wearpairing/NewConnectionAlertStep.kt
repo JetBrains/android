@@ -46,6 +46,10 @@ class NewConnectionAlertStep(
     }
   }
 
+  override fun canGoBack(): Boolean {
+    return false
+  }
+
   override fun shouldShow(): Boolean {
     val selectedPhone = model.selectedPhoneDevice.valueOrNull ?: return false
     val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
