@@ -141,8 +141,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
 
       if (isFirstStage) {
-        killNonSelectedRunningWearEmulators()
         phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
+        if (!phoneIDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING, null)) {
+          killNonSelectedRunningWearEmulators()
+        }
         wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded()
         secondStageStep!!.phoneIDevice = phoneIDevice
         secondStageStep.wearIDevice = wearIDevice

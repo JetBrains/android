@@ -265,6 +265,9 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     }
   }
 
+  suspend fun PairingDevice.supportsMultipleWatchConnections(): Boolean =
+    getConnectedDevices()[deviceID]?.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING, null) == true
+
   private fun getConnectedDevices(): Map<String, IDevice> {
     val connectedDevices = AndroidDebugBridge.getBridge()?.devices ?: return emptyMap()
     return connectedDevices
