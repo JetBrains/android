@@ -34,8 +34,8 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.gradle.KotlinGradleModel
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 

@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import java.io.Serializable
 
 class IdeAndroidModels(

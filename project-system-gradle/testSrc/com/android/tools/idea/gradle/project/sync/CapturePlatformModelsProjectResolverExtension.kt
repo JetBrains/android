@@ -23,8 +23,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.gradle.KotlinGradleModel
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 

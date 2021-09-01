@@ -70,7 +70,7 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModelImpl
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModelImpl
 import org.junit.Test
 import java.io.File
 import java.io.Serializable

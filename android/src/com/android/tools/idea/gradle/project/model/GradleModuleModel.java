@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

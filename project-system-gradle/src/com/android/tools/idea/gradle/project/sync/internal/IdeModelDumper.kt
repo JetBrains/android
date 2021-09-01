@@ -59,8 +59,8 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
-import org.jetbrains.kotlin.gradle.KotlinGradleModel
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ExternalDependency
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
