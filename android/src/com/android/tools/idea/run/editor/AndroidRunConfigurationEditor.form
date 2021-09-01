@@ -160,7 +160,7 @@
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Enable layout inspection without activity restart"/>
+                      <text value="Connect to Layout Inspector without restarting activity"/>
                     </properties>
                   </component>
                   <vspacer id="83fe0">
@@ -168,15 +168,13 @@
                       <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                     </constraints>
                   </vspacer>
-                  <component id="a4418" class="javax.swing.JTextPane" binding="myActivityRestartDescription">
+                  <component id="dbeb9" class="javax.swing.JEditorPane" binding="myActivityRestartDescription" custom-create="true">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
                         <preferred-size width="150" height="50"/>
                       </grid>
                     </constraints>
-                    <properties>
-                      <text value="This allows the Layout Inspector to connect without restarting the current Activity, but reduces app performance slightly even if the Layout Inspector is not connected."/>
-                    </properties>
+                    <properties/>
                   </component>
                 </children>
               </grid>
