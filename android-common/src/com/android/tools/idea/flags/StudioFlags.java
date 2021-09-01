@@ -1299,7 +1299,7 @@ public final class StudioFlags {
     "wear.os.virtual.device.pairing.assistant.enabled",
     "Enable the Wear OS virtual device pairing assistant",
     "Enable the Wear OS virtual device pairing assistant",
-    false);
+    true);
   // endregion
 
   //region DDMLIB
