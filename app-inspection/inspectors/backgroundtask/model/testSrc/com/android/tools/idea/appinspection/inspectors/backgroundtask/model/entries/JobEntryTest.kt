@@ -61,6 +61,7 @@ class JobEntryTest {
     val jobEntry = JobEntry("1")
 
     jobEntry.consumeAndAssertJob(jobScheduled) {
+      assertThat(startTimeMs).isEqualTo(123)
       assertThat(className).isEqualTo("SERVICE")
       assertThat(startTimeMs).isEqualTo(123)
       assertThat(callstacks).containsExactly("SCHEDULED")

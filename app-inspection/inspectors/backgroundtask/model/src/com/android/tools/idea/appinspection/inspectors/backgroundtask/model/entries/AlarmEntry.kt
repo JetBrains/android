@@ -62,7 +62,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
         alarmSet = backgroundTaskEvent.alarmSet
         _className = getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager") ?: "Alarm $id"
         _status = State.SET
-        _startTime = alarmSet!!.triggerMs
+        _startTime = latestEvent!!.timestamp
         if (alarmSet!!.hasListener()) {
           _tags.add(alarmSet!!.listener.tag)
         }
