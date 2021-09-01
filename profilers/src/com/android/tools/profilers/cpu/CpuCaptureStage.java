@@ -57,6 +57,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel;
+import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -559,7 +560,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     JankyFrameModel jankyFrameModel = new JankyFrameModel(Arrays.asList(systemTraceData.getAndroidFrameTimelineEvents()),
                                                           systemTraceData.getVsyncCounterValues(),
                                                           timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.JANKY_FRAME, "Janky frames"));
+    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.JANKY_FRAME, "Janky frames")
+                            .setDefaultTooltipModel(new JankyFrameTooltip(timeline, jankyFrameModel)));
     return display;
 
   }
