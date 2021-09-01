@@ -60,25 +60,25 @@ class JobEntryTest {
 
     val jobEntry = JobEntry("1")
 
-    jobEntry.consumeAndAssertJob(jobScheduled) {
-      assertThat(startTimeMs).isEqualTo(123)
+    jobEntry.consumeAndAssertJob(jobScheduled, 1) {
+      assertThat(startTimeMs).isEqualTo(1)
       assertThat(className).isEqualTo("SERVICE")
-      assertThat(startTimeMs).isEqualTo(123)
-      assertThat(callstacks).containsExactly("SCHEDULED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"))
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobStarted) {
+    jobEntry.consumeAndAssertJob(jobStarted, 2) {
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobFinished) {
+    jobEntry.consumeAndAssertJob(jobFinished, 3) {
       assertThat(isValid).isTrue()
-      assertThat(callstacks).containsExactly("SCHEDULED", "FINISHED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"),
+                                             BackgroundTaskCallStack(3, "FINISHED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -120,27 +120,27 @@ class JobEntryTest {
 
     val jobEntry = JobEntry("1")
 
-    jobEntry.consumeAndAssertJob(jobScheduled) {
-      assertThat(startTimeMs).isEqualTo(123)
-      assertThat(callstacks).containsExactly("SCHEDULED")
+    jobEntry.consumeAndAssertJob(jobScheduled, 1) {
+      assertThat(startTimeMs).isEqualTo(1)
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"))
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobStarted) {
+    jobEntry.consumeAndAssertJob(jobStarted, 2) {
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobStopped) {
+    jobEntry.consumeAndAssertJob(jobStopped, 3) {
       assertThat(isValid).isTrue()
-      assertThat(callstacks).containsExactly("SCHEDULED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"))
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobScheduled) {
+    jobEntry.consumeAndAssertJob(jobScheduled, 4) {
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(1)
     }
@@ -170,13 +170,13 @@ class JobEntryTest {
     }.build()
 
     val jobEntry = JobEntry("1")
-    jobEntry.consumeAndAssertJob(jobStarted) {
+    jobEntry.consumeAndAssertJob(jobStarted, 1) {
       assertThat(isValid).isFalse()
       assertThat(retries).isEqualTo(0)
     }
 
-    jobEntry.consumeAndAssertJob(jobFinished) {
-      assertThat(callstacks).containsExactly("FINISHED")
+    jobEntry.consumeAndAssertJob(jobFinished, 2) {
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(2, "FINISHED"))
       assertThat(isValid).isFalse()
       assertThat(retries).isEqualTo(0)
     }
@@ -185,9 +185,10 @@ class JobEntryTest {
 
 private fun JobEntry.consumeAndAssertJob(
   event: BackgroundTaskInspectorProtocol.BackgroundTaskEvent,
+  timestamp: Long = 123,
   assertion: JobEntry.() -> Unit = { }
 ) {
-  consumeAndAssert(event) {
+  consumeAndAssert(event, timestamp) {
     assertThat(latestEvent!!.backgroundTaskEvent).isEqualTo(event)
     assertThat(status).isEqualTo(
       when (event.metadataCase) {

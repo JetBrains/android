@@ -42,19 +42,19 @@ class AlarmEntryTest {
       alarmCancelled = BackgroundTaskInspectorProtocol.AlarmCancelled.getDefaultInstance()
     }.build()
 
-    alarmEntry.consumeAndAssert(setEvent) {
+    alarmEntry.consumeAndAssert(setEvent, 1) {
       this as AlarmEntry
       assertThat(status).isEqualTo("SET")
       assertThat(alarmSet).isEqualTo(setEvent.alarmSet)
-      assertThat(startTimeMs).isEqualTo(123)
-      assertThat(callstacks).containsExactly("SET")
+      assertThat(startTimeMs).isEqualTo(1)
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SET"))
       assertThat(tags).containsExactly("TAG1")
       assertThat(retries).isEqualTo(0)
     }
 
-    alarmEntry.consumeAndAssert(cancelledEvent) {
+    alarmEntry.consumeAndAssert(cancelledEvent, 2) {
       assertThat(status).isEqualTo("CANCELLED")
-      assertThat(callstacks).containsExactly("SET", "CANCELLED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SET"), BackgroundTaskCallStack(2, "CANCELLED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -86,21 +86,21 @@ class AlarmEntryTest {
       alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
     }.build()
 
-    alarmEntry.consumeAndAssert(setEvent) {
+    alarmEntry.consumeAndAssert(setEvent, 1) {
       this as AlarmEntry
       assertThat(className).isEqualTo("AlarmTask")
       assertThat(status).isEqualTo("SET")
       assertThat(alarmSet).isEqualTo(setEvent.alarmSet)
-      assertThat(startTimeMs).isEqualTo(123)
-      assertThat(callstacks).containsExactly(stacktrace)
+      assertThat(startTimeMs).isEqualTo(1)
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, stacktrace))
       assertThat(tags).containsExactly("TAG1")
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }
 
-    alarmEntry.consumeAndAssert(firedEvent) {
+    alarmEntry.consumeAndAssert(firedEvent, 2) {
       assertThat(status).isEqualTo("FIRED")
-      assertThat(callstacks).containsExactly(stacktrace)
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, stacktrace))
       assertThat(isValid).isTrue()
       assertThat(retries).isEqualTo(0)
     }

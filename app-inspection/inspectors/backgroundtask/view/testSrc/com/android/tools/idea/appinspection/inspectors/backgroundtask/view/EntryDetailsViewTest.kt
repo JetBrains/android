@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
+import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -76,7 +77,7 @@ class EntryDetailsViewTest {
     withContext(uiDispatcher) {
       client = BackgroundTaskInspectorTestUtils.getFakeClient(scope)
       ideServices = TestIdeServices()
-      tab = BackgroundTaskInspectorTab(client, ideServices, IntellijUiComponentsProvider(projectRule.project), scope, uiDispatcher)
+      tab = BackgroundTaskInspectorTab(client, ideServices, StubUiComponentsProvider(), scope, uiDispatcher)
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView
       tab.isDetailsViewVisible = false
@@ -216,6 +217,7 @@ class EntryDetailsViewTest {
           creatorUid = 100
         }
       }
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
@@ -233,11 +235,20 @@ class EntryDetailsViewTest {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
       assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+
+      with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
+        assertThat(this[0].lineNumber).isEqualTo(26)
+      }
+      assertThat(detailsView.stackTraceViews[1].stackTraceModel.codeLocations).isEmpty()
     }
 
     client.sendBackgroundTaskEvent(10000) {
       taskId = 1
       alarmFiredBuilder.build()
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
 
     withContext(uiDispatcher) {
@@ -260,6 +271,7 @@ class EntryDetailsViewTest {
           tag = "tag"
         }
       }
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
@@ -277,6 +289,14 @@ class EntryDetailsViewTest {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
       assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+
+      with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
+        assertThat(this[0].lineNumber).isEqualTo(26)
+      }
+      assertThat(detailsView.stackTraceViews[1].stackTraceModel.codeLocations).isEmpty()
     }
 
     client.sendBackgroundTaskEvent(10000) {
@@ -301,6 +321,7 @@ class EntryDetailsViewTest {
         tag = "tag"
         level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
       }
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
     val wakeLockAcquired = event.backgroundTaskEvent.wakeLockAcquired
 
@@ -316,11 +337,20 @@ class EntryDetailsViewTest {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
       assertThat(timeStartedComponent.text).isEqualTo(0L.toFormattedTimeString())
+
+      with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
+        assertThat(this[0].lineNumber).isEqualTo(26)
+      }
+      assertThat(detailsView.stackTraceViews[1].stackTraceModel.codeLocations).isEmpty()
     }
 
     client.sendBackgroundTaskEvent(10000) {
       taskId = 1
       wakeLockReleasedBuilder.build()
+      stacktrace = "com.Test.download(Tester.java:43)"
     }
 
     withContext(uiDispatcher) {
@@ -329,6 +359,19 @@ class EntryDetailsViewTest {
       assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
       val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
       assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+
+      with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
+        assertThat(this[0].lineNumber).isEqualTo(26)
+      }
+      with(detailsView.stackTraceViews[1].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.Test")
+        assertThat(this[0].methodName).isEqualTo("download")
+        assertThat(this[0].lineNumber).isEqualTo(42)
+      }
     }
   }
 
@@ -346,6 +389,7 @@ class EntryDetailsViewTest {
         }
         result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
       }
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
     val jobScheduled = event.backgroundTaskEvent.jobScheduled
 
@@ -374,6 +418,7 @@ class EntryDetailsViewTest {
     client.sendBackgroundTaskEvent(10000) {
       taskId = 1
       jobFinishedBuilder.build()
+      stacktrace = "com.Test.download(Tester.java:43)"
     }
 
     withContext(uiDispatcher) {
@@ -382,6 +427,19 @@ class EntryDetailsViewTest {
       assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
       val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
       assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
+
+      with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
+        assertThat(this[0].lineNumber).isEqualTo(26)
+      }
+      with(detailsView.stackTraceViews[1].stackTraceModel.codeLocations) {
+        assertThat(size).isEqualTo(1)
+        assertThat(this[0].className).isEqualTo("com.Test")
+        assertThat(this[0].methodName).isEqualTo("download")
+        assertThat(this[0].lineNumber).isEqualTo(42)
+      }
     }
   }
 

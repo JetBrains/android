@@ -48,7 +48,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   override val startTimeMs get() = _startTime
 
   override val tags get() = _tags
-  override val callstacks = mutableListOf<String>()
+  override val callstacks = mutableListOf<BackgroundTaskCallStack>()
   override val retries = 0
 
   var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
@@ -56,6 +56,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
 
   override fun consume(eventWrapper: EventWrapper) {
     latestEvent = eventWrapper.backgroundTaskEvent
+    val timestamp = eventWrapper.backgroundTaskEvent.timestamp
     val backgroundTaskEvent = latestEvent!!.backgroundTaskEvent
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
@@ -68,11 +69,11 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
           _tags.add(alarmSet!!.listener.tag)
         }
         callstacks.clear()
-        callstacks.add(backgroundTaskEvent.stacktrace)
+        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.stacktrace))
       }
       BackgroundTaskEvent.MetadataCase.ALARM_CANCELLED -> {
         _status = State.CANCELLED
-        callstacks.add(backgroundTaskEvent.stacktrace)
+        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.stacktrace))
       }
       BackgroundTaskEvent.MetadataCase.ALARM_FIRED -> {
         _status = State.FIRED
