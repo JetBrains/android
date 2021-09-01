@@ -17,7 +17,8 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinPlatform
+import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
+import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -27,11 +28,11 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     }
 
     override fun getToolingExtensionsClasses(): Set<Class<out Any>> {
-        return setOf(KotlinMPPGradleModelBuilder::class.java, Unit::class.java)
+        return setOf(KotlinMPPGradleModelBuilder::class.java, KotlinTarget::class.java, Unit::class.java)
     }
 
     override fun getExtraProjectModelClasses(): Set<Class<out Any>> {
-        return setOf(KotlinMPPGradleModel::class.java)
+        return setOf(KotlinMPPGradleModel::class.java, KotlinTarget::class.java)
     }
 
     override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {

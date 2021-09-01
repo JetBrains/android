@@ -27,9 +27,9 @@ import org.jetbrains.kotlin.idea.gradle.configuration.kotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.addModuleDependencyIfNeeded
 import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinSourceSetDataService
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinCompilation
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinPlatform
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinSourceSet
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
+import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
+import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.io.IOException
