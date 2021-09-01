@@ -37,7 +37,9 @@ class AndroidFrameEventTrackModel
   constructor(androidFrameEvents: List<TraceProcessor.AndroidFrameEventsResult.FrameEvent>,
               viewRange: Range,
               vsyncSeries: List<SeriesData<Long>>)
-    : this(androidFrameEvents.groupBy { it.depth }.toSortedMap().values
+    : this(androidFrameEvents.groupBy { it.depth }
+             .toSortedMap(compareByDescending { it }) // Display lower depth on top.
+             .values
              .map { it.padded() }
              .filterNot { it.isEmpty() }
              .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) },
