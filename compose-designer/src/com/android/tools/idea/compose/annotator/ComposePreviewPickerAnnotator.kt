@@ -21,6 +21,8 @@ import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.toPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.flags.StudioFlags
@@ -37,6 +39,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
@@ -92,7 +95,10 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     { message("picker.preview.annotator.tooltip") },
     { mouseEvent, _ ->
       val model = PsiCallPropertyModel.fromPreviewElement(project, previewElement)
-      PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model)
+      val valuesProvider = element.module?.let {
+        PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, element.containingFile.virtualFile)
+      } ?: EnumSupportValuesProvider.EMPTY
+      PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)
     },
     GutterIconRenderer.Alignment.LEFT,
     { message("picker.preview.annotator.tooltip") }

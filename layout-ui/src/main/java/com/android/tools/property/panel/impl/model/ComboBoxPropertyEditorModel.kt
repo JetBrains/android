@@ -99,7 +99,13 @@ class ComboBoxPropertyEditorModel(
   override fun updateValueFromProperty() {
     text = value
     if (!editable) {
-      setInitialDropDownValue(value)
+      val currentIndex = getIndexOfCurrentValue()
+      if (currentIndex >= 0) {
+        selectedItem = getElementAt(currentIndex)
+      }
+      else {
+        setInitialDropDownValue(value)
+      }
     }
     resetPendingValue()
   }
@@ -291,8 +297,10 @@ class ComboBoxPropertyEditorModel(
         }
       }
     }
-    selectedValue = newValue
-    fireListDataChanged()
+    if (selectedValue?.value != newValue?.value) {
+      selectedValue = newValue
+      fireListDataChanged()
+    }
   }
 
   override fun getSelectedItem(): Any? {

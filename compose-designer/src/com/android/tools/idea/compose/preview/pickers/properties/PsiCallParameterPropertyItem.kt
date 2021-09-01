@@ -37,16 +37,13 @@ internal open class PsiCallParameterPropertyItem(
   private val descriptor: ValueParameterDescriptor,
   protected var argumentExpression: KtExpression?,
   override val defaultValue: String?,
-  validation: EditingValidation = { EDITOR_NO_ERROR }) : PsiPropertyItem {
+  validation: EditingValidation = { EDITOR_NO_ERROR }
+) : PsiPropertyItem {
 
   override var name: String
     get() = descriptor.name.identifier
     // We do not support editing property names.
     set(_) {}
-
-  override fun isSameProperty(qualifiedName: String): Boolean = false
-
-  override val namespace: String = ""
 
   override val editingSupport: EditingSupport = object : EditingSupport {
     override val validation: EditingValidation = validation
@@ -71,10 +68,10 @@ internal open class PsiCallParameterPropertyItem(
     }
     else {
       val parameterString = if (descriptor.type.nameIfStandardType == Name.identifier("String") && !writeRawValue) {
-        "$name = \"$value\""
+        "${descriptor.name.asString()} = \"$value\""
       }
       else {
-        "$name = $value"
+        "${descriptor.name.asString()} = $value"
       }
       writeParameter(parameterString)
     }

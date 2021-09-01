@@ -25,8 +25,6 @@ import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -38,7 +36,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -68,8 +65,7 @@ import org.jetbrains.uast.toUElement
 class PsiCallPropertyModel internal constructor(
   private val project: Project,
   resolvedCall: ResolvedCall<*>,
-  defaultValues: Map<String, String?>,
-  override val enumSupportValuesProvider: EnumSupportValuesProvider
+  defaultValues: Map<String, String?>
 ) : PsiPropertyModel() {
   private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
@@ -92,13 +88,7 @@ class PsiCallPropertyModel internal constructor(
         Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
         emptyMap()
       }
-      val containingFile = previewElement.previewElementDefinitionPsi?.containingFile
-      val module = containingFile?.module
-
-      val valuesProvider = module?.let {
-        PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, previewElement.composeLibraryNamespace, containingFile.virtualFile)
-      } ?: EnumSupportValuesProvider.EMPTY
-      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable(), valuesProvider)
+      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable())
     }
   }
 }
@@ -111,14 +101,16 @@ private fun parserResolvedCallToPsiPropertyItems(
   model: PsiCallPropertyModel,
   resolvedCall: ResolvedCall<*>,
   defaultValues: Map<String, String?>
-): Collection<PsiPropertyItem> =
-  ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
-    return@compute resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
+): Collection<PsiPropertyItem> {
+  val properties = mutableListOf<PsiPropertyItem>()
+  ReadAction.run<Throwable> {
+    resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
       descriptor.index
-    }.map { (descriptor, resolved) ->
+    }.forEach { (descriptor, resolved) ->
       val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
       val defaultValue = defaultValues[descriptor.name.asString()]
       when (descriptor.name.asString()) {
+        // TODO(b/197021783): Capitalize the displayed name of the parameters, without affecting the output of the model or hardcoding the names
         PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         PARAMETER_WIDTH,
@@ -128,12 +120,21 @@ private fun parserResolvedCallToPsiPropertyItems(
           PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerNormalValidator)
         PARAMETER_API_LEVEL ->
           PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerStrictValidator)
-        PARAMETER_UI_MODE,
-        PARAMETER_DEVICE -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_DEVICE -> {
+          // Note that DeviceParameterPropertyItem sets its own name to PARAMETER_HARDWARE_DEVICE
+          DeviceParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue).also {
+            properties.addAll(it.innerProperties)
+          }
+        }
+        PARAMETER_UI_MODE -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+      }.also {
+        properties.add(it)
       }
     }
   }
+  return properties
+}
 
 /**
  * Get the default values from the [PreviewElement] in a format that's easier to understand for the [PsiPropertyItem]s.

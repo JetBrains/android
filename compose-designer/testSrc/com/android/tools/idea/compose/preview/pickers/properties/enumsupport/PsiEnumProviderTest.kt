@@ -63,13 +63,39 @@ class PsiEnumProviderTest {
     checkDefaultEnumValue("id:pixel_fake", "pixel fake", getDeviceDefaultEnumValue("id:pixel_fake"))
     checkDefaultEnumValue("name:Pixel Fake", "Pixel Fake", getDeviceDefaultEnumValue("name:Pixel Fake"))
 
+    // Device spec
+    checkDefaultEnumValue(
+      "spec:Normal;100;200;px;140dpi;portrait",
+      "Custom",
+      getDeviceDefaultEnumValue("spec:Normal;100;200;px;140dpi;portrait")
+    )
+
+    // Density should return a density on a specific bucket
+    checkDefaultEnumValue(
+      "160",
+      "mdpi (160 dpi)",
+      getDensityDefaultEnumValue("199")
+    )
+    checkDefaultEnumValue(
+      "240",
+      "hdpi (240 dpi)",
+      getDensityDefaultEnumValue("200")
+    )
+    checkDefaultEnumValue(
+      "240",
+      "hdpi (240 dpi)",
+      getDensityDefaultEnumValue("201")
+    )
+
     // Unsupported values
     checkDefaultEnumValue("my device", "my device", getDeviceDefaultEnumValue("my device"))
   }
 
   private fun getUiModeDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("uiMode"))!!.createValue(initialValue)
 
-  private fun getDeviceDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("device"))!!.createValue(initialValue)
+  private fun getDeviceDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("Device"))!!.createValue(initialValue)
+
+  private fun getDensityDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("Density"))!!.createValue(initialValue)
 }
 
 private fun checkDefaultEnumValue(expectedValue: String, expectedDisplay: String, enumValue: EnumValue) {
@@ -80,9 +106,5 @@ private fun checkDefaultEnumValue(expectedValue: String, expectedDisplay: String
 private class FakePsiProperty(
   override var name: String,
 ) : PsiPropertyItem {
-  override fun isSameProperty(qualifiedName: String): Boolean = false
-
-  override val namespace: String = ""
-
   override var value: String? = null
 }

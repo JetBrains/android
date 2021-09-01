@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.compose.preview.pickers.properties.inspector
+
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIMENSIONS
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.impl.ui.InspectorLayoutManager
+import com.android.tools.property.panel.impl.ui.Placement
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+
+/**
+ * Generates the UI for the Hardware section in the @Preview picker. See [PsiPropertiesInspectorBuilder].
+ */
+internal fun addHardwareView(
+  inspector: InspectorPanel,
+  properties: Map<String, PsiPropertyItem>,
+  editorProvider: EditorProvider<PsiPropertyItem>
+) {
+  val panelBuilder = HardwarePanelBuilder()
+  val editors = mutableListOf<PropertyEditorModel>()
+
+  val typeProperty = properties[PARAMETER_HARDWARE_DEVICE]!!
+  panelBuilder.addLine(PARAMETER_HARDWARE_DEVICE, editorProvider.createEditor(typeProperty, editors)
+  )
+
+  // The Dimensions parameter actually uses 3 other parameters: width, height, dimensionUnit.
+  panelBuilder.addLine(PARAMETER_HARDWARE_DIMENSIONS, createDimensionLine(properties, editorProvider, editors))
+
+  val densityProperty = properties[PARAMETER_HARDWARE_DENSITY]!!
+  panelBuilder.addLine(
+    PARAMETER_HARDWARE_DENSITY,
+    editorProvider.createEditor(densityProperty, editors)
+  )
+
+  val orientationProperty = properties[PARAMETER_HARDWARE_ORIENTATION]!!
+  panelBuilder.addLine(
+    PARAMETER_HARDWARE_ORIENTATION,
+    editorProvider.createEditor(orientationProperty, editors)
+  )
+
+  inspector.addComponent(panelBuilder.build()).addValueChangedListener {
+    editors.forEach { it.refresh() }
+  }
+}
+
+private fun createDimensionLine(
+  properties: Map<String, PsiPropertyItem>,
+  editorProvider: EditorProvider<PsiPropertyItem>,
+  editors: MutableList<PropertyEditorModel>
+): JPanel {
+  /** The added [component] will shrink horizontally to fit its content */
+  fun JPanel.addShrink(component: Component, gbc: GridBagConstraints) {
+    gbc.fill = GridBagConstraints.HORIZONTAL
+    gbc.weightx = 1.0
+    add(component, gbc)
+  }
+
+  /** The added [component] will expand horizontally proportionally to other components added with this method. */
+  fun JPanel.addExpand(component: Component, gbc: GridBagConstraints) {
+    gbc.fill = GridBagConstraints.NONE
+    gbc.weightx = 0.0
+    add(component, gbc)
+  }
+
+  val dimensionLine = JPanel(GridBagLayout()).apply {
+    isOpaque = false
+    val widthProperty = properties[PARAMETER_HARDWARE_WIDTH]!!
+    val heightProperty = properties[PARAMETER_HARDWARE_HEIGHT]!!
+    val unitProperty = properties[PARAMETER_HARDWARE_DIM_UNIT]!!
+    val gbc = GridBagConstraints()
+    gbc.gridwidth = 4
+    addExpand(editorProvider.createEditor(widthProperty, editors), gbc)
+
+    addShrink(JLabel("x"), gbc)
+
+    addExpand(editorProvider.createEditor(heightProperty, editors), gbc)
+
+    addShrink(
+      editorProvider.createEditor(unitProperty, editors).also { component ->
+        component.preferredSize = Dimension(JBUI.scale(52), preferredSize.height)
+        component.minimumSize = Dimension(JBUI.scale(52), minimumSize.height)
+      },
+      gbc
+    )
+  }
+  return dimensionLine
+}
+
+private fun EditorProvider<PsiPropertyItem>.createEditor(
+  property: PsiPropertyItem,
+  existing: MutableList<PropertyEditorModel>
+): JComponent {
+  val editorPair = createEditor(property)
+  existing.add(editorPair.first)
+  return editorPair.second
+}
+
+private class HardwarePanelBuilder {
+  private val panel = JPanel(InspectorLayoutManager()).apply {
+    isOpaque = false
+  }
+
+  fun addLine(name: String, component: JComponent) {
+    val label = JLabel(name)
+    label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    label.border = JBUI.Borders.emptyLeft(8)
+    panel.add(label, Placement.LEFT)
+    panel.add(component, Placement.RIGHT)
+  }
+
+  fun build() = panel
+}

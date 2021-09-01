@@ -22,11 +22,23 @@ import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRound
+import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
+import com.android.sdklib.devices.Software
+import com.android.sdklib.devices.State
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.preview.PreviewElementProvider
+import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
+import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.Orientation
+import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.Locale
@@ -54,6 +66,7 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.functions
 
@@ -79,10 +92,11 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-internal class ComposeAdapterLightVirtualFile(name: String,
-                                              content: String,
-                                              private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name,
-                                                                                                                     content), BackedVirtualFile {
+internal class ComposeAdapterLightVirtualFile(
+  name: String,
+  content: String,
+  private val originFileProvider: () -> VirtualFile?
+) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 
   override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
@@ -153,10 +167,15 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
 
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
+
 /** Prefix used by device specs to find devices by id. */
 private const val DEVICE_BY_ID_PREFIX = "id:"
+
 /** Prefix used by device specs to find devices by name. */
 private const val DEVICE_BY_NAME_PREFIX = "name:"
+
+/** Prefix used by device specs to create devices by hardware specs. */
+private const val DEVICE_BY_SPEC_PREFIX = "spec:"
 
 private fun Collection<Device>.findDeviceViaSpec(deviceSpec: String): Device? = when {
   deviceSpec == NO_DEVICE_SPEC -> null
@@ -213,14 +232,56 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
 
-  val allDevices = devicesProvider(renderConfiguration)
-  val device = allDevices.findDeviceViaSpec(deviceSpec)
-               ?: defaultDeviceProvider(renderConfiguration)
-
-  if (device != null) {
-    renderConfiguration.setDevice(device, false)
+  if (deviceSpec.startsWith(DEVICE_BY_SPEC_PREFIX)) {
+    val deviceState = createCustomDevice(deviceSpec)
+    renderConfiguration.setEffectiveDevice(deviceState.first, deviceState.second)
+  }
+  else {
+    val allDevices = devicesProvider(renderConfiguration)
+    val device = allDevices.findDeviceViaSpec(deviceSpec)
+                 ?: defaultDeviceProvider(renderConfiguration)
+    if (device != null) {
+      renderConfiguration.setDevice(device, false)
+    }
   }
   renderConfiguration.finishBulkEditing()
+}
+
+private fun createCustomDevice(spec: String): Pair<Device, State> {
+  val deviceConfig = DeviceConfig.parse(spec)
+  val customDevice = Device.Builder().apply {
+    setTagId("")
+    setName("Custom")
+    setId(Configuration.CUSTOM_DEVICE_ID)
+    setManufacturer("")
+    addSoftware(Software())
+    addState(State().apply { isDefaultState = true })
+  }.build()
+  val state = customDevice.defaultState.apply {
+    orientation = when (deviceConfig.orientation) {
+      Orientation.landscape -> ScreenOrientation.LANDSCAPE
+      Orientation.portrait -> ScreenOrientation.PORTRAIT
+    }
+    hardware = Hardware().apply {
+      screen = Screen().apply {
+        deviceConfig.dimensionUnit = DimUnit.px // Transforms dimension to Pixels
+        xDimension = deviceConfig.width
+        yDimension = deviceConfig.height
+        pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.density.toDouble(), yDimension)
+        diagonalLength =
+          sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
+        screenRound = when (deviceConfig.shape) {
+          Shape.Round,
+          Shape.Chin -> ScreenRound.ROUND
+          else -> ScreenRound.NOTROUND
+        }
+        chin = if (deviceConfig.shape == Shape.Chin) 30 else 0
+        size = ScreenSize.getScreenSize(diagonalLength)
+        ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+      }
+    }
+  }
+  return Pair(customDevice, state)
 }
 
 @TestOnly
@@ -251,7 +312,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
             { it.configurationManager.devices },
             {
               it.configurationManager.devices.find { device -> device.id == DEFAULT_DEVICE_ID }
-              ?:it.configurationManager.defaultDevice
+              ?: it.configurationManager.defaultDevice
             })
 
   companion object {
@@ -593,6 +654,6 @@ private val displayPriorityComparator = compareBy<PreviewElement> { it.displaySe
 /**
  * Sorts the [PreviewElement]s by [DisplayPositioning] (top first) and then by source code line number, smaller first.
  */
-fun <T: PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = ReadAction.compute<List<T>, Throwable> {
+fun <T : PreviewElement> Collection<T>.sortByDisplayAndSourcePosition(): List<T> = ReadAction.compute<List<T>, Throwable> {
   sortedWith(displayPriorityComparator.thenComparing(sourceOffsetComparator))
 }
