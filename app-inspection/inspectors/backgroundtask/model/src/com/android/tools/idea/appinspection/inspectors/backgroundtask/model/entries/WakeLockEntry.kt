@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.getTopExternalClassSimpleName
 
 /**
  * An entry with all information of a WakeLock Task.
@@ -57,7 +58,8 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED -> {
         _isValid = true
         acquired = backgroundTaskEvent
-        _className = "WakeLock $id"
+        _className = getTopExternalClassSimpleName(backgroundTaskEvent.backgroundTaskEvent.stacktrace,
+                                                   "android.os.PowerManager\$WakeLock") ?: "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = timestamp
         tags.add(acquired!!.backgroundTaskEvent.wakeLockAcquired.tag)

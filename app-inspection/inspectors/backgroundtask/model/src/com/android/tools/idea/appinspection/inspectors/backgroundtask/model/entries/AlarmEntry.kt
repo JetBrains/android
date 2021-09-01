@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.getTopExternalClassSimpleName
 
 /**
  * An entry with all information of an Alarm Task.
@@ -59,7 +60,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
         _isValid = true
         alarmSet = backgroundTaskEvent.alarmSet
-        _className = "Alarm $id"
+        _className = getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager") ?: "Alarm $id"
         _status = State.SET
         _startTime = alarmSet!!.triggerMs
         if (alarmSet!!.hasListener()) {

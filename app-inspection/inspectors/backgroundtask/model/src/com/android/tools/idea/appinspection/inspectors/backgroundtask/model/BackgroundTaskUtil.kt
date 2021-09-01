@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 
 fun WorkManagerInspectorProtocol.Event.getId(): String = when (oneOfCase) {
   WorkManagerInspectorProtocol.Event.OneOfCase.WORK_ADDED -> workAdded.work.id
@@ -26,3 +27,18 @@ fun WorkManagerInspectorProtocol.Event.getId(): String = when (oneOfCase) {
 }
 
 fun BackgroundTaskInspectorProtocol.Event.getId(): Long = backgroundTaskEvent.taskId
+
+private fun getTopExternalClassName(trace: String, filter: String): String? {
+  return trace.lines()
+    .map { stackFrame -> StackFrameParser(stackFrame).className }
+    .firstOrNull { className -> filter != className }
+}
+
+/**
+ * Returns the simple name of top external class from [trace].
+ *
+ * @param filter internal class name
+ */
+fun getTopExternalClassSimpleName(trace: String, filter: String): String? {
+  return getTopExternalClassName(trace, filter)?.substringAfterLast('.')
+}

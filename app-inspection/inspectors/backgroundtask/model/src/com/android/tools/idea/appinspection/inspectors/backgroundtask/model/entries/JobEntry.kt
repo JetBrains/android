@@ -64,10 +64,12 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED -> {
         _isValid = true
-        _className = "Job $id"
         _status = State.SCHEDULED
         _startTime = timestamp
         jobInfo = backgroundTaskEvent.jobScheduled.job
+
+        val serviceName = jobInfo!!.serviceName.substringAfterLast('.')
+        _className = serviceName.ifEmpty { "Job $id" }
         // Find target work id from extras.
         jobInfo?.extras?.let { extras ->
           val workIdSuffix = extras.substringAfter("EXTRA_WORK_SPEC_ID=", "")

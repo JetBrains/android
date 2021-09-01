@@ -30,7 +30,7 @@ class JobEntryTest {
       jobScheduled = BackgroundTaskInspectorProtocol.JobScheduled.newBuilder().apply {
         job = BackgroundTaskInspectorProtocol.JobInfo.newBuilder().apply {
           jobId = 222
-          serviceName = "SERVICE"
+          serviceName = "package.SERVICE"
           extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
         }.build()
         result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
@@ -61,6 +61,7 @@ class JobEntryTest {
     val jobEntry = JobEntry("1")
 
     jobEntry.consumeAndAssertJob(jobScheduled) {
+      assertThat(className).isEqualTo("SERVICE")
       assertThat(startTimeMs).isEqualTo(123)
       assertThat(callstacks).containsExactly("SCHEDULED")
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
@@ -186,5 +187,4 @@ private fun JobEntry.consumeAndAssertJob(
     )
     assertion()
   }
-
 }
