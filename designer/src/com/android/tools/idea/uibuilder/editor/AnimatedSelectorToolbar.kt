@@ -74,7 +74,7 @@ private constructor(
       val boxModel = AnimationOptionComboBoxModel(previewOptions)
       val box = CommonComboBox(boxModel)
       box.size = JBUI.size(100, 22)
-      controlBar.add(box)
+      controlBar.add(box, 0)
 
       box.item = ID_ANIMATED_SELECTOR_MODEL
 
@@ -117,6 +117,7 @@ private constructor(
 
   private fun setTimeSliderVisibility(visibility: Boolean) {
     myTimeSlider?.isVisible = visibility
+    timeSliderSeparator?.isVisible = visibility
     if (!visibility) {
       // Set maxtimeMs to -1 to indicate it is infinity animation. The slider is invisible whe animation is infinitely.
       setMaxTimeMs(-1)
