@@ -35,7 +35,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.analytics.toProto
+//import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
@@ -1288,9 +1288,9 @@ class EmulatorView(
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
-                   "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
-                   "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+          //LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+          //         "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+          //         "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
         }
       }
     }
