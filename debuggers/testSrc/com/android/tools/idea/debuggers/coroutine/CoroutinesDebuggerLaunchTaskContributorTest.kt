@@ -17,8 +17,12 @@ package com.android.tools.idea.debuggers.coroutine
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKotlinUtils
 import com.android.tools.idea.run.LaunchOptions
 import com.intellij.testFramework.LightPlatformTestCase
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
   fun testContributorHasNoTask() {
@@ -50,10 +54,40 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     }
   }
 
+  fun testNoAmOptionsOnAPI27AndLower() {
+    val launchOptions = LaunchOptions.builder().setDebug(true).build()
+    val contributor = CoroutineDebuggerLaunchTaskContributor()
+    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      assertEquals("", amStartOptions)
+    }
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      assertEquals("", amStartOptions)
+    }
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      assertEquals("", amStartOptions)
+    }
+  }
+
   fun testAmOptionsIsCorrect() {
     val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)

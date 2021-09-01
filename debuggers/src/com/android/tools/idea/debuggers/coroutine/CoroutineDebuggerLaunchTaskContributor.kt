@@ -16,6 +16,7 @@
 package com.android.tools.idea.debuggers.coroutine
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -35,6 +36,11 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
     }
 
     if (!launchOptions.isDebug) {
+      return ""
+    }
+
+    // coroutine debugger is only available on api 28+
+    if (!device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.P)) {
       return ""
     }
 
