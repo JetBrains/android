@@ -68,20 +68,23 @@ class JobEntryTest {
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
 
     jobEntry.consumeAndAssertJob(jobStarted) {
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
 
     jobEntry.consumeAndAssertJob(jobFinished) {
       assertThat(isValid).isTrue()
       assertThat(callstacks).containsExactly("SCHEDULED", "FINISHED")
+      assertThat(retries).isEqualTo(0)
     }
   }
 
   @Test
-  fun jobStopped() {
+  fun jobStoppedAndRetried() {
     val jobScheduled = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
       taskId = 1
       stacktrace = "SCHEDULED"
@@ -111,7 +114,7 @@ class JobEntryTest {
         params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
           jobId = 222
         }.build()
-        reschedule = false
+        reschedule = true
       }.build()
     }.build()
 
@@ -123,16 +126,23 @@ class JobEntryTest {
       assertThat(jobInfo).isEqualTo(jobScheduled.jobScheduled.job)
       assertThat(targetWorkId).isEqualTo("12345")
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
-
 
     jobEntry.consumeAndAssertJob(jobStarted) {
       assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(0)
     }
 
     jobEntry.consumeAndAssertJob(jobStopped) {
       assertThat(isValid).isTrue()
       assertThat(callstacks).containsExactly("SCHEDULED")
+      assertThat(retries).isEqualTo(0)
+    }
+
+    jobEntry.consumeAndAssertJob(jobScheduled) {
+      assertThat(isValid).isTrue()
+      assertThat(retries).isEqualTo(1)
     }
   }
 
@@ -162,11 +172,13 @@ class JobEntryTest {
     val jobEntry = JobEntry("1")
     jobEntry.consumeAndAssertJob(jobStarted) {
       assertThat(isValid).isFalse()
+      assertThat(retries).isEqualTo(0)
     }
 
     jobEntry.consumeAndAssertJob(jobFinished) {
       assertThat(callstacks).containsExactly("FINISHED")
       assertThat(isValid).isFalse()
+      assertThat(retries).isEqualTo(0)
     }
   }
 }

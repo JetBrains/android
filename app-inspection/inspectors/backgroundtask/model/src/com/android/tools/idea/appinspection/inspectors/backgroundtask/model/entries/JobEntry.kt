@@ -37,6 +37,9 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   private var _status = State.UNSPECIFIED
   private var _startTime = -1L
   private var _isValid = false
+  private var _retries = 0
+
+  private var isRescheduled = false
 
   var targetWorkId: String? = null
 
@@ -51,6 +54,8 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags = listOf<String>()
   override val callstacks = mutableListOf<String>()
+  override val retries: Int
+    get() = _retries
 
   var jobInfo: BackgroundTaskInspectorProtocol.JobInfo? = null
     private set
@@ -67,6 +72,11 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
         _status = State.SCHEDULED
         _startTime = timestamp
         jobInfo = backgroundTaskEvent.jobScheduled.job
+
+        if (isRescheduled) {
+          _retries++
+          isRescheduled = false
+        }
 
         val serviceName = jobInfo!!.serviceName.substringAfterLast('.')
         _className = serviceName.ifEmpty { "Job $id" }
@@ -88,10 +98,12 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
       }
       BackgroundTaskEvent.MetadataCase.JOB_STOPPED -> {
         _status = State.STOPPED
+        isRescheduled = backgroundTaskEvent.jobStopped.reschedule
       }
       BackgroundTaskEvent.MetadataCase.JOB_FINISHED -> {
         _status = State.FINISHED
         callstacks.add(backgroundTaskEvent.stacktrace)
+        isRescheduled = backgroundTaskEvent.jobFinished.needsReschedule
       }
     }
   }

@@ -49,6 +49,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags get() = _tags
   override val callstacks = mutableListOf<String>()
+  override val retries = 0
 
   var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
   var latestEvent: BackgroundTaskInspectorProtocol.Event? = null

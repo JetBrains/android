@@ -34,6 +34,7 @@ interface BackgroundTaskEntry {
   val startTimeMs: Long
   val tags: List<String>
   val callstacks: List<String>
+  val retries: Int
 
   /**
    * Updates entry information with [event].

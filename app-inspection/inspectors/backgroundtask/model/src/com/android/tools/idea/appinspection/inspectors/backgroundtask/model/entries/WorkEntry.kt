@@ -38,6 +38,8 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags get() = work.tagsList.toList()
   override val callstacks = emptyList<String>()
+  override val retries: Int
+    get() = (work.runAttemptCount - 1).takeIf { it >= 0 } ?: 0
 
   private var work = WorkInfo.newBuilder()
 
