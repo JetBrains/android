@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
@@ -124,8 +125,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     myPairedLabel.setForeground(foreground);
 
-    boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()) != null;
-    setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
+    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
+      boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()) != null;
+      setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
+    }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(myGetBorder.apply(selected, focused));
