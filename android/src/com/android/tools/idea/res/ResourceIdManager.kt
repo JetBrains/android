@@ -192,20 +192,20 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
 
   private fun loadFrameworkIds(): SingleNamespaceIdMapping {
     val frameworkIds = SingleNamespaceIdMapping(ResourceNamespace.ANDROID).apply {
-      // These are the counts around the P time frame, to allocate roughly the right amount of space upfront.
-      toIdMap[ANIM] = TObjectIntHashMap(70)
-      toIdMap[ATTR] = TObjectIntHashMap(1624)
-      toIdMap[ARRAY] = TObjectIntHashMap(113)
-      toIdMap[BOOL] = TObjectIntHashMap(217)
-      toIdMap[COLOR] = TObjectIntHashMap(70)
-      toIdMap[DIMEN] = TObjectIntHashMap(184)
-      toIdMap[DRAWABLE] = TObjectIntHashMap(450)
-      toIdMap[ID] = TObjectIntHashMap(423)
-      toIdMap[INTEGER] = TObjectIntHashMap(212)
-      toIdMap[LAYOUT] = TObjectIntHashMap(203)
-      toIdMap[PLURALS] = TObjectIntHashMap(34)
-      toIdMap[STRING] = TObjectIntHashMap(1254)
-      toIdMap[STYLE] = TObjectIntHashMap(781)
+      // These are the counts around the S time frame, to allocate roughly the right amount of space upfront.
+      toIdMap[ANIM] = TObjectIntHashMap(75)
+      toIdMap[ATTR] = TObjectIntHashMap(1752)
+      toIdMap[ARRAY] = TObjectIntHashMap(181)
+      toIdMap[BOOL] = TObjectIntHashMap(382)
+      toIdMap[COLOR] = TObjectIntHashMap(151)
+      toIdMap[DIMEN] = TObjectIntHashMap(310)
+      toIdMap[DRAWABLE] = TObjectIntHashMap(519)
+      toIdMap[ID] = TObjectIntHashMap(526)
+      toIdMap[INTEGER] = TObjectIntHashMap(226)
+      toIdMap[LAYOUT] = TObjectIntHashMap(221)
+      toIdMap[PLURALS] = TObjectIntHashMap(33)
+      toIdMap[STRING] = TObjectIntHashMap(1585)
+      toIdMap[STYLE] = TObjectIntHashMap(794)
     }
 
     val rClass = LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.computeSafeIfAny { provider -> provider.frameworkRClass }
