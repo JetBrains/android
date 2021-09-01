@@ -60,9 +60,16 @@ class AlarmEntryTest {
   @Test
   fun alarmFired() {
     val alarmEntry = AlarmEntry("1")
+    val stacktrace =
+      """
+        android.app.AlarmManager.setImpl(AlarmManager.java:662)
+        android.app.AlarmManager.setRepeating(AlarmManager.java:438)
+        android.com.java.profilertester.taskcategory.AlarmTask.execute(BackgroundTaskCategory.java:159)
+      """.trimIndent()
+
     val setEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
       taskId = 1
-      stacktrace = "SET"
+      this.stacktrace = stacktrace
       alarmSet = BackgroundTaskInspectorProtocol.AlarmSet.newBuilder().apply {
         type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
         triggerMs = 2L
@@ -79,17 +86,18 @@ class AlarmEntryTest {
 
     alarmEntry.consumeAndAssert(setEvent) {
       this as AlarmEntry
+      assertThat(className).isEqualTo("AlarmTask")
       assertThat(status).isEqualTo("SET")
       assertThat(alarmSet).isEqualTo(setEvent.alarmSet)
       assertThat(startTimeMs).isEqualTo(2)
-      assertThat(callstacks).containsExactly("SET")
+      assertThat(callstacks).containsExactly(stacktrace)
       assertThat(tags).containsExactly("TAG1")
       assertThat(isValid).isTrue()
     }
 
     alarmEntry.consumeAndAssert(firedEvent) {
       assertThat(status).isEqualTo("FIRED")
-      assertThat(callstacks).containsExactly("SET")
+      assertThat(callstacks).containsExactly(stacktrace)
       assertThat(isValid).isTrue()
     }
   }
