@@ -9,7 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
-    <orderEntry type="module" module-name="native-symbolizer" />
+    <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.common" />

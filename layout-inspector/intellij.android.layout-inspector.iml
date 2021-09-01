@@ -42,7 +42,7 @@
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.platform.indexing" />
@@ -51,7 +51,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="module" module-name="dynamic-layout-inspector.common" />
+    <orderEntry type="module" module-name="android.sdktools.dynamic-layout-inspector.common" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />

@@ -29,7 +29,7 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.gradle.common" />

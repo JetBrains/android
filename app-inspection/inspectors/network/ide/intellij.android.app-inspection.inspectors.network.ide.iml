@@ -16,7 +16,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="native-symbolizer" />
+    <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />

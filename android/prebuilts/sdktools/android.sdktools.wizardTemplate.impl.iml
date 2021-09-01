@@ -4,7 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-impl" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.impl:27.3.0.0" />
