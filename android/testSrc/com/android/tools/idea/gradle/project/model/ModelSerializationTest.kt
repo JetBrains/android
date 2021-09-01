@@ -65,7 +65,7 @@ import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
 import junit.framework.TestCase.assertEquals
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModelImpl
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModelImpl
 import org.junit.Test
 import java.io.File
 
