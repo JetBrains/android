@@ -16,10 +16,12 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 
 class EntryDetailsStackTraceView(uiComponentsProvider: UiComponentsProvider) {
-  private val stackTraceModel = StackTraceModel(uiComponentsProvider.codeNavigator)
+  @VisibleForTesting
+  val stackTraceModel = StackTraceModel(uiComponentsProvider.codeNavigator)
   private val stackTraceView = uiComponentsProvider.createStackTraceView(stackTraceModel)
   val component: JComponent
     get() = stackTraceView.component

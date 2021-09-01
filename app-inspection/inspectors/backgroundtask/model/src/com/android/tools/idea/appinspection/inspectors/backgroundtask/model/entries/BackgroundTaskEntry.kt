@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.getId
-import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 
 /**
  * An entry with necessary information for a background task to show in the tree table.
@@ -33,7 +32,7 @@ interface BackgroundTaskEntry {
   val status: String
   val startTimeMs: Long
   val tags: List<String>
-  val callstacks: List<String>
+  val callstacks: List<BackgroundTaskCallStack>
   val retries: Int
 
   /**
@@ -41,6 +40,11 @@ interface BackgroundTaskEntry {
    */
   fun consume(eventWrapper: EventWrapper)
 }
+
+data class BackgroundTaskCallStack(
+  val triggerTime: Long,
+  val stack: String
+)
 
 fun createBackgroundTaskEntry(event: EventWrapper): BackgroundTaskEntry = when (event.case) {
   EventWrapper.Case.WORK -> WorkEntry(event.workEvent.getId())

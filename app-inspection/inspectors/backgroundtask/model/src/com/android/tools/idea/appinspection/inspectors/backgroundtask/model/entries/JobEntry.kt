@@ -53,7 +53,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
   override val startTimeMs get() = _startTime
 
   override val tags = listOf<String>()
-  override val callstacks = mutableListOf<String>()
+  override val callstacks = mutableListOf<BackgroundTaskCallStack>()
   override val retries: Int
     get() = _retries
 
@@ -91,7 +91,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
           }
         }
         callstacks.clear()
-        callstacks.add(backgroundTaskEvent.stacktrace)
+        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.stacktrace))
       }
       BackgroundTaskEvent.MetadataCase.JOB_STARTED -> {
         _status = State.STARTED
@@ -102,7 +102,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
       }
       BackgroundTaskEvent.MetadataCase.JOB_FINISHED -> {
         _status = State.FINISHED
-        callstacks.add(backgroundTaskEvent.stacktrace)
+        callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.stacktrace))
         isRescheduled = backgroundTaskEvent.jobFinished.needsReschedule
       }
     }

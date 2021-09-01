@@ -17,11 +17,14 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntryUpdateEventType
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskCallStack
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
@@ -35,6 +38,7 @@ import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +48,8 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -66,8 +72,11 @@ class EntryDetailsView(
   private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
   private val scrollPane = JBScrollPane()
 
-  private val stackTraceView1 = EntryDetailsStackTraceView(uiComponentsProvider)
-  private val stackTraceView2 = EntryDetailsStackTraceView(uiComponentsProvider)
+  @VisibleForTesting
+  val stackTraceViews = listOf(
+    EntryDetailsStackTraceView(uiComponentsProvider),
+    EntryDetailsStackTraceView(uiComponentsProvider)
+  )
 
   init {
     layout = TabularLayout("*", "28px,*")
@@ -102,6 +111,7 @@ class EntryDetailsView(
       override fun getScrollableTracksViewportWidth() = false
     }
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
+    detailsPanel.background = primaryContentBackground
 
     when (val entry = selectionModel.selectedEntry) {
       is WorkEntry -> updateSelectedWork(detailsPanel, entry)
@@ -146,7 +156,7 @@ class EntryDetailsView(
     }
     detailsPanel.add(buildCategoryPanel("Results", results))
 
-    detailsPanel.addStackTraceViews(alarm.callstacks, listOf("Alarm set", "Alarm cancelled"))
+    detailsPanel.addStackTraceViews(alarm.callstacks, listOf("Set", "Cancelled"))
   }
 
   private fun updateSelectedWakeLock(detailsPanel: ScrollablePanel, wakeLock: WakeLockEntry) {
@@ -165,7 +175,7 @@ class EntryDetailsView(
     }
     detailsPanel.add(buildCategoryPanel("Results", results))
 
-    detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Wake lock acquired", "Wake lock released"))
+    detailsPanel.addStackTraceViews(wakeLock.callstacks, listOf("Acquired", "Released"))
   }
 
   private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
@@ -200,7 +210,7 @@ class EntryDetailsView(
 
     detailsPanel.add(buildCategoryPanel("Results", results))
 
-    detailsPanel.addStackTraceViews(jobEntry.callstacks, listOf("Job scheduled", "Job finished"))
+    detailsPanel.addStackTraceViews(jobEntry.callstacks, listOf("Scheduled", "Finished"))
   }
 
   private fun updateSelectedWork(detailsPanel: ScrollablePanel, workEntry: WorkEntry) {
@@ -240,16 +250,20 @@ class EntryDetailsView(
 
   private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
     val panel = JPanel(VerticalLayout(6))
+    panel.background = null
 
     val headingPanel = TitledSeparator(name)
     headingPanel.minimumSize = Dimension(0, 34)
+    headingPanel.background = null
     panel.add(headingPanel)
 
     for (component in entryComponents) {
       val borderedPanel = JPanel(BorderLayout())
+      component.background = null
       borderedPanel.add(component, BorderLayout.WEST)
       borderedPanel.border =
         BorderFactory.createEmptyBorder(0, 18, extraBottomPaddingMap.getOrDefault(component, 0), 0)
+      borderedPanel.background = null
       panel.add(borderedPanel)
     }
     return panel
@@ -264,26 +278,38 @@ class EntryDetailsView(
       border = BorderFactory.createEmptyBorder(0, 2, 0, 0)
     }
     val keyPanel = JPanel(BorderLayout())
+    keyPanel.background = null
     keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
     panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
     return panel
   }
 
-  private fun ScrollablePanel.addStackTraceViews(traces: List<String>, labels: List<String>) {
-    (labels zip traces).forEachIndexed { i, pair ->
-      if (pair.second.isNotEmpty()) {
+  private fun ScrollablePanel.addStackTraceViews(callStacks: List<BackgroundTaskCallStack>, labels: List<String>) {
+    val labelsToStackTraces = (labels zip callStacks)
+      .filter { it.second.stack.isNotEmpty() }
+      .map { "${SimpleDateFormat("H:mm:ss.SSS", Locale.getDefault()).format(it.second.triggerTime)} ${it.first}" to it.second.stack }
+
+    if (labelsToStackTraces.isNotEmpty()) {
+      val stackTraceComponents = labelsToStackTraces.mapIndexedNotNull { i, pair ->
         when (i) {
-          0 -> {
-            stackTraceView1.updateTrace(pair.second)
-            add(buildCategoryPanel(pair.first, listOf(stackTraceView1.component)))
+          0, 1 -> {
+            stackTraceViews[i].updateTrace(pair.second)
+            val hideablePanel = HideablePanel.Builder(pair.first, stackTraceViews[i].component)
+              .setContentBorder(JBEmptyBorder(5, 0, 0, 0))
+              .setPanelBorder(JBEmptyBorder(0, 0, 0, 0))
+              .setTitleRightPadding(0)
+              .build()
+            hideablePanel.background = null
+            hideablePanel
           }
-          1 -> {
-            stackTraceView2.updateTrace(pair.second)
-            add(buildCategoryPanel(pair.first, listOf(stackTraceView2.component)))
-          }
+          else -> null
         }
       }
+      // Layout the stack trace views in a vertical layout so they can have the same width.
+      val containerPanel = JPanel(VerticalLayout(6))
+      stackTraceComponents.forEach { containerPanel.add(it) }
+      add(buildCategoryPanel("Callstacks", listOf(containerPanel)))
     }
   }
 }

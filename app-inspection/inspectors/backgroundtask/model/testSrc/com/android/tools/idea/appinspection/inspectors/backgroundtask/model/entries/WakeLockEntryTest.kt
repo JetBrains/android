@@ -50,19 +50,19 @@ class WakeLockEntryTest {
 
     val entry = WakeLockEntry("1")
 
-    entry.consumeAndAssert(wakeLockAcquiredEvent) {
-      assertThat(startTimeMs).isEqualTo(123)
+    entry.consumeAndAssert(wakeLockAcquiredEvent, 1) {
+      assertThat(startTimeMs).isEqualTo(1)
       assertThat(className).isEqualTo("WakeLockTask")
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("ACQUIRED")
-      assertThat(callstacks).containsExactly(acquiredStacktrace)
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, acquiredStacktrace))
       assertThat(retries).isEqualTo(0)
     }
 
-    entry.consumeAndAssert(wakeLockReleasedEvent) {
+    entry.consumeAndAssert(wakeLockReleasedEvent, 2) {
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("RELEASED")
-      assertThat(callstacks).containsExactly(acquiredStacktrace, "RELEASED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, acquiredStacktrace), BackgroundTaskCallStack(2, "RELEASED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -80,9 +80,9 @@ class WakeLockEntryTest {
 
     val entry = WakeLockEntry("1")
 
-    entry.consumeAndAssert(wakeLockReleasedEvent) {
+    entry.consumeAndAssert(wakeLockReleasedEvent, 1) {
       assertThat(status).isEqualTo("RELEASED")
-      assertThat(callstacks).containsExactly("RELEASED")
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "RELEASED"))
       assertThat(isValid).isFalse()
       assertThat(retries).isEqualTo(0)
     }
