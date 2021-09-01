@@ -39,5 +39,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="perfetto-proto" level="project" />
   </component>
 </module>

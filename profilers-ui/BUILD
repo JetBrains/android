@@ -35,6 +35,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/codenavigation[module]",
         "//tools/adt/idea/profilers-ui:traceprocessor-proto[test]",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto",
     ],
 )
 

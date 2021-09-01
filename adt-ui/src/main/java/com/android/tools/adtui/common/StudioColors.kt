@@ -151,3 +151,23 @@ val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
  * Example: Keyboard/mouse shortcut descriptions in Summary tab of a cpu profiling capture.
  */
 val helpText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))
+
+/**
+ * Color of deadline-missed jank event when hovered
+ */
+val missedDeadlineJank = JBColor.namedColor("Profiler.missedDeadlineJank", JBColor(0xe8515f, 0xe8515f))
+
+/**
+ * Color of deadline-missed jank event when not hovered
+ */
+val fadedMissedDeadlineJank = JBColor.namedColor("Profiler.fadedMissedDaedlineJank", JBColor(0xf8cbcf, 0xf8cbcf))
+
+/**
+ * Color of jank events other than deadline-missed when hovered
+ */
+val otherJank = JBColor.namedColor("Profiler.otherJank", JBColor(0xe1a336, 0xe1a336))
+
+/**
+ * Color of jank events other than deadline-missed when not hovered
+ */
+val fadedOtherJank = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xf6e3c3, 0xf6e3c3))

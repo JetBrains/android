@@ -64,6 +64,10 @@ public enum ProfilerTrackRendererType {
    */
   ANDROID_FRAME_EVENT,
   /**
+   * For janky frame event
+   */
+  JANKY_FRAME,
+  /**
    * For Custom Event Visualization user events.
    */
   CUSTOM_EVENTS
