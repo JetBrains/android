@@ -24,6 +24,7 @@ import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.JTable;
@@ -93,8 +94,7 @@ public final class ActionsTableCellEditorTest {
       .addConnectionType(ConnectionType.USB)
       .build();
 
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(device));
-    JTable table = new PhysicalDeviceTable(myPanel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(myPanel, new PhysicalDeviceTableModel(Collections.singletonList(device)));
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
@@ -117,7 +117,7 @@ public final class ActionsTableCellEditorTest {
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    JTable table = new PhysicalDeviceTable(myPanel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(myPanel, model);
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getEditDeviceNameButton();
 
@@ -132,7 +132,11 @@ public final class ActionsTableCellEditorTest {
   public void editDeviceName() {
     // Arrange
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model, () -> myDeviceRenderer, () -> myActionsRenderer);
+
+    BiConsumer<JTable, Integer> sizeWidthToFit = (t, v) -> {
+    };
+
+    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model, sizeWidthToFit, () -> myDeviceRenderer, () -> myActionsRenderer);
 
     Mockito.when(myPanel.getProject()).thenReturn(myProject);
     Mockito.when(myPanel.getTable()).thenReturn(table);
@@ -178,7 +182,7 @@ public final class ActionsTableCellEditorTest {
     editor.addCellEditorListener(myListener);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    JTable table = new PhysicalDeviceTable(myPanel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(myPanel, model);
     AbstractButton button = ((ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3)).getRemoveButton();
 
     // Act
@@ -193,11 +197,7 @@ public final class ActionsTableCellEditorTest {
   public void remove() {
     // Arrange
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-
-    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel,
-                                                        model,
-                                                        PhysicalDeviceTableCellRenderer::new,
-                                                        ActionsTableCellRenderer::new);
+    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model);
 
     Mockito.when(myPanel.getProject()).thenReturn(myProject);
     Mockito.when(myPanel.getTable()).thenReturn(table);
@@ -225,7 +225,7 @@ public final class ActionsTableCellEditorTest {
     ActionsTableCellEditor editor = new ActionsTableCellEditor(myPanel);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    JTable table = new PhysicalDeviceTable(myPanel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(myPanel, model);
 
     // Act
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
@@ -253,8 +253,7 @@ public final class ActionsTableCellEditorTest {
       .addConnectionType(ConnectionType.USB)
       .build();
 
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(device));
-    JTable table = new PhysicalDeviceTable(myPanel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(myPanel, new PhysicalDeviceTableModel(Collections.singletonList(device)));
 
     // Act
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
