@@ -332,7 +332,7 @@ class ComposePreviewAnimationManagerTest {
       animationClock.findClockFunction("unknownFunction")
       fail("Expected to fail, as `unknownFunction` is not a function of TestClock.")
     }
-    catch (ignored: NoSuchElementException) { }
+    catch (ignored: NullPointerException) { }
 
     // getAnimatedVisibilityState is a supported function, but its name is mangled. We should find it when looking for the function without
     // the hash suffix, not when we specify it.
@@ -341,7 +341,7 @@ class ComposePreviewAnimationManagerTest {
       animationClock.findClockFunction("getAnimatedVisibilityState-xga21d")
       fail("Expected to fail, as `getAnimatedVisibilityState-xga21d` should not be found when looking for the mangled name.")
     }
-    catch (ignored: NoSuchElementException) { }
+    catch (ignored: NullPointerException) { }
   }
 
   private fun createAndOpenInspector(): AnimationInspectorPanel {
