@@ -1085,7 +1085,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
               CurvePainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
 
             if (selectedProperties.size > index) {
-              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, xPositionForValue(animation.startMs),
+              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, animation.grouped,
+                                                      xPositionForValue(animation.startMs),
                                                       maxY - TIMELINE_CURVE_OFFSET + LABEL_OFFSET)
             }
             rowIndex++

@@ -29,6 +29,7 @@ object ComposeUnit {
   interface Unit<A> where A : Number, A : Comparable<A> {
     val components: List<A>
     fun toString(componentId: Int): String
+    override fun toString(): String
 
     /** Transforms a component to a [Double]. It unifies painting of the curves in [CurvePainter]. */
     fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
@@ -38,6 +39,7 @@ object ComposeUnit {
     Unit<A> where A : Number, A : Comparable<A> {
     override val components = listOf(component1)
     override fun toString(componentId: Int) = component1.toString()
+    override fun toString(): String = components.joinToString() { it.toString() }
   }
 
   abstract class Unit2D<A>(val component1: A, val component2: A) :
@@ -47,6 +49,7 @@ object ComposeUnit {
                                               "${if (componentId == 0) component1 else "_"} , " +
                                               "${if (componentId == 1) component2 else "_"} )"
 
+    override fun toString(): String = components.joinToString(prefix = "(", postfix = ")") { it.toString() }
   }
 
   abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) :
@@ -57,6 +60,7 @@ object ComposeUnit {
                                               "${if (componentId == 1) component2 else "_"} , " +
                                               "${if (componentId == 2) component3 else "_"} )"
 
+    override fun toString(): String = components.joinToString(prefix = "(", postfix = ")") { it.toString() }
   }
 
   abstract class Unit4D<A>(val component1: A, val component2: A, val component3: A, val component4: A) :
@@ -67,26 +71,42 @@ object ComposeUnit {
                                               "${if (componentId == 1) component2 else "_"} , " +
                                               "${if (componentId == 2) component3 else "_"} , " +
                                               "${if (componentId == 3) component4 else "_"} )"
+
+    override fun toString(): String = components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
   }
 
   /**
-   * Parses and creates a [Unit1D] from [ComposeAnimatedProperty.value].
+   * Parses and creates a [Unit] from [ComposeAnimatedProperty.value].
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D], [Unit3D], [Unit4D] respectively.
    */
-  fun parse(property: ComposeAnimatedProperty): Unit<*>? =
-    when (property.value.javaClass.kotlin.qualifiedName) {
-      Color.CLASS_NAME -> Color.create(property.value)
-      Dp.CLASS_NAME -> Dp.create(property.value)
-      Size.CLASS_NAME -> Size.create(property.value)
-      Rect.CLASS_NAME -> Rect.create(property.value)
-      IntOffset.CLASS_NAME -> IntOffset.create(property.value)
-      IntSize.CLASS_NAME -> IntSize.create(property.value)
-      Offset.CLASS_NAME -> Offset.create(property.value)
-      "kotlin.Int" -> if (property.value is Int) object : Unit1D<Int>(property.value as Int) {} else null
-      "kotlin.Double" -> if (property.value is Double) object : Unit1D<Double>(property.value as Double) {} else null
-      "kotlin.Float" -> if (property.value is Float) object : Unit1D<Float>(property.value as Float) {} else null
-      else -> null
+  fun parse(property: ComposeAnimatedProperty): Unit<*>? = parseValue(property.value)
+
+  /**
+   * Parses and creates a [Unit]
+   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D], [Unit3D], [Unit4D] respectively.
+   */
+  fun parseValue(value: Any?): Unit<*>? {
+    if (value == null) return null
+    return when (value.javaClass.kotlin.qualifiedName) {
+      Color.CLASS_NAME -> Color.create(value)
+      Dp.CLASS_NAME -> Dp.create(value)
+      Size.CLASS_NAME -> Size.create(value)
+      Rect.CLASS_NAME -> Rect.create(value)
+      IntOffset.CLASS_NAME -> IntOffset.create(value)
+      IntSize.CLASS_NAME -> IntSize.create(value)
+      Offset.CLASS_NAME -> Offset.create(value)
+      "kotlin.Int" -> if (value is Int) object : Unit1D<Int>(value as Int) {} else null
+      "kotlin.Double" -> if (value is Double) object : Unit1D<Double>(value as Double) {} else null
+      "kotlin.Float" -> if (value is Float) object : Unit1D<Float>(value as Float) {} else null
+      else -> UnitUnknown(value)
     }
+  }
+
+  class UnitUnknown(val any: Any) : Unit1D<Int>(0) {
+    override val components = listOf(0)
+    override fun toString(componentId: Int) = any.toString()
+    override fun toString(): String = any.toString()
+  }
 
   class IntSize(component1: Int, component2: Int) : Unit2D<Int>(component1, component2) {
     companion object {
@@ -141,6 +161,7 @@ object ComposeUnit {
     }
 
     override fun toString(componentId: Int) = "${component1}dp"
+    override fun toString(): String = "${component1}dp"
   }
 
   class Size(component1: Float, component2: Float) : Unit2D<Float>(component1, component2) {

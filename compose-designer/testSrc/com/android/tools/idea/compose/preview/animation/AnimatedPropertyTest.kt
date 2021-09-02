@@ -38,6 +38,7 @@ class AnimatedPropertyTest {
     assertEquals(result.endMs, 4)
     assertEquals(result.dimension, 1)
     assertEquals(result.components.size, 1)
+    assertTrue(result.grouped)
 
     result.components[0].let {
       assertFalse { it.linkToNext }
@@ -59,6 +60,7 @@ class AnimatedPropertyTest {
     assertEquals(15, result.endMs)
     assertEquals(5, result.startMs)
     assertEquals(4, result.components.size)
+    assertFalse(result.grouped)
 
     result.components[0].let {
       assertTrue { it.linkToNext }
@@ -89,45 +91,62 @@ class AnimatedPropertyTest {
     }
   }
 
+
+  @Test
+  fun buildRectWithExactlySameCurves() {
+    val builder = AnimatedProperty.Builder()
+    builder.add(5, ComposeUnit.Rect(1f, 3f, 0f, -9f))
+    builder.add(10, ComposeUnit.Rect(2f, 6f, 300f, -6f))
+    builder.add(15, ComposeUnit.Rect(3f, 9f, 600f, -3f))
+    val result = builder.build()
+    assertNotNull(result)
+    assertEquals(1, result.dimension)
+    assertEquals(15, result.endMs)
+    assertEquals(5, result.startMs)
+    assertEquals(1, result.components.size)
+    assertTrue(result.grouped)
+
+    result.components[0].let {
+      assertFalse { it.linkToNext }
+      assertEquals(3.0, it.maxValue)
+      assertEquals(1.0, it.minValue)
+      assertEquals(mapOf(5 to 1.0, 10 to 2.0, 15 to 3.0), it.points)
+    }
+  }
+
+  @Test
+  fun buildRectWithSimilarCurves() {
+    mapOf(97f to false, 99f to true, 101f to true, 103f to false).forEach {
+      val builder = AnimatedProperty.Builder()
+      builder.add(5, ComposeUnit.Rect(1f, 1f, 0f, -9f))
+      builder.add(10, ComposeUnit.Rect(2f, 2f, it.key, -6f))
+      builder.add(15, ComposeUnit.Rect(3f, 3f, 200f, -3f))
+      val result = builder.build()
+      assertNotNull(result)
+      assertEquals(it.value, result.grouped, "Grouped for ${it.key}")
+    }
+  }
+
   @Test
   fun buildRectCurveWithOnePoint() {
     val builder = AnimatedProperty.Builder()
     builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
     val result = builder.build()
     assertNotNull(result)
-    assertEquals(4, result.dimension)
+    assertEquals(1, result.dimension)
     assertEquals(10, result.endMs)
     assertEquals(10, result.startMs)
-    assertEquals(4, result.components.size)
+    assertEquals(1, result.components.size)
+    assertTrue(result.grouped)
 
     result.components[0].let {
-      assertTrue { it.linkToNext }
+      assertFalse(it.linkToNext)
       assertEquals(6.0, it.maxValue)
       assertEquals(6.0, it.minValue)
       assertEquals(mapOf(10 to 6.0), it.points)
-    }
-
-    result.components[1].let {
-      assertTrue { it.linkToNext }
-      assertEquals(3.0, it.maxValue)
-      assertEquals(3.0, it.minValue)
-      assertEquals(mapOf(10 to 3.0), it.points)
-    }
-
-    result.components[2].let {
-      assertTrue { it.linkToNext }
-      assertEquals(6.0, it.maxValue)
-      assertEquals(6.0, it.minValue)
-      assertEquals(mapOf(10 to 6.0), it.points)
-    }
-
-    result.components[3].let {
-      assertFalse { it.linkToNext }
-      assertEquals(2.0, it.maxValue)
-      assertEquals(2.0, it.minValue)
-      assertEquals(mapOf(10 to 2.0), it.points)
     }
   }
+
 
   @Test
   fun buildWithInvalidDimensions() {
