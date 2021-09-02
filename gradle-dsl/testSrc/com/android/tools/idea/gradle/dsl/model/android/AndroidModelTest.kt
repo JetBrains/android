@@ -1872,6 +1872,63 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("applicationIdSuffix", "xyz", buildModel.android().defaultConfig().applicationIdSuffix())
   }
 
+  @Test
+  fun testSetProguardFilesToReference() {
+    writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_REFERENCE)
+    val buildModel = gradleBuildModel
+    assertEquals("consumerProguardFiles", listOf("quux", "baz"), buildModel.android().defaultConfig().consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("bar", "foo"), buildModel.android().defaultConfig().proguardFiles())
+
+    val foobar = buildModel.ext().findProperty("foobar")
+    val bazquux = buildModel.ext().findProperty("bazquux")
+    buildModel.android().defaultConfig().consumerProguardFiles().setValue(ReferenceTo(bazquux))
+    buildModel.android().defaultConfig().proguardFiles().setValue(ReferenceTo(foobar))
+    buildModel.run {
+      assertEquals("consumerProguardFiles", listOf("baz", "quux"), android().defaultConfig().consumerProguardFiles())
+      assertEquals("proguardFiles", listOf("foo", "bar"), android().defaultConfig().proguardFiles())
+    }
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_PROGUARD_FILES_TO_REFERENCE_EXPECTED)
+    gradleBuildModel.run {
+      assertEquals("consumerProguardFiles", listOf("baz", "quux"), android().defaultConfig().consumerProguardFiles())
+      assertEquals("proguardFiles", listOf("foo", "bar"), android().defaultConfig().proguardFiles())
+    }
+  }
+
+  @Test
+  fun testSetProguardFilesToList() {
+    writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_LIST)
+    val buildModel = gradleBuildModel
+    assertEquals("consumerProguardFiles", listOf("baz", "quux"), buildModel.android().defaultConfig().consumerProguardFiles())
+    assertEquals("proguardFiles", listOf("foo", "bar"), buildModel.android().defaultConfig().proguardFiles())
+
+    buildModel.android().defaultConfig().consumerProguardFiles().run {
+      val baz = buildModel.ext().findProperty("baz")
+      val quux = buildModel.ext().findProperty("quux")
+      convertToEmptyList()
+      addListValue().setValue(ReferenceTo(quux))
+      addListValue().setValue(ReferenceTo(baz))
+    }
+    buildModel.android().defaultConfig().proguardFiles().run {
+      val foo = buildModel.ext().findProperty("foo")
+      val bar = buildModel.ext().findProperty("bar")
+      convertToEmptyList()
+      addListValue().setValue(ReferenceTo(bar))
+      addListValue().setValue(ReferenceTo(foo))
+    }
+
+    buildModel.run {
+      assertEquals("consumerProguardFiles", listOf("quux", "baz"), android().defaultConfig().consumerProguardFiles())
+      assertEquals("proguardFiles", listOf("bar", "foo"), android().defaultConfig().proguardFiles())
+    }
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_PROGUARD_FILES_TO_LIST_EXPECTED)
+    gradleBuildModel.run {
+      assertEquals("consumerProguardFiles", listOf("quux", "baz"), android().defaultConfig().consumerProguardFiles())
+      assertEquals("proguardFiles", listOf("bar", "foo"), android().defaultConfig().proguardFiles())
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -1965,6 +2022,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE("setCompileSdkVersionToReference"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED("setCompileSdkVersionToReferenceExpected"),
+    SET_PROGUARD_FILES_TO_REFERENCE("setProguardFilesToReference"),
+    SET_PROGUARD_FILES_TO_REFERENCE_EXPECTED("setProguardFilesToReferenceExpected"),
+    SET_PROGUARD_FILES_TO_LIST("setProguardFilesToList"),
+    SET_PROGUARD_FILES_TO_LIST_EXPECTED("setProguardFilesToListExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

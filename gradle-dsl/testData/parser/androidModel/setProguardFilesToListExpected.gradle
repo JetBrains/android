@@ -1,0 +1,15 @@
+ext {
+  foo = 'foo'
+  bar = 'bar'
+  baz = 'baz'
+  quux = 'quux'
+  foobar = ['foo', 'bar']
+  bazquux = ['baz', 'quux']
+}
+
+android {
+  defaultConfig {
+    consumerProguardFiles quux, baz
+    proguardFiles bar, foo
+  }
+}
