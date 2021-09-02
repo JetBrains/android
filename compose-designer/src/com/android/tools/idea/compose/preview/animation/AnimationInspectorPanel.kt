@@ -1038,15 +1038,26 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()
           val animationYMin = component.minValue
+          val isZeroDuration = animation.endMs == animation.startMs
+          val zeroDurationXOffset = if (isZeroDuration) 1 else 0
           val minX = xPositionForValue(animation.startMs)
           val maxX = xPositionForValue(animation.endMs)
           val stepY = (maxY - minY) / (component.maxValue - animationYMin)
-          curve.moveTo(minX.toDouble(), maxY.toDouble())
-          component.points.forEach { (ms, value) ->
-            curve.lineTo(xPositionForValue(ms).toDouble(), maxY - (value.toDouble() - animationYMin) * stepY)
+          curve.moveTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
+          if (isZeroDuration) {
+            // If animation duration is zero, for example for snap animation - draw a vertical line,
+            // It gives a visual feedback what animation is happened at that point and what graph is not missing where.
+            curve.lineTo(minX.toDouble() - zeroDurationXOffset, minY.toDouble())
+            curve.lineTo(maxX.toDouble() + zeroDurationXOffset, minY.toDouble())
           }
-          curve.lineTo(maxX.toDouble(), maxY.toDouble())
-          curve.lineTo(minX.toDouble(), maxY.toDouble())
+          else {
+            component.points.forEach { (ms, value) ->
+              curve.lineTo(xPositionForValue(ms).toDouble(), maxY - (value.toDouble() - animationYMin) * stepY)
+            }
+          }
+          curve.lineTo(maxX.toDouble() + zeroDurationXOffset, maxY.toDouble())
+          curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
+
           return CurvePainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
         }
 
