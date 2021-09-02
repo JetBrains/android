@@ -21,19 +21,17 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
-import com.android.tools.idea.codenavigation.CodeLocation
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.InplaceButton
+import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -98,7 +96,7 @@ class EntryDetailsViewTest {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
 
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
-      val classComponent = descriptionPanel.getValueComponent("Class") as HyperlinkLabel
+      val classComponent = descriptionPanel.getValueComponent("Class") as ActionLink
       assertThat(classComponent.text).isEqualTo(workInfo.workerClassName)
       classComponent.doClick()
       assertThat(ideServices.lastVisitedCodeLocation!!.fqcn).isEqualTo(workInfo.workerClassName)
@@ -110,7 +108,7 @@ class EntryDetailsViewTest {
       assertThat(idComponent.text).isEqualTo(workInfo.id)
 
       val executionPanel = detailsView.getCategoryPanel("Execution") as JPanel
-      val enqueuedAtComponent = executionPanel.getValueComponent("Enqueued by") as HyperlinkLabel
+      val enqueuedAtComponent = executionPanel.getValueComponent("Enqueued by") as ActionLink
       assertThat(enqueuedAtComponent.text).isEqualTo("File1 (12)")
       enqueuedAtComponent.doClick()
       assertThat(ideServices.lastVisitedCodeLocation!!.fileName).isEqualTo("File1")
@@ -132,7 +130,8 @@ class EntryDetailsViewTest {
       assertThat((nextComponent.getComponent(0) as JLabel).text).isEqualTo("dependentsId")
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(1)
-      assertThat((chainComponent.getComponent(0) as HyperlinkLabel).text).isEqualTo("ID1  (Current)")
+      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(0) as ActionLink).text).isEqualTo("ID1")
+      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(1) as JLabel).text).isEqualTo("(Current)")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
@@ -177,14 +176,14 @@ class EntryDetailsViewTest {
     client.sendWorkAddedEvent(workInfo)
     val dependentWork = workInfo.toBuilder().setId(workInfo.getDependents(0)).build()
     client.sendWorkAddedEvent(dependentWork)
-    lateinit var oldDependentWorkLabel: HyperlinkLabel
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(2)
-      oldDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      val oldDependentWorkLabel = (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
       assertThat(oldDependentWorkLabel.text).isEqualTo("dependentsId")
+      assertThat(oldDependentWorkLabel.icon).isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED.icon())
     }
 
     client.sendWorkEvent {
@@ -197,11 +196,9 @@ class EntryDetailsViewTest {
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(2)
-      val newDependentWorkLabel = chainComponent.getComponent(1) as HyperlinkLabel
+      val newDependentWorkLabel = (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
       assertThat(newDependentWorkLabel.text).isEqualTo("dependentsId")
-      // Ideally, we want to check if the two labels are with different icons.
-      // Unfortunately, [HyperlinkLabel] does not have icon access so we compare labels directly.
-      assertThat(oldDependentWorkLabel).isNotEqualTo(newDependentWorkLabel)
+      assertThat(newDependentWorkLabel.icon).isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.FAILED.icon())
     }
   }
 
@@ -397,7 +394,7 @@ class EntryDetailsViewTest {
       selectionModel.selectedEntry = client.getEntry("1")
 
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
-      val serviceComponent = descriptionPanel.getValueComponent("Service") as HyperlinkLabel
+      val serviceComponent = descriptionPanel.getValueComponent("Service") as ActionLink
       assertThat(serviceComponent.text).isEqualTo(jobScheduled.job.serviceName)
       val workIdComponent = descriptionPanel.getValueComponent("UUID") as JLabel
       assertThat(workIdComponent.text).isEqualTo("12345")
