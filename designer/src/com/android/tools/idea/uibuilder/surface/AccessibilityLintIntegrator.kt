@@ -250,7 +250,7 @@ open class NlAtfIssue(
       if (result.mHelpfulUrl.isNullOrEmpty()) {
         return null
       }
-      return createDefaultHyperLinkListener(result.mHelpfulUrl)
+      return createDefaultHyperLinkListener()
     }
 
   /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
