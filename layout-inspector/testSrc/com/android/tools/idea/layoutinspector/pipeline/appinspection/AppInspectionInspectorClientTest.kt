@@ -36,6 +36,7 @@ import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -70,6 +71,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.execution.RunManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.HyperlinkLabel
@@ -77,6 +79,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -115,6 +118,11 @@ class AppInspectionInspectorClientTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+
+  @Before
+  fun before() {
+    inspectorRule.projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
+  }
 
   @Test
   fun clientCanConnectDisconnectAndReconnect() {
@@ -529,6 +537,32 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun testNoActivityRestartBannerShownIfOptedOut() {
+    setUpRunConfiguration()
+    preferredProcess = null
+    inspectorRule.attachDevice(MODERN_PROCESS.device)
+    val banner = InspectorBanner(inspectorRule.project)
+    PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    assertThat(banner.isVisible).isFalse()
+  }
+
+  @Test
+  fun testOptOutOfActivityRestartBanner() {
+    setUpRunConfiguration()
+    preferredProcess = null
+    inspectorRule.attachDevice(MODERN_PROCESS.device)
+    val banner = InspectorBanner(inspectorRule.project)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    val actionPanel = banner.components[1] as JPanel
+    val doNotShowAction = actionPanel.components[1] as HyperlinkLabel
+    doNotShowAction.doClick()
+    assertThat(PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)).isTrue()
+  }
+
+  @Test
   fun testNoActivityRestartBannerShownDuringAutoConnect() {
     setUpRunConfiguration()
     inspectorRule.attachDevice(MODERN_PROCESS.device)
@@ -589,13 +623,15 @@ class AppInspectionInspectorClientTest {
     service.DISMISS_ACTION.actionPerformed(mock())
     val actionPanel = banner.getComponent(1) as JPanel
     if (runConfigActionExpected) {
-      assertThat(actionPanel.componentCount).isEqualTo(2)
-      assertThat((actionPanel.components.first() as HyperlinkLabel).text).isEqualTo("Open Run Configuration")
-      assertThat((actionPanel.components.last() as HyperlinkLabel).text).isEqualTo("Dismiss")
+      assertThat(actionPanel.componentCount).isEqualTo(3)
+      assertThat((actionPanel.components[0] as HyperlinkLabel).text).isEqualTo("Open Run Configuration")
+      assertThat((actionPanel.components[1] as HyperlinkLabel).text).isEqualTo("Don't Show Again")
+      assertThat((actionPanel.components[2] as HyperlinkLabel).text).isEqualTo("Dismiss")
     }
     else {
-      assertThat(actionPanel.componentCount).isEqualTo(1)
-      assertThat((actionPanel.components.single() as HyperlinkLabel).text).isEqualTo("Dismiss")
+      assertThat(actionPanel.componentCount).isEqualTo(2)
+      assertThat((actionPanel.components[0] as HyperlinkLabel).text).isEqualTo("Don't Show Again")
+      assertThat((actionPanel.components[1] as HyperlinkLabel).text).isEqualTo("Dismiss")
     }
   }
 }

@@ -21,8 +21,10 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManager
 import com.intellij.execution.impl.ProjectRunConfigurationConfigurable
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -43,6 +45,9 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
+
+@VisibleForTesting
+const val KEY_HIDE_ACTIVITY_RESTART_BANNER = "live.layout.inspector.activity.restart.banner.hide"
 
 /**
  * Show a banner with "Activity Restarted" and a link to turn on "Layout inspection without an activity restart".
@@ -86,6 +91,18 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
     }
   }
 
+  val doNotShowAgainAction = object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {
+    override fun actionPerformed(event: AnActionEvent) {
+      PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
+      val banner = InspectorBannerService.getInstance(project)
+      banner.DISMISS_ACTION.actionPerformed(event)
+    }
+  }
+
+  if (PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)) {
+    return // The user already opted out of this banner
+  }
+
   // Only add enableInRunConfigAction if we are inspecting the current project.
   val module = ApplicationManager.getApplication().runReadAction<Module?> {
     moduleFromCurrentProjectBeingInspected(project, process)
@@ -94,7 +111,10 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   val banner = InspectorBannerService.getInstance(project)
   val config = module?.let { getConfiguration(module) }
   val showEnableAction = config?.INSPECTION_WITHOUT_ACTIVITY_RESTART == false
-  val actions = if (showEnableAction) listOf(enableInRunConfigAction, banner.DISMISS_ACTION) else listOf(banner.DISMISS_ACTION)
+  val actions = mutableListOf(doNotShowAgainAction, banner.DISMISS_ACTION)
+  if (showEnableAction) {
+    actions.add(0, enableInRunConfigAction)
+  }
   banner.setNotification(LayoutInspectorBundle.message("activity.restart"), actions)
 }
 
