@@ -38,6 +38,7 @@ class AndroidFrameEventTooltip(
 
   override fun dispose() {
     timeline.tooltipRange.removeDependencies(this)
+    model.removeDependencies(this)
   }
 
   private fun updateValue() {
