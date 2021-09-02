@@ -113,9 +113,11 @@ class LayoutInspectorTreePanelTest {
 
   @Before
   fun setUp() {
-    val fileManager = Mockito.mock(FileEditorManagerEx::class.java)
+    val fileManager: FileEditorManagerEx = mock()
     `when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     `when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    @Suppress("UnstableApiUsage")
+    `when`(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     `when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)

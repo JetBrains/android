@@ -91,6 +91,8 @@ class EmulatorViewTest {
     }
     `when`(fileEditorManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    @Suppress("UnstableApiUsage")
+    `when`(fileEditorManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     `when`(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
