@@ -22,6 +22,7 @@ iml_module(
         "//tools/base/build-system/previous-versions:4.2.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
