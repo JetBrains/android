@@ -87,9 +87,9 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
     val existingDevices = getGroupedDevices(module)
     val devicesEnumValueBuilder = DeviceEnumValueBuilder()
       .addDeviceDp("Phone", DeviceClass.Canonical, 360, 640)
-      .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
       .addDeviceDp("Foldable", DeviceClass.Canonical, 673, 841)
-      .addDeviceDp("Desktop", DeviceClass.Canonical, 640, 360)
+      .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
+      .addDeviceDp("Desktop", DeviceClass.Canonical, 1920, 1080)
       .addWearDevice(Shape.Square)
       .addWearDevice(Shape.Round)
       .addWearDevice(Shape.Chin)
@@ -98,17 +98,27 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
       .addTvDevice(1280, 720, 55.0)
       .addAutoDevice(1024, 768, 8.4)
 
-    existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhoneTablet)
-    existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addPhoneTablet)
+    existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhone)
+    existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addTablet)
 
     existingDevices[DeviceGroup.GENERIC]?.forEach(devicesEnumValueBuilder::addGeneric)
 
     devicesEnumValueBuilder.build()
   }
 
-private fun DeviceEnumValueBuilder.addPhoneTablet(device: Device) {
+private fun DeviceEnumValueBuilder.addPhone(device: Device) {
   val screen = device.defaultState.hardware.screen
-  addPhoneOrTablet(
+  addPhone(
+    displayName = device.displayName,
+    widthPx = screen.xDimension,
+    heightPx = screen.yDimension,
+    diagonalIn = screen.diagonalLength
+  )
+}
+
+private fun DeviceEnumValueBuilder.addTablet(device: Device) {
+  val screen = device.defaultState.hardware.screen
+  addTablet(
     displayName = device.displayName,
     widthPx = screen.xDimension,
     heightPx = screen.yDimension,

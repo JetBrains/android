@@ -16,22 +16,32 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
+import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
 
+internal const val SPEC_PREFIX = "spec:"
+
+internal const val DEFAULT_WIDTH = 1080
+internal const val DEFAULT_HEIGHT = 1920
+internal val DEFAULT_DENSITY = Density.XXHIGH
+internal val DEFAULT_UNIT = DimUnit.px
+internal val DEFAULT_SHAPE = Shape.Normal
+
+private const val DENSITY_SUFFIX = "dpi"
+
 /**
- * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.parse].
+ * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrDefault].
  *
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables)
  */
 internal class DeviceConfig(
-  var width: Int = 1080,
-  var height: Int = 1920,
-  dimUnit: DimUnit = DimUnit.px,
-  var density: Int = 480,
-  var orientation: Orientation = Orientation.portrait,
-  var shape: Shape = Shape.Normal
+  var width: Int = DEFAULT_WIDTH,
+  var height: Int = DEFAULT_HEIGHT,
+  dimUnit: DimUnit = DEFAULT_UNIT,
+  var density: Int = DEFAULT_DENSITY.dpiValue,
+  var shape: Shape = DEFAULT_SHAPE
 ) {
   /**
    * Defines the unit in which [width] and [height] should be considered. Modifying this property also changes [width] and [height].
@@ -54,35 +64,66 @@ internal class DeviceConfig(
       }
     }
 
+  var orientation: Orientation
+    get() = if (height >= width) Orientation.portrait else Orientation.landscape
+    set(newValue) {
+      when (newValue) {
+        Orientation.portrait -> {
+          if (height < width) {
+            val temp = height
+            height = width
+            width = temp
+          }
+        }
+        Orientation.landscape -> {
+          if (width < height) {
+            val temp = width
+            width = height
+            height = temp
+          }
+        }
+      }
+    }
+
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
-  fun deviceSpec(): String =
-    "spec:${shape.name};$width;$height;${dimensionUnit.name};${density}dpi;${orientation.name}"
+  fun deviceSpec(): String = "spec:${shape.name};$width;$height;${dimensionUnit.name};${density}$DENSITY_SUFFIX"
+
+  override fun equals(other: Any?): Boolean {
+    if (other !is DeviceConfig) {
+      return false
+    }
+    return deviceSpec() == other.deviceSpec()
+  }
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(width, height, density, shape.hashCode(), dimensionUnit.hashCode())
+  }
 
   companion object {
-    fun parse(serialized: String?): DeviceConfig {
-      val configString = serialized?.substringAfter(':') ?: return DeviceConfig()
+
+    /**
+     * Returns a [DeviceConfig] from parsing the given string.
+     *
+     * For any step that might fail, a default value will be used.
+     * So if all fails, returns an instance using all default values.
+     */
+    fun toDeviceConfigOrDefault(serialized: String?): DeviceConfig {
+      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return DeviceConfig()
+      val configString = serialized.substringAfter(SPEC_PREFIX)
       val params = configString.split(';')
-      if (params.size != 6) return DeviceConfig()
+      if (params.size != 5) return DeviceConfig()
 
       val shape = try {
         Shape.valueOf(params[0])
       }
       catch (e: Exception) {
-        Shape.Normal
+        DEFAULT_SHAPE
       }
-      val width = params[1].toIntOrNull() ?: return DeviceConfig()
-      val height = params[2].toIntOrNull() ?: return DeviceConfig()
-      val isPx = DimUnit.valueOfOrPx(params[3].toLowerCaseAsciiOnly())
-      val dpi = params[4].substringBefore("dpi").toIntOrNull() ?: 480
-      val orientation = Orientation.valueOfOrPortrait(params[5].toLowerCaseAsciiOnly())
-      return DeviceConfig(
-        width = width,
-        height = height,
-        dimUnit = isPx,
-        density = dpi,
-        orientation = orientation,
-        shape = shape
-      )
+      val width = params[1].toIntOrNull() ?: DEFAULT_WIDTH
+      val height = params[2].toIntOrNull() ?: DEFAULT_HEIGHT
+      val dimUnit = DimUnit.valueOfOrPx(params[3].toLowerCaseAsciiOnly())
+      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: DEFAULT_DENSITY.dpiValue
+      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
     }
   }
 }
@@ -107,7 +148,8 @@ internal enum class DimUnit {
   companion object {
     fun valueOfOrPx(value: String) = try {
       valueOf(value)
-    } catch(_: Exception) {
+    }
+    catch (_: Exception) {
       px
     }
   }

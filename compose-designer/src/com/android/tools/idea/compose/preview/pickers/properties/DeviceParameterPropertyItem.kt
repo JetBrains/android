@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.resources.Density
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
@@ -30,10 +29,6 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 private const val WIDTH_INITIAL = "width"
 private const val HEIGHT_INITIAL = "height"
 
-private const val WIDTH_DEFAULT = 1080
-private const val HEIGHT_DEFAULT = 1920
-private val DENSITY_DEFAULT = Density.XXHIGH.dpiValue
-private val UNIT_DEFAULT = DimUnit.px.name
 private val ORIENTATION_DEFAULT = Orientation.portrait.name
 
 /**
@@ -59,26 +54,26 @@ internal class DeviceParameterPropertyItem(
   // TODO(b/197021783): Have a better/correct wat to choose default values. That matches the device used in Preview when 'Device = null'
   private val width = DeviceConfigProperty(
     getter = { config -> config.width.toString() },
-    setter = { config, newValue -> config.width = newValue.toIntOrNull() ?: WIDTH_DEFAULT },
-    default = WIDTH_DEFAULT.toString()
+    setter = { config, newValue -> config.width = newValue.toIntOrNull() ?: DEFAULT_WIDTH },
+    default = DEFAULT_WIDTH.toString()
   )
 
   private val height = DeviceConfigProperty(
     getter = { config -> config.height.toString() },
-    setter = { config, newValue -> config.height = newValue.toIntOrNull() ?: HEIGHT_DEFAULT },
-    default = HEIGHT_DEFAULT.toString()
+    setter = { config, newValue -> config.height = newValue.toIntOrNull() ?: DEFAULT_HEIGHT },
+    default = DEFAULT_HEIGHT.toString()
   )
 
   private val dimensionUnit = DeviceConfigProperty(
     getter = { config -> config.dimensionUnit.name },
     setter = { config, newValue -> config.dimensionUnit = DimUnit.valueOfOrPx(newValue) },
-    default = UNIT_DEFAULT
+    default = DEFAULT_UNIT.name
   )
 
   private val density = DeviceConfigProperty(
     getter = { config -> config.density.toString() },
-    setter = { config, newValue -> config.density = newValue.toIntOrNull() ?: DENSITY_DEFAULT },
-    default = DENSITY_DEFAULT.toString()
+    setter = { config, newValue -> config.density = newValue.toIntOrNull() ?: DEFAULT_DENSITY.dpiValue },
+    default = DEFAULT_DENSITY.dpiValue.toString()
   )
 
   private val orientation = DeviceConfigProperty(
@@ -90,9 +85,9 @@ internal class DeviceParameterPropertyItem(
   val innerProperties = listOf<PsiPropertyItem>(
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_WIDTH, WIDTH_INITIAL, width),
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_HEIGHT, HEIGHT_INITIAL, height),
-    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DENSITY, DENSITY_DEFAULT.toString(), density),
+    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DENSITY, DEFAULT_DENSITY.dpiValue.toString(), density),
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_ORIENTATION, ORIENTATION_DEFAULT, orientation),
-    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DIM_UNIT, UNIT_DEFAULT, dimensionUnit)
+    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DIM_UNIT, DEFAULT_UNIT.name, dimensionUnit)
   )
 
   /**
@@ -104,11 +99,11 @@ internal class DeviceParameterPropertyItem(
     private val default: String
   ) {
     fun getValue(): String {
-      return getter(DeviceConfig.parse(value))
+      return getter(DeviceConfig.toDeviceConfigOrDefault(value))
     }
 
     fun setValue(newValue: String?) {
-      val config = DeviceConfig.parse(value).also { setter(it, newValue ?: default) }
+      val config = DeviceConfig.toDeviceConfigOrDefault(value).also { setter(it, newValue ?: default) }
       writeNewValue(config.deviceSpec(), false)
     }
   }
