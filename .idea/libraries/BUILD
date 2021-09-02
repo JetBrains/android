@@ -237,3 +237,17 @@ java_import(
     jars = ["//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+java_import(
+    name = "ffmpeg",
+    jars = ["//prebuilts/tools/common/m2:ffmpeg_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "ffmpeg-platform",
+    jars = ["//prebuilts/tools/common/m2:ffmpeg-platform_files"],
+    visibility = ["//visibility:public"],
+)
