@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.ListOrVarargsTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -142,7 +143,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel consumerProguardFiles() {
-    return getModelForProperty(CONSUMER_PROGUARD_FILES);
+    return GradlePropertyModelBuilder.create(myDslElement, CONSUMER_PROGUARD_FILES)
+      .addTransform(new ListOrVarargsTransform(CONSUMER_PROGUARD_FILES, "setConsumerProguardFiles", "consumerProguardFiles"))
+      .buildResolved();
   }
 
   @Override
@@ -187,7 +190,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel proguardFiles() {
-    return getModelForProperty(PROGUARD_FILES);
+    return GradlePropertyModelBuilder.create(myDslElement, PROGUARD_FILES)
+      .addTransform(new ListOrVarargsTransform(PROGUARD_FILES, "setProguardFiles", "proguardFiles"))
+      .buildResolved();
   }
 
   @Override
