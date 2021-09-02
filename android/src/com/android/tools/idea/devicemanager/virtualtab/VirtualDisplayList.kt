@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.virtualtab
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel
-import com.android.tools.idea.avdmanager.ApiLevelComparator
 import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
 import com.android.tools.idea.avdmanager.AvdDisplayList
@@ -122,6 +121,7 @@ class VirtualDisplayList @TestOnly constructor(
     }
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
+    table.setRowSorter()
     refreshAvds()
   }
 
@@ -239,12 +239,6 @@ class VirtualDisplayList @TestOnly constructor(
       AvdDeviceColumnInfo("Device", deviceTableCellRenderer),
       object : AvdDisplayList.AvdColumnInfo("API") {
         override fun valueOf(avdInfo: AvdInfo): String = avdInfo.androidVersion.apiString
-
-        /**
-         * We override the comparator here to sort the API levels numerically (when possible;
-         * with preview platforms codenames are compared alphabetically)
-         */
-        override fun getComparator(): Comparator<AvdInfo> = Comparator.comparing(this::valueOf, ApiLevelComparator()).reversed()
       },
       SizeOnDiskColumn(table),
       AvdActionsColumnInfo("Actions", project != null, this)

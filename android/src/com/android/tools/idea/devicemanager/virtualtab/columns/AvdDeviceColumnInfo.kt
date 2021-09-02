@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.virtualtab.columns
 import com.android.sdklib.internal.avd.AvdInfo
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
-import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
@@ -30,8 +29,6 @@ import javax.swing.table.TableCellRenderer
 class AvdDeviceColumnInfo(
   name: String, private val renderer: TableCellRenderer, private val width: Int = 70
 ) : ColumnInfo<AvdInfo, AvdInfo>(name) {
-  override fun getComparator(): Comparator<AvdInfo> = Comparator { device1, device2 -> device1.displayName.compareTo(device2.displayName) }
-
   override fun getRenderer(device: AvdInfo): TableCellRenderer = renderer
 
   override fun getColumnClass(): Class<*> = AvdInfo::class.java
