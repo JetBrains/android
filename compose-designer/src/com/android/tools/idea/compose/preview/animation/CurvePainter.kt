@@ -124,7 +124,7 @@ object CurvePainter {
     private val VALUE_COLOR = UIUtil.getLabelDisabledForeground()
 
     /** Paint a label with a box on background. */
-    fun paintBoxedLabel(g: Graphics2D, timelineUnit: ComposeUnit.TimelineUnit, componentId: Int, x: Int, y: Int) {
+    fun paintBoxedLabel(g: Graphics2D, timelineUnit: ComposeUnit.TimelineUnit, componentId: Int, grouped: Boolean, x: Int, y: Int) {
       //       Property label
       //       |       (Optional) Colored box for a [ComposeUnit.Color] properties
       //       |       |    Value of the property
@@ -140,9 +140,15 @@ object CurvePainter {
       //   /                                      \    /                                   \   /           \
       //   |  Rect property : left ( 1, _ , _, _) |    |  Color : 🟦 blue ( _, _ , 0.3, _) |   |  Dp : 1dp |
       //   \______________________________________/    \___________________________________/   \___________/
+      //
+      //    Example 4 when components are grouped together
+      //    ______________________________________
+      //   /                                      \
+      //   |  Rect property : ( 1 , 2 , 3 , 4)     |
+      //   \______________________________________/
 
       val label = "${timelineUnit.property.label} :  "
-      val value = timelineUnit.unit?.toString(componentId)
+      val value = if (grouped) timelineUnit.unit?.toString() else timelineUnit.unit?.toString(componentId)
       val color = if (timelineUnit.unit is ComposeUnit.Color) timelineUnit.unit.color else null
       g.font = UIUtil.getFont(UIUtil.FontSize.NORMAL, null)
       val labelLayout = TextLayout(label, g.font, g.fontRenderContext)

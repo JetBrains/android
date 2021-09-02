@@ -32,6 +32,7 @@ class ComposeUnitTest {
     assertEquals(1, composeUnit.component1);
     assertEquals(listOf(1), composeUnit.components);
     assertEquals("1", composeUnit.toString(0))
+    assertEquals("1", composeUnit.toString())
     assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
   }
 
@@ -43,6 +44,7 @@ class ComposeUnitTest {
     assertEquals(1.2345, composeUnit.component1);
     assertEquals(listOf(1.2345), composeUnit.components);
     assertEquals("1.2345", composeUnit.toString(0))
+    assertEquals("1.2345", composeUnit.toString())
     assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
   }
 
@@ -54,6 +56,7 @@ class ComposeUnitTest {
     assertEquals(1.2345f, composeUnit.component1);
     assertEquals(listOf(1.2345f), composeUnit.components);
     assertEquals("1.2345", composeUnit.toString(0))
+    assertEquals("1.2345", composeUnit.toString())
     assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
   }
 
@@ -68,6 +71,7 @@ class ComposeUnitTest {
     assertNotNull(composeUnit)
     assertEquals(1.2345f, composeUnit.component1);
     assertEquals("1.2345dp", composeUnit.toString(0))
+    assertEquals("1.2345dp", composeUnit.toString())
     assertEquals(listOf(1.2345f), composeUnit.components);
   }
 
@@ -110,6 +114,7 @@ class ComposeUnitTest {
     assertEquals("top ( _ , 2.222 , _ , _ )", composeUnit.toString(1))
     assertEquals("right ( _ , _ , 3.222 , _ )", composeUnit.toString(2))
     assertEquals("bottom ( _ , _ , _ , 4.222 )", composeUnit.toString(3))
+    assertEquals("( 1.222 , 2.222 , 3.222 , 4.222 )", composeUnit.toString())
     assertEquals(listOf(1.222f, 2.222f, 3.222f, 4.222f), composeUnit.components);
   }
 
@@ -184,9 +189,12 @@ class ComposeUnitTest {
 
 
   @Test
-  fun parseInvalid() {
-    val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", "Invalid"))
-    assertNull(composeUnit)
+  fun parseUnknown() {
+    val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", "Unknown"))
+    assertNotNull(composeUnit)
+    assertEquals("Unknown", composeUnit.toString())
+    assertEquals("Unknown", composeUnit.toString(1))
+    assertEquals(1, composeUnit.components.size)
   }
 
   @Test
@@ -201,5 +209,11 @@ class ComposeUnitTest {
     val composeUnit = ComposeUnit.Color(10f, 10f, 10f, 10f)
     assertNotNull(composeUnit)
     assertNull(composeUnit.color)
+  }
+
+  @Test
+  fun parseNull() {
+    val result = ComposeUnit.parseValue(null)
+    assertNull(result)
   }
 }
