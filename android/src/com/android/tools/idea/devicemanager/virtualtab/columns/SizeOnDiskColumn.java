@@ -16,41 +16,34 @@
 package com.android.tools.idea.devicemanager.virtualtab.columns;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdDisplayList.AvdColumnInfo;
 import com.intellij.ui.table.TableView;
-import java.util.Comparator;
+import com.intellij.util.ui.ColumnInfo;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public final class SizeOnDiskColumn extends AvdColumnInfo {
-  @NotNull
-  private final Map<AvdInfo, SizeOnDisk> myDeviceToSizeOnDiskMap;
+public final class SizeOnDiskColumn extends ColumnInfo<AvdInfo, SizeOnDisk> {
+  private final @NotNull Map<@NotNull AvdInfo, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
+  private final @NotNull TableView<@NotNull AvdInfo> myTable;
 
-  @NotNull
-  private final TableView<AvdInfo> myTable;
-
-  public SizeOnDiskColumn(@NotNull TableView<AvdInfo> table) {
+  public SizeOnDiskColumn(@NotNull TableView<@NotNull AvdInfo> table) {
     super("Size on Disk");
 
     myDeviceToSizeOnDiskMap = new HashMap<>();
     myTable = table;
   }
 
-  @NotNull
   @Override
-  public String valueOf(@NotNull AvdInfo device) {
-    return getSizeOnDisk(device).toString();
+  public @NotNull SizeOnDisk valueOf(@NotNull AvdInfo device) {
+    return getSizeOnDisk(device);
   }
 
-  @NotNull
-  @Override
-  public Comparator<AvdInfo> getComparator() {
-    return Comparator.comparing(this::getSizeOnDisk);
-  }
-
-  @NotNull
-  private SizeOnDisk getSizeOnDisk(@NotNull AvdInfo device) {
+  private @NotNull SizeOnDisk getSizeOnDisk(@NotNull AvdInfo device) {
     return myDeviceToSizeOnDiskMap.computeIfAbsent(device, d -> new SizeOnDisk(d, myTable));
+  }
+
+  @Override
+  public @NotNull Class<?> getColumnClass() {
+    return SizeOnDisk.class;
   }
 }

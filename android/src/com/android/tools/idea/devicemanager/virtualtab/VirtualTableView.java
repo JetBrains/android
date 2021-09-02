@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.intellij.ui.SimpleTextAttributes;
@@ -24,9 +25,16 @@ import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import java.awt.Component;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
+import javax.swing.DefaultRowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,6 +50,17 @@ public final class VirtualTableView extends TableView<AvdInfo> {
       .appendLine("No virtual devices added. Create a virtual device to test")
       .appendLine("applications without owning a physical device.")
       .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, new CreateAvdAction(avdInfoProvider));
+  }
+
+  void setRowSorter() {
+    DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(dataModel);
+
+    sorter.setComparator(0, Comparator.comparing(AvdInfo::getDisplayName));
+    sorter.setComparator(1, new ApiLevelComparator().reversed());
+    sorter.setSortable(3, false);
+    sorter.setSortKeys(Collections.singletonList(new SortKey(0, SortOrder.ASCENDING)));
+
+    setRowSorter(sorter);
   }
 
   void setWidths() {
