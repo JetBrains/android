@@ -55,7 +55,7 @@ fun JPanel.addMigrationPanel(
   val textFontMetrics = getFontMetrics(TEXT_FONT)
   val instructionsPanelBuilder = InstructionsPanel.Builder(
     TextInstruction(getFontMetrics(HEADER_FONT), header),
-    NewRowInstruction(12)
+    NewRowInstruction(6)
   )
   if (IdeInfo.isGameTool()) {
     instructionsPanelBuilder.addInstruction(
@@ -66,7 +66,7 @@ fun JPanel.addMigrationPanel(
       .addInstruction(HyperlinkInstruction(TEXT_FONT, migratingTo, transitionAction))
       .addInstruction(TextInstruction(textFontMetrics, "."))
   }
-  instructionsPanelBuilder.addInstruction(NewRowInstruction(24))
+  instructionsPanelBuilder.addInstruction(NewRowInstruction(6))
     .addInstruction(HyperlinkInstruction(TEXT_FONT, "Dismiss", dismissAction))
     .setMode(InstructionsPanel.Mode.FILL_PANEL)
     .setColors(UIUtil.getInactiveTextColor(), null)
