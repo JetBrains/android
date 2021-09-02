@@ -19,8 +19,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
-import org.jetbrains.kotlin.idea.kdoc.IdeSampleResolutionService
-import org.jetbrains.kotlin.idea.kdoc.SampleResolutionService
+import org.jetbrains.kotlin.idea.kdoc.IdeKDocLinkResolutionService
+import org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.stubindex.KotlinClassShortNameIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinFunctionShortNameIndex
@@ -32,19 +32,19 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 /**
  * Resolves links to functions and classes inside KDoc that are not included to the project (as byte code).
  *
- * It's a copy of [org.jetbrains.kotlin.idea.kdoc.IdeSampleResolutionService], but with a larger search scope:
+ * It's a copy of [org.jetbrains.kotlin.idea.kdoc.IdeKDocLinkResolutionService], but with a larger search scope:
  * GlobalSearchScope.everythingScope(project) instead of GlobalSearchScope.projectScope(project).
  * Source code is already in the index, it attached in [AndroidModuleDependenciesSetup#setUpLibraryDependency]
  */
-class ComposeSampleResolutionService : SampleResolutionService {
-  override fun resolveSample(
+class ComposeKDocLinkResolutionService : KDocLinkResolutionService {
+  override fun resolveKDocLink(
     context: BindingContext,
     fromDescriptor: DeclarationDescriptor,
     resolutionFacade: ResolutionFacade,
     qualifiedName: List<String>
   ): Collection<DeclarationDescriptor> {
     val project = resolutionFacade.project
-    val descriptors = IdeSampleResolutionService(project).resolveSample(context, fromDescriptor, resolutionFacade, qualifiedName)
+    val descriptors = IdeKDocLinkResolutionService(project).resolveKDocLink(context, fromDescriptor, resolutionFacade, qualifiedName)
 
     if (!StudioFlags.SAMPLES_SUPPORT_ENABLED.get()) return descriptors
 

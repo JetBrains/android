@@ -69,8 +69,8 @@
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
-                    serviceImplementation="com.android.tools.compose.ComposeSampleResolutionService"
+    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
+                    serviceImplementation="com.android.tools.compose.ComposeKDocLinkResolutionService"
                     overrides="true"
     />
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
