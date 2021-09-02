@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.ui.HideablePanel
@@ -111,7 +112,6 @@ class EntryDetailsView(
       override fun getScrollableTracksViewportWidth() = false
     }
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
-    detailsPanel.background = primaryContentBackground
 
     when (val entry = selectionModel.selectedEntry) {
       is WorkEntry -> updateSelectedWork(detailsPanel, entry)
@@ -120,6 +120,8 @@ class EntryDetailsView(
       is WakeLockEntry -> updateSelectedWakeLock(detailsPanel, entry)
     }
 
+    TreeWalker(detailsPanel).descendantStream().forEach { it.background = null }
+    detailsPanel.background = primaryContentBackground
     scrollPane.setViewportView(detailsPanel)
     revalidate()
     repaint()
@@ -250,20 +252,16 @@ class EntryDetailsView(
 
   private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
     val panel = JPanel(VerticalLayout(6))
-    panel.background = null
 
     val headingPanel = TitledSeparator(name)
     headingPanel.minimumSize = Dimension(0, 34)
-    headingPanel.background = null
     panel.add(headingPanel)
 
     for (component in entryComponents) {
       val borderedPanel = JPanel(BorderLayout())
-      component.background = null
       borderedPanel.add(component, BorderLayout.WEST)
       borderedPanel.border =
         BorderFactory.createEmptyBorder(0, 18, extraBottomPaddingMap.getOrDefault(component, 0), 0)
-      borderedPanel.background = null
       panel.add(borderedPanel)
     }
     return panel
@@ -276,7 +274,6 @@ class EntryDetailsView(
       border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
     }
     val keyPanel = JPanel(BorderLayout())
-    keyPanel.background = null
     keyPanel.add(JBLabel(key), BorderLayout.NORTH) // If value is multi-line, key should stick to the top of its cell
     panel.add(keyPanel, TabularLayout.Constraint(0, 0))
     panel.add(componentProvider.convert(value), TabularLayout.Constraint(0, 1))
@@ -298,7 +295,6 @@ class EntryDetailsView(
               .setPanelBorder(JBEmptyBorder(0, 0, 0, 0))
               .setTitleRightPadding(0)
               .build()
-            hideablePanel.background = null
             hideablePanel
           }
           else -> null
