@@ -31,6 +31,12 @@ internal class AnimationClock(val clock: Any) {
   val getAnimatedPropertiesFunction by lazy { findClockFunction("getAnimatedProperties") }
 
   /**
+   * Function `getTransitions` of [clock]. This API was added in Compose UI Tooling 1.1.0-alpha05. For early versions
+   * `getAnimatedProperties` should be called instead. The caller should first check if this method exists.
+   */
+  val getTransitionsFunction: Method? by lazy { findClockFunctionIfExists("getTransitions") }
+
+  /**
    * Function `getMaxDuration` of [clock].
    */
   val getMaxDurationFunction by lazy { findClockFunction("getMaxDuration") }
@@ -38,7 +44,7 @@ internal class AnimationClock(val clock: Any) {
   /**
    * Function `getMaxDurationPerIteration` of [clock].
    */
-  val getMaxDurationPerIteration by lazy {findClockFunction("getMaxDurationPerIteration") }
+  val getMaxDurationPerIteration by lazy { findClockFunction("getMaxDurationPerIteration") }
 
   /**
    * Function `setClockTime` of [clock].
@@ -67,11 +73,13 @@ internal class AnimationClock(val clock: Any) {
   val getAnimatedVisibilityStateFunction by lazy { findClockFunction("getAnimatedVisibilityState") }
 
   @VisibleForTesting
-  fun findClockFunction(functionName: String): Method =
-    clock::class.java.methods.first {
+  fun findClockFunction(functionName: String): Method = findClockFunctionIfExists(functionName)!!
+
+  private fun findClockFunctionIfExists(functionName: String): Method? =
+    clock::class.java.methods.firstOrNull() {
       // Convert something like `setClockTime-zrx7VqY` into `setClockTime` in order to handle methods that use inline classes.
       // See https://kotlinlang.org/docs/inline-classes.html#mangling for more info.
       val normalizedName = it.name.substringBefore('-')
       normalizedName == functionName
-    }.apply { isAccessible = true }
+    }?.apply { isAccessible = true }
 }

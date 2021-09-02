@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import androidx.compose.animation.tooling.TransitionInfo
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
@@ -157,7 +158,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         super.selectionChanged(oldSelection, newSelection)
         val tab = newSelection?.component as? AnimationTab ?: return
         // Load animation when first tab was just created or transition has changed.
-        tab.loadTransition()
+        tab.loadTransitionFromCacheOrLib()
+        tab.updateProperties()
         // The following callbacks only need to be called when old selection is not null, which excludes the addition/selection of the first
         // tab. In that case, the logic will be handled by updateTransitionStates.
         if (oldSelection != null) {
@@ -314,6 +316,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         tab.animatedVisibilityComboBox.addActionListener {
           logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
           tab.updateAnimatedVisibility()
+          tab.loadTransitionFromCacheOrLib()
           tab.updateProperties()
         }
         callback.invoke()
@@ -528,45 +531,77 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Load transition for current start and end state. If transition was loaded before, the cached result is used.
      */
-    fun loadTransition(longTimeout: Boolean = false) {
+    fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
       if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
 
-      val stateHash = Pair(
-        startStateComboBox.selectedItem?.hashCode(),
-        endStateComboBox.selectedItem?.hashCode()).hashCode()
+      val stateHash = when (animation.type) {
+        ComposeAnimationType.TRANSITION_ANIMATION -> Pair(
+          startStateComboBox.selectedItem?.hashCode(),
+          endStateComboBox.selectedItem?.hashCode()).hashCode()
+        ComposeAnimationType.ANIMATED_VISIBILITY -> animatedVisibilityComboBox.selectedItem.hashCode()
+        ComposeAnimationType.ANIMATED_VALUE -> 0
+      }
 
       cachedTransitions[stateHash]?.let {
         timeline.updateTransition(cachedTransitions[stateHash]!!)
         timelinePanelWithCurves.doLayout()
-        return@loadTransition
+        return@loadTransitionFromCacheOrLib
       }
 
       val clock = animationClock ?: return
-      val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
 
       executeOnRenderThread(longTimeout) {
-        val clockTimeMsStep = max(1, maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER)
-        for (clockTimeMs in 0..maxDurationPerIteration step clockTimeMsStep) {
-          clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
-          try {
-            val properties = clock.getAnimatedPropertiesFunction.invoke(clock.clock, animation) as List<ComposeAnimatedProperty>
+        val transition = loadTransitionsFromLib(clock)
+        cachedTransitions[stateHash] = transition
+        timeline.updateTransition(transition)
+        timelinePanelWithCurves.doLayout()
+      }
+    }
 
-            for ((index, property) in properties.withIndex()) {
-              ComposeUnit.parse(property)?.let { unit ->
-                builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
-              }
+    private fun loadTransitionsFromLib(clock: AnimationClock): Transition {
+      val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
+      val clockTimeMsStep = max(1, maxDurationPerIteration / DEFAULT_CURVE_POINTS_NUMBER)
+
+      fun getTransitions() {
+        val composeTransitions = clock.getTransitionsFunction?.invoke(clock.clock, animation, clockTimeMsStep) as List<TransitionInfo>
+        for ((index, composeTransition) in composeTransitions.withIndex()) {
+          val builder = AnimatedProperty.Builder()
+            .setStartTimeMs(composeTransition.startTimeMillis.toInt())
+            .setEndTimeMs(composeTransition.endTimeMillis.toInt())
+          composeTransition.values.mapValues {
+            ComposeUnit.parseValue(it.value)
+          }.forEach { (ms, unit) ->
+            unit?.let {
+              builder.add(ms.toInt(), unit)
             }
           }
-          catch (e: Exception) {
-            LOG.warn("Failed to load the Compose Animation properties", e)
+          builders[index] = builder
+        }
+      }
+
+      fun getAnimatedProperties() {
+        for (clockTimeMs in 0..maxDurationPerIteration step clockTimeMsStep) {
+          clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs)
+          val properties = clock.getAnimatedPropertiesFunction.invoke(clock.clock, animation) as List<ComposeAnimatedProperty>
+          for ((index, property) in properties.withIndex()) {
+            ComposeUnit.parse(property)?.let { unit ->
+              builders.getOrPut(index) { AnimatedProperty.Builder() }.add(clockTimeMs.toInt(), unit)
+            }
           }
         }
-        builders.mapValues { it.value.build() }.let {
-          val transition = Transition(it)
-          cachedTransitions[stateHash] = transition
-          timeline.updateTransition(transition)
-          timelinePanelWithCurves.doLayout()
-        }
+      }
+
+      try {
+        if (clock.getTransitionsFunction != null) getTransitions()
+        else getAnimatedProperties()
+
+      }
+      catch (e: Exception) {
+        LOG.warn("Failed to load the Compose Animation properties", e)
+      }
+
+      builders.mapValues { it.value.build() }.let {
+        return Transition(it)
       }
     }
 
@@ -620,7 +655,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         }
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
         updateAnimationStartAndEndStates()
-        loadTransition()
+        loadTransitionFromCacheOrLib()
         updateProperties()
       })
       endStateComboBox.addActionListener(ActionListener {
@@ -629,7 +664,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
         }
         updateAnimationStartAndEndStates()
-        loadTransition()
+        loadTransitionFromCacheOrLib()
         updateProperties()
       })
     }
