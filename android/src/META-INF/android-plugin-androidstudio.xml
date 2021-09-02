@@ -151,8 +151,8 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                     overrides="true"/>
 
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
-                    serviceImplementation="org.jetbrains.android.compose.ComposeSampleResolutionService"
+    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
+                    serviceImplementation="org.jetbrains.android.compose.ComposeKDocLinkResolutionService"
                     overrides="true"
     />
 
