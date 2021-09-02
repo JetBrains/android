@@ -45,9 +45,12 @@ import kotlin.system.measureTimeMillis
  * - Start using new NewProjectModel etc to initialise TemplateParameters and set parameter values.
  * - Fix clean model syncing, and hook up clean lint checks.
  */
-open class TemplateTest : AndroidGradleTestCase() {
+class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : AndroidGradleTestCase() {
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
+  // Set of templates tested with unit test - Used to detect templates without tests
+  private val templatesChecked = mutableSetOf<String>()
 
   override fun createDefaultProject() = false
 
@@ -84,7 +87,7 @@ open class TemplateTest : AndroidGradleTestCase() {
    * @param name              the template name
    * @param customizers        An instance of [ProjectStateCustomizer]s used for providing template and project overrides.
    */
-  protected open fun checkCreateTemplate(
+  private fun checkCreateTemplate(
     name: String,
     vararg customizers: ProjectStateCustomizer,
     templateStateCustomizer: TemplateStateCustomizer = mapOf(),
@@ -92,6 +95,10 @@ open class TemplateTest : AndroidGradleTestCase() {
     formFactor: FormFactor? = null,
     avoidModifiedModuleName: Boolean = false
   ) {
+    if (runTemplateCoverageOnly) {
+      templatesChecked.add(name)
+      return
+    }
     if (DISABLED || isBroken(name)) {
       return
     }
@@ -568,46 +575,25 @@ open class TemplateTest : AndroidGradleTestCase() {
     }
   }
 
-  open fun testAllTemplatesCovered() {
-    CoverageChecker().testAllTemplatesCovered()
-  }
+  fun testAllTemplatesCovered() {
+    // Create a placeholder version of this class that just collects all the templates it will test when it is run.
+    val templateTest = TemplateTest(runTemplateCoverageOnly = true)
 
-  // Create a dummy version of this class that just collects all the templates it will test when it is run.
-  // It is important that this class is not run by JUnit!
-  class CoverageChecker : TemplateTest() {
-    override fun shouldRunTest(): Boolean = false
+    // Find all methods annotated with @TemplateCheck and run them (will just add the template name to a list)
+    templateTest::class.memberFunctions
+      .filter { it.findAnnotation<TemplateCheck>() != null }
+      .forEach { it.call(templateTest) }
 
-    // Set of templates tested with unit test
-    private val templatesChecked = mutableSetOf<String>()
+    val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
 
-    override fun checkCreateTemplate(
-      name: String,
-      vararg customizers: ProjectStateCustomizer,
-      templateStateCustomizer: TemplateStateCustomizer,
-      category: Category?,
-      formFactor: FormFactor?,
-      avoidModifiedModuleName: Boolean
-    ) {
-      templatesChecked.add(name)
-    }
+    val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templateTest.templatesChecked)
 
-    // The actual implementation of the test
-    override fun testAllTemplatesCovered() {
-      this::class.memberFunctions
-        .filter { it.findAnnotation<TemplateCheck>() != null }
-        .forEach { it.call(this) }
-
-      val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
-
-      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesChecked)
-
-      val failurePrefix = """
+    val failurePrefix = """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
         these templates and that they are annotated with @TemplateCheck.
         """.trimIndent()
 
-      assertWithMessage(failurePrefix).that(notCoveredTemplates).isEmpty()
-    }
+    assertWithMessage(failurePrefix).that(notCoveredTemplates).isEmpty()
   }
 }
 
@@ -619,7 +605,7 @@ private fun getBoolFromEnvironment(key: String) = System.getProperty(key).orEmpt
 /**
  * Whether we should run these tests or not.
  */
-internal val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
+private val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
 
 /**
  * Whether we should enforce that lint passes cleanly on the projects
