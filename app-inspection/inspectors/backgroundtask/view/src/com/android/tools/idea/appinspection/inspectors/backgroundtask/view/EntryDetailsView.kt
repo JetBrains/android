@@ -273,9 +273,7 @@ class EntryDetailsView(
                                     value: T,
                                     componentProvider: ComponentProvider<T> = ToStringProvider()): JPanel {
     val panel = JPanel(TabularLayout("155px,*")).apply {
-      // Add a 2px text offset to align this panel with a [HyperlinkLabel] properly.
-      // See HyperlinkLabel.getTextOffset() for more details.
-      border = BorderFactory.createEmptyBorder(0, 2, 0, 0)
+      border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
     }
     val keyPanel = JPanel(BorderLayout())
     keyPanel.background = null

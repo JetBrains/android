@@ -27,7 +27,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
@@ -64,12 +64,10 @@ class ClassNameProvider(
   private val tracker: BackgroundTaskInspectorTracker
 ) : ComponentProvider<String> {
   override fun convert(fqcn: String): JComponent {
-    return HyperlinkLabel(fqcn).apply {
-      addHyperlinkListener {
-        scope.launch {
-          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
-          tracker.trackJumpedToSource()
-        }
+    return ActionLink(fqcn) {
+      scope.launch {
+        ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
+        tracker.trackJumpedToSource()
       }
     }
   }
@@ -116,12 +114,10 @@ class EnqueuedAtProvider(
     }
     else {
       val frame0 = stack.getFrames(0)
-      HyperlinkLabel("${frame0.fileName} (${frame0.lineNumber})").apply {
-        addHyperlinkListener {
-          scope.launch {
-            ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
-            tracker.trackJumpedToSource()
-          }
+      ActionLink("${frame0.fileName} (${frame0.lineNumber})") {
+        scope.launch {
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+          tracker.trackJumpedToSource()
         }
       }
     }
@@ -163,18 +159,20 @@ class IdListProvider(private val client: BackgroundTaskInspectorClient,
           val entry = client.getEntry(id)
           if (entry != null) {
             val work = (entry as WorkEntry).getWorkInfo()
-
-            add(HyperlinkLabel().apply {
-              val suffix = if (id == currId) "  (Current)" else ""
-              setHyperlinkText("", id, suffix)
-              addHyperlinkListener {
-                selectWork(entry)
-              }
-              setIcon(work.state.icon())
+            val mixedLabel = JPanel(HorizontalLayout(2))
+            val actionLink = ActionLink(id) {
+              selectWork(entry)
+            }.apply {
+              icon = work.state.icon()
               if (work.tagsCount > 0) {
                 toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
               }
-            })
+            }
+            mixedLabel.add(actionLink)
+            if (id == currId) {
+              mixedLabel.add(JLabel("(Current)"))
+            }
+            add(mixedLabel)
           }
           else {
             add(JBLabel(id))
