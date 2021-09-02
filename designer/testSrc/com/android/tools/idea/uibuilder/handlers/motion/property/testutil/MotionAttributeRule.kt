@@ -103,6 +103,8 @@ class MotionAttributeRule(
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     Mockito.`when`(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    @Suppress("UnstableApiUsage")
+    Mockito.`when`(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     Mockito.`when`(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
