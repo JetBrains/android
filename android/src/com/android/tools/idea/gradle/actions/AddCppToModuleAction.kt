@@ -41,6 +41,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -52,13 +53,13 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.buttonGroup
+import com.intellij.ui.layout.*
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.util.Locale
+import java.util.*
 import javax.swing.JLabel
 
 private const val TITLE = "Add C++ to Module"
@@ -106,7 +107,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
 
   private val DataContext.selectedModule: Module?
     get() = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(this)?.singleOrNull()
-            ?: LangDataKeys.MODULE.getData(this)
+            ?: PlatformCoreDataKeys.MODULE.getData(this)
 
   private val Module.canAddCppToIt: Boolean
     get() {

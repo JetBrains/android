@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.adtui.workbench.ToolContent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /**
@@ -53,5 +53,5 @@ object DimensionUnitAction: DefaultActionGroup("Units", listOf(
 
 private fun setUnits(event: AnActionEvent, units: DimensionUnits) {
   PropertiesSettings.dimensionUnits = units
-  ToolContent.getToolContent(event.getData(PlatformDataKeys.CONTEXT_COMPONENT))?.component?.repaint()
+  ToolContent.getToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.component?.repaint()
 }

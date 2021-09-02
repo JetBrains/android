@@ -78,7 +78,7 @@ import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
-import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.gradle.config.GradleFileType;
 
 public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, LintEditorResult> {
   static {
@@ -154,7 +154,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
         scope = EnumSet.of(Scope.PROGUARD_FILE);
       }
-      else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
+      else if (GradleFileType.isGradleFile(mainFile)) {
         scope = Scope.GRADLE_SCOPE;
       }
       else if (fileType == PropertiesFileType.INSTANCE) {

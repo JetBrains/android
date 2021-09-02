@@ -31,7 +31,7 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.SystemInfo;
@@ -173,7 +173,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
 
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    dataContext.put(LangDataKeys.MODULE, module);
+    dataContext.put(PlatformCoreDataKeys.MODULE, module);
 
     // This test really is concerned with the case where the context data has an original
     // configuration with module information in it, to simulate the SMTRunnerConsole context

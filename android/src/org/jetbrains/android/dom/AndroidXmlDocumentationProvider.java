@@ -1,3 +1,4 @@
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -16,12 +17,12 @@ import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
 import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.utils.Pair;
 import com.intellij.lang.Language;
@@ -67,8 +68,8 @@ import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +78,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
 
   @Override
-  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+  public @Nls String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl().toString();
     }
@@ -85,7 +86,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Override
-  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+  public @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
     if (element instanceof ProvidedDocumentationPsiElement) {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
     }

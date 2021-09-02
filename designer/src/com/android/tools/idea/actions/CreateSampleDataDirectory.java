@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;

@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -40,14 +40,17 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
 
 class MigrateToAndroidxAction : BaseRefactoringAction() {
 
   override fun isAvailableInEditorOnly() = false
 
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
-    val module = dataContext.getData(LangDataKeys.MODULE)
+    val module = dataContext.getData(PlatformCoreDataKeys.MODULE)
     return module != null && GradleProjects.isIdeaAndroidModule(module)
   }
 
@@ -59,7 +62,7 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
                                                    file: PsiFile,
                                                    context: DataContext,
                                                    place: String): Boolean {
-    val module = context.getData(LangDataKeys.MODULE)
+    val module = context.getData(PlatformCoreDataKeys.MODULE)
     return module != null && GradleProjects.isIdeaAndroidModule(module)
   }
 

@@ -144,9 +144,9 @@ public class DeviceExplorerController {
     myView.addListener(new ViewListener());
     myFileManager = fileManager;
     myWorkEstimator = new FileTransferWorkEstimator(myEdtExecutor, taskExecutor);
-    myLoadingNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
-    myTransferringNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
-    myLoadingChildrenAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
+    myLoadingNodesAlarms = new Alarm();
+    myTransferringNodesAlarms = new Alarm();
+    myLoadingChildrenAlarms = new Alarm();
     myFileOpener = fileOpener;
 
     project.putUserData(KEY, this);

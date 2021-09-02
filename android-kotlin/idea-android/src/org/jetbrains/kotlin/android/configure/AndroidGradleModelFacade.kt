@@ -13,7 +13,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.gradle.inspections.KotlinGradleModelFacade
-import org.jetbrains.kotlin.idea.gradle.inspections.findModulesByNames
+import org.jetbrains.kotlin.idea.gradleJava.inspections.findModulesByNames
 import com.android.builder.model.Library
 
 class AndroidGradleModelFacade : KotlinGradleModelFacade {

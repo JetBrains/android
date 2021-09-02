@@ -26,7 +26,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -95,7 +95,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
       }
     }
     // Offer creating resource files from anywhere in the project (as is done for Java Classes) as long as it's within an Android module
-    Module module = LangDataKeys.MODULE.getData(context);
+    Module module = PlatformCoreDataKeys.MODULE.getData(context);
     if (module != null) {
       return AndroidFacet.getInstance(module) != null;
     }
@@ -187,7 +187,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   @NotNull
   @Override
   public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final DataContext dataContext) {
-    Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return PsiElement.EMPTY_ARRAY;
     }

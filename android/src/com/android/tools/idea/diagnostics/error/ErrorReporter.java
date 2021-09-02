@@ -17,17 +17,17 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.ReportMessages;
-import com.intellij.errorreport.bean.ErrorBean;
+import org.jetbrains.android.diagnostics.error.ErrorBean;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.idea.IdeaLogger;
-//import com.intellij.internal.statistic.analytics.StudioCrashDetails; // FIXME-ank: move from AOSP's platform sources to android-plugin sources (see code below)
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -46,13 +46,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
-import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -64,7 +63,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
   }
 
   @Override
-  public boolean submit(@NotNull IdeaLoggingEvent[] events,
+  public boolean submit(IdeaLoggingEvent @NotNull [] events,
                         @Nullable String description,
                         @Nullable Component parentComponent,
                         @NotNull Consumer<? super SubmittedReportInfo> callback) {
@@ -74,10 +73,10 @@ public class ErrorReporter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    Pair<String, String> pluginInfo = IdeErrorsDialog.getPluginInfo(event);
-    if (pluginInfo != null) {
-      bean.setPluginName(pluginInfo.first);
-      bean.setPluginVersion(pluginInfo.second);
+    IdeaPluginDescriptor plugin = IdeErrorsDialog.getPlugin(event);
+    if (plugin != null&& (!plugin.isBundled() || plugin.allowBundledUpdate())) {
+      bean.setPluginName(plugin.getName());
+      bean.setPluginVersion(plugin.getVersion());
     }
 
     Object data = event.getData();

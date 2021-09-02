@@ -1162,7 +1162,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private Rectangle myZoomRect;
     private ColorListener myColorListener;
     private BufferedImage myMaskImage;
-    private Alarm myColorListenersNotifier = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
+    private Alarm myColorListenersNotifier = new Alarm();
 
     private ColorPipette(JComponent parent, Color oldColor) {
       myParent = parent;

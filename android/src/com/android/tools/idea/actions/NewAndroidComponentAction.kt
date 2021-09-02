@@ -38,7 +38,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.UpdateInBackground
 import com.intellij.openapi.module.Module
 import icons.StudioIcons
@@ -82,7 +82,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
 
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
     val moduleInfo = AndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
     presentation.isVisible = true
@@ -110,7 +110,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return
+    val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
     val facet = AndroidFacet.getInstance(module) ?: return
     if (AndroidModel.get(facet) == null) {
       return

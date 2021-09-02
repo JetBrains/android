@@ -58,7 +58,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   }
 
   @Override
-  public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
+  public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<? extends VirtualFile> newFiles,
                                                              @NotNull FrameworkDetectionContext context) {
     Project project = context.getProject();
     if (project != null) {

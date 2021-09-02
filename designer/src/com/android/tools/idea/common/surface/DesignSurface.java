@@ -68,6 +68,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -1822,7 +1823,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
       return this;
     }
-    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+    if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
       return myFileEditorDelegate.get();
     }
     else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
@@ -1867,7 +1868,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
     else {
       NlModel model = getModel();
-      if (LangDataKeys.MODULE.is(dataId) && model != null) {
+      if (PlatformCoreDataKeys.MODULE.is(dataId) && model != null) {
         return model.getModule();
       }
     }

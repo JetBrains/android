@@ -36,7 +36,7 @@ import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public final class NewAndroidComponentActionTest {
     when(mockModel.getProject()).thenReturn(projectRule.getProject());
 
     DataContext dataContext = mock(DataContext.class);
-    when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mockModel);
+    when(dataContext.getData(PlatformCoreDataKeys.MODULE.getName())).thenReturn(mockModel);
 
     Presentation presentation = new Presentation();
     presentation.setEnabled(false);

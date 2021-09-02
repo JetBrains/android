@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
 import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
-import org.jetbrains.kotlin.idea.gradle.KotlinGradleFacadeImpl
-import org.jetbrains.kotlin.idea.gradle.configuration.KotlinWithGradleConfigurator
+import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
 import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime

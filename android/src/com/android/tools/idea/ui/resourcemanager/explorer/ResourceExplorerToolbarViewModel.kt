@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.getResourceSubdirs
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileChooser.FileChooser
@@ -55,7 +57,6 @@ import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import com.android.tools.idea.res.getResourceSubdirs
 import kotlin.properties.Delegates
 
 /**
@@ -216,7 +217,7 @@ class ResourceExplorerToolbarViewModel(
    */
   override fun getData(dataId: String): Any? = when (dataId) {
     CommonDataKeys.PROJECT.name -> facet.module.project
-    LangDataKeys.MODULE.name -> facet.module
+    PlatformCoreDataKeys.MODULE.name -> facet.module
     LangDataKeys.IDE_VIEW.name -> this
     CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
     else -> null

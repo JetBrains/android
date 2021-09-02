@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import org.jetbrains.kotlin.gradle.kapt.idea.KaptProjectResolverExtension
+import org.jetbrains.kotlin.idea.compilerPlugin.kapt.gradleJava.KaptProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 
 class DisableKaptProjectResolverExtensionInitializer : Runnable {

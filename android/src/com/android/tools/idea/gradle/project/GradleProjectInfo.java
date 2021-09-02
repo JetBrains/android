@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;

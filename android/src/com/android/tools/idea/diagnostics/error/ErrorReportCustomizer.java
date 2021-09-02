@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.error;
 
-import com.intellij.errorreport.bean.ErrorBean;
+import org.jetbrains.android.diagnostics.error.ErrorBean;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;

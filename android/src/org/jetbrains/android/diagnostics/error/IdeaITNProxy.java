@@ -1,22 +1,7 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -72,14 +57,13 @@ public class IdeaITNProxy {
     params.add(Pair.create("plugin.version", error.getPluginVersion()));
 
     params.add(Pair.create("last.action", error.getLastAction()));
-    params.add(Pair.create("previous.exception",
-                           error.getPreviousException() == null ? null : Integer.toString(error.getPreviousException())));
+    params.add(Pair.create("previous.exception", null));
 
     params.add(Pair.create("error.message", error.getMessage()));
     params.add(Pair.create("error.stacktrace", error.getStackTrace()));
     params.add(Pair.create("error.description", error.getDescription()));
 
-    params.add(Pair.create("assignee.id", error.getAssigneeId() == null ? null : Integer.toString(error.getAssigneeId())));
+    params.add(Pair.create("assignee.id", null));
 
     for (Attachment attachment : error.getAttachments()) {
       params.add(Pair.create("attachment.name", attachment.getName()));

@@ -105,8 +105,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void checkString3(String sourcePath, String targetPath) {
     checkStrings(sourcePath,
                  targetPath,
-                 "<div class='definition'><pre>p1.p2<br>public static final class <b>string</b>\n" +
-                 "extends <a href=\"psi_element://java.lang.Object\"><code>Object</code></a></pre></div><table class='sections'></table>");
+                 "<div class='definition'><pre><span style=\"color:#000080;font-weight:bold;\">public static final</span> <span style=\"color:#000080;font-weight:bold;\">class</span> <span style=\"color:#000000;\">string</span>\n" +
+                 "<span style=\"color:#000080;font-weight:bold;\">extends </span><a href=\"psi_element://java.lang.Object\"><code><span style=\"color:#000000;\">Object</span></code></a><br><span class='grayed'>defined in </span><a href=\"psi_element://p1.p2\"><code><span style=\"color:#000000;\">p1.p2</span></code></a></pre></div><table class='sections'></table>");
   }
 
   public void testDimensionsJava() {

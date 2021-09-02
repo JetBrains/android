@@ -23,7 +23,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
@@ -38,9 +38,6 @@ import com.intellij.psi.PsiManager;
 import java.io.IOException;
 import java.util.Collection;
 import javax.swing.*;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
 import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -178,7 +175,7 @@ public class CreateResourceDialogUtils {
     VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
     if (file != null) {
       // See if it's inside a res folder (or is equal to a resource folder)
-      Module module = LangDataKeys.MODULE.getData(dataContext);
+      Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
       if (module != null) {
         LocalResourceManager manager = LocalResourceManager.getInstance(module);
         if (manager != null) {

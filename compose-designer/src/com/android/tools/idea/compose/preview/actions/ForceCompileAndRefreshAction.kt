@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.JBColor
@@ -53,7 +53,7 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
     if (!requestBuildForSurface(surface, true)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the module for the editor and trigger that.
-      LangDataKeys.MODULE.getData(e.dataContext)?.let {
+      e.getData(PlatformCoreDataKeys.MODULE)?.let {
         requestBuild(surface.project, it, true)
       }
     }

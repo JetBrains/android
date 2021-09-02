@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.lint.client.api.IssueRegistry
@@ -24,7 +23,6 @@ import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
-import com.android.utils.SdkUtils.endsWithIgnoreCase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.ide.highlighter.JavaFileType
@@ -40,7 +38,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.plugins.groovy.GroovyFileType
+import org.jetbrains.plugins.gradle.config.isGradleFile
 import java.io.File
 import java.util.*
 
@@ -93,7 +91,7 @@ abstract class LintIdeSupport {
       val name = file.name
       return name == "proguard-project.txt" || name == "proguard-android.txt" || name == "proguard.cfg"
     }
-    else if (fileType === GroovyFileType.GROOVY_FILE_TYPE && endsWithIgnoreCase(file.name, DOT_GRADLE)) {
+    else if (file.isGradleFile()) {
       return true
     }
     return false
