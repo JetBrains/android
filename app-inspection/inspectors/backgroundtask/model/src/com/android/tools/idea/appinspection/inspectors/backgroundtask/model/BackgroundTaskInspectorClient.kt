@@ -51,10 +51,10 @@ class EventWrapper(val case: Case, data: ByteArray) {
   }
 
   @TestOnly
-  constructor(event: WorkManagerInspectorProtocol.Event): this(Case.WORK, event.toByteArray())
+  constructor(event: WorkManagerInspectorProtocol.Event) : this(Case.WORK, event.toByteArray())
 
   @TestOnly
-  constructor(event: BackgroundTaskInspectorProtocol.Event): this(Case.BACKGROUND_TASK, event.toByteArray())
+  constructor(event: BackgroundTaskInspectorProtocol.Event) : this(Case.BACKGROUND_TASK, event.toByteArray())
 
   val workEvent =
     (if (case == Case.WORK) WorkManagerInspectorProtocol.Event.parseFrom(data)
@@ -188,7 +188,8 @@ class BackgroundTaskInspectorClient(
       val currentWork = orderedWorks[index]
       val nextWorks = currentWork.dependentsList.mapNotNull { entryMap[it]?.getWorkInfo() }
       for (nextWork in nextWorks) {
-        degreeMap[nextWork] = degreeMap[nextWork]!! - 1
+        val nextWorkDegree = degreeMap[nextWork] ?: return listOf()
+        degreeMap[nextWork] = nextWorkDegree - 1
         if (degreeMap[nextWork] == 0) {
           orderedWorks.add(nextWork)
         }
