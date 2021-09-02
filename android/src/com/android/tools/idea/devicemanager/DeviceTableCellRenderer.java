@@ -117,7 +117,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myNameLabel.setText(getName(device));
 
     myOnlineLabel.setForeground(foreground);
-    setIcon(myOnlineLabel, device.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : null, selected);
+    setIcon(myOnlineLabel, device.isOnline() ? StudioIcons.Avd.STATUS_DECORATOR_ONLINE : null, selected);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));

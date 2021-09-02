@@ -62,7 +62,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(device.getName(), renderer.getNameLabel().getText());
-    assertEquals(StudioIcons.Common.CIRCLE_GREEN, renderer.getOnlineLabel().getIcon());
+    assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
   }
 

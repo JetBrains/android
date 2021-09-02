@@ -39,6 +39,8 @@ public class StudioIcons {
     public static final Icon PAIR_OVER_WIFI = load("/studio/icons/avd/pair-over-wifi.svg"); // 16x16
     public static final Icon PORTRAIT = load("/studio/icons/avd/portrait.svg"); // 48x48
     public static final Icon RUN = load("/studio/icons/avd/run.svg"); // 16x16
+    public static final Icon STATUS_DECORATOR_OFFLINE = load("/studio/icons/avd/status-decorator-offline.svg"); // 16x16
+    public static final Icon STATUS_DECORATOR_ONLINE = load("/studio/icons/avd/status-decorator-online.svg"); // 16x16
   }
 
   public static class Common {
@@ -55,8 +57,6 @@ public class StudioIcons {
     public static final Icon CLEAR = load("/studio/icons/common/clear.svg"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.svg"); // 16x16
     public static final Icon CROP = load("/studio/icons/common/crop.svg"); // 16x16
-    public static final Icon CIRCLE_GREEN = load("/studio/icons/common/circle_green.svg"); // 10x10
-    public static final Icon CIRCLE_RED = load("/studio/icons/common/circle_red.svg"); // 10x10
 
     /** @deprecated use AllIcons.Actions.Gc */
     @Deprecated

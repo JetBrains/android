@@ -100,7 +100,7 @@ final class GroupableDeviceTableCellRenderer implements TableCellRenderer {
 
     myNameLabel.setText(groupableDevice.getName());
 
-    myStatusLabel.setIcon(groupableDevice.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : StudioIcons.Common.CIRCLE_RED);
+    myStatusLabel.setIcon(groupableDevice.isOnline() ? StudioIcons.Avd.STATUS_DECORATOR_ONLINE : StudioIcons.Avd.STATUS_DECORATOR_OFFLINE);
 
     myDescriptionLabel.setText("TODO"); // TODO: "Android 10.0+ Google API | x86"
 
