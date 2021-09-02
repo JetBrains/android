@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.explorer.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
@@ -82,7 +81,6 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     sqliteUtil.setUp()
 
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
-    DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     repository = OpenDatabaseRepository(project, EdtExecutorService.getInstance())
     model = OpenDatabaseInspectorModel()

@@ -18,7 +18,6 @@ package com.android.tools.idea.explorer;
 import static com.android.tools.idea.explorer.ExecutorUtil.executeInWriteSafeContextWithAnyModality;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -199,11 +198,6 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {
-        // Set the device/path information on the virtual file so custom editors
-        // (e.g. database viewer) know which device this file is coming from.
-        DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
-        fileInfo.storeInVirtualFile(virtualFile);
-
         progress.onCompleted(entry.getFullPath());
       }
 
