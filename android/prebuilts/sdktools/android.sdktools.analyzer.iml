@@ -7,7 +7,7 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="explainer" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:explainer:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/27.3.0.0/explainer-27.3.0.0.jar!/" />
@@ -17,7 +17,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="generator" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:generator:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/27.3.0.0/generator-27.3.0.0.jar!/" />
@@ -27,7 +27,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="shared" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:shared:27.3.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/27.3.0.0/shared-27.3.0.0.jar!/" />
