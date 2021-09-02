@@ -31,7 +31,6 @@ import kotlin.math.min
  *     before scaling. The size of this array may not exceed 4.
  */
 fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
-  check(rectangleSizes.size <= MAX_LEAFS)
   val optimizer = LayoutOptimizer(rectangleSizes)
   return optimizer.optimize(availableSpace)
 }
@@ -99,36 +98,45 @@ private const val EM_DASH = '\u2014'
 
 private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
 
+  private val levels = populateLevelParameters(rectangleSizes.size)
+
+  private val nodesArraySize = levels.last().offset + levels.last().size
+
   /** Offset of the first child node indexed by the offset of the parent node. */
-  private val childrenOffsetByParentOffset = IntArray(LEVEL3_OFFSET) { offset ->
-    when {
-      offset < LEVEL1_OFFSET -> LEVEL1_OFFSET + offset
-      offset < LEVEL2_OFFSET -> LEVEL2_OFFSET + (offset - LEVEL1_OFFSET) * LEVEL1_MAX_CHILDREN
-      else -> LEVEL3_OFFSET + (offset - LEVEL2_OFFSET) * LEVEL2_MAX_CHILDREN
+  private val childrenOffsetByParentOffset = IntArray(levels.last().offset) { offset ->
+    var multiplier = 1
+    for (i in 1 until levels.size) {
+      val level = levels[i]
+      if (offset < level.offset) {
+        return@IntArray level.offset + (offset - levels[i - 1].offset) * multiplier
+      }
+      multiplier = level.maxChildren
     }
+    throw AssertionError("Internal error")
   }
 
   /** Maximum allowed number of children indexed by the offset of the parent node. */
-  private val maxChildrenByOffset = IntArray(NODES_ARRAY_SIZE) { offset ->
-    when {
-      offset < LEVEL1_OFFSET -> LEVEL0_MAX_CHILDREN
-      offset < LEVEL2_OFFSET -> LEVEL1_MAX_CHILDREN
-      offset < LEVEL3_OFFSET -> LEVEL2_MAX_CHILDREN
-      else -> LEVEL3_MAX_CHILDREN
+  private val maxChildrenByOffset = IntArray(nodesArraySize) { offset ->
+    for (i in 1 until levels.size) {
+      if (offset < levels[i].offset) {
+        return@IntArray levels[i - 1].maxChildren
+      }
     }
+    return@IntArray levels.last().maxChildren
   }
+
 
   fun optimize(availableSpace: Dimension): LayoutNode {
     // The layout tree used by this method is stored in an array in a way similar to the heap data structure shown
     // at https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Heap-as-array.svg/260px-Heap-as-array.svg.png.
-    // In our case the tree is not binary. The root node may have up to 4 (LEVEL0_MAX_CHILDREN) children.
-    // The children of the root may have up to 3 (LEVEL1_MAX_CHILDREN) children each. The grandchildren of the root
-    // may have 2 (LEVEL2_MAX_CHILDREN) or no children. Only leaf nodes may be great-grandchildren of the root.
+    // In our case the tree is not binary. The root node may have up to [rectangleSizes.size] children.
+    // The children of the root may have up to [rectangleSizes.size - 1] children each. The grandchildren of
+    // the root may have up to [rectangleSizes.size - 2], etc. Only leaf nodes may be at the last level.
     // The node objects don't contain any references to make changing parts of the layout tree and copying of
     // the whole tree easier.
     val indices = IntArray(rectangleSizes.size) { i -> i }
-    val currentLayout = Array<Node?>(NODES_ARRAY_SIZE) { null }
-    val bestLayout = Array<Node?>(NODES_ARRAY_SIZE) { null }
+    val currentLayout = Array<Node?>(nodesArraySize) { null }
+    val bestLayout = Array<Node?>(nodesArraySize) { null }
     var bestScale = 0.0
     val layoutGenerator = LayoutGenerator(indices, null, 0, currentLayout)
     while (layoutGenerator.next()) {
@@ -139,6 +147,19 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
       }
     }
     return buildLayoutTree(bestLayout[0]!!, bestLayout)
+  }
+
+  private fun populateLevelParameters(numLevels: Int): Array<LevelParams> {
+    val levelParams = arrayOfNulls<LevelParams>(numLevels)
+    var params = LevelParams(0, 1, numLevels)
+    levelParams[0] = params
+    for (level in 1 until numLevels) {
+      val maxChildren = if (params.maxChildren > 2) params.maxChildren - 1 else 0
+      params = LevelParams(params.offset + params.size, params.size * params.maxChildren, maxChildren)
+      levelParams[level] = params
+    }
+    @Suppress("UNCHECKED_CAST")
+    return levelParams as Array<LevelParams>
   }
 
   private fun buildLayoutTree(optimizationNode: Node, optimizationNodes: Array<Node?>): LayoutNode {
@@ -269,6 +290,8 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
 
     class Split(val splitType: SplitType, val childrenCount: Int, offset: Int) : Node(offset)
   }
+
+  private class LevelParams(val offset: Int, val size: Int, val maxChildren: Int)
 }
 
 /**
@@ -327,18 +350,3 @@ private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, 
     }
   }
 }
-
-private const val MAX_LEAFS = 4
-private const val LEVEL0_OFFSET = 0
-private const val LEVEL0_SIZE = 1
-private const val LEVEL0_MAX_CHILDREN = MAX_LEAFS
-private const val LEVEL1_OFFSET = LEVEL0_OFFSET + LEVEL0_SIZE
-private const val LEVEL1_SIZE = LEVEL0_MAX_CHILDREN
-private const val LEVEL1_MAX_CHILDREN = LEVEL0_MAX_CHILDREN - 1
-private const val LEVEL2_OFFSET = LEVEL1_OFFSET + LEVEL1_SIZE
-private const val LEVEL2_SIZE = LEVEL1_SIZE * LEVEL1_MAX_CHILDREN
-private const val LEVEL2_MAX_CHILDREN = LEVEL1_MAX_CHILDREN - 1
-private const val LEVEL3_OFFSET = LEVEL2_OFFSET + LEVEL2_SIZE
-private const val LEVEL3_SIZE = LEVEL2_SIZE * LEVEL2_MAX_CHILDREN
-private const val LEVEL3_MAX_CHILDREN = 0
-private const val NODES_ARRAY_SIZE = LEVEL3_OFFSET + LEVEL3_SIZE
