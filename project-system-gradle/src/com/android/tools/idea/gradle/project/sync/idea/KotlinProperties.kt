@@ -21,25 +21,24 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.kotlin.gradle.ArgsInfo
-import org.jetbrains.kotlin.idea.gradle.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.gradle.configuration.hasKotlinPlugin
-import org.jetbrains.kotlin.idea.gradle.configuration.isResolved
+import org.jetbrains.kotlin.idea.gradleJava.configuration.compilerArgumentsBySourceSet
+import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 
 class KotlinProperties {
   var isResolved = false
   var compilerArgumentsBySourceSet: Map<String, ArgsInfo>? = null
 
   fun repopulateKotlinProperties(node: DataNode<ModuleData>) {
-    node.hasKotlinPlugin = true
-    node.isResolved = isResolved
-    node.compilerArgumentsBySourceSet = compilerArgumentsBySourceSet
+    node.kotlinGradleProjectDataOrNull?.hasKotlinPlugin = true
+    node.kotlinGradleProjectDataOrNull?.isResolved = isResolved
+    node.compilerArgumentsBySourceSet = compilerArgumentsBySourceSet!!
   }
 
   companion object {
     @JvmStatic
     fun createKotlinProperties(node: DataNode<ModuleData>): KotlinProperties {
       return KotlinProperties().also { properties ->
-        properties.isResolved = node.isResolved
+        properties.isResolved = node.kotlinGradleProjectDataOrNull?.isResolved ?: false
         properties.compilerArgumentsBySourceSet = node.compilerArgumentsBySourceSet
       }
     }
@@ -50,7 +49,7 @@ fun DataNode<ProjectData>.preserveKotlinUserDataInDataNodes() {
   for (child in children) {
     val moduleDataNode = child.getDataNode(ProjectKeys.MODULE)
     if (moduleDataNode != null) {
-      if (moduleDataNode.hasKotlinPlugin) {
+      if (moduleDataNode.kotlinGradleProjectDataOrNull?.hasKotlinPlugin ?: false) {
         moduleDataNode.createChild(AndroidGradleProjectResolver.KOTLIN_PROPERTIES, KotlinProperties.createKotlinProperties(moduleDataNode))
       }
     }
