@@ -65,9 +65,9 @@ class PsiEnumProviderTest {
 
     // Device spec
     checkDefaultEnumValue(
-      "spec:Normal;100;200;px;140dpi;portrait",
+      "spec:Normal;100;200;px;140dpi",
       "Custom",
-      getDeviceDefaultEnumValue("spec:Normal;100;200;px;140dpi;portrait")
+      getDeviceDefaultEnumValue("spec:Normal;100;200;px;140dpi")
     )
 
     // Density should return a density on a specific bucket

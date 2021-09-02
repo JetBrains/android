@@ -26,8 +26,9 @@ import kotlin.math.round
 import kotlin.math.sqrt
 
 internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
-  Canonical("Canonical Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
-  PhoneTablet("Phones & Tablets", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
+  Canonical("Reference Devices", StudioIcons.Wizards.Modules.PHONE_TABLET),
+  Phone("Phone", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
+  Tablet("Tablet", StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET),
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),
@@ -44,7 +45,8 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
 internal class DeviceEnumValueBuilder {
   private val deviceEnumValues = mapOf<DeviceClass, MutableList<EnumValue>>(
     Pair(DeviceClass.Canonical, mutableListOf()),
-    Pair(DeviceClass.PhoneTablet, mutableListOf()),
+    Pair(DeviceClass.Phone, mutableListOf()),
+    Pair(DeviceClass.Tablet, mutableListOf()),
     Pair(DeviceClass.Wear, mutableListOf()),
     Pair(DeviceClass.Tv, mutableListOf()),
     Pair(DeviceClass.Auto, mutableListOf()),
@@ -83,7 +85,7 @@ internal class DeviceEnumValueBuilder {
     shape: Shape
   ): DeviceEnumValueBuilder = apply {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
-    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, density = density.dpiValue).deviceSpec()
+    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, density = density.dpiValue, shape = shape).deviceSpec()
     deviceEnumValues[DeviceClass.Wear]?.add(EnumValue.indented(deviceSpec, shape.display))
   }
 
@@ -101,7 +103,7 @@ internal class DeviceEnumValueBuilder {
   ): DeviceEnumValueBuilder =
     addDevicePx(type = DeviceClass.Auto, widthPx = widthPx, heightPx = heightPx, diagonalIn = diagonalIn)
 
-  fun addPhoneOrTablet(
+  fun addPhone(
     displayName: String,
     widthPx: Int,
     heightPx: Int,
@@ -109,7 +111,21 @@ internal class DeviceEnumValueBuilder {
   ): DeviceEnumValueBuilder =
     addDevicePx(
       overrideDisplayName = displayName,
-      type = DeviceClass.PhoneTablet,
+      type = DeviceClass.Phone,
+      widthPx = widthPx,
+      heightPx = heightPx,
+      diagonalIn = diagonalIn
+    )
+
+  fun addTablet(
+    displayName: String,
+    widthPx: Int,
+    heightPx: Int,
+    diagonalIn: Double
+  ): DeviceEnumValueBuilder =
+    addDevicePx(
+      overrideDisplayName = displayName,
+      type = DeviceClass.Tablet,
       widthPx = widthPx,
       heightPx = heightPx,
       diagonalIn = diagonalIn

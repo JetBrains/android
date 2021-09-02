@@ -109,10 +109,10 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     assertEquals(15, deviceValues.size)
     // Phones & Tablets, Generic Devices. Are not shown since they are empty when running on test
-    assertEquals("Canonical Devices", (deviceValues[0] as HeaderEnumValue).header)
+    assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Phone", deviceValues[1].display)
-    assertEquals("Tablet", deviceValues[2].display)
-    assertEquals("Foldable", deviceValues[3].display)
+    assertEquals("Foldable", deviceValues[2].display)
+    assertEquals("Tablet", deviceValues[3].display)
     assertEquals("Desktop", deviceValues[4].display)
     assertEquals("Wear", (deviceValues[5] as HeaderEnumValue).header)
     assertEquals("Tv", (deviceValues[9] as HeaderEnumValue).header)
@@ -149,12 +149,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
 
     val deviceHeaders = valuesProvider.getValuesProvider("Device")!!.invoke().filterIsInstance<HeaderEnumValue>()
     // With Sdk we just check that there's a Device Manager separator, the Library options are constant from the test setup
-    assertEquals("Canonical Devices", deviceHeaders[0].header)
-    assertEquals("Phones & Tablets", deviceHeaders[1].header) // Phones & Tablets is populated
-    assertEquals("Wear", deviceHeaders[2].header)
-    assertEquals("Tv", deviceHeaders[3].header)
-    assertEquals("Auto", deviceHeaders[4].header)
-    assertEquals("Generic Devices", deviceHeaders[5].header)
+    assertEquals("Reference Devices", deviceHeaders[0].header)
+    assertEquals("Phone", deviceHeaders[1].header)
+    assertEquals("Tablet", deviceHeaders[2].header)
+    assertEquals("Wear", deviceHeaders[3].header)
+    assertEquals("Tv", deviceHeaders[4].header)
+    assertEquals("Auto", deviceHeaders[5].header)
+    assertEquals("Generic Devices", deviceHeaders[6].header)
 
     // For api, we just check that there's at least an element available
     val apiLevelValues = valuesProvider.getValuesProvider("apiLevel")!!.invoke()

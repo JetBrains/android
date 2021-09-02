@@ -248,7 +248,7 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
 }
 
 private fun createCustomDevice(spec: String): Pair<Device, State> {
-  val deviceConfig = DeviceConfig.parse(spec)
+  val deviceConfig = DeviceConfig.toDeviceConfigOrDefault(spec)
   val customDevice = Device.Builder().apply {
     setTagId("")
     setName("Custom")

@@ -272,7 +272,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
-    var expectedModificationsCountdown = 12
+    var expectedModificationsCountdown = 13
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
         expectedModificationsCountdown--
@@ -295,20 +295,26 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // Device parameters modifications
     model.properties["", "Width"].value = "720" // In pixels, this change should populate 'device' parameter in annotation
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;720;1920;px;480dpi;portrait")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;720;1920;px;480dpi")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "DimensionUnit"].value = "dp" // Should modify width and height in 'device' parameter
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;240;640;dp;480dpi;portrait")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;240;640;dp;480dpi")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "Density"].value = "240" // When changing back to pixels, the width and height should be different than originally
     model.properties["", "DimensionUnit"].value = "px"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;360;960;px;240dpi;portrait")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;360;960;px;240dpi")""",
+      noParametersPreview.annotationText()
+    )
+
+    model.properties["", "Orientation"].value = "landscape" // Changing orientation swaps width/height values
+    assertEquals(
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;960;360;px;240dpi")""",
       noParametersPreview.annotationText()
     )
 
