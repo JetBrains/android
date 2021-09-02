@@ -33,13 +33,11 @@ import org.jetbrains.annotations.NotNull;
 final class PhysicalDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
 
-  @VisibleForTesting
   static final int API_MODEL_COLUMN_INDEX = 1;
 
-  @VisibleForTesting
   static final int TYPE_MODEL_COLUMN_INDEX = 2;
 
-  private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
+  static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;

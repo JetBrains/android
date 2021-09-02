@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.table.JBTable;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.DefaultRowSorter;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDeviceTable extends JBTable {
@@ -42,11 +51,24 @@ final class PhysicalDeviceTable extends JBTable {
     setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
     setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
+    setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
     tableHeader.setReorderingAllowed(false);
+  }
+
+  private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
+    DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
+
+    sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(PhysicalDevice::getName));
+    sorter.setComparator(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX, new ApiLevelComparator().reversed());
+    sorter.setComparator(PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
+    sorter.setSortable(PhysicalDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX, false);
+    sorter.setSortKeys(Collections.singletonList(new SortKey(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, SortOrder.ASCENDING)));
+
+    return sorter;
   }
 
   @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
