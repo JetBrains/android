@@ -34,11 +34,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.event.HyperlinkListener
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
-private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should not be used in layouts larger than 600dp"
-private val BOTTOM_NAVIGATION_ISSUE_CONTENT = HtmlBuilder()
-  .add("Material Design recommends that bottom navigation should only be used for displays less than 600dp in width.")
-  .newline()
-  .add("Consider using a navigation rail or navigation drawer instead for larger screens.")
 
 enum class VisualLintErrorType {
   BOUNDS, BOTTOM_NAV, OVERLAP, LONG_TEXT, ATF, LOCALE_TEXT
@@ -122,13 +117,27 @@ private fun findBottomNavigationIssue(root: ViewInfo,
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
     if (widthInDp > 600) {
+      val url1 = "https://material.io/components/navigation-rail/android"
+      val url2 = "https://material.io/components/navigation-drawer/android"
+      val content =  { count: Int ->
+        HtmlBuilder()
+          .add("Bottom navigation bar is not recommended for breakpoints over 600dp,")
+          .add("which affects ${previewConfigurations(count)}.")
+          .newline()
+          .add("Material Design recommends replacing bottom navigation bar with [navigation rail]")
+          .addLink("($url1)", url1)
+          .add("or [navigation drawer]")
+          .addLink("($url2)", url2)
+          .add("for breakpoints over 600dp.")
+      }
       createIssue(
         root,
         sceneManager.model,
-        BOTTOM_NAVIGATION_ISSUE_MESSAGE,
-        BOTTOM_NAVIGATION_ISSUE_CONTENT,
+        "Bottom navigation bar is not recommended for breakpoints over 600dp",
         VisualLintErrorType.BOTTOM_NAV,
-        issues)
+        issues,
+        content,
+        createDefaultHyperLinkListener())
     }
   }
   for (child in root.children) {
@@ -238,7 +247,7 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: VisualLintIssue
             .addLink("($url)", url)
             .add(" for breakpoints over 600dp.")
         }
-        createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issues, provider, createDefaultHyperLinkListener(url))
+        createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issues, provider, createDefaultHyperLinkListener())
         break
       }
     }

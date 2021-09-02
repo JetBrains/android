@@ -16,26 +16,25 @@
 package com.android.tools.idea.uibuilder.lint
 
 import com.android.tools.idea.common.model.NlComponent
+import com.intellij.ide.BrowserUtil
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.xml.XmlChildRole
-import java.awt.Desktop
 import java.awt.Toolkit
-import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
-import java.net.URL
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 
 /** Create a simple default hyper links to open the given [url]. */
-fun createDefaultHyperLinkListener(url: String): HyperlinkListener {
+fun createDefaultHyperLinkListener(): HyperlinkListener {
   return HyperlinkListener {
+    val url = it.description
     if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
       try {
-        Desktop.getDesktop().browse(URL(url).toURI())
+        BrowserUtil.browse(url)
       }
       catch (exception: Exception) {
         val project: Project? = null
@@ -44,9 +43,9 @@ fun createDefaultHyperLinkListener(url: String): HyperlinkListener {
         builder.append("Please open a browser manually and goto the url.\n")
         try {
           Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(url), null)
-          builder.append("The url has been copied to the clipboard.\n")
+          builder.append("\"$url\" has been copied to the clipboard.\n")
         } catch (exception: Exception) {
-          builder.append("$url")
+          builder.append("\"$url\"")
         }
 
         Messages.showErrorDialog(
