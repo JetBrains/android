@@ -35,9 +35,8 @@ public final class ActionsTableCellRendererTest {
     // Arrange
     ActionsTableCellRenderer renderer = new ActionsTableCellRenderer();
 
-    PhysicalDevicePanel panel = Mockito.mock(PhysicalDevicePanel.class);
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    JTable table = new PhysicalDeviceTable(panel, model, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    JTable table = new PhysicalDeviceTable(Mockito.mock(PhysicalDevicePanel.class), model);
 
     // Act
     Component component = renderer.getTableCellRendererComponent(table, Actions.INSTANCE, false, true, 0, 3);

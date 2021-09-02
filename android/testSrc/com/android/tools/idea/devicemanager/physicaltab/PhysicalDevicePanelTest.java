@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,8 +141,14 @@ public final class PhysicalDevicePanelTest {
   }
 
   private static @NotNull PhysicalDeviceTable newPhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
-    return new PhysicalDeviceTable(panel, model, () -> Mockito.mock(TableCellRenderer.class), () -> Mockito.mock(TableCellRenderer.class));
+    BiConsumer<JTable, Integer> sizeWidthToFit = (table, viewColumnIndex) -> {
+    };
+
+    return new PhysicalDeviceTable(panel,
+                                   new PhysicalDeviceTableModel(),
+                                   sizeWidthToFit,
+                                   () -> Mockito.mock(TableCellRenderer.class),
+                                   () -> Mockito.mock(TableCellRenderer.class));
   }
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {

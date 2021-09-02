@@ -17,16 +17,19 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.table.JBTable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.DefaultRowSorter;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -37,16 +40,27 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDeviceTable extends JBTable {
+  private final @NotNull BiConsumer<@NotNull JTable, @NotNull Integer> mySizeWidthToFit;
+
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    this(panel, new PhysicalDeviceTableModel(), PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+    this(panel, new PhysicalDeviceTableModel());
+  }
+
+  @VisibleForTesting
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
+    this(panel, model, Tables::sizeWidthToFit, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
   }
 
   @VisibleForTesting
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel,
                       @NotNull PhysicalDeviceTableModel model,
+                      @NotNull BiConsumer<@NotNull JTable, @NotNull Integer> sizeWidthToFit,
                       @NotNull Supplier<@NotNull TableCellRenderer> newDeviceTableCellRenderer,
                       @NotNull Supplier<@NotNull TableCellRenderer> newActionsTableCellRenderer) {
     super(model);
+
+    mySizeWidthToFit = sizeWidthToFit;
+    model.addTableModelListener(event -> sizeApiTypeAndActionsColumnWidthsToFit());
 
     setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
@@ -56,7 +70,17 @@ final class PhysicalDeviceTable extends JBTable {
     setShowGrid(false);
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
+
     tableHeader.setReorderingAllowed(false);
+    tableHeader.setResizingAllowed(false);
+  }
+
+  private void sizeApiTypeAndActionsColumnWidthsToFit() {
+    getRowSorter().allRowsChanged();
+
+    mySizeWidthToFit.accept(this, PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
+    mySizeWidthToFit.accept(this, PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
+    mySizeWidthToFit.accept(this, PhysicalDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX);
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {

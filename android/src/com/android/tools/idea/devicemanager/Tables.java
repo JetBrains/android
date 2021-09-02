@@ -16,11 +16,18 @@
 package com.android.tools.idea.devicemanager;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Color;
+import java.awt.Component;
+import java.util.OptionalInt;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 
 public final class Tables {
@@ -58,5 +65,44 @@ public final class Tables {
     }
 
     return table.getForeground();
+  }
+
+  public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
+    TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
+    int width = getPreferredColumnWidth(table, viewColumnIndex);
+
+    column.setMinWidth(width);
+    column.setMaxWidth(width);
+    column.setPreferredWidth(width);
+  }
+
+  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex) {
+    OptionalInt width = IntStream.range(-1, table.getRowCount())
+      .map(viewRowIndex -> getPreferredCellWidth(table, viewRowIndex, viewColumnIndex))
+      .max();
+
+    int minWidth = JBUIScale.scale(65);
+
+    if (!width.isPresent()) {
+      return minWidth;
+    }
+
+    return Math.max(width.getAsInt(), minWidth);
+  }
+
+  private static int getPreferredCellWidth(@NotNull JTable table, int viewRowIndex, int viewColumnIndex) {
+    Component component;
+
+    if (viewRowIndex == -1) {
+      TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
+      Object value = table.getColumnModel().getColumn(viewColumnIndex).getHeaderValue();
+
+      component = renderer.getTableCellRendererComponent(table, value, false, false, -1, viewColumnIndex);
+    }
+    else {
+      component = table.prepareRenderer(table.getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
+    }
+
+    return component.getPreferredSize().width + JBUI.scale(8);
   }
 }
