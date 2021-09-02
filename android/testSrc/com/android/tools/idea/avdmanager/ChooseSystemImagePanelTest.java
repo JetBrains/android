@@ -27,7 +27,7 @@ import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.X86;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
@@ -40,6 +40,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -286,30 +287,52 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   }
 
   public void testClassificationFromParts() {
-      List<Boolean> isArmHostParams = ImmutableList.of(false, true);
-      for (boolean p : isArmHostParams) {
-        boolean isArmHostOs = p;
-        assertEquals(X86, getClassificationFromParts(Abi.X86, 21, GOOGLE_APIS_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 22, GOOGLE_APIS_TAG, isArmHostOs));
-        assertEquals(X86, getClassificationFromParts(Abi.X86, 23, DEFAULT_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 24, GOOGLE_APIS_X86_TAG, isArmHostOs));
-        assertEquals(X86, getClassificationFromParts(Abi.X86_64, 25, GOOGLE_APIS_X86_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, 25, GOOGLE_APIS_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, GOOGLE_APIS_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationFromParts(Abi.ARM64_V8A, 25, GOOGLE_APIS_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, WEAR_TAG, isArmHostOs));
-        assertEquals(X86, getClassificationFromParts(Abi.X86, 24, WEAR_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, 25, WEAR_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, ANDROID_TV_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, ANDROID_TV_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, GOOGLE_TV_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, GOOGLE_TV_TAG, isArmHostOs));
-        assertEquals(X86, getClassificationFromParts(Abi.X86, 25, DEFAULT_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARM64_V8A, 25, DEFAULT_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, CHROMEOS_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_PLAY_STORE_TAG, isArmHostOs));
-      }
+    List<Boolean> isArmHostParams = ImmutableList.of(false, true);
+    for (boolean isArmHostOs : isArmHostParams) {
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(21), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(22), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(23), DEFAULT_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(24), GOOGLE_APIS_X86_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86_64, new AndroidVersion(25), GOOGLE_APIS_X86_TAG, isArmHostOs));
+      assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, new AndroidVersion(25), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, new AndroidVersion(25), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(25), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(25), WEAR_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(24), WEAR_TAG, isArmHostOs));
+      assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, new AndroidVersion(25), WEAR_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(25), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, new AndroidVersion(25), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(25), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, new AndroidVersion(25), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(25), DEFAULT_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(25), DEFAULT_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(25), CHROMEOS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(28), AUTOMOTIVE_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(28), AUTOMOTIVE_PLAY_STORE_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(28, null, 5, true), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(28, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(28, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(OTHER,
+                   getClassificationFromParts(Abi.ARMEABI_V7A, new AndroidVersion(28, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
+    }
   }
 
   public void testWarningTextOnX86HostsWithNonX86Images() {
@@ -362,22 +385,24 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testClassificationForDevice_x86() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
-    for (boolean p : isArmHostParams) {
-      boolean isArmHostOs = p;
-
-      assertEquals((isArmHostOs ? X86 : RECOMMENDED),
+    for (boolean isArmHostOs : isArmHostParams) {
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
                    getClassificationForDevice(mSysImgsX86.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
-      assertEquals(X86, getClassificationForDevice(mSysImgsX86.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationForDevice(mSysImgsX86.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
-      assertEquals((isArmHostOs ? X86 : RECOMMENDED),
+      assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
                    getClassificationForDevice(mSysImgsX86.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
 
-      assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationForDevice(mSysImgsX86.wearImageDescription, myWearDevice, isArmHostOs));
-      assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationForDevice(mSysImgsX86.wearCnImageDescription, myWearDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
+                   getClassificationForDevice(mSysImgsX86.wearImageDescription, myWearDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
+                   getClassificationForDevice(mSysImgsX86.wearCnImageDescription, myWearDevice, isArmHostOs));
 
       // Note: myAutomotiveDevice is Play-Store device
-      assertEquals(X86, getClassificationForDevice(mSysImgsX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
-      assertEquals((isArmHostOs ? X86 : RECOMMENDED),
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationForDevice(mSysImgsX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
                    getClassificationForDevice(mSysImgsX86.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
@@ -402,8 +427,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testClassificationForDevice_arm() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
-    for (boolean p : isArmHostParams) {
-      boolean isArmHostOs = p;
+    for (boolean isArmHostOs : isArmHostParams) {
       assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
@@ -420,8 +444,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testClassificationForDevice_armv7a() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
-    for (boolean p : isArmHostParams) {
-      boolean isArmHostOs = p;
+    for (boolean isArmHostOs : isArmHostParams) {
       assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device

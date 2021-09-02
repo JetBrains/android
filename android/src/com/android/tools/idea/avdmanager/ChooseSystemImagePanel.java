@@ -25,6 +25,7 @@ import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
 import com.android.repository.Revision;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
@@ -38,11 +39,11 @@ import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Consumer;
+import com.intellij.util.system.CpuArch;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ListTableModel;
 import java.awt.BorderLayout;
@@ -55,6 +56,7 @@ import javax.swing.JPanel;
 import javax.swing.RowFilter;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,14 +69,14 @@ import org.jetbrains.annotations.Nullable;
 public class ChooseSystemImagePanel extends JPanel
   implements SystemImageList.SystemImageSelectionListener, SystemImageListModel.StatusIndicator, Disposable {
 
-  private static final boolean IS_ARM64_HOST_OS = SystemInfo.isArm64 ||
+  private static final boolean IS_ARM64_HOST_OS = CpuArch.isArm64() ||
                                                   CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM;
 
   private final List<Consumer<SystemImageDescription>> mySystemImageListeners = Lists.newArrayListWithExpectedSize(1);
 
   private JPanel myPanel;
   private SystemImageList myRecommendedImageList;
-  private SystemImageList myX86ImageList;
+  private SystemImageList myPerformantImageList;
   private SystemImageList myOtherImageList;
   private SystemImagePreview mySystemImagePreview;
   private JBTabbedPane myTabPane;
@@ -107,6 +109,14 @@ public class ChooseSystemImagePanel extends JPanel
         myListModel.refreshImages(true);
       }
     });
+
+    // The center panel contains performant system images that are not recommended, therefore depending on the host system architecture, we
+    // either provide x86 or ARM based images.
+    //noinspection DialogTitleCapitalization
+    myTabPane.setTitleAt(1, IS_ARM64_HOST_OS
+                            ? AndroidBundle.message("avd.manager.arm.images")
+                            : AndroidBundle.message("avd.manager.x86.images"));
+
     myTabPane.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent changeEvent) {
@@ -131,7 +141,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     Abi abi = Abi.getEnum(image.getAbiType());
     SystemImageClassification classification = getClassificationFromParts(abi,
-                                                                          image.getVersion().getApiLevel(),
+                                                                          image.getVersion(),
                                                                           image.getTag(),
                                                                           isArm64HostOs);
 
@@ -140,7 +150,7 @@ public class ChooseSystemImagePanel extends JPanel
       if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
         if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
-          classification = (abi == Abi.X86 || abi == Abi.X86_64) ? SystemImageClassification.X86 : SystemImageClassification.OTHER;
+          classification = (abi == Abi.X86 || abi == Abi.X86_64) ? SystemImageClassification.PERFORMANT : SystemImageClassification.OTHER;
         }
       }
       else {
@@ -160,46 +170,43 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   @VisibleForTesting
-  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag, boolean isArm64HostOs) {
+  static SystemImageClassification getClassificationFromParts(@NotNull Abi abi,
+                                                              @NotNull AndroidVersion androidVersion,
+                                                              @NotNull IdDisplay tag,
+                                                              boolean isArm64HostOs) {
+    int apiLevel = androidVersion.getApiLevel();
     boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+    boolean isAvdArm = abi == Abi.ARM64_V8A;
 
-    if (isArm64HostOs) {
-      // Recommend only arm64 images.
-      // TODO(joshuaduong): For Arm hosts, we should remove the x86 tab and consider renaming the "other" tab to Arm. Also for M1 chips,
-      // arm32 may not be supported, so we could just have one list of arm64 images.
-      if (isAvdIntel) {
-        return SystemImageClassification.X86;
-      }
-
-      if (tag.equals(SystemImage.WEAR_TAG)) {
-        // For Wear, recommend based on API level (all Wear have Google APIs)
-        return (abi == Abi.ARM64_V8A && apiLevel >= MIN_RECOMMENDED_WEAR_API) ?
-               SystemImageClassification.RECOMMENDED : SystemImageClassification.OTHER;
-      }
-      if (apiLevel < MIN_RECOMMENDED_API) {
-        return SystemImageClassification.OTHER;
-      }
-      if (abi == Abi.ARM64_V8A && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
-        return SystemImageClassification.RECOMMENDED;
-      }
+    if (!isAvdArm && !isAvdIntel) {
+      // None of these system images run natively on supported Android Studio platforms.
       return SystemImageClassification.OTHER;
-    } else {
-      if (!isAvdIntel) {
-        return SystemImageClassification.OTHER;
-      }
-
-      if (tag.equals(SystemImage.WEAR_TAG)) {
-        // For Wear, recommend based on API level (all Wear have Google APIs)
-        return (apiLevel >= MIN_RECOMMENDED_WEAR_API) ? SystemImageClassification.RECOMMENDED : SystemImageClassification.X86;
-      }
-      if (apiLevel < MIN_RECOMMENDED_API) {
-        return SystemImageClassification.X86;
-      }
-      if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
-        return SystemImageClassification.RECOMMENDED;
-      }
-      return SystemImageClassification.X86;
     }
+
+    if (!androidVersion.isBaseExtension() && androidVersion.getExtensionLevel() != null) {
+      // System images that contain extension levels but are not the base SDK should not be placed in RECOMMENDED tab, it should be either
+      // PERFORMANT or OTHER.
+      return isArm64HostOs == isAvdIntel ? SystemImageClassification.OTHER : SystemImageClassification.PERFORMANT;
+    }
+
+    if (isAvdIntel == isArm64HostOs) {
+      return SystemImageClassification.OTHER;
+    }
+
+    if (tag.equals(SystemImage.WEAR_TAG)) {
+      // For Wear, recommend based on API level (all Wear have Google APIs)
+      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || abi == Abi.X86))
+             ? SystemImageClassification.RECOMMENDED
+             : SystemImageClassification.PERFORMANT;
+    }
+    if (apiLevel < MIN_RECOMMENDED_API) {
+      return SystemImageClassification.PERFORMANT;
+    }
+    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag) && (isArm64HostOs || abi == Abi.X86)) {
+      // Only recommend ARM or 32-bit x86 system images.
+      return SystemImageClassification.RECOMMENDED;
+    }
+    return SystemImageClassification.PERFORMANT;
   }
 
   public static boolean systemImageMatchesDevice(@Nullable SystemImageDescription image, @Nullable Device device) {
@@ -281,7 +288,7 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void setupImageLists() {
     setupImageList(myRecommendedImageList);
-    setupImageList(myX86ImageList);
+    setupImageList(myPerformantImageList);
     setupImageList(myOtherImageList);
     setImageListFilters();
   }
@@ -294,7 +301,7 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void setImageListFilters() {
     myRecommendedImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.RECOMMENDED));
-    myX86ImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.X86));
+    myPerformantImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.PERFORMANT));
     myOtherImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.OTHER));
   }
 
@@ -321,8 +328,8 @@ public class ChooseSystemImagePanel extends JPanel
           myRecommendedImageList.setSelectedImage(systemImage);
           myTabPane.setSelectedIndex(0);
           break;
-        case X86:
-          myX86ImageList.setSelectedImage(systemImage);
+        case PERFORMANT:
+          myPerformantImageList.setSelectedImage(systemImage);
           myTabPane.setSelectedIndex(1);
           break;
         default:
@@ -346,7 +353,7 @@ public class ChooseSystemImagePanel extends JPanel
     myRefreshButton.setEnabled(true);
     myAsyncIcon.setVisible(false);
     myRecommendedImageList.restoreSelection(partlyDownloaded, mySystemImage);
-    myX86ImageList.restoreSelection(partlyDownloaded, mySystemImage);
+    myPerformantImageList.restoreSelection(partlyDownloaded, mySystemImage);
     myOtherImageList.restoreSelection(partlyDownloaded, mySystemImage);
     previewCurrentTab();
   }
@@ -363,8 +370,8 @@ public class ChooseSystemImagePanel extends JPanel
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_X86);
         }
         break;
-      case 1: // "x86 images"
-        myX86ImageList.makeListCurrent();
+      case 1: // Performant images, title either "x86 Images" or "ARM Images"
+        myPerformantImageList.makeListCurrent();
         mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
       default: // "Other images"
@@ -377,7 +384,7 @@ public class ChooseSystemImagePanel extends JPanel
   private void createUIComponents() {
     myAsyncIcon = new AsyncProcessIcon("refresh images");
     myRecommendedImageList = new SystemImageList();
-    myX86ImageList = new SystemImageList();
+    myPerformantImageList = new SystemImageList();
     myOtherImageList = new SystemImageList();
     mySystemImagePreview = new SystemImagePreview(this);
   }
@@ -400,7 +407,7 @@ public class ChooseSystemImagePanel extends JPanel
   @VisibleForTesting
   enum SystemImageClassification {
     RECOMMENDED,
-    X86,
+    PERFORMANT,
     OTHER,
     FORBIDDEN
   }
