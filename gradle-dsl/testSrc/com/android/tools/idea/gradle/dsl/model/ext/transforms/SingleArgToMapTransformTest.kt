@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -63,7 +64,7 @@ class SingleArgToMapTransformTest : TransformTestCase() {
     val literalArg = createLiteral("boo")
     literalArg.setValue(true)
     inputElement.addParsedExpression(literalArg)
-    val newElement = transform.bindMap(gradleDslFile, inputElement, "unused", true)
+    val newElement = GradleDslExpressionMap(gradleDslFile, GradleNameElement.create(fieldName), true)
     val resultElement = transform.replace(gradleDslFile, inputElement, newElement, "unused") as GradleDslMethodCall
     assertThat(resultElement, sameInstance(inputElement))
     assertSize(1, resultElement.arguments)

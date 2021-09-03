@@ -78,20 +78,16 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
 
   @NotNull
   @Override
-  public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
-                                     @Nullable GradleDslElement oldElement,
-                                     @NotNull String name,
-                                     boolean isMethodCall) {
-    return myTransform.bindMap(holder, oldElement, name, isMethodCall);
+  public GradleDslExpression bindMap(@NotNull GradleDslElement holder, @Nullable GradleDslElement oldElement, @NotNull String name) {
+    return myTransform.bindMap(holder, oldElement, name);
   }
 
   @NotNull
   @Override
   public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
                                      @Nullable GradleDslElement oldElement,
-                                     @NotNull ModelPropertyDescription propertyDescription,
-                                     boolean isMethodCall) {
-    return super.bindMap(holder, oldElement, propertyDescription, isMethodCall);
+                                     @NotNull ModelPropertyDescription propertyDescription) {
+    return super.bindMap(holder, oldElement, propertyDescription);
   }
 
   @NotNull

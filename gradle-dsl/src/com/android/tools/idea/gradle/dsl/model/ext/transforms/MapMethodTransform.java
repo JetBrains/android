@@ -101,11 +101,8 @@ public class MapMethodTransform extends PropertyTransform {
 
   @Override
   @NotNull
-  public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
-                                     @Nullable GradleDslElement oldElement,
-                                     @NotNull String name,
-                                     boolean isMethodCall) {
-    return new GradleDslExpressionMap(holder, GradleNameElement.create(myFieldName), isMethodCall);
+  public GradleDslExpression bindMap(@NotNull GradleDslElement holder, @Nullable GradleDslElement oldElement, @NotNull String name) {
+    return new GradleDslExpressionMap(holder, GradleNameElement.create(myFieldName), false);
   }
 
   @Override

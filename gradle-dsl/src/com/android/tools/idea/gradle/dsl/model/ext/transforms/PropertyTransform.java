@@ -121,23 +121,18 @@ public abstract class PropertyTransform {
    * @param holder       the parent of the property being held by the {@link GradlePropertyModel}
    * @param oldElement   the old element being held by the {@link GradlePropertyModel}, null if it doesn't yet exist.
    * @param name         the new value that was passed to {@link GradlePropertyModel#setValue(Object)}.
-   * @param isMethodCall whether or not the {@link GradlePropertyModel} was set to be a method call or not.
    * @return a {@link GradleDslExpression} to be passed into replace if it differs from oldElement.
    */
   @NotNull
-  public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
-                                     @Nullable GradleDslElement oldElement,
-                                     @NotNull String name,
-                                     boolean isMethodCall) {
-    return new GradleDslExpressionMap(holder, GradleNameElement.create(name), !isMethodCall);
+  public GradleDslExpression bindMap(@NotNull GradleDslElement holder, @Nullable GradleDslElement oldElement, @NotNull String name) {
+    return new GradleDslExpressionMap(holder, GradleNameElement.create(name), true);
   }
 
   @NotNull
   public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
                                      @Nullable GradleDslElement oldElement,
-                                     @NotNull ModelPropertyDescription propertyDescription,
-                                     boolean isMethodCall) {
-    GradleDslExpression result = bindMap(holder, oldElement, propertyDescription.name, isMethodCall);
+                                     @NotNull ModelPropertyDescription propertyDescription) {
+    GradleDslExpression result = bindMap(holder, oldElement, propertyDescription.name);
     result.setModelEffect(new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE));
     return result;
   }
