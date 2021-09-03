@@ -436,16 +436,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     assertThat(messages).isEmpty();
   }
 
-  public void testSyncWithKotlinDsl() throws Exception {
-    loadProject(KOTLIN_GRADLE_DSL);
-
-    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    assertSize(3, modules);
-    for (Module module : modules) {
-      ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
-      assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
-    }
-  }
 
   /* TODO(b/142753914): GradleSyncIntegrationTest.testWithKotlinMpp fails with Kotlin version 1.3.60-withExperimentalGoogleExtensions-20191014
   public void testWithKotlinMpp() throws Exception {
