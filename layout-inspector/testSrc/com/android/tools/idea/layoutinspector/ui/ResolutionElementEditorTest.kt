@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.AssumeUtil
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.testutils.ignore.IgnoreTestRule
@@ -81,11 +82,9 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintClosed() {
-    if (SystemInfo.isWindows) {
-      // Do not run on Windows: b/187441420
-      // The font in the links are rendered differently on similar test machines
-      return
-    }
+    // Do not run on Windows (b/187441420) or mac (b/163289116).
+    AssumeUtil.assumeIsLinux()
+
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
     checkImage(editors, "Closed")
@@ -96,22 +95,18 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpen() {
-    if (SystemInfo.isWindows) {
-      // Do not run on Windows: b/187441420
-      // The font in the links are rendered differently on similar test machines
-      return
-    }
+    // Do not run on Windows (b/187441420) or mac (b/163289116).
+    AssumeUtil.assumeIsLinux()
+
     val editors = createEditors()
     checkImage(editors, "Open")
   }
 
   @Test
   fun testPaintOpenWithDetails() {
-    if (SystemInfo.isWindows) {
-      // Do not run on Windows: b/187441420
-      // The font in the links are rendered differently on similar test machines
-      return
-    }
+    // Do not run on Windows (b/187441420) or mac (b/163289116).
+    AssumeUtil.assumeIsLinux()
+
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -120,11 +115,9 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpenWithTwoDetails() {
-    if (SystemInfo.isWindows) {
-      // Do not run on Windows: b/187441420
-      // The font in the links are rendered differently on similar test machines
-      return
-    }
+    // Do not run on Windows (b/187441420) or mac (b/163289116).
+    AssumeUtil.assumeIsLinux()
+
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)

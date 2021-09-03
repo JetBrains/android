@@ -25,6 +25,7 @@ import com.android.ide.common.resources.configuration.ScreenWidthQualifier
 import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
+import com.android.testutils.AssumeUtil
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
@@ -613,6 +614,7 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithImages() {
+    AssumeUtil.assumeNotMac() // b/163289116
     val image1 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").toFile())
     val image2 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image2.png").toFile())
     val image3 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image3.png").toFile())
@@ -992,8 +994,8 @@ class DeviceViewContentPanelWithScaledFontTest {
   val disposable = DisposableRule()
 
   @Test
-  @Suppress("UndesirableClassUsage")
   fun testPaintEmpty() {
+    AssumeUtil.assumeNotMac() // b/163289116
     IconLoader.activate()
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -1002,6 +1004,7 @@ class DeviceViewContentPanelWithScaledFontTest {
     val panel = DeviceViewContentPanel(model, stats, treeSettings, EditorDeviceViewSettings(), { mock() }, mock(), mock(),
                                        disposable.disposable)
     panel.setSize(800, 400)
+    @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
