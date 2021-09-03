@@ -160,8 +160,6 @@ iml_module(
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
-            # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
         },
         "gradle.project.sync.snapshots": {
             "data": ["//prebuilts/studio/sdk:ndk"],
