@@ -52,8 +52,11 @@ import java.awt.event.ActionListener
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JViewport
+import javax.swing.SwingUtilities
 
 private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
@@ -109,9 +112,13 @@ class EntryDetailsView(
 
   private fun updateSelectedTask() {
     val detailsPanel = object : ScrollablePanel(VerticalLayout(18)) {
-      override fun getScrollableTracksViewportWidth() = false
+      override fun getScrollableTracksViewportWidth(): Boolean {
+        val parent = SwingUtilities.getUnwrappedParent(this)
+        return ((parent as? JViewport)?.width ?: 0) > preferredSize.width
+      }
     }
-    detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
+    // Reserve 14px extra space for scroll bar on the right.
+    detailsPanel.border = BorderFactory.createEmptyBorder(6, 16, 20, 30)
 
     when (val entry = selectionModel.selectedEntry) {
       is WorkEntry -> updateSelectedWork(detailsPanel, entry)
@@ -250,7 +257,7 @@ class EntryDetailsView(
     )))
   }
 
-  private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
+  private fun buildCategoryPanel(name: String, entryComponents: List<JComponent>): JPanel {
     val panel = JPanel(VerticalLayout(6))
 
     val headingPanel = TitledSeparator(name)
@@ -258,11 +265,9 @@ class EntryDetailsView(
     panel.add(headingPanel)
 
     for (component in entryComponents) {
-      val borderedPanel = JPanel(BorderLayout())
-      borderedPanel.add(component, BorderLayout.WEST)
-      borderedPanel.border =
+      component.border =
         BorderFactory.createEmptyBorder(0, 18, extraBottomPaddingMap.getOrDefault(component, 0), 0)
-      panel.add(borderedPanel)
+      panel.add(component)
     }
     return panel
   }
