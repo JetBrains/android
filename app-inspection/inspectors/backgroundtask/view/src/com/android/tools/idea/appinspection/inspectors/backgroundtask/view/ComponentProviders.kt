@@ -18,12 +18,12 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 import androidx.work.inspection.WorkManagerInspectorProtocol.CallStack
 import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
-import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.JobInfo
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -83,10 +83,10 @@ object TimeProvider : ComponentProvider<Long> {
 /**
  * Provides a component that represents a state text with icon.
  */
-object StateProvider : ComponentProvider<State> {
-  override fun convert(state: State): JComponent {
-    return JBLabel(state.capitalizedName()).apply {
-      icon = state.icon()
+object StateProvider : ComponentProvider<BackgroundTaskEntry> {
+  override fun convert(entry: BackgroundTaskEntry): JComponent {
+    return JBLabel(entry.status.capitalizedName()).apply {
+      icon = entry.icon()
     }
   }
 }
@@ -163,7 +163,7 @@ class IdListProvider(private val client: BackgroundTaskInspectorClient,
             val actionLink = ActionLink(id) {
               selectWork(entry)
             }.apply {
-              icon = work.state.icon()
+              icon = entry.icon()
               if (work.tagsCount > 0) {
                 toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
               }

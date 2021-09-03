@@ -192,7 +192,7 @@ class EntryDetailsView(
     detailsPanel.add(buildCategoryPanel("Execution", listOf(
       buildKeyValuePair("Constraints", job, JobConstraintProvider),
       buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
-      buildKeyValuePair("State", jobEntry.status)
+      buildKeyValuePair("State", jobEntry, StateProvider)
     )))
 
     val results = mutableListOf(buildKeyValuePair("Time started", jobEntry.startTimeMs, TimeProvider))
@@ -233,7 +233,7 @@ class EntryDetailsView(
       buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope, client.tracker)),
       buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
-      buildKeyValuePair("State", work.state, StateProvider)
+      buildKeyValuePair("State", workEntry, StateProvider)
     )))
 
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
