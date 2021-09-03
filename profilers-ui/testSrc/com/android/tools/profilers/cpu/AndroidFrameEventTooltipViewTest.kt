@@ -41,7 +41,7 @@ class AndroidFrameEventTooltipViewTest {
 
     timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.helpTextLabel.isVisible).isTrue()
+    assertThat(tooltipView.helpTextLabel.isVisible).isFalse()
     assertThat(tooltipView.frameNumberLabel.isVisible).isFalse()
     assertThat(tooltipView.startTimeLabel.isVisible).isFalse()
     assertThat(tooltipView.durationLabel.isVisible).isFalse()

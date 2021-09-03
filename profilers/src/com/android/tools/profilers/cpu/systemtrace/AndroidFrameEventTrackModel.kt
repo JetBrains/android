@@ -93,13 +93,9 @@ sealed class AndroidFrameEvent {
 }
 
 enum class AndroidFramePhase(val displayName: String, val tooltipText: String) {
-  App("Application", "<html><b>The time from when the buffer was dequeued by the app to when it<br>" +
-                     "was enqueued back.</b></html>"),
-  GPU("Wait for GPU", "<html><b>Duration for which the buffer was owned by GPU. This is the time from when the buffer<br>" +
-                      "was sent to GPU to the time when GPU finishes its work on the buffer.<br>" +
-                      "This does not mean the time GPU was working solely on the buffer during this time.</b></html>"),
-  Composition("Composition",
-              "<html><b>The time from when SurfaceFlinger latched on to the buffer and sent<br>" +
-              "for composition to when it was sent to the display.</b></html>"),
+  App("Application", "<html><b>Duration for which the app owned the frame buffer.</b></html>"),
+  GPU("Wait for GPU", "<html><b>Duration for which GPU owned the frame buffer.</b></html>"),
+  Composition("Composition", "<html><b>Duration for which SurfaceFlinger owned<br>" +
+                             "the frame buffer for composition.</b></html>"),
   Display("Frames on display", "<html><b>The time when this frame was on screen.</b></html>");
 }
