@@ -1041,26 +1041,30 @@ class AppInspectionViewTest {
     }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
+    launch(uiDispatcher) {
+      inspectionView.tabsChangedFlow
+        .take(3)
+        .collectIndexed { i, _ ->
+        when (i) {
+          0 -> {
+            val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
+            assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
+            inspectionView.inspectorTabs.forEach { it.waitForContent() }
+            inspectorTabsPane.selectedIndex = 1
+            assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
+            transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+            timer.currentTimeNs += 1
+          }
+          1 -> {
+            transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+          }
+          2 -> assertThat((inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex).isEqualTo(1)
+        }
+      }
+    }
+
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     timer.currentTimeNs += 1
-
-    inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
-      when (i) {
-        0 -> {
-          val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
-          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
-          inspectionView.inspectorTabs.forEach { it.waitForContent() }
-          inspectorTabsPane.selectedIndex = 1
-          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
-          transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-          timer.currentTimeNs += 1
-        }
-        1 -> {
-          transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-        }
-        2 -> assertThat((inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex).isEqualTo(1)
-      }
-    }
   }
 }
