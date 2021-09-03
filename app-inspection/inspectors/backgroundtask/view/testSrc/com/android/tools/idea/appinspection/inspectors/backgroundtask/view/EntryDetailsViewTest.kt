@@ -30,9 +30,11 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Entr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.icons.AllIcons
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -120,6 +122,7 @@ class EntryDetailsViewTest {
       assertThat(frequencyComponent.text).isEqualTo("OneTime")
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Enqueued")
+      assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CHRONOMETER)
 
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val previousComponent = workContinuationPanel.getValueComponent("Previous") as JPanel
@@ -155,6 +158,7 @@ class EntryDetailsViewTest {
       val executionPanel = detailsView.getCategoryPanel("Execution") as JPanel
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Enqueued")
+      assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CHRONOMETER)
     }
 
     client.sendWorkEvent {
@@ -167,6 +171,7 @@ class EntryDetailsViewTest {
       val executionPanel = detailsView.getCategoryPanel("Execution") as JPanel
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
       assertThat(stateComponent.text).isEqualTo("Failed")
+      assertThat(stateComponent.icon).isEqualTo(AllIcons.RunConfigurations.ToolbarError)
     }
   }
 
@@ -405,7 +410,8 @@ class EntryDetailsViewTest {
       val frequencyComponent = executionPanel.getValueComponent("Frequency") as JLabel
       assertThat(frequencyComponent.text).isEqualTo("OneTime")
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
-      assertThat(stateComponent.text).isEqualTo("SCHEDULED")
+      assertThat(stateComponent.text).isEqualTo("Scheduled")
+      assertThat(stateComponent.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
