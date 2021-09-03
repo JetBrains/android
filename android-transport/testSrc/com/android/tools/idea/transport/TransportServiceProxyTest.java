@@ -117,7 +117,7 @@ public class TransportServiceProxyTest {
     when(mockDevice.getAvdName()).thenReturn(null);
     Common.Device profilerDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
 
-    assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
+    assertThat(profilerDevice.getModel()).isEqualTo("Serial");
   }
 
   @Test

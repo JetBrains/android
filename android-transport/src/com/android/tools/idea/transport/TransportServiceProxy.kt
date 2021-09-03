@@ -417,7 +417,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
 
     @JvmStatic
     fun getDeviceModel(device: IDevice) = when {
-      device.isEmulator -> StringUtil.notNullize(device.avdName, "Unknown")
+      device.isEmulator -> StringUtil.notNullize(device.avdName, device.serialNumber)
       else -> DevicePropertyUtil.getModel(device, "Unknown")
     }
 
