@@ -70,11 +70,8 @@ public class SingleArgToMapTransform extends PropertyTransform {
 
   @Override
   @NotNull
-  public GradleDslExpression bindList(@NotNull GradleDslElement holder,
-                                      @Nullable GradleDslElement oldElement,
-                                      @NotNull String name,
-                                      boolean isMethodCall) {
-    return new GradleDslExpressionList(holder, GradleNameElement.create(myFieldName), isMethodCall);
+  public GradleDslExpression bindList(@NotNull GradleDslElement holder, @Nullable GradleDslElement oldElement, @NotNull String name) {
+    return new GradleDslExpressionList(holder, GradleNameElement.create(myFieldName), false);
   }
 
   @Override

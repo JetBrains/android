@@ -759,10 +759,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   private void makeEmptyList() {
     if (myPropertyDescription == null) {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), false));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName()));
     }
     else {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, false));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription));
     }
   }
 
