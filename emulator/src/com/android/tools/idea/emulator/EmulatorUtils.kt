@@ -39,8 +39,8 @@ internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
   val themeName = lafManager.currentLookAndFeel.name
   return when {
     themeName.contains("High contrast", ignoreCase = true) -> ThemingStyle.Style.CONTRAST
-    themeName.contains("Darcula") -> ThemingStyle.Style.DARK
-    else -> ThemingStyle.Style.LIGHT
+    themeName.contains("Light", ignoreCase = true) -> ThemingStyle.Style.LIGHT
+    else -> ThemingStyle.Style.DARK // Darcula and custom themes that are based on Darcula.
   }
 }
 
