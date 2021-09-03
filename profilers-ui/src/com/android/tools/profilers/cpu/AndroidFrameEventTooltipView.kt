@@ -61,20 +61,22 @@ class AndroidFrameEventTooltipView(parent: JComponent, val tooltip: AndroidFrame
         isVisible = true
         text = "Duration: ${TimeFormatter.getSingleUnitDurationString(activeEvent.durationUs)}"
       }
+      helpTextLabel.isVisible = true
     }
     else {
       frameNumberLabel.isVisible = false
       startTimeLabel.isVisible = false
       durationLabel.isVisible = false
+      helpTextLabel.isVisible = false
     }
   }
 
   init {
     labelContainer.apply {
-      add(helpTextLabel, TabularLayout.Constraint(0, 0))
-      add(frameNumberLabel, TabularLayout.Constraint(1, 0))
-      add(startTimeLabel, TabularLayout.Constraint(2, 0))
-      add(durationLabel, TabularLayout.Constraint(3, 0))
+      add(frameNumberLabel, TabularLayout.Constraint(0, 0))
+      add(startTimeLabel, TabularLayout.Constraint(1, 0))
+      add(durationLabel, TabularLayout.Constraint(2, 0))
+      add(helpTextLabel, TabularLayout.Constraint(3, 0))
     }
     tooltip.addDependency(this).onChange(AndroidFrameEventTooltip.Aspect.VALUE_CHANGED, this::updateView)
     updateView()
