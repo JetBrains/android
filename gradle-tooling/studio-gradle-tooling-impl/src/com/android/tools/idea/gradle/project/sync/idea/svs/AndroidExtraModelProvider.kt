@@ -48,7 +48,6 @@ import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.util.LinkedList
 
@@ -89,8 +88,10 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   ) {
     controller.findModel(projectModel, GradlePluginModel::class.java)
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
-    controller.findModel(projectModel, KaptGradleModel::class.java)
-      ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
+    // TODO Temporary fix until the module depends directly on Kotlin plugin sources
+    val kaptGradleModelClass = Class.forName("org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel")
+    controller.findModel(projectModel, kaptGradleModelClass)
+      ?.also { model -> modelConsumer.consume(model, kaptGradleModelClass) }
   }
 
   private inner class Worker(
