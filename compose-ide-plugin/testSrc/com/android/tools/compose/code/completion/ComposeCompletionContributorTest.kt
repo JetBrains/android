@@ -688,6 +688,65 @@ class ComposeCompletionContributorTest {
     ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
   }
 
+  @Test
+  fun testMaterialThemeComposableIsDemotedInCompletion() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/MaterialTheme.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material
+
+      import androidx.compose.runtime.Composable
+
+      // This simulates the Composable function
+      @Composable
+      fun MaterialTheme(children: @Composable() () -> Unit) {}
+
+      // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
+      object MaterialTheme
+    """)
+
+
+    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the promotion/demotion
+    myFixture.addFileToProject(
+      "src/com/example/MaterialTheme.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      object MaterialTheme
+    """)
+
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Material${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(
+      listOf(
+        "MaterialTheme (androidx.compose.material)",
+        "MaterialTheme {...}",
+        "MaterialTheme (com.example)",
+        )
+    ).inOrder()
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
       return lookupElements.orEmpty().map { lookupElement ->
