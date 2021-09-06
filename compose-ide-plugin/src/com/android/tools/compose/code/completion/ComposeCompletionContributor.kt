@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -231,6 +232,14 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
 }
 
 /**
+ * Set of Composable FQNs that have a conflicting name with a non-composable and where we want to promote the
+ * non-composable instead.
+ */
+private val COMPOSABLE_CONFLICTING_NAMES = setOf(
+  "androidx.compose.material.MaterialTheme"
+)
+
+/**
  * Custom [CompletionWeigher] which moves composable functions up the completion list.
  *
  * It doesn't give composable functions "absolute" priority, some weighers are hardcoded to run first: specifically one that puts prefix
@@ -241,19 +250,30 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
  * to debug it.
  */
 class ComposeCompletionWeigher : CompletionWeigher() {
-  override fun weigh(element: LookupElement, location: CompletionLocation): Int {
-    return when {
+  override fun weigh(element: LookupElement, location: CompletionLocation): Int = when {
       !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
       !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> 0
       location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
       location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
-      element.isForNamedArgument() -> 2
+      element.isForNamedArgument() -> 3
       location.completionParameters.isForStatement() -> {
-        if (element.psiElement?.isComposableFunction() == true) 1 else 0
+        val isConflictingName = COMPOSABLE_CONFLICTING_NAMES.contains((element.psiElement as? KtNamedDeclaration)?.fqName?.asString() ?: "")
+        val isComposableFunction = element.psiElement?.isComposableFunction() ?: false
+        // This method ensures that the order of completion ends up as:
+        //
+        // Composables with non-conflicting names (like Button {}) +2
+        // Non Composables with conflicting names (like the MaterialTheme object) +2
+        // Composable with conflicting names      (like MaterialTheme {}) +1
+        // Anything else 0
+        when {
+          isComposableFunction && !isConflictingName -> 2
+          !isComposableFunction && isConflictingName -> 2
+          isComposableFunction && isConflictingName -> 1
+          else -> 0
+        }
       }
       else -> 0
     }
-  }
 
   private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
 }
