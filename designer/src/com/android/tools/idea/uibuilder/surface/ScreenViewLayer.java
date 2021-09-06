@@ -182,6 +182,9 @@ public class ScreenViewLayer extends Layer {
                                                previousVisibleImage, myScreenView.hasBorderLayer());
           myCachedVisibleImage = cachedVisibleImage;
           myLastScale = currentScale;
+        } else {
+          // The image is not valid, keep using the previously cached one, if available.
+          cachedVisibleImage = myCachedVisibleImage;
         }
       }
     }
@@ -208,7 +211,10 @@ public class ScreenViewLayer extends Layer {
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
   private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
-    return renderResult != null && renderResult.getRenderResult().isSuccess() && renderResult != myLastRenderResult;
+    return renderResult != null &&
+           renderResult.getRenderResult().isSuccess() &&
+           renderResult.getRenderedImage().isValid() &&
+           renderResult != myLastRenderResult;
   }
 
   @Override
