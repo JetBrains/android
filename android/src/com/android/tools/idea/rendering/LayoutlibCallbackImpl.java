@@ -883,8 +883,18 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   private String getPackage() {
-    AndroidModuleInfo info = AndroidModuleInfo.getInstance(myModule);
-    return info == null ? null : info.getPackage();
+    try {
+      return RenderSecurityManager.runInSafeRegion(myCredential, () -> {
+        // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
+        // executed in safe mode.
+        AndroidModuleInfo info = AndroidModuleInfo.getInstance(myModule);
+        return info == null ? null : info.getPackage();
+      });
+    }
+    catch (Exception e) {
+      LOG.warn(e);
+      return null;
+    }
   }
 
   @NotNull
