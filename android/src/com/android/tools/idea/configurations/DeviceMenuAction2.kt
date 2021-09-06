@@ -82,7 +82,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
   private fun createDeviceMenuList() {
     val groupedDevices = getSuitableDevices(renderContext.configuration!!)
 
-    addWindowSizeAndNexusSection(groupedDevices[DeviceGroup.NEXUS_XL])
+    addWindowSizeAndNexusSection(groupedDevices[DeviceGroup.NEXUS_XL]?.plus(groupedDevices[DeviceGroup.NEXUS_TABLET] ?: emptyList()))
     groupedDevices[DeviceGroup.WEAR]?.let { addWearDeviceSection(it) }
     groupedDevices[DeviceGroup.TV]?.let { addTvDeviceSection(it) }
     groupedDevices[DeviceGroup.AUTOMOTIVE]?.let { addAutomotiveDeviceSection(it) }
