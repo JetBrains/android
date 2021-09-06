@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.sdklib.devices.Device
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -28,6 +29,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIcons
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
@@ -36,6 +38,8 @@ import javax.swing.Icon
 import kotlin.math.roundToInt
 
 private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
+
+private const val WINDOW_SIZE_TOOL_TIPS = "These window sizes support approximately 75% of existing Android phone and tablets."
 
 /**
  * New device menu for layout editor.
@@ -50,6 +54,16 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
     JBPopupMenu.showBelow(button, toolbar.component)
+    // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
+    // So we install the tooltips after showing.
+    getChildren(null).forEachIndexed { index, action ->
+      when (action.templateText) {
+        "Window Size" -> (toolbar.component.components[index] as? ActionMenuItem)?.let { menuItem ->
+          HelpTooltip().setDescription(WINDOW_SIZE_TOOL_TIPS).installOn(menuItem)
+        }
+        else -> Unit
+      }
+    }
   }
 
   override fun displayTextInToolbar(): Boolean = true
