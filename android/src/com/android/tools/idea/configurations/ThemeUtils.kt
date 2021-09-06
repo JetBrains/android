@@ -41,6 +41,8 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.util.SlowOperations
 import org.jetbrains.android.facet.AndroidFacet
 
 private const val ANDROID_THEME = PREFIX_ANDROID + "Theme"
@@ -151,7 +153,7 @@ fun Module.getAppThemeName(): String? {
       val facet = AndroidFacet.getInstance(this)
       if (facet != null) {
         return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          facet.queryApplicationThemeFromManifestIndex()
+          SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryApplicationThemeFromManifestIndex() })
         })
       }
     }
@@ -176,7 +178,7 @@ fun Module.getAllActivityThemeNames(): Set<String> {
       val facet = AndroidFacet.getInstance(this)
       if (facet != null) {
         return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          val activities = facet.queryActivitiesFromManifestIndex().activities
+          val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
           activities.asSequence()
             .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
             .toSet()
@@ -207,7 +209,7 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
       val facet = AndroidFacet.getInstance(this)
       if (facet != null) {
         return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          val activities = facet.queryActivitiesFromManifestIndex().activities
+          val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
           activities.asSequence()
             .filter { it.qualifiedName == activityFqcn }
             .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
