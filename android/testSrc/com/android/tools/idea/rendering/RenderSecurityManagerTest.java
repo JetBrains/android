@@ -658,7 +658,7 @@ public class RenderSecurityManagerTest {
   }
 
   @Test
-  public void testEnterExitSafeRegion() throws Exception {
+  public void testEnterExitSafeRegion() {
     RenderSecurityManager manager = new RenderSecurityManager(null, null);
     Object credential = new Object();
     try {
@@ -724,6 +724,55 @@ public class RenderSecurityManagerTest {
       catch (Exception e) {
         // pass
         assertEquals("java.lang.NoSuchFieldException: sCredential", e.toString());
+      }
+    }
+    finally {
+      manager.dispose(credential);
+    }
+  }
+
+  @Test
+  public void testRunSafeRegion() throws Exception {
+    RenderSecurityManager manager = new RenderSecurityManager(null, null);
+    Object credential = new Object();
+    try {
+      manager.setActive(true, credential);
+
+      // Correct call with the right credential
+      try {
+        RenderSecurityManager.runInSafeRegion(credential, () -> {
+          manager.checkPermission(new FilePermission("/foo", "execute"));
+        });
+        assertEquals(123L, (long)RenderSecurityManager.runInSafeRegion(credential, () -> {
+          manager.checkPermission(new FilePermission("/foo", "execute"));
+          return 123L;
+        }));
+      }
+      catch (SecurityException e) {
+        fail("Unexpected exception");
+      }
+
+      // Wrong credential
+      Object wrongCredential = new Object();
+      try {
+         RenderSecurityManager.runInSafeRegion(wrongCredential, () -> {
+          manager.checkPermission(new FilePermission("/foo", "execute"));
+        });
+        fail("Should have thrown exception");
+      }
+      catch (SecurityException e) {
+        // pass
+      }
+
+      try {
+        RenderSecurityManager.runInSafeRegion(wrongCredential, () -> {
+          manager.checkPermission(new FilePermission("/foo", "execute"));
+          return 123L;
+        });
+        fail("Should have thrown exception");
+      }
+      catch (SecurityException e) {
+        // pass
       }
     }
     finally {

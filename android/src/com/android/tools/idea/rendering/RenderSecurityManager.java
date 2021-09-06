@@ -29,6 +29,8 @@ import java.net.InetAddress;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.PropertyPermission;
+import java.util.concurrent.Callable;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
 
@@ -263,6 +265,40 @@ public class RenderSecurityManager extends SecurityManager {
    */
   public static void exitSafeRegion(boolean token) {
     sEnabled = token;
+  }
+
+  /**
+   * Executes the given {@link Runnable} without a sandbox. See {@link #enterSafeRegion(Object)}.
+   * This is equivalent to running the {@link Runnable} between a {@link #enterSafeRegion(Object)} and a
+   * {@link #exitSafeRegion(boolean)} calls.
+   *
+   * @param credential a credential which proves that the caller has the right to do this
+   * @param runnable the runnable to execute
+   */
+  public static void runInSafeRegion(@Nullable Object credential, @NotNull Runnable runnable) {
+    boolean token = enterSafeRegion(credential);
+    try {
+      runnable.run();
+    } finally {
+      exitSafeRegion(token);
+    }
+  }
+
+  /**
+   * Executes the given {@link Callable} without a sandbox and returns the result. See {@link #enterSafeRegion(Object)}.
+   * This is equivalent to running the {@link Runnable} between a {@link #enterSafeRegion(Object)} and a
+   * {@link #exitSafeRegion(boolean)} calls.
+   *
+   * @param credential a credential which proves that the caller has the right to do this
+   * @param callable the runnable to execute
+   */
+  public static <T> T runInSafeRegion(@Nullable Object credential, @NotNull Callable<T> callable) throws Exception {
+    boolean token = enterSafeRegion(credential);
+    try {
+      return callable.call();
+    } finally {
+      exitSafeRegion(token);
+    }
   }
 
   /**
