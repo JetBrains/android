@@ -20,15 +20,20 @@ import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
+import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
+import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.swing.AbstractCellEditor;
@@ -36,6 +41,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.GlobalScope;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,32 +134,70 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   }
 
   private void showPopupMenu() {
-    JMenuItem item = new JBMenuItem("Pair device");
-
-    assert myDevice != null;
-    item.setEnabled(myDevice.getType().equals(DeviceType.PHONE) && myDevice.isOnline());
-
-    item.addActionListener(event -> pairDevice());
-
     JPopupMenu menu = new JBPopupMenu();
-    menu.add(item);
+
+    menu.add(newPairDeviceItem());
+    newUnpairDeviceItem().ifPresent(menu::add);
 
     Component button = myComponent.getMoreButton();
     menu.show(button, 0, button.getHeight());
   }
 
-  private void pairDevice() {
-    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(EventKind.PHYSICAL_PAIR_DEVICE_ACTION)
-      .build();
-
-    DeviceManagerUsageTracker.log(event);
-
-    Project project = myPanel.getProject();
-    assert project != null;
+  private @NotNull JMenuItem newPairDeviceItem() {
+    JMenuItem item = new JBMenuItem("Pair device");
 
     assert myDevice != null;
-    new WearDevicePairingWizard().show(project, myDevice.getKey().toString());
+    item.setEnabled(myDevice.getType().equals(DeviceType.PHONE) && myDevice.isOnline());
+
+    item.addActionListener(actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(EventKind.PHYSICAL_PAIR_DEVICE_ACTION)
+        .build();
+
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
+
+      Project project = myPanel.getProject();
+      assert project != null;
+
+      new WearDevicePairingWizard().show(project, myDevice.getKey().toString());
+    });
+
+    return item;
+  }
+
+  private @NotNull Optional<@NotNull JMenuItem> newUnpairDeviceItem() {
+    assert myDevice != null;
+    String key = myDevice.getKey().toString();
+
+    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(key);
+
+    if (pair == null) {
+      return Optional.empty();
+    }
+
+    PairingDevice otherDevice = pair.getPhone().getDeviceID().equals(key) ? pair.getWear() : pair.getPhone();
+
+    JMenuItem item = new JBMenuItem("Unpair device");
+    item.setToolTipText(AndroidBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
+
+    item.addActionListener(actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
+        .build();
+
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
+
+      try {
+        BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(),
+                               (scope, continuation) -> WearPairingManager.INSTANCE.removePairedDevices(key, true, continuation));
+      }
+      catch (InterruptedException exception) {
+        Thread.currentThread().interrupt();
+        Logger.getInstance(ActionsTableCellEditor.class).warn(exception);
+      }
+    });
+
+    return Optional.of(item);
   }
 
   @VisibleForTesting
