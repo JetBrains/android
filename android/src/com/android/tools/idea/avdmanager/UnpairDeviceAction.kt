@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.wearpairing.WearDevicePairingWizard
-import com.android.tools.idea.wearpairing.toPairingDevice
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
+import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle.message
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.awt.event.ActionEvent
 
-internal class PairDeviceAction(
+internal class UnpairDeviceAction(
   avdInfoProvider: AvdInfoProvider,
   private val logDeviceManagerEvents: Boolean = false
 ) : AvdUiAction(
   avdInfoProvider,
-  "Pair device",
-  getDescription(avdInfoProvider.avdInfo),
+  "Unpair device",
+  "Forget existing connection",
   StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
 ) {
   override fun actionPerformed(actionEvent: ActionEvent) {
     if (logDeviceManagerEvents) {
       val deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_PAIR_DEVICE_ACTION)
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION)
         .build()
 
       val builder = AndroidStudioEvent.newBuilder()
@@ -48,29 +48,20 @@ internal class PairDeviceAction(
       UsageTracker.log(builder)
     }
 
-    val project = myAvdInfoProvider.project ?: return
     val avdInfo = avdInfo ?: return
-    WearDevicePairingWizard().show(project, avdInfo.toPairingDevice(avdInfo.name, false))
-  }
 
-  override fun isEnabled(): Boolean = isEnabled(avdInfo)
-
-  companion object {
-    // TODO: Move PairDeviceAction.Companion::isEnabled to a third class in this package and make PairDeviceAction and UnpairDeviceAction
-    //  call it
-    fun isEnabled(avdInfo: AvdInfo?): Boolean {
-      avdInfo ?: return false
-      return avdInfo.tag == SystemImage.WEAR_TAG || (avdInfo.androidVersion.apiLevel >= 30 && avdInfo.hasPlayStore())
+    if (WearPairingManager.getPairedDevices(avdInfo.name) == null) {
+      Messages.showMessageDialog(project, "Not paired yet. Please pair device first.", "Unpair Device", Messages.getInformationIcon())
+    }
+    else {
+      GlobalScope.launch(AndroidDispatchers.ioThread) {
+        WearPairingManager.removePairedDevices(avdInfo.name)
+      }
     }
   }
-}
 
-private fun getDescription(avdInfo: AvdInfo?): String {
-  avdInfo ?: return ""
-  val isWearDevice = avdInfo.tag == SystemImage.WEAR_TAG
-  return when {
-    !isWearDevice && avdInfo.androidVersion.apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
-    !isWearDevice && !avdInfo.hasPlayStore() -> message("wear.assistant.device.list.tooltip.requires.play")
-    else -> message("wear.assistant.device.list.tooltip.ok")
-  }
+  // TODO: Menu refreshing is not properly implemented, so we use the same logic as PairDeviceAction for now.
+  // TODO: Move PairDeviceAction.Companion::isEnabled to a third class in this package and make PairDeviceAction and UnpairDeviceAction call
+  //  it
+  override fun isEnabled() = PairDeviceAction.isEnabled(avdInfo)
 }
