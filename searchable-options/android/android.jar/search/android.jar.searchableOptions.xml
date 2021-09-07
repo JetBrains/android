@@ -158,9 +158,9 @@
     <option name="convert" path="ActionManager" hit="Convert to WebP..." />
     <option name="to" path="ActionManager" hit="Convert to WebP..." />
     <option name="webp" path="ActionManager" hit="Convert to WebP..." />
-    <option name="create" path="ActionManager" hit="Create 9-Patch file..." />
-    <option name="file" path="ActionManager" hit="Create 9-Patch file..." />
-    <option name="patch" path="ActionManager" hit="Create 9-Patch file..." />
+    <option name="create" path="ActionManager" hit="Create 9-Patch file…" />
+    <option name="file" path="ActionManager" hit="Create 9-Patch file…" />
+    <option name="patch" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -250,10 +250,10 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
-    <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK..." />
-    <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK..." />
-    <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK..." />
-    <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK..." />
+    <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="help" path="ActionManager" hit="Help" />
     <option name="connection" path="ActionManager" hit="Help debug device connection" />
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
@@ -410,8 +410,8 @@
     <option name="preferences" path="ActionManager" hit="Navigate to shared preferences folder" />
     <option name="shared" path="ActionManager" hit="Navigate to shared preferences folder" />
     <option name="to" path="ActionManager" hit="Navigate to shared preferences folder" />
-    <option name="module" path="ActionManager" hit="New Module..." />
-    <option name="new" path="ActionManager" hit="New Module..." />
+    <option name="module" path="ActionManager" hit="New Module…" />
+    <option name="new" path="ActionManager" hit="New Module…" />
     <option name="new" path="ActionManager" hit="New Project" />
     <option name="project" path="ActionManager" hit="New Project" />
     <option name="new" path="ActionManager" hit="New Project..." />
