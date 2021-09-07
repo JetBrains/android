@@ -55,7 +55,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String APPLICATION_ID_SUFFIX = "mApplicationIdSuffix";
   @NonNls public static final ModelPropertyDescription BUILD_CONFIG_FIELD =
     new ModelPropertyDescription("mBuildConfigField", UNSPECIFIED_FOR_NOW);
-  @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
+  @NonNls public static final ModelPropertyDescription CONSUMER_PROGUARD_FILES =
+    // see comment by specification of PROGUARD_FILES
+    new ModelPropertyDescription("mConsumerProguardFiles", UNSPECIFIED_FOR_NOW);
   @NonNls public static final ModelPropertyDescription MANIFEST_PLACEHOLDERS =
     new ModelPropertyDescription("mManifestPlaceholders", MUTABLE_MAP);
   @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS =
@@ -63,7 +65,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
   @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
-  @NonNls public static final String PROGUARD_FILES = "mProguardFiles";
+  @NonNls public static final ModelPropertyDescription PROGUARD_FILES =
+    // UNSPECIFIED_FOR_NOW because MUTABLE_LIST actually indicates a list of Strings, whereas proguardFiles is a list of Files
+    new ModelPropertyDescription("mProguardFiles", UNSPECIFIED_FOR_NOW);
   @NonNls public static final ModelPropertyDescription RES_VALUE = new ModelPropertyDescription("mResValue", UNSPECIFIED_FOR_NOW);
   @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
   @NonNls public static final String USE_JACK = "mUseJack";
