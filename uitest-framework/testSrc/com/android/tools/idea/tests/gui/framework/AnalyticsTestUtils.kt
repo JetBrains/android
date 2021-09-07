@@ -24,12 +24,16 @@ import java.lang.Boolean.getBoolean
 import java.nio.file.Files
 
 private const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
+private const val ENABLE_LOGGING_PROPERTY = "enable.android.analytics.logging.for.test"
 
 private val consentFile
   get() = PathManager.getCommonDataPath().resolve("consentOptions/accepted")
 
 private val enableDialog
   get() = getBoolean(ENABLE_DIALOG_PROPERTY)
+
+private val enableLogging
+  get() = getBoolean(ENABLE_LOGGING_PROPERTY)
 
 fun deleteConsentFile() {
   Files.deleteIfExists(consentFile)
@@ -44,7 +48,9 @@ fun setupConsentFile() {
 
   val directory = consentFile.parent
   Files.createDirectories(directory)
-  consentFile.toFile().writeText("rsch.send.usage.stat:1.0:1:${System.currentTimeMillis()}")
+
+  val enabled = if (enableLogging) 1 else 0
+  consentFile.toFile().writeText("rsch.send.usage.stat:1.0:${enabled}:${System.currentTimeMillis()}")
 }
 
 fun consentFileExists(): Boolean {
@@ -54,8 +60,11 @@ fun consentFileExists(): Boolean {
 class AnalyticsTestUtils {
   companion object {
     @JvmStatic
-    val vmOption
+    val vmDialogOption
       get() = "-D$ENABLE_DIALOG_PROPERTY=$enableDialog"
+
+    val vmLoggingOption
+      get() = "-D$ENABLE_LOGGING_PROPERTY=$enableLogging"
 
     @JvmStatic
     fun dismissConsentDialogIfShowing(robot: Robot) {
@@ -69,7 +78,12 @@ class AnalyticsTestUtils {
         return
       }
 
-      fixture.optIn()
+      if (enableLogging) {
+        fixture.optIn()
+      }
+      else {
+        fixture.decline()
+      }
     }
   }
 }
