@@ -1,5 +1,40 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/kotlin-integration:version.bzl", "KOTLIN_IDE_VERSION")
+
+# The maven artifact aliases below exist in order to simplify Kotlin plugin updates.
+# If a test requires Kotlin maven artifacts with a version matching the Kotlin
+# IDE plugin, then the test should use these aliases.
+
+alias(
+    name = "kotlin-android-extensions-runtime-for-ide-plugin",
+    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "kotlin-gradle-plugin-for-ide-plugin",
+    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "kotlin-reflect-for-ide-plugin",
+    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "kotlin-script-runtime-for-ide-plugin",
+    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-script-runtime_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "kotlin-stdlib-jdk8-for-ide-plugin",
+    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
 
 # managed by go/iml_to_build
 iml_module(
