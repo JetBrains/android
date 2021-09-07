@@ -43,10 +43,10 @@ import org.jetbrains.annotations.Nullable;
  * a single operator with multiple syntactic forms for the value.
  */
 public class SdkOrPreviewTransform extends PropertyTransform {
-  @NotNull private ModelPropertyDescription propertyDescription;
-  @NotNull private String genericSetter;
-  @NotNull private String sdkSetter;
-  @NotNull private String previewSetter;
+  @NotNull private final ModelPropertyDescription propertyDescription;
+  @NotNull private final String genericSetter;
+  @NotNull private final String sdkSetter;
+  @NotNull private final String previewSetter;
   /**
    * The constraint on versions for which the sdk- and previewSetters are available, or null (meaning
    * no constraint).
