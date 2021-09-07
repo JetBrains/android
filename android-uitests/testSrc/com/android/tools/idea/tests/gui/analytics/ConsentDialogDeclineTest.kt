@@ -26,16 +26,16 @@ import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
-class ConsentDialogTest {
+class ConsentDialogDeclineTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.SECONDS)
 
-  // When running from IntelliJ, set -enable.android.analytics.consent.dialog.for.test=true
+  // When running from IntelliJ, set -Denable.android.analytics.consent.dialog.for.test=true
   // in the run configuration
   @Test
-  fun testConsentDialog() {
+  fun testConsentDialogDecline() {
     // This file is deleted in GuiTestThread.runTest before the test is run.
     assertThat(consentFileExists()).isTrue()
-    assertThat(AnalyticsSettings.optedIn).isTrue()
+    assertThat(AnalyticsSettings.optedIn).isFalse()
   }
 }

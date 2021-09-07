@@ -200,7 +200,8 @@ object GuiTestLauncher {
      * For tests that require it, the system property "enable.android.analytics.consent.dialog.for.test"
      * can be set in the Build file as one of the jvm_flags
      */
-    options += AnalyticsTestUtils.vmOption
+    options += AnalyticsTestUtils.vmDialogOption
+    options += AnalyticsTestUtils.vmLoggingOption
     /* options for tests with native libraries */
     if (!options.contains("-Djava.library.path=")) {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"

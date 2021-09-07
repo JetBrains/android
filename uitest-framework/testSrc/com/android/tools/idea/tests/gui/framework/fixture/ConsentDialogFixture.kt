@@ -29,6 +29,10 @@ class ConsentDialogFixture(robot: Robot, dialogAndWrapper: DialogAndWrapper<Dial
     GuiTests.findAndClickButton(this, "Send usage statistics to Google")
   }
 
+  fun decline() {
+    GuiTests.findAndClickButton(this, "Don't send")
+  }
+
   companion object {
     @JvmStatic
     fun find(robot: Robot): ConsentDialogFixture = ConsentDialogFixture(robot, find(robot, DialogWrapper::class.java))
