@@ -105,8 +105,9 @@ class VirtualDisplayList @TestOnly constructor(
 
     val map = table.actionMap
 
-    map.put("selectNextColumn", SelectNextColumnAction())
     map.put("deleteAvd", DeleteAvdAction(this, false))
+    map.put("selectNextColumn", SelectNextColumnAction())
+    map.put("selectPreviousColumn", SelectPreviousColumnAction())
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
     table.setRowSorter()
