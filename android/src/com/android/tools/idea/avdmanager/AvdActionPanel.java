@@ -222,6 +222,21 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     myVisibleComponents.get(myFocusedComponent).doClick();
   }
 
+  public int getFocusedComponent() {
+    return myFocusedComponent;
+  }
+
+  public void setFocusedComponent(int focusedComponent) {
+    assert 0 <= focusedComponent && focusedComponent < myVisibleComponents.size();
+
+    myFocusedComponent = focusedComponent;
+    myFocused = true;
+  }
+
+  public int getVisibleComponentCount() {
+    return myVisibleComponents.size();
+  }
+
   public boolean cycleFocus(boolean backward) {
     if (backward) {
       if (myFocusedComponent == -1) {

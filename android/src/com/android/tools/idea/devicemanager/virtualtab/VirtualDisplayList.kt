@@ -24,8 +24,6 @@ import com.android.tools.idea.avdmanager.AvdDisplayList
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
 import com.android.tools.idea.avdmanager.DeleteAvdAction
-import com.android.tools.idea.avdmanager.EditAvdAction
-import com.android.tools.idea.avdmanager.RunAvdAction
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
@@ -42,13 +40,11 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
-import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -101,24 +97,16 @@ class VirtualDisplayList @TestOnly constructor(
       addMouseListener(adapter)
       addMouseMotionListener(adapter)
 
-      addMouseListener(LaunchListener())
-      getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).apply {
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd")
-      }
+      val map = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+
+      map.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd")
+      map.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd")
     }
-    table.actionMap.apply {
-      // put("selectPreviousColumnCell", CycleAction(true))
-      // put("selectNextColumnCell", CycleAction(false))
-      put("deleteAvd", DeleteAvdAction(this@VirtualDisplayList, false))
-      put("enter", object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) {
-          doAction()
-        }
-      })
-    }
+
+    val map = table.actionMap
+
+    map.put("selectNextColumn", SelectNextColumnAction())
+    map.put("deleteAvd", DeleteAvdAction(this, false))
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
     table.setRowSorter()
@@ -269,25 +257,6 @@ class VirtualDisplayList @TestOnly constructor(
           logger.warn("Check for emulation acceleration failed", t)
         }
       }, EdtExecutorService.getInstance())
-  }
-
-  private inner class LaunchListener : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-      if (e.clickCount == 2) {
-        doAction()
-      }
-    }
-  }
-
-  private fun doAction() {
-    val info = avdInfo ?: return
-
-    if (info.status == AvdInfo.AvdStatus.OK) {
-      RunAvdAction(this, false).actionPerformed(null)
-    }
-    else {
-      EditAvdAction(this, false).actionPerformed(null)
-    }
   }
 
   inner class ModelListener(private val latch: CountDownLatch?) : VirtualDeviceModel.VirtualDeviceModelListener {
