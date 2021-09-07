@@ -112,6 +112,10 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
+        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven_tests//:androidx.appcompat.appcompat_1.3.0",
         "@maven_tests//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
         "@maven_tests//:androidx.constraintlayout.constraintlayout_1.1.3",
@@ -132,9 +136,5 @@ maven_repository(
         "@maven_tests//:com.google.android.material.material_1.4.0",
         "@maven_tests//:com.google.guava.guava_19.0",
         "@maven_tests//:junit.junit_4.13.2",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.5.30",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.30",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-reflect_1.5.30",
-        "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.30",
     ],
 )
