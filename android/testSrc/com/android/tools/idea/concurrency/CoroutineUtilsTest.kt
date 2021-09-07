@@ -169,15 +169,12 @@ class CoroutineUtilsTest {
 
     val messages = mutableListOf<String>()
 
-    val defaultProcessor = LoggedErrorProcessor.getInstance()
-    try {
-      LoggedErrorProcessor.setNewInstance(object : LoggedErrorProcessor() {
+    LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
         override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
           messages.add(message)
           return false
         }
-      })
-
+    }) {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
 
@@ -187,9 +184,6 @@ class CoroutineUtilsTest {
       workerExecutor.shutdown()
       workerExecutor.awaitTermination(2, TimeUnit.SECONDS)
       assertThat(messages).containsExactly("expected failure", "computing")
-    }
-    finally {
-      LoggedErrorProcessor.setNewInstance(defaultProcessor)
     }
   }
 
