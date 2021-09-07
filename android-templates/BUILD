@@ -35,7 +35,7 @@ iml_module(
                 "cpu:3",
                 "no_test_mac",
             ],
-            "shard_count": 6,
+            "shard_count": 8,
             "data": [
                 "//prebuilts/studio/jdk",
                 "//prebuilts/studio/sdk:build-tools/latest",
