@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab.columns
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
+import com.android.tools.idea.devicemanager.Tables
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
@@ -61,37 +62,37 @@ class AvdActionsColumnInfo(
 
   override fun getWidth(table: JTable): Int = width
 
-  fun cycleFocus(info: AvdInfo?, backward: Boolean): Boolean = getComponent(info).cycleFocus(backward)
-
   class ActionRenderer(private var numVisibleActions: Int,
                        info: AvdInfo?,
                        projectOpen: Boolean,
                        refreshProvider: AvdRefreshProvider) : AbstractTableCellEditor(), TableCellRenderer {
-    private val component = AvdActionPanel(refreshProvider, info!!, true, projectOpen, this.numVisibleActions)
+    val component = AvdActionPanel(refreshProvider, info!!, true, projectOpen, this.numVisibleActions)
 
-    private fun getComponent(table: JTable, row: Int, column: Int) = component.apply {
-      if (table.selectedRow == row) {
-        background = table.selectionBackground
-        foreground = table.selectionForeground
-        setHighlighted(true)
-      }
-      else {
-        background = table.background
-        foreground = table.foreground
-        setHighlighted(false)
-      }
-      setFocused(table.selectedRow == row && table.selectedColumn == column)
+    override fun getTableCellEditorComponent(table: JTable,
+                                             value: Any,
+                                             selected: Boolean,
+                                             viewRowIndex: Int,
+                                             viewColumnIndex: Int) = getTableCellComponent(table, selected)
+
+    override fun getTableCellRendererComponent(table: JTable,
+                                               value: Any,
+                                               selected: Boolean,
+                                               focused: Boolean,
+                                               viewRowIndex: Int,
+                                               viewColumnIndex: Int): Component {
+      getTableCellComponent(table, selected)
+      component.setFocused(false)
+
+      return component
     }
 
-    fun cycleFocus(backward: Boolean): Boolean = component.cycleFocus(backward)
+    private fun getTableCellComponent(table: JTable, selected: Boolean): Component {
+      component.background = Tables.getBackground(table, selected)
+      component.foreground = Tables.getForeground(table, selected)
+      component.setHighlighted(selected)
 
-    override fun getTableCellRendererComponent(
-      table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
-    ): Component = getComponent(table, row, column)
-
-    override fun getTableCellEditorComponent(
-      table: JTable, value: Any, isSelected: Boolean, row: Int, column: Int
-    ): Component = getComponent(table, row, column)
+      return component
+    }
 
     override fun getCellEditorValue(): Any? = null
   }
