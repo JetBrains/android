@@ -17,10 +17,10 @@ package org.jetbrains.android
 
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
-import com.android.tools.idea.lint.AndroidLintMockLocationInspection
-import com.android.tools.idea.lint.AndroidLintNewApiInspection
-import com.android.tools.idea.lint.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
+import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
+import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.lang.annotation.HighlightSeverity
@@ -62,7 +62,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
 
     val debug = myFixture.loadFile("app/src/debug/AndroidManifest.xml")
     myFixture.checkLint(debug, AndroidLintMockLocationInspection(), "android.permission.ACCESS_|MOCK_LOCATION",
-              "No warnings."
+                        "No warnings."
     )
     val main = myFixture.loadFile("app/src/main/AndroidManifest.xml")
 

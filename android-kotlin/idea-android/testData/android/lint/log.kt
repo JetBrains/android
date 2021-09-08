@@ -1,6 +1,6 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintLogConditionalInspection
-// INSPECTION_CLASS2: com.android.tools.idea.lint.AndroidLintLogTagMismatchInspection
-// INSPECTION_CLASS3: com.android.tools.idea.lint.AndroidLintLongLogTagInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintLogConditionalInspection
+// INSPECTION_CLASS2: com.android.tools.idea.lint.inspections.AndroidLintLogTagMismatchInspection
+// INSPECTION_CLASS3: com.android.tools.idea.lint.inspections.AndroidLintLongLogTagInspection
 
 import android.annotation.SuppressLint
 import android.util.Log

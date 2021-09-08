@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintJavascriptInterfaceInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintJavascriptInterfaceInspection
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface

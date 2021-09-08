@@ -22,7 +22,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.ResValue;
-import com.android.tools.idea.lint.AndroidLintIdeIssueRegistry;
 import com.android.tools.idea.lint.common.LintBatchResult;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeRequest;
@@ -289,7 +288,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = client.createDriver(request, new AndroidLintIdeIssueRegistry());
+      LintDriver lint = client.createDriver(request, LintIdeSupport.get().getIssueRegistry());
       lint.analyze();
     }
     finally {

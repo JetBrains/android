@@ -363,7 +363,7 @@ fun AndroidPluginInfo.maybeRecommendPluginUpgrade(project: Project) {
 }
 
 @Slow
-internal fun Project.findPluginInfo() : AndroidPluginInfo? {
+fun Project.findPluginInfo() : AndroidPluginInfo? {
   val pluginInfo = AndroidPluginInfo.find(this)
   if (pluginInfo == null) {
     LOG.warn("Unable to obtain application's Android Project")

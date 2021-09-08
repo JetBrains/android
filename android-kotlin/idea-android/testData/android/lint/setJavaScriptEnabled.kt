@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintSetJavaScriptEnabledInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintSetJavaScriptEnabledInspection
 
 import android.annotation.SuppressLint
 import android.app.Activity

@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.motion;
 
 import static com.android.SdkConstants.DOT_XML;
 
-import com.android.tools.idea.lint.AndroidLintMotionSceneFileValidationErrorInspection;
+import com.android.tools.idea.lint.inspections.AndroidLintMotionSceneFileValidationErrorInspection;
 import com.android.tools.idea.lint.common.LintExternalAnnotator;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.AndroidDomTestCase;

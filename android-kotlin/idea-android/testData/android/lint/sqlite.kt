@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintSQLiteStringInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.common.AndroidLintSQLiteStringInspection
 
 import android.database.sqlite.SQLiteDatabase
 

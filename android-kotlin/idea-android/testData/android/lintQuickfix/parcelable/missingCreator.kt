@@ -1,5 +1,5 @@
 // INTENTION_TEXT: Add Parcelable Implementation
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintParcelCreatorInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import android.os.Parcel
 import android.os.Parcelable
 

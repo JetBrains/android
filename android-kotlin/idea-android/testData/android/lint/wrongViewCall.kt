@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintWrongCallInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintWrongCallInspection
 
 import android.content.Context
 import android.graphics.Canvas

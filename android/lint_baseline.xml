@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.1.0-dev">
+<issues format="5" by="lint 7.2.0-dev">
 
     <issue
         id="SimpleDateFormat"
@@ -366,7 +366,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/wizard/WizardConstants.java"
-            line="47"/>
+            line="46"/>
     </issue>
 
     <issue
@@ -382,7 +382,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/output/BuildOutputParserWrapper.kt"
-            line="41"/>
+            line="42"/>
     </issue>
 
     <issue
@@ -470,7 +470,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="353"/>
+            line="352"/>
     </issue>
 
     <issue
@@ -526,7 +526,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="827"/>
+            line="830"/>
     </issue>
 
     <issue

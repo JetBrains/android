@@ -23,7 +23,6 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.lint.AndroidLintIdeIssueRegistry;
 import com.android.tools.idea.lint.common.LintBatchResult;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeRequest;
@@ -221,7 +220,7 @@ class MigrateToAppCompatUtil {
         }
       };
       request.setScope(Scope.JAVA_FILE_SCOPE);
-      client.createDriver(request, new AndroidLintIdeIssueRegistry()).analyze();
+      client.createDriver(request, LintIdeSupport.get().getIssueRegistry()).analyze();
     }
     finally {
       AppCompatCustomViewDetector.ISSUE.setEnabledByDefault(detectorWasEnabled);

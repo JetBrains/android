@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintParcelCreatorInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 
 @file:Suppress("UsePropertyAccessSyntax", "UNUSED_VARIABLE", "unused", "UNUSED_PARAMETER", "DEPRECATION")
 import android.os.Parcel

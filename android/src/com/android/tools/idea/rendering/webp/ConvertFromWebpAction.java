@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.webp;
 
 
-import com.android.tools.idea.lint.AndroidLintWebpUnsupportedInspection;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -140,7 +139,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
             }
           }
           catch (IOException e) {
-            Logger.getInstance(AndroidLintWebpUnsupportedInspection.class).warn(e.getMessage());
+            Logger.getInstance(ConvertFromWebpAction.class).warn(e.getMessage());
           }
         }
       });

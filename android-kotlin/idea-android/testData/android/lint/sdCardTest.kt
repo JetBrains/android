@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintSdCardPathInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 
 import java.io.File
 import android.content.Intent

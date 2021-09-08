@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintViewHolderInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintViewHolderInspection
 
 @file:Suppress("NAME_SHADOWING", "unused", "UNUSED_VALUE", "VARIABLE_WITH_REDUNDANT_INITIALIZER", "UNUSED_VARIABLE")
 

@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintMissingSuperCallInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.common.AndroidLintMissingSuperCallInspection
 
 package android.support.annotation
 

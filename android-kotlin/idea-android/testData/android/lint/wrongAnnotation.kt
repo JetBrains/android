@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintLocalSuppressInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.common.AndroidLintLocalSuppressInspection
 
 import android.annotation.SuppressLint
 import android.view.View

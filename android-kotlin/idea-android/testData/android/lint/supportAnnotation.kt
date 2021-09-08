@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintSupportAnnotationUsageInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.common.AndroidLintSupportAnnotationUsageInspection
 // DEPENDENCY: IntRange.java -> android/support/annotation/IntRange.java
 // DEPENDENCY: RequiresPermission.java -> android/support/annotation/RequiresPermission.java
 

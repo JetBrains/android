@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintOverrideAbstractInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintOverrideAbstractInspection
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi

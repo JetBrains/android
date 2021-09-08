@@ -145,6 +145,7 @@
     <orderEntry type="module" module-name="android.sdktools.common.testfixtures" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-gradle-java" level="project" />
     <orderEntry type="module" module-name="android.sdktools.deployer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

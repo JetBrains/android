@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintCommitTransactionInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintCommitTransactionInspection
 
 @file:Suppress("UNUSED_VARIABLE")
 
