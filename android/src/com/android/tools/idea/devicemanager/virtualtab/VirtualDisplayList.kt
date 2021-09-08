@@ -107,6 +107,7 @@ class VirtualDisplayList @TestOnly constructor(
 
     map.put("deleteAvd", DeleteAvdAction(this, false))
     map.put("selectNextColumn", SelectNextColumnAction())
+    map.put("selectNextColumnCell", SelectNextColumnCellAction())
     map.put("selectPreviousColumn", SelectPreviousColumnAction())
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
