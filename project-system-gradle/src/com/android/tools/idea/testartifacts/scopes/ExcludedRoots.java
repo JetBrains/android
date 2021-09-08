@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class ExcludedRoots {
+public class ExcludedRoots {
   @NotNull private final ExcludedModules myExcludedModules;
   private final boolean myAndroidTest;
 

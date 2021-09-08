@@ -63,21 +63,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     verifyCannotCreateClassGradleRunConfigurationFromAndroidTestScope()
     verifyCannotCreateDirectoryGradleRunConfigurationFromAndroidTestDirectory()
     verifyAndroidGradleTestTasksProviderDoesntCreateTestTasksForJavaModule()
-  }
-
-  @Throws(Exception::class)
-  //TODO(b/194634663): enable this test once the bug is fixed.
-  fun ignored_testCanCreateGradleConfigurationFromTestDirectory() {
-    loadSimpleApplication()
-    TestCase.assertNotNull(createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java"))
-  }
-
-  @Throws(Exception::class)
-  //TODO(b/194634663): enable this test once the bug is fixed.
-  fun ignored_testCanCreateGradleConfigurationFromTestDirectoryKotlin() {
-    loadProject(TEST_ARTIFACTS_KOTLIN)
-    TestCase.assertNotNull(createAndroidGradleConfigurationFromDirectory(
-      project, "app/src/test/java"))
+    verifyCanCreateGradleConfigurationFromTestDirectory()
   }
 
   @Throws(Exception::class)
@@ -85,6 +71,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_ARTIFACTS_KOTLIN)
     verifyCannotCreateGradleConfigurationFromAndroidTestDirectory()
     verifyCannotCreateKotlinClassGradleConfigurationFromAndroidTestScope()
+    verifyCanCreateGradleConfigurationFromTestDirectoryKotlin()
   }
 
   @Throws(Exception::class)
@@ -170,7 +157,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val androidGradleTestTasksProvider = GradleTestTasksProvider.EP_NAME.extensions.filterIsInstance<AndroidGradleTestTasksProvider>().first()
     TestCase.assertNotNull(androidGradleTestTasksProvider)
 
-    TestCase.assertEquals(configuration!!.settings.taskNames, androidGradleTestTasksProvider.getTasks(module2, file))
+    TestCase.assertEquals(configuration!!.settings.taskNames, listOf(":module2:testDebugUnitTest"))
   }
   
   private fun verifyCannotCreateGradleConfigurationFromAndroidTestDirectory() {
@@ -235,5 +222,19 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
         "kotlinMultiPlatform.module2"
       )
     }
+  }
+
+  private fun verifyCanCreateGradleConfigurationFromTestDirectory() {
+    val gradleRunConfiguration = createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java")
+    val testTaskNames = gradleRunConfiguration?.settings?.taskNames
+    TestCase.assertTrue(testTaskNames != null && testTaskNames.size == 1)
+    TestCase.assertTrue(testTaskNames?.single() == ":app:testDebugUnitTest")
+  }
+
+  private fun verifyCanCreateGradleConfigurationFromTestDirectoryKotlin() {
+    val gradleRunConfiguration = createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java")
+    val testTaskNames = gradleRunConfiguration?.settings?.taskNames
+    TestCase.assertTrue(testTaskNames != null && testTaskNames.size == 1)
+    TestCase.assertTrue(testTaskNames?.single() == ":app:testDebugUnitTest")
   }
 }

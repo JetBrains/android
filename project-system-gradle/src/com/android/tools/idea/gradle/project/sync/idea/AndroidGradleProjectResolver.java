@@ -37,6 +37,7 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
@@ -52,6 +53,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
+import android.annotation.SuppressLint;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
@@ -63,8 +65,10 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
@@ -94,6 +98,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
+import com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
@@ -123,6 +128,7 @@ import com.intellij.openapi.externalSystem.model.project.LibraryPathType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.project.TestData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
@@ -138,7 +144,6 @@ import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -462,6 +467,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       }
     }
 
+    // Setup testData nodes for testing sources used by Gradle test runners.
+    if (androidModel != null) {
+      createAndSetupTestDataNode(moduleNode, androidModel);
+    }
+
     // Ensure the kapt module is stored on the datanode so that dependency setup can use it
     moduleNode.putUserData(AndroidGradleProjectResolverKeys.KAPT_GRADLE_MODEL_KEY, kaptGradleModel);
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
@@ -548,6 +558,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                      ideModels.getAndroidProject(),
                                      ideModels.getFetchedVariants(),
                                      ideModels.getSelectedVariantName());
+  }
+
+  @SuppressLint("NewApi")
+  private void createAndSetupTestDataNode(@NotNull DataNode<ModuleData> moduleDataNode,
+                                          @NotNull AndroidModuleModel androidModuleModel) {
+    // TODO(b/205094187): We can also do setUp androidTest tasks from here and they will then be shown as an option when right clicking run tests.
+    // Get the unit test task for the current module.
+    String testTaskName = AndroidGradleTestTasksProvider.getTasksFromAndroidModuleData(androidModuleModel);
+    Set<String> sourceFolders = new HashSet<>();
+    for (IdeSourceProvider sourceProvider : androidModuleModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
+      for (File sourceFolder : getAllSourceFolders(sourceProvider)) {
+        sourceFolders.add(sourceFolder.getPath());
+      }
+    }
+    TestData testData = new TestData(GradleConstants.SYSTEM_ID, testTaskName, testTaskName, sourceFolders);
+    moduleDataNode.createChild(ProjectKeys.TEST, testData);
   }
 
   private void createAndSetupGradleSourceSetDataNode(@NotNull DataNode<ModuleData> parentDataNode,
