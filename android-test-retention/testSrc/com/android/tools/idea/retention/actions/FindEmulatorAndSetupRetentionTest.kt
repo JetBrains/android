@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.retention.actions
 
+import com.android.prefs.AndroidLocationsSingleton
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnMac
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorController
@@ -24,10 +30,12 @@ import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
 import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -35,27 +43,29 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.nio.file.Files
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.doReturn
+import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@Ignore("b/156983404")
+@IgnoreWithCondition(reason = "b/156983404", condition = OnMac::class)
 @RunsInEdt
 class FindEmulatorAndSetupRetentionTest {
-  private val projectRule = ProjectRule()
+  private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
   lateinit var tempFolder: Path
-  lateinit var snapshotFile: Path
+  lateinit var snapshotFile: File
   lateinit var emulator: FakeEmulator
   lateinit var dataContext: DataContext
   lateinit var parentDataContext : DataContext
@@ -65,9 +75,9 @@ class FindEmulatorAndSetupRetentionTest {
   @Before
   fun setUp() {
     tempFolder = emulatorRule.root
-    snapshotFile = emulatorRule.newPath()
-    Files.writeString(snapshotFile, "file content")
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    snapshotFile = File(tempFolder.resolve("snapshot.tar").toUri())
+    snapshotFile.writeText("file content")
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(AndroidLocationsSingleton.avdLocation))
 
     parentDataContext = DataContext { projectRule.project }
     dataContext = object : DataContext {
@@ -94,6 +104,9 @@ class FindEmulatorAndSetupRetentionTest {
         }
         if (dataId == IS_MANAGED_DEVICE.name) {
           return false
+        }
+        if (dataId == EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name) {
+          return null
         }
         return parentDataContext.getData(dataId)
       }
@@ -122,12 +135,16 @@ class FindEmulatorAndSetupRetentionTest {
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call
 
     val anActionEvent = AnActionEvent(null, dataContext,
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
-    val action = FindEmulatorAndSetupRetention()
+    val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
+      val mockAvdManager = mock<AvdManager>()
+      doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
+      doReturn(true).`when`(mockAvdManager).isAvdRunning(any(), any())
+      mockAvdManager
+    }
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message

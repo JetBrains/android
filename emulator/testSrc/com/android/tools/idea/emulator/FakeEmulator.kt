@@ -660,7 +660,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun pushSnapshot(responseObserver: StreamObserver<SnapshotPackage>): StreamObserver<SnapshotPackage> {
       return object : EmptyStreamObserver<SnapshotPackage>() {
         override fun onCompleted() {
-          sendDefaultSnapshotPackage(responseObserver)
+          sendResponse(responseObserver, SnapshotPackage.newBuilder().setSuccess(true).build())
         }
       }
     }
@@ -670,10 +670,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         createSnapshot(request.snapshotId)
         sendResponse(responseObserver, SnapshotPackage.newBuilder().setSuccess(true).build())
       }
-    }
-
-    private fun sendDefaultSnapshotPackage(responseObserver: StreamObserver<SnapshotPackage>) {
-      sendResponse(responseObserver, SnapshotPackage.getDefaultInstance())
     }
   }
 

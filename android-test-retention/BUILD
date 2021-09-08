@@ -23,6 +23,7 @@ iml_module(
 iml_module(
     name = "intellij.android.testRetention.tests",
     iml_files = ["intellij.android.testRetention.tests.iml"],
+    test_data = ["//tools/adt/idea/artwork:device-art-resources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -36,5 +37,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
