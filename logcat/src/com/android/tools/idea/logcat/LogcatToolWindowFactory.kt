@@ -19,12 +19,15 @@ import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.util.text.UniqueNameGenerator
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.Locale.ROOT
 import javax.swing.JComponent
@@ -48,17 +51,19 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 private fun printFakeLogs(it: LogcatMainPanel) {
   val random = Random(0)
   val loremGenerator = LoremGenerator()
-  for (logLevel in Log.LogLevel.values()) {
-    val messages = mutableListOf<LogCatMessage>()
-    for (t in 1..10) {
-      val tag = loremGenerator.generateTag(random.nextInt(1, 3))
-      val appName = loremGenerator.generateAppName(random.nextInt(2, 3))
-      for (line in 1..random.nextInt(5)) {
-        val message = loremGenerator.generate(random.nextInt(5, 12), false)
-        messages.add(LogCatMessage(LogCatHeader(logLevel, 1324, 5454, appName.take(appName.length - 1), tag, Instant.now()), message))
+  AndroidCoroutineScope(it, ioThread).launch {
+    for (logLevel in Log.LogLevel.values()) {
+      val messages = mutableListOf<LogCatMessage>()
+      for (t in 1..10) {
+        val tag = loremGenerator.generateTag(random.nextInt(1, 3))
+        val appName = loremGenerator.generateAppName(random.nextInt(2, 3))
+        for (line in 1..random.nextInt(5)) {
+          val message = loremGenerator.generate(random.nextInt(5, 12), false)
+          messages.add(LogCatMessage(LogCatHeader(logLevel, 1324, 5454, appName.take(appName.length - 1), tag, Instant.now()), message))
+        }
       }
+      it.appendMessages(messages)
     }
-    it.appendMessages(messages)
   }
 }
 

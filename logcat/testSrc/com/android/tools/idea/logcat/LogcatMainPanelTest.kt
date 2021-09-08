@@ -21,6 +21,7 @@ import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
@@ -32,9 +33,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -53,21 +58,21 @@ import javax.swing.JPopupMenu
 /**
  * Tests for [LogcatMainPanel]
  */
-@RunsInEdt
+@ExperimentalCoroutinesApi
 class LogcatMainPanelTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule())
 
   private lateinit var logcatMainPanel: LogcatMainPanel
 
   @After
   fun tearDown() {
-    logcatMainPanel.dispose()
+    runInEdtAndWait(logcatMainPanel::dispose)
   }
 
+  @RunsInEdt
   @Test
   fun createsComponents() {
     logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
@@ -79,6 +84,7 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
   }
 
+  @RunsInEdt
   @Test
   fun setsUpEditor() {
     logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
@@ -98,6 +104,7 @@ class LogcatMainPanelTest {
     assertThat(editorSettings.isShowingSpecialChars).isFalse()
   }
 
+  @RunsInEdt
   @Test
   fun setsDocumentCyclicBuffer() {
     // Set a buffer of 1k
@@ -115,24 +122,32 @@ class LogcatMainPanelTest {
 
   /**
    * Basic test of print. Comprehensive tests of the underlying print() code are in [LogcatDocumentPrinterTest]
+   *
+   * This test can't run in the EDT because it depends on coroutines that are launched in the UI Thread and need to be able to wait for them
+   * to complete. If it runs in the EDT, it cannot wait for these tasks to execute.
    */
   @Test
-  fun appendMessages() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+  fun appendMessages() = runBlocking {
+    runInEdtAndWait {
+      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+    }
 
     logcatMainPanel.appendMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
       LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
     ))
 
-    assertThat(logcatMainPanel.editor.document.text).isEqualTo(
-      """
+    logcatMainPanel.documentPrinter.onIdle {
+      assertThat(logcatMainPanel.editor.document.text).isEqualTo(
+        """
         1970-01-01 04:00:01.000      1-2      tag1 app1 W message1
         1970-01-01 04:00:01.000      1-2      tag2 app2 I message2
 
       """.trimIndent())
+    }
   }
 
+  @RunsInEdt
   @Test
   fun installPopupHandler() {
     val popupActionGroup = SimpleActionGroup().apply {
