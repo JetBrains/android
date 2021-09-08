@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerConfiguration;
-import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -36,7 +34,6 @@ import static com.google.common.base.Strings.nullToEmpty;
  * Configuration page for Gradle compiler settings.
  */
 public class GradleCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
-  private final CompilerWorkspaceConfiguration myCompilerWorkspaceConfiguration;
   private final CompilerConfiguration myCompilerConfiguration;
   private final AndroidGradleBuildConfiguration myBuildConfiguration;
 
@@ -47,8 +44,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
 
-  private JCheckBox myAutoMakeCheckBox;
-
   private RawCommandLineEditor myCommandLineOptionsEditor;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
@@ -58,7 +53,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
     myDisplayName = displayName;
-    myCompilerWorkspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myCompilerConfiguration = CompilerConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
   }
@@ -90,7 +84,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public boolean isModified() {
     return myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled() ||
-           myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.CONTINUE_FAILED_BUILD != isContinueWithFailuresEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
@@ -100,17 +93,12 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     if (myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled()) {
       myCompilerConfiguration.setParallelCompilationEnabled(isParallelBuildsEnabled());
     }
-    myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
     myBuildConfiguration.CONTINUE_FAILED_BUILD = isContinueWithFailuresEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
     return myParallelBuildCheckBox.isSelected();
-  }
-
-  private boolean isAutoMakeEnabled() {
-    return myAutoMakeCheckBox.isSelected();
   }
 
   private boolean isContinueWithFailuresEnabled() {
@@ -125,10 +113,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.isParallelCompilationEnabled());
-    myAutoMakeCheckBox.setSelected(myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE);
-    myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
-                               (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
-                               ")");
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myContinueBuildWithErrors.setSelected(myBuildConfiguration.CONTINUE_FAILED_BUILD);
     myCommandLineOptionsEditor.setText(commandLineOptions);

@@ -1116,15 +1116,6 @@
     <option name="continue" hit="Continue the build after failures" />
     <option name="failures" hit="Continue the build after failures" />
     <option name="the" hit="Continue the build after failures" />
-    <option name="automatically" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="debugging" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="make" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="not" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="only" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="project" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="running" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="while" hit="Make project automatically (only works while not running / debugging)" />
-    <option name="works" hit="Make project automatically (only works while not running / debugging)" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="" hit="  Note:  These settings are for features that are considered  experimental . " />
