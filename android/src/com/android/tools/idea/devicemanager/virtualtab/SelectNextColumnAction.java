@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -43,19 +42,10 @@ final class SelectNextColumnAction extends AbstractAction {
 
         break;
       case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
-        selectNextAvdActionPanelComponent(((ActionRenderer)table.getCellEditor()).getComponent());
+        AvdActionPanels.selectNextComponent(((ActionRenderer)table.getCellEditor()).getComponent());
         break;
       default:
         assert false;
-    }
-  }
-
-  private static void selectNextAvdActionPanelComponent(@NotNull AvdActionPanel panel) {
-    int i = panel.getFocusedComponent() + 1;
-
-    if (i < panel.getVisibleComponentCount()) {
-      panel.setFocusedComponent(i);
-      panel.repaint();
     }
   }
 }
