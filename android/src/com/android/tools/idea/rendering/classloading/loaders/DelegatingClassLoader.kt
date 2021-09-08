@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import org.jetbrains.org.objectweb.asm.ClassReader
+
 
 /**
  * A [DelegatingClassLoader.Loader] that has a static mapping of the FQCN and the byte array representation.
@@ -48,13 +50,19 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
     fun loadClass(fqcn: String): ByteArray?
   }
 
+  /**
+   * Cache of the classes that were renamed during [findClass]. This allows [loadClass] to ask for the renamed name directly
+   * in future calls.
+   */
+  private val renamedClasses = mutableMapOf<String, String>()
+
   @Throws(ClassNotFoundException::class)
   final override fun loadClass(name: String): Class<*> {
     onBeforeLoadClass(name)
     val start = System.currentTimeMillis()
     var loaded = false
     try {
-      val clazz = super.loadClass(name)
+      val clazz = super.loadClass(renamedClasses[name] ?: name)
       loaded = true
       return clazz
     }
@@ -72,7 +80,24 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
       val bytes = loader.loadClass(name)
                   ?: throw ClassNotFoundException(name)
 
-      val clazz = defineClass(name, bytes, 0, bytes.size)
+      val redefinedName = ClassReader(bytes).className.replace('/', '.')
+      if (name != redefinedName) {
+        renamedClasses[name] = redefinedName
+        // The class was renamed during the loading transformations, check if we had already loaded the transformed version.
+        // This can happen if the user code is using reflection. In those cases, we might load a transformed class when initializing the code
+        // so class A loads class _renamed_.B during A initialization.
+        //
+        // If the user code invokes Class.forName("B"), loadClass will not find it as loaded and will invoke findClass. Here, we will
+        // reload the class from disk, and will notice the class is supposed to be named "_renamed_.B".
+        // We save the mapping from B to _renamed_.B in renamedClasses so, in a future invocation we do not get past loadClass.
+        val redefinedClass = findLoadedClass(redefinedName)
+        if (redefinedClass != null) {
+          found = true
+          return redefinedClass
+        }
+      }
+
+      val clazz = defineClass(ClassReader(bytes).className.replace('/', '.'), bytes, 0, bytes.size)
       found = true
       return clazz
     }

@@ -11,6 +11,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
+import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
@@ -145,7 +146,11 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
                             @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(
       new LibraryResourceClassLoader(
-        new FirewalledResourcesClassLoader(parent), renderContext.getModule()), loader);
+        new FirewalledResourcesClassLoader(
+          // Do not allow to load kotlin standard library from the plugin class loader since it can lead to
+          // a version mismatch.
+          FilteringClassLoader.disallowedPrefixes(parent, PACKAGES_TO_RENAME)),
+        renderContext.getModule()), loader);
 
     myParentAtConstruction = parent;
     myImpl = loader;
