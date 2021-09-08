@@ -32,7 +32,7 @@ import java.io.File
 
 class SetSdkDirHyperlink(
   val project: Project,
-  @VisibleForTesting val localPropertiesPaths: List<String>
+  @get:VisibleForTesting val localPropertiesPaths: List<String>
 ) : NotificationHyperlink("set.sdkdir", "Set sdk.dir in local.properties and sync project") {
   companion object {
     private const val SDK_DIR_UNDO_NAME = "Setup Sdk Location"

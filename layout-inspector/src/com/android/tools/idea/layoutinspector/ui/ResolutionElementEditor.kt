@@ -52,7 +52,7 @@ private const val LINK_BORDER = 2
  */
 class ResolutionElementEditor(
   private val model: ResolutionStackModel,
-  @VisibleForTesting
+  @get:VisibleForTesting
   val editorModel: PropertyEditorModel,
   editor: JComponent
 ) : JPanel(BorderLayout()) {
