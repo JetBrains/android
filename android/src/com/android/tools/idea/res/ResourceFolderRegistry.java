@@ -137,22 +137,22 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
-    Set<VirtualFile> resourceFolders = cache.asMap().keySet();
-    if (resourceFolders.isEmpty()) {
+    Map<VirtualFile, ResourceFolderRepository> cacheAsMap = cache.asMap();
+    if (cacheAsMap.isEmpty()) {
       return;
     }
-    Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(resourceFolders.size());
-    Set<VirtualFile> newResourceFolders = Sets.newHashSetWithExpectedSize(resourceFolders.size());
-    for (VirtualFile folder : resourceFolders) {
-      AndroidFacet facet = AndroidFacet.getInstance(folder, myProject);
-      if (facet != null && facets.add(facet)) {
+    Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
+    Set<VirtualFile> newResourceFolders = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
+    for (ResourceFolderRepository repository : cacheAsMap.values()) {
+      AndroidFacet facet = repository.getFacet();
+      if (!facet.isDisposed() && facets.add(facet)) {
         ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
         newResourceFolders.addAll(folderManager.getFolders());
         newResourceFolders.addAll(folderManager.getTestFolders());
       }
     }
 
-    resourceFolders.retainAll(newResourceFolders);
+    cacheAsMap.keySet().retainAll(newResourceFolders);
   }
 
   @Override
