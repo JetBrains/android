@@ -23,16 +23,18 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
 
-final class SelectPreviousColumnAction extends AbstractAction {
+final class SelectPreviousColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
     JTable table = (JTable)event.getSource();
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
 
+    AvdActionPanel panel;
+
     switch (viewColumnIndex) {
       case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
-        AvdActionPanel panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+        panel = ((ActionRenderer)table.getCellEditor()).getComponent();
 
         if (panel.getFocusedComponent() != 0) {
           AvdActionPanels.selectPreviousComponent(panel);
@@ -48,9 +50,27 @@ final class SelectPreviousColumnAction extends AbstractAction {
         model.setLeadSelectionIndex(viewColumnIndex - 1);
         break;
       case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
+        selectPreviousRow(table);
+        model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
+
+        table.editCellAt(table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
+
+        panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+        panel.setFocusedComponent(panel.getVisibleComponentCount() - 1);
+
         break;
       default:
         assert false;
     }
+  }
+
+  private static void selectPreviousRow(@NotNull JTable table) {
+    int viewRowIndex = table.getSelectedRow() - 1;
+
+    if (viewRowIndex < 0) {
+      viewRowIndex = table.getRowCount() - 1;
+    }
+
+    table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
   }
 }
