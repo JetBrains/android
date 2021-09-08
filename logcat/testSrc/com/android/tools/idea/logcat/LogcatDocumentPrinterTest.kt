@@ -55,45 +55,69 @@ class LogcatDocumentPrinterTest {
   private val printer by lazy { LogcatDocumentPrinter(projectRule.project, document, logcatColors, ZoneId.of("Asia/Yerevan")) }
 
   @Test
-  fun print_alignment() {
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 12345, 12345, "app", "tag", timestamp), "message"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 12345, 12345, "long app", "tag", timestamp), "message"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 12345, 12345, "app", "long tag", timestamp), "message"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 12345, 12345, "long app", "long tag", timestamp), "message"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"))
+  fun appendMessages_multipleBatches() {
+    printer.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
+    ))
+    printer.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag1", timestamp), "message1"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", timestamp), "message2"),
+    ))
 
     assertThat(document.text).isEqualTo("""
-    1970-01-01 04:00:01.000      1-2      tag app W message
-    1970-01-01 04:00:01.000  12345-12345      app W message
-    1970-01-01 04:00:01.000  12345-12345      long app W message
-    1970-01-01 04:00:01.000  12345-12345  long tag app      W message
-    1970-01-01 04:00:01.000  12345-12345           long app W message
-    1970-01-01 04:00:01.000      1-2      tag      app      W message
+      1970-01-01 04:00:01.000      1-2      tag1 app1 W message1
+      1970-01-01 04:00:01.000      1-2      tag2 app1 W message2
+      1970-01-01 04:00:01.000      1-2      tag1 app2 W message1
+      1970-01-01 04:00:01.000      1-2      tag2 app2 W message2
 
     """.trimIndent())
   }
 
   @Test
-  fun print_omitSameTag() {
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message1"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message2"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message3"))
-    printer.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag2", timestamp), "message4"))
+  fun appendMessages_alignment() {
+    printer.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"),
+      LogCatMessage(LogCatHeader(WARN, 12345, 12345, "app", "tag", timestamp), "message"),
+      LogCatMessage(LogCatHeader(WARN, 12345, 12345, "long app", "tag", timestamp), "message"),
+      LogCatMessage(LogCatHeader(WARN, 12345, 12345, "app", "long tag", timestamp), "message"),
+      LogCatMessage(LogCatHeader(WARN, 12345, 12345, "long app", "long tag", timestamp), "message"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"),
+    ))
 
     assertThat(document.text).isEqualTo("""
-    1970-01-01 04:00:01.000      1-2      tag1 app W message1
-    1970-01-01 04:00:01.000      1-2           app W message2
-    1970-01-01 04:00:01.000      1-2           app W message3
-    1970-01-01 04:00:01.000      1-2      tag2 app W message4
+      1970-01-01 04:00:01.000      1-2      tag app W message
+      1970-01-01 04:00:01.000  12345-12345      app W message
+      1970-01-01 04:00:01.000  12345-12345      long app W message
+      1970-01-01 04:00:01.000  12345-12345  long tag app      W message
+      1970-01-01 04:00:01.000  12345-12345           long app W message
+      1970-01-01 04:00:01.000      1-2      tag      app      W message
 
     """.trimIndent())
   }
 
   @Test
-  fun print_levelColors() {
+  fun appendMessages_omitSameTag() {
+    printer.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message1"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message2"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message3"),
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag2", timestamp), "message4"),
+    ))
+
+    assertThat(document.text).isEqualTo("""
+      1970-01-01 04:00:01.000      1-2      tag1 app W message1
+      1970-01-01 04:00:01.000      1-2           app W message2
+      1970-01-01 04:00:01.000      1-2           app W message3
+      1970-01-01 04:00:01.000      1-2      tag2 app W message4
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun appendMessages_levelColors() {
     for (level in LogLevel.values()) {
-      printer.print(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", timestamp), "message"))
+      printer.appendMessages(listOf(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", timestamp), "message")))
     }
 
     val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)
@@ -112,11 +136,11 @@ class LogcatDocumentPrinterTest {
   }
 
   @Test
-  fun print_tagColors() {
+  fun appendMessages_tagColors() {
     // Print with 10 different tags and then assert that there are 10 highlight ranges corresponding to the tags with the proper color.
     val numTags = 10
     for (t in 1..numTags) {
-      printer.print(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "tag$t", timestamp), "message"))
+      printer.appendMessages(listOf(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "tag$t", timestamp), "message")))
     }
 
     val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)

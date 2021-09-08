@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
@@ -116,12 +117,20 @@ class LogcatMainPanelTest {
    * Basic test of print. Comprehensive tests of the underlying print() code are in [LogcatDocumentPrinterTest]
    */
   @Test
-  fun print() {
+  fun appendMessages() {
     logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
 
-    logcatMainPanel.print(LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", Instant.ofEpochMilli(1000)), "message"))
+    logcatMainPanel.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
 
-    assertThat(logcatMainPanel.editor.document.text).isEqualTo("1970-01-01 04:00:01.000      1-2      tag app W message\n")
+    assertThat(logcatMainPanel.editor.document.text).isEqualTo(
+      """
+        1970-01-01 04:00:01.000      1-2      tag1 app1 W message1
+        1970-01-01 04:00:01.000      1-2      tag2 app2 I message2
+
+      """.trimIndent())
   }
 
   @Test

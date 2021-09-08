@@ -75,7 +75,7 @@ internal class LogcatMainPanel(
     UndoUtil.disableUndoFor(document)
     val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
 
-    editor.installPopupHandler(object :ContextMenuPopupHandler() {
+    editor.installPopupHandler(object : ContextMenuPopupHandler() {
       override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
     })
 
@@ -100,8 +100,8 @@ internal class LogcatMainPanel(
   }
 
   @UiThread
-  internal fun print(message: LogCatMessage) {
-    documentPrinter.print(message)
+  internal fun appendMessages(messages: List<LogCatMessage>) {
+    documentPrinter.appendMessages(messages)
   }
 
   override fun dispose() {
