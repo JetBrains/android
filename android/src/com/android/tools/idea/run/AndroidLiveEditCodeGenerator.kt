@@ -104,9 +104,10 @@ class AndroidLiveEditCodeGenerator {
           }
 
           // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
+          val internalClassName = className.replace(".", "/") + ".class"
           for (c in classes) {
-            for (m in methods) {
-              if (c.relativePath.contains(className.replace(".", "/") + ".class")) {
+            if (c.relativePath.contains(internalClassName)) {
+              for (m in methods) {
                 var clazz = className;
                 var method = methodSignature;
                 var data = c.asByteArray();
