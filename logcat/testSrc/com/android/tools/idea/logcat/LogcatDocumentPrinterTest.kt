@@ -24,6 +24,7 @@ import com.android.ddmlib.Log.LogLevel.VERBOSE
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -31,7 +32,9 @@ import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.RuleChain
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
@@ -42,20 +45,22 @@ private val timestamp = Instant.ofEpochMilli(1000)
 /**
  * Tests for [LogcatDocumentPrinter]
  */
-@RunsInEdt
+@ExperimentalCoroutinesApi
 class LogcatDocumentPrinterTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule())
 
   private val logcatColors = LogcatColors()
   private val document by lazy { (EditorFactory.getInstance() as EditorFactoryImpl).createDocument(true) }
-  private val printer by lazy { LogcatDocumentPrinter(projectRule.project, document, logcatColors, ZoneId.of("Asia/Yerevan")) }
+  private val printer by lazy {
+    LogcatDocumentPrinter(projectRule.project, projectRule.project, document, logcatColors, ZoneId.of("Asia/Yerevan"))
+  }
+  private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, false) }
 
   @Test
-  fun appendMessages_multipleBatches() {
+  fun appendMessages_multipleBatches() = runBlocking {
     printer.appendMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
@@ -65,17 +70,19 @@ class LogcatDocumentPrinterTest {
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", timestamp), "message2"),
     ))
 
-    assertThat(document.text).isEqualTo("""
+    printer.onIdle {
+      assertThat(document.text).isEqualTo("""
       1970-01-01 04:00:01.000      1-2      tag1 app1 W message1
       1970-01-01 04:00:01.000      1-2      tag2 app1 W message2
       1970-01-01 04:00:01.000      1-2      tag1 app2 W message1
       1970-01-01 04:00:01.000      1-2      tag2 app2 W message2
 
     """.trimIndent())
+    }
   }
 
   @Test
-  fun appendMessages_alignment() {
+  fun appendMessages_alignment() = runBlocking {
     printer.appendMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"),
       LogCatMessage(LogCatHeader(WARN, 12345, 12345, "app", "tag", timestamp), "message"),
@@ -85,7 +92,8 @@ class LogcatDocumentPrinterTest {
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag", timestamp), "message"),
     ))
 
-    assertThat(document.text).isEqualTo("""
+    printer.onIdle {
+      assertThat(document.text).isEqualTo("""
       1970-01-01 04:00:01.000      1-2      tag app W message
       1970-01-01 04:00:01.000  12345-12345      app W message
       1970-01-01 04:00:01.000  12345-12345      long app W message
@@ -94,10 +102,11 @@ class LogcatDocumentPrinterTest {
       1970-01-01 04:00:01.000      1-2      tag      app      W message
 
     """.trimIndent())
+    }
   }
 
   @Test
-  fun appendMessages_omitSameTag() {
+  fun appendMessages_omitSameTag() = runBlocking {
     printer.appendMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag1", timestamp), "message2"),
@@ -105,51 +114,55 @@ class LogcatDocumentPrinterTest {
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app", "tag2", timestamp), "message4"),
     ))
 
-    assertThat(document.text).isEqualTo("""
+    printer.onIdle {
+      assertThat(document.text).isEqualTo("""
       1970-01-01 04:00:01.000      1-2      tag1 app W message1
       1970-01-01 04:00:01.000      1-2           app W message2
       1970-01-01 04:00:01.000      1-2           app W message3
       1970-01-01 04:00:01.000      1-2      tag2 app W message4
 
     """.trimIndent())
+    }
   }
 
   @Test
-  fun appendMessages_levelColors() {
+  fun appendMessages_levelColors(): Unit = runBlocking {
     for (level in LogLevel.values()) {
       printer.appendMessages(listOf(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", timestamp), "message")))
     }
 
-    val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)
-    // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = markupModel.allHighlighters.filter { getRangeText(it).matches(" [VDIWEA] ".toRegex()) }
-      .associate { getRangeText(it).trim() to it.getTextAttributes(null) }
+    printer.onIdle {
+      // Filter the ranges corresponding to a LogLevel and build a map level -> color.
+      val textAttributes = markupModel.allHighlighters.filter { getRangeText(it).matches(" [VDIWEA] ".toRegex()) }
+        .associate { getRangeText(it).trim() to it.getTextAttributes(null) }
 
-    assertThat(textAttributes).containsExactly(
-      "V", logcatColors.getLogLevelColor(VERBOSE),
-      "D", logcatColors.getLogLevelColor(DEBUG),
-      "I", logcatColors.getLogLevelColor(INFO),
-      "W", logcatColors.getLogLevelColor(WARN),
-      "E", logcatColors.getLogLevelColor(ERROR),
-      "A", logcatColors.getLogLevelColor(ASSERT),
-    )
+      assertThat(textAttributes).containsExactly(
+        "V", logcatColors.getLogLevelColor(VERBOSE),
+        "D", logcatColors.getLogLevelColor(DEBUG),
+        "I", logcatColors.getLogLevelColor(INFO),
+        "W", logcatColors.getLogLevelColor(WARN),
+        "E", logcatColors.getLogLevelColor(ERROR),
+        "A", logcatColors.getLogLevelColor(ASSERT),
+      )
+    }
   }
 
   @Test
-  fun appendMessages_tagColors() {
+  fun appendMessages_tagColors() = runBlocking {
     // Print with 10 different tags and then assert that there are 10 highlight ranges corresponding to the tags with the proper color.
     val numTags = 10
     for (t in 1..numTags) {
       printer.appendMessages(listOf(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "tag$t", timestamp), "message")))
     }
 
-    val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)
-    // Filter the ranges corresponding to a tag and build a map tag -> color.
-    val tagColors = markupModel.allHighlighters.filter { getRangeText(it).matches(" tag\\d+ *".toRegex()) }
-      .associate { getRangeText(it).trim() to it.getTextAttributes(null) }
-    assertThat(tagColors).hasSize(numTags)
-    tagColors.forEach { (tag, color) ->
-      assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
+    printer.onIdle {
+      // Filter the ranges corresponding to a tag and build a map tag -> color.
+      val tagColors = markupModel.allHighlighters.filter { getRangeText(it).matches(" tag\\d+ *".toRegex()) }
+        .associate { getRangeText(it).trim() to it.getTextAttributes(null) }
+      assertThat(tagColors).hasSize(numTags)
+      tagColors.forEach { (tag, color) ->
+        assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
+      }
     }
   }
 }

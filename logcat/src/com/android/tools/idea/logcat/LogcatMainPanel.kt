@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.ddms.DeviceContext
@@ -49,7 +48,8 @@ internal class LogcatMainPanel(
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
   private val deviceContext = DeviceContext()
-  private val documentPrinter = LogcatDocumentPrinter(project, editor.document, logcatColors, zoneId)
+  @VisibleForTesting
+  internal val documentPrinter = LogcatDocumentPrinter(project, this, editor.document, logcatColors, zoneId)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
 
   init {
@@ -99,8 +99,7 @@ internal class LogcatMainPanel(
     return editor
   }
 
-  @UiThread
-  internal fun appendMessages(messages: List<LogCatMessage>) {
+  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
     documentPrinter.appendMessages(messages)
   }
 

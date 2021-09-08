@@ -15,14 +15,24 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
+import org.jetbrains.annotations.TestOnly
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -41,16 +51,20 @@ private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()
   .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
   .toFormatter(Locale.ROOT)
 
+const val CHANNEL_CAPACITY = 10
+
 /**
  * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
 internal class LogcatDocumentPrinter(
   project: Project,
+  parentDisposable: Disposable,
   private val document: Document,
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId = ZoneId.systemDefault()
 ) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
+  private val channel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
   // Keeps track of the previous tag so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for app?
@@ -61,8 +75,19 @@ internal class LogcatDocumentPrinter(
   private var maxAppNameLength = 0
   private var maxTagNameLength = 0
 
-  @UiThread
-  internal fun appendMessages(messages: List<LogCatMessage>) {
+  init {
+    AndroidCoroutineScope(parentDisposable, ioThread).launch {
+      while (true) {
+        processMessages(channel.receive())
+      }
+    }
+  }
+
+  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
+    channel.send(messages)
+  }
+
+  private suspend fun processMessages(messages: List<LogCatMessage>) {
     val buffer = MessageTextBuffer()
     for (message in messages) {
       val header = message.header
@@ -83,10 +108,12 @@ internal class LogcatDocumentPrinter(
       buffer.append(" ${header.logLevel.priorityLetter} ", logcatColors.getLogLevelColor(header.logLevel))
       buffer.append("${message.message}\n")
     }
-    appendToDocument(buffer)
+
+    withContext(AndroidDispatchers.uiThread) {
+      appendToDocument(buffer)
+    }
   }
 
-  @UiThread
   private fun appendToDocument(buffer: MessageTextBuffer) {
     document.insertString(document.textLength, buffer.text)
 
@@ -102,6 +129,10 @@ internal class LogcatDocumentPrinter(
       }
     }
   }
+
+  @ExperimentalCoroutinesApi
+  @TestOnly
+  internal fun isChannelEmpty() = channel.isEmpty
 }
 
 private class HighlighterRange(val start: Int, val end: Int, val textAttributes: TextAttributes)
