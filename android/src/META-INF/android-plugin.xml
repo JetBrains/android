@@ -450,6 +450,7 @@
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.configuration.AndroidWearProgramRunner"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
