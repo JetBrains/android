@@ -49,14 +49,16 @@ private fun printFakeLogs(it: LogcatMainPanel) {
   val random = Random(0)
   val loremGenerator = LoremGenerator()
   for (logLevel in Log.LogLevel.values()) {
+    val messages = mutableListOf<LogCatMessage>()
     for (t in 1..10) {
       val tag = loremGenerator.generateTag(random.nextInt(1, 3))
       val appName = loremGenerator.generateAppName(random.nextInt(2, 3))
       for (line in 1..random.nextInt(5)) {
         val message = loremGenerator.generate(random.nextInt(5, 12), false)
-        it.print(LogCatMessage(LogCatHeader(logLevel, 1324, 5454, appName.take(appName.length - 1), tag, Instant.now()), message))
+        messages.add(LogCatMessage(LogCatHeader(logLevel, 1324, 5454, appName.take(appName.length - 1), tag, Instant.now()), message))
       }
     }
+    it.appendMessages(messages)
   }
 }
 
