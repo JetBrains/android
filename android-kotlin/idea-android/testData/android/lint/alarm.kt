@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintShortAlarmInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintShortAlarmInspection
 
 import android.app.AlarmManager
 

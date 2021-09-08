@@ -39,5 +39,6 @@
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
   </component>
 </module>

@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintUnlocalizedSmsInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintUnlocalizedSmsInspection
 
 import android.content.Context
 import android.telephony.SmsManager

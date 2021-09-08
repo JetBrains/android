@@ -6,8 +6,8 @@ import com.android.SdkConstants.DOT_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.lint.common.LintExternalAnnotator
+import com.android.tools.idea.lint.inspections.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement

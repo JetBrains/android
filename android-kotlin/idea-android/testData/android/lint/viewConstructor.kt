@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintViewConstructorInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintViewConstructorInspection
 
 import android.content.Context
 import android.util.AttributeSet

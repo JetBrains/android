@@ -54,5 +54,6 @@ iml_module(
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-lint:intellij.android.lint[module]",
     ],
 )

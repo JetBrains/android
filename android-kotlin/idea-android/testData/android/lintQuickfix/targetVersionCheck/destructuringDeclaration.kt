@@ -1,5 +1,5 @@
 // INTENTION_TEXT: Surround with if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) { ... }
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintNewApiInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 
 import android.app.Activity
 import android.graphics.drawable.VectorDrawable

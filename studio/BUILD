@@ -100,6 +100,7 @@ studio_plugin(
             "//tools/adt/idea/assistant:assistant",
             "//tools/adt/idea/connection-assistant:connection-assistant",
             "//tools/adt/idea/android-adb:intellij.android.adb",
+            "//tools/adt/idea/android-lint:intellij.android.lint",
             "//tools/adt/idea/android-templates:intellij.android.templates",
             "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
             "//tools/adt/idea/app-inspection/api:app-inspection.api",

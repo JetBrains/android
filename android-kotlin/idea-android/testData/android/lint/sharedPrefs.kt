@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintCommitPrefEditsInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintCommitPrefEditsInspection
 
 import android.app.Activity
 import android.content.Context

@@ -340,6 +340,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common.testfixtures[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java[test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
+        "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
     ],
 )
 
@@ -641,5 +642,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
     ],
 )

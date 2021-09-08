@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintInflateParamsInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintInflateParamsInspection
 
 import android.view.LayoutInflater
 import android.view.View

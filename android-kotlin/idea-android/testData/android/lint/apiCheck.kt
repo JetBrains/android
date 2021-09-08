@@ -1,7 +1,7 @@
 
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintNewApiInspection
-// INSPECTION_CLASS2: com.android.tools.idea.lint.AndroidLintInlinedApiInspection
-// INSPECTION_CLASS3: com.android.tools.idea.lint.AndroidLintOverrideInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
+// INSPECTION_CLASS2: com.android.tools.idea.lint.inspections.AndroidLintInlinedApiInspection
+// INSPECTION_CLASS3: com.android.tools.idea.lint.inspections.AndroidLintOverrideInspection
 // DEPENDENCY: RequiresApi.java -> android/support/annotation/RequiresApi.java
 
 import android.animation.RectEvaluator

@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintRecycleInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintRecycleInspection
 
 @file:Suppress("UNUSED_VARIABLE")
 

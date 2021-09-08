@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintServiceCastInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintServiceCastInspection
 
 import android.content.ClipboardManager
 import android.app.Activity

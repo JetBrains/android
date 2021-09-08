@@ -29,7 +29,6 @@
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
@@ -527,21 +526,6 @@
 
     <intentionAction>
       <className>org.jetbrains.android.intentions.AndroidExtractColorAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <className>org.jetbrains.android.intentions.ImplementParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <className>org.jetbrains.android.intentions.RedoParcelableAction</className>
-      <category>Android</category>
-    </intentionAction>
-
-    <intentionAction>
-      <className>org.jetbrains.android.intentions.RemoveParcelableAction</className>
       <category>Android</category>
     </intentionAction>
 

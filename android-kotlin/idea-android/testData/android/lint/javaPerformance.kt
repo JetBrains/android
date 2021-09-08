@@ -1,6 +1,6 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintDrawAllocationInspection
-// INSPECTION_CLASS2: com.android.tools.idea.lint.AndroidLintUseSparseArraysInspection
-// INSPECTION_CLASS3: com.android.tools.idea.lint.AndroidLintUseValueOfInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintDrawAllocationInspection
+// INSPECTION_CLASS2: com.android.tools.idea.lint.inspections.AndroidLintUseSparseArraysInspection
+// INSPECTION_CLASS3: com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 
 import android.annotation.SuppressLint
 import java.util.HashMap

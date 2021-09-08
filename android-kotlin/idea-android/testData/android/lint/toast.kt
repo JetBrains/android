@@ -1,4 +1,4 @@
-// INSPECTION_CLASS: com.android.tools.idea.lint.AndroidLintShowToastInspection
+// INSPECTION_CLASS: com.android.tools.idea.lint.inspections.AndroidLintShowToastInspection
 
 import android.app.Activity
 import android.content.Context
