@@ -302,6 +302,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return myResourceDir;
   }
 
+  /**
+   * Returns the AndroidFacet of the module containing the resource folder.
+   */
+  public @NotNull AndroidFacet getFacet() {
+    return myFacet;
+  }
+
   @Override
   @Nullable
   public String getLibraryName() {
