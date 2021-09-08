@@ -90,8 +90,9 @@ class AndroidLiveEditCodeGenerator {
           com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
             try {
               KotlinCodegenFacade.compileCorrectFiles(generationState)
-            } catch (e : Exception) {
-              e.printStackTrace()
+            } catch (e : Throwable) {
+              handleCompilerErrors(e)
+              return@runReadAction;
             }
             compiled.add(root);
           }
@@ -99,6 +100,7 @@ class AndroidLiveEditCodeGenerator {
           if (classes.isEmpty()) {
             // TODO: Error reporting.
             print(" We don't have successful classes");
+            return@runReadAction;
           }
 
           // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
@@ -118,6 +120,17 @@ class AndroidLiveEditCodeGenerator {
         }
       }
     }
+  }
+
+  fun handleCompilerErrors(e : Throwable) {
+    // Given that the IDE already provide enough information about compilation errors, there is no
+    // real need to surface any compilation exception. We will just print the true cause for the
+    // exception for our own debugging purpose only.
+    var cause = e;
+    while (cause.cause != null) {
+      cause = cause.cause!!
+    }
+    println("Live Edit: compilation error\n ${e.message}")
   }
 
   fun functionSignature(function : KtNamedFunction) : String {
