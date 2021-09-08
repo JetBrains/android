@@ -44,6 +44,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.io.Compressor;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -132,19 +134,19 @@ public final class ExportProjectZip extends AnAction implements DumbAware {
     assert commonRoot != null;
 
     FileTypeManager fileTypeManager = FileTypeManager.getInstance();
-    BiPredicate<String, File> filter = (entryName, file) -> {
-      if (fileTypeManager.isFileIgnored(file.getName()) || excludes.stream().anyMatch(root -> FileUtil.isAncestor(root, file, false))) {
+    BiPredicate<String, Path> filter = (entryName, file) -> {
+      if (fileTypeManager.isFileIgnored(file.getFileName().toString()) || excludes.stream().anyMatch(root -> file.startsWith(root.toPath()))) {
         return false;
       }
 
-      if (!file.exists()) {
+      if (!Files.exists(file)) {
         Logger.getInstance(ExportProjectZip.class).info("Skipping broken symlink: " + file);
         return false;
       }
 
       // if it's a folder and an ancestor of any of the roots we must allow it (to allow its content) or if a root is an ancestor
-      boolean isDir = file.isDirectory();
-      if (allRoots.stream().noneMatch(root -> (isDir && FileUtil.isAncestor(file, root, false)) || FileUtil.isAncestor(root, file, false))) {
+      boolean isDir = Files.isDirectory(file);
+      if (allRoots.stream().noneMatch(root -> isDir && root.toPath().startsWith(file) || file.startsWith(root.toPath()))) {
         return false;
       }
 
