@@ -30,9 +30,9 @@ import javax.swing.Icon
 class ToggleButtonPropertyEditorModel(
   val description: String,
   val icon: Icon,
-  @VisibleForTesting
+  @get:VisibleForTesting
   val trueValue: String,
-  @VisibleForTesting
+  @get:VisibleForTesting
   val falseValue: String,
   private val nlProperty: NlPropertyItem
 ) : BasePropertyEditorModel(nlProperty) {

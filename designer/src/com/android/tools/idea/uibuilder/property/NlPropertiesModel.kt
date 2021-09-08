@@ -73,7 +73,7 @@ open class NlPropertiesModel(
   parentDisposable: Disposable,
   val provider: PropertiesProvider,
   val facet: AndroidFacet,
-  @VisibleForTesting
+  @get:VisibleForTesting
   val updateQueue: MergingUpdateQueue,
   private val updateOnComponentSelectionChanges: Boolean
 ) : PropertiesModel<NlPropertyItem>, Disposable {
