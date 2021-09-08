@@ -63,12 +63,14 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
@@ -272,7 +274,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Sdk jdk = null;
     String jdkLocation = myState.get(KEY_JDK_LOCATION);
     if (jdkLocation != null) {
-      jdk = WriteAction.computeAndWait(() -> IdeSdks.getInstance().setJdkPath(Paths.get(jdkLocation)));
+      // Can be called from a popup, needs to be invoked as ModalityState.any(). See {@link ModalityState} documentation.
+      final Ref<Sdk> result = Ref.create();
+      ApplicationManager.getApplication().invokeAndWait(() -> WriteAction.run(
+        () -> result.set(IdeSdks.getInstance().setJdkPath(Paths.get(jdkLocation)))
+      ), ModalityState.any());
+      jdk = result.get();
     }
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
                                                     ModalityState.stateForComponent(myWizard.getContentPane()),
