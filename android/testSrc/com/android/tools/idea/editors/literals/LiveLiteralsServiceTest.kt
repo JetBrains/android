@@ -5,11 +5,14 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -211,5 +214,17 @@ internal class LiveLiteralsServiceTest {
     // Wait for the modification to be notified
     latch.await(5, TimeUnit.SECONDS)
     assertEquals(1, changeListenerCalls)
+  }
+
+  // Regression test for b/196253658
+  @Test
+  fun `check no NPE for PsiElements without file`() {
+    val liveLiteralsService = getTestLiveLiteralsService()
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+    assertTrue(liveLiteralsService.isAvailable)
+    val psiElementWithoutContainingFile = runReadAction { file1.containingDirectory }
+    liveLiteralsService.isElementManaged(psiElementWithoutContainingFile)
   }
 }
