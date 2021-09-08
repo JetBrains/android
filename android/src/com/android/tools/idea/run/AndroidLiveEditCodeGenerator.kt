@@ -84,7 +84,7 @@ class AndroidLiveEditCodeGenerator {
           var className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
 
           if (className.isEmpty() || methodSignature.isEmpty()) {
-            return@runReadAction;
+            return@runReadAction
           }
 
           com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
@@ -108,9 +108,9 @@ class AndroidLiveEditCodeGenerator {
           for (c in classes) {
             if (c.relativePath.contains(internalClassName)) {
               for (m in methods) {
-                var clazz = className;
-                var method = methodSignature;
-                var data = c.asByteArray();
+                val clazz = className
+                val method = methodSignature
+                val data = c.asByteArray()
                 callback(clazz, method, data)
 
                 // TODO: Deal with multiple requests
@@ -177,7 +177,7 @@ class AndroidLiveEditCodeGenerator {
     val fqName = type.getQualifiedName().toString()
 
     if (fqName == "kotlin.String") {
-      return "Ljava/lang/String;";
+      return "Ljava/lang/String;"
     }
 
     return "L" + fqName.replace(".", "/") + ";"
