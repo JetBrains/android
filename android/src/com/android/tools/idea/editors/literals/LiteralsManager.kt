@@ -89,7 +89,7 @@ object SimplePsiElementUniqueIdProvider : PsiElementUniqueIdProvider {
   private val SAVED_UNIQUE_ID = Key.create<String>("${SimplePsiElementUniqueIdProvider.javaClass.name}.uniqueId")
 
   private fun calculateNewUniqueId(element: PsiElement): String =
-    Objects.hash(element.containingFile.modificationStamp, element.textRange).toString(16)
+    Objects.hash(element.containingFile?.modificationStamp ?: -1, element.textRange).toString(16)
 
   override fun getUniqueId(element: PsiElement): String = element.getCopyableUserData(
     SAVED_UNIQUE_ID) ?: calculateNewUniqueId(
@@ -104,21 +104,26 @@ object SimplePsiElementUniqueIdProvider : PsiElementUniqueIdProvider {
  * the FQN for the class and method name where the [PsiElement] is contained.
  */
 private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLiteralUsageReferenceProvider {
-  override fun getLiteralUsageReference(element: PsiElement, constantEvaluator: ConstantEvaluator): LiteralUsageReference =
-    when (element) {
+  override fun getLiteralUsageReference(element: PsiElement, constantEvaluator: ConstantEvaluator): LiteralUsageReference? {
+    val containingFile = element.containingFile ?: return null
+    return when (element) {
       is KtElement -> {
         val className = element.containingClass()?.fqName ?: FqName(element.containingKtFile.findFacadeClass()?.qualifiedName ?: "")
         val methodPath = getTopMostParentFunction(element)
         val methodName = if (methodPath.isRoot) "<init>" else methodPath.asString()
         val range = constantEvaluator.range(element)
-        LiteralUsageReference(FqName("$className.$methodName"), element.containingFile.virtualFile.path, range, element.getLineNumber())
+        val virtualFilePath = containingFile.virtualFile?.path ?: return null
+        LiteralUsageReference(FqName("$className.$methodName"), virtualFilePath, range,
+                              element.getLineNumber())
       }
       else -> {
         val className = PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.qualifiedName?.let { "$it." } ?: ""
         val methodName = PsiTreeUtil.getContextOfType(element, PsiMethod::class.java)?.name ?: "<init>"
-        LiteralUsageReference(FqName("$className.$methodName"), element.containingFile.name, constantEvaluator.range(element), element.getLineNumber())
+        LiteralUsageReference(FqName("$className.$methodName"), containingFile.name, constantEvaluator.range(element),
+                              element.getLineNumber())
       }
     }
+  }
 }
 
 /**
@@ -271,7 +276,8 @@ private open class LiteralReferenceImpl(originalElement: PsiElement,
   }
 
   private val elementPointer = ReattachableSmartPsiElementPointer(originalElement) { onElementAttached(it, this) }
-  override val containingFile = originalElement.containingFile
+  // The originalElement.containingFile not being nullable is enforced during the visit the PsiElements
+  override val containingFile = originalElement.containingFile!!
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
   override val initialTextRange: TextRange = constantEvaluator.range(originalElement)
   override val uniqueId = uniqueIdProvider.getUniqueId(originalElement)
@@ -384,7 +390,7 @@ class LiteralsManager(
     ReadAction.nonBlocking {
       root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
         override fun visitElement(element: PsiElement) {
-          if (!elementFilter(element) || !element.isValid) return
+          if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
 
           // Special case for string templates
           if (element is KtStringTemplateExpression) {
