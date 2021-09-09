@@ -43,11 +43,11 @@ import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
+import java.awt.CardLayout
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+import javax.swing.ScrollPaneConstants
 
 const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 
@@ -171,22 +171,22 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
       if (field != value) {
         field = value
         ActivityTracker.getInstance().inc()
+        cardLayout.show(contentPanel, value.name)
         when (value) {
           Mode.TABLE -> {
-            contentScrollPane.setViewportView(getContentView())
             client.tracker.trackTableModeSelected()
           }
           Mode.GRAPH -> {
-            contentScrollPane.setViewportView(getContentView())
             client.tracker.trackGraphModeSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
                                                   client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo())
           }
         }
-        contentScrollPane.revalidate()
+        contentPanel.revalidate()
       }
     }
 
-  private val contentScrollPane: JScrollPane
+  private val cardLayout: CardLayout
+  private val contentPanel: JPanel
 
   @VisibleForTesting
   val tableView: BackgroundTaskTreeTableView
@@ -201,12 +201,15 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     layout = TabularLayout("*", "Fit,*")
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
 
-    contentScrollPane = JBScrollPane()
+    cardLayout = CardLayout()
+    contentPanel = JPanel(cardLayout)
     // Remove redundant borders from left, right and bottom.
-    contentScrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
-    contentScrollPane.horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_NEVER
-    contentScrollPane.setViewportView(tableView.component)
-    add(contentScrollPane, TabularLayout.Constraint(1, 0))
+    contentPanel.border = AdtUiUtils.DEFAULT_TOP_BORDER
+    contentPanel.add(tableView.component, Mode.TABLE.name)
+    contentPanel.add(JBScrollPane(graphView).apply { horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER },
+                     Mode.GRAPH.name)
+    cardLayout.show(contentPanel, Mode.TABLE.name)
+    add(contentPanel, TabularLayout.Constraint(1, 0))
 
     selectionModel.registerEntrySelectionListener { entry ->
       if (entry == null) {
@@ -235,11 +238,6 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
 
     return toolbarPanel
-  }
-
-  private fun getContentView(): JComponent = when (contentMode) {
-    Mode.TABLE -> tableView.component
-    Mode.GRAPH -> graphView
   }
 
   /**
