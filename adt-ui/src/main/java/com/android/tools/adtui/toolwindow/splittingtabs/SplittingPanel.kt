@@ -66,13 +66,12 @@ internal class SplittingPanel(
   init {
     addToCenter(component)
     Disposer.register(content, this)
-  }
-
-  override fun dispose() {
     if (component is Disposable) {
-      component.dispose()
+      Disposer.register(this, component)
     }
   }
+
+  override fun dispose() {}
 
   fun split(orientation: SplitOrientation) {
     val parent = parent
@@ -116,7 +115,7 @@ internal class SplittingPanel(
         grandparent.add(other)
         content.component = other
       }
-      dispose()
+      Disposer.dispose(this)
       grandparent.revalidate()
     }
     else {
