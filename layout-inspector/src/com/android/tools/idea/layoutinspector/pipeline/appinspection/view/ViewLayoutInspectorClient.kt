@@ -84,7 +84,7 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  *     for compose related values contained within our view tree.
  */
 class ViewLayoutInspectorClient(
-  model: InspectorModel,
+  private val model: InspectorModel,
   private val processDescriptor: ProcessDescriptor,
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
@@ -183,10 +183,15 @@ class ViewLayoutInspectorClient(
             }
             Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
             Event.SpecializedCase.PROGRESS_EVENT -> handleProgressEvent(event.progressEvent)
+            Event.SpecializedCase.FOLD_EVENT -> handleFoldEvent(event.foldEvent)
             else -> error { "Unhandled event case: ${event.specializedCase}" }
           }
         }
     }
+  }
+
+  private fun handleFoldEvent(foldEvent: LayoutInspectorViewProtocol.FoldEvent) {
+    model.foldInfo = foldEvent.convert()
   }
 
   private fun handleProgressEvent(progressEvent: LayoutInspectorViewProtocol.ProgressEvent) =
@@ -310,7 +315,7 @@ class ViewLayoutInspectorClient(
       fetchAndSaveSnapshot(path, snapshotMetadata)
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata)
+      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata, model.foldInfo)
     }
     return snapshotMetadata
   }
@@ -359,7 +364,7 @@ class ViewLayoutInspectorClient(
         }
       } ?: mapOf()
 
-      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata)
+      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
     } ?: throw Exception()
   }
 }

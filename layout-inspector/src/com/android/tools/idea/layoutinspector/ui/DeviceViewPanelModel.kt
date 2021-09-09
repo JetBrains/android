@@ -53,6 +53,18 @@ class DeviceViewPanelModel(
   val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null
 ) {
+  /**
+   * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode], since this differentiates between different
+   * layers owned by the same ViewNode.
+   */
+  var hoveredDrawInfo: ViewDrawInfo? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        fireModified()
+      }
+    }
+
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting
@@ -117,11 +129,15 @@ class DeviceViewPanelModel(
    * the depth of the child.
    */
   fun findViewsAt(x: Double, y: Double): Sequence<ViewNode> =
+    findDrawInfoAt(x, y)
+      .mapNotNull { it.node.findFilteredOwner(treeSettings) }
+      .distinct()
+
+  fun findDrawInfoAt(x: Double, y: Double): Sequence<ViewDrawInfo> =
     hitRects.asReversed()
       .asSequence()
       .filter { it.bounds.contains(x, y) }
       .sortedByDescending { it.hitLevel }
-      .mapNotNull { it.node.findFilteredOwner(treeSettings) }
       .distinct()
 
   fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()

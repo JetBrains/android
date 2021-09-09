@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DisconnectedViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
@@ -85,6 +86,9 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }
         }
       }
+      snapshot.foldInfo?.let {
+        model.foldInfo = it.convert()
+      }
     }
     return metadata
   }
@@ -95,7 +99,8 @@ fun saveAppInspectorSnapshot(
   data: Map<Long, ViewLayoutInspectorClient.Data>,
   properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
   composeProperties: Map<Long, GetAllParametersResponse>,
-  snapshotMetadata: SnapshotMetadata
+  snapshotMetadata: SnapshotMetadata,
+  foldInfo: InspectorModel.FoldInfo?
 ) {
   val response = LayoutInspectorViewProtocol.CaptureSnapshotResponse.newBuilder().apply {
     val allRootIds = data.values.firstOrNull()?.rootIds
@@ -112,14 +117,15 @@ fun saveAppInspectorSnapshot(
   val composeInfo = composeProperties.mapValues { (id, composePropertyEvent) ->
     data[id]?.composeEvent to composePropertyEvent
   }
-  saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata)
+  saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata, foldInfo)
 }
 
 fun saveAppInspectorSnapshot(
   path: Path,
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
   composeInfo: Map<Long, Pair<GetComposablesResponse?, GetAllParametersResponse>>,
-  snapshotMetadata: SnapshotMetadata
+  snapshotMetadata: SnapshotMetadata,
+  foldInfo: InspectorModel.FoldInfo?
 ) {
   snapshotMetadata.containsCompose = composeInfo.isNotEmpty()
   val snapshot = Snapshot.newBuilder().apply {
@@ -132,6 +138,7 @@ fun saveAppInspectorSnapshot(
         this.composeParameters = composeParameters
       }.build()
     })
+    foldInfo?.toProto()?.let { this.foldInfo = it }
   }.build()
   val output = ByteArrayOutputStream()
   ObjectOutputStream(output).use { objectOutput ->

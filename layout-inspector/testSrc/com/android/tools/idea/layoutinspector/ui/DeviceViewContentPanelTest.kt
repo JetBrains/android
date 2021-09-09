@@ -42,6 +42,8 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -122,7 +124,7 @@ class DeviceViewContentPanelTest {
   @get:Rule
   val fontRule = SetPortableUiFontRule()
 
-  var testDataPath: Path = Path.of("")
+  private var testDataPath: Path = Path.of("")
 
   @Before
   fun before() {
@@ -236,6 +238,70 @@ class DeviceViewContentPanelTest {
   }
 
   @Test
+  fun testPaintWithFold() {
+    val model = model {
+      view(ROOT, 0, 0, 20, 40) {
+        view(VIEW1, 3, 3, 14, 14) {
+          view(VIEW2, 6, 6, 8, 8)
+          image()
+        }
+      }
+    }
+    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(130, 250, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val settings = EditorDeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val client = mock<InspectorClient>()
+    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { client }, mock(), null,
+                                       disposable.disposable)
+    panel.setSize(130, 250)
+
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold", generatedImage, DIFF_THRESHOLD)
+
+    panel.model.layerSpacing = 10
+    panel.model.rotate(0.5, 0.7)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_rotated", generatedImage, DIFF_THRESHOLD)
+
+    panel.model.hoveredDrawInfo = panel.model.hitRects.find { it.node is DrawViewImage }
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_hovered", generatedImage, DIFF_THRESHOLD)
+
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_hovered_selected", generatedImage, DIFF_THRESHOLD)
+
+    panel.model.hoveredDrawInfo = null
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_selected", generatedImage, DIFF_THRESHOLD)
+
+    settings.drawFold = false
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(testDataPath.resolve("testPaintFold_no_fold.png"), generatedImage, DIFF_THRESHOLD)
+    settings.drawFold = true
+
+    panel.setSize(350, 100)
+    @Suppress("UndesirableClassUsage")
+    val generatedImage2 = BufferedImage(350, 100, TYPE_INT_ARGB)
+    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.HORIZONTAL)
+    graphics = generatedImage2.createGraphics()
+    panel.paint(graphics)
+    CheckUtil.assertImageSimilarPerPlatform(testDataPath, "testPaintFold_horizontal", generatedImage2, DIFF_THRESHOLD)
+  }
+
+  @Test
   fun testPaintWithHiddenSystemViews() {
     val model = model {
       view(ROOT, 0, 0, 20, 40, layout = null) {
@@ -280,7 +346,7 @@ class DeviceViewContentPanelTest {
   fun testRotationDoesntThrow() {
     val model = model {
       view(ROOT, 0, 0, 500, 1000) {
-        // Use a RTL name to force TextLayout to be used
+        // Use an RTL name to force TextLayout to be used
         view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי") {
           image()
         }

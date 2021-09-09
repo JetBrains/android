@@ -24,6 +24,7 @@ val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSett
 private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
+private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 
 interface DeviceViewSettings {
   val modificationListeners: MutableList<() -> Unit>
@@ -40,6 +41,8 @@ interface DeviceViewSettings {
   var drawUntransformedBounds: Boolean
 
   var drawLabel: Boolean
+
+  var drawFold: Boolean
 }
 
 class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
@@ -57,6 +60,10 @@ class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
   }
 
   override var drawLabel by Delegates.observable(true) { _, _, _ ->
+    modificationListeners.forEach { it() }
+  }
+
+  override var drawFold by Delegates.observable(true) { _, _, _ ->
     modificationListeners.forEach { it() }
   }
 }
@@ -87,6 +94,13 @@ class InspectorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
+
+  override var drawFold: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(DRAW_FOLD_KEY, true)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(DRAW_FOLD_KEY, value, true)
       modificationListeners.forEach { it() }
     }
 }
