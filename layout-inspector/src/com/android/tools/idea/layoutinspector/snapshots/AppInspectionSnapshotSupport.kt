@@ -48,8 +48,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
   override lateinit var metadata: SnapshotMetadata
     private set
 
-  override val capabilities: Collection<InspectorClient.Capability>
-    get() = setOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
+  override val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
   override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
@@ -80,6 +79,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
 
           val treeLoader = AppInspectionTreeLoader(model.project, metrics::logEvent, SkiaParserImpl({}))
           val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
+          capabilities.addAll(treeData.dynamicCapabilities)
           model.update(treeData.window, rootIds, treeData.generation)
           viewPropertiesCache.setAllFrom(windowInfo.properties)
           composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }

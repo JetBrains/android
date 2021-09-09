@@ -53,7 +53,7 @@ interface SnapshotLoader {
       override val streamId: Long = -1
     }
 
-  val capabilities: Collection<InspectorClient.Capability>
+  val capabilities: MutableCollection<InspectorClient.Capability>
 
   fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata?
 

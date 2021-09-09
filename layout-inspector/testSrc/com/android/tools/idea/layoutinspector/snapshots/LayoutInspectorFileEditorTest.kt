@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -63,5 +64,26 @@ class LayoutInspectorFileEditorTest {
     val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editor.component).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
+    assertThat(inspector.currentClient.capabilities).containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
+  }
+
+  @Test
+  fun editorCreatesCorrectSettingsForCompose() {
+    val editor = LayoutInspectorFileEditor(
+      projectRule.project,
+      VirtualFileManager.getInstance().findFileByNioPath(TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/compose-snapshot.li"))!!
+    )
+    Disposer.register(disposableRule.disposable, editor)
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      ComponentUtil.flatten(editor.component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+    }
+    val settings = ComponentUtil.flatten(editor.component).firstIsInstance<DeviceViewContentPanel>().viewSettings
+    assertThat(settings).isInstanceOf(EditorDeviceViewSettings::class.java)
+
+    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editor.component).firstIsInstance<WorkBench<*>>())?.getData(
+      LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+    assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
+    assertThat(inspector.currentClient.capabilities).containsExactly(
+      Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
   }
 }
