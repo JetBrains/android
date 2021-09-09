@@ -21,14 +21,12 @@ import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.idea.core.KotlinCompilerIde
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
@@ -56,20 +54,20 @@ class AndroidLiveEditCodeGenerator {
               callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) {
     val compiled = HashSet<PsiFile>()
     for (method in methods) {
-      var root = method.file
-      if (root != null && root is KtFile && !compiled.contains(root)) {
+      val root = method.file
+      if (root is KtFile && !compiled.contains(root)) {
         val filesToAnalyze = listOf(root)
 
         ApplicationManager.getApplication().runReadAction {
           val kotlinCacheService = KotlinCacheService.getInstance(project)
-          var resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
+          val resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
                                                                   JvmPlatforms.unspecifiedJvmPlatform)
 
           val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
             resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
           }
 
-          val compilerConfiguration = CompilerConfiguration();
+          val compilerConfiguration = CompilerConfiguration()
 
           compilerConfiguration.languageVersionSettings = root.languageVersionSettings
 
@@ -80,8 +78,8 @@ class AndroidLiveEditCodeGenerator {
                                                         filesToAnalyze,
                                                         compilerConfiguration).build()
 
-          var methodSignature = functionSignature(method.function)
-          var className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
+          val methodSignature = functionSignature(method.function)
+          val className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
 
           if (className.isEmpty() || methodSignature.isEmpty()) {
             return@runReadAction
@@ -92,15 +90,15 @@ class AndroidLiveEditCodeGenerator {
               KotlinCodegenFacade.compileCorrectFiles(generationState)
             } catch (e : Throwable) {
               handleCompilerErrors(e)
-              return@runReadAction;
+              return@runReadAction
             }
-            compiled.add(root);
+            compiled.add(root)
           }
           val classes = generationState.factory.asList();
           if (classes.isEmpty()) {
             // TODO: Error reporting.
             print(" We don't have successful classes");
-            return@runReadAction;
+            return@runReadAction
           }
 
           // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
@@ -108,10 +106,7 @@ class AndroidLiveEditCodeGenerator {
           for (c in classes) {
             if (c.relativePath.contains(internalClassName)) {
               for (m in methods) {
-                val clazz = className
-                val method = methodSignature
-                val data = c.asByteArray()
-                callback(clazz, method, data)
+                callback(className, methodSignature, c.asByteArray())
 
                 // TODO: Deal with multiple requests
                 break
@@ -135,51 +130,54 @@ class AndroidLiveEditCodeGenerator {
   }
 
   fun functionSignature(function : KtNamedFunction) : String {
-    var functionName = function.name
-    var params = ArrayList<String>()
+    val functionName = function.name
+    val params = ArrayList<String>()
     function.valueParameters.forEach {
       params.add(vmName(it.type()!!))
     }
     val paramSig = params.joinToString { it }
-    var returnType = vmName(function.type()!!)
+    val returnType = vmName(function.type()!!)
     return "$functionName($paramSig)$returnType"
   }
 
   fun vmName(type: KotlinType): String {
-    if (type.isChar()) {
-      return "C"
-    }
-    else if (type.isByte()) {
-      return "B"
-    }
-    else if (type.isInt()) {
-      return "I"
-    }
-    else if (type.isLong()) {
-      return "L"
-    }
-    else if (type.isShort()) {
-      return "S"
-    }
-    else if (type.isFloat()) {
-      return "F"
-    }
-    else if (type.isDouble()) {
-      return "D"
-    }
-    else if (type.isBoolean()) {
-      return "Z"
-    }
-    else if (type.isUnit()) {
-      return "V"
-    }
+    when {
+      type.isChar() -> {
+        return "C"
+      }
+      type.isByte() -> {
+        return "B"
+      }
+      type.isInt() -> {
+        return "I"
+      }
+      type.isLong() -> {
+        return "L"
+      }
+      type.isShort() -> {
+        return "S"
+      }
+      type.isFloat() -> {
+        return "F"
+      }
+      type.isDouble() -> {
+        return "D"
+      }
+      type.isBoolean() -> {
+        return "Z"
+      }
+      type.isUnit() -> {
+        return "V"
+      }
+      else -> {
+        val fqName = type.getQualifiedName().toString()
 
-    val fqName = type.getQualifiedName().toString()
+        if (fqName == "kotlin.String") {
+          return "Ljava/lang/String;"
+        }
 
-    if (fqName == "kotlin.String") {
-      return "Ljava/lang/String;"
+        return "L" + fqName.replace(".", "/") + ";"
+      }
     }
-
-    return "L" + fqName.replace(".", "/") + ";"
   }
 }
