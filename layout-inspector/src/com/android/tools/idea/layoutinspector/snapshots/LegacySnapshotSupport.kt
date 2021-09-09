@@ -45,8 +45,7 @@ class LegacySnapshotLoader : SnapshotLoader {
   override lateinit var metadata: SnapshotMetadata
     private set
 
-  override val capabilities: Collection<InspectorClient.Capability>
-    get() = setOf()
+  override val capabilities = mutableSetOf<InspectorClient.Capability>()
 
   override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
