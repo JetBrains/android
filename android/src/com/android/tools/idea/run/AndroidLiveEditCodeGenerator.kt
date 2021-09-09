@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
@@ -82,7 +83,14 @@ class AndroidLiveEditCodeGenerator {
                                                       compilerConfiguration).build()
 
         val methodSignature = functionSignature(method.function)
-        val className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
+
+        // Class name can be either the class containing the function fragment or a KtFile
+        var className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
+        when (val grandParent = method.function.parent) {
+          is KtFile -> {
+            className = grandParent.javaFileFacadeFqName.toString()
+          }
+        }
 
         if (className.isEmpty() || methodSignature.isEmpty()) {
           return@runReadAction
