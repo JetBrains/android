@@ -58,6 +58,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JScrollPane
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -89,6 +90,9 @@ class BackgroundTaskTreeTableViewTest {
 
   @Test
   fun initializeTable() = runBlocking(uiDispatcher) {
+    val scrollPane = TreeWalker(entriesView).descendantStream().filter { it is JScrollPane }.findFirst().get()
+    // Make sure there are no ScrollPane outside the table view component.
+    assertThat(TreeWalker(scrollPane).descendantStream().anyMatch { it == entriesView.tableView.component }).isFalse()
     val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
     val root = tree.model.root
     val labels = (root as DefaultMutableTreeNode).children().toList().map { (it as DefaultMutableTreeNode).userObject as String }
