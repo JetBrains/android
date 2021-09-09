@@ -58,6 +58,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
+import com.android.tools.idea.uibuilder.lint.VisualLintService;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -145,6 +146,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
+
+    private boolean myShouldRunVisualLintService = false;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -308,6 +311,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
+     * The surface will run visual lint analysis on the background.
+     * Default value is false.
+     */
+    @NotNull
+    public Builder setRunVisualLintAnalysis(boolean value) {
+      myShouldRunVisualLintService = value;
+      return this;
+    }
+
+    /**
      * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
      * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
      * By default, the builder assumes there is no supported {@link NlSupportedActions}.
@@ -343,6 +356,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myDelegateDataProvider,
                                  mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
                                  myZoomControlsPolicy,
+                                 myShouldRunVisualLintService,
                                  mySupportedActions);
     }
   }
@@ -412,6 +426,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull private final Set<NlSupportedActions> mySupportedActions;
 
+  private final boolean myShouldRunVisualLintService;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -428,6 +444,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
+                          boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
@@ -442,6 +459,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
     mySupportedActions = supportedActions;
+    myShouldRunVisualLintService = shouldRunVisualLintService;
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
@@ -845,6 +863,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           myRenderIssueProviders = renderIssueProviders;
           renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
+
+        if (myShouldRunVisualLintService) {
+          VisualLintService.getInstance().runVisualLintAnalysis(getModels());
+        }
       }
 
       @Override

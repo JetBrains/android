@@ -56,11 +56,13 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
                           if (StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()) {
                             NlDesignSurface.builder(myProject, this)
                               .showModelNames()
+                              .setRunVisualLintAnalysis(StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get())
                               .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
                               .build()
                           }
                           else {
                             NlDesignSurface.builder(myProject, this)
+                              .setRunVisualLintAnalysis(StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get())
                               .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
                               .build()
                           }
