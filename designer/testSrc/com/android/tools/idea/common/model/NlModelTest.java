@@ -60,7 +60,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -619,7 +619,7 @@ public class NlModelTest extends LayoutTestCase {
     frameViewInfo.setChildren(Collections.emptyList());
     viewInfo.setChildren(Arrays.asList(buttonInfo, frameViewInfo));
 
-    LayoutlibSceneManager.updateHierarchy(views, model);
+    NlModelHierarchyUpdater.updateHierarchy(views, model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=0}\n" +
                  // Make sure these instances are NOT reusing instances from before that
@@ -697,7 +697,7 @@ public class NlModelTest extends LayoutTestCase {
       new ViewInfo("android.widget.Button", new MergeCookie(parentRootSnapshot), 0, 0, 50, 50),
       new ViewInfo("android.widget.TextView", new MergeCookie(parentRootSnapshot), 0, 50, 50, 100));
 
-    LayoutlibSceneManager.updateHierarchy(list, model);
+    NlModelHierarchyUpdater.updateHierarchy(list, model);
 
     NlComponent rootComponent = model.getComponents().get(0);
     assertNotNull(rootComponent);
@@ -728,7 +728,7 @@ public class NlModelTest extends LayoutTestCase {
     ViewInfo searchViewInfo = new ViewInfo("android.widget.SearchView", rootSnapshot.children.get(0), 0, 0, 500, 500);
     searchViewInfo.setChildren(ImmutableList.of(new ViewInfo("android.widget.LinearLayout", rootSnapshot.children.get(0), 0, 0, 500, 500)));
     rootViewInfo.setChildren(ImmutableList.of(searchViewInfo));
-    LayoutlibSceneManager.updateHierarchy(ImmutableList.of(rootViewInfo), model);
+    NlModelHierarchyUpdater.updateHierarchy(ImmutableList.of(rootViewInfo), model);
 
     //noinspection OptionalGetWithoutIsPresent
     NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
@@ -867,7 +867,7 @@ public class NlModelTest extends LayoutTestCase {
     XmlTag oldTag = file.getRootTag();
 
     WriteCommandAction.runWriteCommandAction(getProject(), oldTag::delete);
-    LayoutlibSceneManager.updateHierarchy(oldTag, Collections.emptyList(), model);
+    NlModelHierarchyUpdater.updateHierarchy(oldTag, Collections.emptyList(), model);
   }
 
   public void testModelVersion() {

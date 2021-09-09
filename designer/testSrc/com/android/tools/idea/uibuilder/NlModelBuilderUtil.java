@@ -26,7 +26,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
@@ -65,10 +65,10 @@ public class NlModelBuilderUtil {
       name,
       root,
       (@NotNull SyncNlModel model) -> {
-        LayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
+        NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model);
         return new SyncLayoutlibSceneManager(model);
       },
-      (@NotNull NlModel model, @NotNull NlModel newModel) -> LayoutlibSceneManager.updateHierarchy(
+      (@NotNull NlModel model, @NotNull NlModel newModel) -> NlModelHierarchyUpdater.updateHierarchy(
         AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root), model),
       resourceFolder,
       NlDesignSurface.class,
