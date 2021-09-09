@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DependencyConfigurationModelImpl implements DependencyConfigurationModel {
-  @NonNls private static final String EXCLUDE = "exclude";
+  @NonNls static final String EXCLUDE = "exclude";
   @NonNls private static final String FORCE = "force";
   @NonNls private static final String TRANSITIVE = "transitive";
 

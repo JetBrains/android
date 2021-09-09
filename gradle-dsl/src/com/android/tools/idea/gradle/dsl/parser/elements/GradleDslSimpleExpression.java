@@ -64,26 +64,6 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     myRawCachedValue = new CachedValue<>(this, GradleDslSimpleExpression::produceRawValue);
   }
 
-  @Nullable
-  public PsiElement getUnsavedConfigBlock() {
-    return myUnsavedConfigBlock;
-  }
-
-  public void setUnsavedConfigBlock(@Nullable PsiElement configBlock) {
-    myUnsavedConfigBlock = configBlock;
-  }
-
-  public void setConfigBlock(@NotNull PsiElement block) {
-    // For now we only support setting the config block on literals for newly created dependencies.
-    Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
-
-    // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
-
-    myUnsavedConfigBlock = block;
-    setModified();
-  }
-
-
   @Override
   @Nullable
   public PsiElement getExpression() {

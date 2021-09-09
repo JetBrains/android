@@ -967,16 +967,6 @@ internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDsl
   element.setNewClosureElement(null)
 }
 
-internal fun addConfigBlock(expression : GradleDslSettableExpression) {
-  val unsavedBlock = expression.unsavedConfigBlock ?: return
-  val psiElement = expression.psiElement ?: return
-  val psiFactory = KtPsiFactory(psiElement.project)
-
-  psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
-  psiElement.addAfter(unsavedBlock, psiElement.lastChild)
-  expression.unsavedConfigBlock = null
-}
-
 /**
  * Create the PsiElement for a list that is an argument of a map. In kotlin each map argument is a KtBinaryExpression.
  */
