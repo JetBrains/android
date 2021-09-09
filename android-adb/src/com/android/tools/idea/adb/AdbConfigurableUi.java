@@ -27,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JPanel myPanel;
@@ -111,6 +112,27 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   private int getUserManagedAdbPortNumber() {
     return myExistingAdbServerPortSpinner.getNumber();
+  }
+
+
+  @TestOnly
+  void setAdbMdnsEnabled(boolean value) {
+    myEnableAdbMdnsCheckBox.setSelected(value);
+  }
+
+  @TestOnly
+  boolean isAdbMdnsEnabled() {
+    return myEnableAdbMdnsCheckBox.isSelected();
+  }
+
+  @TestOnly
+  void setLibusbEnabled(boolean value) {
+    myUseLibusbBackendCheckbox.setSelected(value);
+  }
+
+  @TestOnly
+  boolean isLibusbEnabled() {
+    return myUseLibusbBackendCheckbox.isSelected();
   }
 
   private static boolean hasUseLibusbBackendCheckbox() {
