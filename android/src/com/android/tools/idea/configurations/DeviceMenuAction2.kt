@@ -93,7 +93,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
 
   private fun addWindowSizeAndNexusSection(nexusDevices:  List<Device>?) {
     val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
-    add(DeviceCategory("Window Size", "Window size devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE))
+    add(DeviceCategory("Window Size", "Window size devices", StudioIcons.Avd.DEVICE_MOBILE))
     for (device in windowDevices) {
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
