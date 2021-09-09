@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -58,6 +59,7 @@ import javax.swing.JPanel;
 class OverviewPanel extends JPanel {
   public static final boolean DEBUG = false;
   private static final int ROUND_SIZE = 5;
+  private static final int MAX_OPTIMIZE_LINES = 7;
   static Font ourBaseFont = new Font("SansSerif", Font.BOLD, 12);
   MEScenePicker picker = new MEScenePicker();
   MTag mMotionScene;
@@ -763,8 +765,12 @@ class OverviewPanel extends JPanel {
           }
         }
       }
-
-      optimizeLines(mDerivedLines, mTotalDerivedLines);
+      if (mTotalDerivedLines > MAX_OPTIMIZE_LINES) {
+        locallyOptimizeLines(mDerivedLines, mTotalDerivedLines, 4);
+      }
+      else {
+        optimizeLines(mDerivedLines, mTotalDerivedLines);
+      }
       mComputedDerivedLines = true;
     }
     else {
@@ -1005,7 +1011,8 @@ class OverviewPanel extends JPanel {
     g.drawLine(x2, y, x2 + delta, y - delta);
   }
 
-  private void optimizeLines(DerivedSetLine[] lines, int lineCount) {
+  @VisibleForTesting
+  static void optimizeLines(DerivedSetLine[] lines, int lineCount) {
     int maxLevels = 3;
     int total = intPower(maxLevels, lineCount);
     double minCost = Double.MAX_VALUE;
@@ -1030,7 +1037,131 @@ class OverviewPanel extends JPanel {
     }
   }
 
-  private double lineCost(DerivedSetLine[] lines, int lineCount, int maxLevels) {
+  private static class DeltaInfo {
+    int myLineIndex;
+    int myReducedCost;
+    int myLevel;
+
+    DeltaInfo(int lineIndex, int cost, int level) {
+      myLineIndex = lineIndex;
+      myReducedCost = cost;
+      myLevel = level;
+    }
+  }
+
+  // An alternative approach to optimize the cost for drawing the derived line.
+  // Although this approach does not guarantee the minimum cost, it can still produce a relatively good result.
+  @VisibleForTesting
+  static void locallyOptimizeLines(DerivedSetLine[] lines, int lineCount, int maxLevels) {
+    boolean canReduce = true;
+    DeltaInfo delta = new DeltaInfo(-1, -1, -1);
+
+    for (int i = 0; i < lineCount; i++) {
+      lines[i].mPathYOffset = 0;
+    }
+
+    while (canReduce) {
+      canReduce = reduceCostStepwise(lines, lineCount, maxLevels);
+    }
+
+    for (int i = 0; i < lineCount; i++) {
+      lines[i].mPathYOffset = lines[i].mPathYOffset * 12 + 20;
+    }
+  }
+
+  // Move one of the derived lines to a different level so that the cost can be reduced at the most.
+  // Return true if the cost can be reduced; false if no improvement can be made.
+  private static boolean reduceCostStepwise(DerivedSetLine[] lines, int lineCount, int maxLevels) {
+    int maxReducedCost = 0;
+    boolean canReduce = false;
+    DeltaInfo delta = new DeltaInfo(-1, -1, -1);
+    DeltaInfo tmpDelta = new DeltaInfo(-1, -1, -1);
+
+    for (int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+      int reducedCost = 0;
+      DerivedSetLine l1 = lines[lineIndex];
+      int curLevel = l1.mPathYOffset;
+      int[] costs = getAllCosts(lines, lineCount);
+
+      // Iterate through different levels to verify if the cost can be reduced by
+      // switching l1 to a different level.
+      for (int i = 0; i < maxLevels; i++) {
+        if (curLevel == i) {
+          continue;
+        }
+
+        l1.mPathYOffset = i;
+        int cost = 0;
+        for (int j = 0; j < lineCount; j++) {
+          if (j == lineIndex) {
+            continue;
+          }
+
+          DerivedSetLine l2 = lines[j];
+          cost += calcualteCost(l1, l2);
+        }
+
+        if ((costs[lineIndex] - cost) > reducedCost) {
+          reducedCost = costs[lineIndex] - cost;
+          tmpDelta.myReducedCost = reducedCost;
+          tmpDelta.myLineIndex = lineIndex;
+          tmpDelta.myLevel = i;
+        }
+      }
+
+      l1.mPathYOffset = curLevel;
+      if (tmpDelta.myReducedCost > maxReducedCost) {
+        delta = tmpDelta;
+        canReduce = true;
+      }
+    }
+
+    if (canReduce) {
+      lines[delta.myLineIndex].mPathYOffset = delta.myLevel;
+    }
+    return canReduce;
+  }
+
+  // calculate and return the cost of each derived line.
+  private static int[] getAllCosts(DerivedSetLine[] lines, int lineCount) {
+    int[] costs = new int[lineCount];
+
+    for (int i = 0; i < lineCount; i++) {
+      DerivedSetLine l1 = lines[i];
+      int cost = 0;
+      for (int j = 0; j < lineCount; j++) {
+        if (i == j) {
+          continue;
+        }
+
+        DerivedSetLine l2 = lines[j];
+        cost += calcualteCost(l1, l2);
+      }
+      costs[i] = cost;
+    }
+
+    return costs;
+  }
+
+  private static int calcualteCost(DerivedSetLine l1, DerivedSetLine l2) {
+    int cost = 0;
+
+    if (Math.max(Math.min(l1.mSrcX, l1.mDstX), Math.min(l2.mSrcX, l2.mDstX)) < Math
+      .min(Math.max(l1.mSrcX, l1.mDstX), Math.max(l2.mSrcX, l2.mDstX))
+        && l1.mPathYOffset == l2.mPathYOffset) {
+      cost += 5;
+    }
+    else {
+      boolean l1Inside = ((l1.mSrcX - l2.mSrcX) * (l1.mSrcX - l2.mDstX) <= 0) && (
+        (l1.mDstX - l2.mSrcX) * (l1.mDstX - l2.mDstX) <= 0);
+      if (l1Inside && l1.mPathYOffset > l2.mPathYOffset) {
+        cost += 5;
+      }
+    }
+    return cost;
+  }
+
+  private static double lineCost(DerivedSetLine[] lines, int lineCount, int maxLevels) {
     double ret = 0;
     for (int i = 0; i < lineCount; i++) {
       ret += lines[i].mPathYOffset;
@@ -1040,25 +1171,13 @@ class OverviewPanel extends JPanel {
 
       for (int j = i + 1; j < lineCount; j++) {
         DerivedSetLine l2 = lines[j];
-
-        if (Math.max(Math.min(l1.mSrcX, l1.mDstX), Math.min(l2.mSrcX, l2.mDstX)) < Math
-          .min(Math.max(l1.mSrcX, l1.mDstX), Math.max(l2.mSrcX, l2.mDstX))
-            && l1.mPathYOffset == l2.mPathYOffset) {
-          ret += 5;
-        }
-        else {
-          boolean l1Inside = ((l1.mSrcX - l2.mSrcX) * (l1.mSrcX - l2.mDstX) <= 0) && (
-            (l1.mDstX - l2.mSrcX) * (l1.mDstX - l2.mDstX) <= 0);
-          if (l1Inside && l1.mPathYOffset > l2.mPathYOffset) {
-            ret += 5;
-          }
-        }
+        ret += calcualteCost(l1, l2);
       }
     }
     return ret;
   }
 
-  int intPower(int a, int b) {
+ static int intPower(int a, int b) {
     int ret = a;
     for (int i = 1; i < b; i++) {
       ret *= a;
