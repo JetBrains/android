@@ -28,7 +28,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -52,7 +51,6 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -61,7 +59,6 @@ import com.android.tools.idea.rendering.TouchEventResult;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -86,15 +83,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
-import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -115,7 +109,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -279,7 +272,6 @@ public class LayoutlibSceneManager extends SceneManager {
   private RenderResult myRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
-  @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
   private final Object myFuturesLock = new Object();
   @GuardedBy("myFuturesLock")
@@ -1044,10 +1036,10 @@ public class LayoutlibSceneManager extends SceneManager {
       myUpdateHierarchyLock.acquire();
       try {
         if (result == null || !result.getRenderResult().isSuccess()) {
-          updateHierarchy(Collections.emptyList(), getModel());
+          NlModelHierarchyUpdater.updateHierarchy(Collections.emptyList(), getModel());
         }
         else {
-          updateHierarchy(getRootViews(result), getModel());
+          NlModelHierarchyUpdater.updateHierarchy(getRootViews(result), getModel());
         }
       } finally {
         myUpdateHierarchyLock.release();
@@ -1061,30 +1053,6 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   private List<ViewInfo> getRootViews(@NotNull RenderResult result) {
     return getModel().getType() == MenuFileType.INSTANCE ? result.getSystemRootViews() : result.getRootViews();
-  }
-
-  @VisibleForTesting
-  public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    model.syncWithPsi(rootTag, ContainerUtil.map(rootViews, ViewInfoTagSnapshotNode::new));
-    updateBounds(rootViews, model);
-  }
-
-  @VisibleForTesting
-  public static void updateHierarchy(@NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    XmlTag root = getRootTag(model);
-    if (root != null) {
-      updateHierarchy(root, rootViews, model);
-    }
-  }
-
-  // Get the root tag of the xml file associated with the specified model.
-  // Since this code may be called on a non UI thread be extra careful about expired objects.
-  @Nullable
-  private static XmlTag getRootTag(@NotNull NlModel model) {
-    if (Disposer.isDisposed(model)) {
-      return null;
-    }
-    return AndroidPsiUtils.getRootTagSafely(model.getFile());
   }
 
   /**
@@ -1458,31 +1426,6 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * A TagSnapshot tree that mirrors the ViewInfo tree.
-   */
-  private static class ViewInfoTagSnapshotNode implements NlModel.TagSnapshotTreeNode {
-
-    private final ViewInfo myViewInfo;
-
-    private ViewInfoTagSnapshotNode(ViewInfo info) {
-      myViewInfo = info;
-    }
-
-    @Nullable
-    @Override
-    public TagSnapshot getTagSnapshot() {
-      Object result = myViewInfo.getCookie();
-      return result instanceof TagSnapshot ? (TagSnapshot)result : null;
-    }
-
-    @NotNull
-    @Override
-    public List<NlModel.TagSnapshotTreeNode> getChildren() {
-      return ContainerUtil.map(myViewInfo.getChildren(), ViewInfoTagSnapshotNode::new);
-    }
-  }
-
-  /**
    * Default {@link SceneManager.SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
    * It provides the functionality to sync the {@link NlComponent} hierarchy and the data from Layoutlib to {@link SceneComponent}.
    */
@@ -1508,99 +1451,6 @@ public class LayoutlibSceneManager extends SceneManager {
         sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
                                Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
       }
-    }
-  }
-
-  private static void clearDerivedData(@NotNull NlComponent component) {
-    NlComponentHelperKt.setBounds(component, 0, 0, -1, -1); // -1: not initialized
-    NlComponentHelperKt.setViewInfo(component, null);
-  }
-
-  // TODO: we shouldn't be going back in and modifying NlComponents here
-  private static void updateBounds(@NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    model.flattenComponents().forEach(LayoutlibSceneManager::clearDerivedData);
-    Map<TagSnapshot, NlComponent> snapshotToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
-    Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity()));
-
-    // Update the bounds. This is based on the ViewInfo instances.
-    for (ViewInfo view : rootViews) {
-      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent);
-    }
-
-    ImmutableList<NlComponent> components = model.getComponents();
-    if (!rootViews.isEmpty() && !components.isEmpty()) {
-      // Finally, fix up bounds: ensure that all components not found in the view
-      // info hierarchy inherit position from parent
-      fixBounds(components.get(0));
-    }
-  }
-
-  private static void fixBounds(@NotNull NlComponent root) {
-    boolean computeBounds = false;
-    if (NlComponentHelperKt.getW(root) == -1 && NlComponentHelperKt.getH(root) == -1) { // -1: not initialized
-      computeBounds = true;
-
-      // Look at parent instead
-      NlComponent parent = root.getParent();
-      if (parent != null && NlComponentHelperKt.getW(parent) >= 0) {
-        NlComponentHelperKt.setBounds(root, NlComponentHelperKt.getX(parent), NlComponentHelperKt.getY(parent), 0, 0);
-      }
-    }
-
-    List<NlComponent> children = root.getChildren();
-    if (!children.isEmpty()) {
-      for (NlComponent child : children) {
-        fixBounds(child);
-      }
-
-      if (computeBounds) {
-        Rectangle rectangle = new Rectangle(NlComponentHelperKt.getX(root), NlComponentHelperKt.getY(root), NlComponentHelperKt.getW(root),
-                                            NlComponentHelperKt.getH(root));
-        // Grow bounds to include child bounds
-        for (NlComponent child : children) {
-          rectangle = rectangle.union(new Rectangle(NlComponentHelperKt.getX(child), NlComponentHelperKt.getY(child),
-                                                    NlComponentHelperKt.getW(child), NlComponentHelperKt.getH(child)));
-        }
-
-        NlComponentHelperKt.setBounds(root, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-      }
-    }
-  }
-
-  private static void updateBounds(@NotNull ViewInfo view,
-                                   @AndroidCoordinate int parentX,
-                                   @AndroidCoordinate int parentY,
-                                   Map<TagSnapshot, NlComponent> snapshotToComponent,
-                                   Map<XmlTag, NlComponent> tagToComponent) {
-    ViewInfo bounds = RenderService.getSafeBounds(view);
-    Object cookie = view.getCookie();
-    NlComponent component;
-    if (cookie != null) {
-      if (cookie instanceof TagSnapshot) {
-        TagSnapshot snapshot = (TagSnapshot)cookie;
-        component = snapshotToComponent.get(snapshot);
-        if (component == null) {
-          component = tagToComponent.get(snapshot.tag);
-        }
-        if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
-          NlComponentHelperKt.setViewInfo(component, view);
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
-
-          NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
-                                        Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
-        }
-      }
-    }
-    parentX += bounds.getLeft();
-    parentY += bounds.getTop();
-
-    for (ViewInfo child : view.getChildren()) {
-      updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent);
     }
   }
 
