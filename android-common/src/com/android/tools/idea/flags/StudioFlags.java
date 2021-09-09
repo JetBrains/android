@@ -366,7 +366,12 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
     NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
-    "For all non-.",
+    "If the xml layout contains any visual lint issues, it will be shown in the common error panel as well as in laytout validation issue panel.",
+    false);
+
+  public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
+    NELE, "visual.lint.always.run", "Run visual lint always",
+    "Enable so that visual lint always runs for select configurations.",
     false);
 
   public static final Flag<Boolean> NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS = Flag.create(
