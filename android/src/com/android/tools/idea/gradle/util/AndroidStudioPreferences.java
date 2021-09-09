@@ -19,6 +19,7 @@ import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 import com.android.tools.idea.IdeInfo;
 import com.google.common.collect.Lists;
+import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.options.Configurable;
@@ -44,6 +45,10 @@ public final class AndroidStudioPreferences {
       // These should all be left intact when running as part of IDEA.
       return;
     }
+
+    // This option currently causes issues with external Gradle builds (see https://issuetracker.google.com/issues/183632446)
+    // This option can not be set in Android Studio, this is to disable already set configurations.
+    CompilerWorkspaceConfiguration.getInstance(project).MAKE_PROJECT_ON_SAVE = false;
 
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
 
