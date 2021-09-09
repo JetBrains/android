@@ -117,7 +117,7 @@ class SplittingPanelTest {
              0.5f,
              Leaf("3"),
              Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
-    assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
+    assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
@@ -134,7 +134,7 @@ class SplittingPanelTest {
              0.5f,
              Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
              Leaf("4")))
-    assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
+    assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
@@ -151,7 +151,7 @@ class SplittingPanelTest {
              0.5f,
              Leaf("1"),
              Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
-    assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
+    assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
@@ -168,7 +168,7 @@ class SplittingPanelTest {
              0.5f,
              Parent(HORIZONTAL, 0.5f, Leaf("1"), Leaf("3")),
              Leaf("2")))
-    assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
+    assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   @Test
@@ -180,7 +180,7 @@ class SplittingPanelTest {
 
     Disposer.dispose(content)
 
-    assertThat(disposableLabels.count { !it.isDisposed }).isEqualTo(0)
+    assertThat(disposableLabels.count { !Disposer.isDisposed(it) }).isEqualTo(0)
   }
 
   @Test
@@ -360,7 +360,7 @@ class SplittingPanelTest {
              0.5f,
              Leaf("3"),
              Parent(HORIZONTAL, 0.5f, Leaf("2"), Leaf("4"))))
-    assertThat((splittingPanel.component as DisposableLabel).isDisposed).isTrue()
+    assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
   private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: (String?, ActionGroup) -> JComponent): Content {
@@ -424,11 +424,7 @@ class SplittingPanelTest {
   private data class SplitCommand(val name: String, val orientation: SplitOrientation, val proportion: Float? = null)
 
   private open class DisposableLabel(text: String) : JLabel(text), Disposable {
-    var isDisposed: Boolean = false
-
-    override fun dispose() {
-      isDisposed = true
-    }
+    override fun dispose() {}
   }
 
   private class JLabelWithState(val componentState: String) : JLabel(componentState), SplittingTabsStateProvider {
@@ -437,3 +433,6 @@ class SplittingPanelTest {
 
   private class JLabelWithPopupActionGroup(text: String, val popupActionGroup: ActionGroup) : DisposableLabel(text)
 }
+
+private fun SplittingPanel.isComponentDisposed() = Disposer.isDisposed(component as Disposable)
+
