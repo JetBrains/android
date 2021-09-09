@@ -223,21 +223,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-          """.let {
-            listOf(
-              AGP_35 to it,
-              AGP_40 to it,
-              AGP_41 to it,
-              AGP_CURRENT to
           """
-            ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
-            Files:
-              Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-            RequiredInstallationOptions: []
-          """
-            )
-          }.toMap()
         ),
         TestDefinition(
           name = "SIMPLE_APPLICATION test run configuration",
@@ -293,28 +279,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
-          """.let {
-            listOf(
-              AGP_35 to it,
-              AGP_40 to it,
-              AGP_41 to it,
-              AGP_CURRENT to
-          """
-            ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
-            Files:
-              project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-            RequiredInstallationOptions: []
-
-            ApplicationId: google.simpleapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
-            Files:
-               -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
-            RequiredInstallationOptions: []
-          """
-            )
-          }.toMap()
-        ),
+          """),
         TestDefinition(
           name = "TEST_ONLY_MODULE test run configuration",
           testProject = TestProjectPaths.TEST_ONLY_MODULE,
