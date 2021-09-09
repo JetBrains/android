@@ -20,6 +20,7 @@ import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -241,6 +242,13 @@ public class ChooseSystemImagePanel extends JPanel
     // pixel 4a requires API30 and above
     if (deviceId.equals(("pixel_4a"))) {
       if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_PIXEL_4A_DEVICE_API) {
+        return false;
+      }
+    }
+
+    // Resizable requires API31 and above
+    if (deviceId.equals(("resizable"))) {
+      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_RESIZABLE_DEVICE_API) {
         return false;
       }
     }

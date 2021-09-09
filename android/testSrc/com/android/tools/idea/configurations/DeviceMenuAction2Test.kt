@@ -132,6 +132,7 @@ class DeviceMenuAction2Test {
         6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
         Foldable (674 × 841 dp, xxhdpi)
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
+        Resizable (674 × 841 dp, xxhdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)
         7.6" Fold-in with outer display (589 × 736 dp, xxhdpi)
         8" Fold-out (838 × 945 dp, xxhdpi)

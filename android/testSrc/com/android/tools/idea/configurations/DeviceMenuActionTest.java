@@ -111,6 +111,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
       "         6.7\" Horizontal Fold-in (1080 \u00d7 2636, xxhdpi)\n" +
       "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
+      "        Resizable (1768 \u00d7 2208, 420dpi)\n" +
       "         7.4\" Rollable (1600 \u00d7 2428, 420dpi)\n" +
       "         7.6\" Fold-in with outer display (1768 \u00d7 2208, xxhdpi)\n" +
       "         8.0\" Fold-out (2200 \u00d7 2480, 420dpi)\n" +
