@@ -55,63 +55,66 @@ class AndroidLiveEditCodeGenerator {
     val compiled = HashSet<PsiFile>()
     for (method in methods) {
       val root = method.file
-      if (root is KtFile && !compiled.contains(root)) {
-        val filesToAnalyze = listOf(root)
+      if (root !is KtFile || compiled.contains(root)) {
+        continue
+      }
 
-        ApplicationManager.getApplication().runReadAction {
-          val kotlinCacheService = KotlinCacheService.getInstance(project)
-          val resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
-                                                                  JvmPlatforms.unspecifiedJvmPlatform)
+      val filesToAnalyze = listOf(root)
 
-          val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
-            resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
-          }
+      ApplicationManager.getApplication().runReadAction {
+        val kotlinCacheService = KotlinCacheService.getInstance(project)
+        val resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
+                                                                JvmPlatforms.unspecifiedJvmPlatform)
 
-          val compilerConfiguration = CompilerConfiguration()
+        val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
+          resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
+        }
 
-          compilerConfiguration.languageVersionSettings = root.languageVersionSettings
+        val compilerConfiguration = CompilerConfiguration()
 
-          val generationState = GenerationState.Builder(project,
-                                                        ClassBuilderFactories.BINARIES,
-                                                        resolution.moduleDescriptor,
-                                                        analysisResult.bindingContext,
-                                                        filesToAnalyze,
-                                                        compilerConfiguration).build()
+        compilerConfiguration.languageVersionSettings = root.languageVersionSettings
 
-          val methodSignature = functionSignature(method.function)
-          val className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
+        val generationState = GenerationState.Builder(project,
+                                                      ClassBuilderFactories.BINARIES,
+                                                      resolution.moduleDescriptor,
+                                                      analysisResult.bindingContext,
+                                                      filesToAnalyze,
+                                                      compilerConfiguration).build()
 
-          if (className.isEmpty() || methodSignature.isEmpty()) {
+        val methodSignature = functionSignature(method.function)
+        val className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
+
+        if (className.isEmpty() || methodSignature.isEmpty()) {
+          return@runReadAction
+        }
+
+        com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
+          try {
+            KotlinCodegenFacade.compileCorrectFiles(generationState)
+          } catch (e : Throwable) {
+            handleCompilerErrors(e)
             return@runReadAction
           }
+          compiled.add(root)
+        }
+        val classes = generationState.factory.asList();
+        if (classes.isEmpty()) {
+          // TODO: Error reporting.
+          print(" We don't have successful classes");
+          return@runReadAction
+        }
 
-          com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
-            try {
-              KotlinCodegenFacade.compileCorrectFiles(generationState)
-            } catch (e : Throwable) {
-              handleCompilerErrors(e)
-              return@runReadAction
-            }
-            compiled.add(root)
+        // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
+        val internalClassName = className.replace(".", "/") + ".class"
+        for (c in classes) {
+          if (!c.relativePath.contains(internalClassName)) {
+            continue
           }
-          val classes = generationState.factory.asList();
-          if (classes.isEmpty()) {
-            // TODO: Error reporting.
-            print(" We don't have successful classes");
-            return@runReadAction
-          }
+          for (m in methods) {
+            callback(className, methodSignature, c.asByteArray())
 
-          // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
-          val internalClassName = className.replace(".", "/") + ".class"
-          for (c in classes) {
-            if (c.relativePath.contains(internalClassName)) {
-              for (m in methods) {
-                callback(className, methodSignature, c.asByteArray())
-
-                // TODO: Deal with multiple requests
-                break
-              }
-            }
+            // TODO: Deal with multiple requests
+            break
           }
         }
       }
