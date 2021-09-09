@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -63,7 +64,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
@@ -71,11 +71,9 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -406,39 +404,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                                        @NotNull ProfilerClient client,
                                                        @Nullable Map<Common.Device, Long> deviceToStreamIds,
                                                        @Nullable Map<Long, Common.Stream> streamIdToStreams) {
-    List<Common.Device> devices = new LinkedList<>();
+    List<Common.Device> devices;
     if (isUnifiedPipelineEnabled) {
-      // Get all streams of all types.
-      GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
-        .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-        .setKind(Event.Kind.STREAM)
-        .build();
-      GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
-      for (EventGroup group : response.getGroupsList()) {
-        boolean isStreamDead = group.getEvents(group.getEventsCount() - 1).getIsEnded();
-        Common.Event connectedEvent = getLastMatchingEvent(group, e -> (e.hasStream() && e.getStream().hasStreamConnected()));
-        if (connectedEvent == null) {
-          // Ignore stream event groups that do not have the connected event.
-          continue;
+      List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
+      devices = streams.stream().map((Stream stream) -> {
+        if (deviceToStreamIds != null) {
+          deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
         }
-        Common.Stream stream = connectedEvent.getStream().getStreamConnected().getStream();
-        // We only want streams of type device to get process information.
-        if (stream.getType() == Stream.Type.DEVICE) {
-          if (isStreamDead) {
-            // TODO state changes are represented differently in the unified pipeline (with two separate events)
-            // remove this once we move complete away from the legacy pipeline.
-            stream = stream.toBuilder().
-              setDevice(stream.getDevice().toBuilder().setState(Common.Device.State.DISCONNECTED)).build();
-          }
-          if (deviceToStreamIds != null) {
-            deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
-          }
-          if (streamIdToStreams != null) {
-            streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
-          }
-          devices.add(stream.getDevice());
+        if (streamIdToStreams != null) {
+          streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
         }
-      }
+        return stream.getDevice();
+      }).collect(Collectors.toList());
     }
     else {
       GetDevicesResponse response = client.getTransportClient().getDevices(GetDevicesRequest.getDefaultInstance());
@@ -493,40 +470,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
         for (Common.Device device : devices) {
-          GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
-            .setStreamId(myDeviceToStreamIds.get(device))
-            .setKind(Event.Kind.PROCESS)
-            .build();
-          GetEventGroupsResponse processResponse = myClient.getTransportClient().getEventGroups(processRequest);
-          List<Common.Process> processList = new ArrayList<>();
-          int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-          // A group is a collection of events that happened to a single process.
-          for (EventGroup groupProcess : processResponse.getGroupsList()) {
-            boolean isProcessAlive = !groupProcess.getEvents(groupProcess.getEventsCount() - 1).getIsEnded();
-            // Find the alive event with the highest exposure level for the last alive process.
-            // On Q & R, a profileable app's event comes from the daemon, while a debuggable app's event comes from adb track-jdwp
-            // through TransportServiceProxy. Every debuggable app is also profileable, so it will be reported twice, and the order
-            // of the two events cannot be predicted.
-            Common.Event aliveEvent = getHighestExposureEventForLastProcess(groupProcess);
-            if (aliveEvent == null) {
-              // Ignore process event groups that do not have the started event.
-              continue;
+          List<Common.Process> processList = StreamQueryUtils.queryForProcesses(
+            myClient.getTransportClient(),
+            myDeviceToStreamIds.get(device),
+            (Boolean isProcessAlive, Common.Process process) -> {
+              int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+              return (isProcessAlive || process.getPid() == lastProcessId) &&
+                     (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
+                      (getIdeServices().getFeatureConfig().isProfileableEnabled() &&
+                       process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE)));
             }
-            Common.Process process = aliveEvent.getProcess().getProcessStarted().getProcess();
-            boolean shouldAddProcess =
-              (isProcessAlive || process.getPid() == lastProcessId) &&
-              (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
-               (getIdeServices().getFeatureConfig().isProfileableEnabled() &&
-                process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE)));
-            if (shouldAddProcess) {
-              if (!isProcessAlive) {
-                // TODO state changes are represented differently in the unified pipeline (with two separate events)
-                // remove this once we move complete away from the legacy pipeline.
-                process = process.toBuilder().setState(Common.Process.State.DEAD).build();
-              }
-              processList.add(process);
-            }
-          }
+          );
           newProcesses.put(device, processList);
         }
       }
@@ -1056,61 +1010,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Helper method to return the last event in an EventGroup that matches the input condition.
-   */
-  @Nullable
-  private static Common.Event getLastMatchingEvent(@NotNull EventGroup group, @NotNull Predicate<Event> predicate) {
-    Common.Event matched = null;
-    for (Event event : group.getEventsList()) {
-      if (predicate.test(event)) {
-        matched = event;
-      }
-    }
-
-    return matched;
-  }
-
-  /**
-   * Helper method to return the event of the highest exposure level for the last process in an EventGroup. Note process
-   * events are grouped by PIDs, so this method doesn't look beyond the next to last "is-ended" event.
-   */
-  @Nullable
-  private static Common.Event getHighestExposureEventForLastProcess(@NotNull EventGroup group) {
-    boolean hasVisitedEndedEvent = false;
-    Common.Event found = null;
-    for (int i = group.getEventsCount() - 1; i >= 0; i--) {
-      Common.Event e = group.getEvents(i);
-      if (e.getIsEnded()) {
-        if (hasVisitedEndedEvent) {
-          break;
-        }
-        hasVisitedEndedEvent = true;
-      }
-      else {
-        if (e.hasProcess() && e.getProcess().hasProcessStarted() && e.getProcess().getProcessStarted().hasProcess() &&
-            (found == null ||
-             e.getProcess().getProcessStarted().getProcess().getExposureLevelValue() >
-             found.getProcess().getProcessStarted().getProcess().getExposureLevelValue())) {
-          found = e;
-        }
-      }
-    }
-    return found;
-  }
-
-  /**
    * Return the start and end timestamps for the artificial session created for the given imported file.
-   *
+   * <p>
    * For each imported file, an artificial session is created. The start timestamp will be used as the
    * session's ID. Therefore, this function returns a nearly unique hash as the start timestamp for each file.
-   *
+   * <p>
    * The range constructed by the two timestamps (after casting to microseconds) should still include the start
    * timestamp in nanoseconds because our code base shares much of live session's logic to handle imported
    * files. The two timestamps will construct a Range object. As the Range class uses microseconds, the
    * range may become a point when nanoseconds are casted into microseconds if it's too short, and the
    * nanosecond-timestamp may fall out of it. Therefore, this method makes the range one microsecond long
    * to avoid a point-range after casting.
-   *
+   * <p>
    * This method avoid negative timestamps which may be counter-intuitive.
    */
   public static Pair<Long, Long> computeImportedFileStartEndTimestampsNs(File file) {

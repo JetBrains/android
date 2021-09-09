@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
-import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
@@ -31,7 +30,6 @@ import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.lang.Long.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
@@ -51,10 +49,6 @@ internal class AppInspectionProcessDiscovery(
   private val manager: TransportStreamManager,
   private val scope: CoroutineScope
 ) : ProcessNotifier {
-
-  // Keep track of the last_active_event_timestamp per stream. This ensures that in the event the stream is disconnected and connected
-  // again, AppInspection will be able to filter out and ignore the events that happened in the past.
-  private val streamLastActiveTime = ConcurrentHashMap<Long, Long>()
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
 
@@ -107,24 +101,14 @@ internal class AppInspectionProcessDiscovery(
           val streamChannel = activity.streamChannel
           if (activity is StreamConnected) {
             streamIdMap[streamChannel.stream.streamId] = streamChannel
-            val streamLastEventTimestamp = streamLastActiveTime[streamChannel.stream.streamId]?.let { { it + 1 } } ?: { Long.MIN_VALUE }
             launch {
-              streamChannel.eventFlow(
-                StreamEventQuery(
-                  eventKind = Common.Event.Kind.PROCESS,
-                  startTime = streamLastEventTimestamp
-                )
-              ).collect { streamEvent ->
-                if (streamEvent.event.process.hasProcessStarted()) {
-                  val process = streamEvent.event.process.processStarted.process
-                  if (process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE) {
-                    // App Inspection relies on JVMTI agent, which is supported by debuggable processes only
-                    addProcess(streamChannel, process)
-                  }
-                  setStreamLastActiveTime(streamChannel.stream.streamId, streamEvent.event.timestamp)
-                } else {
-                  removeProcess(streamChannel.stream.streamId, streamEvent.event.groupId.toInt())
-                  setStreamLastActiveTime(streamChannel.stream.streamId, streamEvent.event.timestamp)
+              streamChannel.processesFlow { _, process ->
+                process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
+              }.collect { process ->
+                when (process.state) {
+                  Common.Process.State.ALIVE -> addProcess(streamChannel, process)
+                  Common.Process.State.DEAD -> removeProcess(streamChannel.stream.streamId, process.pid)
+                  else -> Unit
                 }
               }
             }
@@ -135,10 +119,6 @@ internal class AppInspectionProcessDiscovery(
           }
         }
     }
-  }
-
-  private fun setStreamLastActiveTime(streamId: Long, timestamp: Long) {
-    streamLastActiveTime[streamId] = max(timestamp, streamLastActiveTime[streamId] ?: Long.MIN_VALUE)
   }
 
   /**

@@ -74,39 +74,26 @@ class TransportStreamManager private constructor(
 ) {
   fun streamActivityFlow(): Flow<StreamActivity> {
     val streams = mutableMapOf<Long, TransportStreamChannel>()
-    // Get all streams of all types.
-    val request = GetEventGroupsRequest.newBuilder()
-      .setStreamId(-1) // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-      .setKind(Common.Event.Kind.STREAM)
-      .build()
-    return client
-      .eventGroupFlow { request }
-      .transform { response ->
-        for (group in response.groupsList) {
-          if (group.eventsCount <= 0) continue
-          val streamId = group.groupId
-          // sort list by timestamp in descending order
-          // the latest event may signal the stream is alive or dead:
-          // 1) alive - if stream is new, add stream and notify listeners. otherwise do nothing
-          // 2) dead - if stream is dead and manager knows it from before, then remove it and notify listeners. Otherwise do nothing.
-          val latestEvent = group.eventsList.maxBy { it.timestamp } ?: continue
-          val isConnected = latestEvent.stream.hasStreamConnected()
-          if (isConnected) {
-            if (!streams.containsKey(streamId)) {
-              val streamChannel = TransportStreamChannel(latestEvent.stream.streamConnected.stream, client, dispatcher)
+    return flow {
+      while (true) {
+        StreamQueryUtils.queryForDevices(client).forEach { stream ->
+          if (stream.device.state == Common.Device.State.ONLINE) {
+            if (!streams.containsKey(stream.streamId)) {
+              val streamChannel = TransportStreamChannel(stream, client, dispatcher)
               emit(StreamConnected(streamChannel))
-              streams[streamId] = streamChannel
+              streams[stream.streamId] = streamChannel
             }
           }
           else {
-            streams.remove(streamId)?.let { channel ->
+            streams.remove(stream.streamId)?.let { channel ->
               channel.cleanUp()
               emit(StreamDisconnected(channel))
             }
           }
         }
+        delay(DELAY_MILLIS)
       }
-      .flowOn(dispatcher)
+    }.flowOn(dispatcher)
   }
 
   companion object {
@@ -170,6 +157,27 @@ class TransportStreamChannel(
         }
       }
       .flowOn(dispatcher)
+  }
+
+  fun processesFlow(filter: (isAlive: Boolean, process: Common.Process) -> Boolean): Flow<Common.Process> {
+    val processIdToState = mutableMapOf<Int, Common.Process.State>()
+    return flow {
+      while (true) {
+        // The query will return a list of all processes the transport pipeline is aware of, whether they
+        // are alive or dead. Therefore, in order to check for updates to the processes' states, we need
+        // to reconcile it with the cached state from a previous query.
+        StreamQueryUtils.queryForProcesses(client, stream.streamId, filter).forEach { process ->
+          val previousState = processIdToState[process.pid]
+          if (previousState != process.state) {
+            processIdToState[process.pid] = process.state
+            emit(process)
+          }
+        }
+        delay(DELAY_MILLIS)
+      }
+    }
+      .flowOn(dispatcher)
+      .takeWhile { !isClosed.get() }
   }
 
   internal fun cleanUp() {
