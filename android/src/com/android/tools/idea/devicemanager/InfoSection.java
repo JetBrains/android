@@ -111,6 +111,7 @@ public class InfoSection extends JBPanel<InfoSection> {
     InfoSection section = new InfoSection("Paired device");
 
     setText(section.addNameAndValueLabels("Paired with"), otherDevice.getDisplayName());
+    setText(section.addNameAndValueLabels("Status"), pair.getAllDevicesOnline() ? "Connected" : "Offline");
     section.setLayout();
 
     return Optional.of(section);
