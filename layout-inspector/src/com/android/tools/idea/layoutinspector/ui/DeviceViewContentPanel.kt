@@ -22,10 +22,12 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
+import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -38,13 +40,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.ui.GotItTooltip
+import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -56,6 +62,9 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.geom.AffineTransform
+import java.awt.geom.Line2D
+import java.awt.geom.Point2D
 
 private const val MARGIN = 50
 
@@ -176,7 +185,8 @@ class DeviceViewContentPanel(
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)
+        model.hoveredDrawInfo = findTopDrawInfoAt(e.x, e.y).firstOrNull()
+        inspectorModel.hoveredNode = model.hoveredDrawInfo?.node?.findFilteredOwner(treeSettings)
       }
     }
     addMouseListener(listener)
@@ -223,8 +233,8 @@ class DeviceViewContentPanel(
   private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
 
-  private fun findTopViewAt(x: Int, y: Int) = model.findTopViewAt((x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                                  (y - size.height / 2.0) / viewSettings.scaleFraction)
+  private fun findTopDrawInfoAt(x: Int, y: Int) = model.findDrawInfoAt((x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
@@ -247,10 +257,10 @@ class DeviceViewContentPanel(
 
   override fun getPreferredSize() =
     if (inspectorModel.isEmpty) Dimension(0, 0)
-    // Give twice the needed size so we have room to move the view around a little. Otherwise things can jump around
+    // Give twice the needed size, so we have room to move the view around a little. Otherwise things can jump around
     // when the number of layers changes and the canvas size adjusts to smaller than the viewport size.
-    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2,
-                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt() * 2)
+    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2,
+                   (model.maxHeight * viewSettings.scaleFraction + JBUIScale.scale(MARGIN)).toInt() * 2)
 
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
@@ -281,17 +291,83 @@ class DeviceViewContentPanel(
 
   private fun drawBorders(g: Graphics2D, drawInfo: ViewDrawInfo) {
     val hoveredNode = inspectorModel.hoveredNode
-
     val drawView = drawInfo.node
     val view = drawView.findFilteredOwner(treeSettings)
     val selection = inspectorModel.selection
 
+    val g2 = g.create() as Graphics2D
+    g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
+
     if (!drawInfo.isCollapsed &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
-      val g2 = g.create() as Graphics2D
-      g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
       drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings, treeSettings)
     }
+    if (viewSettings.drawFold && model.hitRects.isNotEmpty() && (
+        // nothing is selected or hovered: draw on the root
+        (model.hoveredDrawInfo == null && inspectorModel.selection == null && drawInfo == model.hitRects.first()) ||
+        // We're hovering over this node
+        model.hoveredDrawInfo == drawInfo ||
+        // We're not hovering but there is a selection. If the selected ViewNode corresponds to multiple DrawViewNodes (that is, both
+        // a structural DrawViewChild and one or more image-containing DrawViewImage), only draw on the bottom one (the DrawViewChild).
+        (model.hoveredDrawInfo == null && view != null && inspectorModel.selection == view && drawView is DrawViewChild))) {
+      drawFold(g2)
+    }
+  }
+
+  private fun drawFold(g2: Graphics2D) {
+    g2.color = Color(255, 0, 255)
+    g2.stroke = getFoldStroke(viewSettings.scaleFraction)
+    val foldInfo = inspectorModel.foldInfo ?: return
+    val maxWidth = inspectorModel.windows.values.map { it.width }.maxOrNull() ?: 0
+    val maxHeight = inspectorModel.windows.values.map { it.height }.maxOrNull() ?: 0
+
+    val startX: Float
+    val startY: Float
+    val endX: Float
+    val endY: Float
+
+    val angleText = (if (foldInfo.angle == null) "" else foldInfo.angle?.toString() + "°") + " " + foldInfo.posture
+    val labelPosition = Point()
+    val icon = StudioIcons.LayoutInspector.DEGREE
+    // Note this could be AdtUiUtils.DEFAULT_FONT, but since that's a static if it gets initialized during a test that overrides
+    // ui defaults it can end up as something unexpected.
+    g2.font = JBUI.Fonts.label(10f)
+    val labelGraphics = (g2.create() as Graphics2D).apply { transform = AffineTransform() }
+    val iconTextGap = JBUIScale.scale(4)
+    val labelLineGap = JBUIScale.scale(7)
+    val lineExtensionLength = JBUIScale.scale(70f)
+
+    when (foldInfo.orientation) {
+      InspectorModel.FoldOrientation.HORIZONTAL -> {
+        startX = -lineExtensionLength
+        endX = maxWidth + lineExtensionLength
+        startY = maxHeight / 2f
+        endY = maxHeight / 2f
+        val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
+        labelPosition.x = transformed.x.toInt() - labelGraphics.fontMetrics.stringWidth(
+          angleText) - icon.iconWidth - iconTextGap - labelLineGap
+        labelPosition.y = transformed.y.toInt() - icon.iconHeight / 2
+      }
+      InspectorModel.FoldOrientation.VERTICAL -> {
+        startX = maxWidth / 2f
+        endX = maxWidth / 2f
+        startY = -lineExtensionLength
+        endY = maxHeight + lineExtensionLength
+        val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
+        labelPosition.x = transformed.x.toInt() - (labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap) / 2
+        labelPosition.y = transformed.y.toInt() - icon.iconHeight - labelLineGap
+      }
+    }
+    g2.draw(Line2D.Float(startX, startY, endX, endY))
+    labelGraphics.color = JBColor.white
+    val labelBorder = JBUIScale.scale(3)
+    labelGraphics.fillRoundRect(labelPosition.x - labelBorder, labelPosition.y - labelBorder,
+                                labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap + labelBorder * 2,
+                                icon.iconHeight + labelBorder * 2, JBUIScale.scale(5), JBUIScale.scale(5))
+    labelGraphics.color = foreground
+    icon.paintIcon(this, labelGraphics, labelPosition.x, labelPosition.y)
+    labelGraphics.drawString(angleText, labelPosition.x + icon.iconWidth + iconTextGap,
+                             labelPosition.y + labelGraphics.fontMetrics.maxAscent)
   }
 
   private fun drawImages(g: Graphics, drawInfo: ViewDrawInfo) {

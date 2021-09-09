@@ -21,37 +21,23 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
+import kotlin.reflect.KMutableProperty1
 
 object ViewMenuAction : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
+  class SettingsAction(name: String, val property: KMutableProperty1<DeviceViewSettings, Boolean>) : ToggleAction(name) {
+    override fun isSelected(event: AnActionEvent) =
+      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> return property.get(settings) } ?: false
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> property.set(settings, state) }
+    }
+  }
+
   init {
-    add(object : ToggleAction("Show Borders") {
-      override fun isSelected(event: AnActionEvent): Boolean {
-        return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawBorders == true
-      }
-
-      override fun setSelected(event: AnActionEvent, state: Boolean) {
-        event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawBorders = state
-      }
-    })
-    add(object : ToggleAction("Show Layout Bounds") {
-      override fun isSelected(event: AnActionEvent): Boolean {
-        return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawUntransformedBounds == true
-      }
-
-      override fun setSelected(event: AnActionEvent, state: Boolean) {
-        event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawUntransformedBounds = state
-      }
-    })
-    add(object : ToggleAction("Show View Label") {
-      override fun isSelected(event: AnActionEvent): Boolean {
-        return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawLabel == true
-      }
-
-      override fun setSelected(event: AnActionEvent, state: Boolean) {
-        event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawLabel = state
-      }
-
-    })
+    add(SettingsAction("Show Borders", DeviceViewSettings::drawBorders))
+    add(SettingsAction("Show Layout Bounds", DeviceViewSettings::drawUntransformedBounds))
+    add(SettingsAction("Show View Label", DeviceViewSettings::drawLabel))
+    add(SettingsAction("Show Fold Hinge and Angle", DeviceViewSettings::drawFold))
   }
 
   override fun update(e: AnActionEvent) {

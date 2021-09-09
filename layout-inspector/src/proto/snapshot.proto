@@ -32,4 +32,6 @@ message Snapshot {
      layoutinspector.compose.inspection.GetAllParametersResponse compose_parameters = 3;
    }
    repeated ComposeInfo compose_info = 2;
+
+   layoutinspector.view.inspection.FoldEvent fold_info = 3;
 }

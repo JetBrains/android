@@ -21,6 +21,8 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.project.Project
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.properties.Delegates
@@ -57,6 +59,29 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
   val root = ViewNode("root - hide")
+
+  enum class Posture { HALF_OPEN, FLAT }
+  enum class FoldOrientation { VERTICAL, HORIZONTAL }
+  class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {
+    fun toProto(): LayoutInspectorViewProtocol.FoldEvent = LayoutInspectorViewProtocol.FoldEvent.newBuilder().also { builder ->
+      when (posture) {
+        Posture.HALF_OPEN -> LayoutInspectorViewProtocol.FoldEvent.FoldState.HALF_OPEN
+        Posture.FLAT -> LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT
+        else -> null
+      }?.let { builder.foldState = it }
+      builder.angle = angle ?: NO_FOLD_ANGLE_VALUE
+      builder.orientation = when (orientation) {
+        FoldOrientation.VERTICAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL
+        FoldOrientation.HORIZONTAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL
+      }
+    }.build()
+  }
+
+  var foldInfo: FoldInfo? = null
+    set(value) {
+      field = value
+      notifyModified()
+    }
 
   /** Whether there are currently any views in this model */
   val isEmpty
@@ -123,8 +148,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       root.children.forEach { it.parent = null }
       root.children.clear()
       root.drawChildren.clear()
-      val maxWidth = windows.values.map { it.width }.max() ?: 0
-      val maxHeight = windows.values.map { it.height }.max() ?: 0
+      val maxWidth = windows.values.map { it.width }.maxOrNull() ?: 0
+      val maxHeight = windows.values.map { it.height }.maxOrNull() ?: 0
       root.width = maxWidth
       root.height = maxHeight
       for (id in allIds) {
@@ -214,9 +239,10 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
   }
 
-  fun notifyModified() =
+  fun notifyModified() {
     if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
     else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+  }
 
   fun clear() {
     update(null, listOf<Nothing>(), 0)

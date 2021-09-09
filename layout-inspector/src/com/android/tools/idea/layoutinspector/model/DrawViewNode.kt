@@ -37,6 +37,7 @@ import kotlin.math.min
 
 private fun getNormalBorderThickness(scale: Double) = 1f.scale(scale)
 fun getEmphasizedBorderThickness(scale: Double) = 2f.scale(scale)
+fun getFoldThickness(scale: Double) = 2f.scale(scale)
 fun getEmphasizedBorderOutlineThickness(scale: Double) = 4f.scale(scale)
 fun getLabelFontSize(scale: Double) = 12f.scale(scale)
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
@@ -46,7 +47,7 @@ private val SELECTED_LINE_COLOR = Color(24, 134, 247)
 private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
 private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 
-private fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
+fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
   BasicStroke(thickness(scale), CAP_BUTT, JOIN_MITER, 10.0f, getDash(scale), 0f)
 
 private fun getEmphasizedLineStroke(scale: Double) = BasicStroke(getEmphasizedBorderThickness(scale))
@@ -55,6 +56,7 @@ private fun getEmphasizedLineOutlineStroke(scale: Double) = BasicStroke(getEmpha
 private fun getEmphasizedImageLineOutlineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderOutlineThickness, scale)
 private fun getSelectedLineStroke(scale: Double) = getEmphasizedLineStroke(scale)
 private fun getSelectedImageLineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
+fun getFoldStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
 private fun getNormalLineStroke(scale: Double) = BasicStroke(getNormalBorderThickness(scale))
 private fun getNormalImageLineStroke(scale: Double) = getDashedStroke(::getNormalBorderThickness, scale)
 
