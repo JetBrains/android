@@ -80,12 +80,6 @@ public interface GradleDslParser extends GradleDslNameConverter {
   Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve);
 
   /**
-   * Builds an excludes block for a list of {@link ArtifactDependencySpec}s
-   */
-  @Nullable
-  PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes);
-
-  /**
    * @param elementToCheck GradleDslElement, returns false if a non-string element is provided.
    * @return whether the string represented by this GradleDslElement should be interpolated.
    */
@@ -147,10 +141,6 @@ public interface GradleDslParser extends GradleDslNameConverter {
     public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
     }
-
-    @Override
-    @Nullable
-    public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> specs) { return null; }
 
     @Override
     public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) { return false; }

@@ -212,28 +212,6 @@ class KotlinDslParser(
     }
   }
 
-  override fun convertToExcludesBlock(excludes: List<ArtifactDependencySpec>): PsiElement? {
-    val factory = KtPsiFactory(dslFile.project)
-    val block = factory.createBlock("")
-    // Currently, createBlock returns a block with two empty lines, we should keep only one new line.
-    val firstStatementOrEmpty = block.firstChild.nextSibling
-    if (firstStatementOrEmpty.text == "\n\n") {
-      firstStatementOrEmpty.delete()
-      block.addAfter(factory.createNewLine(), block.firstChild)
-    }
-    excludes.forEach {
-      val group = if (FakeArtifactElement.shouldInterpolate(it.group)) iStr(it.group ?: "\"\"") else "\"${it.group}\""
-      val name = if (FakeArtifactElement.shouldInterpolate(it.name)) iStr(it.name) else "\"${it.name}\""
-      val text = "exclude(mapOf(\"group\" to $group, \"module\" to $name))"
-      val expression = factory.createExpressionIfPossible(text)
-      if (expression != null) {
-        block.addBefore(expression, block.lastChild)
-        block.addBefore(factory.createNewLine(), block.lastChild)
-      }
-    }
-    return block
-  }
-
   override fun shouldInterpolate(elementToCheck: GradleDslElement): Boolean {
     return when (elementToCheck) {
       is GradleDslSettableExpression -> elementToCheck.currentElement is KtStringTemplateExpression

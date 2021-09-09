@@ -421,8 +421,8 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       literal.setExpression(added)
     }
 
-    if (literal.unsavedConfigBlock != null) {
-      addConfigBlock(literal)
+    literal.unsavedClosure?.let {
+      createAndAddClosure(it, literal)
     }
 
     literal.reset()

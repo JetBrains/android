@@ -111,34 +111,6 @@ public final class GroovyDslUtil {
     throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GroovyPsiElement");
   }
 
-  static void addConfigBlock(@NotNull GradleDslSettableExpression expression) {
-    PsiElement unsavedConfigBlock = expression.getUnsavedConfigBlock();
-    if (unsavedConfigBlock == null) {
-      return;
-    }
-
-    GroovyPsiElement psiElement = ensureGroovyPsi(expression.getPsiElement());
-    if (psiElement == null) {
-      return;
-    }
-
-    GroovyPsiElementFactory factory = getPsiElementFactory(expression);
-    if (factory == null) {
-      return;
-    }
-
-    // For now, this is only reachable for newly added dependencies, which means psiElement is an application statement with three children:
-    // the configuration name, whitespace, dependency in compact notation. Let's add some more: comma, whitespace and finally the config
-    // block.
-    GrApplicationStatement methodCallStatement = (GrApplicationStatement)factory.createStatementFromText("foo 1, 2");
-    PsiElement comma = methodCallStatement.getArgumentList().getFirstChild().getNextSibling();
-
-    psiElement.addAfter(comma, psiElement.getLastChild());
-    psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
-    psiElement.addAfter(unsavedConfigBlock, psiElement.getLastChild());
-    expression.setUnsavedConfigBlock(null);
-  }
-
   @Nullable
   static GrClosableBlock getClosableBlock(@NotNull PsiElement element) {
     if (!(element instanceof GrMethodCallExpression)) {
@@ -775,8 +747,8 @@ public final class GroovyDslUtil {
       }
       expression.setExpression(added);
 
-      if (expression.getUnsavedConfigBlock() != null) {
-        addConfigBlock(expression);
+      if (expression.getUnsavedClosure() != null) {
+        createAndAddClosure(expression.getUnsavedClosure(), expression);
       }
     }
 
@@ -1192,8 +1164,15 @@ public final class GroovyDslUtil {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
     GrClosableBlock block = factory.createClosureFromText("{ }");
-    psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
-    PsiElement newElement = psiElement.addAfter(block, psiElement.getLastChild());
+    PsiElement newElement;
+    if (psiElement instanceof GrApplicationStatement) {
+      GrArgumentList argumentList = ((GrApplicationStatement)psiElement).getArgumentList();
+      newElement = argumentList.addAfter(block, argumentList.getLastChild());
+    }
+    else {
+      psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
+      newElement = psiElement.addAfter(block, psiElement.getLastChild());
+    }
     closure.setPsiElement(newElement);
     closure.applyChanges();
     element.setParsedClosureElement(closure);

@@ -218,22 +218,6 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
   }
 
   @Override
-  @Nullable
-  public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes) {
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myDslFile.getProject());
-    GrClosableBlock block = factory.createClosureFromText("{\n}");
-    for (ArtifactDependencySpec spec : excludes) {
-      String group = FakeArtifactElement.shouldInterpolate(spec.getGroup()) ? iStr(spec.getGroup()) : "'" + spec.getGroup() + "'";
-      String name = FakeArtifactElement.shouldInterpolate(spec.getName()) ? iStr(spec.getName()) : "'" + spec.getName() + "'";
-      String text = String.format("exclude group: %s, module: %s", group, name);
-      block.addBefore(factory.createStatementFromText(text), block.getLastChild());
-      PsiElement lineTerminator = factory.createLineTerminator(1);
-      block.addBefore(lineTerminator, block.getLastChild());
-    }
-    return block;
-  }
-
-  @Override
   public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) {
     // Get the correct psiElement to check.
     PsiElement element;

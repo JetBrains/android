@@ -37,7 +37,9 @@ import java.util.function.Function;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.DependencyConfigurationModelImpl.EXCLUDE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveElement;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement.shouldInterpolate;
 
 /**
  * A Gradle artifact dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -143,9 +145,22 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     literal.setValue(createCompactNotationForLiterals(literal, dependency));
 
     if (!excludes.isEmpty()) {
-      PsiElement configBlock = parent.getDslFile().getParser().convertToExcludesBlock(excludes);
-      assert configBlock != null;
-      literal.setConfigBlock(configBlock);
+      GradleDslClosure closure = new GradleDslClosure(parent, null, name);
+      for (ArtifactDependencySpec exclude : excludes) {
+        GradleDslExpressionMap map = new GradleDslExpressionMap(closure, GradleNameElement.create(EXCLUDE));
+        String group = exclude.getGroup();
+        if (group != null) {
+          GradleDslLiteral groupEntry = new GradleDslLiteral(map, GradleNameElement.create("group"));
+          groupEntry.setValue(shouldInterpolate(group) ? iStr(group) : group);
+          map.setNewElement(groupEntry);
+        }
+        GradleDslLiteral moduleEntry = new GradleDslLiteral(map, GradleNameElement.create("module"));
+        String module = exclude.getName();
+        moduleEntry.setValue(shouldInterpolate(module) ? iStr(module) : module);
+        map.setNewElement(moduleEntry);
+        closure.setNewElement(map);
+      }
+      literal.setNewClosureElement(closure);
     }
 
     parent.setNewElement(literal);
@@ -167,7 +182,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       if (segment != null) {
         if (currentElementIdx == 4) compactNotation.append("@");
         else if (currentElementIdx > 0) compactNotation.append(":");
-        if (FakeArtifactElement.shouldInterpolate(segment)) {
+        if (shouldInterpolate(segment)) {
           shouldInterpolate = true;
           Matcher wrappedValueMatcher = WRAPPED_VARIABLE_FORM.matcher(segment);
           Matcher unwrappedValueMatcher = UNWRAPPED_VARIABLE_FORM.matcher(segment);
