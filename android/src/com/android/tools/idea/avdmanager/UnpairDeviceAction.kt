@@ -61,7 +61,5 @@ internal class UnpairDeviceAction(
   }
 
   // TODO: Menu refreshing is not properly implemented, so we use the same logic as PairDeviceAction for now.
-  // TODO: Move PairDeviceAction.Companion::isEnabled to a third class in this package and make PairDeviceAction and UnpairDeviceAction call
-  //  it
-  override fun isEnabled() = PairDeviceAction.isEnabled(avdInfo)
+  override fun isEnabled() = Actions.isPairingActionEnabled(avdInfo)
 }
