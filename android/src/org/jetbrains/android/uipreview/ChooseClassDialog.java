@@ -43,7 +43,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
+import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
 public class ChooseClassDialog extends DialogWrapper implements ListSelectionListener {
   private final JList<PsiClass> myList = new JBList<>();

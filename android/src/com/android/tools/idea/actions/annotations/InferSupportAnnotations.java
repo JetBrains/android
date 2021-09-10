@@ -50,6 +50,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 
 import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
+import static com.android.tools.lint.checks.AnnotationDetectorKt.*;
 import static com.android.tools.lint.checks.AnnotationDetector.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
 
