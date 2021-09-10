@@ -54,8 +54,10 @@ import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
+import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
@@ -70,6 +72,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
@@ -125,10 +128,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase) return null
-    val androidFacet = runConfiguration.configurationModule?.module?.androidFacet ?: return null
+    if (runConfiguration !is AndroidRunConfigurationBase &&
+        runConfiguration !is AndroidWearConfiguration) return null
+    val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
     val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
-    val isTestConfiguration = runConfiguration.isTestConfiguration
+    val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
 
     return GradleApplicationIdProvider(
       androidFacet,
@@ -140,15 +144,16 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase) return null
-    val androidFacet = runConfiguration.configurationModule?.module?.androidFacet ?: return null
-    val isTestConfiguration = runConfiguration.isTestConfiguration
+    if (runConfiguration !is AndroidRunConfigurationBase &&
+        runConfiguration !is AndroidWearConfiguration) return null
+    val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
+    val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
     val alwaysDeployApkFromBundle = (runConfiguration as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
 
     return GradleApkProvider(
       androidFacet,
       getApplicationIdProvider(runConfiguration) ?: return null,
-      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
+      PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       isTestConfiguration,
       alwaysDeployApkFromBundle
     )
