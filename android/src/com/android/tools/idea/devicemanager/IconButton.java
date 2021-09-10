@@ -29,7 +29,7 @@ public final class IconButton extends JButton {
     super(icon);
     Dimension size = new JBDimension(22, 22);
 
-    setBorderPainted(false);
+    setBorder(null);
     setContentAreaFilled(false);
     setMaximumSize(size);
     setMinimumSize(size);

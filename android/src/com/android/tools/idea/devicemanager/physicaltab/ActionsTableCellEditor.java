@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.android.tools.idea.wearpairing.PairingDevice;
@@ -33,13 +34,20 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.table.TableCellEditor;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
@@ -54,31 +62,35 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   private final @NotNull Function<@NotNull Project, @NotNull DeviceExplorerViewService> myDeviceExplorerViewServiceGetInstance;
   private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
   private final @NotNull BiPredicate<@NotNull Device, @NotNull Project> myAskWithRemoveDeviceDialog;
+  private final @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> myGetBorder;
   private final @NotNull ActionsComponent myComponent;
 
   ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel) {
     this(panel,
          DeviceExplorerViewService::getInstance,
          EditDeviceNameDialog::new,
-         ActionsTableCellEditor::askWithRemoveDeviceDialog);
+         ActionsTableCellEditor::askWithRemoveDeviceDialog,
+         Tables::getBorder);
   }
 
   @VisibleForTesting
   ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel,
                          @NotNull Function<@NotNull Project, @NotNull DeviceExplorerViewService> deviceExplorerViewServiceGetInstance,
                          @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog,
-                         @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog) {
+                         @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog,
+                         @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> getBorder) {
     myPanel = panel;
     myDeviceExplorerViewServiceGetInstance = deviceExplorerViewServiceGetInstance;
     myNewEditDeviceNameDialog = newEditDeviceNameDialog;
     myAskWithRemoveDeviceDialog = askWithRemoveDeviceDialog;
+    myGetBorder = getBorder;
 
     myComponent = new ActionsComponent();
 
-    myComponent.getActivateDeviceFileExplorerWindowButton().addActionListener(event -> activateDeviceFileExplorerWindow());
-    myComponent.getEditDeviceNameButton().addActionListener(event -> editDeviceName());
-    myComponent.getRemoveButton().addActionListener(event -> remove());
-    myComponent.getMoreButton().addActionListener(event -> showPopupMenu());
+    addListeners(myComponent.getActivateDeviceFileExplorerWindowButton(), event -> activateDeviceFileExplorerWindow());
+    addListeners(myComponent.getEditDeviceNameButton(), event -> editDeviceName());
+    addListeners(myComponent.getRemoveButton(), event -> remove());
+    addListeners(myComponent.getMoreButton(), event -> showPopupMenu());
   }
 
   @VisibleForTesting
@@ -200,6 +212,26 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     return Optional.of(item);
   }
 
+  private void addListeners(@NotNull AbstractButton button, @NotNull ActionListener listener) {
+    button.addActionListener(listener);
+
+    button.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(@NotNull FocusEvent event) {
+        button.setBorder(UIManager.getBorder("Table.focusSelectedCellHighlightBorder"));
+      }
+
+      @Override
+      public void focusLost(@NotNull FocusEvent event) {
+        button.setBorder(null);
+      }
+    });
+  }
+
+  @NotNull ActionsComponent getComponent() {
+    return myComponent;
+  }
+
   @VisibleForTesting
   Object getDevice() {
     return myDevice;
@@ -212,7 +244,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
     myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
-    return myComponent.getTableCellComponent(table, selected, true, viewRowIndex);
+    return myComponent.getTableCellComponent(table, selected, false, viewRowIndex, myGetBorder);
   }
 
   @Override
