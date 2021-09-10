@@ -1120,6 +1120,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.embeddedcompiler",
+    "Enable embedded compose compiler in live edits deploy",
+    "If enabled, live edit will use embedded compose compiler. For now if this is disabled, @Composable with not be updated.",
+    false
+  );
+
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
     COMPOSE, "deploy.live.literals.updaterate",
     "Update rate of live literals edits",
