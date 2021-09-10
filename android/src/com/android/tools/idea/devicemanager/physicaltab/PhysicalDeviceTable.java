@@ -69,6 +69,7 @@ final class PhysicalDeviceTable extends JBTable {
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
+    getActionMap().put("selectNextColumn", new SelectNextColumnAction());
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
 
     tableHeader.setReorderingAllowed(false);
@@ -107,6 +108,14 @@ final class PhysicalDeviceTable extends JBTable {
 
   @NotNull PhysicalDevice getDeviceAt(int viewRowIndex) {
     return (PhysicalDevice)getValueAt(viewRowIndex, convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
+  }
+
+  boolean isActionsColumn(int viewColumnIndex) {
+    return getColumnClass(viewColumnIndex).equals(Actions.class);
+  }
+
+  @NotNull ActionsTableCellEditor getActionsCellEditor() {
+    return (ActionsTableCellEditor)getCellEditor();
   }
 
   @VisibleForTesting

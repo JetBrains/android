@@ -28,8 +28,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.JTable;
-import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.event.CellEditorListener;
+import javax.swing.plaf.BorderUIResource.EmptyBorderUIResource;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,8 @@ import org.mockito.junit.MockitoJUnit;
 
 @RunWith(JUnit4.class)
 public final class ActionsTableCellEditorTest {
+  private static final Border CELL_NO_FOCUS = new EmptyBorderUIResource(2, 3, 2, 3);
+
   @Rule
   public final @NotNull MethodRule myRule = MockitoJUnit.rule();
 
@@ -84,7 +87,8 @@ public final class ActionsTableCellEditorTest {
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         myDeviceExplorerViewServiceGetInstance,
                                                         EditDeviceNameDialog::new,
-                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog);
+                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
@@ -114,7 +118,8 @@ public final class ActionsTableCellEditorTest {
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerViewService::getInstance,
                                                         myNewEditDeviceNameDialog,
-                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog);
+                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     JTable table = new PhysicalDeviceTable(myPanel, model);
@@ -149,7 +154,8 @@ public final class ActionsTableCellEditorTest {
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerViewService::getInstance,
                                                         myNewEditDeviceNameDialog,
-                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog);
+                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getEditDeviceNameButton();
@@ -177,7 +183,8 @@ public final class ActionsTableCellEditorTest {
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerViewService::getInstance,
                                                         EditDeviceNameDialog::new,
-                                                        (device, project) -> false);
+                                                        (device, project) -> false,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     editor.addCellEditorListener(myListener);
 
@@ -205,7 +212,8 @@ public final class ActionsTableCellEditorTest {
     TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerViewService::getInstance,
                                                         EditDeviceNameDialog::new,
-                                                        (device, project) -> true);
+                                                        (device, project) -> true,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     editor.addCellEditorListener(myListener);
 
@@ -222,7 +230,11 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void getTableCellEditorComponentDeviceIsntOnline() {
     // Arrange
-    ActionsTableCellEditor editor = new ActionsTableCellEditor(myPanel);
+    ActionsTableCellEditor editor = new ActionsTableCellEditor(myPanel,
+                                                               DeviceExplorerViewService::getInstance,
+                                                               EditDeviceNameDialog::new,
+                                                               ActionsTableCellEditor::askWithRemoveDeviceDialog,
+                                                               ActionsTableCellEditorTest::getBorder);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     JTable table = new PhysicalDeviceTable(myPanel, model);
@@ -237,13 +249,17 @@ public final class ActionsTableCellEditorTest {
     assertTrue(component.getRemoveButton().isEnabled());
 
     assertEquals(table.getBackground(), component.getBackground());
-    assertEquals(UIManager.getBorder("Table.focusCellHighlightBorder"), component.getBorder());
+    assertEquals(CELL_NO_FOCUS, component.getBorder());
   }
 
   @Test
   public void getTableCellEditorComponent() {
     // Arrange
-    TableCellEditor editor = new ActionsTableCellEditor(myPanel);
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
+                                                        DeviceExplorerViewService::getInstance,
+                                                        EditDeviceNameDialog::new,
+                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog,
+                                                        ActionsTableCellEditorTest::getBorder);
 
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
@@ -261,5 +277,13 @@ public final class ActionsTableCellEditorTest {
     // Assert
     assertTrue(component.getActivateDeviceFileExplorerWindowButton().isEnabled());
     assertFalse(component.getRemoveButton().isEnabled());
+  }
+
+  private static @NotNull Border getBorder(boolean selected, boolean focused) {
+    if (!focused) {
+      return CELL_NO_FOCUS;
+    }
+
+    throw new AssertionError();
   }
 }
