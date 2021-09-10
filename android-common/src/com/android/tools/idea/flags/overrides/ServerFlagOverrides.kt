@@ -28,10 +28,6 @@ class ServerFlagOverrides : ImmutableFlagOverrides {
 
   override fun get(flag: Flag<*>): String? {
     val service = ServerFlagService.instance
-    if (!service.initialized) {
-      return null
-    }
-
     val id = flag.id
     return service.getBoolean("studio_flags/$id")?.toString()
   }

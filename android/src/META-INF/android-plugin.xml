@@ -372,6 +372,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataCollection"/>
     <applicationService serviceInterface="com.android.tools.idea.diagnostics.crash.ExceptionDataConfiguration"
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
+    <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
+                        serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 

@@ -38,6 +38,7 @@ private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
 class ServerFlagInitializerTest : TestCase() {
   lateinit var testDirectoryPath: Path
   lateinit var localPath: Path
+  var service = ServerFlagServiceEmpty
 
   override fun setUp() {
     super.setUp()
@@ -57,9 +58,10 @@ class ServerFlagInitializerTest : TestCase() {
   }
 
   fun testFileNotPresent() {
-    ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS)
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS) }
+    val service = ServerFlagServiceImpl()
 
-    ServerFlagService.instance.apply {
+    service.apply {
       assertThat(getBoolean("boolean")).isNull()
       assertThat(getInt("int")).isNull()
       assertThat(getFloat("float")).isNull()
@@ -70,10 +72,12 @@ class ServerFlagInitializerTest : TestCase() {
 
   fun testPercentEnabled() {
     val expected = serverFlagTestData
-    saveServerFlagList(expected, localPath, VERSION)
-    ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, emptyList())
 
-    ServerFlagService.instance.apply {
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, emptyList()) }
+    saveServerFlagList(expected, localPath, VERSION)
+    val service = ServerFlagServiceImpl()
+
+    service.apply {
       assertThat(getBoolean("boolean")).isNull()
       assertThat(getInt("int")).isNull()
       assertThat(getFloat("float")).isEqualTo(1f)
@@ -104,14 +108,17 @@ class ServerFlagInitializerTest : TestCase() {
 
   private fun testOsType(osName: String, osType: OSType) {
     saveServerFlagList(serverFlagTestDataByOs, localPath, VERSION)
-    ServerFlagInitializer.initializeService(localPath, VERSION, osName, emptyList())
-    assertThat(ServerFlagService.instance.names).containsExactlyElementsIn(listOf(osType.toString()))
+
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, osName, emptyList()) }
+    val service = ServerFlagServiceImpl()
+    assertThat(service.names).containsExactlyElementsIn(listOf(osType.toString()))
   }
 
   private fun testServerFlagInitializer(expected: ServerFlagList) {
-    ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS)
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, EXPERIMENTS) }
+    val service = ServerFlagServiceImpl()
 
-    ServerFlagService.instance.apply {
+    service.apply {
       assertThat(getBoolean("boolean")).isEqualTo(true)
       assertThat(getInt("int")).isEqualTo(1)
       assertThat(getFloat("float")).isNull()

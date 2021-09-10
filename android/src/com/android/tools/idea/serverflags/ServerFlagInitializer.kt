@@ -18,6 +18,7 @@ package com.android.tools.idea.serverflags
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.idea.serverflags.protos.OSType
+import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.google.common.hash.Hashing
 import com.intellij.openapi.diagnostic.Logger
@@ -32,18 +33,20 @@ private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
  * from the specified URL. If it succeeds it will save the file to a local path, then initialize the service.
  * If the download fails, it will use the last successful download to initialize the service
  */
+
+data class ServerFlagInitializationData(val configurationVersion: Long, val flags: Map<String, ServerFlag>)
 class ServerFlagInitializer {
   companion object {
     @JvmStatic
-    fun initializeService() {
+    fun initializeService(): ServerFlagInitializationData {
       val experiments = System.getProperty(ENABLED_OVERRIDE_KEY)?.split(',') ?: emptyList()
-
-      initializeService(localCacheDirectory, flagsVersion, CommonMetricsData.osName, experiments)
+      val data = initializeService(localCacheDirectory, flagsVersion, CommonMetricsData.osName, experiments)
 
       val logger = Logger.getInstance(ServerFlagInitializer::class.java)
-      val names = ServerFlagService.instance.names
-      val string = names.joinToString()
+      val string = data.flags.keys.toList().joinToString()
       logger.info("Enabled server flags: $string")
+
+      return data
     }
 
     /**
@@ -54,7 +57,10 @@ class ServerFlagInitializer {
      * a given flag is enabled.
      */
     @JvmStatic
-    fun initializeService(localCacheDirectory: Path, version: String, osName: String, enabled: Collection<String>) {
+    fun initializeService(localCacheDirectory: Path,
+                          version: String,
+                          osName: String,
+                          enabled: Collection<String>): ServerFlagInitializationData {
       val localFilePath = buildLocalFilePath(localCacheDirectory, version)
       val serverFlagList = unmarshalFlagList(localFilePath.toFile())
       val configurationVersion = serverFlagList?.configurationVersion ?: -1
@@ -71,7 +77,7 @@ class ServerFlagInitializer {
       val flags = list.filter(filter)
 
       val map = flags.associate { it.name to it.serverFlag }
-      ServerFlagService.instance = ServerFlagServiceImpl(configurationVersion, map)
+      return ServerFlagInitializationData(configurationVersion, map)
     }
   }
 }
@@ -86,8 +92,8 @@ private fun ServerFlagData.isOSEnabled(osType: OSType): Boolean {
   return (abs(hash.asLong()) % 100).toInt() < this.serverFlag.percentEnabled
 }
 
-private fun getOsType(osName: String) : OSType {
-  if(osName.startsWith(CommonMetricsData.OS_NAME_FREE_BSD)) {
+private fun getOsType(osName: String): OSType {
+  if (osName.startsWith(CommonMetricsData.OS_NAME_FREE_BSD)) {
     return OSType.OS_TYPE_FREE_BSD
   }
 

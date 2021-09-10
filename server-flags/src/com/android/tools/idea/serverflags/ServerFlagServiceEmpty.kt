@@ -17,41 +17,26 @@ package com.android.tools.idea.serverflags
 
 import com.google.protobuf.Message
 
-class ServerFlagServiceEmpty : ServerFlagService {
-  override val initialized: Boolean = false
+object ServerFlagServiceEmpty : ServerFlagService {
   override val configurationVersion: Long = -1
   override val names: List<String> = emptyList()
   override fun getString(name: String): String? {
-    checkInternalDebugBuild()
     return null
   }
 
   override fun getInt(name: String): Int? {
-    checkInternalDebugBuild()
     return null
   }
 
   override fun getFloat(name: String): Float? {
-    checkInternalDebugBuild()
     return null
   }
 
   override fun getBoolean(name: String): Boolean? {
-    checkInternalDebugBuild()
     return null
   }
 
   override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
-    checkInternalDebugBuild()
     return null
-  }
-
-  private fun checkInternalDebugBuild() {
-    if (java.lang.Boolean.getBoolean("idea.is.internal")) {
-      // This exception indicates that the service has been accessed before it has been initialized.
-      // Please reach out to the owners of this code to figure out how best to synchronize the calling
-      // code with the service initialization.
-      throw RuntimeException("call to ServerFlagService before initialization")
-    }
   }
 }

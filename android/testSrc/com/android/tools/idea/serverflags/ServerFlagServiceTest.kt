@@ -20,6 +20,7 @@ import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
+import org.junit.Before
 import org.junit.Test
 
 private val FLAGS = mapOf(
@@ -54,10 +55,16 @@ private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
 private const val CONFIGURATION_VERSION = 123456L
 
 class ServerFlagServiceTest {
+  var service: ServerFlagService = ServerFlagServiceEmpty
+
+  @Before
+  fun setup() {
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializationData(CONFIGURATION_VERSION, FLAGS) }
+    service = ServerFlagServiceImpl()
+  }
+
   @Test
   fun testRetrieval() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
-
     checkRetrieval(service, "boolean", ServerFlagService::getBoolean, true)
     checkRetrieval(service, "int", ServerFlagService::getInt, 1)
     checkRetrieval(service, "float", ServerFlagService::getFloat, 1f)
@@ -67,7 +74,6 @@ class ServerFlagServiceTest {
 
   @Test
   fun testDefaults() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
     checkDefault(service, ServerFlagService::getBoolean, false)
     checkDefault(service, ServerFlagService::getInt, 10)
     checkDefault(service, ServerFlagService::getFloat, 10f)
@@ -77,7 +83,6 @@ class ServerFlagServiceTest {
 
   @Test
   fun testNulls() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
     checkNull(service, ServerFlagService::getBoolean)
     checkNull(service, ServerFlagService::getInt)
     checkNull(service, ServerFlagService::getFloat)
@@ -87,7 +92,6 @@ class ServerFlagServiceTest {
 
   @Test
   fun testExceptions() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
     checkException(service, "boolean", ServerFlagService::getInt)
     checkException(service, "int", ServerFlagService::getFloat)
     checkException(service, "float", ServerFlagService::getString)
@@ -105,7 +109,8 @@ class ServerFlagServiceTest {
     }.build()
 
     val map = mapOf("proto" to proto)
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, map)
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializationData(CONFIGURATION_VERSION, map) }
+    val service = ServerFlagServiceImpl()
     val retrieved = service.getProto("proto", TEST_PROTO)
     assertThat(retrieved).isEqualTo(TEST_PROTO)
 
@@ -115,8 +120,7 @@ class ServerFlagServiceTest {
 
   @Test
   fun testEmptyService() {
-    val service = ServerFlagServiceEmpty()
-    assertThat(service.initialized).isFalse()
+    val service = ServerFlagServiceEmpty
     assertThat(service.configurationVersion).isEqualTo(-1)
     assertThat(service.names).isEmpty()
 
@@ -129,9 +133,6 @@ class ServerFlagServiceTest {
 
   @Test
   fun testProperties() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
-    assertThat(service.initialized).isTrue()
-
     val default = ServerFlagTest.newBuilder().apply {
       content = "default"
     }.build()
@@ -144,7 +145,6 @@ class ServerFlagServiceTest {
 
   @Test
   fun testToString() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, FLAGS)
     val expected = """
 Name: boolean
 PercentEnabled: 0
@@ -173,7 +173,8 @@ Value: foo
 
   @Test
   fun testToStringEmpty() {
-    val service = ServerFlagServiceImpl(CONFIGURATION_VERSION, emptyMap())
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializationData(-1, emptyMap()) }
+    val service = ServerFlagServiceImpl()
     assertThat(service.toString()).isEqualTo("No server flags are enabled.")
   }
 
