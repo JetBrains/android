@@ -31,7 +31,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import org.jetbrains.annotations.TestOnly
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -110,7 +109,9 @@ internal class LogcatDocumentPrinter(
     }
 
     withContext(AndroidDispatchers.uiThread) {
-      appendToDocument(buffer)
+      if (isActive) {
+        appendToDocument(buffer)
+      }
     }
   }
 
