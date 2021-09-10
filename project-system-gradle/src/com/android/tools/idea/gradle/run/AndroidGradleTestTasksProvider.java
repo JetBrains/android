@@ -8,8 +8,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.facet.KotlinFacet;
-import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestTasksProvider;
 import com.android.utils.StringHelper;
 
@@ -50,13 +49,10 @@ public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
     return Arrays.asList(StringHelper.appendCapitalized(taskNamePrefix + "clean", testTask), taskNamePrefix + testTask);
   }
 
+  @Nullable
   private AndroidModuleModel getAndroidModelIfPossible(@NotNull Module module) {
     if (GradleFacet.isAppliedTo(module)) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      // If the module is a KMP, we shouldn't provide the test tasks because kotlin has a specific tasks provider: KotlinMPPGradleTestTasksProvider.
-      KotlinFacet kotlinFacet = KotlinFacet.Companion.get(module);
-      boolean isKmpModule = kotlinFacet != null && kotlinFacet.getConfiguration().getSettings().getMppVersion() != null;
-      return (androidModel != null && !isKmpModule) ? androidModel : null;
+      return AndroidModuleModel.get(module);
     }
     return null;
   }
