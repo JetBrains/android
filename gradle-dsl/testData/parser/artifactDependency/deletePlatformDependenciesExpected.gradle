@@ -1,0 +1,9 @@
+ext {
+  map = [group: 'mapGroup', name: 'mapName', version: '3.0']
+  string = 'stringGroup:stringName:3.1'
+  version = '3.14'
+}
+
+dependencies {
+  implementation enforcedPlatform(map)
+}

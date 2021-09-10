@@ -86,9 +86,22 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         return;
       }
 
-      // We can't create ArtifactDependencyModels from "compile something('group:artifact:version')" for now.
       if (element instanceof GradleDslMethodCall) {
-        return;
+        List<GradleDslExpression> arguments = ((GradleDslMethodCall)element).getArguments();
+        String methodName = ((GradleDslMethodCall)element).getMethodName();
+        // We can handle single-argument method calls, for example
+        // `implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
+        // TODO(xof): is this just a temporary hack?  If it's in any way more permanent, we should record the method somewhere.  The
+        //  alternative to this temporary hack is to implement a new PlatformDependencyModel interface and treat them substantially
+        //  separately, though re-using as much of this as possible.
+        if (arguments.size() == 1 && Arrays.asList("platform", "enforcedPlatform").contains(methodName)) {
+          element = arguments.get(0);
+          resolved = resolveElement(element);
+        }
+        // Can't do anything else with method calls.
+        else {
+          return;
+        }
       }
 
       if (resolved instanceof GradleDslExpressionMap) {
@@ -625,7 +638,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @NotNull
-  private GradleDslElement resolveElement(@NotNull GradleDslElement element) {
+  private static GradleDslElement resolveElement(@NotNull GradleDslElement element) {
     GradleDslElement resolved = element;
     GradleDslElement foundElement = followElement(element);
     if (foundElement instanceof GradleDslExpression) {
