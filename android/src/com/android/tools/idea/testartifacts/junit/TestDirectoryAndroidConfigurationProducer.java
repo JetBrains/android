@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
+
 import com.intellij.execution.actions.ConfigurationFromContext;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
 
 /**
  * Android implementation of {@link AbstractAllInDirectoryConfigurationProducer} so some behaviors can be overridden.
  */
 public class TestDirectoryAndroidConfigurationProducer extends AbstractAllInDirectoryConfigurationProducer implements AndroidJUnitConfigurationProducer {
   protected TestDirectoryAndroidConfigurationProducer() {
-    super(AndroidJUnitConfigurationType.getInstance());
+  }
+
+  @Override
+  public @NotNull ConfigurationFactory getConfigurationFactory() {
+    return AndroidJUnitConfigurationType.getInstance().getFactory();
   }
 
   @Override

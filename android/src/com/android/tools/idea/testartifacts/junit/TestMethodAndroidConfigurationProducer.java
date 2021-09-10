@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
+
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.execution.JavaRunConfigurationExtensionManager;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitUtil;
@@ -35,15 +39,16 @@ import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
-
 /**
  * Android implementation of {@link AbstractTestMethodConfigurationProducer} so some behaviors can be overridden.
  */
 public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationProducer implements AndroidJUnitConfigurationProducer {
   protected TestMethodAndroidConfigurationProducer() {
-    super(AndroidJUnitConfigurationType.getInstance());
+  }
+
+  @Override
+  public @NotNull ConfigurationFactory getConfigurationFactory() {
+    return AndroidJUnitConfigurationType.getInstance().getFactory();
   }
 
   @Override
