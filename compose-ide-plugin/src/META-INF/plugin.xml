@@ -16,7 +16,6 @@
 
 <idea-plugin>
   <id>androidx.compose.plugins.idea</id>
-
   <name>Compose</name>
   <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
   <vendor url="http://www.android.com">Android</vendor>
@@ -127,13 +126,14 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposeTypeResolutionInterceptorExtension"/>
+    <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposePluginTypeResolutionInterceptorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
+    <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
 
 </idea-plugin>

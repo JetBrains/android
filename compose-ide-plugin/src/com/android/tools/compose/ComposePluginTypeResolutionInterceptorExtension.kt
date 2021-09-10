@@ -16,10 +16,11 @@
 
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension
 import com.android.tools.compose.ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR
+import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
-import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptorExtension
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
@@ -31,12 +32,17 @@ import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 
 @Suppress("INVISIBLE_REFERENCE", "EXPERIMENTAL_IS_NOT_ENABLED")
 @OptIn(org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints::class)
-class ComposeTypeResolutionInterceptorExtension : TypeResolutionInterceptorExtension {
+class ComposePluginTypeResolutionInterceptorExtension : ComposeTypeResolutionInterceptorExtension() {
   override fun interceptFunctionLiteralDescriptor(
     expression: KtLambdaExpression,
     context: ExpressionTypingContext,
     descriptor: AnonymousFunctionDescriptor
   ): AnonymousFunctionDescriptor {
+
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get()) {
+      return super.interceptFunctionLiteralDescriptor(expression, context, descriptor)
+    }
+
     if (descriptor.isSuspend) return descriptor
     if (
       context.expectedType.hasComposableAnnotation() &&

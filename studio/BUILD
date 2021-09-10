@@ -342,6 +342,7 @@ studio_plugin(
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
+    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.1.0-SNAPSHOT"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
     deps = [
         ":org.jetbrains.android",

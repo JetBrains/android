@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.1.0-SNAPSHOT",
     ],
 )
 
@@ -62,4 +63,11 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "compiler-hosted-1.1.0-SNAPSHOT",
+    jars = ["lib/compiler-hosted-1.1.0-SNAPSHOT.jar"],
+    visibility = ["//visibility:public"],
 )

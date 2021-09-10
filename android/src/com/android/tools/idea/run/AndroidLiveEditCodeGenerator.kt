@@ -17,20 +17,26 @@ package com.android.tools.idea.run
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
+import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.psi.KtDeclarationModifierList
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -75,12 +81,24 @@ class AndroidLiveEditCodeGenerator {
 
         compilerConfiguration.languageVersionSettings = root.languageVersionSettings
 
-        val generationState = GenerationState.Builder(project,
+        val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
+        if (useComposeIR) {
+          // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
+          compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
+        }
+
+        val generationStateBuilder = GenerationState.Builder(project,
                                                       ClassBuilderFactories.BINARIES,
                                                       resolution.moduleDescriptor,
                                                       analysisResult.bindingContext,
                                                       filesToAnalyze,
-                                                      compilerConfiguration).build()
+                                                      compilerConfiguration);
+
+        if (useComposeIR) {
+          generationStateBuilder.codegenFactory(JvmIrCodegenFactory(PhaseConfig(jvmPhases)))
+        }
+
+        val generationState = generationStateBuilder.build();
 
         val methodSignature = functionSignature(method.function)
 
@@ -120,7 +138,6 @@ class AndroidLiveEditCodeGenerator {
           }
           for (m in methods) {
             callback(className, methodSignature, c.asByteArray())
-
             // TODO: Deal with multiple requests
             break
           }
@@ -146,7 +163,19 @@ class AndroidLiveEditCodeGenerator {
     function.valueParameters.forEach {
       params.add(vmName(it.type()!!))
     }
-    val paramSig = params.joinToString { it }
+
+    // If the target function is an @Composable function, we know that the compose compiler
+    // will append two more parameters when generating code. Therefore, we need to take
+    // that into account and assume a composable function has two more parameter than it
+    // showed in the PSI tree.
+    for (annotation in (function.firstChild as KtDeclarationModifierList).annotationEntries) {
+      if (annotation.getQualifiedName().toString() == "androidx.compose.runtime.Composable") {
+        params.add("Landroidx/compose/runtime/Composer;")
+        params.add("I")
+      }
+    }
+
+    val paramSig = params.joinToString(separator = "") { it }
     val returnType = vmName(function.type()!!)
     return "$functionName($paramSig)$returnType"
   }
