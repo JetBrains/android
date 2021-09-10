@@ -26,9 +26,9 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.xml.XmlChildRole
-import org.jetbrains.kotlin.idea.debugger.readAction
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 
@@ -66,7 +66,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   private var range: TextRange? = null
 
   init {
-    ApplicationManager.getApplication().readAction {
+    runReadAction {
       updateRange()
     }
   }

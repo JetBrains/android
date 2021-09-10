@@ -26,10 +26,10 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPane
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.idea.debugger.readAction
 
 const val MOTION_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.MotionLayout"
 const val CONSTRAINT_LAYOUT_BUNDLE_ID = "LayoutEditor.HelpAssistant.ConstraintLayout"
@@ -124,7 +124,7 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   private fun getTag(e: AnActionEvent): XmlTag? {
     if (!ApplicationManager.getApplication().isReadAccessAllowed) {
-      return ApplicationManager.getApplication().readAction { getTag(e) }
+      return runReadAction { getTag(e) }
     }
     val psiFile = e.getData(PlatformDataKeys.PSI_FILE)
     if (psiFile !is XmlFile) {
@@ -136,7 +136,7 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   private fun getChildrenType(tag: XmlTag): Type {
     if (!ApplicationManager.getApplication().isReadAccessAllowed) {
-      return ApplicationManager.getApplication().readAction { getChildrenType(tag) }
+      return runReadAction { getChildrenType(tag) }
     }
 
     tag.children.forEach {

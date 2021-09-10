@@ -19,10 +19,10 @@ import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.ui.colorpicker.LightCalloutPopup
 import com.intellij.ui.components.JBLabel
-import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -47,7 +47,7 @@ class NlVisibilityPopupMenu(
   fun show(model: NlVisibilityModel, invoker: JComponent, p: Point) {
     val application = ApplicationManager.getApplication()
     if (!application.isReadAccessAllowed) {
-      return application.readAction { show(model, invoker, p) }
+      return runReadAction { show(model, invoker, p) }
     }
     content.update(model)
     popupMenu.show(invoker, p, Balloon.Position.atRight)
