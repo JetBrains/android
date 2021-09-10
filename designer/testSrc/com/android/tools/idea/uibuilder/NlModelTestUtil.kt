@@ -23,13 +23,13 @@ import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndGet
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.util.function.Consumer
 
 /**

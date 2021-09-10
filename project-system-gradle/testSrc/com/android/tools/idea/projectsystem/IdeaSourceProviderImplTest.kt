@@ -17,9 +17,9 @@ package com.android.tools.idea.projectsystem
 
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 
 class IdeaSourceProviderImplTest : AndroidTestCase() {
 
