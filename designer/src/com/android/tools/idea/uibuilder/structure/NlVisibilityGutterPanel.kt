@@ -22,9 +22,9 @@ import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CollectionListModel
-import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.BorderFactory
@@ -80,7 +80,7 @@ open class NlVisibilityGutterPanel: JPanel(), TreeExpansionListener, Disposable 
   fun update(tree: JTree) {
     val application = ApplicationManager.getApplication()
     if (!application.isReadAccessAllowed) {
-      return application.readAction { update(tree) }
+      return runReadAction { update(tree) }
     }
 
     val toReturn = ArrayList<ButtonPresentation>()
