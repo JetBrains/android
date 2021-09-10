@@ -26,6 +26,7 @@ import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BuildMap
+import com.android.builder.model.v2.models.GlobalLibraryMap
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
@@ -113,6 +114,7 @@ internal class AndroidExtraModelProviderWorker(
       val androidDsl: AndroidDsl,
       // Valid when requesting all-variants-sync and building all the variants.
       val variantsWithDependencies: Map<V2Variant, VariantDependencies>? = null,
+      val globalLibraryMap: GlobalLibraryMap? = null
     ) : AndroidProjectResult() {
       override val buildName: String = androidProject.buildName
       override val buildNameMap: Map<String, File> = buildMap.buildIdMap
@@ -180,8 +182,10 @@ internal class AndroidExtraModelProviderWorker(
                     androidProject.variants
                       .mapNotNull { controller.findVariantDependenciesV2Model(gradleProject, it.name)?.let { model -> it to model } }
                       .associate { it.first to it.second }
+                  // Request GlobalLibraryMap after all models.
+                  val globalLibraryMap = controller.findNonParameterizedV2Model(gradleProject, GlobalLibraryMap::class.java)
 
-                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl, variantsWithDependencies)
+                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl, variantsWithDependencies, globalLibraryMap)
                 }
                 else {
                   AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl)
@@ -599,11 +603,13 @@ internal class AndroidExtraModelProviderWorker(
 
         // Request VariantDependencies model for the variant's dependencies.
         val variantDependencies = controller.findVariantDependenciesV2Model(module.gradleProject, moduleConfiguration.variant) ?: return null
+        val globalLibraryMap = controller.findNonParameterizedV2Model(module.gradleProject, GlobalLibraryMap::class.java) ?: return null
         ideVariant = modelCache.variantFrom(
           module.androidProject,
           variant,
           module.modelVersion,
           variantDependencies,
+          globalLibraryMap,
           module.buildNameMap ?: error("Build name map not available for: ${module.id}")
         )
       }
@@ -812,7 +818,7 @@ private fun createAndroidModule(
       }
       .takeUnless { it.isEmpty() }
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project ->
-      if (androidProjectResult.variantsWithDependencies != null) {
+      if (androidProjectResult.variantsWithDependencies != null && androidProjectResult.globalLibraryMap != null) {
         androidProjectResult.variantsWithDependencies
           .map {
             modelCache.variantFrom(
@@ -820,6 +826,7 @@ private fun createAndroidModule(
               it.key,
               modelVersion,
               it.value,
+              androidProjectResult.globalLibraryMap,
               androidProjectResult.buildNameMap
             )
           }
