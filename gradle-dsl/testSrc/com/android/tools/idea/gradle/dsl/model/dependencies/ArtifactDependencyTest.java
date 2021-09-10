@@ -2097,6 +2097,52 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("implementation");
   }
 
+  @Test
+  public void testParsePlatformDependencies() throws IOException {
+    writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+
+    assertThat(artifacts).hasSize(5);
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("mapGroup:mapName:3.0");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("stringGroup:stringName:3.1");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("group:name:3.14");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("argGroup:argName:3.141");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("group:name:3.1415");
+  }
+
+  @Test
+  public void testSetPlatformDependencyVersions() throws IOException {
+    writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    for (ArtifactDependencyModel artifact : artifacts) {
+      artifact.enableSetThrough();
+    }
+
+    artifacts.get(0).version().setValue("2.0");
+    artifacts.get(1).version().setValue("2.7");
+    artifacts.get(2).version().setValue("2.71");
+    artifacts.get(3).version().setValue("2.718");
+    artifacts.get(4).version().setValue("2.7182");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_PLATFORM_DEPENDENCY_VERSIONS_EXPECTED);
+  }
+
+  @Test
+  public void testDeletePlatformDependencies() throws IOException {
+    writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    // TODO(b/199871443): there is currently no way to delete an artifact dependency with a map reference argument.
+    for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts().subList(1, 5)) {
+      artifact.completeModel().getUnresolvedModel().delete();
+    }
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.DELETE_PLATFORM_DEPENDENCIES_EXPECTED);
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 
@@ -2235,6 +2281,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),
     SET_FULL_REFERENCE_MAP_EXPECTED("setFullReferenceMapExpected"),
+    PARSE_PLATFORM_DEPENDENCIES("parsePlatformDependencies"),
+    SET_PLATFORM_DEPENDENCY_VERSIONS_EXPECTED("setPlatformDependencyVersionsExpected"),
+    DELETE_PLATFORM_DEPENDENCIES_EXPECTED("deletePlatformDependenciesExpected"),
     ;
 
     @NotNull private @SystemDependent String path;
