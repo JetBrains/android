@@ -16,9 +16,9 @@
 package com.android.tools.idea.serverflags
 
 import com.google.protobuf.Message
+import com.intellij.openapi.application.ApplicationManager
 
 interface ServerFlagService {
-  val initialized: Boolean
   val configurationVersion: Long
   val names: List<String>
   fun getString(name: String): String?
@@ -34,6 +34,10 @@ interface ServerFlagService {
     getProtoOrNull(name, defaultInstance) ?: defaultInstance
 
   companion object {
-    var instance: ServerFlagService = ServerFlagServiceEmpty()
+    val instance: ServerFlagService
+      get() {
+        val service = ApplicationManager.getApplication()?.getService(ServerFlagService::class.java)
+        return service ?: ServerFlagServiceEmpty
+      }
   }
 }

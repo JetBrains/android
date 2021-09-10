@@ -25,8 +25,7 @@ private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
 class ServerFlagServiceEmptyTest {
   @Test
   fun testEmptyService() {
-    val service = ServerFlagServiceEmpty()
-    assertThat(service.initialized).isFalse()
+    val service = ServerFlagServiceEmpty
     assertThat(service.configurationVersion).isEqualTo(-1)
     assertThat(service.names).isEmpty()
     checkNull(service, ServerFlagService::getBoolean)

@@ -21,6 +21,10 @@ import com.android.flags.ImmutableFlagOverrides
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.registerServiceInstance
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
@@ -28,11 +32,12 @@ private const val TEST_GROUP = "testgroup"
 private const val STUDIO_FLAG_PREFIX = "studio_flags/$TEST_GROUP"
 
 class ServerFlagOverridesTest {
+  @get:Rule
+  val appRule = ApplicationRule()
 
   @Test
   fun testServerFlagOverrides() {
     val overrides: ImmutableFlagOverrides = ServerFlagOverrides()
-
     val flags = Flags(overrides)
     val group = FlagGroup(flags, TEST_GROUP, "display")
     val flagA = Flag.create(group, "a", "name_a", "description_a", false)
@@ -44,11 +49,10 @@ class ServerFlagOverridesTest {
     Truth.assertThat(overrides.get(flagC)).isNull()
 
     val service = Mockito.mock(ServerFlagService::class.java)
-    Mockito.`when`(service.initialized).thenReturn(true)
     Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
     Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
     Mockito.`when`(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
-    ServerFlagService.instance = service
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
 
     Truth.assertThat(overrides.get(flagA)).isEqualTo("true")
     Truth.assertThat(overrides.get(flagB)).isEqualTo("false")

@@ -82,7 +82,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       replaceNewClassDialog(actionManager);
     }
 
-    ServerFlagInitializer.initializeService();
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 

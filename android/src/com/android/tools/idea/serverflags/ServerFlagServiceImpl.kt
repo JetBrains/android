@@ -20,9 +20,18 @@ import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.Message
 
-class ServerFlagServiceImpl(override val configurationVersion: Long, private val flags: Map<String, ServerFlag>) : ServerFlagService {
-  override val initialized: Boolean = true
+class ServerFlagServiceImpl : ServerFlagService {
+  override val configurationVersion: Long
+  val flags: Map<String, ServerFlag>
+
+  init {
+    val data = initializer()
+    configurationVersion = data.configurationVersion
+    flags = data.flags
+  }
+
   override val names = flags.keys.toList()
+
   override fun getString(name: String): String? {
     val flag = flags[name] ?: return null
     if (!flag.hasStringValue()) {
@@ -83,6 +92,10 @@ class ServerFlagServiceImpl(override val configurationVersion: Long, private val
     }
 
     return sb.toString()
+  }
+
+  companion object {
+    var initializer: () -> ServerFlagInitializationData = { ServerFlagInitializer.initializeService() }
   }
 }
 
