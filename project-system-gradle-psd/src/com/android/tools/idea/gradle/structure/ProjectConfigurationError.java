@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure;
 
 import com.intellij.openapi.roots.ui.configuration.ConfigurationError;
 import com.intellij.openapi.util.NlsContexts;
+import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,12 +31,7 @@ public class ProjectConfigurationError extends ConfigurationError {
   private Runnable myQuickFix;
 
   public ProjectConfigurationError(@NotNull @NlsContexts.DetailedDescription String description, @Nullable JComponent navigationTarget) {
-    super(description, description);
-    myNavigationTarget = navigationTarget;
-  }
-
-  public ProjectConfigurationError(@NotNull @NlsContexts.DetailedDescription String description, @Nullable JComponent navigationTarget, boolean ignored) {
-    super(description, description, ignored);
+    super(description, HtmlChunk.raw(description), false);
     myNavigationTarget = navigationTarget;
   }
 

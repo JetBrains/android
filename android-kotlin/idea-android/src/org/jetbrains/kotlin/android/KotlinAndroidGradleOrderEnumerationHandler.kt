@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
 /*
    Partially copied from org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.
@@ -56,7 +55,7 @@ class KotlinAndroidGradleOrderEnumerationHandler(private val module: Module) : O
 
         val externalProjectDataCache = ExternalProjectDataCache.getInstance(rootModel.module.project) ?: return false
         val externalRootProject = externalProjectDataCache
-            .getRootExternalProject(GradleConstants.SYSTEM_ID, File(gradleProjectPath)) ?: return false
+            .getRootExternalProject(ExternalSystemApiUtil.toCanonicalPath(gradleProjectPath)) ?: return false
 
         val externalSourceSets = externalProjectDataCache.findExternalProject(externalRootProject, rootModel.module)
         if (externalSourceSets.isEmpty()) return false
