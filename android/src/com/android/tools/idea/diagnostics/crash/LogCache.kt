@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.crash
 
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
-
 class LogCache {
   private val buffers = HashMap<String, LogBuffer>()
 
