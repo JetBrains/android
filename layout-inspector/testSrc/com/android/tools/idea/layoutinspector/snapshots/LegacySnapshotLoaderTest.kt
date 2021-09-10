@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil.ANY_DRAW_ID
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.ProjectRule
 import layoutinspector.snapshots.Metadata
 import org.junit.Rule
@@ -39,9 +38,8 @@ class LegacySnapshotLoaderTest {
 
   @Test
   fun loadV1Snapshot() {
-    val file = VirtualFileManager.getInstance().findFileByNioPath(testDataPath.resolve("legacy-snapshot-v1.li"))!!
     val model = InspectorModel(projectRule.project)
-    val snapshotMetadata = LegacySnapshotLoader().loadFile(file, model)
+    val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model)
     // We don't get any metadata from V1, so just verify the version
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version1)
 
@@ -50,9 +48,8 @@ class LegacySnapshotLoaderTest {
 
   @Test
   fun loadV3Snapshot() {
-    val file = VirtualFileManager.getInstance().findFileByNioPath(testDataPath.resolve("legacy-snapshot-v3.li"))!!
     val model = InspectorModel(projectRule.project)
-    val snapshotMetadata = LegacySnapshotLoader().loadFile(file, model)
+    val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model)
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version3)
     assertThat(snapshotMetadata.apiLevel).isEqualTo(27)
     assertThat(snapshotMetadata.processName).isEqualTo("com.example.myapplication")

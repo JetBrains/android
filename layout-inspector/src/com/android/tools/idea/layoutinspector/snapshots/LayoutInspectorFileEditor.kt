@@ -51,21 +51,22 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
+import java.nio.file.Path
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
-class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserDataHolderBase(), FileEditor {
+class LayoutInspectorFileEditor(val project: Project, private val path: Path) : UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorMetrics? = null
 
-  private val _file = file
-  override fun getFile() = _file
+  override fun getFile() = VfsUtil.findFile(path, true)
 
   override fun dispose() {
     metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA)
@@ -75,11 +76,11 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
   private var modificationCount = -1L
 
   override fun getComponent(): JComponent {
-    if (modificationCount < file.modificationCount) {
+    if (modificationCount < (file?.modificationCount ?: 0)) {
       component = null
     }
     component?.let { return it }
-    modificationCount = file.modificationCount
+    modificationCount = file?.modificationCount ?: 0
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     var stats: SessionStatistics? = null
@@ -94,10 +95,10 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       contentPanel.add(workbench, BorderLayout.CENTER)
 
       // TODO: error handling
-      snapshotLoader = SnapshotLoader.createSnapshotLoader(file)
+      snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val model = InspectorModel(project)
 
-      metadata = snapshotLoader?.loadFile(file, model) ?: throw Exception()
+      metadata = snapshotLoader?.loadFile(path, model) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
           get() = snapshotLoader.propertiesProvider
@@ -180,7 +181,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
              StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get()
     }
 
-    override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file)
+    override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file.toNioPath())
 
     override fun getEditorTypeId() = "dynamic-layout-inspector"
 

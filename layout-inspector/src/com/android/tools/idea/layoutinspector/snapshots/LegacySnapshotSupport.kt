@@ -27,7 +27,6 @@ import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesPr
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.write
 import layoutinspector.snapshots.Metadata
 import org.jetbrains.kotlin.idea.core.util.readString
@@ -37,6 +36,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
 
@@ -47,10 +47,10 @@ class LegacySnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf<InspectorClient.Capability>()
 
-  override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
+  override fun loadFile(file: Path, model: InspectorModel): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
-    ObjectInputStream(file.inputStream).use { input ->
+    ObjectInputStream(Files.newInputStream(file)).use { input ->
       // Parse options
       options.parse(input.readUTF())
       if (options.version != ProtocolVersion.Version1 && options.version != ProtocolVersion.Version3) {

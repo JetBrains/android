@@ -24,6 +24,8 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.ObjectInputStream
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Mechanism for loading saved layout inspector snapshots. [SnapshotLoader.createSnapshotLoader] will create an appropriate concrete
@@ -55,13 +57,13 @@ interface SnapshotLoader {
 
   val capabilities: MutableCollection<InspectorClient.Capability>
 
-  fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata?
+  fun loadFile(file: Path, model: InspectorModel): SnapshotMetadata?
 
   companion object {
-    fun createSnapshotLoader(file: VirtualFile): SnapshotLoader? {
+    fun createSnapshotLoader(file: Path): SnapshotLoader? {
       val options = LayoutInspectorCaptureOptions()
 
-      ObjectInputStream(file.inputStream).use { input ->
+      ObjectInputStream(Files.newInputStream(file)).use { input ->
         // Parse options
         options.parse(input.readUTF())
       }
