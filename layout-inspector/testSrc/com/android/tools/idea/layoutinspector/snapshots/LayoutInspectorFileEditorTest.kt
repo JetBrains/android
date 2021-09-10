@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
@@ -52,7 +51,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettings() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      VirtualFileManager.getInstance().findFileByNioPath(TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/snapshot.li"))!!
+      TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     waitForCondition(5L, TimeUnit.SECONDS) {
@@ -71,7 +70,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettingsForCompose() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      VirtualFileManager.getInstance().findFileByNioPath(TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/compose-snapshot.li"))!!
+      TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/compose-snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     waitForCondition(5L, TimeUnit.SECONDS) {

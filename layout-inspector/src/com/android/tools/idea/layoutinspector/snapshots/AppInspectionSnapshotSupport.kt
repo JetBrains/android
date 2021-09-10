@@ -25,7 +25,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.Discon
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.write
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
@@ -35,6 +34,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.nio.file.Files
 import java.nio.file.Path
 
 val APP_INSPECTION_SNAPSHOT_VERSION = ProtocolVersion.Version4
@@ -50,12 +50,12 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
-  override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
+  override fun loadFile(file: Path, model: InspectorModel): SnapshotMetadata {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
     propertiesProvider = AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
     // TODO: error handling
-    ObjectInputStream(file.inputStream).use { input ->
+    ObjectInputStream(Files.newInputStream(file)).use { input ->
       val options = LayoutInspectorCaptureOptions().apply { parse(input.readUTF()) }
       if (options.version != APP_INSPECTION_SNAPSHOT_VERSION) {
         val message = "AppInspectionSnapshotSupport only supports version ${APP_INSPECTION_SNAPSHOT_VERSION.value}, got ${options.version}."

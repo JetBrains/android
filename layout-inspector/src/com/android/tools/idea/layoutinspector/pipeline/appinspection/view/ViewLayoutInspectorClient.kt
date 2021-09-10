@@ -324,7 +324,7 @@ class ViewLayoutInspectorClient(
       scope.launch {
         while (true) {
           delay(300)
-          if (progress.isCanceled) {
+          if (progress?.isCanceled == true) {
             job.cancel()
             break
           }
