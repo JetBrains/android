@@ -57,6 +57,7 @@ import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
 import com.android.builder.model.v2.models.AndroidDsl
+import com.android.builder.model.v2.models.GlobalLibraryMap
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeAbi
@@ -135,6 +136,8 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
@@ -1167,6 +1170,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       variant: com.android.builder.model.v2.ide.Variant,
       modelVersion: GradleVersion?,
       variantDependencies: VariantDependencies,
+      libraryMap: GlobalLibraryMap,
       buildNameMap: Map<String, File>
     ): IdeVariantImpl = throw UnsupportedOperationException()
 
