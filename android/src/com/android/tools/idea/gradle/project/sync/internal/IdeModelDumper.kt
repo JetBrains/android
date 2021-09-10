@@ -311,7 +311,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
     head("JavaLibraries")
     nest {
       ideDependencies.javaLibraries.sortedBy { it.name }.forEach {
-        head("JavaLibrary") { it.name }
+        head("JavaLibrary") { it.name.replaceKnownPatterns() }
         nest {
           dump(it)
         }

@@ -794,19 +794,19 @@ MODULE                        : TestCompositeLib1.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -1395,19 +1395,19 @@ MODULE                        : TestCompositeLib1.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -1996,19 +1996,19 @@ MODULE                        : TestCompositeLib1.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2799,19 +2799,19 @@ MODULE                        : TestCompositeLib1.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3363,19 +3363,19 @@ MODULE                        : TestCompositeLib1.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3934,19 +3934,19 @@ MODULE                        : TestCompositeLib1.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4768,19 +4768,19 @@ MODULE                        : TestCompositeLib3.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -5361,19 +5361,19 @@ MODULE                        : TestCompositeLib3.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -5954,19 +5954,19 @@ MODULE                        : TestCompositeLib3.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -8635,19 +8635,19 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -9238,19 +9238,19 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -9841,19 +9841,19 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -10646,19 +10646,19 @@ MODULE                        : project.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -11198,19 +11198,19 @@ MODULE                        : project.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -11758,19 +11758,19 @@ MODULE                        : project.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:1.5.0
+                        JavaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                             ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
