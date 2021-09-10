@@ -22,9 +22,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import javax.swing.event.HyperlinkEvent
 
 class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String, idSuffix: String = ""): NotificationListener.Adapter() {

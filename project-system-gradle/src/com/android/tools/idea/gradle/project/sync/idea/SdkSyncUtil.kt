@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -34,7 +35,6 @@ import com.intellij.openapi.roots.OrderRootType.CLASSES
 import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import org.jetbrains.annotations.SystemDependent
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 
 private val LOG = Logger.getInstance(SdkSync::class.java)

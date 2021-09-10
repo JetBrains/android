@@ -22,8 +22,8 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.ModuleManager
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 
 class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
   fun testCompositeStructure() {

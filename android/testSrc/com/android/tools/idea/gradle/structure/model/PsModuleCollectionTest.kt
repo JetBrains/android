@@ -27,10 +27,10 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 
 /**
