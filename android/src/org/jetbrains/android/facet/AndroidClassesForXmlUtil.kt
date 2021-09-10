@@ -20,7 +20,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.isClassPackageNeeded
-import com.android.tools.lint.checks.AnnotationDetector
+import com.android.tools.lint.checks.RESTRICT_TO_ANNOTATION
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -96,8 +96,8 @@ fun getTagNamesByClass(c: PsiClass, apiLevel: Int, parentClassQualifiedName: Str
 fun PsiClass.isVisibleInXml(): Boolean {
   val modifierList: PsiModifierList = modifierList ?: return false
   val isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC)
-  val isRestricted = modifierList.hasAnnotation(AnnotationDetector.RESTRICT_TO_ANNOTATION.oldName()) ||
-                     modifierList.hasAnnotation(AnnotationDetector.RESTRICT_TO_ANNOTATION.newName())
+  val isRestricted = modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
+                     modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName())
   return isPublic && !isRestricted && !AndroidUtils.isAbstract(this)
 }
 
