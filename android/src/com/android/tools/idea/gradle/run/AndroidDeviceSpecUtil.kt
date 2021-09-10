@@ -82,15 +82,21 @@ fun createSpec(
 
   var density: Density? = null
   var abis: List<String> = emptyList()
-  // If we are building for only one device, pass the density and the ABI
+  // If we are building for only one physical device, pass the density and the ABI
   if (devices.size == 1) {
     val device = devices[0]
-    density = Density.getEnum(device.density)
 
-    // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
-    abis = device.abis.map { it.toString() }
+    if (device.supportsMultipleScreenFormats()) {
+      log.info("Creating spec for resizable device")
+    }
+    else {
+      density = Density.getEnum(device.density)
 
-    log.info("Creating spec for " + device.name + " with ABIs: " + abis.ifEmpty { "<none specified>" })
+      // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
+      abis = device.abis.map { it.toString() }
+
+      log.info("Creating spec for " + device.name + " with ABIs: " + abis.ifEmpty { "<none specified>" })
+    }
   }
   else {
     log.info("Creating spec for multiple devices")

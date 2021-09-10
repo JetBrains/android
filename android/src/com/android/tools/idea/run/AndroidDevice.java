@@ -55,6 +55,13 @@ public interface AndroidDevice {
   int getDensity();
 
   /**
+   * Returns true if multiple screens setups are supported.
+   */
+  default boolean supportsMultipleScreenFormats() {
+    return false;
+  }
+
+  /**
    * Returns the list of (sorted by most preferred first) ABIs supported by this device.
    */
   @NotNull

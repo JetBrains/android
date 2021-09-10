@@ -20,7 +20,10 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.After
@@ -147,9 +150,37 @@ class AndroidDeviceSpecUtilTest {
       "{\"sdk_version\":29,\"codename\":\"R\",\"screen_density\":480,\"supported_abis\":[\"x86\",\"x86_64\"]}")
   }
 
+  @Test
+  fun densityOptimizationDisabledForResizableAndMultipleDevices() {
+    val lowDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.LOW)
+    val highDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.HIGH)
+    val unsupportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
+    val supportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
+
+    assertThat(createSpec(listOf(highDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
+    assertThat(createSpec(listOf(unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
+    assertThat(createSpec(listOf(highDensityDevice, supportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+    assertThat(createSpec(listOf(highDensityDevice, unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+    assertThat(createSpec(listOf(highDensityDevice, lowDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+  }
+
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
     val spec = createSpec(devices.asList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     return spec!!.writeToJsonTempFile(fetchLanguages)
+  }
+
+  private fun mockAvdInfo(
+    version: AndroidVersion,
+    name: String = "name",
+    displayName: String = "device",
+    density: Density = Density.DPI_260
+  ): AvdInfo {
+    val avdInfo = mock(AvdInfo::class.java)
+    `when`(avdInfo.androidVersion).thenReturn(version)
+    `when`(avdInfo.name).thenReturn(name)
+    `when`(avdInfo.displayName).thenReturn(displayName)
+    `when`(avdInfo.properties).thenReturn(mapOf(Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString())))
+    return avdInfo
   }
 
   private fun mockDevice(
