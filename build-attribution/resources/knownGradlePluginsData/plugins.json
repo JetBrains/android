@@ -45,10 +45,10 @@
     {
       "name": "com.google.android.gms.oss-licenses-plugin",
       "pluginClasses": [
-        "com.google.gms.oss.licenses.plugin.OssLicensesPlugin"
+        "com.google.android.gms.oss.licenses.plugin.OssLicensesPlugin"
       ],
-      "pluginArtifact": "com.google.android.gms:play-services-oss-licenses",
-      "configurationCachingCompatibleFrom": ""
+      "pluginArtifact": "com.google.android.gms:oss-licenses-plugin",
+      "configurationCachingCompatibleFrom": "N/A"
     },
     {
       "name": "dagger.hilt.android.plugin",
@@ -65,6 +65,14 @@
       ],
       "pluginArtifact": "androidx.navigation:navigation-safe-args-gradle-plugin",
       "configurationCachingCompatibleFrom": "2.3.1"
+    },
+    {
+      "name": "androidx.benchmark",
+      "pluginClasses": [
+        "androidx.benchmark.gradle.BenchmarkPlugin"
+      ],
+      "pluginArtifact": "androidx.benchmark:benchmark-gradle-plugin",
+      "configurationCachingCompatibleFrom": "1.1.0"
     },
     {
       "name": "org.gradle.test-retry",
@@ -201,15 +209,62 @@
       ],
       "pluginArtifact": "com.diffplug.spotless:spotless-plugin-gradle",
       "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "org.sonarqube",
+      "pluginClasses": [
+        "org.sonarqube.gradle.SonarQubePlugin"
+      ],
+      "pluginArtifact": "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin",
+      "configurationCachingCompatibleFrom": "3.2.0"
+    },
+    {
+      "name": "realm-android",
+      "pluginClasses": [
+        "io.realm.gradle.Realm"
+      ],
+      "pluginArtifact": "io.realm:realm-gradle-plugin",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "com.gorylenko.gradle-git-properties",
+      "pluginClasses": [
+        "com.gorylenko.GitPropertiesPlugin"
+      ],
+      "pluginArtifact": "com.gorylenko.gradle-git-properties:gradle-git-properties",
+      "configurationCachingCompatibleFrom": "2.3.1"
+    },
+    {
+      "name": "com.bugsnag.android.gradle",
+      "pluginClasses": [
+        "com.bugsnag.android.gradle.BugsnagPlugin"
+      ],
+      "pluginArtifact": "com.bugsnag:bugsnag-android-gradle-plugin",
+      "configurationCachingCompatibleFrom": "5.0.0"
+    },
+    {
+      "name": "de.fayard.refreshVersions",
+      "pluginClasses": [
+        "de.fayard.refreshVersions."
+      ],
+      "pluginArtifact": "de.fayard.refreshVersions:refreshVersions",
+      "configurationCachingCompatibleFrom": "N/A"
+    },
+    {
+      "name": "org.jetbrains.intellij",
+      "pluginClasses": [
+        "org.jetbrains.intellij.IntelliJPlugin"
+      ],
+      "pluginArtifact": "org.jetbrains.intellij.plugins:gradle-intellij-plugin",
+      "configurationCachingCompatibleFrom": "1.1.4"
     }
   ],
   "pluginEntryTemplate": {
     "name": "",
-    "pluginClasses": [""],
-    "pluginArtifact": {
-      "group": "",
-      "name": ""
-    },
+    "pluginClasses": [
+      ""
+    ],
+    "pluginArtifact": "",
     "configurationCachingCompatibleFrom": ""
   }
 }
