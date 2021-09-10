@@ -87,6 +87,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     String gapi29Path = "system-images;android-29;google_apis;";
     // Google API 30 image
     String gapi30Path = "system-images;android-30;google_apis;";
+    // Google API 31 image
+    String gapi31Path = "system-images;android-31;google_apis;";
     // Play Store image
     String psPath = "system-images;android-24;google_apis_playstore;";
     // Android Wear image
@@ -107,6 +109,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgGapi;
     FakePackage.FakeLocalPackage pkgGapi29;
     FakePackage.FakeLocalPackage pkgGapi30;
+    FakePackage.FakeLocalPackage pkgGapi31;
     FakePackage.FakeLocalPackage pkgPs;
     FakePackage.FakeLocalPackage pkgWear;
     FakePackage.FakeLocalPackage pkgWear29;
@@ -119,6 +122,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription gapiImageDescription;
     SystemImageDescription gapi29ImageDescription;
     SystemImageDescription gapi30ImageDescription;
+    SystemImageDescription gapi31ImageDescription;
     SystemImageDescription psImageDescription;
     SystemImageDescription wearImageDescription;
     SystemImageDescription wear29ImageDescription;
@@ -132,6 +136,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       gapiPath += abi;
       gapi29Path += abi;
       gapi30Path += abi;
+      gapi31Path += abi;
       psPath += abi;
       wearPath += abi;
       wear29Path += abi;
@@ -147,6 +152,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                                       IdDisplay.create("google", "Google"), 29, fileOp);
       pkgGapi30 = createSysimgPackage(gapi30Path, abi, IdDisplay.create("google_apis", "Google APIs"),
                                       IdDisplay.create("google", "Google"), 30, fileOp);
+      pkgGapi31 = createSysimgPackage(gapi31Path, abi, IdDisplay.create("google_apis", "Google APIs"),
+                                      IdDisplay.create("google", "Google"), 31, fileOp);
       pkgPs = createSysimgPackage(psPath, abi, IdDisplay.create("google_apis_playstore", "Google Play"),
                                   IdDisplay.create("google", "Google"), 24, fileOp);
       pkgWear = createSysimgPackage(wearPath, abi, IdDisplay.create("android-wear", "Wear OS"),
@@ -169,8 +176,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
-      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs, pkgTv30,
-                              pkgTv31);
+      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive,
+                              pkgAutomotivePs, pkgTv30, pkgTv31);
     }
 
     void generateSystemImageDescriptions(AndroidSdkHandler sdkHandler) {
@@ -183,6 +190,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
         sdkHandler.getLocalPackage(gapi29Path, progress).getLocation());
       ISystemImage gapi30Image = systemImageManager.getImageAt(
         sdkHandler.getLocalPackage(gapi30Path, progress).getLocation());
+      ISystemImage gapi31Image = systemImageManager.getImageAt(
+        sdkHandler.getLocalPackage(gapi31Path, progress).getLocation());
       ISystemImage playStoreImage = systemImageManager.getImageAt(
         sdkHandler.getLocalPackage(psPath, progress).getLocation());
       ISystemImage wearImage = systemImageManager.getImageAt(
@@ -203,6 +212,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
       gapi30ImageDescription = new SystemImageDescription(gapi30Image);
+      gapi31ImageDescription = new SystemImageDescription(gapi31Image);
       psImageDescription = new SystemImageDescription(playStoreImage);
       wearImageDescription = new SystemImageDescription(wearImage);
       wear29ImageDescription = new SystemImageDescription(wear29Image);
@@ -214,6 +224,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     }
   }
 
+  private SystemImageTestList mSysImgsX86_64;
   private SystemImageTestList mSysImgsX86;
   private SystemImageTestList mSysImgsArm;
   private SystemImageTestList mSysImgsArmv7a;
@@ -240,12 +251,14 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     mSysImgsArmv7a = new SystemImageTestList("armeabi-v7a", fileOp);
     mSysImgsArm64 = new SystemImageTestList("arm64-v8a", fileOp);
     mSysImgsX86 = new SystemImageTestList("x86", fileOp);
+    mSysImgsX86_64 = new SystemImageTestList("x86_64", fileOp);
 
     Collection<LocalPackage> pkgs = new ArrayList<>();
     pkgs.addAll(mSysImgsArm.getPackageInfoList());
     pkgs.addAll(mSysImgsArmv7a.getPackageInfoList());
     pkgs.addAll(mSysImgsArm64.getPackageInfoList());
     pkgs.addAll(mSysImgsX86.getPackageInfoList());
+    pkgs.addAll(mSysImgsX86_64.getPackageInfoList());
     packages.setLocalPkgInfos(pkgs);
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
@@ -257,6 +270,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     mSysImgsArmv7a.generateSystemImageDescriptions(sdkHandler);
     mSysImgsArm64.generateSystemImageDescriptions(sdkHandler);
     mSysImgsX86.generateSystemImageDescriptions(sdkHandler);
+    mSysImgsX86_64.generateSystemImageDescriptions(sdkHandler);
 
     // Make a phone device that does not support Google Play
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
@@ -332,6 +346,16 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(28, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
       assertEquals(OTHER,
                    getClassificationFromParts(Abi.ARMEABI_V7A, new AndroidVersion(28, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(31), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86_64, new AndroidVersion(31), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationFromParts(Abi.X86, new AndroidVersion(31, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
     }
   }
 
@@ -390,6 +414,14 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationForDevice(mSysImgsX86.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
                    getClassificationForDevice(mSysImgsX86.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationForDevice(mSysImgsX86.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationForDevice(mSysImgsX86_64.gapi30ImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationForDevice(mSysImgsX86_64.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : PERFORMANT,
+                   getClassificationForDevice(mSysImgsX86_64.gapi31ImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
                    getClassificationForDevice(mSysImgsX86.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.AndroidVersion.MAX_32_BIT_API;
 import static com.android.sdklib.AndroidVersion.MIN_4K_TV_API;
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
@@ -202,8 +203,12 @@ public class ChooseSystemImagePanel extends JPanel
     if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.PERFORMANT;
     }
-    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag) && (isArm64HostOs || abi == Abi.X86)) {
-      // Only recommend ARM or 32-bit x86 system images.
+    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag) &&
+        (isArm64HostOs ||
+         (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
+         (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))
+    ) {
+      // Only recommend ARM images on ARM hosts, 32-bit x86 system images where api-level <= 30, and 64-bit images where api-level > 30.
       return SystemImageClassification.RECOMMENDED;
     }
     return SystemImageClassification.PERFORMANT;
