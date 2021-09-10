@@ -470,6 +470,31 @@ class LayoutInspectorTreePanelTest {
 
   @RunsInEdt
   @Test
+  fun navigationAfterUpdateUI() {
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val jTree = tree.tree!!
+    val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = false
+    setToolContext(tree, inspector)
+    UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.promiseExpandAll(jTree).blockingGet(5, TimeUnit.SECONDS)
+    jTree.addSelectionRow(0)
+    assertThat(jTree.rowCount).isEqualTo(5)
+    assertThat(jTree.leadSelectionRow).isEqualTo(0)
+
+    val ui = FakeUi(jTree)
+    ui.keyboard.setFocus(jTree)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(jTree.leadSelectionRow).isEqualTo(1)
+
+    // Imitate a theme change which requires a new UI, and setup of action maps:
+    jTree.updateUI()
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(jTree.leadSelectionRow).isEqualTo(2)
+  }
+
+  @RunsInEdt
+  @Test
   fun keyTypedStartsFiltering() {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector

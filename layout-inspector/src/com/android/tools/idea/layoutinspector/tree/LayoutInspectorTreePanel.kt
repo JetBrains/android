@@ -134,8 +134,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     get() = (component as? JScrollPane)?.viewport?.view as? Tree
 
   private fun installKeyboardActions(tree: JComponent) {
-    downAction = tree.actionMap.get(TreeActions.Down.ID)
-    upAction = tree.actionMap.get(TreeActions.Up.ID)
+    if (downAction == null) {
+      // Save the default up and down actions:
+      downAction = tree.actionMap.get(TreeActions.Down.ID)
+      upAction = tree.actionMap.get(TreeActions.Up.ID)
+    }
     tree.actionMap.put(TreeActions.Down.ID, TreeAction(::nextMatch))
     tree.actionMap.put(TreeActions.Up.ID, TreeAction(::previousMatch))
   }
