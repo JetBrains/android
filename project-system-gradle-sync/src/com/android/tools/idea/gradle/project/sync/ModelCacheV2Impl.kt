@@ -430,10 +430,10 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun getV2SymbolFilePath(androidLibrary: Library): String {
     return try {
-      androidLibrary.symbolFile?.path ?: ""
+      androidLibrary.androidLibraryData?.symbolFile?.path ?: ""
     }
     catch (e: UnsupportedOperationException) {
-      File(androidLibrary.resFolder?.parentFile, SdkConstants.FN_RESOURCE_TEXT).path
+      File(androidLibrary.androidLibraryData?.resFolder?.parentFile, SdkConstants.FN_RESOURCE_TEXT).path
     }
   }
 
@@ -444,24 +444,28 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    */
   fun androidLibraryFrom(androidLibrary: Library, providedLibraries: Set<LibraryIdentity>): IdeLibrary {
     val libraryInfo = androidLibrary.libraryInfo ?: error("libraryInfo missing for ${androidLibrary.key}")
+
+    val androidLibraryData = androidLibrary.androidLibraryData ?: error("androidLibraryData missing for ${androidLibrary.key}")
+
     val core = IdeAndroidLibraryCore.create(
       artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar",
-      folder = androidLibrary.resFolder?.parentFile ?: File(""), // TODO: verify this always true
+      folder = androidLibraryData.resFolder.parentFile ?: File(""), // TODO: verify this always true
 
-      manifest = androidLibrary.manifest?.path ?: "",
-      compileJarFiles = androidLibrary.compileJarFiles!!.map { it.path },
-      runtimeJarFiles = androidLibrary.runtimeJarFiles!!.map { it.path },
-      resFolder = androidLibrary.resFolder?.path ?: "",
-      resStaticLibrary = copy(androidLibrary::resStaticLibrary),
-      assetsFolder = androidLibrary.assetsFolder?.path ?: "",
-      jniFolder = androidLibrary.jniFolder?.path ?: "",
-      aidlFolder = androidLibrary.aidlFolder?.path ?: "",
-      renderscriptFolder = androidLibrary.renderscriptFolder?.path ?: "",
-      proguardRules = androidLibrary.proguardRules?.path ?: "",
-      lintJar = androidLibrary.lintJar?.path,
-      externalAnnotations = androidLibrary.externalAnnotations?.path ?: "",
-      publicResources = androidLibrary.publicResources?.path ?: "",
       artifact = androidLibrary.artifact ?: File(""),
+      lintJar = androidLibrary.lintJar?.path,
+
+      manifest = androidLibraryData.manifest.path ?: "",
+      compileJarFiles = androidLibraryData.compileJarFiles.map { it.path },
+      runtimeJarFiles = androidLibraryData.runtimeJarFiles.map { it.path },
+      resFolder = androidLibraryData.resFolder.path ?: "",
+      resStaticLibrary = copy(androidLibraryData::resStaticLibrary),
+      assetsFolder = androidLibraryData.assetsFolder.path ?: "",
+      jniFolder = androidLibraryData.jniFolder.path ?: "",
+      aidlFolder = androidLibraryData.aidlFolder.path ?: "",
+      renderscriptFolder = androidLibraryData.renderscriptFolder.path ?: "",
+      proguardRules = androidLibraryData.proguardRules.path ?: "",
+      externalAnnotations = androidLibraryData.externalAnnotations.path ?: "",
+      publicResources = androidLibraryData.publicResources.path ?: "",
       symbolFile = getV2SymbolFilePath(androidLibrary),
       deduplicate = { strings.getOrPut(this) { this } }
     )
@@ -1224,7 +1228,7 @@ private data class LibraryIdentity(
 
 private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
   when (type) {
-    LibraryType.ANDROID_LIBRARY -> runtimeJarFiles.orEmpty()
+    LibraryType.ANDROID_LIBRARY -> androidLibraryData?.runtimeJarFiles.orEmpty()
     LibraryType.JAVA_LIBRARY -> listOfNotNull(artifact)
     else -> emptyList()
   }
