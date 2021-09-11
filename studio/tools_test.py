@@ -136,6 +136,9 @@ class ToolsTest(unittest.TestCase):
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
     platform = create_zip("platform.zip", {
+      "bin/appInfo.xml": """
+      <build number="AI-__BUILD__" date="__BUILD_DATE__">
+      <version major="4" minor="3" micro="2" patch="1" full="a" eap="false" >""",
       "build.txt": "AI-1234.__BUILD_NUMBER__",
       "product-info.json": "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
       "lib/resources.jar": {
@@ -158,6 +161,9 @@ class ToolsTest(unittest.TestCase):
     ])
 
     self.assertEqual({
+      "bin/appInfo.xml": """
+      <build number="AI-1234.3333" date="202008192252">
+      <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="true" >""",
       "build.txt": "AI-1234.3333",
       "product-info.json": "Info 3333 3333",
       "lib/resources.jar": {
@@ -171,6 +177,9 @@ class ToolsTest(unittest.TestCase):
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
     platform = create_zip("platform.zip", {
+      "Contents/bin/appInfo.xml": """
+      <build number="AI-__BUILD__" date="__BUILD_DATE__">
+      <version major="4" minor="3" micro="2" patch="1" full="a" eap="false" >""",
       "Contents/Resources/build.txt": "AI-1234.__BUILD_NUMBER__",
       "Contents/Info.plist": "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
       "Contents/lib/resources.jar": {
@@ -193,6 +202,9 @@ class ToolsTest(unittest.TestCase):
     ])
 
     self.assertEqual({
+      "Contents/bin/appInfo.xml": """
+      <build number="AI-1234.3333" date="202008192252">
+      <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="true" >""",
       "Contents/Resources/build.txt": "AI-1234.3333",
       "Contents/Info.plist": "Info 3333 3333",
       "Contents/lib/resources.jar": {

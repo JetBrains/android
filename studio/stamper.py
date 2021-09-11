@@ -149,6 +149,7 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
 
   build_txt = _read_file(platform, resource_path + "build.txt")
   app_info = _read_file(platform, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
+  app_info_unpacked = _read_file(platform, base_path + "bin/appInfo.xml")
 
   if os == "linux":
     info = _read_file(platform, base_path + "product-info.json")
@@ -160,9 +161,11 @@ def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, 
   build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
   build_date = _format_build_date(build_version)
   app_info = _stamp_app_info(build_date, build_txt, micro, patch, full, eap, app_info)
+  app_info_unpacked = _stamp_app_info(build_date, build_txt, micro, patch, full, eap, app_info_unpacked)
 
   _write_file(out, "w", build_txt, resource_path + "build.txt")
   _write_file(out, "a", app_info, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
+  _write_file(out, "a", app_info_unpacked, base_path + "bin/appInfo.xml")
 
   if os == "linux":
     _write_file(out, "a", info, base_path + "product-info.json")
