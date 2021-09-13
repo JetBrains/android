@@ -349,7 +349,7 @@ public abstract class SceneView {
   /**
    * Called by the {@link DesignSurface} on mouse hover. The coordinates might be outside of the boundaries of this {@link SceneView}
    */
-  final void onHover(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
+  public final void onHover(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
     for (Layer layer : getLayers()) {
       layer.onHover(mouseX, mouseY);
     }

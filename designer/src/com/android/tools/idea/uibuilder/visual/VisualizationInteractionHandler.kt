@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
@@ -104,7 +105,15 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
-                                      @JdkConstants.InputEventMask modifiersEx: Int) { }
+                                      @JdkConstants.InputEventMask modifiersEx: Int) {
+    val sceneView = surface.getSceneViewAt(mouseX, mouseY)
+    if (sceneView != null) {
+      val context = sceneView.context
+      context.setMouseLocation(mouseX, mouseY)
+      sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
+    }
+    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+  }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     // For now only custom models mode has popup menu.
