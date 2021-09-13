@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdActionPanel;
+import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -53,24 +54,13 @@ final class SelectNextColumnCellAction extends AbstractAction {
         else {
           table.removeEditor();
 
-          selectNextRow(table);
+          Tables.selectNextRow(table);
           model.setLeadSelectionIndex(VirtualTableView.DEVICE_VIEW_COLUMN_INDEX);
         }
 
         break;
       default:
         assert false;
-    }
-  }
-
-  private static void selectNextRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() + 1;
-
-    if (viewRowIndex < table.getRowCount()) {
-      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-    else {
-      table.setRowSelectionInterval(0, 0);
     }
   }
 }
