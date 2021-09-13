@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
+import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.notNull;

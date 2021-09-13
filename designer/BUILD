@@ -9,6 +9,7 @@ iml_module(
     javacopts = ["-XepAllErrorsAsWarnings"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
+    test_srcs = ["testFramework"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -39,6 +40,10 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
     ],
 )
 

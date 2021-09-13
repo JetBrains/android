@@ -38,7 +38,7 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction

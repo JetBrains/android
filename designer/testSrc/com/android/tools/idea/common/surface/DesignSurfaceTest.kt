@@ -19,6 +19,7 @@ import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
@@ -271,14 +272,6 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 }
 
-class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
-  override fun registerActionsShortcuts(component: JComponent) = Unit
-
-  override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
-
-  override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
-}
-
 class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
   override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
@@ -307,7 +300,7 @@ class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(sur
 class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
-                  java.util.function.Function { TestActionManager(it) },
+                  java.util.function.Function { ModelBuilder.TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
                   true,
                   java.util.function.Function { TestLayoutManager(it) },

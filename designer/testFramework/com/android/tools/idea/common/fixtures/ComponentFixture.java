@@ -18,7 +18,6 @@ package com.android.tools.idea.common.fixtures;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.XmlTagUtil;
-import com.android.tools.idea.uibuilder.fixtures.DragFixture;
 import com.android.tools.idea.uibuilder.fixtures.ResizeFixture;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.SegmentType;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.fixtures
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.common.LayoutTestUtilities
 import org.intellij.lang.annotations.JdkConstants
 import org.mockito.Mockito
 import java.awt.Point

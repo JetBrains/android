@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;

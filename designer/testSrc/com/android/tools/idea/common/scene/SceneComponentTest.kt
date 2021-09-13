@@ -19,8 +19,7 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
 
