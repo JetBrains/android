@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import icons.StudioIcons
 import java.awt.Color
 import java.awt.Graphics2D
@@ -36,13 +37,16 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     val screenShape: Shape? = screenView.screenShape
     gc.color = Color.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
-    val relevantComponents = screenView.selectionModel.selection.filter { it.model == screenView.sceneManager.model }
-    for (component in relevantComponents) {
+    val selectedIssueSource = screenView.surface.issuePanel.selectedIssue?.source
+    val relevantComponents = (selectedIssueSource as? VisualLintIssueProvider.VisualLintIssueSource)?.components?.filter {
+      it.model == screenView.sceneManager.model
+    }
+    relevantComponents?.forEach {
       gc.drawRect(
-        Coordinates.getSwingX(screenView, component.x),
-        Coordinates.getSwingY(screenView, component.y),
-        Coordinates.getSwingDimension(screenView, component.w),
-        Coordinates.getSwingDimension(screenView, component.h))
+        Coordinates.getSwingX(screenView, it.x),
+        Coordinates.getSwingY(screenView, it.y),
+        Coordinates.getSwingDimension(screenView, it.w),
+        Coordinates.getSwingDimension(screenView, it.h))
     }
     gc.stroke = NlConstants.SOLID_STROKE
     val clip = gc.clip
@@ -60,12 +64,12 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
       icon.paintIcon(screenView.surface, gc, screenView.x + sceneSize.width + 1, screenView.y)
       gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
-    for (component in relevantComponents) {
+    relevantComponents?.forEach {
       gc.drawRect(
-        Coordinates.getSwingX(screenView, component.x),
-        Coordinates.getSwingY(screenView, component.y),
-        Coordinates.getSwingDimension(screenView, component.w),
-        Coordinates.getSwingDimension(screenView, component.h))
+        Coordinates.getSwingX(screenView, it.x),
+        Coordinates.getSwingY(screenView, it.y),
+        Coordinates.getSwingDimension(screenView, it.w),
+        Coordinates.getSwingDimension(screenView, it.h))
     }
     gc.clip = clip
   }
