@@ -20,10 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ModuleDependencyModel extends DependencyModel {
   @NotNull
-  @Override
-  String configurationName();
-
-  @NotNull
   String name();
 
   void setName(@NotNull String name);
