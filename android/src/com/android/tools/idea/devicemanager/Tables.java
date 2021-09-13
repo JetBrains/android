@@ -67,6 +67,17 @@ public final class Tables {
     return table.getForeground();
   }
 
+  public static void selectNextRow(@NotNull JTable table) {
+    int viewRowIndex = table.getSelectedRow() + 1;
+
+    if (viewRowIndex < table.getRowCount()) {
+      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+    }
+    else {
+      table.setRowSelectionInterval(0, 0);
+    }
+  }
+
   public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
     TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
     int width = getPreferredColumnWidth(table, viewColumnIndex);

@@ -73,6 +73,7 @@ final class PhysicalDeviceTable extends JBTable {
     ActionMap map = getActionMap();
 
     map.put("selectNextColumn", new SelectNextColumnAction());
+    map.put("selectNextColumnCell", new SelectNextColumnCellAction());
     map.put("selectPreviousColumn", new SelectPreviousColumnAction());
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
