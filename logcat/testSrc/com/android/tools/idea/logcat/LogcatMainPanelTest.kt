@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -38,6 +39,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -52,6 +54,7 @@ import java.awt.BorderLayout.NORTH
 import java.awt.Dimension
 import java.time.Instant
 import java.time.ZoneId
+import java.util.concurrent.Executors
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
@@ -63,13 +66,13 @@ class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule())
+  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
 
   private lateinit var logcatMainPanel: LogcatMainPanel
 
   @After
   fun tearDown() {
-    runInEdtAndWait(logcatMainPanel::dispose)
+    runInEdtAndWait { Disposer.dispose(logcatMainPanel) }
   }
 
   @RunsInEdt
@@ -145,6 +148,18 @@ class LogcatMainPanelTest {
 
       """.trimIndent())
     }
+  }
+
+  @Test
+  fun appendMessages_disposedEditor() = runBlocking {
+    runInEdtAndWait {
+      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+      Disposer.dispose(logcatMainPanel)
+    }
+
+    logcatMainPanel.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
   }
 
   @RunsInEdt

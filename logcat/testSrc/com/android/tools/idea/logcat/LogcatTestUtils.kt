@@ -18,8 +18,12 @@ package com.android.tools.idea.logcat
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ConcurrencyUtil.awaitQuiescence
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
 
@@ -27,7 +31,7 @@ import javax.swing.SwingUtilities
  * Waits for [LogcatDocumentPrinter] to idle and execute some code.
  *
  * 1. Waits until all entries sent to the channel are received.
- * 2. Waits for the IO Thread that received the channel entries to complete (launch work on UI thread)
+ * 2. Waits for the worker threads that received the channel entries to complete (launch work on UI thread)
  * 3. Posts code to be executed on the UI thread and wait.
  *
  * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return immediately.
@@ -36,7 +40,11 @@ import javax.swing.SwingUtilities
 internal fun LogcatDocumentPrinter.onIdle(run: () -> Any) {
   assert(!SwingUtilities.isEventDispatchThread())
   waitForCondition(5, TimeUnit.SECONDS, this::isChannelEmpty)
-  (AndroidExecutors.getInstance().ioThreadExecutor as BoundedTaskExecutor).waitAllTasksExecuted(5, TimeUnit.SECONDS)
+
+  // This call depends on AndroidExecutors.workerThreadExecutor being replaced by a ThreadPoolExecutor that allows operations that are
+  // prohibited by the one provided by the framework (BackendThreadPoolExecutor). See AndroidExecutorsRule for how to inject a compliant
+  // executor.
+  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
   runInEdtAndWait {
     run()
   }

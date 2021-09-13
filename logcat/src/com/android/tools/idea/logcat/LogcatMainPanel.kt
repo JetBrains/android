@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.ddms.DeviceContext
@@ -30,6 +31,7 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.VisibleForTesting
 import java.time.ZoneId
@@ -44,13 +46,14 @@ internal class LogcatMainPanel(
   state: LogcatPanelConfig?,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
-
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
   private val deviceContext = DeviceContext()
+
   @VisibleForTesting
-  internal val documentPrinter = LogcatDocumentPrinter(project, this, editor.document, logcatColors, zoneId)
+  internal val documentPrinter = LogcatDocumentPrinter(project, this, editor, logcatColors, zoneId)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
+  private var logcatReader: LogcatReader? = null
 
   init {
     // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
@@ -61,6 +64,22 @@ internal class LogcatMainPanel(
     //  device/client.
     addToTop(headerPanel)
     addToCenter(editor.component)
+
+    deviceContext.addListener(object : DeviceConnectionListener() {
+      override fun onDeviceConnected(device: IDevice) {
+        logcatReader?.let {
+          Disposer.dispose(it)
+        }
+        logcatReader = LogcatReader(device, this@LogcatMainPanel, this@LogcatMainPanel::appendMessages).also(LogcatReader::start)
+      }
+
+      override fun onDeviceDisconnected(device: IDevice) {
+        logcatReader?.let {
+          Disposer.dispose(it)
+        }
+        logcatReader = null
+      }
+    }, this)
   }
 
   override fun getState(): String = LogcatPanelConfig.toJson(
@@ -79,7 +98,7 @@ internal class LogcatMainPanel(
       override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
     })
 
-    editor.document.setCyclicBufferSize(if (ConsoleBuffer.useCycleBuffer()) ConsoleBuffer.getCycleBufferSize() else 0)
+    editor.document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
 
     val editorSettings = editor.settings
     editorSettings.isAllowSingleLogicalLineFolding = true
