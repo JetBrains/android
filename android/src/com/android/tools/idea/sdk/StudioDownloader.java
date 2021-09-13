@@ -201,7 +201,7 @@ public class StudioDownloader implements Downloader {
 
       try (OutputStream out = new BufferedOutputStream(new FileOutputStream(interimDownload, true))) {
         NetUtils.copyStreamContent(downloadProgressIndicator, request.getInputStream(), out,
-                                   (long)request.getConnection().getContentLength());
+                                   request.getConnection().getContentLengthLong());
       }
 
       try {
