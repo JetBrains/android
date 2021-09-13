@@ -28,6 +28,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.ActionMap;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -69,7 +70,11 @@ final class PhysicalDeviceTable extends JBTable {
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
-    getActionMap().put("selectNextColumn", new SelectNextColumnAction());
+    ActionMap map = getActionMap();
+
+    map.put("selectNextColumn", new SelectNextColumnAction());
+    map.put("selectPreviousColumn", new SelectPreviousColumnAction());
+
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
 
     tableHeader.setReorderingAllowed(false);
