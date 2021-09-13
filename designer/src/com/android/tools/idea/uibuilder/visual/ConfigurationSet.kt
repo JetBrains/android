@@ -78,7 +78,7 @@ interface ConfigurationSet {
 
   object WindowSizeDevices : ConfigurationSet {
     override val id = "windowSizeDevices"
-    override val name = "Window Sizes"
+    override val name = "Reference Devices"
     override fun createModelsProvider(listener: ConfigurationSetListener) = WindowSizeModelsProvider
     override val visible = StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()
   }

@@ -39,7 +39,17 @@ import kotlin.math.roundToInt
 
 private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
 
-private const val WINDOW_SIZE_TOOL_TIPS = "These window sizes support approximately 75% of existing Android phone and tablets."
+internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
+  "_device_class_phone" to "This reference device uses the COMPACT width size class, " +
+    "which represents 99% of Android phones in portrait orientation.",
+  "_device_class_foldable" to "This reference device uses the MEDIUM width size class," +
+    " which represents foldables in unfolded portrait orientation," +
+    " or 94% of all tablets in portrait orientation.",
+  "_device_class_tablet" to "This reference device uses the EXPANDED width size class," +
+    " which represents 97% of Android tablets in landscape orientation.",
+  "_device_class_desktop" to "This reference device uses the EXPANDED width size class," +
+    " which represents 97% of Android tablets in landscape orientation."
+)
 
 /**
  * New device menu for layout editor.
@@ -57,11 +67,9 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
     // So we install the tooltips after showing.
     getChildren(null).forEachIndexed { index, action ->
-      when (action.templateText) {
-        "Window Size" -> (toolbar.component.components[index] as? ActionMenuItem)?.let { menuItem ->
-          HelpTooltip().setDescription(WINDOW_SIZE_TOOL_TIPS).installOn(menuItem)
-        }
-        else -> Unit
+      val deviceId = (action as? DeviceMenuAction.SetDeviceAction)?.device?.id ?: return@forEachIndexed
+      DEVICE_ID_TO_TOOLTIPS[deviceId]?.let {
+        (toolbar.component.components[index] as? ActionMenuItem)?.let { menuItem -> HelpTooltip().setDescription(it).installOn(menuItem) }
       }
     }
   }
@@ -107,7 +115,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
 
   private fun addWindowSizeAndNexusSection(nexusDevices:  List<Device>?) {
     val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
-    add(DeviceCategory("Window Size", "Window size devices", StudioIcons.Avd.DEVICE_MOBILE))
+    add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
     for (device in windowDevices) {
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
