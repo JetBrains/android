@@ -38,8 +38,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.google.common.base.Splitter.on;
 
-public class ModuleDependencyModelImpl extends DependencyModelImpl implements
-                                                                   ModuleDependencyModel {
+public class ModuleDependencyModelImpl extends DependencyModelImpl implements ModuleDependencyModel {
   @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";
   @NonNls private static final String CONFIGURATION = "configuration";
