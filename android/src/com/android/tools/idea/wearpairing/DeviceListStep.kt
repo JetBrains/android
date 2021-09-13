@@ -122,25 +122,30 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
     )
   }
 
-  override fun getComponent(): JComponent = JBPanel<JBPanel<*>>(null).apply {
+  override fun getComponent(): JComponent = JBPanel<JBPanel<*>>(GridBagLayout()).apply {
     border = empty(24)
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
-    add(JBLabel(message("wear.assistant.device.list.title"), UIUtil.ComponentStyle.LARGE).apply {
+    val selectedPhone = model.selectedPhoneDevice.valueOrNull
+    val selectedWear = model.selectedWearDevice.valueOrNull
+    add(JBLabel(UIUtil.ComponentStyle.LARGE).apply {
       font = JBFont.label().biggerOn(5.0f)
-      alignmentX = Component.LEFT_ALIGNMENT
-    })
+      text = message("wear.assistant.device.list.title")
+    }, gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
 
-    add(JBLabel(message("wear.assistant.device.list.subtitle")).apply {
-      alignmentX = Component.LEFT_ALIGNMENT
+    add(HtmlLabel().apply {
       border = empty(24, 0)
-    })
+      HtmlLabel.setUpAsHtmlLabel(this)
+      text = when {
+        selectedPhone != null -> message("wear.assistant.device.list.subtitle_one", selectedPhone.displayName, WEAR_DOCS_LINK)
+        selectedWear != null -> message("wear.assistant.device.list.subtitle_one", selectedWear.displayName, WEAR_DOCS_LINK)
+        else -> message("wear.assistant.device.list.subtitle_two", WEAR_DOCS_LINK)
+      }
+    }, gridConstraint(x = 0, y = 1, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
 
     add(Splitter(false, 0.5f).apply {
-      alignmentX = Component.LEFT_ALIGNMENT
-      firstComponent = phoneListPanel.takeIf { model.selectedPhoneDevice.valueOrNull == null }
-      secondComponent = wearListPanel.takeIf { model.selectedWearDevice.valueOrNull == null }
-    })
+      firstComponent = phoneListPanel.takeIf { selectedPhone == null }
+      secondComponent = wearListPanel.takeIf { selectedWear == null }
+    }, gridConstraint(x = 0, y = 2, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.BOTH))
   }
 
   override fun onProceeding() {
