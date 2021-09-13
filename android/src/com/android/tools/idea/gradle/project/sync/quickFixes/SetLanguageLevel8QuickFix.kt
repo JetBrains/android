@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
@@ -74,11 +74,12 @@ abstract class AbstractSetLanguageLevel8QuickFix(private val setJvmTarget: Boole
 class SetLanguageLevel8AllQuickFix(setJvmTarget: Boolean) : AbstractSetLanguageLevel8QuickFix(setJvmTarget, "all modules") {
   override val id = "set.java.level.8.all"
 
-  override fun buildFilesToApply(project: Project) = ModuleManager.getInstance(project)
-    .modules
-    .filter { it != null && AndroidFacet.getInstance(it) != null }
+  override fun buildFilesToApply(project: Project) = ProjectFacetManager.getInstance(project)
+    .getModulesWithFacet(AndroidFacet.ID)
     .mapNotNull { GradleUtil.getGradleModuleModel(it) }
     .mapNotNull { it.buildFile }
+    .distinct()
+    .toList()
 }
 
 class SetLanguageLevel8ModuleQuickFix(val modulePath: String, setJvmTarget: Boolean): AbstractSetLanguageLevel8QuickFix(setJvmTarget, "module $modulePath") {
