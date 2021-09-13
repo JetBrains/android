@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.JBHiDPIScaledImage;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -97,36 +98,30 @@ public class ScreenViewLayer extends Layer {
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
     BufferedImage image;
     boolean clearBackground;
-    boolean bufferWithScreenViewSizeExists = existingBuffer != null && existingBuffer.getWidth() == screenViewVisibleSize.width
-                                             && existingBuffer.getHeight() == screenViewVisibleSize.height;
+    boolean bufferWithScreenViewSizeExists = existingBuffer != null
+                                             && ImageUtil.getUserWidth(existingBuffer) == screenViewVisibleSize.width
+                                             && ImageUtil.getUserHeight(existingBuffer) == screenViewVisibleSize.height;
     if (screenViewHasBorderLayer && bufferWithScreenViewSizeExists) {
-      // Reuse the buffered image if the screen view visible size matches the existing buffer's, and if we're rendering a screen view that
-      // has a border layer. Screen views without a border layer might contain transparent images, e.g. a drawable, and reusing the buffer
-      // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
-      // need to force the creation of a new image in this case.
-      if (existingBuffer instanceof JBHiDPIScaledImage) {
-        image = (BufferedImage)((JBHiDPIScaledImage)existingBuffer).getDelegate();
-      } else {
-        image = existingBuffer;
-      }
+      image = existingBuffer;
       clearBackground = true;
     }
     else {
-      image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
-      assert image != null;
+      image = ImageUtil.createImage(configuration, screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       existingBuffer = image;
       // No need to clear the background for a new image
       clearBackground = false;
     }
+    int previewImageWidth = ImageUtil.getUserWidth(image);
+    int previewImageHeight = ImageUtil.getUserHeight(image);
     Graphics2D cacheImageGraphics = image.createGraphics();
-    cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
     if (clearBackground) {
       cacheImageGraphics.setColor(CLEAR_BACKGROUND);
       cacheImageGraphics.setComposite(AlphaComposite.Clear);
-      cacheImageGraphics.fillRect(0,0,image.getWidth(),image.getHeight());
+      cacheImageGraphics.fillRect(0,0, previewImageWidth, previewImageHeight);
       cacheImageGraphics.setComposite(AlphaComposite.Src);
     }
-    renderedImage.drawImageTo(cacheImageGraphics, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2);
+    cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
+    renderedImage.drawImageTo(cacheImageGraphics, 0, 0, previewImageWidth, previewImageHeight, sx1, sy1, sx2, sy2);
     cacheImageGraphics.dispose();
 
     return existingBuffer;
