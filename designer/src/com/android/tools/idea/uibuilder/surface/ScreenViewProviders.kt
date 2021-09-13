@@ -182,6 +182,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         add(BorderLayer(it))
         add(ScreenViewLayer(it))
         add(WarningLayer(it))
+        add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
       }.build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
