@@ -58,8 +58,7 @@ import static com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifact
  * DependencyHandler</a></li>
  * </ol>
  */
-public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
-                                                                              ArtifactDependencyModel {
+public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
   protected boolean mySetThrough = false;
 
@@ -79,11 +78,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   public ArtifactDependencySpec getSpec() {
     String name = name().toString();
     assert name != null;
-    return new ArtifactDependencySpecImpl(name,
-                                          group().toString(),
-                                          version().toString(),
-                                          classifier().toString(),
-                                          extension().toString());
+    return new ArtifactDependencySpecImpl(name, group().toString(), version().toString(), classifier().toString(), extension().toString());
   }
 
   @Override
