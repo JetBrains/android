@@ -102,11 +102,15 @@ public final class AndroidLogConsole extends LogConsoleBase {
 
   /**
    * Register an action with the {@link ActionManager}. This makes the action show up in "Find Action" tool and Keymap etc'.
-   *
+   * <p>
    * The id is derived from the classname.
    */
   static AnAction registerAction(ActionManager actionManager, AnAction action) {
-    actionManager.registerAction(ACTION_ID_PREFIX + action.getClass().getSimpleName(), action, PLUGIN_ID);
+    String id = ACTION_ID_PREFIX + action.getClass().getSimpleName();
+    if (actionManager.getAction(id) != null) {
+      actionManager.unregisterAction(id);
+    }
+    actionManager.registerAction(id, action, PLUGIN_ID);
     return action;
   }
 
