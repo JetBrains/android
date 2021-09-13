@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdActionPanel;
+import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -50,7 +51,7 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
         model.setLeadSelectionIndex(viewColumnIndex - 1);
         break;
       case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
-        selectPreviousRow(table);
+        Tables.selectPreviousRow(table);
         model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
 
         table.editCellAt(table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
@@ -62,15 +63,5 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
       default:
         assert false;
     }
-  }
-
-  private static void selectPreviousRow(@NotNull JTable table) {
-    int viewRowIndex = table.getSelectedRow() - 1;
-
-    if (viewRowIndex < 0) {
-      viewRowIndex = table.getRowCount() - 1;
-    }
-
-    table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
   }
 }

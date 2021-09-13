@@ -78,6 +78,16 @@ public final class Tables {
     }
   }
 
+  public static void selectPreviousRow(@NotNull JTable table) {
+    int viewRowIndex = table.getSelectedRow() - 1;
+
+    if (viewRowIndex < 0) {
+      viewRowIndex = table.getRowCount() - 1;
+    }
+
+    table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+  }
+
   public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
     TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
     int width = getPreferredColumnWidth(table, viewColumnIndex);
