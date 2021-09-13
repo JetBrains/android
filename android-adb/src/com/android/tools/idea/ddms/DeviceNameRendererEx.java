@@ -16,10 +16,13 @@
 package com.android.tools.idea.ddms;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.ui.ColoredTextContainer;
 import org.jetbrains.annotations.NotNull;
 
 public interface DeviceNameRendererEx {
+  ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
+
   boolean isApplicable(@NotNull IDevice device);
   void render(@NotNull IDevice device, @NotNull ColoredTextContainer component);
   @NotNull String getName(@NotNull IDevice device);

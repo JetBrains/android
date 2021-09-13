@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
 import java.util.EnumSet;
@@ -38,8 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ConnectedAndroidDevice implements AndroidDevice {
-  private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
-
   @NotNull private final IDevice myDevice;
   @Nullable private final DeviceNameRendererEx myDeviceNameRenderer;
   private volatile String myDeviceManufacturer;
@@ -165,7 +162,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     if (application == null || application.isUnitTestMode()) {
       return null;
     }
-    for (DeviceNameRendererEx extensionRenderer : EP_NAME.getExtensions()) {
+    for (DeviceNameRendererEx extensionRenderer : DeviceNameRendererEx.EP_NAME.getExtensions()) {
       if (extensionRenderer.isApplicable(device)) {
         return extensionRenderer;
       }

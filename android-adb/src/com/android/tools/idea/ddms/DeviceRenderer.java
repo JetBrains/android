@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
@@ -150,8 +149,7 @@ public class DeviceRenderer {
   }
 
   public static class DeviceNameRenderer extends ColoredTableCellRenderer {
-    private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
-    private final DeviceNameRendererEx[] myRenderers = EP_NAME.getExtensions();
+    private final DeviceNameRendererEx[] myRenderers = DeviceNameRendererEx.EP_NAME.getExtensions();
     private final AvdManager myAvdManager;
     private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
