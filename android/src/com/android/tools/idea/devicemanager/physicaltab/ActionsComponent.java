@@ -145,4 +145,28 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
 
     return getFirstEnabledComponent(index.getAsInt() + 1);
   }
+
+  @NotNull Optional<@NotNull Component> getFirstEnabledComponentBeforeFocusOwner() {
+    int i = getComponentCount() - 1;
+
+    for (; i >= 0; i--) {
+      if (getComponent(i).isFocusOwner()) {
+        break;
+      }
+    }
+
+    assert i >= 0;
+
+    for (int j = i - 1; j >= 0; j--) {
+      Component component = getComponent(j);
+
+      if (!component.isEnabled()) {
+        continue;
+      }
+
+      return Optional.of(component);
+    }
+
+    return Optional.empty();
+  }
 }
