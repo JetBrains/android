@@ -40,7 +40,6 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface) : IssueListener
         }
       }
       is VisualLintIssueProvider.VisualLintIssueSource -> {
-        surface.selectionModel.setSelection(source.components)
         // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
         surface.repaint()
         surface.scrollToVisible(source.model, false)
