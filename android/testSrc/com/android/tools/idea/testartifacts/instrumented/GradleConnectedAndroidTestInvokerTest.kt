@@ -16,7 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
+import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
@@ -24,15 +26,15 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.run.ConsolePrinter
-import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.testFramework.PlatformTestUtil
@@ -63,9 +65,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule()
 
-  @Mock lateinit var mockExecutor: Executor
-  @Mock lateinit var mockHandler: ProcessHandler
-  @Mock lateinit var mockLaunchStatus: LaunchStatus
+  @Mock lateinit var mockExecutionEnvironment: ExecutionEnvironment
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
   @Mock lateinit var mockAndroidTestResultListener: AndroidTestResultListener
@@ -106,6 +106,7 @@ class GradleConnectedAndroidTestInvokerTest {
     }
     return  GradleConnectedAndroidTestInvoker(
       numDevices,
+      mockExecutionEnvironment,
       backgroundTaskExecutor = directExecutor::submit,
       gradleTaskManagerFactory = { mockGradleTaskManager },
       gradleTestResultAdapterFactory = { iDevice, _, _, _ ->
@@ -470,5 +471,36 @@ class GradleConnectedAndroidTestInvokerTest {
       verify(mockProcessHandler).detachProcess()
       verifyNoMoreInteractions()
     }
+  }
+
+  @Test
+  fun deviceSpecificGradleProperties() {
+    val mockDevice = mock <com.android.tools.idea.run.AndroidDevice>()
+    `when`(mockDevice.version).thenReturn(AndroidVersion(30))
+    `when`(mockDevice.density).thenReturn(Density.XXHIGH.dpiValue)
+    `when`(mockDevice.abis).thenReturn(listOf(Abi.X86, Abi.X86_64))
+    `when`(mockExecutionEnvironment.getCopyableUserData(eq(DeviceFutures.KEY))).thenReturn(DeviceFutures(listOf(mockDevice)))
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.injected.build.api=30") &&
+          arguments.contains("-Pandroid.injected.build.density=xxhdpi") &&
+          arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
   }
 }
