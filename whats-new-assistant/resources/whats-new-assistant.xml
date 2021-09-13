@@ -19,12 +19,12 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2021.1.01">
+    version="2021.2.01">
   <feature
-      name="What's New in 2021.1.01">
+      name="What's New in 2021.2.01">
     <tutorial
         key="whats-new"
-        label=" What's New in 2021.1.01"
+        label=" What's New in 2021.2.01"
         icon="preview/whats_new_icon.png"
         remoteLink="https://developer.android.com/studio/preview/features"
         remoteLinkLabel="Read in a browser">
