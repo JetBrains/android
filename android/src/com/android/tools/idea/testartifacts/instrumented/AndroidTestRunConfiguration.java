@@ -24,6 +24,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.AndroidLaunchTasksProvider;
@@ -306,6 +307,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     GradleAndroidTestRunnerOptInDialogKt.showGradleAndroidTestRunnerOptInDialog(getProject());
 
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+      // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
+      // doesn't run twice per test run.
+      env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false);
       return new GradleAndroidTestApplicationLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
                                                                  TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
                                                                  new RetentionConfiguration(RETENTION_ENABLED, RETENTION_MAX_SNAPSHOTS,
