@@ -33,6 +33,7 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.wearpairing.GmscoreHelper.refreshEmulatorConnection
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.WearPairingEvent
@@ -72,9 +73,12 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     loadSettings()
   }
 
+  private fun isTestMode(): Boolean =
+    ApplicationManager.getApplication()?.isUnitTestMode != false || GuiTestingService.getInstance().isGuiTestingMode
+
   @WorkerThread
   private fun loadSettings() {
-    if (ApplicationManager.getApplication()?.isUnitTestMode != false) return
+    if (isTestMode()) return
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
     WearPairingSettings.getInstance().apply {
@@ -111,7 +115,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private fun saveSettings() {
-    if (ApplicationManager.getApplication()?.isUnitTestMode != false) return
+    if (isTestMode()) return
     val pairedDevicesState = mutableListOf<PairingDeviceState>()
     val pairedDeviceConnectionsState = ArrayList<PairingConnectionsState>()
 
