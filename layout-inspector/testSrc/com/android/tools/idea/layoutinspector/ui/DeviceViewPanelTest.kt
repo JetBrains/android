@@ -423,7 +423,7 @@ class DeviceViewPanelTest {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
@@ -467,7 +467,7 @@ class DeviceViewPanelTest {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
@@ -498,7 +498,7 @@ class DeviceViewPanelTest {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
@@ -536,7 +536,7 @@ class DeviceViewPanelTest {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
@@ -576,7 +576,7 @@ class DeviceViewPanelTest {
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessNotifier())
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), projectRule.project, disposableRule.disposable,
+    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
