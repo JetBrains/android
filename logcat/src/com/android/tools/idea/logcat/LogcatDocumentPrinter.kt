@@ -18,14 +18,18 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
@@ -58,24 +62,28 @@ const val CHANNEL_CAPACITY = 10
 internal class LogcatDocumentPrinter(
   project: Project,
   parentDisposable: Disposable,
-  private val document: Document,
+  private val editor: EditorEx,
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId = ZoneId.systemDefault()
 ) {
+  private val document = editor.document
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
   private val channel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
-  // Keeps track of the previous tag so we can omit on consecutive lines
+  // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for app?
   private var previousTag: String? = null
 
-  // Keeps track of the max app name & tag so we can align the log level & message. Pidcat allows 23 chars for the tag and doesn't show the
+  // Keeps track of the max app name & tag, so we can align the log level & message. Pidcat allows 23 chars for the tag and doesn't show the
   // app name but the alignment makes it look much prettier.
-  private var maxAppNameLength = 0
-  private var maxTagNameLength = 0
+  private var maxAppNameLength = 1
+  private var maxTagNameLength = 1
 
   init {
-    AndroidCoroutineScope(parentDisposable, ioThread).launch {
+    val exceptionHandler = CoroutineExceptionHandler { _, e ->
+      thisLogger().error("Error processing logcat message", e)
+    }
+    AndroidCoroutineScope(parentDisposable, workerThread).launch(exceptionHandler) {
       while (true) {
         processMessages(channel.receive())
       }
@@ -108,6 +116,7 @@ internal class LogcatDocumentPrinter(
       buffer.append("${message.message}\n")
     }
 
+    // TODO(aalbert): Optimize by batching messages before sending to the UI.
     withContext(AndroidDispatchers.uiThread) {
       if (isActive) {
         appendToDocument(buffer)
@@ -118,7 +127,7 @@ internal class LogcatDocumentPrinter(
   private fun appendToDocument(buffer: MessageTextBuffer) {
     document.insertString(document.textLength, buffer.text)
 
-    // Document has cyclic buffer so we need get document.textLength again after inserting text.
+    // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
     val start = document.textLength - buffer.text.length
     buffer.ranges.forEach {
       val rangeStart = start + it.start
@@ -129,6 +138,7 @@ internal class LogcatDocumentPrinter(
           rangeStart, start + it.end, HighlighterLayer.SYNTAX, it.textAttributes, HighlighterTargetArea.EXACT_RANGE)
       }
     }
+    EditorUtil.scrollToTheEnd(editor, true)
   }
 
   @ExperimentalCoroutinesApi

@@ -27,18 +27,25 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 private val timestamp = Instant.ofEpochMilli(1000)
 
@@ -50,14 +57,26 @@ class LogcatDocumentPrinterTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule())
+  val rule = RuleChain(projectRule, AndroidExecutorsRule(Executors.newCachedThreadPool()))
 
   private val logcatColors = LogcatColors()
   private val document by lazy { (EditorFactory.getInstance() as EditorFactoryImpl).createDocument(true) }
+  private val editor by lazy {
+    runInEdtAndGet {
+      EditorFactory.getInstance().createViewer(document, projectRule.project, EditorKind.CONSOLE) as EditorEx
+    }
+  }
   private val printer by lazy {
-    LogcatDocumentPrinter(projectRule.project, projectRule.project, document, logcatColors, ZoneId.of("Asia/Yerevan"))
+    LogcatDocumentPrinter(projectRule.project, projectRule.project, editor, logcatColors, ZoneId.of("Asia/Yerevan"))
   }
   private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, false) }
+
+  @After
+  fun tearDown() {
+    runInEdtAndWait {
+      EditorFactory.getInstance().releaseEditor(editor)
+    }
+  }
 
   @Test
   fun appendMessages_multipleBatches() = runBlocking {
@@ -163,6 +182,30 @@ class LogcatDocumentPrinterTest {
       tagColors.forEach { (tag, color) ->
         assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
       }
+    }
+  }
+
+  @Test
+  fun appendMessages_emptyTag() = runBlocking {
+    printer.appendMessages(listOf(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "", timestamp), "message")))
+
+    printer.onIdle {
+      assertThat(document.text).isEqualTo("""
+        1970-01-01 04:00:01.000      1-2        app I message
+
+      """.trimIndent())
+    }
+  }
+
+  @Test
+  fun appendMessages_emptyApp() = runBlocking {
+    printer.appendMessages(listOf(LogCatMessage(LogCatHeader(INFO, 1, 2, "", "tag", timestamp), "message")))
+
+    printer.onIdle {
+      assertThat(document.text).isEqualTo("""
+        1970-01-01 04:00:01.000      1-2      tag   I message
+
+      """.trimIndent())
     }
   }
 }
