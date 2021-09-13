@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.fixtures;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.common.LayoutTestUtilities;
 
 import java.awt.event.KeyEvent;
 

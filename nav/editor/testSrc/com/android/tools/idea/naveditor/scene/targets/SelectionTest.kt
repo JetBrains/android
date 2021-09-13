@@ -26,7 +26,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.common.LayoutTestUtilities
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.event.InputEvent

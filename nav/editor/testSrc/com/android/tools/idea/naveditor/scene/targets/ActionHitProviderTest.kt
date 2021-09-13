@@ -34,7 +34,7 @@ import com.android.tools.idea.naveditor.scene.getDestinationDirection
 import com.android.tools.idea.naveditor.scene.verifyScene
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.common.LayoutTestUtilities
 import com.google.common.truth.Truth.assertThat
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`

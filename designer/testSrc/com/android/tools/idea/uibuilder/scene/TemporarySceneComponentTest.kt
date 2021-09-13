@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.scene
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.TemporarySceneComponent
-import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.common.LayoutTestUtilities
 import org.mockito.Mockito
 
 open class TemporarySceneComponentTest: SceneTest() {

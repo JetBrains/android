@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
+import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 

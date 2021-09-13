@@ -19,7 +19,7 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline
+import com.android.tools.idea.common.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 

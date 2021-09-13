@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder;
+package com.android.tools.idea.common;
 
 import android.view.View;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.*;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -32,8 +31,8 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
-import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
-import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
+import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
+import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;

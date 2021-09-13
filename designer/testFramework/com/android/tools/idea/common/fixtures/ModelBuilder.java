@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
@@ -39,7 +40,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.InteractionManager;
-import com.android.tools.idea.common.surface.TestActionManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -67,6 +68,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -290,4 +292,23 @@ public class ModelBuilder {
       checkStructure(child);
     }
   }
+
+  public static class TestActionManager extends ActionManager<DesignSurface> {
+    public TestActionManager(@NotNull DesignSurface surface) {
+      super(surface);
+    }
+    @Override
+    public void registerActionsShortcuts(@NotNull JComponent component) {}
+
+    @Override
+    public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
+      return new DefaultActionGroup();
+    }
+
+    @Override
+    public DefaultActionGroup getToolbarActions(List<NlComponent> selection) {
+      return new DefaultActionGroup();
+    }
+  }
+
 }
