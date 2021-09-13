@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
+import com.android.builder.model.AndroidProject
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
+import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -30,10 +34,12 @@ import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.android.utils.usLocaleCapitalize
+import com.google.common.base.Joiner
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -52,6 +58,7 @@ import java.util.concurrent.Future
  */
 class GradleConnectedAndroidTestInvoker(
   private val selectedDevices: Int,
+  private val executionEnvironment: ExecutionEnvironment,
   private val uninstallIncompatibleApks: Boolean = false,
   private val backgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
   private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() },
@@ -167,6 +174,7 @@ class GradleConnectedAndroidTestInvoker(
           // rerunInvoker will call detachProcess().
           val rerunInvoker = GradleConnectedAndroidTestInvoker(
             rerunDevices.size,
+            executionEnvironment,
             uninstallIncompatibleApks = true,
             backgroundTaskExecutor,
             gradleTaskManagerFactory,
@@ -231,6 +239,8 @@ class GradleConnectedAndroidTestInvoker(
       }
       withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
 
+      withArguments(getDeviceSpecificArguments())
+
       // Enable UTP in Gradle. This is required for Android Studio integration.
       withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
 
@@ -279,5 +289,30 @@ class GradleConnectedAndroidTestInvoker(
     val index = modulePrefix.indexOf(":")
     modulePrefix = modulePrefix.substring(index)
     return listOf("${modulePrefix}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
+  }
+
+  // TODO: This method is copied from com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider#getDeviceSpecificArguments.
+  //       which lives in a different module and this class doesn't have access. Factor out the common method into
+  //       a shared utility class and them it from both places.
+  private fun getDeviceSpecificArguments(): List<String> {
+    val deviceFutures = executionEnvironment.getCopyableUserData(DeviceFutures.KEY)?.devices ?: emptyList()
+    val deviceSpec = createSpec(deviceFutures) ?: return emptyList()
+
+    val deviceSpecificArguments = mutableListOf<String>()
+    deviceSpec.commonVersion?.let { version ->
+      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_API, version.apiLevel.toString()))
+      version.codename?.let { codename ->
+        deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_API_CODENAME, codename))
+      }
+    }
+
+    deviceSpec.density?.let { density ->
+      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_DENSITY, density.resourceValue))
+    }
+    if (deviceSpec.abis.isNotEmpty()) {
+      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
+    }
+
+    return deviceSpecificArguments
   }
 }

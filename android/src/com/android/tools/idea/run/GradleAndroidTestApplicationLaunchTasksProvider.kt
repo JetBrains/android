@@ -52,7 +52,8 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
-  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker = GradleConnectedAndroidTestInvoker(myRunConfig.getNumberOfSelectedDevices(facet))
+  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
+    GradleConnectedAndroidTestInvoker(myRunConfig.getNumberOfSelectedDevices(facet), myEnv)
   private val myTestingType: Int = testingType
   private val myPackageName: String = packageName
   private val myClassName: String = className
