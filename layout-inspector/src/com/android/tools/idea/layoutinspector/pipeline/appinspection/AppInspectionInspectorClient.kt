@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
@@ -40,6 +39,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
@@ -88,7 +88,6 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
  *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
-  private val adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
@@ -122,7 +121,7 @@ class AppInspectionInspectorClient(
     )
   }
 
-  private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
+  private val debugViewAttributes = DebugViewAttributes(model.project, process)
   private var debugViewAttributesChanged = false
 
   private val metrics = LayoutInspectorMetrics(model.project, process, stats)
@@ -152,7 +151,7 @@ class AppInspectionInspectorClient(
   override fun doConnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     try {
-      checkApi29Version(process, model.project, adb, sdkHandler)
+      checkApi29Version(process, model.project, sdkHandler)
     }
     catch (exception: ConnectionFailedException) {
       future.setException(exception)
@@ -271,10 +270,9 @@ class AppInspectionInspectorClient(
   private fun checkApi29Version(
     process: ProcessDescriptor,
     project: Project,
-    adb: AndroidDebugBridge,
     sdkHandler: AndroidSdkHandler
   ) {
-    val (success, image) = checkSystemImageForAppInspectionCompatibility(process, adb, sdkHandler)
+    val (success, image) = checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
     if (success || image == null) {
       return
     }
@@ -322,11 +320,12 @@ class AppInspectionInspectorClient(
  */
 fun checkSystemImageForAppInspectionCompatibility(
   process: ProcessDescriptor,
-  adb: AndroidDebugBridge,
+  project: Project,
   sdkHandler: AndroidSdkHandler
 ): Pair<Boolean, RepoPackage?> {
   if (process.device.isEmulator && process.device.apiLevel == 29) {
-    val avdName = adb.devices.find { it.serialNumber == process.device.serial }?.avdName
+    val adb = AdbUtils.getAdbFuture(project).get()
+    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdName
     val avd = avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {

@@ -43,6 +43,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -51,7 +52,6 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -90,7 +90,6 @@ import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertFailsWith
 import javax.swing.JPanel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
@@ -110,7 +109,7 @@ class AppInspectionInspectorClientTest {
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(object : InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-      return AppInspectionInspectorClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
+      return AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
                                           inspector.stats, disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                           inspectionRule.inspectionService.scope).apply {
         launchMonitor = monitor
@@ -218,6 +217,10 @@ class AppInspectionInspectorClientTest {
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(MODERN_PROCESS.name)
+
+    // Imitate that the adb server was killed.
+    // We expect the ViewDebugAttributes to be cleared anyway since a new adb bridge should be created.
+    inspectorRule.adbService.killServer()
 
     // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy way to wait for the disconnect to
     // happen on a background thread
@@ -639,14 +642,13 @@ class AppInspectionInspectorClientTest {
 }
 
 class AppInspectionInspectorClientWithUnsupportedApi29 {
-  @get:Rule
-  val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val adbRule = FakeAdbRule()
+  private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
-  val adbRule = FakeAdbRule()
+  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService).around(disposableRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -668,7 +670,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor2, isInstantlyAutoConnected = false, model(projectRule.project) {},
+      val client = AppInspectionInspectorClient(processDescriptor2, isInstantlyAutoConnected = false, model(projectRule.project) {},
                                                 mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
       // shouldn't get an exception
       client.connect()
@@ -692,7 +694,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
+      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
                                                 mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
@@ -709,7 +711,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
     packages.setRemotePkgInfos(listOf(remotePackage))
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(adbRule.bridge, processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
+      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
                                                 mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
