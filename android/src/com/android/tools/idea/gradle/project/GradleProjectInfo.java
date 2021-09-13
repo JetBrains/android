@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
@@ -174,7 +175,7 @@ public class GradleProjectInfo {
         return;
       }
 
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
         if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
           modules.add(module);
         }
@@ -194,7 +195,7 @@ public class GradleProjectInfo {
         return;
       }
 
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
         if (androidFacet != null && GradleFacet.getInstance(module) != null) {
           consumer.consume(androidFacet);
