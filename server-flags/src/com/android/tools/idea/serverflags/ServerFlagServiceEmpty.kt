@@ -15,28 +15,7 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.google.protobuf.Message
-
 object ServerFlagServiceEmpty : ServerFlagService {
   override val configurationVersion: Long = -1
   override val names: List<String> = emptyList()
-  override fun getString(name: String): String? {
-    return null
-  }
-
-  override fun getInt(name: String): Int? {
-    return null
-  }
-
-  override fun getFloat(name: String): Float? {
-    return null
-  }
-
-  override fun getBoolean(name: String): Boolean? {
-    return null
-  }
-
-  override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
-    return null
-  }
 }
