@@ -25,11 +25,10 @@ import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlH
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -80,8 +79,7 @@ class LegacyAndroidProjects {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       String packageName = null;
 
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
+      for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
         if (facet != null && !AndroidModel.isRequired(facet)) {
           if (facet.getConfiguration().isAppProject()) {
             // Prefer the package name from an app module.
