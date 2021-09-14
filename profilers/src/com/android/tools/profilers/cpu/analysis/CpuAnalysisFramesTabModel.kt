@@ -121,7 +121,7 @@ class FrameEventTableModel(val layerName: String, val frameEvents: MutableList<F
  */
 enum class FrameEventTableColumn(val displayName: String, val type: Class<*>, val getValueFrom: (FrameEventRow) -> Comparable<*>) {
   FRAME_NUMBER("Frame #", java.lang.Integer::class.java, FrameEventRow::frameNumber),
-  TOTAL_TIME("Total Time", java.lang.Long::class.java, FrameEventRow::totalDurationUs),
+  TOTAL_TIME("Frame Duration", java.lang.Long::class.java, FrameEventRow::totalDurationUs),
   APP("Application", java.lang.Long::class.java, FrameEventRow::appDurationUs),
   GPU("Wait for GPU", java.lang.Long::class.java, FrameEventRow::gpuDurationUs),
   COMPOSITION("Composition", java.lang.Long::class.java, FrameEventRow::compositionDurationUs);

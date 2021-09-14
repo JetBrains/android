@@ -87,7 +87,7 @@ class CpuFrameTooltipViewTest {
     val labels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(8)
     assertThat(labels[0].text).isEqualTo("00:00.000")
-    assertThat(labels[1].text).contains("Total Time:")
+    assertThat(labels[1].text).contains("Frame Duration:")
     assertThat(labels[2].text).contains("Main Thread")
     assertThat(labels[3].text).contains("CPU Time:")
     assertThat(labels[4].text).contains("Wall Time:")
