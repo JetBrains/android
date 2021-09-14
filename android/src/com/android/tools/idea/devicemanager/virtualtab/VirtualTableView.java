@@ -19,10 +19,12 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
+import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ListTableModel;
+import java.awt.Point;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.stream.IntStream;
@@ -36,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * TableView that adjusts column widths automatically to not cut off table cell content
  */
-public final class VirtualTableView extends TableView<AvdInfo> {
+public final class VirtualTableView extends TableView<AvdInfo> implements Table {
   static final int DEVICE_VIEW_COLUMN_INDEX = 0;
   static final int API_VIEW_COLUMN_INDEX = 1;
   static final int SIZE_ON_DISK_VIEW_COLUMN_INDEX = 2;
@@ -66,5 +68,25 @@ public final class VirtualTableView extends TableView<AvdInfo> {
 
   void setWidths() {
     IntStream.range(1, getColumnCount()).forEach(viewColumnIndex -> Tables.sizeWidthToFit(this, viewColumnIndex));
+  }
+
+  @Override
+  public boolean isActionsColumn(int viewColumnIndex) {
+    return convertColumnIndexToModel(viewColumnIndex) == 3;
+  }
+
+  @Override
+  public int viewRowIndexAtPoint(@NotNull Point point) {
+    return rowAtPoint(point);
+  }
+
+  @Override
+  public int viewColumnIndexAtPoint(@NotNull Point point) {
+    return columnAtPoint(point);
+  }
+
+  @Override
+  public int getEditingViewRowIndex() {
+    return editingRow;
   }
 }
