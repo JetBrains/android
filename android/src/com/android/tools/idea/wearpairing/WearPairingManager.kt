@@ -33,7 +33,6 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.wearpairing.GmscoreHelper.refreshEmulatorConnection
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.WearPairingEvent
@@ -74,7 +73,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private fun isTestMode(): Boolean =
-    ApplicationManager.getApplication()?.isUnitTestMode != false || GuiTestingService.getInstance().isGuiTestingMode
+    ApplicationManager.getApplication()?.isUnitTestMode != false
 
   @WorkerThread
   private fun loadSettings() {
