@@ -24,6 +24,7 @@ import com.android.tools.idea.avdmanager.AvdDisplayList
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
 import com.android.tools.idea.avdmanager.DeleteAvdAction
+import com.android.tools.idea.devicemanager.ActionsTableCellEditorMouseMotionListener
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
@@ -95,6 +96,7 @@ class VirtualDisplayList @TestOnly constructor(
       val adapter = avdActionPanelMouseAdapter()
 
       addMouseListener(adapter)
+      addMouseMotionListener(ActionsTableCellEditorMouseMotionListener(table))
       addMouseMotionListener(adapter)
 
       val map = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -170,39 +172,12 @@ class VirtualDisplayList @TestOnly constructor(
   }
 
   private fun avdActionPanelMouseAdapter(): MouseAdapter = object : MouseAdapter() {
-    override fun mouseMoved(e: MouseEvent) {
-      possiblySwitchEditors(e)
-    }
-
-    override fun mouseEntered(e: MouseEvent) {
-      possiblySwitchEditors(e)
-    }
-
-    override fun mouseExited(e: MouseEvent) {
-      possiblySwitchEditors(e)
-    }
-
-    override fun mouseClicked(e: MouseEvent) {
-      possiblySwitchEditors(e)
-    }
-
     override fun mousePressed(e: MouseEvent) {
       possiblyShowPopup(e)
     }
 
     override fun mouseReleased(e: MouseEvent) {
       possiblyShowPopup(e)
-    }
-  }
-
-  private fun possiblySwitchEditors(e: MouseEvent) {
-    val p = e.point
-    val row = table.rowAtPoint(p)
-    val col = table.columnAtPoint(p)
-    if (row != table.editingRow || col != table.editingColumn) {
-      if ((row != -1) && (col != -1) && table.isCellEditable(row, col)) {
-        table.editCellAt(row, col)
-      }
     }
   }
 

@@ -16,11 +16,14 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
+import com.android.tools.idea.devicemanager.ActionsTableCellEditorMouseMotionListener;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.table.JBTable;
+import java.awt.Point;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
@@ -40,7 +43,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
-final class PhysicalDeviceTable extends JBTable {
+final class PhysicalDeviceTable extends JBTable implements Table {
   private final @NotNull BiConsumer<@NotNull JTable, @NotNull Integer> mySizeWidthToFit;
 
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
@@ -81,6 +84,8 @@ final class PhysicalDeviceTable extends JBTable {
 
     tableHeader.setReorderingAllowed(false);
     tableHeader.setResizingAllowed(false);
+
+    addMouseMotionListener(new ActionsTableCellEditorMouseMotionListener(this));
   }
 
   private void sizeApiTypeAndActionsColumnWidthsToFit() {
@@ -117,10 +122,6 @@ final class PhysicalDeviceTable extends JBTable {
     return (PhysicalDevice)getValueAt(viewRowIndex, convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
   }
 
-  boolean isActionsColumn(int viewColumnIndex) {
-    return getColumnClass(viewColumnIndex).equals(Actions.class);
-  }
-
   @NotNull ActionsTableCellEditor getActionsCellEditor() {
     return (ActionsTableCellEditor)getCellEditor();
   }
@@ -142,5 +143,25 @@ final class PhysicalDeviceTable extends JBTable {
   @Override
   public @NotNull PhysicalDeviceTableModel getModel() {
     return (PhysicalDeviceTableModel)dataModel;
+  }
+
+  @Override
+  public boolean isActionsColumn(int viewColumnIndex) {
+    return getColumnClass(viewColumnIndex).equals(Actions.class);
+  }
+
+  @Override
+  public int viewRowIndexAtPoint(@NotNull Point point) {
+    return rowAtPoint(point);
+  }
+
+  @Override
+  public int viewColumnIndexAtPoint(@NotNull Point point) {
+    return columnAtPoint(point);
+  }
+
+  @Override
+  public int getEditingViewRowIndex() {
+    return editingRow;
   }
 }

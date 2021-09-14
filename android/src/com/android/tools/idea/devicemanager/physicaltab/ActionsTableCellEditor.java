@@ -43,6 +43,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -87,7 +88,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
 
     myComponent = new ActionsComponent();
 
-    addListeners(myComponent.getActivateDeviceFileExplorerWindowButton(), event -> activateDeviceFileExplorerWindow());
+    initActivateDeviceFileExplorerWindowButton();
     addListeners(myComponent.getEditDeviceNameButton(), event -> editDeviceName());
     addListeners(myComponent.getRemoveButton(), event -> remove());
     addListeners(myComponent.getMoreButton(), event -> showPopupMenu());
@@ -100,18 +101,23 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
       .ask(project);
   }
 
-  private void activateDeviceFileExplorerWindow() {
-    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION)
-      .build();
+  private void initActivateDeviceFileExplorerWindowButton() {
+    AbstractButton button = myComponent.getActivateDeviceFileExplorerWindowButton();
+    button.setToolTipText("Open this device in the Device File Explorer.");
 
-    DeviceManagerUsageTracker.log(event);
+    addListeners(button, actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION)
+        .build();
 
-    Project project = myPanel.getProject();
-    assert project != null;
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-    assert myDevice != null;
-    myDeviceExplorerViewServiceGetInstance.apply(project).openAndShowDevice(myDevice.getKey().toString());
+      Project project = myPanel.getProject();
+      assert project != null;
+
+      assert myDevice != null;
+      myDeviceExplorerViewServiceGetInstance.apply(project).openAndShowDevice(myDevice.getKey().toString());
+    });
   }
 
   private void editDeviceName() {
@@ -160,6 +166,8 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
 
     assert myDevice != null;
     item.setEnabled(myDevice.getType().equals(DeviceType.PHONE) && myDevice.isOnline());
+
+    item.setToolTipText("Connect to a physical device using ADB over Wi-Fi.");
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -244,7 +252,14 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
     myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
-    return myComponent.getTableCellComponent(table, selected, false, viewRowIndex, myGetBorder);
+
+    myComponent.getTableCellComponent(table, selected, false, viewRowIndex, myGetBorder);
+    JComponent button = myComponent.getRemoveButton();
+
+    String text = button.isEnabled() ? "Remove this offline device from the list." : "Connected devices can not be removed from the list.";
+    button.setToolTipText(text);
+
+    return myComponent;
   }
 
   @Override
