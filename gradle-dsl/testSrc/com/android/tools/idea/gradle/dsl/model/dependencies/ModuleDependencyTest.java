@@ -15,29 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_INSERTION_ORDER;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
@@ -48,9 +31,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.psi.PsiElement;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.junit.Test;
 
@@ -60,7 +45,7 @@ import org.junit.Test;
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParsingWithCompactNotation() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION);
+    writeToBuildFile(TestFile.PARSING_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -92,7 +77,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithDependencyOnRoot() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT);
+    writeToBuildFile(TestFile.PARSING_WITH_DEPENDENCY_ON_ROOT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -111,7 +96,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithMapNotation() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION);
+    writeToBuildFile(TestFile.PARSING_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -140,7 +125,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenSingle() throws Exception {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    writeToBuildFile(TestFile.SET_CONFIGURATION_WHEN_SINGLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
@@ -186,7 +171,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenMultiple() throws Exception {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    writeToBuildFile(TestFile.SET_CONFIGURATION_WHEN_MULTIPLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
@@ -261,7 +246,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnCompactNotation() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION);
+    writeToBuildFile(TestFile.SET_NAME_ON_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -284,7 +269,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnMapNotationWithConfiguration() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION);
+    writeToBuildFile(TestFile.SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -308,7 +293,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNamesOnItemsInExpressionList() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST);
+    writeToBuildFile(TestFile.SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -341,7 +326,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION);
+    writeToBuildFile(TestFile.SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -364,7 +349,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES);
+    writeToBuildFile(TestFile.SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -391,7 +376,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveWhenMultiple() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+    writeToBuildFile(TestFile.REMOVE_WHEN_MULTIPLE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -425,7 +410,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReset() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_RESET);
+    writeToBuildFile(TestFile.RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -453,7 +438,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   // Test for b/68188327
   @Test
   public void testMultiTypeApplicationStatementDoesNotThrowException() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION);
+    writeToBuildFile(TestFile.MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -466,7 +451,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testInsertPsiElementAfterFileBlockComment() throws Exception {
-    writeToBuildFile(MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT);
+    writeToBuildFile(TestFile.INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -479,7 +464,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     buildModel.dependencies().addModule("compile", ":module1");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED);
 
     PsiElement psiFile = ((GradleBuildModelImpl)buildModel).getDslFile().getPsiElement();
     if (myLanguageName.equals("Groovy")) {
@@ -493,7 +478,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testAddClosureBlockToDependency() throws IOException {
     assumeTrue("uses KotlinScript-specific Dsl construct to make and populate closure", isKotlinScript());
-    writeToBuildFile(MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY);
+    writeToBuildFile(TestFile.ADD_CLOSURE_TO_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -526,7 +511,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testInsertionOrder() throws IOException {
-    writeToBuildFile(MODULE_DEPENDENCY_INSERTION_ORDER);
+    writeToBuildFile(TestFile.INSERTION_ORDER);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -536,12 +521,46 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
 
-    verifyFileContents(myBuildFile, MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.INSERTION_ORDER_EXPECTED);
   }
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
     assertEquals("configurationName", expected.configurationName, actual.configurationName());
     assertEquals("path", expected.path, actual.path().forceString());
     assertEquals("configuration", expected.configuration, actual.configuration().toString());
+  }
+
+  enum TestFile implements TestFileName {
+    INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT("insertPsiElementsAfterFileBlockComment"),
+    INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED("insertPsiElementsAfterFileBlockCommentExpected"),
+    INSERTION_ORDER("insertionOrder"),
+    INSERTION_ORDER_EXPECTED("insertionOrderExpected"),
+    PARSING_WITH_COMPACT_NOTATION("parsingWithCompactNotation"),
+    PARSING_WITH_DEPENDENCY_ON_ROOT("parsingWithDependencyOnRoot"),
+    PARSING_WITH_MAP_NOTATION("parsingWithMapNotation"),
+    REMOVE_WHEN_MULTIPLE("removeWhenMultiple"),
+    SET_CONFIGURATION_WHEN_SINGLE("setConfigurationWhenSingle"),
+    SET_CONFIGURATION_WHEN_MULTIPLE("setConfigurationWhenMultiple"),
+    SET_NAME_ON_COMPACT_NOTATION("setNameOnCompactNotation"),
+    SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION("setNameOnMapNotationWithConfiguration"),
+    SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION("setNameOnMapNotationWithoutConfiguration"),
+    SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES("setNameWithPathHavingSameSegmentNames"),
+    SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST("setNamesOnItemsInExpressionList"),
+    RESET("reset"),
+    ADD_CLOSURE_TO_DEPENDENCY("addClosureToDependency"),
+    MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION("multiTypeApplicationStatementDoesNotThrowException"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/moduleDependency/" + path, extension);
+    }
+
   }
 }
