@@ -112,7 +112,7 @@ public class CpuFrameTooltipView extends TooltipView {
     if (frame.getAssociatedFrame() != null) {
       myTotalTimeText.setVisible(true);
       long associatedFrameLength = frame.getAssociatedFrame().getDurationUs();
-      myTotalTimeText.setText("Total Time: " + TimeFormatter.getSingleUnitDurationString(frame.getDurationUs() + associatedFrameLength));
+      myTotalTimeText.setText("Frame Duration: " + TimeFormatter.getSingleUnitDurationString(frame.getDurationUs() + associatedFrameLength));
     }
   }
 

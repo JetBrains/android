@@ -41,7 +41,7 @@ class CpuAnalysisFramesTabModelTest {
       FrameEventRow(4, 30, 42, 4, 4, 2)
     )
     assertThat(tableModel.getColumnName(0)).isEqualTo("Frame #")
-    assertThat(tableModel.getColumnName(1)).isEqualTo("Total Time")
+    assertThat(tableModel.getColumnName(1)).isEqualTo("Frame Duration")
     assertThat(tableModel.getColumnName(2)).isEqualTo("Application")
     assertThat(tableModel.getColumnName(3)).isEqualTo("Wait for GPU")
     assertThat(tableModel.getColumnName(4)).isEqualTo("Composition")
