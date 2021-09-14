@@ -131,9 +131,16 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ModuleDependencyModel> dest) {
       if (resolved instanceof GradleDslMethodCall) {
+        String platformMethodName = null;
         GradleDslMethodCall methodCall = (GradleDslMethodCall)resolved;
+        if (Arrays.asList("platform", "enforcedPlatform").contains(methodCall.getMethodName()) &&
+            methodCall.getArguments().size() == 1 &&
+            methodCall.getArguments().get(0) instanceof GradleDslMethodCall) {
+          platformMethodName = methodCall.getMethodName();
+          methodCall = (GradleDslMethodCall) methodCall.getArguments().get(0);
+        }
         if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
-          ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall, maintainer);
+          ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall, maintainer, platformMethodName);
           if (model != null && model.path().getValueType() != NONE) {
             dest.add(model);
           }
