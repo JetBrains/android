@@ -86,14 +86,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         return;
       }
 
+      String methodName = null;
+
       if (element instanceof GradleDslMethodCall) {
         List<GradleDslExpression> arguments = ((GradleDslMethodCall)element).getArguments();
-        String methodName = ((GradleDslMethodCall)element).getMethodName();
-        // We can handle single-argument method calls, for example
+        methodName = ((GradleDslMethodCall)element).getMethodName();
+        // We can handle single-argument method calls to specific functions, for example
         // `implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
-        // TODO(xof): is this just a temporary hack?  If it's in any way more permanent, we should record the method somewhere.  The
-        //  alternative to this temporary hack is to implement a new PlatformDependencyModel interface and treat them substantially
-        //  separately, though re-using as much of this as possible.
+        // or
+        // `implementation enforcedPlatform([group: 'org.springframework.boot', name: 'spring-boot-dependencies', version: '1.5.8.RELEASE'])
         if (arguments.size() == 1 && Arrays.asList("platform", "enforcedPlatform").contains(methodName)) {
           element = arguments.get(0);
           resolved = resolveElement(element);
@@ -105,16 +106,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       }
 
       if (resolved instanceof GradleDslExpressionMap) {
-        ArtifactDependencyModelImpl.MapNotation mapNotation =
-          ArtifactDependencyModelImpl.MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement,
-                                                         maintainer);
+        ArtifactDependencyModel mapNotation = ArtifactDependencyModelImpl.MapNotation.create(
+            configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
         if (mapNotation != null) {
           dest.add(mapNotation);
         }
       }
       else if (element instanceof GradleDslSimpleExpression) {
-        ArtifactDependencyModelImpl.CompactNotation compactNotation = ArtifactDependencyModelImpl.CompactNotation
-          .create(configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer);
+        ArtifactDependencyModel compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(
+          configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer, methodName);
         if (compactNotation != null) {
           dest.add(compactNotation);
         }

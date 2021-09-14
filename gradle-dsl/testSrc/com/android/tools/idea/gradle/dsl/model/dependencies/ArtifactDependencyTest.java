@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
@@ -2105,10 +2106,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertThat(artifacts).hasSize(5);
     assertThat(artifacts.get(0).compactNotation()).isEqualTo("mapGroup:mapName:3.0");
+    assertThat(artifacts.get(0)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)(artifacts.get(0))).enforced()).isTrue();
     assertThat(artifacts.get(1).compactNotation()).isEqualTo("stringGroup:stringName:3.1");
+    assertThat(artifacts.get(1)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)(artifacts.get(1))).enforced()).isFalse();
     assertThat(artifacts.get(2).compactNotation()).isEqualTo("group:name:3.14");
+    assertThat(artifacts.get(2)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)(artifacts.get(2))).enforced()).isFalse();
     assertThat(artifacts.get(3).compactNotation()).isEqualTo("argGroup:argName:3.141");
+    assertThat(artifacts.get(3)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)(artifacts.get(3))).enforced()).isFalse();
     assertThat(artifacts.get(4).compactNotation()).isEqualTo("group:name:3.1415");
+    assertThat(artifacts.get(4)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)(artifacts.get(4))).enforced()).isTrue();
   }
 
   @Test
