@@ -21,13 +21,16 @@ import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggi
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,11 +54,10 @@ public class AndroidProjectInfo {
    */
   @NotNull
   public List<Module> getAllModulesOfProjectType(int projectType) {
-    List<Module> androidModules = ProjectFacetManager.getInstance(myProject).getModulesWithFacet(AndroidFacet.ID);
-    return ContainerUtil.filter(androidModules, module -> {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      return facet != null && facet.getConfiguration().getProjectType() == projectType;
-    });
+    return ProjectSystemUtil.getAndroidFacets(myProject).stream()
+      .filter(f -> f.getConfiguration().getProjectType() == projectType)
+      .map(Facet::getModule)
+      .collect(Collectors.toList());
   }
 
   /**
