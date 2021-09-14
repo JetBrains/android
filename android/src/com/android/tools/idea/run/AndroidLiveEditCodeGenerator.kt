@@ -104,10 +104,9 @@ class AndroidLiveEditCodeGenerator {
 
         // Class name can be either the class containing the function fragment or a KtFile
         var className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
-        when (val grandParent = method.function.parent) {
-          is KtFile -> {
-            className = grandParent.javaFileFacadeFqName.toString()
-          }
+        if (method.function.isTopLevel) {
+          val grandParent : KtFile = method.function.parent as KtFile
+          className = grandParent.javaFileFacadeFqName.toString()
         }
 
         if (className.isEmpty() || methodSignature.isEmpty()) {
