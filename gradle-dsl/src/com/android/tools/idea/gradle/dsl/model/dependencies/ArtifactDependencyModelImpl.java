@@ -217,18 +217,25 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     static MapNotation create(@NotNull String configurationName,
                               @NotNull GradleDslExpressionMap dslElement,
                               @Nullable GradleDslClosure configurationElement,
-                              @NotNull Maintainer maintainer) {
+                              @NotNull Maintainer maintainer,
+                              @Nullable String platformMethodName) {
       if (dslElement.getLiteral("name", String.class) == null) {
         return null; // not a artifact dependency element.
       }
 
-      return new MapNotation(configurationName, dslElement, configurationElement, maintainer);
+      if (platformMethodName == null) {
+        return new MapNotation(configurationName, dslElement, configurationElement, maintainer);
+      }
+      else {
+        return new PlatformArtifactDependencyModelImpl.MapNotation(
+          configurationName, dslElement, configurationElement, maintainer, platformMethodName);
+      }
     }
 
-    private MapNotation(@NotNull String configurationName,
-                        @NotNull GradleDslExpressionMap dslElement,
-                        @Nullable GradleDslClosure configurationElement,
-                        @NotNull Maintainer maintainer) {
+    MapNotation(@NotNull String configurationName,
+                @NotNull GradleDslExpressionMap dslElement,
+                @Nullable GradleDslClosure configurationElement,
+                @NotNull Maintainer maintainer) {
       super(configurationElement, configurationName, maintainer);
       myDslElement = dslElement;
     }
@@ -288,20 +295,28 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     static CompactNotation create(@NotNull String configurationName,
                                   @NotNull GradleDslSimpleExpression dslExpression,
                                   @Nullable GradleDslClosure configurationElement,
-                                  @NotNull Maintainer maintainer) {
+                                  @NotNull Maintainer maintainer,
+                                  @Nullable String platformMethodName) {
       String value = dslExpression.getValue(String.class);
       if (value == null || value.trim().isEmpty()) {
         return null;
       }
-      CompactNotation notation = new CompactNotation(configurationName, dslExpression, configurationElement, maintainer);
+      CompactNotation notation;
+      if (platformMethodName == null) {
+        notation = new CompactNotation(configurationName, dslExpression, configurationElement, maintainer);
+      }
+      else {
+        notation = new PlatformArtifactDependencyModelImpl.CompactNotation(
+          configurationName, dslExpression, configurationElement, maintainer, platformMethodName);
+      }
       // Check if the create notation is valid i.e it has a name
       return (notation.name().getValueType() != NONE) ? notation : null;
     }
 
-    private CompactNotation(@NotNull String configurationName,
-                            @NotNull GradleDslSimpleExpression dslExpression,
-                            @Nullable GradleDslClosure configurationElement,
-                            @NotNull Maintainer maintainer) {
+    CompactNotation(@NotNull String configurationName,
+                    @NotNull GradleDslSimpleExpression dslExpression,
+                    @Nullable GradleDslClosure configurationElement,
+                    @NotNull Maintainer maintainer) {
       super(configurationElement, configurationName, maintainer);
       myDslExpression = dslExpression;
     }
