@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
@@ -73,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -662,7 +662,8 @@ public final class GuiTests {
   public static String progressIndicators() {
     Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
     return progressIndicators.stream()
-      .map(it -> nullToEmpty(it.getText()))
+      .map(ProgressIndicator::getText)
+      .filter(Objects::nonNull)
       .collect(Collectors.joining(","));
   }
 
