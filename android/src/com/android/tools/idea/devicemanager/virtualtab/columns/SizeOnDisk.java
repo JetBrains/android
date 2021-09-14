@@ -64,6 +64,11 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
     return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> FileUtilKt.recursiveSize(path));
   }
 
+  @VisibleForTesting
+  SizeOnDisk(@NotNull AvdInfo device, @NotNull TableView<AvdInfo> table, @NotNull ListenableFuture<Long> future) {
+    this(device, table, () -> future, MoreExecutors.directExecutor());
+  }
+
   private SizeOnDisk(@NotNull AvdInfo device,
                      @NotNull TableView<AvdInfo> table,
                      @NotNull Supplier<? extends ListenableFuture<Long>> futureSupplier,
