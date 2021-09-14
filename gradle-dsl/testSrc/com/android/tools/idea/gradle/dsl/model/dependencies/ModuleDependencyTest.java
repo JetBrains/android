@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
@@ -524,6 +525,24 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.INSERTION_ORDER_EXPECTED);
   }
 
+  @Test
+  public void testParsePlatformDependencies() throws IOException {
+    writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+    assertThat(modules).hasSize(3);
+    assertThat(modules.get(0).name()).isEqualTo("foo");
+    assertThat(modules.get(0)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)modules.get(0)).enforced()).isTrue();
+    assertThat(modules.get(1).name()).isEqualTo("bar");
+    assertThat(modules.get(1)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)modules.get(1)).enforced()).isFalse();
+    assertThat(modules.get(2).name()).isEqualTo("baz");
+    assertThat(modules.get(2)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)modules.get(2)).enforced()).isTrue();
+  }
+
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
     assertEquals("configurationName", expected.configurationName, actual.configurationName());
     assertEquals("path", expected.path, actual.path().forceString());
@@ -549,6 +568,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     RESET("reset"),
     ADD_CLOSURE_TO_DEPENDENCY("addClosureToDependency"),
     MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION("multiTypeApplicationStatementDoesNotThrowException"),
+    PARSE_PLATFORM_DEPENDENCIES("parsePlatformDependencies"),
     ;
 
     @NotNull private @SystemDependent String path;

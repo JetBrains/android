@@ -1,0 +1,5 @@
+dependencies {
+  implementation enforcedPlatform(project(':foo'))
+  implementation platform(project(path: ':bar'))
+  implementation enforcedPlatform(project(path: ':baz', configuration: 'paidRelease'))
+}

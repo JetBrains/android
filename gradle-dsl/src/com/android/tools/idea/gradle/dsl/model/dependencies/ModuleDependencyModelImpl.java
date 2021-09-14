@@ -48,9 +48,15 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
   @Nullable
   static ModuleDependencyModel create(@NotNull String configurationName,
                                       @NotNull GradleDslMethodCall methodCall,
-                                      @NotNull Maintainer maintainer) {
+                                      @NotNull Maintainer maintainer,
+                                      @Nullable String platformMethodName) {
     if (PROJECT.equals(methodCall.getMethodName())) {
-      return new ModuleDependencyModelImpl(configurationName, methodCall, maintainer);
+      if (platformMethodName != null) {
+        return new PlatformModuleDependencyModelImpl(configurationName, methodCall, maintainer, platformMethodName);
+      }
+      else {
+        return new ModuleDependencyModelImpl(configurationName, methodCall, maintainer);
+      }
     }
     return null;
   }
@@ -72,9 +78,9 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
     return new ModuleDependencyModelImpl(configurationName, methodCall, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
   }
 
-  private ModuleDependencyModelImpl(@NotNull String configurationName,
-                                    @NotNull GradleDslMethodCall dslElement,
-                                    @NotNull Maintainer maintainer) {
+  ModuleDependencyModelImpl(@NotNull String configurationName,
+                            @NotNull GradleDslMethodCall dslElement,
+                            @NotNull Maintainer maintainer) {
     super(configurationName, maintainer);
     myDslElement = dslElement;
   }
