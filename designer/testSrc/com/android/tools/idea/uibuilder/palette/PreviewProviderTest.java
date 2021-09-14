@@ -102,8 +102,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     assertThat(imageAndSize.dimension.width).isEqualTo(119);
   }
 
-  // b/110835489
-  public void ignore_testBug229723WorkAround() throws Exception {
+  public void testRenderTaskTimeOutReturnsANullDragImage() {
     myPreviewProvider.myRenderTimeoutMillis = 0L;
     myPreviewProvider.myRenderTaskTimeoutMillis = 0L;
     assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
