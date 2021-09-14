@@ -993,7 +993,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MainMemoryProfilerStage.class);
-    listBuilder.add(NetworkProfilerStage.class);
+    if (!getIdeServices().getAppInspectionMigrationServices().isMigrationEnabled()) {
+      listBuilder.add(NetworkProfilerStage.class);
+    }
     // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
     boolean hasSession = mySelectedSession.getSessionId() != 0;
     boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
