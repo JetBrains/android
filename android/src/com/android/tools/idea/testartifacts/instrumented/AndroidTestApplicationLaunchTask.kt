@@ -35,6 +35,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.process.ProcessHandler
@@ -183,6 +184,11 @@ class AndroidTestApplicationLaunchTask(
     val printer = launchContext.consolePrinter
     val device = launchContext.device
     val launchStatus = launchContext.launchStatus
+
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+      printer.stderr(
+        "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet.")
+    }
 
     printer.stdout("Running tests\n")
 
