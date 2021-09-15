@@ -124,11 +124,11 @@ private fun findBottomNavigationIssue(root: ViewInfo,
           .add("Bottom navigation bar is not recommended for breakpoints over 600dp,")
           .add("which affects ${previewConfigurations(count)}.")
           .newline()
-          .add("Material Design recommends replacing bottom navigation bar with [navigation rail]")
-          .addLink("($url1)", url1)
-          .add("or [navigation drawer]")
-          .addLink("($url2)", url2)
-          .add("for breakpoints over 600dp.")
+          .add("Material Design recommends replacing bottom navigation bar with ")
+          .addLink("navigation rail", url1)
+          .add(" or ")
+          .addLink("navigation drawer", url2)
+          .add(" for breakpoints over 600dp.")
       }
       createIssue(
         root,
@@ -243,8 +243,8 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: VisualLintIssue
           HtmlBuilder()
             .add("$viewName has lines containing more than 120 characters in ${previewConfigurations(count)}.")
             .newline()
-            .add("Material Design recommends reducing the width of TextView or switching to a [multi-column layout] ")
-            .addLink("($url)", url)
+            .add("Material Design recommends reducing the width of TextView or switching to a ")
+            .addLink("multi-column layout", url)
             .add(" for breakpoints over 600dp.")
         }
         createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issues, provider, createDefaultHyperLinkListener())
