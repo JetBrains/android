@@ -2458,6 +2458,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     private void getPsiDirsForListener() {
       PsiDirectory resourceDirPsi = myPsiManager.findDirectory(myResourceDir);
       if (resourceDirPsi != null) {
+        //noinspection ResultOfMethodCallIgnored
         resourceDirPsi.getSubdirectories();
       }
     }

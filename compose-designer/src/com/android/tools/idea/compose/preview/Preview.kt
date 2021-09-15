@@ -866,7 +866,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::toPreviewXmlString,
         this::getPreviewDataContextForPreviewElement,
         this::configureLayoutlibSceneManagerForPreviewElement
-      ).isNotEmpty()
+      )
     }
     lastPinsModificationCount = pinnedManager.modificationCount
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
