@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
+    test_class = "org.jetbrains.android.AndroidPluginTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -51,5 +52,7 @@ iml_module(
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
