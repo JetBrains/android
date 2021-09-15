@@ -150,6 +150,14 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
+
+  override fun mouseExited() {
+    // Call onHover on each SceneView, with coordinates that are sure to be outside.
+    surface.sceneManagers.flatMap { it.sceneViews }.forEach {
+      it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
+      it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
+    }
+  }
 }
 
 private class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel, val enabled: Boolean) :

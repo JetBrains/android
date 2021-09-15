@@ -132,6 +132,11 @@ interface InteractionHandler {
    * Called by [InteractionManager] when a key is released without any active [Interaction].
    */
   fun keyReleasedWithoutInteraction(keyEvent: KeyEvent)
+
+  /**
+   * Called by [InteractionManager] when the mouse exits the [DesignSurface]
+   */
+  fun mouseExited()
 }
 
 abstract class InteractionHandlerBase(private val surface: DesignSurface) : InteractionHandler {
@@ -296,6 +301,14 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
+
+  override fun mouseExited() {
+    // Call onHover on each SceneView, with coordinates that are sure to be outside.
+    surface.sceneManagers.map { it.sceneView }.forEach {
+      it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
+      it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
+    }
+  }
 }
 
 internal fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
@@ -323,6 +336,7 @@ object NopInteractionHandler: InteractionHandler {
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
+  override fun mouseExited() {}
 }
 
 /**
@@ -370,4 +384,7 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) =
     delegate.keyReleasedWithoutInteraction(keyEvent)
+
+  override fun mouseExited() =
+    delegate.mouseExited()
 }
