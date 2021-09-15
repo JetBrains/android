@@ -34,7 +34,6 @@ import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -69,7 +68,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   @Override
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
-    setUpNewFilePopupActions(actionManager);
     disableGroovyLanguageInjection();
 
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
@@ -77,8 +75,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     setupAnalytics();
     setupThreadingAgentEventListener();
-    hideRarelyUsedIntellijActions(actionManager);
-    setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
     }
@@ -101,15 +97,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-  }
-
-  private static void setupResourceManagerActions(ActionManager actionManager) {
-    Actions.hideAction(actionManager, "Images.ShowThumbnails");
-    // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
-    // TODO(144579193): Remove this workaround when it's no longer necessary.
-    //  Eg: When ShowServicesAction can decide whether it's enabled or not.
-    AnAction servicesAction = actionManager.getAction("ServiceView.ShowServices");
-    Actions.replaceAction(actionManager, "ServiceView.ShowServices", servicesAction);
   }
 
   /*
@@ -180,21 +167,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     }
   }
 
-  // Remove popup actions that we don't use
-  private static void setUpNewFilePopupActions(ActionManager actionManager) {
-    Actions.hideAction(actionManager, "NewHtmlFile");
-    Actions.hideAction(actionManager, "NewPackageInfo");
-
-    // Hide designer actions
-    Actions.hideAction(actionManager, "NewForm");
-    Actions.hideAction(actionManager, "NewDialog");
-    Actions.hideAction(actionManager, "NewFormSnapshot");
-
-    // Hide individual actions that aren't part of a group
-    Actions.hideAction(actionManager, "Groovy.NewClass");
-    Actions.hideAction(actionManager, "Groovy.NewScript");
-  }
-
   // Fix https://code.google.com/p/android/issues/detail?id=201624
   private static void disableGroovyLanguageInjection() {
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
@@ -211,11 +183,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
         getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
     });
-  }
-
-  private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
-    // Hide the Save File as Template action due to its rare use in Studio.
-    Actions.hideAction(actionManager, "SaveFileAsTemplate");
   }
 
   private static void setupThreadingAgentEventListener() {
