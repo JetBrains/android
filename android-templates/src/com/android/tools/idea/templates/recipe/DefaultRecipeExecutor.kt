@@ -597,6 +597,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     else
       readTextFromDocument(project, file)
 
+  private fun readTextFile(vFile: VirtualFile): String? =
+    if (moduleTemplateData?.isNewModule != false)
+      readTextFromDisk(vFile.toIoFile())
+    else
+      readTextFromDocument(project, vFile)
+
   /**
    * Shorten all fully qualified Layout names that belong to the same package as the manifest's package attribute value.
    *
@@ -643,12 +649,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private fun VirtualFile.contentEquals(targetFile: File): Boolean =
-    findFileByIoFile(targetFile, true)?.let { targetVFile ->
-      if (fileType.isBinary)
-        this.contentsToByteArray() contentEquals targetVFile.contentsToByteArray()
-      else
-        ComparisonManager.getInstance().isEquals(readTextFile(toIoFile())!!, readTextFile(targetVFile.toIoFile())!!, IGNORE_WHITESPACES)
-    } ?: false
+    if (fileType.isBinary)
+      this.contentsToByteArray() contentEquals targetFile.readBytes()
+    else
+      ComparisonManager.getInstance().isEquals(readTextFile(this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
 
   private infix fun File.contentEquals(content: String): Boolean =
     ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)
