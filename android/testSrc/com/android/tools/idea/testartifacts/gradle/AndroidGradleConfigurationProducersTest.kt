@@ -94,6 +94,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val gradleJavaConfiguration = createAndroidGradleTestConfigurationFromClass(
       project, "com.example.javalib.JavaLibJavaTest")
     TestCase.assertNotNull(gradleJavaConfiguration)
-    Truth.assertThat(gradleJavaConfiguration!!.settings.taskNames).isEqualTo(listOf(":javalib:test"))
+    Truth.assertThat(gradleJavaConfiguration!!.commandLine.toString())
+      .isEqualTo(""":javalib:test --tests "com.example.javalib.JavaLibJavaTest"""")
   }
 }
