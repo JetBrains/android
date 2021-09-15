@@ -36,7 +36,10 @@ public class BreakWordWrapHtmlTextPane extends JTextPane {
     HTMLEditorKit editorKit = new BreakWordWrapHTMLEditorKit();
     StyleSheet styleSheet = editorKit.getStyleSheet();
     Font labelFont = UIManager.getFont("Label.font");
+    String foregroundColor = String.format("#%06x", UIManager.getColor("Label.foreground").getRGB() & 0xFFFFFF);
+    String backgroundColor = String.format("#%06x", UIManager.getColor("Label.background").getRGB() & 0xFFFFFF);
     styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 13pt; }");
+    styleSheet.addRule("body { color:" + foregroundColor + "; background-color:" + backgroundColor + "}");
     styleSheet.addRule("p { margin: 4 0 4 0; }");
     setEditorKit(editorKit);
   }
