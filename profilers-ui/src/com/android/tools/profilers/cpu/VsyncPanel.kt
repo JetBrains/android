@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.intellij.ide.ui.UISettings
 import java.awt.BorderLayout
 import java.awt.Container
@@ -32,6 +31,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
 import java.awt.geom.Rectangle2D
+import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.Border
@@ -43,11 +43,11 @@ import kotlin.math.min
  */
 object VsyncPanel {
   @JvmStatic
-  fun of(content: JComponent, viewRange: Range, vsyncValues: List<SeriesData<Long>>): JComponent =
-    of(content, RangedSeries(viewRange, LazyDataSeries { vsyncValues }))
+  fun of(content: JComponent, viewRange: Range, vsyncValues: List<SeriesData<Long>>, vsyncEnabler: BooleanSupplier): JComponent =
+    of(content, RangedSeries(viewRange, LazyDataSeries { vsyncValues }), vsyncEnabler)
 
   @JvmStatic
-  fun of(content: JComponent, series: RangedSeries<Long>): JComponent =
+  fun of(content: JComponent, series: RangedSeries<Long>, vsyncEnabler: BooleanSupplier): JComponent =
     // Code copied and specialized from {@link StateChart}.
     object : JPanel(BorderLayout()) {
       val model = StateChartModel<Long>().apply { addSeries(series) }
@@ -57,10 +57,12 @@ object VsyncPanel {
 
       override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        (g.create() as Graphics2D).let { g2d ->
-          UISettings.setupAntialiasing(g2d)
-          draw(g2d)
-          g2d.dispose()
+        if (vsyncEnabler.asBoolean) {
+          (g.create() as Graphics2D).let { g2d ->
+            UISettings.setupAntialiasing(g2d)
+            draw(g2d)
+            g2d.dispose()
+          }
         }
       }
 

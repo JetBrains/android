@@ -26,6 +26,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame;
 import java.awt.Color;
+import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,12 +34,19 @@ import org.jetbrains.annotations.NotNull;
  * Track renderer for Atrace frame rendering data.
  */
 public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameState> {
+  private final BooleanSupplier myVsyncEnabler;
+
+  public FramesTrackRenderer(BooleanSupplier vsyncEnabler) {
+    myVsyncEnabler = vsyncEnabler;
+  }
+
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ?> trackModel) {
     return VsyncPanel.of(new StateChart<>(
                            trackModel.getDataModel().getModel(), new FrameColorProvider(), new FrameTextConverter()),
-                         trackModel.getDataModel().getVsyncSeries());
+                         trackModel.getDataModel().getVsyncSeries(),
+                         myVsyncEnabler);
   }
 
   private static class FrameColorProvider extends StateChartColorProvider<SystemTraceFrame> {

@@ -63,6 +63,7 @@ import com.android.tools.profilers.DropDownButton;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -79,6 +80,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -132,6 +135,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                        "Apply",
                             filter -> PathUtils.abbreviate(filter.toString()))
   );
+  private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("Vsync guide", true);
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
@@ -140,7 +144,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
-    myTrackRendererFactory = new ProfilerTrackRendererFactory(getProfilersView());
+    myTrackRendererFactory = new ProfilerTrackRendererFactory(getProfilersView(), myVsyncBackgroundCheckBox::isSelected);
     myTrackGroupList = createTrackGroupListPanel();
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -149,6 +153,10 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myAnalysisPanel = new CpuAnalysisPanel(view, stage, FramesAtTopCpuAnalysisAdapter::new);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
+    myVsyncBackgroundCheckBox.addItemListener(e -> {
+      getComponent().invalidate();
+      getComponent().repaint();
+    });
 
     // Tooltip used in the stage
     getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
@@ -180,8 +188,13 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myDeselectAllToolbar.add(myDeselectAllLabel);
     myDeselectAllToolbar.add(new FlatSeparator());
     myDeselectAllToolbar.setVisible(false);
+    JPanel leftPanel = new JPanel();
+    leftPanel.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
+    leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.LINE_AXIS));
+    leftPanel.add(myCollapseFrameButton);
+    leftPanel.add(myVsyncBackgroundCheckBox);
     panel.add(myDeselectAllToolbar, BorderLayout.EAST);
-    panel.add(myCollapseFrameButton, BorderLayout.WEST);
+    panel.add(leftPanel, BorderLayout.WEST);
     return panel;
   }
 
@@ -190,6 +203,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     if (getStage().getState() == CpuCaptureStage.State.PARSING) {
       getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
       myCollapseFrameButton.setVisible(false);
+      myVsyncBackgroundCheckBox.setVisible(false);
     }
     else {
       // If we had any previously registered analyzing events we unregister them first.
@@ -202,6 +216,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       // Request focus to enable keyboard shortcuts once loading finishes.
       myTrackGroupList.getComponent().requestFocusInWindow();
       myCollapseFrameButton.setVisible(!getStage().getCapture().getTags().isEmpty());
+      myVsyncBackgroundCheckBox.setVisible(getStage().getCapture().getSystemTraceData() != null);
     }
   }
 

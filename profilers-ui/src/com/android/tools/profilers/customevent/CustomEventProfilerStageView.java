@@ -46,7 +46,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
 
-    myTrackGroupList = new TrackGroupListPanel(new ProfilerTrackRendererFactory(getProfilersView()));
+    myTrackGroupList = new TrackGroupListPanel(new ProfilerTrackRendererFactory(getProfilersView(), () -> false));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
 
     // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.

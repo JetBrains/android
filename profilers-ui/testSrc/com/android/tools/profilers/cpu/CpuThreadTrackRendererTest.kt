@@ -92,7 +92,7 @@ class CpuThreadTrackRendererTest {
         multiSelectionModel
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val renderer = CpuThreadTrackRenderer(profilersView)
+    val renderer = CpuThreadTrackRenderer(profilersView) { false }
     val component = renderer.render(threadTrackModel).getComponent(0) as JComponent
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
@@ -122,7 +122,7 @@ class CpuThreadTrackRendererTest {
         MultiSelectionModel()
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val component = CpuThreadTrackRenderer(profilersView).render(threadTrackModel)
+    val component = CpuThreadTrackRenderer(profilersView, {false}).render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
     assertThat(component.components[0]).isInstanceOf(HTreeChart::class.java)
   }
@@ -142,7 +142,7 @@ class CpuThreadTrackRendererTest {
         MultiSelectionModel()
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val renderer = CpuThreadTrackRenderer(profilersView)
+    val renderer = CpuThreadTrackRenderer(profilersView, {false})
     val component = renderer.render(threadTrackModel)
     val callChart = TreeWalker(component).descendants().filterIsInstance<HTreeChart<*>>().first()
     assertThat(ideProfilerComponents.getCodeLocationSupplier(callChart)).isNotNull()
