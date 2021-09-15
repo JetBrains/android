@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.android.tools.idea.devicemanager.Resolution;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
