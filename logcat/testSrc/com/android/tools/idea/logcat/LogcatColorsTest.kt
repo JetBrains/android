@@ -19,8 +19,11 @@ import com.android.ddmlib.Log
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
+import junit.framework.Assert.fail
 import org.junit.Test
 import java.awt.Color
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 
 /**
  * Tests for [LogcatColors]
@@ -61,6 +64,29 @@ class LogcatColorsTest {
   fun tagColors_doNotHaveBackground() {
     assertThat(logcatColors.getTagColor("tag").backgroundColor).isEqualTo(TextAttributes().backgroundColor)
   }
+
+  @Test
+  fun getTagColors_threadSafe() {
+    val exceptions = AtomicInteger()
+    val block: () -> Unit = {
+      try {
+        repeat(10000) {
+          logcatColors.getTagColor("tag$it")
+        }
+      }
+      catch (e: ConcurrentModificationException) {
+        exceptions.incrementAndGet()
+      }
+    }
+    val thread1 = thread(block = block)
+    val thread2 = thread(block = block)
+    thread1.join()
+    thread2.join()
+    if (exceptions.get() > 0) {
+      fail("logcatColors.getTagColor() is not thread safe")
+    }
+  }
+
 }
 
 private fun assertJBColors(textAttributes: TextAttributes) {

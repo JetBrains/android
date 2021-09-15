@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel
 import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
+import com.jetbrains.rd.util.concurrentMapOf
 import java.awt.Color
 import java.io.InputStreamReader
 
@@ -52,7 +52,7 @@ internal class LogcatColors {
     } ?: throw IllegalStateException("Resource not found")
 
   }
-  private val tagColors = mutableMapOf<Int, TextAttributes>()
+  private val tagColors = concurrentMapOf<Int, TextAttributes>()
 
   /**
    * Map a [Log.LogLevel] to a [TextAttributes] object.
@@ -65,7 +65,6 @@ internal class LogcatColors {
    * Leverage [ColorPaletteManager] for color selection but since we use [TextAttributes], we maintain our own cache.
    *
    */
-  @UiThread
   internal fun getTagColor(tag: String): TextAttributes {
     val index = tag.hashCode()
     return tagColors.computeIfAbsent(index) {
