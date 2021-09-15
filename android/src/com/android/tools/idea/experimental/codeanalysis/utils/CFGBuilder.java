@@ -2368,16 +2368,6 @@ public class CFGBuilder {
     return synLocal;
   }
 
-  private void experimentalLambdaSolver(PsiExpressionList exprList) {
-    PsiExpression[] args = exprList.getExpressions();
-    for (PsiExpression e : args) {
-      if (e instanceof PsiLambdaExpression) {
-        PsiLambdaExpression lE = (PsiLambdaExpression)e;
-        lE.getParameterList();
-      }
-    }
-  }
-
   public Value createStaticInvocation(PsiCFGMethod cfgMethod,
                                       PsiCFGClass cfgClass,
                                       PsiMethod resolvedMethod,

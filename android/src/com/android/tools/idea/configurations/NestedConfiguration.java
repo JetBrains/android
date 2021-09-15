@@ -547,7 +547,7 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
     }
 
     if ((flags & CFG_UI_MODE) != 0) {
-      configuration.getUiMode().getLongDisplayValue();
+      return configuration.getUiMode().getLongDisplayValue();
     }
 
     return null;

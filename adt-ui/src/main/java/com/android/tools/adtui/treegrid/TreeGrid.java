@@ -313,7 +313,6 @@ public class TreeGrid<T> extends Box {
       //list.ensureIndexIsVisible(index);
       Rectangle cellBounds = list.getCellBounds(index, index);
       if (cellBounds != null) {
-        list.getBounds();
         Rectangle rectangle = SwingUtilities.convertRectangle(list, cellBounds, this);
         scrollRectToVisible(rectangle);
       }

@@ -555,7 +555,6 @@ public class ResourceNotificationManager {
         }
         else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
           XmlAttributeValue attributeValue = (XmlAttributeValue)child;
-          attributeValue.getValue();
           if (attributeValue.getValue().isEmpty()) {
             // Just added a new blank attribute; nothing to render yet.
             return;
