@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -306,7 +307,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           @NotNull LaunchOptions launchOptions) {
     GradleAndroidTestRunnerOptInDialogKt.showGradleAndroidTestRunnerOptInDialog(getProject());
 
-    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
       // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
       // doesn't run twice per test run.
       env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false);
@@ -317,6 +318,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     } else {
       return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
     }
+  }
+
+  private static boolean isRunAndroidTestUsingGradleSupported(@NotNull AndroidFacet facet) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+      return false;
+    }
+    return true;
   }
 
   @NotNull
