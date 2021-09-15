@@ -497,6 +497,7 @@ public class InteractionManager implements Disposable {
     @Override
     public void mouseExited(@NotNull MouseEvent event) {
       myHoverTimer.stop();
+      myInteractionHandler.mouseExited();
     }
 
     // --- Implements MouseMotionListener ----

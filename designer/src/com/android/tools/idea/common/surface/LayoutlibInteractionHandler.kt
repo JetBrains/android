@@ -53,4 +53,6 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface) : Interact
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
+
+  override fun mouseExited() { }
 }
