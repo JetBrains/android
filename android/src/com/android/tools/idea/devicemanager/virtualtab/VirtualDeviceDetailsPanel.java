@@ -19,7 +19,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
+import com.android.tools.idea.devicemanager.Resolution;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -51,34 +53,17 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
 
   private void initSummarySection() {
     mySummarySection = new InfoSection("Summary");
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("API level"), myDevice.getAndroidVersion().getApiString());
 
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("Name"), myDevice.getName());
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("CPU/ABI"), AvdInfo.getPrettyAbiType(myDevice));
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("Path"), myDevice.getDataFolderPath());
+    Resolution resolution = getResolution();
+
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("Resolution"), resolution);
+    InfoSection.setText(mySummarySection.addNameAndValueLabels("dp"), getDp(resolution));
 
     if (!myDevice.getStatus().equals(AvdStatus.OK)) {
       InfoSection.setText(mySummarySection.addNameAndValueLabels("Error"), myDevice.getErrorMessage());
     }
     else {
-      Object target = myDevice.getTag() + " (API level " + myDevice.getAndroidVersion().getApiString() + ')';
-      InfoSection.setText(mySummarySection.addNameAndValueLabels("Target"), target);
-
-      Object skin = myDevice.getProperty(AvdManager.AVD_INI_SKIN_NAME);
-
-      if (skin != null) {
-        InfoSection.setText(mySummarySection.addNameAndValueLabels("Skin"), skin);
-      }
-
-      Object sdCard = myDevice.getProperty(AvdManager.AVD_INI_SDCARD_SIZE);
-
-      if (sdCard == null) {
-        sdCard = myDevice.getProperty(AvdManager.AVD_INI_SDCARD_PATH);
-      }
-
-      if (sdCard != null) {
-        InfoSection.setText(mySummarySection.addNameAndValueLabels("SD Card"), sdCard);
-      }
-
       Object snapshot = myDevice.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
@@ -87,6 +72,42 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
 
     mySummarySection.setLayout();
+  }
+
+  private @Nullable Resolution getResolution() {
+    String width = myDevice.getProperty("hw.lcd.width");
+
+    if (width == null) {
+      return null;
+    }
+
+    String height = myDevice.getProperty("hw.lcd.height");
+
+    if (height == null) {
+      return null;
+    }
+
+    try {
+      return new Resolution(Integer.parseInt(width), Integer.parseInt(height));
+    }
+    catch (NumberFormatException exception) {
+      return null;
+    }
+  }
+
+  private @Nullable Resolution getDp(@Nullable Resolution resolution) {
+    String density = myDevice.getProperty("hw.lcd.density");
+
+    if (density == null) {
+      return null;
+    }
+
+    try {
+      return Device.getDp(Integer.parseInt(density), resolution);
+    }
+    catch (NumberFormatException exception) {
+      return null;
+    }
   }
 
   private void initPropertiesSection() {

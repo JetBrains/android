@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.resources.Density;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +67,21 @@ public abstract class Device {
 
   public final @NotNull String getTarget() {
     return myTarget;
+  }
+
+  public static @Nullable Resolution getDp(int density, @Nullable Resolution resolution) {
+    if (density == -1) {
+      return null;
+    }
+
+    if (resolution == null) {
+      return null;
+    }
+
+    int width = (int)Math.ceil((double)Density.DEFAULT_DENSITY * resolution.getWidth() / density);
+    int height = (int)Math.ceil((double)Density.DEFAULT_DENSITY * resolution.getHeight() / density);
+
+    return new Resolution(width, height);
   }
 
   @Override

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.resources.Density;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Resolution;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -187,20 +187,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   }
 
   @Nullable Resolution getDp() {
-    if (myDensity == -1) {
-      return null;
-    }
-
-    if (myResolution == null) {
-      return null;
-    }
-
-    double density = myDensity;
-
-    int width = (int)Math.ceil(Density.DEFAULT_DENSITY * myResolution.getWidth() / density);
-    int height = (int)Math.ceil(Density.DEFAULT_DENSITY * myResolution.getHeight() / density);
-
-    return new Resolution(width, height);
+    return getDp(myDensity, myResolution);
   }
 
   @NotNull Collection<@NotNull String> getAbis() {

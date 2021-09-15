@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
@@ -23,18 +23,18 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class Resolution {
+public final class Resolution {
   private static final @NotNull Pattern PATTERN = Pattern.compile("Physical size: (\\d+)x(\\d+)");
 
   private final int myWidth;
   private final int myHeight;
 
-  Resolution(int width, int height) {
+  public Resolution(int width, int height) {
     myWidth = width;
     myHeight = height;
   }
 
-  static @NotNull Optional<@NotNull Resolution> newResolution(@NotNull List<@NotNull String> output) {
+  public static @NotNull Optional<@NotNull Resolution> newResolution(@NotNull List<@NotNull String> output) {
     String string = output.get(0);
     Matcher matcher = PATTERN.matcher(string);
 
