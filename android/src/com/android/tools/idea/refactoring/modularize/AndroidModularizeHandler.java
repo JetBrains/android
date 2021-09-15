@@ -26,8 +26,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -35,7 +37,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -99,12 +100,9 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
     else {
       List<Module> suitableModules = new ArrayList<>();
       // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          if (!ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
-            suitableModules.add(module);
-          }
+      for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(project)) {
+        if (!ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
+          suitableModules.add(ModuleSystemUtil.getMainModule(facet.getModule()));
         }
       }
       for (PsiElement root : elements) {
