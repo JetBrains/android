@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.DataVisualizationColors;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTrackModel;
+import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,11 @@ import org.jetbrains.annotations.NotNull;
  * Track renderer for Atrace VSYNC signals.
  */
 public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel> {
+  private final BooleanSupplier myVsyncEnabler;
+  public VsyncTrackRenderer(BooleanSupplier vsyncEnabler) {
+    myVsyncEnabler = vsyncEnabler;
+  }
+
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<VsyncTrackModel, ?> trackModel) {
@@ -39,6 +45,6 @@ public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel> {
         DataVisualizationColors.getPaletteManager().getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
         .setStepped(true));
     lineChart.setFillEndGap(true);
-    return VsyncPanel.of(lineChart, trackModel.getDataModel().getVsyncCounterSeries());
+    return VsyncPanel.of(lineChart, trackModel.getDataModel().getVsyncCounterSeries(), myVsyncEnabler);
   }
 }

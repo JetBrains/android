@@ -24,6 +24,7 @@ import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerEvent;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
+import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,12 +32,19 @@ import org.jetbrains.annotations.NotNull;
  * Track renderer for SysTrace Surfaceflinger events.
  */
 public class SurfaceflingerTrackRenderer implements TrackRenderer<SurfaceflingerTrackModel> {
+  private final BooleanSupplier myVsyncEnabler;
+
+  public SurfaceflingerTrackRenderer(BooleanSupplier vsyncEnabler) {
+    myVsyncEnabler = vsyncEnabler;
+  }
+
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<SurfaceflingerTrackModel, ?> trackModel) {
     return VsyncPanel.of(new StateChart<>(trackModel.getDataModel(), new SurfaceflingerColorProvider()),
                          trackModel.getDataModel().getViewRange(),
-                         trackModel.getDataModel().getSystemTraceData().getVsyncCounterValues());
+                         trackModel.getDataModel().getSystemTraceData().getVsyncCounterValues(),
+                         myVsyncEnabler);
   }
 
   private static class SurfaceflingerColorProvider extends StateChartColorProvider<SurfaceflingerEvent> {

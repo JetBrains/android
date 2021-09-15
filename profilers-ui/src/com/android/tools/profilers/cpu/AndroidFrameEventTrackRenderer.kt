@@ -25,17 +25,18 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.util.function.BooleanSupplier
 
 /**
  * Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase.
  */
-class AndroidFrameEventTrackRenderer : TrackRenderer<AndroidFrameEventTrackModel> {
+class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) : TrackRenderer<AndroidFrameEventTrackModel> {
   override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>) =
     StateChart(trackModel.dataModel, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider()).apply {
       addRowIndexChangeListener {
         trackModel.dataModel.activeSeriesIndex = it
       }
-    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries)}
+    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 }
 
 private class AndroidFrameEventColorProvider : StateChartColorProvider<AndroidFrameEvent>() {

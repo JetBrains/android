@@ -43,6 +43,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -54,9 +55,11 @@ import org.jetbrains.annotations.Nullable;
 public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel> {
   @NotNull private final AspectObserver myObserver = new AspectObserver();
   @NotNull private final StudioProfilersView myProfilersView;
+  private final BooleanSupplier myVsyncEnabler;
 
-  public CpuThreadTrackRenderer(@NotNull StudioProfilersView profilersView) {
+  public CpuThreadTrackRenderer(@NotNull StudioProfilersView profilersView, BooleanSupplier vsyncEnabler) {
     myProfilersView = profilersView;
+    myVsyncEnabler = vsyncEnabler;
   }
 
   @NotNull
@@ -147,7 +150,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     return data == null ? panel :
            VsyncPanel.of(panel,
                          trackModel.getDataModel().getTimeline().getViewRange(),
-                         data.getVsyncCounterValues());
+                         data.getVsyncCounterValues(),
+                         myVsyncEnabler);
   }
 
   @Nullable
