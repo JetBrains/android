@@ -47,7 +47,6 @@ Android Studio Preview.app/Contents/bin/studio.svg
 Android Studio Preview.app/Contents/bin/studio.vmoptions
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Headers
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/JavaNativeFoundation
-Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/JavaNativeFoundation.tbd
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Modules
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Resources
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Headers/JNFAssert.h
@@ -66,10 +65,8 @@ Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFound
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Headers/JNFTypeCoercion.h
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Headers/JavaNativeFoundation.h
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/JavaNativeFoundation
-Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/JavaNativeFoundation.tbd
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Modules/module.modulemap
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/Resources/Info.plist
-Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/A/_CodeSignature/CodeResources
 Android Studio Preview.app/Contents/jre/Contents/Home/Frameworks/JavaNativeFoundation.framework/Versions/Current
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/jaotc
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/jar
