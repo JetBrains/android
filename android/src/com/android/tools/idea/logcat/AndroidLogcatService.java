@@ -22,6 +22,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellEnabledDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
@@ -41,8 +42,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -231,7 +235,15 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       Disposer.register(this, receiver);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
-      myExecutors.get(device).submit(() -> executeLogcat(device, receiver));
+      myExecutors.get(device).submit(() -> {
+        String filename = System.getProperty("studio.logcat.debug.readFromFile");
+        if (filename != null && SystemInfo.isUnix) {
+          executeDebugLogcatFromFile(filename, receiver);
+        }
+        else {
+          executeLogcat(device, receiver);
+        }
+      });
     }
   }
 
@@ -267,6 +279,39 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
       String app = IdeInfo.getInstance().isAndroidStudio() ? "com.android.studio" : "com.jetbrains.idea";
       receiver.notifyLogcatMessage(new LogCatHeader(LogLevel.ERROR, 0, 0, app, "AndroidLogcatService", Instant.now()), throwable.toString());
+    }
+  }
+
+  // A blocking call that runs a tail command reading logcat data from a file. Only to be used for debugging and profiling, this method
+  // mimics the behavior of AdbHelper#executeRemoteCommand() including a busy wait loop with a 25ms delay.
+  private static void executeDebugLogcatFromFile(@NotNull String filename, IShellOutputReceiver receiver) {
+    if (!new File(filename).exists()) {
+      getLog().warn(String.format("Failed to load logcat from %s. File does not exist", filename));
+    }
+    try {
+      Process process = new ProcessBuilder("tail", "-n", "+1", "-f", filename).start();
+      InputStream inputStream = process.getInputStream();
+      byte[] buf = new byte[16384];
+      while (!receiver.isCancelled()) {
+        if (inputStream.available() > 0) {
+          int n = inputStream.read(buf);
+          if (n < 0) {
+            break;
+          }
+          receiver.addOutput(buf, 0, n);
+        }
+        else {
+          //noinspection BusyWait
+          Thread.sleep(25);
+        }
+      }
+      receiver.flush();
+    }
+    catch (IOException e) {
+      getLog().warn("Failed to load logcat from " + filename);
+    }
+    catch (InterruptedException e) {
+      getLog().warn("Logcat loading from file interrupted");
     }
   }
 

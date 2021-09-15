@@ -21,8 +21,11 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
@@ -62,10 +65,39 @@ class LogcatReader(
   fun start() {
     // The thread is released on dispose() when logcatReceiver.isCanceled() returns true and executeShellCommand() aborts.
     Executors.newSingleThreadExecutor(threadFactory).execute {
-      device.executeShellCommand("logcat -v long -v epoch", logcatReceiver)
+      val filename = System.getProperty("studio.logcat.debug.readFromFile")
+      if (filename != null && SystemInfo.isUnix) {
+        executeDebugLogcatFromFile(filename)
+      }
+      else {
+        device.executeShellCommand("logcat -v long -v epoch", logcatReceiver)
+      }
     }
   }
 
   override fun dispose() {}
-}
 
+  // A blocking call that runs a tail command reading logcat data from a file. Only to be used for debugging and profiling, this method
+  // mimics the behavior of AdbHelper#executeRemoteCommand() including a busy wait loop with a 25ms delay.
+  private fun executeDebugLogcatFromFile(filename: String) {
+    if (!File(filename).exists()) {
+      Logger.getInstance(LogcatReader::class.java).warn("Failed to load logcat from $filename. File does not exist")
+    }
+    val process = ProcessBuilder("tail", "-n", "+1", "-f", filename).start()
+    val inputStream = process.inputStream
+    val buf = ByteArray(16384)
+    while (!logcatReceiver.isCancelled) {
+      if (inputStream.available() > 0) {
+        val n = inputStream.read(buf)
+        if (n < 0) {
+          break
+        }
+        logcatReceiver.addOutput(buf, 0, n)
+      }
+      else {
+        Thread.sleep(25)
+      }
+    }
+    logcatReceiver.flush()
+  }
+}
