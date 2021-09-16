@@ -17,7 +17,6 @@
 
 package com.android.tools.adtui.swing
 
-import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
@@ -122,8 +121,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * Renders the given component and returns the image reflecting its appearance.
    */
   fun render(component: Component): BufferedImage {
+    @Suppress("UndesirableClassUsage")
     val image =
-      createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
+        BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     graphics.transform = AffineTransform.getScaleInstance(screenScale, screenScale)
     component.printAll(graphics)
