@@ -84,11 +84,13 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     Group verticalGroup = layout.createParallelGroup(Alignment.CENTER)
       .addGroup(layout.createSequentialGroup()
+                  .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                   .addGroup(layout.createParallelGroup(Alignment.CENTER)
                               .addComponent(myIconLabel)
                               .addComponent(myNameLabel)
                               .addComponent(myOnlineLabel))
-                  .addComponent(myLine2Label))
+                  .addComponent(myLine2Label)
+                  .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       .addComponent(myPairedLabel);
 
     layout.setHorizontalGroup(horizontalGroup);
