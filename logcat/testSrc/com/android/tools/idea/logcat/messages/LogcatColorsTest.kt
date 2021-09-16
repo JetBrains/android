@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat
+package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.Log
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
-import junit.framework.Assert.fail
+import junit.framework.TestCase.fail
 import org.junit.Test
 import java.awt.Color
 import java.util.concurrent.atomic.AtomicInteger

@@ -16,9 +16,13 @@
 package com.android.tools.idea.logcat
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.messages.MessageFormatter
+import com.android.tools.idea.logcat.messages.MessageProcessor
+import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -27,12 +31,18 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
+import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.impl.EditorImpl
+import com.intellij.openapi.editor.markup.HighlighterLayer
+import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.components.BorderLayoutPanel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import java.time.ZoneId
 
@@ -48,10 +58,13 @@ internal class LogcatMainPanel(
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
+  private val document = editor.document
+  private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
   private val deviceContext = DeviceContext()
+  private val messageFormatter = MessageFormatter(logcatColors, zoneId)
 
   @VisibleForTesting
-  internal val documentPrinter = LogcatDocumentPrinter(project, this, editor, logcatColors, zoneId)
+  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, this::appendToDocument)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
 
@@ -70,7 +83,7 @@ internal class LogcatMainPanel(
         logcatReader?.let {
           Disposer.dispose(it)
         }
-        logcatReader = LogcatReader(device, this@LogcatMainPanel, this@LogcatMainPanel::appendMessages).also(LogcatReader::start)
+        logcatReader = LogcatReader(device, this@LogcatMainPanel, messageProcessor::appendMessages).also(LogcatReader::start)
       }
 
       override fun onDeviceDisconnected(device: IDevice) {
@@ -118,8 +131,24 @@ internal class LogcatMainPanel(
     return editor
   }
 
-  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    documentPrinter.appendMessages(messages)
+  private suspend fun appendToDocument(buffer: TextAccumulator) = withContext(uiThread) {
+    if (!isActive) {
+      return@withContext
+    }
+    document.insertString(document.textLength, buffer.text)
+
+    // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
+    val start = document.textLength - buffer.text.length
+    buffer.ranges.forEach {
+      val rangeStart = start + it.start
+      // Under extreme conditions, we could be inserting text that is longer than the cyclic buffer.
+      // TODO(aalbert): Consider optimizing by truncating text to not be longer than cyclic buffer.
+      if (rangeStart >= 0) {
+        markupModel.addRangeHighlighter(
+          rangeStart, start + it.end, HighlighterLayer.SYNTAX, it.textAttributes, HighlighterTargetArea.EXACT_RANGE)
+      }
+    }
+    EditorUtil.scrollToTheEnd(editor, true)
   }
 
   override fun dispose() {
