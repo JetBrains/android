@@ -19,7 +19,6 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
@@ -337,7 +336,7 @@ class SkinDefinitionTest {
   }
 
   private fun SkinLayout.draw(): BufferedImage {
-    val image = ImageUtils.createDipImage(frameRectangle.width, frameRectangle.height, TYPE_INT_ARGB)
+    val image = BufferedImage(frameRectangle.width, frameRectangle.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
     drawFrameAndMask(g, Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height))
     g.dispose()
