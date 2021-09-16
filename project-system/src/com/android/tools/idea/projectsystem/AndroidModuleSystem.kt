@@ -391,6 +391,23 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   }
 }
 
+fun Module.getAllLinkedModules() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
+
 fun Module.getHolderModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
 
 fun Module.isHolderModule() = getHolderModule() == this
+
+fun Module.getMainModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.main ?: this
+
+fun Module.isMainModule() = getMainModule() == this
+
+fun Module.getUnitTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
+
+fun Module.getAndroidTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
+
+/**
+ * Utility method to find out if a module is derived from an Android Gradle project. This will return true
+ * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
+ * holder module used as the parent of these source set modules.
+ */
+fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null

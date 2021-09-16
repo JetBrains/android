@@ -88,28 +88,6 @@ object ModuleUtil {
   fun DataNode<ModuleData>.linkAndroidModuleGroup(ideModelProvider: IdeModifiableModelsProvider) =
     linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
 
-  @JvmStatic
-  fun Module.getAllLinkedModules() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
-
-  @JvmStatic
-  fun Module.getMainModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.main ?: this
-
-  @JvmStatic
-  fun Module.isMainModule() = getMainModule() == this
-
-  @JvmStatic
-  fun Module.getUnitTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
-
-  @JvmStatic
-  fun Module.getAndroidTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
-
-  /**
-   * Utility method to find out if a module is derived from an Android Gradle project. This will return true
-   * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
-   * holder module used as the parent of these source set modules.
-   */
-  @JvmStatic
-  fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_MODULE_GROUP) != null
 }
 
 fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
