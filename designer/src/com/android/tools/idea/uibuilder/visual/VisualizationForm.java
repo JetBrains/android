@@ -659,7 +659,7 @@ public class VisualizationForm
 
             if (result != null) {
               VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myIssues);
-              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager, myIssues, myBaseConfigIssues);
+              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, model, myIssues, myBaseConfigIssues);
 
               if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
                 CommonLintUserDataHandler.INSTANCE.updateVisualLintIssues(model.getFile(), myIssues);

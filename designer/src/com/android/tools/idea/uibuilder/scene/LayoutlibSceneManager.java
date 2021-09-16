@@ -1039,7 +1039,7 @@ public class LayoutlibSceneManager extends SceneManager {
           NlModelHierarchyUpdater.updateHierarchy(Collections.emptyList(), getModel());
         }
         else {
-          NlModelHierarchyUpdater.updateHierarchy(getRootViews(result), getModel());
+          NlModelHierarchyUpdater.updateHierarchy(result, getModel());
         }
       } finally {
         myUpdateHierarchyLock.release();
@@ -1048,11 +1048,6 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     catch (InterruptedException ignored) {
     }
-  }
-
-  @NotNull
-  private List<ViewInfo> getRootViews(@NotNull RenderResult result) {
-    return getModel().getType() == MenuFileType.INSTANCE ? result.getSystemRootViews() : result.getRootViews();
   }
 
   /**
