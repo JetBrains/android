@@ -110,8 +110,10 @@ class VirtualDisplayList @TestOnly constructor(
     map.put("deleteAvd", DeleteAvdAction(this, false))
     map.put("selectNextColumn", SelectNextColumnAction())
     map.put("selectNextColumnCell", SelectNextColumnCellAction())
+    map.put("selectNextRow", SelectNextRowAction())
     map.put("selectPreviousColumn", SelectPreviousColumnAction())
     map.put("selectPreviousColumnCell", SelectPreviousColumnCellAction())
+    map.put("selectPreviousRow", SelectPreviousRowAction())
 
     tableModel.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
     table.setRowSorter()

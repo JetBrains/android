@@ -47,7 +47,7 @@ final class SelectNextColumnCellAction extends AbstractAction {
       else {
         table.removeEditor();
 
-        Tables.selectNextRow(table);
+        Tables.selectNextOrFirstRow(table);
         model.setLeadSelectionIndex(0);
       }
     }

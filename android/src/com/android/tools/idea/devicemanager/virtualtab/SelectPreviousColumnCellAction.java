@@ -51,7 +51,7 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
         model.setLeadSelectionIndex(viewColumnIndex - 1);
         break;
       case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
-        Tables.selectPreviousRow(table);
+        Tables.selectPreviousOrLastRow(table);
         model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
 
         table.editCellAt(table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);

@@ -54,7 +54,7 @@ final class SelectNextColumnCellAction extends AbstractAction {
         else {
           table.removeEditor();
 
-          Tables.selectNextRow(table);
+          Tables.selectNextOrFirstRow(table);
           model.setLeadSelectionIndex(VirtualTableView.DEVICE_VIEW_COLUMN_INDEX);
         }
 
