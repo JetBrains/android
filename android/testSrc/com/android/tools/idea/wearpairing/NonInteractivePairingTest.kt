@@ -88,6 +88,23 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
     assertThat(outputReceiver?.isCancelled).isTrue()
   }
 
+  @Test
+  fun onUnknownStatusLog_stateIsSetToUnknown() {
+    NonInteractivePairing.startPairing(device, "", "", "").use {
+      com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
+      assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
+
+      sendLogCat(LOGCAT_FORMAT.format(NonInteractivePairing.PairingState.STARTED))
+      sendLogCat(LOGCAT_FORMAT.format("AN_UNKNOWN_STATE"))
+      assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
+
+      sendLogCat(LOGCAT_FORMAT.format(NonInteractivePairing.PairingState.SUCCESS))
+      assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.SUCCESS)
+    }
+    keepAliveSemaphore.release()
+    assertThat(outputReceiver?.isCancelled).isTrue()
+  }
+
   private fun sendLogCat(log: String) {
     log.toByteArray().let {
       outputReceiver?.addOutput(it, 0, it.size)

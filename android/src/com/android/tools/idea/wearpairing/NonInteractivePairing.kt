@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.Closeable
+import java.lang.IllegalArgumentException
 import java.util.concurrent.TimeUnit
 
 class NonInteractivePairing private constructor(private val phone: IDevice,
@@ -74,7 +75,14 @@ class NonInteractivePairing private constructor(private val phone: IDevice,
         NullOutputReceiver())
     }
     lines.forEach {
-      STATE_LOG_PATTERN.find(it)?.groupValues?.get(1)?.let { _pairingState.value = PairingState.valueOf(it) }
+      STATE_LOG_PATTERN.find(it)?.groupValues?.get(1)?.let {
+        _pairingState.value = try {
+          PairingState.valueOf(it)
+        }
+        catch (ignore: IllegalArgumentException) {
+          PairingState.UNKNOWN
+        }
+      }
     }
   }
 
