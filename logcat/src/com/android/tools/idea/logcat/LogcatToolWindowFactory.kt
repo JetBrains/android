@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.messages.LogcatColors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project

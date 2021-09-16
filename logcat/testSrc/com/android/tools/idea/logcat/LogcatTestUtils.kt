@@ -17,18 +17,15 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.BoundedTaskExecutor
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
 
 /**
- * Waits for [LogcatDocumentPrinter] to idle and execute some code.
+ * Waits for [MessageProcessor] to idle and execute some code.
  *
  * 1. Waits until all entries sent to the channel are received.
  * 2. Waits for the worker threads that received the channel entries to complete (launch work on UI thread)
@@ -36,8 +33,7 @@ import javax.swing.SwingUtilities
  *
  * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return immediately.
  */
-@ExperimentalCoroutinesApi
-internal fun LogcatDocumentPrinter.onIdle(run: () -> Any) {
+internal fun MessageProcessor.onIdle(run: () -> Any) {
   assert(!SwingUtilities.isEventDispatchThread())
   waitForCondition(5, TimeUnit.SECONDS, this::isChannelEmpty)
 
