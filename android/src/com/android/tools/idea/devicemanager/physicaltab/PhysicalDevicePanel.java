@@ -264,10 +264,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGroup(toolbarVerticalGroup)
-      .addComponent(myScrollPane);
+      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
 
     if (myDetailsPanel != null) {
-      verticalGroup.addComponent(myDetailsPanel);
+      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
     }
 
     layout.setHorizontalGroup(horizontalGroup);
