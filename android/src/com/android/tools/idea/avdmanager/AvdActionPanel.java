@@ -122,7 +122,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       // Add extra items to the overflow menu
       if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
         JBMenuItem menuItem = new JBMenuItem(action);
-        myOverflowMenu.add(menuItem);
+        if (action instanceof Separator) {
+          myOverflowMenu.addSeparator();
+        }
+        else {
+          myOverflowMenu.add(menuItem);
+        }
         actionLabel = menuItem;
       }
       else {
@@ -164,6 +169,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
       actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
       actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
+      actionList.add(new Separator(this));
     }
 
     actionList.add(new DuplicateAvdAction(this, logDeviceManagerEvents));
@@ -181,6 +187,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       actionList.add(new AvdSummaryAction(this));
     }
 
+    actionList.add(new Separator(this));
     actionList.add(new DeleteAvdAction(this, logDeviceManagerEvents));
     actionList.add(new StopAvdAction(this, logDeviceManagerEvents));
 
