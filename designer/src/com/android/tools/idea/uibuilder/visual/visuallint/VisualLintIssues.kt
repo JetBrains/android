@@ -70,4 +70,15 @@ class VisualLintIssues {
     }
   }
 
+  override fun toString(): String {
+    if (list.isEmpty()) {
+      return "VisualLintIssues empty."
+    }
+    val builder = StringBuilder()
+    builder.append("VisualLintIssues : \n")
+    list.forEach {
+      builder.append(" ----- ${it.summary}")
+    }
+    return builder.toString()
+  }
 }

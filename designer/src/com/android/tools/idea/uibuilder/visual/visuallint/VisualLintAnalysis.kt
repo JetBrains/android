@@ -43,13 +43,12 @@ enum class VisualLintErrorType {
  * Collects in [issues] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
  */
 fun analyzeAfterModelUpdate(result: RenderResult,
-                            sceneManager: LayoutlibSceneManager,
+                            model: NlModel,
                             issues: VisualLintIssues,
                             baseConfigIssues: VisualLintBaseConfigIssues) {
   // TODO: Remove explicit use of mutable collections as argument for this method
-  val model = sceneManager.model
   analyzeBounds(result, model, issues)
-  analyzeBottomNavigation(result, sceneManager, issues)
+  analyzeBottomNavigation(result, model, issues)
   analyzeOverlap(result, model, issues)
   analyzeLongText(result, model, issues)
   analyzeLocaleText(result, baseConfigIssues, model, issues)
@@ -104,18 +103,19 @@ private fun previewConfigurations(count: Int): String {
  * Analyze the given [RenderResult] for issues where a BottomNavigationView is wider than 600dp.
  */
 private fun analyzeBottomNavigation(renderResult: RenderResult,
-                                    sceneManager: LayoutlibSceneManager,
+                                    model: NlModel,
                                     issues: VisualLintIssues) {
   for (root in renderResult.rootViews) {
-    findBottomNavigationIssue(root, sceneManager, issues)
+    findBottomNavigationIssue(root, model, issues)
   }
 }
 
 private fun findBottomNavigationIssue(root: ViewInfo,
-                                      sceneManager: LayoutlibSceneManager,
+                                      model: NlModel,
                                       issues: VisualLintIssues) {
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
-    val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
+    /* This is needed, as visual lint analysis need to run outside the context of scene. */
+    val widthInDp = Coordinates.pxToDp(model, root.right - root.left)
     if (widthInDp > 600) {
       val url1 = "https://material.io/components/navigation-rail/android"
       val url2 = "https://material.io/components/navigation-drawer/android"
@@ -132,7 +132,7 @@ private fun findBottomNavigationIssue(root: ViewInfo,
       }
       createIssue(
         root,
-        sceneManager.model,
+        model,
         "Bottom navigation bar is not recommended for breakpoints over 600dp",
         VisualLintErrorType.BOTTOM_NAV,
         issues,
@@ -141,7 +141,7 @@ private fun findBottomNavigationIssue(root: ViewInfo,
     }
   }
   for (child in root.children) {
-    findBottomNavigationIssue(child, sceneManager, issues)
+    findBottomNavigationIssue(child, model, issues)
   }
 }
 

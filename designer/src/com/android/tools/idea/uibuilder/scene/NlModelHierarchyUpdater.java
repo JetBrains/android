@@ -20,9 +20,12 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
@@ -41,6 +44,16 @@ import org.jetbrains.annotations.Nullable;
 public class NlModelHierarchyUpdater {
 
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
+
+  /**
+   * Update the hierarchy based on the render/inflate result.
+   * @param result result after inflation. Must contain a valid ViewInfo.
+   * @param model to be updated.
+   */
+  public static void updateHierarchy(@NotNull RenderResult result,
+                                     @NotNull NlModel model) {
+    updateHierarchy(getRootViews(result, model.getType()), model);
+  }
 
   /**
    * Update the hierarchy based on the inflated rootViews.
@@ -63,6 +76,14 @@ public class NlModelHierarchyUpdater {
   public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
     updateBounds(views, model);
+  }
+
+  /**
+   * Returns the root views from result based on file type.
+   */
+  @NotNull
+  public static List<ViewInfo> getRootViews(@NotNull RenderResult result, @NotNull DesignerEditorFileType type) {
+    return type == MenuFileType.INSTANCE ? result.getSystemRootViews() : result.getRootViews();
   }
 
   /**
