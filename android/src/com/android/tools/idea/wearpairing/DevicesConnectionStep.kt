@@ -636,7 +636,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       horizontalAlignment = SwingConstants.CENTER
       horizontalTextPosition = JLabel.CENTER
       verticalTextPosition = JLabel.BOTTOM
-      font = JBFont.label().asBold()
       icon = ImageIcon(svgImg)
     }
 
