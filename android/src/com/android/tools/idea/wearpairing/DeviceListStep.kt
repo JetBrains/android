@@ -360,10 +360,17 @@ private fun PairingDevice.isDisabled(): Boolean {
   return state == ConnectionState.DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
 }
 
-private fun PairingDevice.getTooltip(): String? = when {
-  isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
-  isEmulator && !isWearDevice && !hasPlayStore -> message("wear.assistant.device.list.tooltip.requires.play")
-  else -> null
+private fun PairingDevice.getTooltip(): String? {
+  WearPairingManager.getPairedDevices(deviceID)?.apply {
+    val peer = if (deviceID == phone.deviceID) wear else phone
+    return "Paired with ${peer.displayName}"
+  }
+
+  return when {
+    isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
+    isEmulator && !isWearDevice && !hasPlayStore -> message("wear.assistant.device.list.tooltip.requires.play")
+    else -> null
+  }
 }
 
 /**

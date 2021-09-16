@@ -66,6 +66,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
+    WearPairingManager.loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   override fun tearDown() {
@@ -254,11 +255,14 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
+    val iDevice = Mockito.mock(IDevice::class.java)
+    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(
-      phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", apiLevel = 29),
-      phoneDevice.copy(deviceID = "id3", displayName = "My Phone3", hasPlayStore = false),
-      phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
+      phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", apiLevel = 29),
+      phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", hasPlayStore = false),
+      phoneDevice.copy(deviceID = "id5", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
+      phoneDevice
     ))
     fakeUi.layoutAndDispatchEvents()
 
@@ -274,6 +278,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     assertThat(getListItemTooltip(0)).contains("Wear pairing requires API level >= 30")
     assertThat(getListItemTooltip(1)).contains("Wear pairing requires Google Play")
     assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
+    assertThat(getListItemTooltip(3)).contains("Paired with Round Watch")
   }
 
   private fun createDeviceListStepUi(wizardAction: WizardAction = WizardActionTest()): FakeUi {
