@@ -168,7 +168,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
       actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
-      actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
+      // TODO(http://b/193748564) Removed until the Virtual tab menu updates its items
+      // actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
       actionList.add(new Separator(this));
     }
 
