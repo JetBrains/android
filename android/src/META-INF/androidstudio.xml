@@ -25,7 +25,14 @@
       <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
     </component>
 
+    <component>
+      <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
+    </component>
   </application-components>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.intellij.androidStudioInitializer" interface="java.lang.Runnable"/>
+  </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
     <!--
@@ -35,6 +42,14 @@
     <actionConfigurationCustomizer id="Startup.AndroidStudioInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <androidStudioInitializer id="Startup.AndroidSdkInitializer" order="last" implementation="com.android.tools.idea.startup.AndroidSdkInitializer" />
+
+    <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
+                        serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
+                        overrides="true"/>
+
+    <!-- overrides UTM-tracking implementation included from JavaIdePlugin.xml: -->
+    <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
+                        overrides="true"/>
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
