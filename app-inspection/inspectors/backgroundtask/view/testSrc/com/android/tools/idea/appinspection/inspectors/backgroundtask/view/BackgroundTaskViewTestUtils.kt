@@ -21,6 +21,10 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getJobsCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWakeLocksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWorksCategoryNode
+import java.awt.Component
+import java.awt.Container
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -45,4 +49,10 @@ object BackgroundTaskViewTestUtils {
   fun BackgroundTaskEntriesView.getWakeLocksCategoryNode(): BackgroundTaskCategoryNode {
     return getTreeRoot().getWakeLocksCategoryNode()
   }
+
+  fun JComponent.getValueComponent(key: String): Component? =
+    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent.getComponent(1)
+
+  fun JComponent.getCategoryPanel(key: String): Container =
+    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent
 }
