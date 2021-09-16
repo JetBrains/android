@@ -167,10 +167,13 @@ class AndroidLiveEditCodeGenerator {
     // will append two more parameters when generating code. Therefore, we need to take
     // that into account and assume a composable function has two more parameter than it
     // showed in the PSI tree.
-    for (annotation in (function.firstChild as KtDeclarationModifierList).annotationEntries) {
-      if (annotation.getQualifiedName().toString() == "androidx.compose.runtime.Composable") {
-        params.add("Landroidx/compose/runtime/Composer;")
-        params.add("I")
+    val modifiers = function.firstChild
+    if (modifiers is KtDeclarationModifierList) {
+      for (annotation in modifiers.annotationEntries) {
+        if (annotation.getQualifiedName().toString() == "androidx.compose.runtime.Composable") {
+          params.add("Landroidx/compose/runtime/Composer;")
+          params.add("I")
+        }
       }
     }
 
