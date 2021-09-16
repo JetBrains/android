@@ -36,6 +36,7 @@ import com.intellij.openapi.ui.popup.IconButton
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
@@ -67,6 +68,7 @@ class EntryDetailsView(
   private val client: BackgroundTaskInspectorClient,
   private val ideServices: AppInspectionIdeServices,
   @VisibleForTesting val selectionModel: EntrySelectionModel,
+  private val entriesView: BackgroundTaskEntriesView,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
   private val uiDispatcher: CoroutineDispatcher
@@ -106,6 +108,11 @@ class EntryDetailsView(
         if (tab.isDetailsViewVisible && type == EntryUpdateEventType.UPDATE) {
           updateSelectedTask()
         }
+      }
+    }
+    entriesView.addContentModeChangedListener {
+      if (selectionModel.selectedEntry is WorkEntry) {
+        updateSelectedTask()
       }
     }
   }
@@ -243,7 +250,20 @@ class EntryDetailsView(
       buildKeyValuePair("State", workEntry, StateProvider)
     )))
 
+    val switchContentModeLabel = if (entriesView.contentMode == BackgroundTaskEntriesView.Mode.TABLE) {
+      ActionLink("Show in graph") {
+        entriesView.contentMode = BackgroundTaskEntriesView.Mode.GRAPH
+      }
+    }
+    else {
+      ActionLink("Show in table") {
+        entriesView.contentMode = BackgroundTaskEntriesView.Mode.TABLE
+      }
+    }
+
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
+      // Visually separate switchContentModeLabel and work chain labels.
+      switchContentModeLabel.apply { extraBottomPaddingMap[this] = 10 },
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
       // Visually separate work chain or else UUIDs run together.
       buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },

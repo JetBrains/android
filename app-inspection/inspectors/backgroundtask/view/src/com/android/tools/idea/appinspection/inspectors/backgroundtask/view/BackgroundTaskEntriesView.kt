@@ -170,21 +170,11 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     set(value) {
       if (field != value) {
         field = value
-        ActivityTracker.getInstance().inc()
-        cardLayout.show(contentPanel, value.name)
-        when (value) {
-          Mode.TABLE -> {
-            client.tracker.trackTableModeSelected()
-          }
-          Mode.GRAPH -> {
-            client.tracker.trackGraphModeSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-                                                  client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo())
-          }
-        }
-        contentPanel.revalidate()
+        listeners.forEach { listener -> listener(value) }
       }
     }
 
+  private var listeners = mutableListOf<(Mode) -> Unit>()
   private val cardLayout: CardLayout
   private val contentPanel: JPanel
 
@@ -208,7 +198,6 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
     contentPanel.add(tableView.component, Mode.TABLE.name)
     contentPanel.add(JBScrollPane(graphView).apply { horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER },
                      Mode.GRAPH.name)
-    cardLayout.show(contentPanel, Mode.TABLE.name)
     add(contentPanel, TabularLayout.Constraint(1, 0))
 
     selectionModel.registerEntrySelectionListener { entry ->
@@ -216,6 +205,27 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
         contentMode = Mode.TABLE
       }
     }
+
+    addContentModeChangedListener {
+      ActivityTracker.getInstance().inc()
+      cardLayout.show(contentPanel, contentMode.name)
+      when (contentMode) {
+        Mode.TABLE -> {
+          client.tracker.trackTableModeSelected()
+        }
+        Mode.GRAPH -> {
+          client.tracker.trackGraphModeSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+                                                client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo())
+        }
+      }
+      contentPanel.revalidate()
+    }
+
+  }
+
+  fun addContentModeChangedListener(listener: (Mode) -> Unit) {
+    listener(contentMode)
+    listeners.add(listener)
   }
 
   private fun buildActionBar(): JComponent {

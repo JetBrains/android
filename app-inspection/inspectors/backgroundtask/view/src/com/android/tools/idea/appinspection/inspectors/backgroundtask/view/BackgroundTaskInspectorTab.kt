@@ -37,7 +37,8 @@ class BackgroundTaskInspectorTab(
   private val selectionModel = EntrySelectionModel()
 
   private val entriesView = BackgroundTaskEntriesView(client, selectionModel, scope, uiDispatcher)
-  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, uiComponentsProvider, scope, uiDispatcher)
+  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, entriesView, uiComponentsProvider, scope,
+                                             uiDispatcher)
 
   var isDetailsViewVisible = false
     set(value) {

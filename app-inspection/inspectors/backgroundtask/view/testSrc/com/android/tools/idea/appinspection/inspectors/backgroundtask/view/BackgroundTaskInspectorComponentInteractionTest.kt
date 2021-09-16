@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.StubBackgroundTaskInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -55,6 +57,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import kotlin.streams.toList
@@ -251,6 +254,45 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       val works = entriesView.getWorksCategoryNode()
       works.assertEmptyWithMessage("No workers have been detected.")
+    }
+  }
+
+  @Test
+  fun openDependencyGraphViewFromDetailsView() = runBlocking {
+    val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
+    client.sendWorkAddedEvent(workInfo)
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry(workInfo.id)
+      val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
+      val showInGraphLabel = TreeWalker(workContinuationPanel)
+        .descendantStream()
+        .filter { (it as? ActionLink)?.text == "Show in graph" }
+        .findFirst()
+        .get() as ActionLink
+      assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)
+      showInGraphLabel.doClick()
+      assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
+    }
+  }
+
+  @Test
+  fun openTableViewFromDetailsView() = runBlocking {
+    val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
+    client.sendWorkAddedEvent(workInfo)
+
+    withContext(uiDispatcher) {
+      selectionModel.selectedEntry = client.getEntry(workInfo.id)
+      entriesView.contentMode = BackgroundTaskEntriesView.Mode.GRAPH
+      val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
+      val showInGraphLabel = TreeWalker(workContinuationPanel)
+        .descendantStream()
+        .filter { (it as? ActionLink)?.text == "Show in table" }
+        .findFirst()
+        .get() as ActionLink
+      assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
+      showInGraphLabel.doClick()
+      assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)
     }
   }
 
