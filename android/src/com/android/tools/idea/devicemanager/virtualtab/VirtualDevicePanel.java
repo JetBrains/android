@@ -123,10 +123,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
     Group verticalGroup = groupLayout.createSequentialGroup()
       .addGroup(toolbarVerticalGroup)
-      .addComponent(myAvdDisplayList);
+      .addComponent(myAvdDisplayList, 0, 0, Short.MAX_VALUE);
 
     if (myDetailsPanel != null) {
-      verticalGroup.addComponent(myDetailsPanel);
+      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
     }
 
     groupLayout.setHorizontalGroup(horizontalGroup);
