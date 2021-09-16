@@ -20,62 +20,65 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.concurrency.executeAsync
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.ListeningExecutorService
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.time.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.InetAddress
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 class AdbServiceWrapperImpl(
   private val project: Project,
-  private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider,
-  val taskExecutor: ListeningExecutorService
+  private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider
 ) : AdbServiceWrapper {
   private val ADB_TIMEOUT_MILLIS = 30_000L
   private val ADB_DEVICE_CONNECT_MILLIS = 120_000L
   private val LOG = logger<AdbServiceWrapperImpl>()
 
-  override fun executeCommand(args: List<String>, stdin: String): ListenableFuture<AdbCommandResult> {
-    return getAdbLocation().transform(taskExecutor) { adbFile ->
+  override suspend fun executeCommand(args: List<String>, stdin: String): AdbCommandResult {
+    val adbFile = getAdbLocation()
       // Execute ADB command, capturing output and exit value
-      val stdinStream = stdin.byteInputStream()
-      val stdoutStream = ByteArrayOutputStream()
-      val stderrStream = ByteArrayOutputStream()
-      val exitValue = ExternalCommand(adbFile.absolutePath).execute(args, stdinStream, stdoutStream, stderrStream, ADB_TIMEOUT_MILLIS,
-                                                                    TimeUnit.MILLISECONDS)
-      val processOutput = ProcessOutput()
-      processOutput.appendStdout(stdoutStream.toString("UTF-8"))
-      processOutput.appendStderr(stderrStream.toString("UTF-8"))
-      AdbCommandResult(exitValue, processOutput.stdoutLines, processOutput.stderrLines)
+    val stdinStream = stdin.byteInputStream()
+    val stdoutStream = ByteArrayOutputStream()
+    val stderrStream = ByteArrayOutputStream()
+
+    val exitValue = withContext(ioThread) {
+      ExternalCommand(adbFile.absolutePath).execute(args, stdinStream, stdoutStream, stderrStream, ADB_TIMEOUT_MILLIS,
+                                                    TimeUnit.MILLISECONDS)
     }
+    val processOutput = ProcessOutput()
+    processOutput.appendStdout(stdoutStream.toString("UTF-8"))
+    processOutput.appendStderr(stderrStream.toString("UTF-8"))
+    return AdbCommandResult(exitValue, processOutput.stdoutLines, processOutput.stderrLines)
   }
 
-  override fun waitForOnlineDevice(pairingResult: PairingResult): ListenableFuture<AdbOnlineDevice> {
-    return getAdbLocation().transformAsync(taskExecutor) { adbFile ->
-      AdbService.getInstance().getDebugBridge(adbFile)
-    }.transform(taskExecutor) { debugBridge ->
-      waitForDevice(debugBridge, pairingResult)
+  override suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice =
+    withContext(ioThread) {
+      val adbFile = getAdbLocation()
+      val adb = AdbService.getInstance().getDebugBridge(adbFile).await()
+      waitForDevice(adb, pairingResult)
     }
-  }
 
-  private fun getAdbLocation(): ListenableFuture<File> {
-    return taskExecutor.executeAsync {
+
+  suspend fun getAdbLocation(): File =
+    // Use the I/O thread just in case we do I/O in the future (although currently there is none)
+    withContext(ioThread) {
       val adbProvider = AdbFileProvider.fromProject(project)
       if (adbProvider == null) {
         LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)")
       }
       adbProvider?.adbFile ?: throw IllegalStateException("The path to the ADB command is not available")
     }
-  }
 
-  private fun waitForDevice(debugBridge: AndroidDebugBridge, pairingResult: PairingResult): AdbOnlineDevice {
+
+  private suspend fun waitForDevice(debugBridge: AndroidDebugBridge, pairingResult: PairingResult): AdbOnlineDevice {
     val rem = TimeoutRemainder(nanoTimeProvider, ADB_DEVICE_CONNECT_MILLIS, TimeUnit.MILLISECONDS)
     while (true) {
       val device = debugBridge.devices.firstOrNull {
@@ -90,14 +93,16 @@ class AdbServiceWrapperImpl(
       }
 
       // Put thread back to sleep for a little bit to avoid busy loop
-      Thread.sleep(50)
+      delay(Duration.ofMillis(50))
     }
   }
 
-  private fun createAdbOnlineDevice(device: IDevice, rem: TimeoutRemainder): AdbOnlineDevice {
+  private suspend fun createAdbOnlineDevice(device: IDevice, rem: TimeoutRemainder): AdbOnlineDevice {
     // Force fetching all properties by fetching one
-    val futureProp = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL)
-    futureProp.get(rem.remainingUnits, TimeUnit.MILLISECONDS)
+    withTimeoutOrNull(rem.getRemainingUnits(TimeUnit.MILLISECONDS)) {
+      device.getSystemProperty(IDevice.PROP_DEVICE_MODEL).await()
+    }
+    // Ignore timeout above -- just check here if we got the properties
     if (!device.arePropertiesSet()) {
       throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
     }

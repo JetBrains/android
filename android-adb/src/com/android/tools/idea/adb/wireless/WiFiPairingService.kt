@@ -30,14 +30,15 @@ interface WiFiPairingService {
   /**
    * Returns a [MdnsSupportState] for the current platform and current ADB version.
    *
-   * The future never fails, except for catastrophic failures (e.g. out of memory)
+   * Errors generally are represented by states in MdnsSupportState, not exceptions,
+   * except for catastrophic failures (e.g. out of memory)
    */
-  fun checkMdnsSupport(): ListenableFuture<MdnsSupportState>
+  suspend fun checkMdnsSupport(): MdnsSupportState
 
   /**
    * Generates a new [QrCodeImage] instance, with a new random service name and password
    */
-  fun generateQrCode(backgroundColor: Color, foregroundColor: Color) : ListenableFuture<QrCodeImage>
+  suspend fun generateQrCode(backgroundColor: Color, foregroundColor: Color): QrCodeImage
 
   /**
    * Returns a snapshot of the list of [AdbDevice] currently known
@@ -47,17 +48,17 @@ interface WiFiPairingService {
   /**
    * Look up the list of mDNS services currently seen by the underlying adb implementation
    */
-  fun scanMdnsServices() : ListenableFuture<List<MdnsService>>
+  suspend fun scanMdnsServices() : List<MdnsService>
 
   /**
    * Pair a device through an mDNS service
    */
-  fun pairMdnsService(mdnsService: MdnsService, password: String) : ListenableFuture<PairingResult>
+  suspend fun pairMdnsService(mdnsService: MdnsService, password: String) : PairingResult
 
   /**
    * Wait for device to be available from the underlying adb implementation
    */
-  fun waitForDevice(pairingResult: PairingResult): ListenableFuture<AdbOnlineDevice>
+  suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
 }
 
 /**

@@ -16,17 +16,18 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.catching
-import com.android.tools.idea.concurrency.finallySync
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.Alarm
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
+import kotlinx.coroutines.withContext
+import java.time.Duration
 import java.util.concurrent.CancellationException
-import java.util.concurrent.Executor
 
 /**
  * Handles the QR Code pairing aspect of the "Pair device over Wi-FI" dialog
@@ -34,14 +35,12 @@ import java.util.concurrent.Executor
 @UiThread
 class QrCodeScanningController(private val service: WiFiPairingService,
                                private val view: WiFiPairingView,
-                               edtExecutor: Executor,
                                parentDisposable: Disposable) : Disposable {
   private val LOG = logger<QrCodeScanningController>()
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val pollingAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private val modelListener = MyModelListener()
   private val viewListener = MyViewListener()
   private var state = State.Init
+  private val scope = AndroidCoroutineScope(this)
 
   init {
     Disposer.register(parentDisposable, this)
@@ -50,46 +49,39 @@ class QrCodeScanningController(private val service: WiFiPairingService,
   }
 
   override fun dispose() {
-    pollingAlarm.cancelAllRequests()
     view.model.removeListener(modelListener)
     view.removeListener(viewListener)
     state = State.Disposed
   }
 
-  fun startPairingProcess() {
+  suspend fun startPairingProcess() {
     view.showQrCodePairingStarted()
     generateQrCode(view.model)
     state = State.Polling
     pollMdnsServices()
   }
 
-  private fun generateQrCode(model: WiFiPairingModel) {
-    val futureQrCode = service.generateQrCode(UIColors.QR_CODE_BACKGROUND, UIColors.QR_CODE_FOREGROUND)
-    edtExecutor.transform(futureQrCode) {
-      model.qrCodeImage = it
-    }
+  private suspend fun generateQrCode(model: WiFiPairingModel) {
+    val qrCode = service.generateQrCode(UIColors.QR_CODE_BACKGROUND, UIColors.QR_CODE_FOREGROUND)
+    model.qrCodeImage = qrCode
   }
 
   private fun startPairingDevice(mdnsService: MdnsService, password: String) {
     state = State.Pairing
     view.showQrCodePairingInProgress(mdnsService)
-    val futurePairing = service.pairMdnsService(mdnsService, password)
-    futurePairing.transform(edtExecutor) { pairingResult ->
-      cancelIfDisposed()
-      view.showQrCodePairingWaitForDevice(pairingResult)
-      pairingResult
-    }.transformAsync(edtExecutor) { pairingResult ->
-      cancelIfDisposed()
-      service.waitForDevice(pairingResult)
-    }.transform(edtExecutor) { device ->
-      cancelIfDisposed()
-      state = State.PairingSuccess
-      view.showQrCodePairingSuccess(mdnsService, device)
-    }.catching(edtExecutor, Throwable::class.java) { error ->
-      if (!isCancelled(error)) {
-        LOG.warn("Error pairing device ${mdnsService}", error)
-        state = State.PairingError
-        view.showQrCodePairingError(mdnsService, error)
+    scope.launch(uiThread(ModalityState.any())) {
+      try {
+        val pairingResult = service.pairMdnsService(mdnsService, password)
+        view.showQrCodePairingWaitForDevice(pairingResult)
+        val device = service.waitForDevice(pairingResult)
+        state = State.PairingSuccess
+        view.showQrCodePairingSuccess(mdnsService, device)
+      } catch(error: Throwable) {
+        if (!isCancelled(error)) {
+          LOG.warn("Error pairing device ${mdnsService}", error)
+          state = State.PairingError
+          view.showQrCodePairingError(mdnsService, error)
+        }
       }
     }
   }
@@ -98,28 +90,23 @@ class QrCodeScanningController(private val service: WiFiPairingService,
     return error is CancellationException
   }
 
-  private fun cancelIfDisposed() {
-    if (state == State.Disposed) {
-      throw CancellationException("Object has been disposed")
-    }
-  }
-
   private fun pollMdnsServices() {
-    // Don't start a new polling request if we are not in "polling" mode
-    if (state != State.Polling) {
-      return
-    }
+    scope.launch {
+      // Don't start a new polling request if we are not in "polling" mode
+      while (state == State.Polling) {
+        try {
+          val services = service.scanMdnsServices()
+          withContext(uiThread(ModalityState.any())) {
+            view.model.pairingCodeServices = services.filter { it.serviceType == ServiceType.PairingCode }
+            view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
+          }
+        } catch (e: Throwable) {
+          //TODO: Should we show an error to the user?
+          LOG.warn("Error scanning mDNS services", e)
+        }
 
-    val futureServices = service.scanMdnsServices()
-    edtExecutor.transform(futureServices) { services ->
-      view.model.pairingCodeServices = services.filter { it.serviceType == ServiceType.PairingCode }
-      view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
-    }.catching(edtExecutor, Throwable::class.java) {
-      //TODO: Display/log error
-    }.finallySync(edtExecutor) {
-      // Run again in 1 second, unless we are disposed
-      if (!Disposer.isDisposed(this)) {
-        pollingAlarm.addRequest({ pollMdnsServices() }, 1_000)
+        // Run again in 1 second, unless we are disposed
+        delay(Duration.ofSeconds(1))
       }
     }
   }
@@ -138,7 +125,7 @@ class QrCodeScanningController(private val service: WiFiPairingService,
     override fun onScanAnotherQrCodeDeviceAction() {
       when(state) {
         State.PairingError, State.PairingSuccess -> {
-          startPairingProcess()
+          scope.launch(uiThread(ModalityState.any())) {  startPairingProcess() }
         }
         else -> {
           // Ignore

@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
   </component>
 </module>

@@ -17,12 +17,9 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.ddmlib.TimeoutRemainder
 import com.android.tools.idea.flags.StudioFlags
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 
 /**
  * Project level [Service] to support ADB over Wi-Fi pairing
@@ -34,20 +31,16 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
     fun getInstance(project: Project) = project.getService(PairDevicesUsingWiFiService::class.java)!!
   }
 
-  private val edtExecutor by lazy { EdtExecutorService.getInstance() }
-
-  private val taskExecutor by lazy { AppExecutorUtil.getAppExecutorService() }
-
   private val timeProvider: TimeoutRemainder.SystemNanoTimeProvider by lazy { TimeoutRemainder.DefaultSystemNanoTime() }
 
   private val randomProvider by lazy { RandomProvider() }
 
   private val adbService: AdbServiceWrapper by lazy {
-    AdbServiceWrapperImpl(project, timeProvider, MoreExecutors.listeningDecorator(taskExecutor))
+    AdbServiceWrapperImpl(project, timeProvider)
   }
 
   private val devicePairingService : WiFiPairingService by lazy {
-    WiFiPairingServiceImpl(randomProvider, adbService, taskExecutor)
+    WiFiPairingServiceImpl(randomProvider, adbService)
   }
 
   private val notificationService: WiFiPairingNotificationService by lazy {
@@ -61,7 +54,7 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   fun createPairingDialogController(): WiFiPairingController {
     val model = WiFiPairingModel()
     val view = WiFiPairingViewImpl(project, notificationService, model, WiFiPairingHyperlinkListener)
-    return WiFiPairingControllerImpl(project, this, edtExecutor, devicePairingService, notificationService, view)
+    return WiFiPairingControllerImpl(project, this, devicePairingService, notificationService, view)
   }
 
   val isFeatureEnabled: Boolean

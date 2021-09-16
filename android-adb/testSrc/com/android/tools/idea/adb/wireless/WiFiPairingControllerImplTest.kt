@@ -23,18 +23,16 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.util.LineSeparator
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -56,20 +54,16 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @get:Rule
   val portableUiFontRule = SetPortableUiFontRule()
 
-  private val edtExecutor by lazy { EdtExecutorService.getInstance() }
-
-  private val taskExecutor by lazy { AppExecutorUtil.getAppExecutorService() }
-
   private val timeProvider: MockNanoTimeProvider by lazy { MockNanoTimeProvider() }
 
   private val randomProvider by lazy { MockRandomProvider() }
 
   private val adbService = mockOrActual<AdbServiceWrapper> {
-    AdbServiceWrapperImpl(project, timeProvider, MoreExecutors.listeningDecorator(taskExecutor))
+    AdbServiceWrapperImpl(project, timeProvider)
   }
 
   private val devicePairingService: WiFiPairingService by lazy {
-    WiFiPairingServiceImpl(randomProvider, adbService.instance, taskExecutor)
+    WiFiPairingServiceImpl(randomProvider, adbService.instance)
   }
 
   private val notificationService: MockWiFiPairingNotificationService by lazy {
@@ -83,8 +77,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   private val controller: WiFiPairingControllerImpl by lazy {
-    WiFiPairingControllerImpl(project, testRootDisposable, edtExecutor, devicePairingService, notificationService, view,
-                              pairingCodePairingControllerFactory = { createPairingCodePairingController(it) })
+    WiFiPairingControllerImpl(project, testRootDisposable, devicePairingService, notificationService, view) {
+      createPairingCodePairingController(it)
+    }
   }
 
   private val testTimeUnit = TimeUnit.SECONDS
@@ -105,7 +100,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     val view = MockPairingCodePairingView(project, notificationService, model).also {
       lastPairingCodeView = it
     }
-    return PairingCodePairingController(edtExecutor, devicePairingService, view).also {
+    return PairingCodePairingController(project.coroutineScope, devicePairingService, view).also {
       lastPairingCodeController = it
     }
   }
@@ -127,16 +122,18 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   fun viewShouldShowErrorIfMdnsCheckIsNotSupported() {
     // Prepare
     adbService.useMock = true
-    Mockito
-      .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf("unknown command"))))
+    runBlocking {
+      Mockito
+        .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+        .thenReturn(AdbCommandResult(1, listOf(), listOf("unknown command")))
 
-    // Act
-    createModalDialogAndInteractWithIt({ controller.showDialog() }) {
-      // Assert
-      pumpAndWait(view.showDialogTracker.consume())
-      pumpAndWait(view.startMdnsCheckTracker.consume())
-      pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
+      // Act
+      createModalDialogAndInteractWithIt({ controller.showDialog() }) {
+        // Assert
+        pumpAndWait(view.showDialogTracker.consume())
+        pumpAndWait(view.startMdnsCheckTracker.consume())
+        pumpAndWait(view.showMdnsNotSupportedByAdbErrorTracker.consume())
+      }
     }
   }
 
@@ -166,12 +163,12 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun viewShouldShowErrorIfMdnsCheckFails() {
+  fun viewShouldShowErrorIfMdnsCheckFails() = runBlocking {
     // Prepare
     adbService.useMock = true
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(1, listOf(), listOf())))
+      .thenReturn(AdbCommandResult(1, listOf(), listOf()))
 
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
@@ -183,12 +180,12 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun viewShouldShowErrorIfMdnsCheckReturnsRandomText() {
+  fun viewShouldShowErrorIfMdnsCheckReturnsRandomText() = runBlocking {
     // Prepare
     adbService.useMock = true
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns daemon unavailable"), listOf()))
 
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
@@ -200,12 +197,12 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun viewShouldShowQrCodeIfMdnsCheckSucceeds() {
+  fun viewShouldShowQrCodeIfMdnsCheckSucceeds() = runBlocking {
     // Prepare
     adbService.useMock = true
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
@@ -241,7 +238,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
    *
    */
   @Test
-  fun controllerShouldPairDeviceUsingQrCodeOnceItShowsUp() {
+  fun controllerShouldPairDeviceUsingQrCodeOnceItShowsUp() = runBlocking {
     // Prepare
     randomProvider.seed = 10 // some arbitrary number
     val generatedServiceName = "studio-+8nkUqLWv2" // Depends on seed above
@@ -259,22 +256,22 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     adbService.useMock = true
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf(), listOf()))) // Simulate user taking some time to scan
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf(), listOf()))) // Simulate user taking some time to scan
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), generatedPassword + newLine()))
-      .thenReturn(Futures.immediateFuture(
-        AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf())))
+      .thenReturn(
+        AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
     Mockito
       .`when`(adbService.instance.waitForOnlineDevice(any()))
-      .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
+      .thenReturn(phoneDeviceInfo)
 
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
@@ -338,7 +335,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
    *
    */
   @Test
-  fun controllerShouldPairDeviceUsingPairingCodeOnceItShowsUp() {
+  fun controllerShouldPairDeviceUsingPairingCodeOnceItShowsUp() = runBlocking {
     // Prepare
     val phoneIpAddress = "192.168.1.86"
     val phonePairingPort = 37313
@@ -353,22 +350,22 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     adbService.useMock = true
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf(), listOf()))) // Simulate user taking some time to scan
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf(), listOf()))) // Simulate user taking some time to scan
-      .thenReturn(Futures.immediateFuture(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf())))
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
+      .thenReturn(AdbCommandResult(0, listOf("List of discovered mdns services", phonePairingString), listOf()))
 
     Mockito
       .`when`(adbService.instance.executeCommand(listOf("pair", "${phoneIpAddress}:${phonePairingPort}"), phonePairingCode + newLine()))
-      .thenReturn(Futures.immediateFuture(
-        AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf())))
+      .thenReturn(
+        AdbCommandResult(0, listOf("Successfully paired to ${phoneIpAddress}:${phoneConnectPort} [guid=${phoneServiceName}]"), listOf()))
 
     Mockito
       .`when`(adbService.instance.waitForOnlineDevice(any()))
-      .thenReturn(Futures.immediateFuture(phoneDeviceInfo))
+      .thenReturn(phoneDeviceInfo)
 
     fun enterPairingCode(pairingCodeDialog: DialogWrapper, @Suppress("SameParameterValue") phonePairingCode: String) {
       val pairingView = lastPairingCodeView ?: throw AssertionError("Pairing Code Pairing View show be set")

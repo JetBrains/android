@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
     ],
 )
 

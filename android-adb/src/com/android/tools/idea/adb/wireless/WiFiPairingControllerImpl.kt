@@ -16,38 +16,36 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.Executor
+import kotlinx.coroutines.launch
 
 @UiThread
 class WiFiPairingControllerImpl(private val project: Project,
                                 parentDisposable: Disposable,
-                                edtExecutor: Executor,
                                 private val pairingService: WiFiPairingService,
                                 private val notificationService: WiFiPairingNotificationService,
                                 private val view: WiFiPairingView,
                                 private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
-                                       createPairingCodePairingController(project, edtExecutor, pairingService, notificationService, it)
-                                     }
+                                  createPairingCodePairingController(project, pairingService, notificationService, it)
+                                }
 ) : WiFiPairingController {
   companion object {
     fun createPairingCodePairingController(project: Project,
-                                           edtExecutor: Executor,
                                            pairingService: WiFiPairingService,
                                            notificationService: WiFiPairingNotificationService,
                                            mdnsService: MdnsService): PairingCodePairingController {
       val model = PairingCodePairingModel(mdnsService)
       val view = PairingCodePairingViewImpl(project, notificationService, model)
-      return PairingCodePairingController(edtExecutor, pairingService, view)
+      return PairingCodePairingController(project.coroutineScope, pairingService, view)
     }
   }
 
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val qrCodeScanningController = QrCodeScanningController(pairingService, view, edtExecutor, this)
+  private val qrCodeScanningController = QrCodeScanningController(pairingService, view, this)
 
   private val viewListener = MyViewListener(this)
 
@@ -67,8 +65,9 @@ class WiFiPairingControllerImpl(private val project: Project,
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    pairingService.checkMdnsSupport().transform(edtExecutor) { supportState ->
-      when(supportState) {
+    project.coroutineScope.launch(uiThread(ModalityState.any())) {
+      val supportState = pairingService.checkMdnsSupport()
+      when (supportState) {
         MdnsSupportState.Supported -> {
           view.showMdnsCheckSuccess()
           qrCodeScanningController.startPairingProcess()
