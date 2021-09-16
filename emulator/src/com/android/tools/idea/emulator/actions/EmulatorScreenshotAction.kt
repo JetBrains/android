@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.ddms.screenshot.FramingOption
 import com.android.tools.idea.ddms.screenshot.ScreenshotImage
@@ -34,6 +33,7 @@ import com.google.common.base.Throwables
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.awt.AlphaComposite
-import java.awt.EventQueue
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -85,7 +84,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
         val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
 
-        EventQueue.invokeLater {
+        ApplicationManager.getApplication().invokeLater {
           showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer)
         }
       }
@@ -149,7 +148,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       val h = image.height
       val skin = skinDefinition.createScaledLayout(w, h, SkinRotation.forNumber(screenshotImage.screenRotationQuadrants))
       if (framingOption == null) {
-        val result = createDipImage(w, h, BufferedImage.TYPE_INT_ARGB)
+        @Suppress("UndesirableClassUsage")
+        val result = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
         val graphics = result.createGraphics()
         graphics.drawImage(image, null, 0, 0)
         graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
@@ -160,7 +160,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       }
 
       val frameRectangle = skin.frameRectangle
-      val result = createDipImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
+      @Suppress("UndesirableClassUsage")
+      val result = BufferedImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
       val graphics = result.createGraphics()
       val displayRectangle = Rectangle(-frameRectangle.x, -frameRectangle.y, w, h)
       graphics.drawImage(image, null, displayRectangle.x, displayRectangle.y)
