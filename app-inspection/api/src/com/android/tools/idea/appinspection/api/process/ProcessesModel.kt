@@ -126,7 +126,7 @@ class ProcessesModel(
   @TestOnly
   fun addSelectedProcessListeners(listener: () -> Unit) = addSelectedProcessListeners(MoreExecutors.directExecutor(), listener)
 
-  private val processListener = object : ProcessListener {
+  private val processListener = object : SimpleProcessListener() {
     override fun onProcessConnected(process: ProcessDescriptor) {
       if (!acceptProcess(process)) return
 

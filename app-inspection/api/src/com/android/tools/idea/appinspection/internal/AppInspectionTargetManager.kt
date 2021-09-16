@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.createChildScope
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap
 internal class AppInspectionTargetManager internal constructor(
   private val transportClient: TransportClient,
   parentScope: CoroutineScope
-) : ProcessListener {
+) : SimpleProcessListener() {
   private val scope = parentScope.createChildScope(true)
 
   @VisibleForTesting

@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.api
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -28,6 +29,8 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -93,7 +96,7 @@ class AppInspectionProcessDiscoveryTest {
   @Test
   fun makeNewConnectionFiresListener() {
     val latch = CountDownLatch(1)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
@@ -118,7 +121,7 @@ class AppInspectionProcessDiscoveryTest {
 
     val latch = CountDownLatch(1)
     val processesList = mutableListOf<ProcessDescriptor>()
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processesList.add(process)
         latch.countDown()
@@ -142,7 +145,7 @@ class AppInspectionProcessDiscoveryTest {
   fun processDisconnectNotifiesListener() {
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
@@ -166,7 +169,7 @@ class AppInspectionProcessDiscoveryTest {
   fun deviceDisconnectNotifiesListener() {
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
@@ -191,7 +194,7 @@ class AppInspectionProcessDiscoveryTest {
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessLatch.count > 0) {
           firstProcessLatch.countDown()
@@ -222,7 +225,7 @@ class AppInspectionProcessDiscoveryTest {
   @Test
   fun twoProcessWithSamePidFromDifferentStream() {
     val latch = CountDownLatch(2)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
@@ -249,7 +252,7 @@ class AppInspectionProcessDiscoveryTest {
   @Test
   fun processesRunningOnTwoIdenticalDeviceModels() {
     val latch = CountDownLatch(2)
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         latch.countDown()
       }
@@ -280,7 +283,7 @@ class AppInspectionProcessDiscoveryTest {
   fun discoveryFiltersProcessByDeviceApiLevel() {
     val latch = CountDownLatch(1)
     lateinit var processDescriptor: ProcessDescriptor
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processDescriptor = process
         latch.countDown()
@@ -333,7 +336,7 @@ class AppInspectionProcessDiscoveryTest {
     val processDisconnectLatch = CountDownLatch(1)
     var firstProcessTimestamp: Long? = null
     var secondProcessTimestamp: Long? = null
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         if (firstProcessReadyLatch.count > 0) {
           firstProcessTimestamp = timer.currentTimeNs
@@ -381,7 +384,7 @@ class AppInspectionProcessDiscoveryTest {
     val latch = CountDownLatch(1)
     var reportedProcessCount = 0
     lateinit var processDescriptor: ProcessDescriptor
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         reportedProcessCount++
         processDescriptor = process
@@ -410,10 +413,11 @@ class AppInspectionProcessDiscoveryTest {
   fun discoverDevices() {
     val processConnectLatch = CountDownLatch(1)
 
-    appInspectionRule.addProcessListener(object : ProcessListener {
+    appInspectionRule.addProcessListener(object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
+
       override fun onProcessDisconnected(process: ProcessDescriptor) {}
     })
 
@@ -431,5 +435,44 @@ class AppInspectionProcessDiscoveryTest {
 
     assertThat(appInspectionRule.processDiscovery.devices.map { it.toString() })
       .containsExactly(fakeDevice1.toDeviceDescriptor().toString(), fakeDevice2.toDeviceDescriptor().toString())
+  }
+
+  @Test
+  fun addListenerWithFilter() = runBlocking<Unit> {
+    val processConnectedDeferred = CompletableDeferred<String>()
+
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override val filter: (ProcessDescriptor) -> Boolean = { process -> process.name == "name2" }
+
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processConnectedDeferred.complete(process.name)
+      }
+
+      override fun onProcessDisconnected(process: ProcessDescriptor) {}
+    })
+
+    // Launch stream 1
+    val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
+    launchFakeDevice(fakeDevice1)
+    launchFakeProcess(
+      fakeDevice1,
+      FakeTransportService.FAKE_PROCESS.toBuilder().apply {
+        deviceId = 1
+        name = "name1"
+      }.build()
+    )
+
+    // Launch process with same pid in stream 2
+    val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
+    launchFakeDevice(fakeDevice2)
+    launchFakeProcess(
+      fakeDevice2,
+      FakeTransportService.FAKE_PROCESS.toBuilder().apply {
+        name = "name2"
+        deviceId = 2
+      }.build()
+    )
+
+    assertThat(processConnectedDeferred.await()).isEqualTo("name2")
   }
 }

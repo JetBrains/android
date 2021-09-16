@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -272,7 +272,7 @@ class AppInspectionTargetTest {
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     val processReadyDeferred = CompletableDeferred<Unit>()
-    appInspectionRule.apiServices.processDiscovery.addProcessListener(MoreExecutors.directExecutor(), object : ProcessListener {
+    appInspectionRule.apiServices.processDiscovery.addProcessListener(MoreExecutors.directExecutor(), object : SimpleProcessListener() {
       override fun onProcessConnected(process: ProcessDescriptor) {
         processReadyDeferred.complete(Unit)
       }

@@ -17,8 +17,8 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
@@ -61,6 +61,7 @@ internal class AppInspectionProcessDiscovery(
   private data class StreamProcessIdPair(val streamId: Long, val pid: Int)
 
   private class ProcessData {
+    // All known debuggable processes
     @GuardedBy("processData")
     val processesMap = mutableMapOf<StreamProcessIdPair, ProcessDescriptor>()
 
@@ -132,11 +133,13 @@ internal class AppInspectionProcessDiscovery(
    */
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
-      processData.processesMap.computeIfAbsent(
-        StreamProcessIdPair(
-          streamChannel.stream.streamId, process.pid)) {
+      processData.processesMap.computeIfAbsent(StreamProcessIdPair(streamChannel.stream.streamId, process.pid)) {
         val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
-        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(descriptor) } }
+        processData.processListeners.forEach { (listener, executor) ->
+          if (listener.filter(descriptor)) {
+            executor.execute { listener.onProcessConnected(descriptor) }
+          }
+        }
         descriptor
       }
     }
