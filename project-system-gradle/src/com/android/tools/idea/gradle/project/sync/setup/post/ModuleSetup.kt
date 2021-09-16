@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isMainModule
 import com.android.tools.idea.project.AndroidRunConfigurations
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isLinkedAndroidModule
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.intellij.ProjectTopics
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
