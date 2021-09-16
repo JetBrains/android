@@ -95,7 +95,7 @@ class AndroidLiveEditCodeGenerator {
                                                       compilerConfiguration);
 
         if (useComposeIR) {
-          generationStateBuilder.codegenFactory(JvmIrCodegenFactory(PhaseConfig(jvmPhases)))
+          generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(PhaseConfig(jvmPhases)))
         }
 
         val generationState = generationStateBuilder.build();
