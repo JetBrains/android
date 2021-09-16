@@ -49,7 +49,7 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
       model.setLeadSelectionIndex(previousViewColumnIndex);
     }
     else {
-      Tables.selectPreviousRow(table);
+      Tables.selectPreviousOrLastRow(table);
 
       int lastViewColumnIndex = table.getColumnCount() - 1;
       model.setLeadSelectionIndex(lastViewColumnIndex);

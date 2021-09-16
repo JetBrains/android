@@ -67,7 +67,7 @@ public final class Tables {
     return table.getForeground();
   }
 
-  public static void selectNextRow(@NotNull JTable table) {
+  public static void selectNextOrFirstRow(@NotNull JTable table) {
     int viewRowIndex = table.getSelectedRow() + 1;
 
     if (viewRowIndex < table.getRowCount()) {
@@ -78,7 +78,15 @@ public final class Tables {
     }
   }
 
-  public static void selectPreviousRow(@NotNull JTable table) {
+  public static void selectNextRow(@NotNull JTable table) {
+    int viewRowIndex = table.getSelectedRow() + 1;
+
+    if (viewRowIndex < table.getRowCount()) {
+      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+    }
+  }
+
+  public static void selectPreviousOrLastRow(@NotNull JTable table) {
     int viewRowIndex = table.getSelectedRow() - 1;
 
     if (viewRowIndex < 0) {
@@ -86,6 +94,14 @@ public final class Tables {
     }
 
     table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+  }
+
+  public static void selectPreviousRow(@NotNull JTable table) {
+    int viewRowIndex = table.getSelectedRow() - 1;
+
+    if (viewRowIndex >= 0) {
+      table.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+    }
   }
 
   public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
