@@ -48,7 +48,6 @@ import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
@@ -324,7 +323,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
-    val image = createDipImage(size.width, size.height, TYPE_INT_ARGB)
+    val image = BufferedImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
     g.paint = Color.WHITE
     g.fillRect(0, 0, size.width, size.height) // Fill with white to avoid partial transparency due to antialiasing.
