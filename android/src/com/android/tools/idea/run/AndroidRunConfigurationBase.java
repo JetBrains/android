@@ -44,7 +44,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -249,11 +248,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public Collection<Module> getValidModules() {
     List<Module> result = new ArrayList<>();
-    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    for (Module module : modules) {
-      if (AndroidFacet.getInstance(module) != null) {
-        result.add(module);
-      }
+    // Return list of holder modules with android facets. On the moment of writing (22 Sep 2021) there seem to be no usages
+    // of this method. In case it changes in the future please make sure correct modules are returned here.
+    for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(getProject())) {
+      result.add(facet.getModule());
     }
     return result;
   }
