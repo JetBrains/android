@@ -18,9 +18,12 @@ package com.android.tools.idea.wearpairing
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
+import com.intellij.openapi.diagnostic.logger
 
 object WearPairingUsageTracker {
   fun log(eventKind: WearPairingEvent.EventKind) {
+    logger<WearPairingManager>().warn(eventKind.name)
+
     val event = WearPairingEvent.newBuilder()
       .setKind(eventKind)
       .build()
