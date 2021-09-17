@@ -146,7 +146,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
-    assertAppearance(ui, "AppearanceAndToolbarActions1", 1.5)
+    assertAppearance(ui, "AppearanceAndToolbarActions1", 0.08)
 
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
@@ -275,7 +275,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
     ui.updateToolbars()
-    assertAppearance(ui, "MultipleDisplays1", 2.6)
+    assertAppearance(ui, "MultipleDisplays1", 0.25)
 
     // Resize emulator display panels.
     ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
@@ -564,7 +564,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     ui.updateToolbars()
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent, maxSizeDifference = 0)
   }
 
   private fun getGoldenFile(name: String): Path {
