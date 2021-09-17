@@ -18,7 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
-import com.android.builder.model.AndroidProject
+import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
@@ -141,7 +141,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     val originalBuildRequest = builder(project, projectFolderPath, "assembleDebug").build()
     val checkJetifierRequest = createCheckJetifierTaskRequest(originalBuildRequest)
     val checkJetifierResultProperty = checkJetifierRequest.commandLineArguments.first {
-      it.contains(AndroidProject.PROPERTY_CHECK_JETIFIER_RESULT_FILE)
+      it.contains(PROPERTY_CHECK_JETIFIER_RESULT_FILE)
     }
     val expectedResultFile = checkJetifierResultFile(checkJetifierRequest)
     Truth.assertThat(checkJetifierResultProperty.substringAfter("=")).isEqualTo(expectedResultFile.absolutePath)

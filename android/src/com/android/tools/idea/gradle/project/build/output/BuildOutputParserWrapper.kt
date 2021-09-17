@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
@@ -91,8 +92,8 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
    */
   private fun getFileType(file: File): BuildErrorMessage.FileType {
     val filePath = if (file.isAbsolute) file.absolutePath else file.path
-    if (filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, AndroidProject.FD_GENERATED) + File.separatorChar) ||
-        filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, AndroidProject.FD_INTERMEDIATES) + File.separatorChar)) {
+    if (filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_GENERATED) + File.separatorChar) ||
+        filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_INTERMEDIATES) + File.separatorChar)) {
       return BuildErrorMessage.FileType.BUILD_GENERATED_FILE
     }
     return BuildErrorMessage.FileType.PROJECT_FILE
