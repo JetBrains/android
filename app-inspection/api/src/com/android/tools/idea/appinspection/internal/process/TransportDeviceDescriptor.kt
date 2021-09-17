@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,26 @@
 package com.android.tools.idea.appinspection.internal.process
 
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.profiler.proto.Common
 
-/**
- * A [ProcessDescriptor] implementation build using transport-related protos.
- */
-data class TransportProcessDescriptor(
-  override val device: DeviceDescriptor,
-  override val abiCpuArch: String,
-  override val name: String,
-  override val isRunning: Boolean,
-  override val pid: Int,
-  override val streamId: Long
-) : ProcessDescriptor {
-  constructor(
-    stream: Common.Stream,
-    process: Common.Process
-  ) : this(
-    stream.device.toDeviceDescriptor(),
-    process.abiCpuArch,
-    process.name,
-    process.state != Common.Process.State.DEAD,
-    process.pid,
-    stream.streamId
+private data class TransportDeviceDescriptor(
+  override val manufacturer: String,
+  override val model: String,
+  override val serial: String,
+  override val isEmulator: Boolean,
+  override val apiLevel: Int,
+  override val version: String,
+  override val codename: String?
+) : DeviceDescriptor {
+  constructor(device: Common.Device) : this(
+    device.manufacturer,
+    device.model,
+    device.serial,
+    device.isEmulator,
+    device.apiLevel,
+    device.version,
+    device.codename.takeUnless { it.isNullOrBlank() }
   )
 }
+
+fun Common.Device.toDeviceDescriptor(): DeviceDescriptor = TransportDeviceDescriptor(this)

@@ -197,7 +197,7 @@ class AppInspectionView @VisibleForTesting constructor(
 
   init {
     val edtExecutor = EdtExecutorService.getInstance()
-    processesModel = ProcessesModel(edtExecutor, apiServices.processNotifier, { it.isInspectable() }, isPreferredProcess)
+    processesModel = ProcessesModel(edtExecutor, apiServices.processDiscovery, { it.isInspectable() }, isPreferredProcess)
     Disposer.register(this, processesModel)
     selectProcessAction = SelectProcessAction(processesModel, onStopAction = { stopInspectors() })
     val group = DefaultActionGroup().apply { add(selectProcessAction) }

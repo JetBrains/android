@@ -23,7 +23,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -123,13 +123,13 @@ class LegacyClientProvider(
  * This includes things like fake ADB support, process management, and [InspectorClient] setup.
  *
  * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected client. You must first
- * call [TestProcessNotifier.fireConnected] (with a process that has a preferred process name) or
+ * call [TestProcessDiscovery.fireConnected] (with a process that has a preferred process name) or
  * [ProcessesModel.selectedProcess] directly, to trigger a new client to get created.
  *
  * @param projectRule A rule providing access to a test project. This shouldn't be annotated with `@Rule` by the caller,
  *     as this class will handle it.
  *
- * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessNotifier],
+ * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessDiscovery],
  *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
  *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
  */
@@ -152,7 +152,7 @@ class LayoutInspectorRule(
   /**
    * A notifier which acts as a source of processes being externally connected.
    */
-  val processNotifier = TestProcessNotifier()
+  val processNotifier = TestProcessDiscovery()
 
   /**
    * The underlying processes model, automatically affected by [processNotifier] but can be

@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessListener
-import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
@@ -76,7 +76,7 @@ class AppInspectionServiceRule(
   lateinit var transport: AppInspectionTransport
   lateinit var jarCopier: AppInspectionTestUtils.TestTransportJarCopier
   internal lateinit var targetManager: AppInspectionTargetManager
-  lateinit var processNotifier: ProcessNotifier
+  lateinit var processDiscovery: ProcessDiscovery
   lateinit var apiServices: AppInspectionApiServices
 
   private val defaultAttachHandler = object : CommandHandler(timer) {
@@ -102,8 +102,8 @@ class AppInspectionServiceRule(
     transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
-    processNotifier = AppInspectionProcessDiscovery(streamManager, scope)
-    apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processNotifier as AppInspectionProcessDiscovery)
+    processDiscovery = AppInspectionProcessDiscovery(streamManager, scope)
+    apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processDiscovery as AppInspectionProcessDiscovery)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
 
@@ -189,7 +189,7 @@ class AppInspectionServiceRule(
   }
 
   fun addProcessListener(listener: ProcessListener) {
-    processNotifier.addProcessListener(executorService, listener)
+    processDiscovery.addProcessListener(executorService, listener)
   }
 
   private fun addTransportEvent(initEvent: (Common.Event.Builder) -> Unit) {

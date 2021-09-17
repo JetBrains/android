@@ -130,10 +130,7 @@ class SelectProcessAction(
     removeAll()
 
     // Rebuild the action tree.
-    model.processes
-      .filter { process -> process.isRunning || supportsOffline }
-      .distinctBy { process -> process.device.serial }
-      .forEach { process -> add(DeviceAction(process.device)) }
+    model.devices.forEach { device -> add(DeviceAction(device)) }
 
     if (childrenCount == 0) {
       add(NO_DEVICE_ACTION)

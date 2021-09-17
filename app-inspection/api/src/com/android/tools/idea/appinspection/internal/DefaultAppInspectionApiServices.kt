@@ -32,7 +32,7 @@ internal class DefaultAppInspectionApiServices internal constructor(
   private val createJarCopier: JarCopierCreator,
   private val discovery: AppInspectionProcessDiscovery
 ) : AppInspectionApiServices {
-  override val processNotifier = discovery
+  override val processDiscovery = discovery
 
   override suspend fun disposeClients(project: String) {
     targetManager.disposeClients(project)

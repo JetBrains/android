@@ -30,7 +30,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
-import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -392,6 +392,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Suppress("SameParameterValue")
   private fun connect(process: ProcessDescriptor) {
+    inspectorRule.processNotifier.addDevice(process.device)
     inspectorRule.processNotifier.fireConnected(process)
   }
 }
@@ -422,7 +423,7 @@ class DeviceViewPanelTest {
   fun testZoomOnConnect() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
@@ -466,7 +467,7 @@ class DeviceViewPanelTest {
   fun testZoomOnConnectWithFiltering() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
@@ -497,7 +498,7 @@ class DeviceViewPanelTest {
   fun testDrawNewWindow() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
@@ -535,7 +536,7 @@ class DeviceViewPanelTest {
   fun testNewWindowDoesntResetZoom() {
     val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
@@ -575,7 +576,7 @@ class DeviceViewPanelTest {
   @Test
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
                                            MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
@@ -614,7 +615,7 @@ class DeviceViewPanelTest {
       }
     }
 
-    val processes = ProcessesModel(TestProcessNotifier())
+    val processes = ProcessesModel(TestProcessDiscovery())
     val launcher: InspectorClientLauncher = mock()
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))

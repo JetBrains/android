@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.appinspection.api.process
 
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import java.util.concurrent.Executor
 
 /**
  * Defines a listener that is fired when a new process becomes available or an existing one is
  * disconnected.
  */
-interface ProcessNotifier {
+interface ProcessDiscovery {
+  /**
+   * Returns a list of connected devices aware by the discovery layer.
+   */
+  val devices: List<DeviceDescriptor>
+
   /**
    * Adds a [ProcessListener] to this notifier. The [listener] will receive future connections
    * when they come online, triggered via the passed in [executor].

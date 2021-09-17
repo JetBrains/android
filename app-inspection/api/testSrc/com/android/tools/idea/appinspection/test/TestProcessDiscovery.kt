@@ -16,12 +16,15 @@
 package com.android.tools.idea.appinspection.test
 
 import com.android.tools.idea.appinspection.api.process.ProcessListener
-import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import java.util.concurrent.Executor
 
-class TestProcessNotifier: ProcessNotifier {
+class TestProcessDiscovery: ProcessDiscovery {
   private val listeners = mutableMapOf<ProcessListener, Executor>()
+  override val devices = mutableListOf<DeviceDescriptor>()
+
   override fun addProcessListener(executor: Executor, listener: ProcessListener) {
     listeners[listener] = executor
   }
@@ -29,6 +32,8 @@ class TestProcessNotifier: ProcessNotifier {
     listeners.remove(listener)
   }
 
+  fun addDevice(device: DeviceDescriptor) = devices.add(device)
+  fun removeDevice(device: DeviceDescriptor) = devices.remove(device)
   fun fireConnected(process: ProcessDescriptor) = fire { listener -> listener.onProcessConnected(process) }
   fun fireDisconnected(process: ProcessDescriptor) = fire { listener-> listener.onProcessDisconnected(process) }
   private fun fire(block: (ProcessListener) -> Unit) {

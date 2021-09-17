@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
@@ -38,14 +38,14 @@ typealias JarCopierCreator = (DeviceDescriptor) -> AppInspectionJarCopier?
  * potentially interesting processes and launch inspectors on them.
  *
  * It provides the following main utilities:
- * 1) Subscription to listening of processes in the transport pipeline via [processNotifier].
+ * 1) Subscription to listening of processes in the transport pipeline via [processDiscovery].
  * 2) A set of functions to support IDE use cases, for example disposing clients of a particular project, and launching an inspector.
  */
 interface AppInspectionApiServices {
   /**
    * Allows for the subscription of listeners to receive and track processes.
    */
-  val processNotifier: ProcessNotifier
+  val processDiscovery: ProcessDiscovery
 
   /**
    * Disposes all of the currently active inspector clients in [project].
