@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST;
 
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -151,15 +153,12 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
   }
 
   private void runOverSdkManifestElements(@NotNull BiConsumer<Module, UsesSdk> func) {
-    for (Module module : myModules) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        Manifest manifest = Manifest.getMainManifest(androidFacet);
-        if (manifest != null) {
-          // Read and remove the value of the property from manifest.
-          for (UsesSdk usesSdk : manifest.getUsesSdks()) {
-            func.accept(module, usesSdk);
-          }
+    for (AndroidFacet androidFacet : ProjectSystemUtil.getAndroidFacets(myProject)) {
+      Manifest manifest = Manifest.getMainManifest(androidFacet);
+      if (manifest != null) {
+        // Read and remove the value of the property from manifest.
+        for (UsesSdk usesSdk : manifest.getUsesSdks()) {
+          func.accept(getMainModule(androidFacet.getModule()), usesSdk);
         }
       }
     }
