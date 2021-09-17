@@ -1,12 +1,12 @@
-MODULE                        : project
-MODULE                        : project.app
+MODULE                        : kotlinMultiPlatform
+MODULE                        : kotlinMultiPlatform.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2050,14 +2050,14 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2
+MODULE                        : kotlinMultiPlatform.module2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2565,14 +2565,14 @@ MODULE                        : project.module2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidAndroidTest
+MODULE                        : kotlinMultiPlatform.module2.androidAndroidTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -3080,14 +3080,14 @@ MODULE                        : project.module2.androidAndroidTest
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidAndroidTestDebug
+MODULE                        : kotlinMultiPlatform.module2.androidAndroidTestDebug
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -3595,14 +3595,14 @@ MODULE                        : project.module2.androidAndroidTestDebug
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidAndroidTestRelease
+MODULE                        : kotlinMultiPlatform.module2.androidAndroidTestRelease
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4110,14 +4110,14 @@ MODULE                        : project.module2.androidAndroidTestRelease
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidDebug
+MODULE                        : kotlinMultiPlatform.module2.androidDebug
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4625,14 +4625,14 @@ MODULE                        : project.module2.androidDebug
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidDebugAndroidTest
+MODULE                        : kotlinMultiPlatform.module2.androidDebugAndroidTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5140,14 +5140,14 @@ MODULE                        : project.module2.androidDebugAndroidTest
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidDebugUnitTest
+MODULE                        : kotlinMultiPlatform.module2.androidDebugUnitTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5655,14 +5655,14 @@ MODULE                        : project.module2.androidDebugUnitTest
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidMain
+MODULE                        : kotlinMultiPlatform.module2.androidMain
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -6170,14 +6170,14 @@ MODULE                        : project.module2.androidMain
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidRelease
+MODULE                        : kotlinMultiPlatform.module2.androidRelease
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -6685,14 +6685,14 @@ MODULE                        : project.module2.androidRelease
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidReleaseUnitTest
+MODULE                        : kotlinMultiPlatform.module2.androidReleaseUnitTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -7200,14 +7200,14 @@ MODULE                        : project.module2.androidReleaseUnitTest
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidTest
+MODULE                        : kotlinMultiPlatform.module2.androidTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -7715,14 +7715,14 @@ MODULE                        : project.module2.androidTest
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidTestDebug
+MODULE                        : kotlinMultiPlatform.module2.androidTestDebug
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -8230,14 +8230,14 @@ MODULE                        : project.module2.androidTestDebug
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.androidTestRelease
+MODULE                        : kotlinMultiPlatform.module2.androidTestRelease
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -8745,14 +8745,14 @@ MODULE                        : project.module2.androidTestRelease
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.commonMain
+MODULE                        : kotlinMultiPlatform.module2.commonMain
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -9260,14 +9260,14 @@ MODULE                        : project.module2.commonMain
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.commonTest
+MODULE                        : kotlinMultiPlatform.module2.commonTest
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
