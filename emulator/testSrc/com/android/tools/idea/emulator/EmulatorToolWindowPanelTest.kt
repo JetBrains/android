@@ -564,7 +564,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     ui.updateToolbars()
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent, maxSizeDifference = 0)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
   }
 
   private fun getGoldenFile(name: String): Path {
