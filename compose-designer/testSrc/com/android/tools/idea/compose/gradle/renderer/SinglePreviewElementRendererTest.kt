@@ -56,7 +56,8 @@ class SinglePreviewElementRendererTest {
     assertImageSimilar(
       Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
       defaultRender,
-      0.1
+      0.1,
+      1
     )
   }
 
@@ -76,7 +77,8 @@ class SinglePreviewElementRendererTest {
     assertImageSimilar(
       Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
       defaultRenderWithBackground,
-      0.1
+      0.1,
+      1
     )
   }
 
@@ -92,7 +94,8 @@ class SinglePreviewElementRendererTest {
     assertImageSimilar(
       Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withEnUsLocale.png"),
       defaultRenderWithLocale,
-      0.1
+      0.1,
+      1
     )
   }
 
