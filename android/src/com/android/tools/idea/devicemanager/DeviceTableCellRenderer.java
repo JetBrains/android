@@ -74,13 +74,13 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
       .addPreferredGap(ComponentPlacement.RELATED)
       .addGroup(layout.createParallelGroup()
                   .addGroup(layout.createSequentialGroup()
-                              .addComponent(myNameLabel)
+                              .addComponent(myNameLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                               .addPreferredGap(ComponentPlacement.RELATED)
                               .addComponent(myOnlineLabel))
-                  .addComponent(myLine2Label))
-      .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addComponent(myLine2Label, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+      .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addComponent(myPairedLabel)
-      .addGap(JBUIScale.scale(8));
+      .addGap(JBUIScale.scale(4));
 
     Group verticalGroup = layout.createParallelGroup(Alignment.CENTER)
       .addGroup(layout.createSequentialGroup()
@@ -130,6 +130,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
       boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()) != null;
       setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
+      myPairedLabel.setVisible(paired);
     }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
