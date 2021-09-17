@@ -167,9 +167,24 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     JMenuItem item = new JBMenuItem("Pair device");
 
     assert myDevice != null;
-    item.setEnabled(myDevice.getType().equals(DeviceType.PHONE) && myDevice.isOnline());
+    boolean phone = myDevice.getType().equals(DeviceType.PHONE);
+    boolean online = myDevice.isOnline();
 
-    item.setToolTipText("Connect to a physical device using ADB over Wi-Fi.");
+    item.setEnabled(phone && online);
+
+    String key;
+
+    if (phone && online) {
+      key = "wear.assistant.device.list.tooltip.ok";
+    }
+    else if (phone) {
+      key = "wear.assistant.device.list.tooltip.offline";
+    }
+    else {
+      key = "wear.assistant.device.list.tooltip.unsupported";
+    }
+
+    item.setToolTipText(AndroidBundle.message(key));
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
