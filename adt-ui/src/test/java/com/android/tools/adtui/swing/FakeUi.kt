@@ -49,7 +49,7 @@ import javax.swing.SwingUtilities
 /**
  * A utility class to interact with Swing components in unit tests.
  *
- * @param root the top-level component component
+ * @param root the top-level component
  * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
  */
 class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0, createFakeWindow: Boolean = false) {
