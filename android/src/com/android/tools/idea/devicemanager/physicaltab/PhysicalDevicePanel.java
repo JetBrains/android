@@ -20,7 +20,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanelMouseListener;
+import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -155,7 +155,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   private void initTable(@NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable) {
     myTable = newPhysicalDeviceTable.apply(this);
-    myTable.addMouseListener(new DetailsPanelPanelMouseListener<>(this));
+    myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {

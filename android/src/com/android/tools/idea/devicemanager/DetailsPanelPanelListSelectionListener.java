@@ -15,31 +15,21 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Optional;
-import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
 
-public final class DetailsPanelPanelMouseListener<D> extends MouseAdapter {
+public final class DetailsPanelPanelListSelectionListener<D> implements ListSelectionListener {
   private final @NotNull DetailsPanelPanel<@NotNull D> myPanel;
 
-  public DetailsPanelPanelMouseListener(@NotNull DetailsPanelPanel<@NotNull D> panel) {
+  public DetailsPanelPanelListSelectionListener(@NotNull DetailsPanelPanel<@NotNull D> panel) {
     myPanel = panel;
   }
 
   @Override
-  public void mousePressed(@NotNull MouseEvent event) {
-    if (!((Component)event.getSource()).isEnabled()) {
-      return;
-    }
-
-    if (!SwingUtilities.isLeftMouseButton(event)) {
-      return;
-    }
-
-    if (event.isConsumed()) {
+  public void valueChanged(@NotNull ListSelectionEvent event) {
+    if (event.getValueIsAdjusting()) {
       return;
     }
 
