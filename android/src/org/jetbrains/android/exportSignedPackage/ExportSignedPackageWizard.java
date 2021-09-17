@@ -16,6 +16,11 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.android.builder.model.InjectedProperties.PROPERTY_APK_LOCATION;
+import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_KEY_ALIAS;
+import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_KEY_PASSWORD;
+import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_STORE_FILE;
+import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_STORE_PASSWORD;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -27,7 +32,6 @@ import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTracke
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOkAction;
 import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOpen;
 
-import com.android.builder.model.AndroidProject;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
@@ -239,12 +243,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = Lists.newArrayList();
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
+        projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties
-          .add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+          .add(createProperty(PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
+        projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        projectProperties.add(createProperty(PROPERTY_APK_LOCATION, myApkPath));
 
         assert myProject != null;
 
@@ -308,7 +312,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
                       ", destination: " +
-                      createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+                      createProperty(PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {

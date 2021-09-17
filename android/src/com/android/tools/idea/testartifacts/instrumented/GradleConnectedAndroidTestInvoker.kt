@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.builder.model.AndroidProject
+import com.android.builder.model.PROPERTY_BUILD_ABI
+import com.android.builder.model.PROPERTY_BUILD_API
+import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
+import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
@@ -300,17 +303,17 @@ class GradleConnectedAndroidTestInvoker(
 
     val deviceSpecificArguments = mutableListOf<String>()
     deviceSpec.commonVersion?.let { version ->
-      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_API, version.apiLevel.toString()))
+      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
       version.codename?.let { codename ->
-        deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_API_CODENAME, codename))
+        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
       }
     }
 
     deviceSpec.density?.let { density ->
-      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_DENSITY, density.resourceValue))
+      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_DENSITY, density.resourceValue))
     }
     if (deviceSpec.abis.isNotEmpty()) {
-      deviceSpecificArguments.add(createProjectProperty(AndroidProject.PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
+      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
     }
 
     return deviceSpecificArguments
