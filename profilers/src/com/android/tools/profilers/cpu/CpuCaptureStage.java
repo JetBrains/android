@@ -150,7 +150,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
-  private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
+  private final List<CpuAnalysisModel<?>> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
   private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
@@ -240,7 +240,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @NotNull
-  public List<CpuAnalysisModel> getAnalysisModels() {
+  public List<CpuAnalysisModel<?>> getAnalysisModels() {
     return myAnalysisModels;
   }
 
