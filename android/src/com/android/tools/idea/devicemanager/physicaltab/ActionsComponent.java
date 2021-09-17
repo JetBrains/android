@@ -149,9 +149,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
   }
 
   @NotNull Optional<@NotNull Component> getFirstEnabledComponentAfterFocusOwner() {
-    OptionalInt index = IntStream.range(0, getComponentCount())
-      .filter(i -> getComponent(i).isFocusOwner())
-      .findFirst();
+    OptionalInt index = indexOfFocusOwner();
 
     if (!index.isPresent()) {
       return Optional.empty();
@@ -171,5 +169,11 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
 
     assert i >= 0;
     return getLastEnabledComponent(i - 1);
+  }
+
+  @NotNull OptionalInt indexOfFocusOwner() {
+    return IntStream.range(0, getComponentCount())
+      .filter(index -> getComponent(index).isFocusOwner())
+      .findFirst();
   }
 }
