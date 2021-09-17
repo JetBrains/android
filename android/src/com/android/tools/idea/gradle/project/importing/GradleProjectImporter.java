@@ -112,27 +112,7 @@ public class GradleProjectImporter {
       importProjectNoSync(new Request(newProject));
       ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
-        new OpenProjectTask(
-          forceOpenInNewFrame,
-          projectToClose,
-          false,
-          false,
-          newProject,
-          null,
-          true,
-          null,
-          null,
-          -1,
-          -1,
-          true,
-          false,
-          true,
-          null,
-          false,
-          false,
-          null,
-          null,
-          null));
+        OpenProjectTask.withProjectToClose(newProject, projectToClose, forceOpenInNewFrame));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
