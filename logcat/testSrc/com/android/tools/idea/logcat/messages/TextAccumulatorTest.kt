@@ -50,17 +50,4 @@ class TextAccumulatorTest {
     assertThat(buffer.text).isEqualTo("foo-blue-bar-red")
     assertThat(buffer.ranges).containsExactly(HighlighterRange(4, 8, blue), HighlighterRange(13, 16, red))
   }
-
-  @Test
-  fun clear() {
-    val buffer = TextAccumulator()
-
-    buffer.accumulate("foo", blue)
-    buffer.clear()
-    buffer.accumulate("bar", red)
-
-    assertThat(buffer.text).isEqualTo("bar")
-    assertThat(buffer.ranges).containsExactly(HighlighterRange(0, 3, red))
-  }
-
 }

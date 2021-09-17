@@ -32,11 +32,6 @@ internal class TextAccumulator {
     stringBuilder.append(text)
     textAttributes?.let { ranges.add(HighlighterRange(start, start + text.length, it)) }
   }
-
-  fun clear() {
-    stringBuilder.clear()
-    ranges.clear()
-  }
 }
 
 /**

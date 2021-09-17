@@ -19,46 +19,85 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+import java.time.Clock
 
 const val CHANNEL_CAPACITY = 10
+const val MAX_TIME_PER_BATCH_MS = 100
+const val MAX_MESSAGES_PER_BATCH = 5000
+
+private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 
 /**
  * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
 internal class MessageProcessor(
-  parentDisposable: Disposable,
+  private val parentDisposable: Disposable,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
   private val appendMessages: suspend (TextAccumulator) -> Unit,
+  private val clock: Clock = Clock.systemDefaultZone(),
+  private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
+  private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
-  private val channel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
+  private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
   init {
+    processMessageChannel()
+  }
+
+  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
+    messageChannel.send(messages)
+  }
+
+  // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
+  @Suppress("EXPERIMENTAL_API_USAGE")
+  @TestOnly
+  internal fun isChannelEmpty() = messageChannel.isEmpty
+
+  private fun processMessageChannel() {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
       thisLogger().error("Error processing logcat message", e)
     }
     AndroidCoroutineScope(parentDisposable, workerThread).launch(exceptionHandler) {
-      val textAccumulator = TextAccumulator()
+      // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
+      var textAccumulator = TextAccumulator()
+      var totalMessages = 0 // Number of messages in current batch
+      var numMessages = 0 // Number of messages in current batch
+      var lastFlushTime = 0L // The last time we flushed a batch
+      var startTime = 0L // Time of arrival of the first message - used in debug log
+
       while (true) {
-        // This may seem like overkill, but it will become clear with next cl where multiple results from channel.receive() are added to a
-        // single TextAccumulator before it's sent to the UI thread.
-        formatMessagesInto(textAccumulator, channel.receive())
-        appendMessages(textAccumulator)
-        textAccumulator.clear()
+        val messages = messageChannel.receive()
+        if (startTime == 0L) {
+          startTime = clock.millis()
+          lastFlushTime = startTime
+        }
+        numMessages += messages.size
+        totalMessages += messages.size
+        formatMessagesInto(textAccumulator, messages)
+
+        // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
+        @Suppress("EXPERIMENTAL_API_USAGE")
+        if (messageChannel.isEmpty || clock.millis() - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
+          appendMessages(textAccumulator)
+          val now = clock.millis()
+          logger.debug {
+            val timeSinceStart = now - startTime
+            val timeSinceLastFlush = now - lastFlushTime
+            "timeSinceStart: $timeSinceStart timeSinceLastFlush (ms): $timeSinceLastFlush  numMessages: $numMessages totalMessages=$totalMessages"
+          }
+          textAccumulator = TextAccumulator()
+          lastFlushTime = now
+          numMessages = 0
+        }
       }
     }
   }
-
-  internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    channel.send(messages)
-  }
-
-  @Suppress("EXPERIMENTAL_API_USAGE")
-  @TestOnly
-  internal fun isChannelEmpty() = channel.isEmpty
 }
