@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceExplorerViewServiceInvokeLater;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Tables;
@@ -68,7 +69,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
 
   ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel) {
     this(panel,
-         DeviceExplorerViewService::getInstance,
+         DeviceExplorerViewServiceInvokeLater::new,
          EditDeviceNameDialog::new,
          ActionsTableCellEditor::askWithRemoveDeviceDialog,
          Tables::getBorder);
