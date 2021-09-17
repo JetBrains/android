@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -138,7 +139,9 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 423 height: 740")
+    assertThat(shortDebugString(call.request)).isEqualTo(
+      // Available space is slightly wider on Mac due to a narrower scrollbar.
+      if (SystemInfo.isMac) "format: RGB888 width: 427 height: 740" else "format: RGB888 width: 423 height: 740")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
