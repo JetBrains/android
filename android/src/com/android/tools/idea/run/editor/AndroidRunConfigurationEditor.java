@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
@@ -95,6 +96,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
         final AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet == null) {
+          return false;
+        }
+
+        if (!ModuleSystemUtil.isMainModule(module)) {
           return false;
         }
 
