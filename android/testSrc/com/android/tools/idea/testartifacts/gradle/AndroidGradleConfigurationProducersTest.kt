@@ -44,7 +44,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testCanCreateGradleConfigurationFromTestDirectory() {
+  //TODO(b/194634663): enable this test once the bug is fixed.
+  fun ignored_testCanCreateGradleConfigurationFromTestDirectory() {
     loadSimpleApplication()
     TestCase.assertNotNull(createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java"))
   }
@@ -56,7 +57,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testCanCreateGradleConfigurationFromTestDirectoryKotlin() {
+  //TODO(b/194634663): enable this test once the bug is fixed.
+  fun ignored_testCanCreateGradleConfigurationFromTestDirectoryKotlin() {
     loadProject(TEST_ARTIFACTS_KOTLIN)
     TestCase.assertNotNull(createAndroidGradleConfigurationFromDirectory(
       project, "app/src/test/java"))
