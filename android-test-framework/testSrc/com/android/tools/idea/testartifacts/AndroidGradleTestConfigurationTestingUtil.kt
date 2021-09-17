@@ -50,7 +50,12 @@ fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiEle
   runManager.addConfiguration(settings)
 
   val configuration = settings.configuration
-  if (configuration is GradleRunConfiguration) return configuration else return null
+  if (configuration !is GradleRunConfiguration) return null
+  val tasksToRun = configuration.settings.taskNames
+  // Having no tasks to run means that there shouldn't be a configuration created. This will be handled by Intellij in
+  // https://youtrack.jetbrains.com/issue/IDEA-277826.
+  if (tasksToRun.isEmpty()) return null
+  return configuration
 }
 
 fun getPsiElement(project: Project, file: String, isDirectory: Boolean): PsiElement {
