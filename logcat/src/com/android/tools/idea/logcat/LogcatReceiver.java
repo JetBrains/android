@@ -31,6 +31,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
@@ -116,6 +117,9 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
    */
   @Override
   protected void processNewLines(@NotNull List<@NotNull String> newLines) {
+    // Since we are eventually bound by the UI thread, we need to block in order to throttle the caller.
+    CountDownLatch latch = new CountDownLatch(1);
+
     mySequentialExecutor.execute(() -> {
       // New batch arrived so effectively cancel the pending request by resetting myPendingMessage
       myPendingMessage = null;
@@ -133,7 +137,13 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
         myPendingMessage = new LogCatMessage(myPreviousHeader, joinLines(myPreviousLines));
         myAlarm.addRequest(this::processPendingMessage, DELAY_MILLIS);
       }
+      latch.countDown();
     });
+    try {
+      latch.await();
+    }
+    catch (InterruptedException ignored) {
+    }
   }
 
   private void processPendingMessage() {
