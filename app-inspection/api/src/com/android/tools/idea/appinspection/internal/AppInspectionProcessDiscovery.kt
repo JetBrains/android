@@ -18,9 +18,10 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.appinspection.api.process.ProcessListener
-import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.TransportStreamChannel
@@ -48,9 +49,14 @@ import java.util.concurrent.Executor
 internal class AppInspectionProcessDiscovery(
   private val manager: TransportStreamManager,
   private val scope: CoroutineScope
-) : ProcessNotifier {
+) : ProcessDiscovery {
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
+
+  override val devices
+    get() = streamIdMap.values
+      .filter { it.stream.hasDevice() && it.stream.device.state == Common.Device.State.ONLINE }
+      .map { it.stream.device.toDeviceDescriptor() }
 
   private data class StreamProcessIdPair(val streamId: Long, val pid: Int)
 

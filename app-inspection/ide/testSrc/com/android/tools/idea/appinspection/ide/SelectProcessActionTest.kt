@@ -9,7 +9,8 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
-import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -62,7 +63,7 @@ class SelectProcessActionTest {
 
   @Test
   fun testNoProcesses() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
     val selectProcessAction = SelectProcessAction(model)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -74,7 +75,7 @@ class SelectProcessActionTest {
 
   @Test
   fun processLabelPresentationCanBeOverridden() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val physicalStream = createFakeStream(isEmulator = false)
     val physicalProcess = physicalStream.createFakeProcess("A", 100)
     val model = ProcessesModel(testNotifier) { it.name == physicalProcess.name }
@@ -91,9 +92,10 @@ class SelectProcessActionTest {
 
   @Test
   fun stopPresentationCanBeOverridden() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
-    val selectProcessAction = SelectProcessAction(model, stopPresentation = SelectProcessAction.StopPresentation("Test stop label", "Test stop description"))
+    val selectProcessAction = SelectProcessAction(model, stopPresentation = SelectProcessAction.StopPresentation("Test stop label",
+                                                                                                                 "Test stop description"))
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(2)
@@ -103,7 +105,7 @@ class SelectProcessActionTest {
 
   @Test
   fun displayTextForDevicesSetAsExpected() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
     val selectProcessAction = SelectProcessAction(model)
 
@@ -113,6 +115,8 @@ class SelectProcessActionTest {
     val physicalProcess = physicalStream.createFakeProcess("A", 100)
     val emulatorProcess = emulatorStream.createFakeProcess("A", 100)
 
+    testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
+    testNotifier.addDevice(emulatorStream.device.toDeviceDescriptor())
     testNotifier.fireConnected(physicalProcess)
     testNotifier.fireConnected(emulatorProcess)
 
@@ -129,7 +133,7 @@ class SelectProcessActionTest {
 
   @Test
   fun addsNonPreferredAndPreferredProcess_orderEnsured() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name == "B" }
     val selectProcessAction = SelectProcessAction(model)
 
@@ -137,6 +141,7 @@ class SelectProcessActionTest {
     val processA = fakeStream.createFakeProcess("A", 100)
     val processB = fakeStream.createFakeProcess("B", 101)
 
+    testNotifier.addDevice(fakeStream.device.toDeviceDescriptor())
     testNotifier.fireConnected(processA) // Not preferred
     testNotifier.fireConnected(processB) // Preferred
 
@@ -159,11 +164,12 @@ class SelectProcessActionTest {
 
   @Test
   fun listsProcessesInSortedOrder() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name in listOf("X", "Y", "Z") }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
+    testNotifier.addDevice(fakeStream.device.toDeviceDescriptor())
     for (name in listOf("C", "B", "A", "Z", "Y", "X")) {
       fakeStream.createFakeProcess(name, name.hashCode())
         .also { testNotifier.fireConnected(it) }
@@ -188,13 +194,14 @@ class SelectProcessActionTest {
 
   @Test
   fun deadProcessesShowUpInProcessList() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name == "A" }
     val selectProcessAction = SelectProcessAction(model)
 
     val fakeStream = createFakeStream()
     val process = fakeStream.createFakeProcess("A", 100)
 
+    testNotifier.addDevice(fakeStream.device.toDeviceDescriptor())
     testNotifier.fireConnected(process)
     run {
       selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -222,13 +229,14 @@ class SelectProcessActionTest {
 
   @Test
   fun deadProcessesFilteredOutIfOfflineNotSupported() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name == "A" }
     val selectProcessAction = SelectProcessAction(model, supportsOffline = false)
 
     val fakeStream = createFakeStream()
     val process = fakeStream.createFakeProcess("A", 100)
 
+    testNotifier.addDevice(process.device)
     testNotifier.fireConnected(process)
     run {
       selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -247,14 +255,16 @@ class SelectProcessActionTest {
       selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
       val children = selectProcessAction.getChildren(null)
-      assertThat(children[0].templateText).isEqualTo(AppInspectionBundle.message("action.no.devices"))
+      val deviceAction = children[0] as ActionGroup
+      assertThat(deviceAction.getChildren(null).toList().map { it.templateText }).containsExactly(
+        AppInspectionBundle.message("action.no.debuggable.process"))
       assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
     }
   }
 
   @Test
   fun selectStopInspection_firesCallbackAndRetainsProcess() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name == "B" }
     val fakeStream = createFakeStream()
     val processB = fakeStream.createFakeProcess("B", 101)
@@ -264,6 +274,7 @@ class SelectProcessActionTest {
       callbackFiredLatch.countDown()
     })
 
+    testNotifier.addDevice(processB.device)
     testNotifier.fireConnected(processB) // Preferred
 
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -290,11 +301,12 @@ class SelectProcessActionTest {
 
   @Test
   fun testCustomAttribution() {
-    val testNotifier = TestProcessNotifier()
+    val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
     val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = mock()
     val processAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = mock()
     val stream = createFakeStream()
+    testNotifier.addDevice(stream.device.toDeviceDescriptor())
     val processes = listOf("A", "B", "C").map { stream.createFakeProcess(it, it.hashCode()) }
     processes.forEach { testNotifier.fireConnected(it) }
 

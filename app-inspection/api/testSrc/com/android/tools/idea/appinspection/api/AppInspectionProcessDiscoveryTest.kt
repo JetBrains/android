@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -403,5 +404,32 @@ class AppInspectionProcessDiscoveryTest {
     latch.await()
     assertThat(reportedProcessCount).isEqualTo(1)
     assertThat(processDescriptor.pid).isEqualTo(100)
+  }
+
+  @Test
+  fun discoverDevices() {
+    val processConnectLatch = CountDownLatch(1)
+
+    appInspectionRule.addProcessListener(object : ProcessListener {
+      override fun onProcessConnected(process: ProcessDescriptor) {
+        processConnectLatch.countDown()
+      }
+      override fun onProcessDisconnected(process: ProcessDescriptor) {}
+    })
+
+    // Launch stream 1
+    val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
+    launchFakeDevice(fakeDevice1)
+
+    // Launch process with same pid in stream 2
+    val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
+    val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
+    launchFakeDevice(fakeDevice2)
+    launchFakeProcess(fakeDevice2, fakeProcess2)
+
+    processConnectLatch.await()
+
+    assertThat(appInspectionRule.processDiscovery.devices.map { it.toString() })
+      .containsExactly(fakeDevice1.toDeviceDescriptor().toString(), fakeDevice2.toDeviceDescriptor().toString())
   }
 }

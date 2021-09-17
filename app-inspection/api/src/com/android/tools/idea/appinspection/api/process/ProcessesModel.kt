@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.api.process
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
@@ -42,21 +43,21 @@ import java.util.concurrent.Executor
  */
 class ProcessesModel(
   private val executor: Executor,
-  private val processNotifier: ProcessNotifier,
+  private val processDiscovery: ProcessDiscovery,
   private val acceptProcess: (ProcessDescriptor) -> Boolean = { true },
   private val isPreferred: (ProcessDescriptor) -> Boolean = { false }
 ) : Disposable {
 
   @TestOnly
-  constructor(processNotifier: ProcessNotifier, isPreferred: (ProcessDescriptor) -> Boolean = { false }) :
-    this(MoreExecutors.directExecutor(), processNotifier, isPreferred = isPreferred)
+  constructor(processDiscovery: ProcessDiscovery, isPreferred: (ProcessDescriptor) -> Boolean = { false }) :
+    this(MoreExecutors.directExecutor(), processDiscovery, isPreferred = isPreferred)
 
   @TestOnly
   constructor(
-    processNotifier: ProcessNotifier,
+    processDiscovery: ProcessDiscovery,
     acceptProcess: (ProcessDescriptor) -> Boolean,
     isPreferred: (ProcessDescriptor) -> Boolean = { false }
-  ) : this(MoreExecutors.directExecutor(), processNotifier, acceptProcess, isPreferred)
+  ) : this(MoreExecutors.directExecutor(), processDiscovery, acceptProcess, isPreferred)
 
   private val lock = Any()
 
@@ -68,6 +69,9 @@ class ProcessesModel(
 
   @GuardedBy("lock")
   private var _selectedProcess: ProcessDescriptor? = null
+
+  val devices: Set<DeviceDescriptor>
+    get() = processDiscovery.devices.toSet()
 
   val processes: Set<ProcessDescriptor>
     get() = synchronized(lock) { _processes.toSet() }
@@ -145,11 +149,11 @@ class ProcessesModel(
   }
 
   init {
-    processNotifier.addProcessListener(executor, processListener)
+    processDiscovery.addProcessListener(executor, processListener)
   }
 
   override fun dispose() {
-    processNotifier.removeProcessListener(processListener)
+    processDiscovery.removeProcessListener(processListener)
   }
 
   fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
