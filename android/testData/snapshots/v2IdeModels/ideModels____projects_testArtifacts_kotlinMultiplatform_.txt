@@ -1,12 +1,12 @@
-MODULE                        : project
-MODULE                        : project.app
+MODULE                        : kotlinMultiPlatform
+MODULE                        : kotlinMultiPlatform.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.android.kotlin
     TestNamespace                 : com.example.android.kotlin.test
     AaptOptions
@@ -1986,14 +1986,14 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2
+MODULE                        : kotlinMultiPlatform.module2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.test.multiproject.module2
     TestNamespace                 : com.example.test.multiproject.module2.test
     AaptOptions
@@ -2521,14 +2521,14 @@ MODULE                        : project.module2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.commonMain
+MODULE                        : kotlinMultiPlatform.module2.commonMain
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.test.multiproject.module2
     TestNamespace                 : com.example.test.multiproject.module2.test
     AaptOptions
@@ -3056,14 +3056,14 @@ MODULE                        : project.module2.commonMain
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-MODULE                        : project.module2.commonTest
+MODULE                        : kotlinMultiPlatform.module2.commonTest
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/module2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
-    GroupId                       : project
+    GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.test.multiproject.module2
     TestNamespace                 : com.example.test.multiproject.module2.test
     AaptOptions
