@@ -443,9 +443,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       val trigger =
         project.getUserData(PROJECT_SYNC_REQUEST)
           ?.takeIf { it.projectRoot == workingDir }
-      if (trigger != null) {
-        project.putUserData(PROJECT_SYNC_REQUEST, null)
-      }
       if (!GradleSyncState.getInstance(project)
           .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.allVariantsSync ?: false)
       ) {
