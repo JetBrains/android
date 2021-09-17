@@ -21,7 +21,7 @@ import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
+import com.android.tools.idea.devicemanager.DetailsPanelPanelMouseListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -104,7 +104,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
     table.setShowGrid(false);
     table.getTableHeader().setReorderingAllowed(false);
-    table.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+    table.addMouseListener(new DetailsPanelPanelMouseListener<>(this));
   }
 
   private @NotNull GroupLayout createGroupLayout() {
