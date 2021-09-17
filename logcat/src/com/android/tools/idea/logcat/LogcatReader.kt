@@ -17,14 +17,13 @@ package com.android.tools.idea.logcat
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -49,10 +48,11 @@ class LogcatReader(
     device,
     this,
     object : LogcatReceiver.LogcatListener {
-      val scope = AndroidCoroutineScope(this@LogcatReader, workerThread)
-
       override fun onLogMessagesReceived(messages: List<LogCatMessage>) {
-        scope.launch {
+        // Since we are eventually bound by the UI thread, we need to block in order to throttle the caller.
+        // When the logcat reading code is converted properly to coroutines, we will already be in the
+        // proper scope here and will suspend on a full channel or flow.
+        runBlocking(workerThread) {
           appendMessages(messages)
         }
       }
