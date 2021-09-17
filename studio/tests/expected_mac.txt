@@ -2832,6 +2832,10 @@ Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
 Android Studio Preview.app/Contents/plugins/hg4idea/lib/hg4idea.jar
+Android Studio Preview.app/Contents/plugins/intellij-toml/lib/common.jar
+Android Studio Preview.app/Contents/plugins/intellij-toml/lib/core.jar
+Android Studio Preview.app/Contents/plugins/intellij-toml/lib/intellij-toml-0.2.155.4114-212.jar
+Android Studio Preview.app/Contents/plugins/intellij-toml/lib/searchableOptions-0.2.155.4114-212.jar
 Android Studio Preview.app/Contents/plugins/java-decompiler/lib/java-decompiler.jar
 Android Studio Preview.app/Contents/plugins/java-i18n/lib/java-i18n.jar
 Android Studio Preview.app/Contents/plugins/java-ide-customization/lib/java-ide-customization.jar

@@ -154,6 +154,7 @@ class StartUpTest(unittest.TestCase):
                   "Test Recorder",
                   "TestNG",
                   "TextMate Bundles",
+                  "Toml",
                   "WebP Support",
                   "YAML",
               ], descs)

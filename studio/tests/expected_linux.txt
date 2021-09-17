@@ -2839,6 +2839,10 @@ android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle-wrapper-7.1.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/hg4idea/lib/hg4idea.jar
+android-studio/plugins/intellij-toml/lib/common.jar
+android-studio/plugins/intellij-toml/lib/core.jar
+android-studio/plugins/intellij-toml/lib/intellij-toml-0.2.155.4114-212.jar
+android-studio/plugins/intellij-toml/lib/searchableOptions-0.2.155.4114-212.jar
 android-studio/plugins/java-decompiler/lib/java-decompiler.jar
 android-studio/plugins/java-i18n/lib/java-i18n.jar
 android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
