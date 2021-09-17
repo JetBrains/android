@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -454,7 +455,9 @@ class ManageSnapshotsDialogTest {
 
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/${name}.png")
+    // The image is slightly taller on Mac due to a slight layout difference.
+    val platformSuffix = if (SystemInfo.isMac) "_Mac" else ""
+    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
   }
 }
 
