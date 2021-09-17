@@ -20,7 +20,7 @@ COMMON_DATA = [
     "//tools/adt/idea/android/testData:projects",
     "//tools/adt/idea/android/testData:snapshots",
     "//tools/adt/idea/artwork:device-art-resources",
-    "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
+    "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.5.21",
 ]
 
 COMMON_MAVEN_DEPS = [

@@ -8,31 +8,31 @@ load("//tools/adt/idea/kotlin-integration:version.bzl", "KOTLIN_IDE_VERSION")
 
 alias(
     name = "kotlin-android-extensions-runtime-for-ide-plugin",
-    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "kotlin-gradle-plugin-for-ide-plugin",
-    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "kotlin-reflect-for-ide-plugin",
-    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "kotlin-script-runtime-for-ide-plugin",
-    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-script-runtime_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "kotlin-stdlib-jdk8-for-ide-plugin",
-    actual = "@maven_tests//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_IDE_VERSION,
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_IDE_VERSION,
     visibility = ["//visibility:public"],
 )
 
@@ -91,11 +91,11 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven_tests//:commons-logging.commons-logging_1.1.1",
-        "@maven_tests//:junit.junit_4.12",
-        "@maven_tests//:org.hamcrest.hamcrest-integration_1.3",
-        "@maven_tests//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven_tests//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
-        "@maven_tests//:org.mockito.mockito-core_3.0.0",
+        "@maven//:commons-logging.commons-logging_1.1.1",
+        "@maven//:junit.junit_4.12",
+        "@maven//:org.hamcrest.hamcrest-integration_1.3",
+        "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
+        "@maven//:org.mockito.mockito-core_3.0.0",
     ],
 )
