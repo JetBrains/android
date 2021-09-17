@@ -67,6 +67,6 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven_tests//:junit.junit_4.12",
+        "@maven//:junit.junit_4.12",
     ],
 )
