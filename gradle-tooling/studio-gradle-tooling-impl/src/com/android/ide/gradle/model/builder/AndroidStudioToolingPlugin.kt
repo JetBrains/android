@@ -18,6 +18,7 @@ package com.android.ide.gradle.model.builder
 
 import com.android.ide.gradle.model.artifacts.builder.AdditionalClassifierArtifactsModelBuilder
 import com.android.ide.gradle.model.artifacts.samples.SamplesVariantRule
+import com.android.ide.gradle.model.composites.BuildMapModelBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -29,6 +30,8 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
 
   override fun apply(project: Project) {
     registry.register(GradlePluginModelBuilder())
+    registry.register(BuildMapModelBuilder())
+    // NOTE: The minimum supported AGP version is 3.2 and it requires Gradle 4.6.
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
       // SamplesVariantRule requires Gradle 6.0+ because it uses VariantMetadata.withFiles.

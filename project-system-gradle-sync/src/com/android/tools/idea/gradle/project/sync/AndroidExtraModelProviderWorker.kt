@@ -25,7 +25,6 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.BuildMap
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
@@ -37,6 +36,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.utils.appendCapitalized
@@ -107,7 +107,7 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     class V2Project(
-      val buildMap: BuildMap,
+      buildMap: BuildMap,
       val androidProject: V2AndroidProject,
       val modelVersions: Versions,
       val androidDsl: AndroidDsl,
