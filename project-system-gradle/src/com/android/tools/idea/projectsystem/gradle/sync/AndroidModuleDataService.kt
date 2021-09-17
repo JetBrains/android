@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
@@ -44,6 +45,9 @@ import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -162,8 +166,16 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     GradleProjectInfo.getInstance(project).isNewProject = false
     GradleProjectInfo.getInstance(project).isImportedProject = false
 
-    // TODO(b/124229467): Consider whether this should be here, as it will trigger on any project data import.
-    AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
+    // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
+    //  that we should be able to move this to some kind of sync listener.
+    val data = project.getUserData(PROJECT_SYNC_REQUEST)
+    val trigger = data?.takeIf { it.projectRoot == project.basePath }?.trigger
+    if (trigger != null) {
+      project.putUserData(PROJECT_SYNC_REQUEST, null)
+      if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
+        AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
+      }
+    }
 
     if (IdeInfo.getInstance().isAndroidStudio) {
       MemorySettingsPostSyncChecker
