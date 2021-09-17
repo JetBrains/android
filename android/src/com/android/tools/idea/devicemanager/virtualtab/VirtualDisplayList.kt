@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.virtualtab
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel
-import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
 import com.android.tools.idea.avdmanager.AvdDisplayList
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -42,8 +41,6 @@ import com.intellij.util.ui.ListTableModel
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BoxLayout
@@ -93,14 +90,9 @@ class VirtualDisplayList @TestOnly constructor(
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
       selectionModel.addListSelectionListener(this)
 
-      val adapter = avdActionPanelMouseAdapter()
-
-      addMouseListener(adapter)
       addMouseMotionListener(ActionsTableCellEditorMouseMotionListener(table))
-      addMouseMotionListener(adapter)
 
       val map = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-
       map.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd")
       map.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd")
     }
@@ -171,34 +163,6 @@ class VirtualDisplayList @TestOnly constructor(
   @VisibleForTesting
   fun getTableItems(): List<AvdInfo> {
     return tableModel.items
-  }
-
-  private fun avdActionPanelMouseAdapter(): MouseAdapter = object : MouseAdapter() {
-    override fun mousePressed(e: MouseEvent) {
-      possiblyShowPopup(e)
-    }
-
-    override fun mouseReleased(e: MouseEvent) {
-      possiblyShowPopup(e)
-    }
-  }
-
-  private fun possiblyShowPopup(e: MouseEvent) {
-    if (!e.isPopupTrigger) {
-      return
-    }
-    val p = e.point
-    val row = table.rowAtPoint(p)
-    val col = table.columnAtPoint(p)
-    if (row != -1 && col != -1) {
-      val lastColumn = table.columnCount - 1
-      val maybeActionPanel = table.getCellRenderer(row, lastColumn).getTableCellRendererComponent(
-        table, table.getValueAt(row, lastColumn), false, true, row, lastColumn
-      )
-      if (maybeActionPanel is AvdActionPanel) {
-        maybeActionPanel.showPopup(table, e)
-      }
-    }
   }
 
   // needs an initialized table
