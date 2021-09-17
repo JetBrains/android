@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.compiler.impl.CompileContextImpl;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.progress.CompilerTask;
@@ -27,7 +28,6 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
@@ -80,11 +80,7 @@ class CreateAlarmForAutoGenerationAndroidStartupActivity implements AndroidStart
 
     final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = new HashMap<>();
 
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        continue;
-      }
+    for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(project)) {
 
       if (!ModuleSourceAutogenerating.requiresAutoSourceGeneration(facet)) {
         continue;
