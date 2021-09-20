@@ -54,6 +54,7 @@ public class GradleBuildFile extends GradleScriptFile {
   @Nullable private GradlePropertiesFile myPropertiesFile;
   @Nullable private GradleBuildFile myParentModuleBuildFile;
   @NotNull private final Set<GradleBuildFile> myChildModuleBuildFiles = Sets.newHashSet();
+  @NotNull private final Set<GradleVersionCatalogFile> myVersionCatalogFiles = Sets.newHashSet();
 
   public GradleBuildFile(@NotNull VirtualFile file,
                          @NotNull Project project,
@@ -189,5 +190,9 @@ public class GradleBuildFile extends GradleScriptFile {
   @NotNull
   public Collection<GradleBuildFile> getChildModuleBuildFiles() {
     return myChildModuleBuildFiles;
+  }
+
+  public @NotNull Collection<GradleVersionCatalogFile> getVersionCatalogFiles() {
+    return myVersionCatalogFiles;
   }
 }

@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.DependencyManager;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
@@ -34,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
@@ -183,6 +187,11 @@ public final class BuildModelContext {
     return myFileCache.getOrCreatePropertiesFile(file, moduleName, this);
   }
 
+  @NotNull
+  public GradleVersionCatalogFile getOrCreateVersionCatalogFile(@NotNull VirtualFile file, @NotNull String catalogName) {
+    return myFileCache.getOrCreateVersionCatalogFile(file, catalogName, this);
+  }
+
   /**
    * Parses a build file and produces the {@link GradleBuildFile} that represents it.
    *
@@ -203,7 +212,8 @@ public final class BuildModelContext {
     GradleBuildFile buildDslFile = new GradleBuildFile(file, project, moduleName, this);
     ApplicationManager.getApplication().runReadAction(() -> {
       if (!isApplied) {
-        populateWithParentModuleSubProjectsProperties(buildDslFile);
+        GradleSettingsModel gradleSettingsModel = getSettingsModel(buildDslFile);
+        populateWithParentModuleSubProjectsProperties(buildDslFile, gradleSettingsModel);
       }
       populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
       buildDslFile.parse();
@@ -217,8 +227,10 @@ public final class BuildModelContext {
     if (result != null) {
       setRootProjectFile(result);
       ApplicationManager.getApplication().runReadAction(() -> {
-        populateWithParentModuleSubProjectsProperties(result);
+        GradleSettingsModel gradleSettingsModel = getSettingsModel(result);
+        populateWithParentModuleSubProjectsProperties(result, gradleSettingsModel);
         populateSiblingDslFileWithGradlePropertiesFile(result);
+        populateVersionCatalogFiles(result, gradleSettingsModel);
         result.parse();
       });
       putBuildFile(file.getUrl(), result);
@@ -233,6 +245,21 @@ public final class BuildModelContext {
   @NotNull
   public List<GradleDslFile> getAllRequestedFiles() {
     return myFileCache.getAllFiles();
+  }
+
+  private void populateVersionCatalogFiles(@NotNull GradleBuildFile buildFile, @Nullable GradleSettingsModel gradleSettingsModel) {
+    if (gradleSettingsModel == null) return;
+    for (VersionCatalogModel versionCatalogModel: gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
+      String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
+      if (from == null) continue;
+      @SystemIndependent String fromPath = toSystemIndependentName(from);
+      @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
+      @SystemIndependent String path = String.join("/", rootPath, fromPath);
+      VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
+      if (versionCatalogFile == null) continue;
+      GradleVersionCatalogFile parsedVersionCatalog = getOrCreateVersionCatalogFile(versionCatalogFile, versionCatalogModel.getName());
+      buildFile.getVersionCatalogFiles().add(parsedVersionCatalog);
+    }
   }
 
   private void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile) {
@@ -252,14 +279,19 @@ public final class BuildModelContext {
     buildDslFile.setPropertiesFile(propertiesDslFile);
   }
 
-  private void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile) {
+  private @Nullable GradleSettingsModel getSettingsModel(@NotNull GradleBuildFile buildDslFile) {
     VirtualFile maybeSettingsFile = buildDslFile.tryToFindSettingsFile();
     if (maybeSettingsFile == null) {
-      return;
+      return null;
     }
     GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
+    return new GradleSettingsModelImpl(settingsFile);
+  }
 
-    GradleSettingsModel gradleSettingsModel = new GradleSettingsModelImpl(settingsFile);
+  private void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
+                                                             @Nullable GradleSettingsModel gradleSettingsModel) {
+    if (gradleSettingsModel == null) return;
+
     String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
     if (modulePath == null) {
       return;
