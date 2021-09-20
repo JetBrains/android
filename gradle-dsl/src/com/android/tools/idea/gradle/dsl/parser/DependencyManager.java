@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.util.containers.HashSetQueue;
 import java.util.HashSet;
@@ -82,7 +83,10 @@ public final class DependencyManager {
       if (!seen.contains(dslFile)) {
         seen.add(dslFile);
         resolveAllIn(dslFile, true);
-        queue.addAll(dslFile.getChildModuleDslFiles());
+        if (dslFile instanceof GradleBuildFile) {
+          GradleBuildFile buildFile = (GradleBuildFile)dslFile;
+          queue.addAll(buildFile.getChildModuleBuildFiles());
+        }
       }
     }
 

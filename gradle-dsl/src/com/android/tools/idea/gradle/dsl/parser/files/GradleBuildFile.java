@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
-
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
@@ -42,12 +41,20 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleBuildFile extends GradleDslFile {
+  @Nullable private GradlePropertiesFile myPropertiesFile;
+  @Nullable private GradleBuildFile myParentModuleBuildFile;
+  @NotNull private final Set<GradleBuildFile> myChildModuleBuildFiles = Sets.newHashSet();
+
   public GradleBuildFile(@NotNull VirtualFile file,
                          @NotNull Project project,
                          @NotNull String moduleName,
@@ -148,5 +155,39 @@ public class GradleBuildFile extends GradleDslFile {
   @Override
   protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
+  /**
+   * Sets the properties dsl file of this file.
+   *
+   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
+   */
+  public void setPropertiesFile(@NotNull GradlePropertiesFile propertiesFile) {
+    myPropertiesFile = propertiesFile;
+  }
+
+  /**
+   * Returns the properties dsl file of this file.
+   *
+   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
+   */
+  @Nullable
+  public GradlePropertiesFile getPropertiesFile() {
+    return myPropertiesFile;
+  }
+
+  public void setParentModuleBuildFile(@NotNull GradleBuildFile parentModuleBuildFile) {
+    myParentModuleBuildFile = parentModuleBuildFile;
+    myParentModuleBuildFile.myChildModuleBuildFiles.add(this);
+  }
+
+  @Nullable
+  public GradleBuildFile getParentModuleBuildFile() {
+    return myParentModuleBuildFile;
+  }
+
+  @NotNull
+  public Collection<GradleBuildFile> getChildModuleBuildFiles() {
+    return myChildModuleBuildFiles;
   }
 }
