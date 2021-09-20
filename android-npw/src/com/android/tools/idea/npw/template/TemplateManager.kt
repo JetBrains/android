@@ -18,9 +18,9 @@ package com.android.tools.idea.npw.template
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.npw.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.npw.actions.NewAndroidComponentAction
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
@@ -33,6 +33,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.collect.Table
 import com.google.common.collect.TreeBasedTable
@@ -53,15 +54,18 @@ import org.jetbrains.annotations.PropertyKey
  * Handles locating templates and providing template metadata
  */
 class TemplateManager private constructor() {
+  /** Template info needed by the menus, so that we don't need to keep a full instance of [Template] in memory */
+  private data class TemplateInfo(val minSdk: Int, val constraints: Collection<TemplateConstraint>)
+
   /** Lock protecting access to [_categoryTable]  */
   private val CATEGORY_TABLE_LOCK = Any()
 
   /** Table mapping (Category, Template Name) -> Template File  */
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private var _categoryTable: Table<Category, String, Template>? = null
+  private var _categoryTable: Table<Category, String, TemplateInfo>? = null
 
   @get:GuardedBy("CATEGORY_TABLE_LOCK")
-  private val categoryTable: Table<Category, String, Template>?
+  private val categoryTable: Table<Category, String, TemplateInfo>?
     get() {
       if (_categoryTable == null) {
         reloadCategoryTable()
@@ -160,7 +164,7 @@ class TemplateManager private constructor() {
     }
     val existingTemplate = _categoryTable!![category, name]
     if (existingTemplate == null) {
-      _categoryTable!!.put(category, name, template)
+      _categoryTable!!.put(category, name, TemplateInfo(template.minSdk, template.constraints))
     }
   }
 
