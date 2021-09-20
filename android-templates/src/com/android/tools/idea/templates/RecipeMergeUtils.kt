@@ -37,6 +37,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlComment
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -181,7 +182,7 @@ fun mergeResourceFile(project: Project,
           MERGE_ATTR_STRATEGY_PRESERVE == mergeStrategy -> {
             // Preserve the existing value.
           }
-          replace.text.trim() == child.text.trim() -> {
+          areXmlTagsEquivalent(replace, child) -> {
             // There are no differences, do not issue a warning.
           }
           else -> // No explicit directive given, preserve the original value by default.
@@ -193,6 +194,28 @@ fun mergeResourceFile(project: Project,
   }
 
   return targetPsiFile.text
+}
+
+/**
+ * Checks if the two XML tags have the same names and the same sets of attributes.
+ */
+private fun areXmlTagsEquivalent(element1: XmlTag, element2: XmlTag): Boolean {
+  if (element1.name != element2.name) {
+    return false
+  }
+  val attributes1 = element1.attributes.sortedBy(XmlAttribute::getName)
+  val attributes2 = element2.attributes.sortedBy(XmlAttribute::getName)
+  if (attributes1.size != attributes2.size) {
+    return false
+  }
+  for (i in attributes1.indices) {
+    val attr1 = attributes1[i]
+    val attr2 = attributes2[i]
+    if (attr1.name != attr2.name || attr1.value != attr2.value) {
+      return false
+    }
+  }
+  return true
 }
 
 /**
