@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Entr
 import com.intellij.ui.JBSplitter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * View class for the Background Task Inspector Tab.
@@ -34,9 +35,10 @@ class BackgroundTaskInspectorTab(
   uiDispatcher: CoroutineDispatcher
 ) {
 
-  private val selectionModel = EntrySelectionModel()
+  @VisibleForTesting
+  val selectionModel = EntrySelectionModel()
 
-  private val entriesView = BackgroundTaskEntriesView(client, selectionModel, scope, uiDispatcher)
+  private val entriesView = BackgroundTaskEntriesView(this, client, selectionModel, scope, uiDispatcher)
   private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, entriesView, uiComponentsProvider, scope,
                                              uiDispatcher)
 

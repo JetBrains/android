@@ -19,7 +19,6 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Command
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
@@ -47,7 +46,6 @@ import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -63,23 +61,12 @@ import javax.swing.tree.DefaultMutableTreeNode
 import kotlin.streams.toList
 
 class BackgroundTaskInspectorComponentInteractionTest {
-  private class FakeAppInspectorMessenger(
-    override val scope: CoroutineScope
-  ) : AppInspectorMessenger {
-    var rawDataSent: ByteArray = ByteArray(0)
-    override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-      rawDataSent = rawData
-      return rawDataSent
-    }
-
-    override val eventFlow = emptyFlow<ByteArray>()
-  }
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var scope: CoroutineScope
-  private lateinit var workMessenger: FakeAppInspectorMessenger
+  private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var tab: BackgroundTaskInspectorTab
   private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
@@ -94,8 +81,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
-      workMessenger = FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
                                              WmiMessengerTarget.Resolved(workMessenger),
                                              scope, StubBackgroundTaskInspectorTracker())
