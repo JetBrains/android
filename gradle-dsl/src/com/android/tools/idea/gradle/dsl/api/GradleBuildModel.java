@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,6 +135,9 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
    */
   @NotNull
   Set<GradleFileModel> getInvolvedFiles();
+
+  @NotNull
+  Map<String, List<BuildModelNotification>> getNotifications();
 
   /**
    * @return the root directory of the module corresponding to this model.  Implementations are permitted to provide a best-effort

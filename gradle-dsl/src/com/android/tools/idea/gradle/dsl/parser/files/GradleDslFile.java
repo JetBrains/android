@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,11 +46,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,12 +62,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final ElementList myGlobalProperties = new ElementList();
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
-  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
   @NotNull private final GradleDslWriter myGradleDslWriter;
   @NotNull private final GradleDslParser myGradleDslParser;
-
-  @Nullable private GradleDslFile myParentModuleDslFile;
-  @Nullable private GradleDslFile myPropertiesFile;
 
   @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
@@ -186,42 +179,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public List<GradleDslFile> getApplyDslElement() {
+  public List<GradleBuildFile> getApplyDslElement() {
     return myApplyDslElement == null ? ImmutableList.of() : myApplyDslElement.getAppliedDslFiles();
-  }
-
-  public void setParentModuleDslFile(@NotNull GradleDslFile parentModuleDslFile) {
-    myParentModuleDslFile = parentModuleDslFile;
-    myParentModuleDslFile.myChildModuleDslFiles.add(this);
-  }
-
-  @Nullable
-  public GradleDslFile getParentModuleDslFile() {
-    return myParentModuleDslFile;
-  }
-
-  @NotNull
-  public Collection<GradleDslFile> getChildModuleDslFiles() {
-    return myChildModuleDslFiles;
-  }
-
-  /**
-   * Sets the properties dsl file of this file.
-   *
-   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
-   */
-  public void setPropertiesFile(@NotNull GradleDslFile propertiesFile) {
-    myPropertiesFile = propertiesFile;
-  }
-
-  /**
-   * Returns the properties dsl file of this file.
-   *
-   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
-   */
-  @Nullable
-  public GradleDslFile getPropertiesFile() {
-    return myPropertiesFile;
   }
 
   @NotNull
@@ -243,7 +202,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   protected void apply() {
     // First make sure we update all our applied files.
     if (myApplyDslElement != null) {
-      for (GradleDslFile file : myApplyDslElement.getAppliedDslFiles()) {
+      for (GradleBuildFile file : myApplyDslElement.getAppliedDslFiles()) {
         file.apply();
       }
     }

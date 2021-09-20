@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
@@ -155,11 +156,14 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
     }
     else {
       // We can only apply references from parent modules, so walk the context parent modules until we hit the reference dslFile.
-      var currentContextParent = context.dslFile
-      do {
-        externalName.append("parent.")
-        currentContextParent = currentContextParent.parentModuleDslFile ?: break
-      } while (currentContextParent != currentParent)
+      (context.dslFile as? GradleBuildFile)?.let {
+        var currentContextParent = it
+        do {
+          externalName.append("parent.")
+          currentContextParent = currentContextParent.parentModuleBuildFile ?: break
+        }
+        while (currentContextParent != currentParent)
+      }
     }
   } else {
     // This is specific for extra properties: If we are trying to use the reference from a scope that has a dedicated extra block, we need

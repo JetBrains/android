@@ -94,41 +94,9 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
       .collect(Collectors.toList());
   }
 
-  @NotNull
-  public Set<GradleDslFile> getAllInvolvedFiles() {
+  public @NotNull Set<GradleDslFile> getAllInvolvedFiles() {
     Set<GradleDslFile> files = new HashSet<>();
     files.add(myGradleDslFile);
-    // Add all parent dsl files.
-    files.addAll(getParentFiles());
-
-    List<GradleDslFile> currentFiles = new ArrayList<>();
-    currentFiles.add(myGradleDslFile);
-    // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
-    // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
-    while (!currentFiles.isEmpty()) {
-      GradleDslFile currentFile = currentFiles.remove(0);
-      files.addAll(currentFile.getApplyDslElement());
-      currentFiles.addAll(currentFile.getApplyDslElement());
-    }
-
-    // Get all the properties files.
-    for (GradleDslFile file : new ArrayList<>(files)) {
-      GradleDslFile sibling = file.getPropertiesFile();
-      if (sibling != null) {
-        files.add(sibling);
-      }
-    }
-
-    return files;
-  }
-
-  private Set<GradleDslFile> getParentFiles() {
-    Set<GradleDslFile> files = new HashSet<>();
-    GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
-    while (file != null) {
-      files.add(file);
-      file = file.getParentModuleDslFile();
-    }
     return files;
   }
 
@@ -147,13 +115,6 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull
   public GradleDslFile getDslFile() {
     return myGradleDslFile;
-  }
-
-  @Override
-  @NotNull
-  public Map<String, List<BuildModelNotification>> getNotifications() {
-    return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
-      .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 
   @Override

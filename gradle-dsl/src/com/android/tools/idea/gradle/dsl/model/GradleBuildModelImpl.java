@@ -26,6 +26,7 @@ import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
@@ -70,6 +71,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -324,6 +326,54 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return myGradleDslFile.getDirectoryPath();
     }
     return directory;
+  }
+
+  @Override
+  public @NotNull Set<GradleDslFile> getAllInvolvedFiles() {
+    Set<GradleDslFile> files = new HashSet<>();
+    files.add(myGradleBuildFile);
+    // Add all parent dsl files.
+    files.addAll(getParentFiles());
+
+    List<GradleBuildFile> currentFiles = new ArrayList<>();
+    currentFiles.add(myGradleBuildFile);
+    // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
+    // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
+    while (!currentFiles.isEmpty()) {
+      GradleDslFile currentFile = currentFiles.remove(0);
+      files.addAll(currentFile.getApplyDslElement());
+      currentFiles.addAll(currentFile.getApplyDslElement());
+    }
+
+    // Get all the properties files.
+    for (GradleDslFile file : new ArrayList<>(files)) {
+      if (file instanceof GradleBuildFile) {
+        GradleBuildFile buildFile = (GradleBuildFile)file;
+        GradleDslFile sibling = buildFile.getPropertiesFile();
+        if (sibling != null) {
+          files.add(sibling);
+        }
+      }
+    }
+
+    return files;
+  }
+
+  private Set<GradleBuildFile> getParentFiles() {
+    Set<GradleBuildFile> files = new HashSet<>();
+    GradleBuildFile file = myGradleBuildFile.getParentModuleBuildFile();
+    while (file != null) {
+      files.add(file);
+      file = file.getParentModuleBuildFile();
+    }
+    return files;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, List<BuildModelNotification>> getNotifications() {
+    return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
+      .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 
   /**

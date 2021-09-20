@@ -248,7 +248,7 @@ public final class BuildModelContext {
     }
     GradlePropertiesModel propertiesModel = new GradlePropertiesModel(parsedProperties);
 
-    GradleDslFile propertiesDslFile = propertiesModel.myGradleDslFile;
+    GradlePropertiesFile propertiesDslFile = propertiesModel.myGradlePropertiesFile;
     buildDslFile.setPropertiesFile(propertiesDslFile);
   }
 
@@ -272,8 +272,8 @@ public final class BuildModelContext {
 
     GradleBuildModelImpl parentModuleModelImpl = (GradleBuildModelImpl)parentModuleModel;
 
-    GradleDslFile parentModuleDslFile = parentModuleModelImpl.myGradleDslFile;
-    buildDslFile.setParentModuleDslFile(parentModuleDslFile);
+    GradleBuildFile parentModuleDslFile = parentModuleModelImpl.myGradleBuildFile;
+    buildDslFile.setParentModuleBuildFile(parentModuleDslFile);
 
     SubProjectsDslElement subProjectsDslElement = parentModuleDslFile.getPropertyElement(SUBPROJECTS);
     if (subProjectsDslElement == null) {
