@@ -48,6 +48,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -153,9 +154,9 @@ class RenderTemplateModel private constructor(
         setFacet(androidFacet)
 
         // Register application-wide settings
-        val applicationPackage = androidFacet.getPackageForApplication()
+        val applicationPackage = getPackageName(androidFacet)
         if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
-          projectTemplateDataBuilder.applicationPackage = androidFacet.getPackageForApplication()
+          projectTemplateDataBuilder.applicationPackage = applicationPackage
         }
       }
     }
