@@ -14,6 +14,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.DependencyScope
+import org.jetbrains.kotlin.android.common.configure.AbstractKotlinAndroidGradleMPPModuleDataService
 import java.io.File
 import java.util.stream.Stream
 

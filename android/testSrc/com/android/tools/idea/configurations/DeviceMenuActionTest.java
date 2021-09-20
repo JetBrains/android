@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.configurations;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.adtui.actions.ActionTestUtils;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.actionSystem.impl.Utils;
-import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DeviceMenuActionTest extends AndroidTestCase {
 
@@ -105,7 +102,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         8.0\" Fold-out (2200 \u00d7 2480, 420dpi)\n" +
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "        13.5\" Freeform (2560 \u00d7 1440, hdpi)\n" +
-      "    Add Device Definition...\n";
+      "    Add Device Definition…\n";
     Truth.assertThat(actual).isEqualTo(expected);
   }
 

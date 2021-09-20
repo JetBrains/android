@@ -48,10 +48,10 @@ object TraceSyncUtil {
                                           "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n" +
                                           "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
                                           "Trace: org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService\n" +
                                           "Trace: org.jetbrains.plugins.gradle.tooling.internal.ExtraModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.gradle.KotlinGradleModelBuilder\n" +
-                                          "Trace: org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModelBuilder\n" +
+                                          "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder\n" +
                                           "\n" +
                                           "# IDEA\n" +
                                           "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncFailed\n" +
