@@ -37,10 +37,6 @@ iml_module(
     name = "app-inspection.inspectors.database.tests",
     iml_files = ["app-inspection.inspectors.database.tests.iml"],
     split_test_targets = {
-        "SqliteCliClientTest": {
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.sqlite.cli.SqliteCliClientTest",
-        },
         "ExportToFileDialogTest": {
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
