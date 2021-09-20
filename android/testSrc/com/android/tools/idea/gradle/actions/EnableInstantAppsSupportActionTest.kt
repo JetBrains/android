@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.gradle.actions.EnableInstantAppsSupportAction.Companion.addInstantAppSupportToManifest
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -33,6 +36,9 @@ class EnableInstantAppsSupportActionTest {
   @get:Rule
   val rule = AndroidProjectRule.inMemory()
 
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
+
   private val context = MapDataContext()
   private val event by lazy {
     // lazy - object needs ActionManager, and that is only available after test is fully instantiated
@@ -50,6 +56,7 @@ class EnableInstantAppsSupportActionTest {
     assertTrue("Action should be enabled", event.presentation.isEnabled)
   }
 
+  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `check action is disabled with no parent module`() {
     context.put(LangDataKeys.MODULE, null)
