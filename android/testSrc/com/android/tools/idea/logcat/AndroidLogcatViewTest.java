@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.android.ddmlib.ClientData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.Disposable;
@@ -63,5 +67,24 @@ public final class AndroidLogcatViewTest {
 
     // noinspection UnusedAssignment
     assertEquals(AndroidLogcatView.EDIT_FILTER_CONFIGURATION_ITEM, model.getElementAt(index++));
+  }
+
+  @Test
+  public void updateDefaultFilters_selectedApplicationFilter() {
+    myLogcatView.createEditFiltersComboBox();
+    int pid = 123;
+    String packageName = "com.package.name";
+    myLogcatView.updateDefaultFilters(createMockClientData(pid, packageName));
+
+    ListModel<AndroidLogcatFilter> model = myLogcatView.getEditFiltersComboBoxModel();
+
+    assertThat(model.getElementAt(0)).isEqualTo(new SelectedProcessFilter(pid, packageName));
+  }
+
+  private static ClientData createMockClientData(int pid, String packageName) {
+    ClientData mock = mock(ClientData.class);
+    when(mock.getPid()).thenReturn(pid);
+    when(mock.getPackageName()).thenReturn(packageName);
+    return mock;
   }
 }

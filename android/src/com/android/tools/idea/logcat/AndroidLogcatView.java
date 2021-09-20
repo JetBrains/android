@@ -342,7 +342,8 @@ public class AndroidLogcatView {
       myFilterComboBoxModel.removeElementAt(0);
     }
 
-    AndroidLogcatFilter filter = client == null ? FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER : new SelectedProcessFilter(client.getPid());
+    AndroidLogcatFilter filter =
+      client == null ? FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER : new SelectedProcessFilter(client.getPid(), client.getPackageName());
     int insertIndex = 0;
 
     myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
