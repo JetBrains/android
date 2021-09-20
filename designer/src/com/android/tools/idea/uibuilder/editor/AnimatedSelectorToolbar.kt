@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.SdkConstants
 import com.android.resources.ResourceUrl
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
@@ -31,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -67,12 +69,15 @@ private constructor(
 ) : AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs,
                      AnimationToolbarType.ANIMATED_SELECTOR), Disposable {
 
+  private var comboBox: ComboBox<String>? = null
+
   init {
     val previewOptions = animatedSelectorModel.getPreviewOption()
     // If there is no transitions, we don't offer dropdown menu for preview transitions.
     if (previewOptions.size > 1) {
       val boxModel = AnimationOptionComboBoxModel(previewOptions)
       val box = CommonComboBox(boxModel)
+      comboBox = box
       box.size = JBUI.size(100, 22)
       controlBar.add(box, 0)
 
@@ -122,6 +127,13 @@ private constructor(
       // Set maxtimeMs to -1 to indicate it is infinity animation. The slider is invisible whe animation is infinitely.
       setMaxTimeMs(-1)
     }
+  }
+
+  /**
+   * Do not select any transition. This should reset the box item to [ID_ANIMATED_SELECTOR_MODEL].
+   */
+  fun setNoTransition() {
+    comboBox?.selectedIndex = 0
   }
 
   companion object {

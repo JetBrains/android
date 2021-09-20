@@ -18,6 +18,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.android.tools.idea.uibuilder.lint.CommonPanelIssueSet
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Key
@@ -30,6 +31,9 @@ import java.util.concurrent.CountDownLatch
  */
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
+
+@JvmField
+val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> = DataKey.create(AnimationToolbar::class.qualifiedName!!)
 
 private const val COMMON_PROBLEMS_PANEL_ISSUE = "COMMON_PROBLEMS_PANEL_ISSUE"
 

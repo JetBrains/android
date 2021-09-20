@@ -19,6 +19,7 @@ import android.graphics.drawable.AnimationDrawable
 import android.widget.ImageView
 import com.android.SdkConstants
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
@@ -40,6 +41,7 @@ import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.getPreviewConfig
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -119,12 +121,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   }
 
   private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?): JPanel? {
-    if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFile) {
-      return AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
+    val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFile) {
+      AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
     else if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get() && model?.type is AnimatedVectorFileType) {
       // If opening an animated vector, add an unlimited animation bar
-      return AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimatedVectorListener(surface), 16, 0L)
+      AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimatedVectorListener(surface), 16, 0L)
     }
     else if (StudioFlags.NELE_ANIMATIONS_LIST_PREVIEW.get() && model?.type is AnimationListFileType) {
       // If opening an animation list, add an animation bar with progress
@@ -133,10 +135,14 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         (0 until drawable.numberOfFrames).sumByLong { index -> drawable.getDuration(index).toLong() }
       } ?: 0L
       val oneShotString = animationDrawable?.isOneShot ?: false
-      return AnimationToolbar.createAnimationToolbar(this, AnimationListListener(surface), 16, 0, maxTimeMs)
+      AnimationToolbar.createAnimationToolbar(this, AnimationListListener(surface), 16, 0, maxTimeMs)
         .apply { setLooping(!oneShotString) }
     }
-    return null
+    else {
+      null
+    }
+    DataManager.registerDataProvider(surface) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
+    return toolbar
   }
 
   override fun getName() = "Design"

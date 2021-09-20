@@ -17,10 +17,13 @@ package com.android.tools.idea.uibuilder.statelist
 
 import android.widget.ImageView
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.primitives.Ints
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -50,7 +53,11 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
     val surface = e.getRequiredData(DESIGN_SURFACE)
     val button = e.inputEvent.component
 
-    val menu = StateListMenu(surface)
+    // Setup callback to reset the animated selector toolbar when state is changed.
+    val toolbar = DataManager.getDataProvider(surface)?.let { ANIMATION_TOOLBAR.getData(it) } as? AnimatedSelectorToolbar
+    val callback: () -> Unit = { toolbar?.setNoTransition() }
+
+    val menu = StateListMenu(surface, callback)
     val popup = JBPopupFactory.getInstance().createComponentPopupBuilder(menu, null)
       .setBorderColor(JBColor.border())
       .setShowBorder(false)
@@ -62,7 +69,7 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
   }
 }
 
-class StateListMenu(designSurface: DesignSurface): JComponent() {
+class StateListMenu(designSurface: DesignSurface, callback: () -> Unit): JComponent() {
   init {
     val height = State.values().size * STATE_ITEM_HEIGHT_PX
 
@@ -74,12 +81,12 @@ class StateListMenu(designSurface: DesignSurface): JComponent() {
     background = secondaryPanelBackground
 
     for (state in State.values()) {
-      add(createStateItem(designSurface, state))
+      add(createStateItem(designSurface, state, callback))
     }
   }
 }
 
-private fun createStateItem(designSurface: DesignSurface, state: State): JPanel {
+private fun createStateItem(designSurface: DesignSurface, state: State, callback: () -> Unit): JPanel {
   val stateItemPanel = JPanel(GridBagLayout()).apply {
     preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
     border = JBUI.Borders.empty(0, 2, 2, 2)
@@ -97,8 +104,14 @@ private fun createStateItem(designSurface: DesignSurface, state: State): JPanel 
   val buttonGroup = ButtonGroup()
   buttonGroup.add(trueButton)
   buttonGroup.add(falseButton)
-  trueButton.addActionListener { setState(designSurface, state, true) }
-  falseButton.addActionListener { setState(designSurface, state, false) }
+  trueButton.addActionListener {
+    setState(designSurface, state, true)
+    callback()
+  }
+  falseButton.addActionListener {
+    setState(designSurface, state, false)
+    callback()
+  }
 
   if (isSelected(designSurface, state)) {
     trueButton.isSelected = true

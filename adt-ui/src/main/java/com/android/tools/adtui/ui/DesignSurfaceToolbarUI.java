@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.ui;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
@@ -31,7 +32,6 @@ public class DesignSurfaceToolbarUI extends BasicPanelUI {
   private static final int ARC_LENGTH = 5;
   private static final int BORDER_ARC_LENGTH = 8;
   private static final int BORDER_SIZE = 1;
-  private static final JBColor DEFAULT_BACKGROUND = JBColor.white;
   private static final JBColor DEFAULT_BORDER = JBColor.lightGray;
 
   @Override
@@ -55,7 +55,7 @@ public class DesignSurfaceToolbarUI extends BasicPanelUI {
 
       int borderSize = JBUI.scale(BORDER_SIZE);
       int backgroundArcLength = JBUI.scale(ARC_LENGTH);
-      g2D.setColor(DEFAULT_BACKGROUND);
+      g2D.setColor(StudioColorsKt.getPrimaryContentBackground());
       g2D.fillRoundRect(borderSize, borderSize, width - borderSize - borderSize, height - borderSize - borderSize, backgroundArcLength,
                         backgroundArcLength);
       g2D.dispose();
