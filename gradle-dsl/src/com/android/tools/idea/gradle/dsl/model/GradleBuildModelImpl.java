@@ -86,8 +86,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NonNls private static final String VERSION = "version";
   @NonNls private static final String APPLY = "apply";
 
+  @NotNull protected GradleBuildFile myGradleBuildFile;
+
   public GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
+    myGradleBuildFile = buildDslFile;
   }
 
   @Override

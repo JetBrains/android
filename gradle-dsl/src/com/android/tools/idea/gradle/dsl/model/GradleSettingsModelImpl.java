@@ -55,8 +55,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
+  @NotNull protected GradleSettingsFile myGradleSettingsFile;
+
   public GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
+    myGradleSettingsFile = parsedModel;
   }
 
   private static class ModulePathsCache {
