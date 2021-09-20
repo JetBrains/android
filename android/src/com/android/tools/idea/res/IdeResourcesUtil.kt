@@ -1583,7 +1583,8 @@ fun addValueResource(
         item.type.stringValue = ResourceType.DIMEN.getName()
         return item
       }
-      if (value != null && value.indexOf('.') > 0) { // Deals with dimension values in the form of floating-point numbers, e.g. "0.24"
+      if (value != null && value.matches(Regex("[-+]?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+)"))) {
+        // Dimension value is in the form of floating-point number, e.g. "0.24".
         val item = resources.addItem()
         item.type.stringValue = ResourceType.DIMEN.getName()
         item.format.stringValue = "float"
