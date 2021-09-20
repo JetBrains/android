@@ -711,7 +711,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                 fixes.add(new CreateFileResourceQuickFix(facet, folderType, resourceName, context.getFile(), false));
               }
               if (VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
-                fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
+                fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), true));
               }
               return fixes.toArray(LocalQuickFix.EMPTY_ARRAY);
             }
