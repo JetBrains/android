@@ -102,7 +102,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     return KotlinFullClassNameIndex.getInstance()
       .get(classFqName, project, project.allScope())
       .firstOrNull()
-      .safeAs()
+      .safeAs<KtClassOrObject>()
   }
 
   private fun getAlignments(project: Project, alignmentFqName: String): Collection<KtDeclaration> {
