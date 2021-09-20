@@ -5,7 +5,7 @@
     >
 <TextView
     android:layout_width="fill_parent"
-    android:layout_height="45<caret>dp"
+    android:layout_height="4.5<caret>dp"
     android:text="hello"
     />
 </LinearLayout>
