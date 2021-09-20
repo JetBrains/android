@@ -127,6 +127,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
   private static final String VALUES_WITH_DUPES = "resourceRepository/values_with_duplicates.xml";
   private static final String VALUES_WITH_BAD_NAME = "resourceRepository/values_with_bad_name.xml";
+  private static final String VALUES_WITH_INCORRECT_ARRAY = "resourceRepository/array_without_name.xml";
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
@@ -330,6 +331,30 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
     assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
+  }
+
+  public void testArrayWithNoName() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject(VALUES_WITH_INCORRECT_ARRAY, "res/values/array_without_name.xml");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertNotNull(repository);
+    Collection<String> arrays = repository.getResources(RES_AUTO, ResourceType.ARRAY).keySet();
+    assertThat(arrays).isEmpty();
+
+    Collection<String> strings = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
+    assertThat(strings).isNotEmpty();
+
+    // Add the name for the array and expect the repository to update.
+    myFixture.openFileInEditor(virtualFile);
+
+    long generation = repository.getModificationCount();
+    long rescans = repository.getFileRescans();
+    type("<array |", "name=\"fooArray\"");
+    waitForUpdates(repository);
+    assertThat(repository.getModificationCount()).isGreaterThan(generation);
+
+    arrays = repository.getResources(RES_AUTO, ResourceType.ARRAY).keySet();
+    assertThat(arrays).containsExactly("fooArray");
   }
 
   public void testAddFile() throws Exception {
