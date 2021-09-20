@@ -20,7 +20,8 @@ import com.google.common.annotations.VisibleForTesting
 
 enum class PairingFeature(val minVersion: Int) {
   // Applicable to phone
-  COMPANION_EMULATOR_ACTIVITY(773302904),
+  // TODO(b/200178792): Enable it with the correct version for C
+  COMPANION_EMULATOR_ACTIVITY(Int.MAX_VALUE /*773302904*/),
 
   // Applicable to phone/watch
   REFRESH_EMULATOR_CONNECTION(213013000),
