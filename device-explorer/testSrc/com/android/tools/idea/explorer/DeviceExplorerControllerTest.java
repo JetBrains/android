@@ -861,7 +861,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myMockView.getTree().addSelectionPath(getFileEntryPath(myFooFile2));
 
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    AnAction action = getActionByText(actionGroup, "Save As...");
+    AnAction action = getActionByText(actionGroup, "Save To...");
     assertNotNull(action);
     AnActionEvent e = createContentMenuItemEvent();
     action.update(e);
@@ -1171,7 +1171,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myMockView.getTree().addSelectionPath(getFileEntryPath(myFile2));
 
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    AnAction action = getActionByText(actionGroup, "Copy Path");
+    AnAction action = getActionByText(actionGroup, "Copy Paths");
     assertNotNull(action);
     AnActionEvent e = createContentMenuItemEvent();
     action.update(e);
