@@ -205,10 +205,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     ))
 
     fakeUi.getPhoneList().apply {
-      assertThat(selectedIndex).isEqualTo(-1) // Nothing should be selected at the start
-
-      selectedIndex = 0
-      assertThat(selectedIndex).isEqualTo(0) // Selecting 0 is OK
+      assertThat(selectedIndex).isEqualTo(0) // The first selectable device is 0
 
       selectedIndex = 1
       assertThat(selectedIndex).isEqualTo(0) // Selecting 1 should be rejected (Disconnected)

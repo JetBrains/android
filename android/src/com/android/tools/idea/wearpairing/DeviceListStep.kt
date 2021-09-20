@@ -91,6 +91,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
     listName = "wearList",
     emptyTextTitle = message("wear.assistant.device.list.no.wear")
   )
+  private var preferredFocus: JComponent? = null
   private val canGoForward = BoolValueProperty()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
@@ -146,7 +147,11 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       firstComponent = phoneListPanel.takeIf { selectedPhone == null }
       secondComponent = wearListPanel.takeIf { selectedWear == null }
     }, gridConstraint(x = 0, y = 2, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.BOTH))
+
+    preferredFocus = if (selectedPhone == null) phoneListPanel.list else wearListPanel.list
   }
+
+  override fun getPreferredFocusComponent(): JComponent? = preferredFocus
 
   override fun onProceeding() {
     if (model.selectedPhoneDevice.valueOrNull == null) {
@@ -243,9 +248,6 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
         val listDevice = uiList.model.getElementAt(index)
         if (listDevice != device) {
           (uiList.model as CollectionListModel).setElementAt(device, index)
-          if (device.isPaired && device.state != ConnectionState.DISCONNECTED && uiList.selectedIndex < 0) {
-            uiList.selectedIndex = index
-          }
         }
       }
     }
@@ -253,8 +255,15 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       uiList.model = CollectionListModel(deviceList)
     }
 
-    if (uiList.selectedValue?.state == ConnectionState.DISCONNECTED) {
+    if (uiList.selectedValue?.isDisabled() == true) {
       uiList.clearSelection()
+    }
+
+    if (uiList.selectedValue == null) {
+      val firstAvailable = deviceList.indexOfFirst { !it.isDisabled() }
+      if (firstAvailable >= 0) {
+        uiList.selectedIndex = firstAvailable
+      }
     }
 
     deviceListPanel.showList(showEmpty = uiList.isEmpty)
