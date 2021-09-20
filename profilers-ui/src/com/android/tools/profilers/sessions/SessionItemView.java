@@ -27,6 +27,7 @@ import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.SupportLevel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -102,7 +103,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       HelpTooltip tooltip = new HelpTooltip();
       tooltip.setTitle("Profileable process");
       tooltip.setDescription("Capabilities are limited for profileable processes");
-      tooltip.setLink("More info", () -> {}); // TODO(b/191506454)
+      tooltip.setLink("More info", () -> BrowserUtil.browse(SupportLevel.DOC_LINK));
       tooltip.installOn(infoLabel);
       panel.add(infoLabel, new TabularLayout.Constraint(0, titleColumnCount++));
     }
