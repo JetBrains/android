@@ -81,9 +81,13 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
         SdkConstants.FN_SETTINGS_GRADLE_KTS, projectRootFolder, "Project Settings", buildScripts)
       findChildAndAddToMapIfFound(
         SdkConstants.FN_GRADLE_PROPERTIES, projectRootFolder, "Project Properties", buildScripts)
-      val child = projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleUtil.GRADLEW_PROPERTIES_PATH))
-      if (child != null) {
-        buildScripts[child] = "Gradle Version"
+      projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleUtil.GRADLEW_PROPERTIES_PATH))?.let {
+        buildScripts[it] = "Gradle Version"
+      }
+      projectRootFolder.findChild("gradle")?.takeIf { it.isDirectory }?.let { gradle ->
+        gradle.children.filter { !it.isDirectory && it.name.endsWith(".versions.toml") }.forEach {
+          buildScripts[it] = "Version Catalog"
+        }
       }
       findChildAndAddToMapIfFound(SdkConstants.FN_LOCAL_PROPERTIES, projectRootFolder, "SDK Location", buildScripts)
     }
