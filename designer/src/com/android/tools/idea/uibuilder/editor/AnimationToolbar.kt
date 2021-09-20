@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.stdui.CommonButton
 import javax.swing.JPanel
 import javax.swing.JButton
@@ -360,6 +362,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myFrameControl = JSlider(-5, 5, 0)
     myFrameControl.snapToTicks = true
     add(controlBar)
+    controlBar.background = primaryContentBackground
+    background = primaryPanelBackground
     myFrameControl.addChangeListener { e: ChangeEvent? ->
       stopFrameTicker()
       val value = myFrameControl.value
