@@ -61,12 +61,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     tempDirTestFixture.setUp()
     databaseFile = tempDirTestFixture.createFile(dbPath).toNioPath()
     initAdbFileProvider(project)
-    val clientLocation = let {
-      val sqliteCliSrcPath = SqliteCliProviderImpl(project).getSqliteCli()!!
-      val sqliteCliDstPath = copySqliteCliToTmpDir("new sqlite3 location with spaces", sqliteCliSrcPath)
-      sqliteCliDstPath
-    }
-    client = SqliteCliClientImpl(clientLocation, taskExecutor.asCoroutineDispatcher())
+
+    val sqliteCliSrcPath = SqliteCliProviderImpl(project).getSqliteCli()!!
+    val sqliteCliDstPath = copySqliteCliToTmpDir("new sqlite3 location with spaces", sqliteCliSrcPath)
+    client = SqliteCliClientImpl(sqliteCliDstPath, taskExecutor.asCoroutineDispatcher())
   }
 
   /**
