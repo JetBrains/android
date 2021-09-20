@@ -244,9 +244,6 @@ class GradleConnectedAndroidTestInvoker(
 
       withArguments(getDeviceSpecificArguments())
 
-      // Enable UTP in Gradle. This is required for Android Studio integration.
-      withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
-
       // Enable UTP test results reporting by embedded XML tag in stdout.
       withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
 

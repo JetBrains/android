@@ -16,25 +16,21 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.util.LaunchStatus
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
@@ -53,17 +49,11 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockLaunchStatus: LaunchStatus
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockAndroidTestResultListener:  AndroidTestResultListener
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
   @Mock lateinit var mockIndicator: ProgressIndicator
   val retentionConfiguration = RetentionConfiguration()
-
-  @Before
-  fun setup() {
-    `when`(mockAndroidModuleModel.modelVersion).thenReturn(GradleVersion(7, 0))
-  }
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
@@ -280,27 +270,5 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   fun testTaskReturnsSuccessForAllInPackageTestWithRetentionUseGradle() {
     val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.USE_GRADLE, maxSnapshots = 5, compressSnapshots = true)
     testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
-  }
-
-  @Test
-  fun testTaskReturnsFailedIfAGPVersionIsTooOld() {
-    `when`(mockAndroidModuleModel.modelVersion).thenReturn(GradleVersion(6, 0))
-
-    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
-      mockProject,
-      mockAndroidModuleModel,
-      "taskId",
-      /*waitForDebugger*/false,
-      mockProcessHandler,
-      mockPrinter,
-      mockDevice,
-      mockGradleConnectedAndroidTestInvoker,
-      retentionConfiguration)
-
-    val result = launchTask.run(
-      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
-
-    assertThat(result.success).isFalse()
-    assertThat(result.errorId).isEqualTo("ANDROID_TEST_AGP_VERSION_TOO_OLD")
   }
 }
