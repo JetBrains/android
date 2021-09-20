@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public class GradlePropertiesModel extends GradleFileModelImpl {
   private static final Logger LOG = Logger.getInstance(GradlePropertiesModel.class);
 
-  public GradlePropertiesModel(@NotNull GradleDslFile gradleDslFile) {
-    super(gradleDslFile);
+  public GradlePropertiesModel(@NotNull GradlePropertiesFile gradlePropertiesFile) {
+    super(gradlePropertiesFile);
   }
 }
