@@ -76,5 +76,5 @@ class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExt
   }
 }
 
-fun KotlinGradleModel.testSourceSetNames(): Collection<String> = compilerArgumentsBySourceSet.keys
+fun KotlinGradleModel.testSourceSetNames(): Collection<String> = cachedCompilerArgumentsBySourceSet.keys
 fun KaptGradleModel.testSourceSetNames(): Collection<String> = sourceSets.map { it.sourceSetName }

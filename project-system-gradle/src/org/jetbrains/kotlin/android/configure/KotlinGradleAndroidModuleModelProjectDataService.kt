@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -26,10 +26,9 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByGradleModule
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModel, Void>() {
     override fun getTargetDataKey() = ANDROID_MODEL
@@ -50,7 +49,6 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             if (sourceSetNodes.isNotEmpty()) {
               sourceSetNodes.forEach { sourceSetNode ->
                 val ideModule = modelsProvider.findIdeModule(sourceSetNode.data) ?: return@forEach
-                ideModule.compilerArgumentsBySourceSet = moduleNode.compilerArgumentsBySourceSet
                 val kotlinSourceSetName = moduleModelNode.data.selectedVariantName +
                                           (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
                 val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName)

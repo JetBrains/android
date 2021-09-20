@@ -689,7 +689,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
             prop("pluginVersion") { value.pluginVersion?.replaceKnownPatterns() }
           }
         }
-        kotlinGradleModel.compilerArgumentsBySourceSet.forEach { key, value ->
+        kotlinGradleModel.cachedCompilerArgumentsBySourceSet.forEach { key, value ->
           head("compilerArgumentsBySourceSet") { key }
           nest {
             fun dumpArg(title: String, arg: String) {
