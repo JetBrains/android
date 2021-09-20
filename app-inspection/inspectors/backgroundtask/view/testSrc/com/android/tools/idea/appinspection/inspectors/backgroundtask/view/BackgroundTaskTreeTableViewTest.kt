@@ -18,6 +18,8 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.ide.IntellijUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.assertEmptyWithMessage
@@ -31,6 +33,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.StubBackgroundTaskInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.AlarmEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
@@ -67,19 +71,27 @@ class BackgroundTaskTreeTableViewTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var scope: CoroutineScope
+  private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
+  private lateinit var tab: BackgroundTaskInspectorTab
+  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
   private lateinit var selectionModel: EntrySelectionModel
   private lateinit var entriesView: BackgroundTaskEntriesView
-  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
 
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    client = BackgroundTaskInspectorTestUtils.getFakeClient(scope)
     uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     withContext(uiDispatcher) {
-      selectionModel = EntrySelectionModel()
-      entriesView = BackgroundTaskEntriesView(client, selectionModel, scope, uiDispatcher)
+      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
+                                             WmiMessengerTarget.Resolved(workMessenger),
+                                             scope, StubBackgroundTaskInspectorTracker())
+      tab = BackgroundTaskInspectorTab(client, AppInspectionIdeServicesAdapter(), IntellijUiComponentsProvider(projectRule.project), scope,
+                                       uiDispatcher)
+      selectionModel = tab.selectionModel
+      entriesView = tab.component.firstComponent as BackgroundTaskEntriesView
     }
   }
 

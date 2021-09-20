@@ -451,9 +451,9 @@ class EntryDetailsViewTest {
   fun closeDetailsView() = runBlocking {
     val workInfo = BackgroundTaskInspectorTestUtils.FAKE_WORK_INFO
     client.sendWorkAddedEvent(workInfo)
+    tab.isDetailsViewVisible = true
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      assertThat(tab.isDetailsViewVisible).isTrue()
       val detailedPanelTitleLabel =
         TreeWalker(detailsView).descendantStream().filter { (it as? JLabel)?.text == "Task Details" }.findFirst().get()
       val titlePanel = detailedPanelTitleLabel.parent as JPanel

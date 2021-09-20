@@ -67,7 +67,7 @@ class EntryDetailsView(
   private val tab: BackgroundTaskInspectorTab,
   private val client: BackgroundTaskInspectorClient,
   private val ideServices: AppInspectionIdeServices,
-  @VisibleForTesting val selectionModel: EntrySelectionModel,
+  val selectionModel: EntrySelectionModel,
   private val entriesView: BackgroundTaskEntriesView,
   uiComponentsProvider: UiComponentsProvider,
   private val scope: CoroutineScope,
@@ -98,14 +98,16 @@ class EntryDetailsView(
     add(scrollPane, TabularLayout.Constraint(1, 0))
 
     selectionModel.registerEntrySelectionListener { entry ->
-      if (entry != null) {
-        tab.isDetailsViewVisible = true
+      if (entry == null) {
+        tab.isDetailsViewVisible = false
+      }
+      else {
         updateSelectedTask()
       }
     }
     client.addEntryUpdateEventListener { type, _ ->
       scope.launch(uiDispatcher) {
-        if (tab.isDetailsViewVisible && type == EntryUpdateEventType.UPDATE) {
+        if (type == EntryUpdateEventType.UPDATE) {
           updateSelectedTask()
         }
       }

@@ -51,7 +51,8 @@ const val MIN_GAP_BETWEEN_LABELS = 50
 /**
  * Graph Panel which shows dependencies among selected chaining works.
  */
-class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
+class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
+                              private val client: BackgroundTaskInspectorClient,
                               private val selectionModel: EntrySelectionModel,
                               private val scope: CoroutineScope,
                               private val uiDispatcher: CoroutineDispatcher) : JPanel() {
@@ -182,6 +183,7 @@ class WorkDependencyGraphView(private val client: BackgroundTaskInspectorClient,
     label.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent?) {
         client.getEntry(work.id)?.let { nonNullEntry ->
+          tab.isDetailsViewVisible = true
           client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT)
           selectionModel.selectedEntry = nonNullEntry
         }

@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTab
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.capitalizedName
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.icon
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFormattedTimeString
@@ -38,6 +39,9 @@ import com.intellij.util.ui.tree.TreeModelAdapter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Dimension
+import java.awt.Rectangle
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
@@ -77,7 +81,8 @@ val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
 /**
  * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
  */
-class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
+class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
+                                  client: BackgroundTaskInspectorClient,
                                   selectionModel: EntrySelectionModel,
                                   scope: CoroutineScope,
                                   uiDispatcher: CoroutineDispatcher) {
@@ -95,6 +100,18 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
       override fun treeStructureChanged(event: TreeModelEvent) {
         super.treeStructureChanged(event)
         tree.expandPath(event.treePath)
+      }
+    })
+
+    tree.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        val tree = e.source as JTree
+        val row = tree.getClosestRowForLocation(e.x, e.y)
+        val bounds = tree.getRowBounds(row)
+        val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
+        if (tableBounds.contains(e.point)) {
+          tab.isDetailsViewVisible = true
+        }
       }
     })
 
@@ -119,7 +136,9 @@ class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
         }
       }
       else {
-        selectionModel.selectedEntry = null
+        val entry = selectionModel.selectedEntry ?: return@addTreeSelectionListener
+        val node = treeModel.getTreeNode(entry.id) ?: return@addTreeSelectionListener
+        tree.selectionModel.selectionPath = TreePath(node.path)
       }
     }
 

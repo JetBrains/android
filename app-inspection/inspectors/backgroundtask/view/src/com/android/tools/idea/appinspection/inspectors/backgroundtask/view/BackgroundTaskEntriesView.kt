@@ -54,7 +54,8 @@ const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 /**
  * View containing a table view and graph view, and offers toggle control between the two.
  */
-class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClient,
+class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
+                                private val client: BackgroundTaskInspectorClient,
                                 private val selectionModel: EntrySelectionModel,
                                 scope: CoroutineScope,
                                 uiDispatcher: CoroutineDispatcher) : JPanel() {
@@ -185,8 +186,8 @@ class BackgroundTaskEntriesView(private val client: BackgroundTaskInspectorClien
   val graphView: WorkDependencyGraphView
 
   init {
-    tableView = BackgroundTaskTreeTableView(client, selectionModel, scope, uiDispatcher)
-    graphView = WorkDependencyGraphView(client, selectionModel, scope, uiDispatcher)
+    tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
+    graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
 
     layout = TabularLayout("*", "Fit,*")
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
