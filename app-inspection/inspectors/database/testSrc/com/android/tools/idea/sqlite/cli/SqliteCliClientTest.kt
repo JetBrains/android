@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.cli
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLines
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
@@ -26,7 +27,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import java.lang.System.lineSeparator
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.COPY_ATTRIBUTES
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 class SqliteCliClientTest : LightPlatformTestCase() {
   private lateinit var client: SqliteCliClient
@@ -56,7 +61,32 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     tempDirTestFixture.setUp()
     databaseFile = tempDirTestFixture.createFile(dbPath).toNioPath()
     initAdbFileProvider(project)
-    client = SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
+    val clientLocation = let {
+      val sqliteCliSrcPath = SqliteCliProviderImpl(project).getSqliteCli()!!
+      val sqliteCliDstPath = copySqliteCliToTmpDir("new sqlite3 location with spaces", sqliteCliSrcPath)
+      sqliteCliDstPath
+    }
+    client = SqliteCliClientImpl(clientLocation, taskExecutor.asCoroutineDispatcher())
+  }
+
+  /**
+   * Copies `sqliteCli3` tool with its parent folder to a temporary location.
+   * This allows for e.g. inserting a spaces in the new location path to ensure the code works under these circumstances.
+   */
+  private fun copySqliteCliToTmpDir(@Suppress("SameParameterValue") dirName: String, sqliteCliSrcPath: Path): Path {
+    // Copy directory with content
+    val tempDirPath = Paths.get(tempDirTestFixture.tempDirPath)
+    val toolsDstPath = Files.createTempDirectory(tempDirPath, dirName)
+    val toolsSrcPath = sqliteCliSrcPath.parent
+    val copyingSuccess = toolsSrcPath.toFile().copyRecursively(toolsDstPath.toFile())
+    assertWithMessage("Verifying if sqlite3 folder was successfully copied. Expecting success = true.").that(copyingSuccess).isTrue()
+
+    // Copy sqlite3 executable again, with COPY_ATTRIBUTES enabled to ensure the file is executable.
+    // There is no other clean solution for this and the file is small, so no harm to repeat this work.
+    val sqliteCliDstPath = toolsDstPath.resolve(sqliteCliSrcPath.fileName)
+    Files.copy(sqliteCliSrcPath, sqliteCliDstPath, COPY_ATTRIBUTES, REPLACE_EXISTING)
+
+    return sqliteCliDstPath
   }
 
   override fun tearDown() {

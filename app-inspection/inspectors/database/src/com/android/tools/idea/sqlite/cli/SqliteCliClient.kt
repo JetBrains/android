@@ -131,7 +131,7 @@ private object ProcessExecutor {
                    stdWriter: Writer,
                    errWriter: Writer,
                    dispatcher: CoroutineDispatcher): Int = withContext(dispatcher) {
-    val process = Runtime.getRuntime().exec(executable)
+    val process = ProcessBuilder(listOf(executable)).start()
 
     val exitCode = async { process.waitFor() }
     val errOutput = async { consumeProcessOutput(process.errorStream, errWriter, process, dispatcher) }
