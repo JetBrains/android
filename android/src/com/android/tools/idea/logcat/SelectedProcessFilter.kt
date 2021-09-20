@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat;
+package com.android.tools.idea.logcat
 
-import com.android.ddmlib.logcat.LogCatMessage;
-import org.jetbrains.annotations.NotNull;
+import com.android.ddmlib.logcat.LogCatMessage
 
-final class SelectedProcessFilter implements AndroidLogcatFilter {
-  private final int myProcessId;
+/**
+ * A [AndroidLogcatFilter] that filters on the selected app.
+ *
+ * @param pid the process id of the selected app
+ * @param packageName the package name of the selected app as defined in the manifest. Null means we could not obtain the package name and
+ * will only match on pid. Note that since [com.android.ddmlib.logcat.LogCatMessage#appName] is not nullable, there is no need for special
+ * handling of the null case, a simple == will suffice.
+ */
+data class SelectedProcessFilter(private val pid: Int, private val packageName: String?) : AndroidLogcatFilter {
+  override fun getName(): String = AndroidLogcatView.getSelectedAppFilter()
 
-  SelectedProcessFilter(int processId) {
-    myProcessId = processId;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLogcatView.getSelectedAppFilter();
-  }
-
-  @Override
-  public boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
-    return myProcessId == logCatMessage.getHeader().getPid();
-  }
+  override fun isApplicable(logCatMessage: LogCatMessage): Boolean =
+    pid == logCatMessage.header.pid || packageName == logCatMessage.header.appName
 }
