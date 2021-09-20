@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 @file:JvmName("ModuleSetup")
+
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.gradleJava.configuration.compilerArgumentsBySourceSet
-import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByCompilerArguments
-import org.jetbrains.kotlin.idea.gradleJava.configuration.sourceSetName
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByCachedCompilerArguments
+import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinIdeaProjectDataOrNull
+import org.jetbrains.kotlin.idea.gradleJava.configuration.sourceSetName
+import org.jetbrains.plugins.gradle.util.GradleUtil
 
 fun setUpModules(project: Project) {
   project.fixRunConfigurations()
@@ -45,10 +49,17 @@ private fun setupKotlinOptionsOnFacet(module: Module) {
   val androidModel = AndroidModuleModel.get(facet) ?: return
   val sourceSetName = androidModel.selectedVariant.name
   if (module.sourceSetName == sourceSetName) return
-  val argsInfo = module.compilerArgumentsBySourceSet?.get(sourceSetName) ?: return
+  val moduleDataNode = GradleUtil.findGradleModuleData(module) ?: return
+  val kotlinIdeaProjectData = moduleDataNode.kotlinIdeaProjectDataOrNull ?: return
+  val cacheHolder = kotlinIdeaProjectData.compilerArgumentsCacheHolder
+  val kotlinGradleSourceSetData = ExternalSystemApiUtil.findAllRecursively(moduleDataNode, KotlinGradleSourceSetData.KEY)
+                                    .map { it.data }
+                                    .find { it.sourceSetName == sourceSetName } ?: return
+  val argsInfo = kotlinGradleSourceSetData.cachedArgsInfo
+
   val kotlinFacet = KotlinFacet.get(module) ?: return
   module.sourceSetName = sourceSetName
-  configureFacetByCompilerArguments(kotlinFacet, argsInfo, null)
+  configureFacetByCachedCompilerArguments(kotlinFacet, argsInfo, cacheHolder, null)
 }
 
 private fun setupAndroidRunConfiguration(module: Module) {

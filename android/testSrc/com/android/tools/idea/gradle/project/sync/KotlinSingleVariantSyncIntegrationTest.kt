@@ -92,7 +92,7 @@ class KotlinSingleVariantSyncTestProjectResolverExtension : AbstractProjectResol
   override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
     val kotlinGradleModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)
     if (kotlinGradleModel != null) {
-      kotlinSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kotlinGradleModel.compilerArgumentsBySourceSet.keys)
+      kotlinSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kotlinGradleModel.cachedCompilerArgumentsBySourceSet.keys)
     }
     val kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
     if (kaptGradleModel != null) {

@@ -27,9 +27,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler
-import org.jetbrains.kotlin.idea.gradleJava.configuration.compilerArgumentsBySourceSet
 import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByGradleModule
-import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<AndroidModuleModel, Void>() {
@@ -51,7 +49,6 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             if (sourceSetNodes.isNotEmpty()) {
               sourceSetNodes.forEach { sourceSetNode ->
                 val ideModule = modelsProvider.findIdeModule(sourceSetNode.data) ?: return@forEach
-                ideModule.compilerArgumentsBySourceSet = moduleNode.compilerArgumentsBySourceSet()
                 val kotlinSourceSetName = moduleModelNode.data.selectedVariantName +
                                           (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
                 val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName)
