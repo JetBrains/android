@@ -103,11 +103,9 @@ internal class AndroidExtraModelProviderWorker(
   sealed class AndroidProjectResult {
     class V1Project(val androidProject: AndroidProject) : AndroidProjectResult() {
       override val buildName: String? = null
-      override val buildNameMap: Map<String, File>? = null
     }
 
     class V2Project(
-      buildMap: BuildMap,
       val androidProject: V2AndroidProject,
       val modelVersions: Versions,
       val androidDsl: AndroidDsl,
@@ -115,11 +113,9 @@ internal class AndroidExtraModelProviderWorker(
       val variantsWithDependencies: Map<V2Variant, VariantDependencies>? = null,
     ) : AndroidProjectResult() {
       override val buildName: String = androidProject.buildName
-      override val buildNameMap: Map<String, File> = buildMap.buildIdMap
     }
 
     abstract val buildName: String?
-    abstract val buildNameMap: Map<String, File>?
   }
 
   private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
@@ -143,6 +139,16 @@ internal class AndroidExtraModelProviderWorker(
    * [ProjectImportModelProvider.BuildModelConsumer] callback.
    */
   private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<GradleModule> {
+    val buildNameMap =
+      (buildModels
+         .mapNotNull { build ->
+           actionRunner.runAction { controller -> controller.findModel(build.rootProject, BuildMap::class.java) }
+         }
+         .flatMap { buildNames -> buildNames.buildIdMap.entries.map { it.key to it.value } } +
+       (":" to buildFolderPaths.buildRootDirectory!!)
+      )
+        .toMap()
+
     val isAllVariantsSync = when (syncOptions) {
       is AllVariantsSyncActionOptions -> true
       is SingleVariantSyncActionOptions -> false
@@ -163,8 +169,6 @@ internal class AndroidExtraModelProviderWorker(
                 verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp) &&
                 canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
               val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
-              val buildMap = controller.findNonParameterizedV2Model(gradleProject, BuildMap::class.java)
-                             ?: error("Failed to obtain BuildMap model for ${gradleProject.projectDirectory}")
               val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
               if (androidProject != null && androidDsl != null)  {
@@ -181,10 +185,10 @@ internal class AndroidExtraModelProviderWorker(
                       .mapNotNull { controller.findVariantDependenciesV2Model(gradleProject, it.name)?.let { model -> it to model } }
                       .associate { it.first to it.second }
 
-                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl, variantsWithDependencies)
+                  AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl, variantsWithDependencies)
                 }
                 else {
-                  AndroidProjectResult.V2Project(buildMap, androidProject, modelVersion, androidDsl)
+                  AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
                 }
 
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
@@ -199,6 +203,7 @@ internal class AndroidExtraModelProviderWorker(
                   androidProjectResult,
                   nativeAndroidProject,
                   nativeModule,
+                  buildNameMap,
                   modelCache
                 )
               }
@@ -230,6 +235,7 @@ internal class AndroidExtraModelProviderWorker(
                 androidProjectResult,
                 nativeAndroidProject,
                 nativeModule,
+                buildNameMap,
                 modelCache
               )
             }
@@ -784,6 +790,7 @@ private fun createAndroidModule(
   androidProjectResult: AndroidExtraModelProviderWorker.AndroidProjectResult,
   nativeAndroidProject: NativeAndroidProject?,
   nativeModule: NativeModule?,
+  buildNameMap: Map<String, File>,
   modelCache: ModelCache
 ): AndroidModule {
   val gradleVersionString = when (androidProjectResult) {
@@ -820,7 +827,7 @@ private fun createAndroidModule(
               it.key,
               modelVersion,
               it.value,
-              androidProjectResult.buildNameMap
+              buildNameMap
             )
           }
           .takeUnless { it.isEmpty() }
@@ -899,7 +906,7 @@ private fun createAndroidModule(
   val androidModule = AndroidModule(
     modelVersion,
     androidProjectResult.buildName,
-    androidProjectResult.buildNameMap,
+    buildNameMap,
     gradleProject,
     ideAndroidProject,
     allVariantNames,
