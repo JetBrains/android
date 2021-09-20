@@ -23,7 +23,6 @@ import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.getWorkspaceRoot
@@ -1498,10 +1497,6 @@ inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableF
 
 // HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"
 fun updatePluginsResolutionManagement(origContent: String): String {
-  if (!TestUtils.runningFromBazel()) {
-    return origContent
-  }
-
   fun findPluginVersion(pluginId: String): String? = origContent.lines()
     .firstOrNull { it.contains(pluginId) && it.contains("version") }
     ?.replace(" apply false", "")?.replace("'", "")
