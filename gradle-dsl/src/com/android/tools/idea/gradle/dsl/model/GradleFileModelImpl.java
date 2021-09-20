@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -114,7 +113,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
 
     // Get all the properties files.
     for (GradleDslFile file : new ArrayList<>(files)) {
-      GradleDslFile sibling = file.getSiblingDslFile();
+      GradleDslFile sibling = file.getPropertiesFile();
       if (sibling != null) {
         files.add(sibling);
       }

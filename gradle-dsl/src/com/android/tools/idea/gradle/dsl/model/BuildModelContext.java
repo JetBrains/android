@@ -249,8 +249,7 @@ public final class BuildModelContext {
     GradlePropertiesModel propertiesModel = new GradlePropertiesModel(parsedProperties);
 
     GradleDslFile propertiesDslFile = propertiesModel.myGradleDslFile;
-    buildDslFile.setSiblingDslFile(propertiesDslFile);
-    propertiesDslFile.setSiblingDslFile(buildDslFile);
+    buildDslFile.setPropertiesFile(propertiesDslFile);
   }
 
   private void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile) {

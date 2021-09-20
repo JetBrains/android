@@ -384,7 +384,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
           results.putAll(ext.getPropertyElements());
         }
         // Add properties files properties
-        GradleDslFile propertiesFile = file.getSiblingDslFile();
+        GradleDslFile propertiesFile = file.getPropertiesFile();
         if (propertiesFile != null) {
           // Only properties with no qualifier are picked up by build scripts.
           Map<String, GradleDslElement> filteredProperties =
@@ -796,7 +796,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Nullable
   private static GradleDslElement resolveReferenceInPropertiesFile(@NotNull GradleDslFile buildDslFile, @NotNull String referenceText) {
-    GradleDslFile propertiesDslFile = buildDslFile.getSiblingDslFile();
+    GradleDslFile propertiesDslFile = buildDslFile.getPropertiesFile();
     return propertiesDslFile != null ? propertiesDslFile.getPropertyElement(referenceText) : null;
   }
 

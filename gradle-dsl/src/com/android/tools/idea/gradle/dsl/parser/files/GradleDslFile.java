@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides Gradle-specific abstraction over Gradle build files, whatever their implementation language.
+ * Provides Gradle-specific abstraction over Gradle build and related files, whatever their implementation language.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
   private static final Logger LOG = Logger.getInstance(GradleDslFile.class);
@@ -70,7 +70,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final GradleDslParser myGradleDslParser;
 
   @Nullable private GradleDslFile myParentModuleDslFile;
-  @Nullable private GradleDslFile mySiblingDslFile;
+  @Nullable private GradleDslFile myPropertiesFile;
 
   @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
@@ -206,22 +206,22 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   /**
-   * Sets the sibling dsl file of this file.
+   * Sets the properties dsl file of this file.
    *
    * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
    */
-  public void setSiblingDslFile(@NotNull GradleDslFile siblingDslFile) {
-    mySiblingDslFile = siblingDslFile;
+  public void setPropertiesFile(@NotNull GradleDslFile propertiesFile) {
+    myPropertiesFile = propertiesFile;
   }
 
   /**
-   * Returns the sibling dsl file of this file.
+   * Returns the properties dsl file of this file.
    *
    * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
    */
   @Nullable
-  public GradleDslFile getSiblingDslFile() {
-    return mySiblingDslFile;
+  public GradleDslFile getPropertiesFile() {
+    return myPropertiesFile;
   }
 
   @NotNull
