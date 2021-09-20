@@ -324,7 +324,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
       return false;
     }
-    return true;
+    AndroidModuleModel model = AndroidModuleModel.get(facet);
+    if (model == null) {
+      return false;
+    }
+    return model.getAndroidProject().getAgpFlags().getUnifiedTestPlatformEnabled();
   }
 
   @NotNull

@@ -265,30 +265,6 @@ class GradleConnectedAndroidTestInvokerTest {
   }
 
   @Test
-  fun useUnifiedTestPlatformFlagShouldBeEnabledInGradleExecutionSettings() {
-    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
-
-    gradleConnectedTestInvoker.schedule(
-      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
-      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0], RetentionConfiguration())
-
-    verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
-      anyString(),
-      argThat {
-        it?.run {
-          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
-          arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=0")
-        } ?: false
-      },
-      nullable(String::class.java),
-      any()
-    )
-  }
-
-  @Test
   fun retentionEnabledTest() {
     val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
@@ -304,7 +280,6 @@ class GradleConnectedAndroidTestInvokerTest {
       anyString(),
       argThat {
         it?.run {
-          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=5") &&
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.compressSnapshots=true")
         } ?: false
@@ -330,7 +305,6 @@ class GradleConnectedAndroidTestInvokerTest {
       anyString(),
       argThat {
         it?.run {
-          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
           !arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures")
         } ?: false
       },

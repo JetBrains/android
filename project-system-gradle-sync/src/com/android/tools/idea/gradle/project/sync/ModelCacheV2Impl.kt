@@ -1052,7 +1052,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         testRClassConstantIds = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS),
         transitiveRClasses = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
         usesCompose = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
-        mlModelBindingEnabled = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING)
+        mlModelBindingEnabled = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING),
+        unifiedTestPlatformEnabled = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
       )
     }
     else {
@@ -1061,7 +1062,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         testRClassConstantIds = false,
         transitiveRClasses = false,
         usesCompose = false,
-        mlModelBindingEnabled = false
+        mlModelBindingEnabled = false,
+        unifiedTestPlatformEnabled = false,
       )
     }
   }

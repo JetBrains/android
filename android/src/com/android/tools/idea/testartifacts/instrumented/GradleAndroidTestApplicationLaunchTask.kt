@@ -127,23 +127,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   }
 
   override fun run(launchContext: LaunchContext): LaunchResult {
-    if (!checkAndroidGradlePluginVersion()) {
-      return LaunchResult.error("ANDROID_TEST_AGP_VERSION_TOO_OLD", "checking the Android Gradle plugin version")
-    }
     myGradleConnectedAndroidTestInvoker.schedule(
       project, taskId, processHandler, consolePrinter, androidModuleModel,
       waitForDebugger, testPackageName, testClassName, testMethodName, device, retentionConfiguration)
     return LaunchResult.success()
-  }
-
-  private fun checkAndroidGradlePluginVersion(): Boolean {
-    val version = androidModuleModel.modelVersion
-    return if (version != null && version.major >= 7) {
-      true
-    } else {
-      consolePrinter.stderr("The minimum required Android Gradle plugin version is 7.0.0 but it was ${version ?: "unknown"}.")
-      false
-    }
   }
 
   override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"

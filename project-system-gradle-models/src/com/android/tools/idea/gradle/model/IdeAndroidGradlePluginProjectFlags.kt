@@ -46,4 +46,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether the ML model binding feature is enabled for this project. */
   val mlModelBindingEnabled: Boolean
+
+  /** Whether the Android Test Platform is enabled for this project. */
+  val unifiedTestPlatformEnabled: Boolean
 }

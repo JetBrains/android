@@ -81,7 +81,8 @@ class IdeAndroidGradlePluginProjectFlagsTest {
         testRClassConstantIds = flagsMap[BooleanFlag.TEST_R_CLASS_CONSTANT_IDS] ?: BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.legacyDefault,
         transitiveRClasses = flagsMap[BooleanFlag.TRANSITIVE_R_CLASS] ?: BooleanFlag.TRANSITIVE_R_CLASS.legacyDefault,
         usesCompose = flagsMap[BooleanFlag.JETPACK_COMPOSE] ?: BooleanFlag.JETPACK_COMPOSE.legacyDefault,
-        mlModelBindingEnabled = flagsMap[BooleanFlag.ML_MODEL_BINDING] ?: BooleanFlag.ML_MODEL_BINDING.legacyDefault
+        mlModelBindingEnabled = flagsMap[BooleanFlag.ML_MODEL_BINDING] ?: BooleanFlag.ML_MODEL_BINDING.legacyDefault,
+        unifiedTestPlatformEnabled = flagsMap[BooleanFlag.UNIFIED_TEST_PLATFORM] ?: BooleanFlag.UNIFIED_TEST_PLATFORM.legacyDefault,
       )
     }
 }
