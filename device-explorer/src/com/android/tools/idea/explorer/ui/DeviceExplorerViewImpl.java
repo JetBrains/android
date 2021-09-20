@@ -786,6 +786,13 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       return AllIcons.Actions.Refresh;
     }
 
+    @NotNull
+    @Override
+    public String getShortcutId() {
+      // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
+      return "Refresh";
+    }
+
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
       return true;
