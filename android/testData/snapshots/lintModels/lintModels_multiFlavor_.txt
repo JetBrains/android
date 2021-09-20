@@ -223,9 +223,9 @@ MODULE                        : MultiFlavor.app
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 30
         ResValues
-            v_a                           : v_a:string=firstAbc
-            v_b                           : v_b:string=debug
-            v_c                           : v_c:string=secondAbc
+            string/v_a                    : v_a:string=firstAbc
+            string/v_b                    : v_b:string=debug
+            string/v_c                    : v_c:string=secondAbc
         ManifestPlaceholders
             a                             : firstAbc
             b                             : debug
