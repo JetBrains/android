@@ -42,7 +42,7 @@ class PreferenceClassDomFileDescription : CustomLogicResourceDomFileDescription<
        * If we know parent tag (tag hardcoded in AS, one of [AndroidXmlResourcesUtil.ROOT_TAGS]) -> we use [XmlResourceDomFileDescription].
        * If we don't, we assume it's a class name that we need to resolve.
        */
-      return !AndroidXmlResourcesUtil.ROOT_TAGS.contains(rootTag.name)
+      return !AndroidXmlResourcesUtil.PREFERENCES_ROOT_TAGS.contains(rootTag.name)
     }
   }
 
