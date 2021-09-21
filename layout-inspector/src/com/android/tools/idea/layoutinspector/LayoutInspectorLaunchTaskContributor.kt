@@ -70,7 +70,8 @@ class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
         override val pid: Int = 0
         override val streamId: Long = 0L
       }
-      val attrs = DebugViewAttributes(project, process)
+      val adb = AdbUtils.getAdbFuture(project).get()
+      val attrs = DebugViewAttributes(adb, project, process)
       if (attrs.set()) {
         launchContext.processHandler.addProcessListener(object : ProcessAdapter() {
           override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {

@@ -112,7 +112,7 @@ class LegacyClientProvider(
   }
 ) : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    return LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
+    return LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
                         parentDisposable, treeLoaderOverride)
   }
 }
@@ -165,7 +165,6 @@ class LayoutInspectorRule(
   val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
     adbRule.withDeviceCommandHandler(this)
   }
-  val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   lateinit var inspector: LayoutInspector
     private set
@@ -194,7 +193,8 @@ class LayoutInspectorRule(
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
     inspectorModel = InspectorModel(projectRule.project)
-    launcher = InspectorClientLauncher(processes,
+    launcher = InspectorClientLauncher(adbRule.bridge,
+                                       processes,
                                        listOf { params -> clientProvider.create(params, inspector) },
                                        project,
                                        launcherDisposable,
@@ -232,7 +232,7 @@ class LayoutInspectorRule(
 
   override fun apply(base: Statement, description: Description): Statement {
     // List of rules that will be applied in order, with this rule being last
-    val innerRules = listOf(adbService, adbRule, projectRule)
+    val innerRules = listOf(adbRule, projectRule)
     val coreStatement = object : Statement() {
       override fun evaluate() {
         before()

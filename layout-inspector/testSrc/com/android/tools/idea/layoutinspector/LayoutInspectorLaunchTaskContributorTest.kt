@@ -53,10 +53,9 @@ class LayoutInspectorLaunchTaskContributorTest {
   private val commandHandler = FakeShellCommandHandler()
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule)!!
 
   @Test
   fun testLaunchWithoutDebugAttributes() {
@@ -209,7 +208,7 @@ class LayoutInspectorLaunchTaskContributorTest {
       launchOptions
     )
 
-    val adb = AdbUtils.getAdbFuture(project).get()!!
+    val adb = AdbUtils.getAdbFuture(project).get()
     val iDevice = adb.findDevice(device)!!
     val tasks = launchTaskProvider.getTasks(iDevice, mock(), mock())
       .filterIsInstance(LayoutInspectorLaunchTask::class.java)

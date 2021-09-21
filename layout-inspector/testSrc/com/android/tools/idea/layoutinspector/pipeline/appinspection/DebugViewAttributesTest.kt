@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
-import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
@@ -32,12 +31,11 @@ class DebugViewAttributesTest {
   private val commandHandler = FakeShellCommandHandler()
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
   private lateinit var debugViewAttributes: DebugViewAttributes
   private lateinit var processName: String
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule)!!
 
   @Before
   fun before() {
@@ -46,7 +44,7 @@ class DebugViewAttributesTest {
     adbRule.attachDevice(
       device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(), DeviceState.HostConnectionType.USB)
 
-    debugViewAttributes = DebugViewAttributes(projectRule.project, process)
+    debugViewAttributes = DebugViewAttributes(adbRule.bridge, projectRule.project, process)
     processName = process.name
   }
 

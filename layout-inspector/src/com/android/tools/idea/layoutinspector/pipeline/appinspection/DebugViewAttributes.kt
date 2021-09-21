@@ -16,10 +16,10 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.project.AndroidNotification
 import com.google.common.html.HtmlEscapers
@@ -33,7 +33,7 @@ import com.intellij.openapi.project.Project
  * These debug settings, when set, tell the system to expose some debug data (e.g. Composables)
  * that it normally would hide.
  */
-class DebugViewAttributes(private val project: Project, private val process: ProcessDescriptor) {
+class DebugViewAttributes(private val adb: AndroidDebugBridge, private val project: Project, private val process: ProcessDescriptor) {
 
   private var abortDeleteRunnable: AbortAdbCommandRunnable? = null
 
@@ -50,7 +50,6 @@ class DebugViewAttributes(private val project: Project, private val process: Pro
     var errorMessage: String
     var settingsUpdated = false
     try {
-      val adb = AdbUtils.getAdbFuture(project).get() ?: return false
       if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") !in listOf("null", "0")) {
         // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
         return false
@@ -107,7 +106,6 @@ class DebugViewAttributes(private val project: Project, private val process: Pro
     if (abortDeleteRunnable == null) return
 
     try {
-      val adb = AdbUtils.getAdbFuture(project).get() ?: return
       val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
       if (app == process.name) {
         adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")

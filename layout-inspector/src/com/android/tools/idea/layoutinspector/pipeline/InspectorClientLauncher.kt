@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -43,36 +44,37 @@ import java.util.concurrent.TimeUnit
  * @param executor The executor which will handle connecting / launching the current client. This
  * should not be the UI thread, in order to avoid blocking the UI during this time.
  */
-class InspectorClientLauncher(
-  private val processes: ProcessesModel,
-  private val clientCreators: List<(Params) -> InspectorClient?>,
-  private val project: Project,
-  private val parentDisposable: Disposable,
-  @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
-) {
+class InspectorClientLauncher(private val adb: AndroidDebugBridge,
+                              private val processes: ProcessesModel,
+                              private val clientCreators: List<(Params) -> InspectorClient?>,
+                              private val project: Project,
+                              private val parentDisposable: Disposable,
+                              @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
 
     /**
      * Convenience method for creating a launcher with useful client creation rules used in production
      */
     fun createDefaultLauncher(
+      adb: AndroidDebugBridge,
       processes: ProcessesModel,
       model: InspectorModel,
       stats: SessionStatistics,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
+        adb,
         processes,
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable)
+              AppInspectionInspectorClient(params.adb, params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable)
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable) }
+          { params -> LegacyClient(params.adb, params.process, params.isInstantlyAutoConnected, model, stats, parentDisposable) }
         ),
         model.project,
         parentDisposable)
@@ -80,6 +82,7 @@ class InspectorClientLauncher(
   }
 
   interface Params {
+    val adb: AndroidDebugBridge
     val process: ProcessDescriptor
     val isInstantlyAutoConnected: Boolean
     val disposable: Disposable
@@ -99,6 +102,7 @@ class InspectorClientLauncher(
     var validClientConnected = false
     if (process != null && process.isRunning && enabled) {
       val params = object : Params {
+        override val adb: AndroidDebugBridge = this@InspectorClientLauncher.adb
         override val process: ProcessDescriptor = process
         override val isInstantlyAutoConnected: Boolean = isInstantlyAutoConnected
         override val disposable: Disposable = parentDisposable
