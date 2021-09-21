@@ -52,6 +52,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
+    System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 

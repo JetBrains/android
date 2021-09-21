@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="true" type="JUnit" factoryName="JUnit">
+    <log_file alias="idea.log" path="$PROJECT_DIR$/test-temp/system/testlog/idea.log" skipped="false" />
     <shortenClasspath name="MANIFEST" />
     <useClassPathOnly />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
@@ -7,7 +8,7 @@
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
-    <option name="VM_PARAMETERS" value="-ea -Xms256m -Xmx1280m -Duser.home=$PROJECT_DIR$/test-temp/user/home -Didea.config.path=$PROJECT_DIR$/test-temp/config -Didea.system.path=$PROJECT_DIR$/test-temp/system -Didea.plugins.path=$PROJECT_DIR$/test-temp/plugins" />
+    <option name="VM_PARAMETERS" value="-ea -Xms256m -Xmx1280m -Duser.home=$PROJECT_DIR$/test-temp/user/home -Didea.config.path=$PROJECT_DIR$/test-temp/config -Didea.system.path=$PROJECT_DIR$/test-temp/system -Didea.plugins.path=$PROJECT_DIR$/test-temp/plugins -Didea.log.config.file=$PROJECT_DIR$/adt-testutils/test-log.xml" />
     <option name="PARAMETERS" value="" />
     <option name="PASS_PARENT_ENVS" value="false" />
     <envs>

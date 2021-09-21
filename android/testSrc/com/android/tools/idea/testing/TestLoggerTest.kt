@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.testing
 
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.testFramework.TestLoggerFactory
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.util.io.readText
 import org.junit.Test
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import java.nio.file.Paths
 
 class TestLoggerTest : UsefulTestCase() {
 
   @Test
-  fun testLogger() {
-    var err = System.err
-    try {
-      val bb = ByteArrayOutputStream();
-      System.setErr(PrintStream(bb));
-      LOG.warn("WARNING!");
-      assertTrue("Log not configured to output warning to stderr.", String(bb.toByteArray(), Charsets.UTF_8).contains("WARNING!"))
-    } finally {
-      System.setErr(err);
-    }
+  fun testLoggerWritesToLogFile() {
+    val logFile = Paths.get(TestLoggerFactory.getTestLogDir(), "idea.log")
+    val before = logFile.readText()
+    thisLogger().warn("A sample warning message")
+    val after = logFile.readText()
+    val diff = after.removePrefix(before)
+    assertThat(diff).contains("A sample warning message")
   }
+
+  // Ideally we could also test that warnings are logged to System.err. But, unfortunately,
+  // the relevant ConsoleAppender caches System.err before we can reassign it here.
 }
