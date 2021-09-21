@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -798,6 +799,11 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
           return button;
         }
       }
+
+      if (component instanceof ActionToolbar) {
+        ((ActionToolbar)component).updateActionsImmediately();
+      }
+
       if (component instanceof Container) {
         ActionButton button = findButtonByName((Container)component, name);
         if (button != null) {
