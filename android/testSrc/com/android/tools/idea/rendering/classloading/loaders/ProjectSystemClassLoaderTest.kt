@@ -18,19 +18,29 @@ package com.android.tools.idea.rendering.classloading.loaders
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
-import com.intellij.openapi.vfs.newvfs.impl.NullVirtualFile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.FileNotFoundException
 
 /**
  * [FakeVirtualFile] that supports [VirtualFile.contentsToByteArray].
+ *
+ * The constructor requires a parent [VirtualFile] and a file name. Optionally a last modified timestamp can be passed as
+ * [modificationTimeStamp].
  */
-private open class TestVirtualFile(parent: VirtualFile, name: String): FakeVirtualFile(parent, name) {
-  private val contents = ByteArray(0)
+private open class TestVirtualFile(parent: VirtualFile,
+                                   name: String,
+                                   var modificationTimeStamp: Long = System.currentTimeMillis()) : FakeVirtualFile(parent, name) {
+  var contents = ByteArray(0)
   override fun contentsToByteArray(): ByteArray = contents
+
+  override fun isValid(): Boolean = true
+  override fun getLength(): Long = contents.size.toLong()
+  override fun getTimeStamp(): Long = modificationTimeStamp
 }
 
 class ProjectSystemClassLoaderTest {
@@ -41,7 +51,7 @@ class ProjectSystemClassLoaderTest {
   fun `check load from project`() {
     val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
     val virtualFile1 = TestVirtualFile(rootDir, "file1")
-    val virtualFile2 = TestVirtualFile(rootDir, "fil2")
+    val virtualFile2 = TestVirtualFile(rootDir, "file2")
     val classes = mapOf(
       "a.class1" to virtualFile1,
       "a.class2" to virtualFile2
@@ -51,8 +61,16 @@ class ProjectSystemClassLoaderTest {
     }
 
     assertNull(loader.loadClass("not.found.class"))
+    assertEquals(0, loader.loadedVirtualFiles.count())
     assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
+    assertEquals(2, loader.loadedVirtualFiles.count())
+
+    // Invalidate and reload one class
+    loader.invalidateCaches()
+    assertEquals(0, loader.loadedVirtualFiles.count())
+    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertEquals(1, loader.loadedVirtualFiles.count())
   }
 
   @Test
@@ -73,5 +91,35 @@ class ProjectSystemClassLoaderTest {
     // Simulate file removal
     removed = true
     assertNull(loader.loadClass("a.class1"))
+  }
+
+  @Test
+  fun `verify loaded classes`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    val virtualFile1 = TestVirtualFile(rootDir, "file1", 111)
+    val virtualFile2 = TestVirtualFile(rootDir, "file2", 111)
+    val classes = mapOf(
+      "a.class1" to virtualFile1,
+      "a.class2" to virtualFile2
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
+    assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
+    assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
+
+    // Simulate a file modification via timestamp update
+    virtualFile1.modificationTimeStamp = 112
+    assertFalse(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
+    assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
+
+    // Now invalidate and reload class1
+    loader.invalidateCaches()
+    assertEquals(0, loader.loadedVirtualFiles.count())
+    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
   }
 }
