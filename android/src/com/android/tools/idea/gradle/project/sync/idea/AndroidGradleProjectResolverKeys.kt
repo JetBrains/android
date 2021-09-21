@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.intellij.openapi.util.Key
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 
 object AndroidGradleProjectResolverKeys {
   @JvmField

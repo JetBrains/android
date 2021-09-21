@@ -20,7 +20,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import org.jetbrains.kotlin.gradle.ArgsInfo
+import org.jetbrains.kotlin.idea.gradleTooling.ArgsInfo
 import org.jetbrains.kotlin.idea.gradleJava.configuration.compilerArgumentsBySourceSet
 import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 

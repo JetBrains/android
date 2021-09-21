@@ -49,7 +49,7 @@ import java.nio.file.Path
 import com.google.wireless.android.sdk.stats.ProductDetails
 
 import com.android.tools.analytics.CommonMetricsData.osArchitecture
-import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.system.CpuArch
 
 
 /**
@@ -60,7 +60,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
 ) {
-  private val IS_ARM64_HOST_OS = SystemInfo.isArm64 || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
+  private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
   private lateinit var myProgressStep: ProgressStep
   private var myLatestVersion: AndroidVersion? = null
 

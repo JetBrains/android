@@ -32,6 +32,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Map;
+import com.intellij.util.system.CpuArch;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -93,7 +94,7 @@ public class LayoutLibraryLoader {
   @NotNull
   private static String getPlatformName() {
     if (SystemInfo.isWindows) return "win";
-    else if (SystemInfo.isMac) return SystemInfo.isArm64 ? "mac-arm" : "mac";
+    else if (SystemInfo.isMac) return CpuArch.isArm64() ? "mac-arm" : "mac";
     else if (SystemInfo.isLinux) return "linux";
     else return "";
   }

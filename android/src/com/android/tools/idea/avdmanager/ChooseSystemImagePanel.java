@@ -36,21 +36,18 @@ import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Consumer;
+import com.intellij.util.system.CpuArch;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ListTableModel;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.RowFilter;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
 public class ChooseSystemImagePanel extends JPanel
   implements SystemImageList.SystemImageSelectionListener, SystemImageListModel.StatusIndicator, Disposable {
 
-  private static final boolean IS_ARM64_HOST_OS = SystemInfo.isArm64 ||
+  private static final boolean IS_ARM64_HOST_OS = CpuArch.isArm64() ||
                                                   CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM;
 
   private final List<Consumer<SystemImageDescription>> mySystemImageListeners = Lists.newArrayListWithExpectedSize(1);

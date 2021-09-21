@@ -28,8 +28,8 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.gradle.KotlinGradleModel
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 import org.junit.Rule

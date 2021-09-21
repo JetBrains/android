@@ -154,11 +154,6 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                     overrides="true"/>
 
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
-                    serviceImplementation="org.jetbrains.android.compose.ComposeKDocLinkResolutionService"
-                    overrides="true"
-    />
-
     <!-- DO NOT move to project-system-gradle-plugin.xml. It should run in Android Studio only. -->
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"

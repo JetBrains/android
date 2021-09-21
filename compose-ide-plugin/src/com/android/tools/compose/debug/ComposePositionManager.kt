@@ -20,11 +20,10 @@ import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcess
 import com.intellij.debugger.engine.DebugProcessImpl
-import com.intellij.debugger.engine.PositionManagerEx
+import com.intellij.debugger.engine.PositionManagerWithMultipleStackFrames
 import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
-import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.util.ThreeState
@@ -51,19 +50,16 @@ import org.jetbrains.kotlin.psi.KtFile
 class ComposePositionManager(
   private val debugProcess: DebugProcess,
   private val kotlinPositionManager: KotlinPositionManager
-) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerEx()  {
+) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames  {
   override fun getAcceptedFileTypes(): Set<FileType> = KotlinFileTypeFactoryUtils.KOTLIN_FILE_TYPES_SET
 
-  override fun createStackFrame(descriptor: StackFrameDescriptorImpl): XStackFrame? =
-    kotlinPositionManager.createStackFrame(descriptor)
-
-  override fun createStackFrame(frame: StackFrameProxyImpl, debugProcess: DebugProcessImpl, location: Location): XStackFrame? =
-    kotlinPositionManager.createStackFrame(frame, debugProcess, location)
+  override fun createStackFrames(frame: StackFrameProxyImpl, debugProcess: DebugProcessImpl, location: Location): List<XStackFrame> =
+    kotlinPositionManager.createStackFrames(frame, debugProcess, location)
 
   override fun evaluateCondition(context: EvaluationContext,
                                  frame: StackFrameProxyImpl,
                                  location: Location,
-                                 expression: String): ThreeState? =
+                                 expression: String): ThreeState =
     kotlinPositionManager.evaluateCondition(context, frame, location, expression)
 
   /**
