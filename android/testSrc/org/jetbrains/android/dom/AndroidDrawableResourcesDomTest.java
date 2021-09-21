@@ -15,12 +15,15 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryPackageNameFromManifestIndex;
+
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 
 public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public AndroidDrawableResourcesDomTest() {
@@ -331,6 +334,12 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
                              "ripple", "vector", "animated-vector", "animated-selector", "drawable",
                              // API 26:
                              "adaptive-icon", "maskable-icon");
+  }
+
+  public void testCustomDrawableRootTagCompletion() throws Throwable {
+    String packageName = queryPackageNameFromManifestIndex(AndroidFacet.getInstance(myFixture.getModule()));
+    myFixture.addClass(String.format("package %s; public class MyDrawable extends android.graphics.drawable.Drawable {};", packageName));
+    doTestCompletionVariantsContains(getTestName(true) + ".xml", packageName + ".MyDrawable");
   }
 
   public void testInlineClip() throws Throwable {

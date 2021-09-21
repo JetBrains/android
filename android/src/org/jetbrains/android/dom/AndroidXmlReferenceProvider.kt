@@ -2,8 +2,10 @@
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
+import com.android.SdkConstants.CLASS_DRAWABLE
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.psi.TagToClassMapper
@@ -29,6 +31,7 @@ import com.intellij.psi.xml.XmlChildRole
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import com.intellij.util.xml.DomManager
+import org.jetbrains.android.dom.drawable.CustomDrawableDomElement
 import org.jetbrains.android.dom.layout.LayoutViewElement
 import org.jetbrains.android.dom.layout.View
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil.PreferenceSource
@@ -36,7 +39,6 @@ import org.jetbrains.android.dom.xml.PreferenceElement
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.android.facet.findClassValidInXMLByName
-import java.util.ArrayList
 
 class AndroidXmlReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
@@ -46,17 +48,26 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     val facet = element.androidFacet ?: return emptyArray()
 
     val baseClassQName = computeBaseClass(element) ?: return emptyArray()
+    val classFilter = getClassFilter(baseClassQName, facet) ?: { _, _ -> true }
     val result: MutableList<PsiReference> = ArrayList()
     val startTagName = XmlChildRole.START_TAG_NAME_FINDER.findChild(element.getNode())
     if (startTagName != null) {
-      addReferences(element, startTagName, result, facet, baseClassQName, true)
+      addReferences(element, startTagName, result, facet, baseClassQName, classFilter, true)
     }
 
     val closingTagName = XmlChildRole.CLOSING_TAG_NAME_FINDER.findChild(element.getNode())
     if (closingTagName != null) {
-      addReferences(element, closingTagName, result, facet, baseClassQName, false)
+      addReferences(element, closingTagName, result, facet, baseClassQName, classFilter, false)
     }
     return result.toTypedArray()
+  }
+
+  private fun getClassFilter(baseClassQName: String, facet: AndroidFacet): ((String, PsiClass) -> Boolean)? {
+    if (baseClassQName == CLASS_DRAWABLE) {
+      val packageName = facet.queryPackageNameFromManifestIndex() ?: return { _, _ -> false }
+      return { _, psiClass -> psiClass.qualifiedName?.startsWith(packageName) == true }
+    }
+    return null
   }
 
   private class MyClassOrPackageReference(tag: XmlTag,
@@ -64,12 +75,12 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
                                           private val myRangeInNameElement: TextRange,
                                           private val facet: AndroidFacet,
                                           private val myBaseClassQName: String,
+                                          private val classFilter: (String, PsiClass) -> Boolean,
                                           private val myStartTag: Boolean) : PsiReferenceBase<PsiElement?>(tag, true) {
     private val project = tag.project
     private val packagePrefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
     private val isParentContainer by lazy {
-      val parentTagFromClassDescriptor = ((tag.parent as? XmlTag)
-        ?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
+      val parentTagFromClassDescriptor = ((tag.parent as? XmlTag)?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
       parentTagFromClassDescriptor.isContainer
     }
 
@@ -110,6 +121,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
             name.startsWith(packagePrefix)
           }
         }
+        .filter { (name, psiClass) -> classFilter(name, psiClass) }
         .map { (name, psiClass) -> createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass) }.toTypedArray()
     }
 
@@ -135,6 +147,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
                               result: MutableList<PsiReference>,
                               facet: AndroidFacet,
                               baseClassQName: String,
+                              classFilter: (String, PsiClass) -> Boolean,
                               startTag: Boolean) {
       val text = nameElement.text
       val nameParts = text.split(".")
@@ -144,7 +157,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         if (name.isNotEmpty()) {
           offset += name.length
           val range = TextRange(offset - name.length, offset)
-          result.add(MyClassOrPackageReference(tag, nameElement, range, facet, baseClassQName, startTag))
+          result.add(MyClassOrPackageReference(tag, nameElement, range, facet, baseClassQName, classFilter, startTag))
         }
         offset++
       }
@@ -158,6 +171,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
           val facet = tag.androidFacet ?: return null
           PreferenceSource.getPreferencesSource(tag, facet).qualifiedBaseClass
         }
+        domElement is CustomDrawableDomElement -> CLASS_DRAWABLE
         else -> null
       }
     }
