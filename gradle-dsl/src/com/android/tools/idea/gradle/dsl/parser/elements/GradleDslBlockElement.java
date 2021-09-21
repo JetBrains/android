@@ -17,13 +17,11 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -149,10 +147,11 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (APPLY_BLOCK_NAME.equals(element.getFullName())) {
+    if (APPLY_BLOCK_NAME.equals(element.getFullName()) && element.getDslFile() instanceof GradleScriptFile) {
+      GradleScriptFile scriptFile = (GradleScriptFile) element.getDslFile();
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
-        applyDslElement = new ApplyDslElement(this);
+        applyDslElement = new ApplyDslElement(this, scriptFile);
         super.addParsedElement(applyDslElement);
       }
       applyDslElement.addParsedElement(element);

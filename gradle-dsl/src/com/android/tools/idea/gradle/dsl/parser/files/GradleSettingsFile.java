@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-public class GradleSettingsFile extends GradleDslFile {
+public class GradleSettingsFile extends GradleScriptFile {
   public GradleSettingsFile(@NotNull VirtualFile file,
                             @NotNull Project project,
                             @NotNull String moduleName,

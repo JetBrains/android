@@ -22,14 +22,12 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
-import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.ElementState;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementEnum;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -64,8 +62,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final Project myProject;
   @NotNull private final GradleDslWriter myGradleDslWriter;
   @NotNull private final GradleDslParser myGradleDslParser;
-
-  @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
 
   protected GradleDslFile(@NotNull VirtualFile file,
@@ -179,11 +175,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public List<GradleBuildFile> getApplyDslElement() {
-    return myApplyDslElement == null ? ImmutableList.of() : myApplyDslElement.getAppliedDslFiles();
-  }
-
-  @NotNull
   public GradleDslWriter getWriter() {
     return myGradleDslWriter;
   }
@@ -197,24 +188,6 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   public BuildModelContext getContext() {
     return myBuildModelContext;
   }
-
-  @Override
-  protected void apply() {
-    // First make sure we update all our applied files.
-    if (myApplyDslElement != null) {
-      for (GradleBuildFile file : myApplyDslElement.getAppliedDslFiles()) {
-        file.apply();
-      }
-    }
-
-    // And update us.
-    super.apply();
-  }
-
-  public void registerApplyElement(@NotNull ApplyDslElement applyElement) {
-    myApplyDslElement = applyElement;
-  }
-
   @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
     return myBuildModelContext.getPublicNotifications(this);

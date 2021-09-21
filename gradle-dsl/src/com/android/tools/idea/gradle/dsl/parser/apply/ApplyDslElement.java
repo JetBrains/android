@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.apply;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -34,11 +35,11 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls private static final String FROM = "from";
   // The GradleDslFile that represents the virtual file that has been applied.
   // This will be set when parsing the build file we belong to.
-  @NotNull private final List<GradleBuildFile> myAppliedDslFiles = new ArrayList<>();
+  @NotNull private final List<GradleScriptFile> myAppliedDslFiles = new ArrayList<>();
 
-  public ApplyDslElement(@NotNull GradleDslElement parent) {
+  public ApplyDslElement(@NotNull GradleDslElement parent, @NotNull GradleScriptFile buildFile) {
     super(parent, null, GradleNameElement.create(APPLY_BLOCK_NAME));
-    parent.getDslFile().registerApplyElement(this);
+    buildFile.registerApplyElement(this);
   }
 
   @Override
@@ -64,6 +65,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         }
         if (file != null) {
           // Parse the file
+          // TODO(xof): settings.gradle files can also apply files, so this should be more like getOrCreateScriptFile()
           GradleBuildFile buildFile = getDslFile().getContext().getOrCreateBuildFile(file, true);
           myAppliedDslFiles.add(buildFile);
 
@@ -96,7 +98,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public List<GradleBuildFile> getAppliedDslFiles() {
+  public List<GradleScriptFile> getAppliedDslFiles() {
     return myAppliedDslFiles;
   }
 

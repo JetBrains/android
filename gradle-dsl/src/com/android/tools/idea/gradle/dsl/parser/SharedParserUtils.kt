@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription
@@ -34,7 +35,6 @@ import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslEle
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import java.util.ArrayList
-import java.util.Arrays
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -82,8 +82,8 @@ fun GradleDslFile.getPropertiesElement(
           resultElement.setParsedElement(newElement)
           return@fold newElement
         }
-        APPLY_BLOCK_NAME -> {
-          val newApplyElement = ApplyDslElement(resultElement)
+        APPLY_BLOCK_NAME -> (resultElement.dslFile as? GradleScriptFile)?.let {
+          val newApplyElement = ApplyDslElement(resultElement, it)
           resultElement.setParsedElement(newApplyElement)
           return@fold newApplyElement
         }

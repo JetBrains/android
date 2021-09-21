@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.intellij.util.containers.HashSetQueue;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -96,10 +97,13 @@ public final class DependencyManager {
     //  this element, for correctness we have to check all those files.  At the moment this is a loop over all the files to check
     //  whether they apply the file containing the element, which scales badly; information about which files are applied where could
     //  probably be cached and updated at parse-time.
-    for (GradleDslFile buildFile : myUnresolvedReferences.keySet()) {
-      if (!seen.contains(buildFile)) {
-        if (buildFile.getApplyDslElement().contains(thisFile)) {
-          resolveAllIn(buildFile, true);
+    for (GradleDslFile unresolvedFile : myUnresolvedReferences.keySet()) {
+      if (unresolvedFile instanceof GradleScriptFile) {
+        GradleScriptFile scriptFile = (GradleScriptFile)unresolvedFile;
+        if (!seen.contains(scriptFile)) {
+          if (scriptFile.getApplyDslElement().contains(thisFile)) {
+            resolveAllIn(scriptFile, true);
+          }
         }
       }
     }
@@ -120,8 +124,11 @@ public final class DependencyManager {
       myUnresolvedReferences.remove(dslFile);
     }
     if (appliedFiles) {
-      for (GradleDslFile appliedFile : dslFile.getApplyDslElement()) {
-        resolveAllIn(appliedFile, true);
+      if (dslFile instanceof GradleScriptFile) {
+        GradleScriptFile scriptFile = (GradleScriptFile)dslFile;
+        for (GradleScriptFile appliedFile : scriptFile.getApplyDslElement()) {
+          resolveAllIn(appliedFile, true);
+        }
       }
     }
   }

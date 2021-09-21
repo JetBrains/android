@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleBuildFile extends GradleDslFile {
+public class GradleBuildFile extends GradleScriptFile {
   @Nullable private GradlePropertiesFile myPropertiesFile;
   @Nullable private GradleBuildFile myParentModuleBuildFile;
   @NotNull private final Set<GradleBuildFile> myChildModuleBuildFiles = Sets.newHashSet();
@@ -67,7 +67,7 @@ public class GradleBuildFile extends GradleDslFile {
     if (APPLY_BLOCK_NAME.equals(element.getFullName())) {
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
-        applyDslElement = new ApplyDslElement(this);
+        applyDslElement = new ApplyDslElement(this, this);
         super.addParsedElement(applyDslElement);
       }
       applyDslElement.addParsedElement(element);

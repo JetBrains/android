@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -107,7 +108,7 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
-internal fun GradleDslFile.transitivelyApplies(file: GradleDslFile, seen: MutableSet<GradleDslFile> = mutableSetOf()): Boolean {
+internal fun GradleScriptFile.transitivelyApplies(file: GradleScriptFile, seen: MutableSet<GradleScriptFile> = mutableSetOf()): Boolean {
   return when {
     file == this -> true
     seen.contains(this) -> false
@@ -149,7 +150,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
 
   // Now we Reached the dslFile level.
   // We only need to add a prefix if we are applying the reference from a parent dslFile context.
-  if (currentParent is GradleDslFile && !context.dslFile.transitivelyApplies(currentParent)) {
+  if (currentParent is GradleScriptFile && ((context.dslFile) as? GradleScriptFile)?.transitivelyApplies(currentParent) != true) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
     if (currentParent.name == ":") {
       externalName.append("rootProject.")

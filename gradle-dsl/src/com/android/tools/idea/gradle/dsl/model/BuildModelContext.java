@@ -290,7 +290,7 @@ public final class BuildModelContext {
       //  to the actual file they're defined in).
       if (element instanceof ApplyDslElement) {
         ApplyDslElement subProjectsApply = (ApplyDslElement)element;
-        ApplyDslElement myApply = new ApplyDslElement(buildDslFile);
+        ApplyDslElement myApply = new ApplyDslElement(buildDslFile, buildDslFile);
         buildDslFile.setParsedElement(myApply);
         for (GradleDslElement appliedElement : subProjectsApply.getAllElements()) {
           myApply.addParsedElement(appliedElement);

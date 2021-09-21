@@ -63,6 +63,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
@@ -335,12 +336,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // Add all parent dsl files.
     files.addAll(getParentFiles());
 
-    List<GradleBuildFile> currentFiles = new ArrayList<>();
+    List<GradleScriptFile> currentFiles = new ArrayList<>();
     currentFiles.add(myGradleBuildFile);
     // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
     // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
     while (!currentFiles.isEmpty()) {
-      GradleDslFile currentFile = currentFiles.remove(0);
+      GradleScriptFile currentFile = currentFiles.remove(0);
       files.addAll(currentFile.getApplyDslElement());
       currentFiles.addAll(currentFile.getApplyDslElement());
     }
