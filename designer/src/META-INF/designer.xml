@@ -57,6 +57,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.common.surface.DesignSurfaceSettings"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
