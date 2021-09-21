@@ -1,6 +1,6 @@
 MODULE                        : project
 MODULE                        : project.app
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
@@ -352,7 +352,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library/build [-]
@@ -672,7 +672,7 @@ MODULE                        : project.library
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library-remote
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library-remote/build [-]
@@ -992,5 +992,11 @@ MODULE                        : project.library-remote
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.lint
+MODULE                        : project.lint.main
+MODULE                        : project.lint.test
 MODULE                        : project.lintpublish
 MODULE                        : project.lintpublish-remote
+MODULE                        : project.lintpublish-remote.main
+MODULE                        : project.lintpublish-remote.test
+MODULE                        : project.lintpublish.main
+MODULE                        : project.lintpublish.test

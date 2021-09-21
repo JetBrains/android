@@ -1,6 +1,6 @@
 MODULE                        : project
 MODULE                        : project.app
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
@@ -712,7 +712,7 @@ MODULE                        : project.app
                             ArtifactAddress               : com.example.libs:lib2:1.0@aar [-]
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/lint.jar [-]
                             IsProvided                    : true
-                            Artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/libs/lib2/1.0/lib2-1.0.aar
+                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/libs/lib2/1.0/lib2-1.0.aar
                             Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0
                             Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/AndroidManifest.xml
                             CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/classes.jar
@@ -1244,7 +1244,7 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : false
@@ -1256,19 +1256,19 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.1.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/1.1.0/constraint-layout-solver-1.1.0.jar
                         JavaLibrary
                             ArtifactAddress               : com.example.jlib:lib3:1.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
+                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
                         JavaLibrary
                             ArtifactAddress               : com.example.jlib:lib4:1.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
+                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
@@ -1945,7 +1945,7 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : true
@@ -1957,7 +1957,7 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : junit:junit:4.12@jar [-]
                             IsProvided                    : false
@@ -1993,7 +1993,7 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.1.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/1.1.0/constraint-layout-solver-1.1.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
@@ -2596,7 +2596,7 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : false
@@ -2608,11 +2608,11 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.1.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/1.1.0/constraint-layout-solver-1.1.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
@@ -2629,7 +2629,7 @@ MODULE                        : project.app
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.dyn_feature
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
@@ -2939,8 +2939,10 @@ MODULE                        : project.dyn_feature
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.jav
+MODULE                        : project.jav.main
+MODULE                        : project.jav.test
 MODULE                        : project.lib
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -3697,7 +3699,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : false
@@ -3709,7 +3711,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>@@:jav [-]
@@ -4237,7 +4239,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : false
@@ -4249,7 +4251,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
@@ -4786,7 +4788,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:collections:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                         JavaLibrary
                             ArtifactAddress               : android.arch.lifecycle:common:1.1.1@jar [-]
                             IsProvided                    : false
@@ -4798,7 +4800,7 @@ MODULE                        : project.lib
                         JavaLibrary
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
-                            Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                            Artifact                      : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
@@ -4814,7 +4816,7 @@ MODULE                        : project.lib
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/build [-]
@@ -5126,7 +5128,7 @@ MODULE                        : project.nested1
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1.deep
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
@@ -5443,7 +5445,7 @@ MODULE                        : project.nested1.deep
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/build [-]
@@ -5914,7 +5916,7 @@ MODULE                        : project.nested2
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.deep
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
@@ -6227,7 +6229,7 @@ MODULE                        : project.nested2.deep
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
