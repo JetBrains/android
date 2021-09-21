@@ -58,5 +58,6 @@
     <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-cidr-debugger-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-completionMlRanking" level="project" />
+    <orderEntry type="library" name="studio-plugin-ml-models-local" level="project" />
   </component>
 </module>

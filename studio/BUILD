@@ -689,6 +689,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-base-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-ml-models-local",
     ],
 )
 
