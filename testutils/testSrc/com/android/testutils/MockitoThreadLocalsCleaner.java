@@ -1,27 +1,55 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package com.android.tools.adtui.mockito;
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+package com.android.testutils;
 
-import org.mockito.Mockito;
-import org.mockito.internal.progress.ThreadSafeMockingProgress;
-import org.mockito.listeners.MockCreationListener;
+import com.intellij.openapi.diagnostic.Logger;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.mockito.Mockito;
+import org.mockito.internal.progress.ThreadSafeMockingProgress;
+import org.mockito.listeners.MockCreationListener;
 
-// FIXME-ank: adt-ui may not depend on android.testFramework, because testFramework already depends on adt-ui.
-// This dependency should probably be inverted. testFramework only needs 2 classes to work with Images from adt-ui.
 public class MockitoThreadLocalsCleaner {
   protected List<Object> mockitoMocks = new ArrayList<>();
   private MockCreationListener mockCreationListener;
 
+  private static MockitoThreadLocalsCleaner activeInst = null;
+  private static Throwable activeInstSetupTrace = null;
+
   public void setup() {
+    if (activeInst != null && activeInst != this) {
+      logPreviousAndOwnStackTrace();
+
+      try {
+        activeInst.cleanupAndTearDown();
+        activeInst = null;
+        activeInstSetupTrace = null;
+      }
+      catch (Exception e) {
+        Logger.getInstance(MockitoThreadLocalsCleaner.class).error("Cannot shutdown previous MockitoThreadLocalsCleaner instance", e);
+      }
+    }
+
+
     if (mockCreationListener == null) {
       mockCreationListener = (mock, settings) -> mockitoMocks.add(mock);
       Mockito.framework().addListener(mockCreationListener);
+      activeInst = this;
+      activeInstSetupTrace = new Throwable();
     }
+  }
+
+  private void logPreviousAndOwnStackTrace() {
+    Logger.getInstance(MockitoThreadLocalsCleaner.class).warn(
+      "Previous test didn't clean up properly. Previous Mockito cleaner setup trace:", activeInstSetupTrace
+    );
+
+    Logger.getInstance(MockitoThreadLocalsCleaner.class).warn(
+      "Previous test didn't clean up properly. Own setup trace:", new Throwable()
+    );
   }
 
   public void cleanupAndTearDown() throws Exception {
@@ -29,9 +57,13 @@ public class MockitoThreadLocalsCleaner {
       Mockito.framework().removeListener(mockCreationListener);
       mockCreationListener = null;
     }
-
     resetMocks();
     resetWellKnownThreadLocals();
+
+    if (activeInst == this) {
+      activeInst = null;
+      activeInstSetupTrace = null;
+    }
   }
 
   private void resetMocks() {
