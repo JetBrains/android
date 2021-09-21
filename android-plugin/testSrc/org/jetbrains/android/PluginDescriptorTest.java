@@ -11,7 +11,7 @@ public class PluginDescriptorTest extends LightPlatformTestCase {
     IdeaPluginDescriptor androidPlugin = PluginManager.getInstance().findEnabledPlugin(PluginId.getId("org.jetbrains.android"));
 
     assertNotNull(androidPlugin);
-    assertTrue(androidPlugin.getDescription().startsWith("Supports the development of"));
+    assertTrue(androidPlugin.getDescription().trim().startsWith("Supports the development of"));
   }
 
   public void testPluginBundle() {
