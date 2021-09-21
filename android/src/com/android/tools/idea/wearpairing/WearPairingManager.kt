@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
@@ -25,6 +26,7 @@ import com.android.ddmlib.IDevice.HardwareFeature
 import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
+import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -37,11 +39,13 @@ import com.android.tools.idea.wearpairing.GmscoreHelper.refreshEmulatorConnectio
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.notification.NotificationType.INFORMATION
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.util.concurrency.NonUrgentExecutor
 import com.intellij.util.net.NetUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -52,7 +56,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 private val LOG get() = logger<WearPairingManager>()
 
-object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
+object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidStartupActivity {
   private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
 
   private var runningJob: Job? = null
@@ -68,12 +72,19 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 
-  init {
-    loadSettings()
-  }
-
   private fun isTestMode(): Boolean =
     ApplicationManager.getApplication()?.isUnitTestMode != false
+
+  @UiThread
+  override fun runActivity(project: Project, disposable: Disposable) {
+    NonUrgentExecutor.getInstance().execute {
+      synchronized(this) {
+        if (runningJob == null) {
+          loadSettings()
+        }
+      }
+    }
+  }
 
   @WorkerThread
   private fun loadSettings() {
