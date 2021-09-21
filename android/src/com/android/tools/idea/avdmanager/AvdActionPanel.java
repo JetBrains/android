@@ -148,7 +148,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY()));
     addKeyListener(new KeyAdapter() {
       @Override
-      public void keyTyped(KeyEvent e) {
+      public void keyPressed(KeyEvent e) {
         if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
           runFocusedAction();
         }
@@ -227,7 +227,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     myOverflowMenu.show(c, e.getX(), e.getY());
   }
 
-  public void runFocusedAction() {
+  private void runFocusedAction() {
     myVisibleComponents.get(myFocusedComponent).doClick();
   }
 
