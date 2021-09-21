@@ -17,6 +17,7 @@
   <xi:include href="/META-INF/project-system-gradle-sync.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
+  <depends optional="true" config-file="project-system-gradle-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
@@ -29,8 +30,6 @@
                               implementation="com.android.tools.idea.projectsystem.gradle.DisableKaptProjectResolverExtensionInitializer"/>
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
-    <androidStudioInitializer id="Startup.AndroidGradleDisableAutoImportInitializer"
-                              implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner"
                        id="android"
                        order="first, before gradle"/>

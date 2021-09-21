@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectId
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 
-class AndroidGradleDisableAutoImportInitializer : Runnable {
-  override fun run() {
+class AndroidGradleDisableAutoImportInitializer : ApplicationInitializedListener {
+  override fun componentsInitialized() {
     Registry.get("external.system.auto.import.disabled").setValue(true)
   }
 }
