@@ -450,7 +450,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       verifyClassIsObjectTree(nav.getClass())
       nav.goToInstanceField(null, "myDisposedObjects")
       nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
-      nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
+      nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "value")
       val weakKeyClass = nav.classStore.getClassIfExists("com.intellij.util.containers.WeakHashMap\$WeakKey")
 
       nav.getReferencesCopy().forEach {
