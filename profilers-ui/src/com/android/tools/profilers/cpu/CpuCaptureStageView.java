@@ -129,7 +129,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                               updateComponents();
                               return Unit.INSTANCE;
                             },
-                       "Collapse frames",
+                       "Apply",
                             filter -> PathUtils.abbreviate(filter.toString()))
   );
 
