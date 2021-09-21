@@ -62,6 +62,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.AppRestrictionsDomFileDescription" rootTagName="restrictions"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription"/>
     <dom.fileDescription implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription"/>
