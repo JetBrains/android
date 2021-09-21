@@ -37,6 +37,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.xml.DefaultXmlExtension;
 import com.intellij.xml.XmlNSDescriptor;
+import org.jetbrains.android.dom.drawable.DrawableResourceNSDescriptor;
 import org.jetbrains.android.dom.layout.AndroidLayoutNSDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceNSDescriptor;
@@ -58,6 +59,9 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
     }
     if (isRoot && isFileInResourceFolderType(file, ResourceFolderType.XML)) {
       return XmlResourceNSDescriptor.INSTANCE;
+    }
+    if (isRoot && isFileInResourceFolderType(file, ResourceFolderType.DRAWABLE)) {
+      return DrawableResourceNSDescriptor.INSTANCE;
     }
     return super.getNSDescriptor(element, namespace, strict);
   }

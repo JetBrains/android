@@ -180,6 +180,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
   }
 
+  // TODO: replace with namespaces. See org.jetbrains.android.dom.AndroidXmlExtension.getNSDescriptor
   private static boolean completeRootTagNames(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile, @NotNull CompletionResultSet resultSet) {
     if (ManifestDomFileDescription.isManifestFile(xmlFile, facet)) {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
@@ -195,10 +196,6 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
     else if (XmlResourceDomFileDescription.isXmlResourceFile(xmlFile)) {
       addAll(AndroidXmlResourcesUtil.ROOT_TAGS, resultSet);
-      return false;
-    }
-    else if (AndroidDrawableDomUtil.isDrawableResourceFile(xmlFile)) {
-      addAll(AndroidDrawableDomUtil.getPossibleRoots(facet), resultSet);
       return false;
     }
     else if (TransitionDomFileDescription.isTransitionFile(xmlFile)) {
