@@ -54,8 +54,8 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.android.util.firstNotNullResult
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 
 /**
@@ -325,7 +325,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
         }
         // Don't annotate this id element when the container's expr element is resolved to an array whose references are not supported yet.
         // TODO: (b/141703341) Add references to array types.
-        else if (expr.toModelClassResolvable()?.resolvedType?.isArray == true) {
+        else if (expr.toModelClassResolvable()?.resolvedType?.unwrapped?.isArray == true) {
           return
         }
       }
