@@ -18,6 +18,7 @@
     <variable name="resId" expression="completeSmart()" defaultValue="" alwaysStopAt="true" />
     <context>
       <option name="JAVA_STATEMENT" value="true" />
+      <option name="JAVA_EXPRESSION" value="true" />
     </context>
   </template>
   <template name="foreach" value="for ($i$ : $data$) {&#10;    $cursor$&#10;}" description="Create a for each loop" toReformat="true" toShortenFQNames="true">
