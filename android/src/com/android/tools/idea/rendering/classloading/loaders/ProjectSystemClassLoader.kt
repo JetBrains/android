@@ -26,8 +26,11 @@ import java.util.concurrent.ConcurrentHashMap
  * It relies in the given [findClassVirtualFileImpl] to find the [VirtualFile] mapping to a given FQCN.
  */
 class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) -> VirtualFile?) : DelegatingClassLoader.Loader {
-  private val virtualFileCache = ConcurrentHashMap<String, VirtualFile>()
-  private val virtualFileModificationCache = ConcurrentHashMap<String, ClassModificationTimestamp>()
+  /**
+   * Map that contains the mapping from the class FQCN to the [VirtualFile] that contains the `.class` contents and the
+   * [ClassModificationTimestamp] representing the loading timestamp.
+   */
+  private val virtualFileCache = ConcurrentHashMap<String, Pair<VirtualFile, ClassModificationTimestamp>>()
 
   /**
    * [Sequence] of all the [VirtualFile]s and their associated [ClassModificationTimestamp] that have been loaded
@@ -36,38 +39,31 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
   val loadedVirtualFiles: Sequence<Triple<String, VirtualFile, ClassModificationTimestamp>>
     get() = virtualFileCache
       .asSequence()
-      .filter { it.value.isValid }
-      .mapNotNull {
-        val modificationTimestamp = findClassVirtualFileModificationTimeStamp(it.key) ?: return@mapNotNull null
-        Triple(it.key, it.value, modificationTimestamp)
+      .filter { it.value.first.isValid }
+      .map {
+        Triple(it.key, it.value.first, it.value.second)
       }
 
   /**
    * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
    */
   fun findClassVirtualFile(fqcn: String): VirtualFile? =
-    virtualFileCache.compute(fqcn) { _, value ->
-      if (value?.isValid == true)
+    virtualFileCache.compute(fqcn) { key, value ->
+      if (value?.first?.isValid == true)
         value
-      else
-        findClassVirtualFileImpl(fqcn)
-
-    }
-
-  /**
-   * Finds the [ClassModificationTimestamp] for the `.class` associated to the given [fqcn].
-   */
-  private fun findClassVirtualFileModificationTimeStamp(fqcn: String): ClassModificationTimestamp? =
-    virtualFileModificationCache.compute(fqcn) { key, value ->
-      value ?: ClassModificationTimestamp.fromVirtualFile(findClassVirtualFile(key) ?: return@compute null)
-    }
+      else {
+        val vFile = findClassVirtualFileImpl(key)
+        vFile?.let {
+          Pair(it, ClassModificationTimestamp.fromVirtualFile(vFile))
+        }
+      }
+    }?.first
 
   /**
    * Clears all the internal caches. Next `find` call will reload the information directly from the VFS.
    */
   fun invalidateCaches() {
     virtualFileCache.clear()
-    virtualFileModificationCache.clear()
   }
 
   override fun loadClass(fqcn: String): ByteArray? = try {
@@ -81,6 +77,6 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    */
   @TestOnly
   fun injectClassFile(fqcn: String, virtualFile: VirtualFile) {
-    virtualFileCache[fqcn] = virtualFile
+    virtualFileCache[fqcn] = Pair(virtualFile, ClassModificationTimestamp.fromVirtualFile(virtualFile))
   }
 }
