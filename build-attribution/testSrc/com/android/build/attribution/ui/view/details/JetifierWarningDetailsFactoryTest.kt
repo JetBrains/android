@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.attribution.CheckJetifierResult
@@ -53,7 +54,7 @@ class JetifierWarningDetailsFactoryTest {
 
   @Test
   fun testCheckRequiredPageCreation() {
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsedCheckRequired)
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false))
 
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().let {
       Truth.assertThat(it.text).contains("<b>Confirm need for Jetifier flag in your project</b>")
@@ -67,7 +68,7 @@ class JetifierWarningDetailsFactoryTest {
 
   @Test
   fun testJetifierCanBeRemovedPageCreation() {
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierCanBeRemoved)
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierCanBeRemoved, false))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -106,7 +107,7 @@ class JetifierWarningDetailsFactoryTest {
       ))
     })
 
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierRequiredForLibraries(checkJetifierResult))
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(checkJetifierResult), false))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()

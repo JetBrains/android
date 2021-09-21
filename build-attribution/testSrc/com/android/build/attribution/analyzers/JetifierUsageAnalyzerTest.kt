@@ -63,7 +63,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
-    Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierNotUsed)
+    Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(JetifierNotUsed))
   }
 
   @Test
@@ -76,7 +76,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
-    Truth.assertThat(jetifierUsageResult).isEqualTo(AnalyzerNotRun)
+    Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(AnalyzerNotRun))
   }
 
   private fun doTestInitialBuildResult(propertiesContent: String, expectedResult: JetifierUsageAnalyzerResult) {
@@ -103,7 +103,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
         android.useAndroidX=true
         android.enableJetifier=true
       """.trimIndent(),
-      expectedResult = JetifierUsedCheckRequired
+      expectedResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false)
     )
   }
 
@@ -113,7 +113,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
       propertiesContent = """
         android.useAndroidX=true
       """.trimIndent(),
-      expectedResult = JetifierNotUsed
+      expectedResult = JetifierUsageAnalyzerResult(JetifierNotUsed, false)
     )
   }
 
@@ -159,7 +159,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     val result2 = invokeGradleTasks(project, "assembleDebug")
     Truth.assertThat(result2.isBuildSuccessful).isTrue()
     val jetifierUsageResult2 = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
-    Truth.assertThat(jetifierUsageResult2).isEqualTo(expectedJetifierUsageAnalyzerResult)
+    Truth.assertThat(jetifierUsageResult2).isEqualTo(expectedJetifierUsageAnalyzerResult.copy(checkJetifierBuild = false))
   }
 
   @Test
@@ -173,7 +173,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
       implementation 'example:B:1.0' // `B` directly depends on a support library
       implementation 'com.android.support:collections:28.0.0'
     """.trimIndent(),
-      expectedJetifierUsageAnalyzerResult = JetifierRequiredForLibraries(
+      expectedJetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(
         CheckJetifierResult(LinkedHashMap<String, FullDependencyPath>().apply {
           put("example:A:1.0", FullDependencyPath(
             projectPath = ":app",
@@ -190,7 +190,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
             configuration = "debugAndroidTestCompileClasspath",
             dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0"))
           ))
-        }))
+        })), true)
     )
   }
 
@@ -199,7 +199,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     doTestRunCheckJetifierTask(
       appBuildAdditionalDependencies = "",
       libBuildAdditionalDependencies = "",
-      expectedJetifierUsageAnalyzerResult = JetifierCanBeRemoved
+      expectedJetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, true)
     )
   }
 

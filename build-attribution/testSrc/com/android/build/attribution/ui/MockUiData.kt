@@ -71,7 +71,7 @@ class MockUiData(
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
   override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
-  override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsedCheckRequired
+  override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false)
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,
     isGarbageCollectorSettingSet: Boolean? = null

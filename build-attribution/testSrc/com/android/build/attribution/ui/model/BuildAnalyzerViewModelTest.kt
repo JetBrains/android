@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.JetifierCanBeRemoved
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.MockUiData
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -121,5 +123,15 @@ class BuildAnalyzerViewModelTest {
     testCase(javaVersionUsed = 13, isGarbageCollectorSettingSet = true, expectedResult = false)
     testCase(javaVersionUsed = 14, isGarbageCollectorSettingSet = true, expectedResult = false)
     testCase(javaVersionUsed = 15, isGarbageCollectorSettingSet = true, expectedResult = false)
+  }
+
+  @Test
+  fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
+    mockData.jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, true)
+    val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
+      dataSetSelectionListener = listenerMock
+    }
+    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+    assertThat(callsCount).isEqualTo(0)
   }
 }

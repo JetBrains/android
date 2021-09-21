@@ -182,6 +182,9 @@ class BuildAttributionUiManagerImpl(
       createNewView()
       createNewTab()
     }
+    if (reportUiData.shouldAutoOpenTab()) {
+      openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+    }
   }
 
   private fun createNewView() {
@@ -312,4 +315,9 @@ private data class OpenRequest(
     val NO_REQUEST = OpenRequest(false, BuildAttributionUiAnalytics.TabOpenEventSource.TAB_HEADER)
     fun requestFrom(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) = OpenRequest(true, eventSource)
   }
+}
+
+private fun BuildAttributionReportUiData.shouldAutoOpenTab() : Boolean = when {
+  successfulBuild && jetifierData.checkJetifierBuild -> true
+  else -> false
 }

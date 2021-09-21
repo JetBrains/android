@@ -40,7 +40,8 @@ class BuildAttributionUiAnalytics(
   enum class TabOpenEventSource {
     WNA_BUTTON,
     BUILD_OUTPUT_LINK,
-    TAB_HEADER
+    TAB_HEADER,
+    AUTO_OPEN
   }
 
   private val unknownPage: BuildAttributionUiEvent.Page = BuildAttributionUiEvent.Page.newBuilder()
@@ -79,8 +80,10 @@ class BuildAttributionUiAnalytics(
       TabOpenEventSource.WNA_BUTTON -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON
       TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
+      // Not opened by direct user action so don't report.
+      TabOpenEventSource.AUTO_OPEN -> null
     }
-    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(eventType))
+    if (eventType != null) doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(eventType))
   }
 
   /**

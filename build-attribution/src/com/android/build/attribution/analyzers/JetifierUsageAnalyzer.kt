@@ -34,6 +34,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   private var enableJetifierFlagState: Boolean? = null
   private var useAndroidXFlagState: Boolean? = null
   private var checkJetifierResult: CheckJetifierResult? = null
+  private var isCheckJetifierBuild: Boolean = false
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return
@@ -43,33 +44,41 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
     checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest).let {
       if (it.exists()) {
         checkJetifierResult = CheckJetifierResult.load(it)
+        isCheckJetifierBuild = true
       }
     }
     // TODO (b/194299215): need to copy to IJ data folder, load from there if  missing here, delete from data folder if jetifier is off.
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {
-    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return AnalyzerNotRun
+    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return JetifierUsageAnalyzerResult(AnalyzerNotRun, false)
     if (enableJetifierFlagState == true && useAndroidXFlagState == true) {
       return checkJetifierResult?.let {
-        if (it.isEmpty()) JetifierCanBeRemoved
-        else JetifierRequiredForLibraries(it)
-      } ?: JetifierUsedCheckRequired
+        if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, isCheckJetifierBuild)
+        else JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(it), isCheckJetifierBuild)
+      } ?: JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false)
     }
-    return JetifierNotUsed
+    return JetifierUsageAnalyzerResult(JetifierNotUsed, false)
   }
 
   override fun cleanupTempState() {
     // Leave checkJetifierResult for future reports to not load it on every build.
     enableJetifierFlagState = null
     useAndroidXFlagState = null
+    isCheckJetifierBuild = false
   }
 }
 
-sealed class JetifierUsageAnalyzerResult : AnalyzerResult
+data class JetifierUsageAnalyzerResult(
+  val projectStatus: JetifierUsageProjectStatus,
+  /** If current build was a checkJetifier task request. */
+  val checkJetifierBuild: Boolean = false
+) : AnalyzerResult
 
-object AnalyzerNotRun : JetifierUsageAnalyzerResult()
-object JetifierNotUsed : JetifierUsageAnalyzerResult()
-object JetifierUsedCheckRequired : JetifierUsageAnalyzerResult()
-object JetifierCanBeRemoved : JetifierUsageAnalyzerResult()
-data class JetifierRequiredForLibraries(val checkJetifierResult: CheckJetifierResult) : JetifierUsageAnalyzerResult()
+sealed class JetifierUsageProjectStatus
+
+object AnalyzerNotRun : JetifierUsageProjectStatus()
+object JetifierNotUsed : JetifierUsageProjectStatus()
+object JetifierUsedCheckRequired : JetifierUsageProjectStatus()
+object JetifierCanBeRemoved : JetifierUsageProjectStatus()
+data class JetifierRequiredForLibraries(val checkJetifierResult: CheckJetifierResult) : JetifierUsageProjectStatus()

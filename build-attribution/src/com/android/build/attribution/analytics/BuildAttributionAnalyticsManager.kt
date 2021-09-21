@@ -255,7 +255,8 @@ class BuildAttributionAnalyticsManager(
 
   private fun transformJetifierUsageData(jetifierUsageResult: JetifierUsageAnalyzerResult) =
     JetifierUsageData.newBuilder().apply {
-      when (jetifierUsageResult) {
+      checkJetifierTaskBuild = jetifierUsageResult.checkJetifierBuild
+      when (jetifierUsageResult.projectStatus) {
         AnalyzerNotRun -> null
         JetifierCanBeRemoved -> JetifierUsageData.JetifierUsageState.JETIFIER_CAN_BE_REMOVED
         JetifierNotUsed -> JetifierUsageData.JetifierUsageState.JETIFIER_NOT_USED
@@ -263,8 +264,8 @@ class BuildAttributionAnalyticsManager(
         is JetifierRequiredForLibraries -> JetifierUsageData.JetifierUsageState.JETIFIER_REQUIRED_FOR_LIBRARIES
       }?.let { jetifierUsageState = it }
 
-      if (jetifierUsageResult is JetifierRequiredForLibraries) {
-        numberOfLibrariesRequireJetifier = jetifierUsageResult.checkJetifierResult.dependenciesDependingOnSupportLibs.size
+      if (jetifierUsageResult.projectStatus is JetifierRequiredForLibraries) {
+        numberOfLibrariesRequireJetifier = jetifierUsageResult.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size
       }
     }
       .build()

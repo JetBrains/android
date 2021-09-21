@@ -52,10 +52,10 @@ class JetifierWarningDetailsFactory(
   private val actionHandlers: ViewActionHandlers
 ) {
 
-  fun createPage(data: JetifierUsageAnalyzerResult): JPanel = when (data) {
+  fun createPage(data: JetifierUsageAnalyzerResult): JPanel = when (data.projectStatus) {
     JetifierUsedCheckRequired -> createCheckRequiredPage()
     JetifierCanBeRemoved -> createJetifierNotRequiredPage()
-    is JetifierRequiredForLibraries -> createJetifierRequiredForLibrariesPage(data)
+    is JetifierRequiredForLibraries -> createJetifierRequiredForLibrariesPage(data.projectStatus)
     JetifierNotUsed -> JPanel()
     AnalyzerNotRun -> JPanel()
   }

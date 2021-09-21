@@ -128,13 +128,17 @@ class WarningsDataPageModelImpl(
   // True when tree changed it's structure since last listener call.
   private var treeStructureChanged = false
 
-  private var selectedPageId: WarningsPageId = WarningsPageId.emptySelection
+  private var selectedPageId: WarningsPageId = when {
+    reportData.jetifierData.checkJetifierBuild -> WarningsPageId.jetifierUsageWarningRoot
+    else -> WarningsPageId.emptySelection
+  }
     private set(value) {
       if (value != field) {
         field = value
         modelChanged = true
       }
     }
+
   override val selectedNode: WarningsTreeNode?
     get() = treeStructure.pageIdToNode[selectedPageId]
 
@@ -493,7 +497,7 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
 
 fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0
 
-fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = when (this) {
+fun JetifierUsageAnalyzerResult.shouldShowWarning(): Boolean = when (this.projectStatus) {
   AnalyzerNotRun -> false
   JetifierNotUsed -> false
   JetifierUsedCheckRequired -> true

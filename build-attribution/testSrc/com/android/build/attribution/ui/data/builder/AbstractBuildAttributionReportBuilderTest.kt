@@ -58,7 +58,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
     override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
-    override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierNotUsed
+    override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierNotUsed, false)
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
     override fun getTotalGarbageCollectionTimeMs(): Long = 0
