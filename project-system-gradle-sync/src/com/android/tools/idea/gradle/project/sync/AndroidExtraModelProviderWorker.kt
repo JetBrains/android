@@ -123,7 +123,7 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
-    return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 1, 0, "alpha", 1, true)
+    return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 2, 0, "alpha", 1, true)
   }
 
   /**
