@@ -132,8 +132,8 @@ DONE.
     val model = model(project = projectRule.project) {}
     val treeSettings = FakeTreeSettings()
     val stats = SessionStatistics(model, treeSettings)
-    val legacyClient = LegacyClient(LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = true, model, stats,
-                                    disposableRule.disposable).apply {
+    val legacyClient = LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = true, model,
+                                    stats, disposableRule.disposable).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners
