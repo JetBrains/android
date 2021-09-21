@@ -35,6 +35,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_INSTALLATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_LINT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_TEST_COVERAGE
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REDUNDANT_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_IMPLEMENTATION_PROPERTIES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
@@ -392,9 +393,24 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
         .build(),
     )
-
   }
 
+  @Test
+  fun testBuildToolsVersion41() {
+    writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion41"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    processor.run()
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.0").setNewAgpVersion("7.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REDUNDANT_PROPERTIES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.0").setNewAgpVersion("7.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REDUNDANT_PROPERTIES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
 
   private fun checkComponentEvents(vararg expectedEvents: UpgradeAssistantComponentEvent) {
     val events = tracker.usages
