@@ -24,8 +24,12 @@ import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.mock.MockApplication
+import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +49,7 @@ import java.util.concurrent.ExecutorService
 class AndroidTestApplicationLaunchTaskTest {
 
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val disposableRule = DisposableRule()
 
   @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
   @Mock lateinit var mockProcessHandler: AndroidProcessHandler
@@ -54,6 +59,12 @@ class AndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockLaunchStatus: LaunchStatus
 
   private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
+
+  @Before
+  fun setUp() {
+    val mockApplication = MockApplication.setUp(disposableRule.disposable)
+    mockApplication.registerService(AndroidTestConfiguration::class.java)
+  }
 
   private fun createMockDevice(version: AndroidVersion): IDevice {
     val mockDevice = mock(IDevice::class.java)
