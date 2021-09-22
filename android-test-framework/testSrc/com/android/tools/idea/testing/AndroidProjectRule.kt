@@ -222,25 +222,19 @@ class AndroidProjectRule private constructor(
     }
 
     userHome = System.getProperty("user.home")
-    val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
-    // Reset user home directory.
-    val newUserHome = FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home")
-    System.setProperty("user.home", newUserHome)
+    if ("AndroidStudio" == PlatformUtils.getPlatformPrefix()) {
+      // Overriding "user.home" leads to some bad situations:
+      // 1. When running in IDEA from sources: some files in kotlin plugin in Test IDE are obtained from the local M2 repository (see
+      //    org.jetbrains.kotlin.idea.artifacts.UtilKt.findLibrary: it parses `.idea/libraries` and finds some M2 files there,
+      //    e.g. kotlin-dist-for-ide-1.5.10-release-941.jar). Using different "user.home" in Host and Test IDEs
+      //    makes these files inaccessible in Test IDE.
+      // 2. IDEA downloads and setups new wrapper in each test because .gradle is new directory in different tests. This works really SLOW.
+      // 3. `user.home` sometimes not restored if AndroidProjectRule fails during initialization.
 
-    if ("AndroidStudio" != PlatformUtils.getPlatformPrefix() && System.getenv ("M2_HOME") == null) {
-      // When running in IDEA from sources, some files in kotlin plugin are obtained from the local M2 repository.
-      // E.g. kotlin-dist-for-ide-1.5.10-release-941.jar
-      // (see also org.jetbrains.kotlin.idea.artifacts.UtilKt#substitutePathVariables)
-      val settings = Paths.get(newUserHome, ".m2/settings.xml")
-      Files.createDirectories(settings.parent)
-      settings.writeText("""
-        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-          <localRepository>${userHome}/.m2/repository</localRepository>
-        </settings>
-        """.trimIndent())
+      val testSpecificName = UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName
+      // Reset user home directory.
+      System.setProperty("user.home", FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"))
     }
-
 
     fixture.setUp()
     // Initialize an Android manifest
