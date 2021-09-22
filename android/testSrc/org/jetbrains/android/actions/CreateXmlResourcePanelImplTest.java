@@ -15,16 +15,42 @@
  */
 package org.jetbrains.android.actions;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.ValidationInfo;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.jetbrains.android.AndroidTestCase;
 
 public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
+
+  public void testExistingResourceValidation() {
+    myFixture.addFileToProject("res/values/strings.xml",
+                               //language=XML
+                               "<resources>" +
+                               "  <string name=\"foo\">foo</string>" +
+                               "  <string name=\"bar\">@string/foo</string>" +
+                               "</resources>");
+    CreateXmlResourcePanelImpl xmlResourcePanel = new CreateXmlResourcePanelImpl(myModule, ResourceType.STRING, ResourceFolderType.VALUES,
+                                                                                 "foo", "foobar", false, false, false, null, null,
+                                                                                 validatorModule -> IdeResourceNameValidator
+                                                                                   .forResourceName(ResourceType.STRING));
+    ValidationInfo validationInfo = xmlResourcePanel.doValidate();
+    assertThat(((JTextField)validationInfo.component).getText()).isEqualTo("foo");
+    assertThat(validationInfo.message).isEqualTo("foo is a resource that already exists");
+
+    CreateXmlResourcePanelImpl correctResourcePanel = new CreateXmlResourcePanelImpl(myModule, ResourceType.STRING,
+                                                                                     ResourceFolderType.VALUES, "brandnewname", "foobar",
+                                                                                     false, false, false, null, null,
+                                                                                     validatorModule -> IdeResourceNameValidator
+                                                                                       .forResourceName(ResourceType.STRING));
+    assertThat(correctResourcePanel.doValidate()).isNull();
+  }
 
   public void testFocusedValueFieldWhenResourceNameIsGivenForString() {
     testFocusedValueFieldWhenResourceNameIsGiven(myModule, "string_name", ResourceType.STRING);
@@ -56,11 +82,11 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
                                                                                  validatorModule -> IdeResourceNameValidator
                                                                                    .forResourceName(type));
     JComponent focusComponent = xmlResourcePanel.getPreferredFocusedComponent();
-    Truth.assertThat(focusComponent).isInstanceOf(JTextField.class);
-    Truth.assertThat(((JTextField)focusComponent).getText()).isEmpty();
+    assertThat(focusComponent).isInstanceOf(JTextField.class);
+    assertThat(((JTextField)focusComponent).getText()).isEmpty();
 
-    Truth.assertThat(xmlResourcePanel.getValue()).isEqualTo(resourceValue);
-    Truth.assertThat(xmlResourcePanel.getResourceName()).isEmpty(); // If only the name is empty, then it's likely the focused component.
+    assertThat(xmlResourcePanel.getValue()).isEqualTo(resourceValue);
+    assertThat(xmlResourcePanel.getResourceName()).isEmpty(); // If only the name is empty, then it's likely the focused component.
   }
 
   private static void testFocusedValueFieldWhenResourceNameIsGiven(Module module, String resourceName, ResourceType type) {
@@ -77,10 +103,10 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
                                                                                  validatorModule -> IdeResourceNameValidator
                                                                                    .forResourceName(type));
     JComponent focusComponent = xmlResourcePanel.getPreferredFocusedComponent();
-    Truth.assertThat(focusComponent).isInstanceOf(JTextField.class);
-    Truth.assertThat(((JTextField)focusComponent).getText()).isEmpty();
+    assertThat(focusComponent).isInstanceOf(JTextField.class);
+    assertThat(((JTextField)focusComponent).getText()).isEmpty();
 
-    Truth.assertThat(xmlResourcePanel.getValue()).isEmpty(); // If only the value is empty, then it's likely the focused component.
-    Truth.assertThat(xmlResourcePanel.getResourceName()).isEqualTo(resourceName);
+    assertThat(xmlResourcePanel.getValue()).isEmpty(); // If only the value is empty, then it's likely the focused component.
+    assertThat(xmlResourcePanel.getResourceName()).isEqualTo(resourceName);
   }
 }
