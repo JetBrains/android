@@ -28,6 +28,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getDeclaringAttributeValue
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.res.isIdDefinition
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -148,10 +149,25 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
 
   private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return emptyList()
-    return getRelevantResourceRepository(resourceReference, resourceRepositoryManager)
-      ?.getResources(resourceReference)
-      ?.mapNotNull { resolveToDeclaration(it, context.project) }
-      .orEmpty()
+    val repository = getRelevantResourceRepository(resourceReference, resourceRepositoryManager) ?: return emptyList()
+    return repository
+      .getResources(resourceReference)
+      .filterDefinitions(context.project)
+      .mapNotNull { resolveToDeclaration(it, context.project) }
+  }
+
+  /**
+   * Filters a collection of resources of the same type. If the collection contains non-ID
+   * resources, returns the whole collection. If the collection contains ID resources, returns
+   * a subset corresponding to ID definitions, unless this subset is empty, in which case
+   * returns all resources.
+   */
+  private fun Collection<ResourceItem>.filterDefinitions(project: Project): Collection<ResourceItem> {
+    if (size <= 1 || first().type != ResourceType.ID) {
+      return this // Nothing to filter out.
+    }
+    val definitions = filter { it.isIdDefinition(project) }
+    return definitions.ifEmpty { this }
   }
 
   private fun getGotoDeclarationElementsFromDynamicFeatureModules(
