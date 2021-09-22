@@ -15,46 +15,23 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
+import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.psi.PsiPackage
-import com.intellij.psi.PsiReference
 
 /**
- * Reference that refers to a [PsiPackage]
+ * Reference that refers to a [PsiPackage].
+ *
+ * The [textRange] of this reference should be the range of last id element.
+ * Sample: PsiElement representing package "androidx.databinging"
+ * <pre>
+ * PsiElement text: androidx.databinging
+ * PsiReferences:   [Ref1--]X[Ref2-----]
+ * </pre>
+ * where Ref1 would resolve to "androidx" and Ref2 to"androidx.databinging".
  */
-internal class PsiPackageReference(private val element: PsiElement, private val target: PsiPackage) : PsiReference {
-  private val textRange: TextRange = element.textRange.shiftRight(-element.startOffsetInParent)
-
-  override fun getElement(): PsiElement {
-    return element
-  }
-
-  override fun getRangeInElement(): TextRange {
-    return textRange
-  }
-
-  override fun resolve(): PsiPackage? {
-    return target
-  }
-
-  override fun getCanonicalText(): String {
-    return element.text
-  }
-
-  override fun handleElementRename(newElementName: String): PsiElement? {
-    return null
-  }
-
-  override fun bindToElement(element: PsiElement): PsiElement? {
-    return null
-  }
-
-  override fun isReferenceTo(element: PsiElement): Boolean {
-    return element.manager.areElementsEquivalent(resolve(), element)
-  }
-
-  override fun isSoft(): Boolean {
-    return false
-  }
+internal class PsiPackageReference(element: PsiDbRefExpr, target: PsiPackage)
+  : DbExprReference(element, target, element.lastChild.textRange.shiftLeft(element.textOffset)) {
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
+  override val resolvedType: PsiModelClass? = null
 }
