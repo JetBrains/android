@@ -737,6 +737,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
 
+  public static final Flag<Boolean> GRADLE_DSL_TOML_SUPPORT = Flag.create(
+    GRADLE_IDE, "gradle.dsl.toml", "Parse TOML files", "Parse TOML files to support use of Version Catalogs.", false);
 
   //endregion
 
