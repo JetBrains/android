@@ -37,7 +37,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -193,6 +192,10 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(
   variant.androidTestArtifact?.also {
     findSourceSetDataForArtifact(it)
       .populateContentEntries(IdeVariant::androidTestArtifact, AndroidModuleModel::getAndroidTestSourceProviders)
+  }
+  variant.testFixturesArtifact?.also {
+    findSourceSetDataForArtifact(it)
+      .populateContentEntries(IdeVariant::testFixturesArtifact, AndroidModuleModel::getTestFixturesSourceProviders)
   }
 }
 
