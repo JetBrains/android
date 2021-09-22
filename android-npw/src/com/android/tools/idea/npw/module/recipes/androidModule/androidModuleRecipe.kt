@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColorsMaterial3
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemesMaterial3
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_v29.androidModuleThemesMaterial3V29
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
@@ -27,6 +31,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemesMaterial3 as androidModuleThemesNightMaterial3
 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
@@ -38,6 +43,7 @@ fun RecipeExecutor.generateAndroidModule(
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
+  val isMaterial3 = data.category == Category.Material3
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -49,8 +55,19 @@ fun RecipeExecutor.generateAndroidModule(
       addBackupRules = addBackupRules
     ),
     generateTests = true,
-    themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
-    themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
+    themesXml = if (isMaterial3)
+      androidModuleThemesMaterial3(data.themesData.main.name)
+    else
+      androidModuleThemes(useAndroidX, data.themesData.main.name),
+    themesXmlNight = if (isMaterial3)
+      androidModuleThemesNightMaterial3(data.themesData.main.name)
+    else
+      androidModuleThemesNight(useAndroidX, data.themesData.main.name),
+    themesXmlV29 = if (isMaterial3 && data.apis.targetApi.api >= 29)
+      androidModuleThemesMaterial3V29(data.themesData.main.name)
+    else
+      null,
+    colorsXml = if (isMaterial3) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard
   )
@@ -61,7 +78,7 @@ fun RecipeExecutor.generateAndroidModule(
     addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   }
 
-  if (data.projectTemplateData.androidXSupport && data.category != Category.Compose) {
+  if (data.projectTemplateData.androidXSupport && data.category != Category.Compose && !isMaterial3) {
     // Though addDependency should not be called from a module recipe, adding this library because it's used for the default theme
     // (Theme.MaterialComponents.DayNight)
     addDependency("com.google.android.material:material:+")

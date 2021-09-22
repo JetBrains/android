@@ -88,6 +88,11 @@ public final class StudioFlags {
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
     true);
+
+  public static final Flag<Boolean> NPW_MATERIAL3_ENABLED = Flag.create(
+    NPW, "new.material3.templates", "New Material3 Templates",
+    "Enable the new material 3 templates.",
+    false);
   //endregion
 
   //region Profiler

@@ -19,6 +19,15 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_A
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_MATERIAL_COMPONENTS
 import com.android.tools.idea.wizard.template.MaterialColor.*
 
+fun androidModuleThemesMaterial3(themeName: String) =
+  """<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Base application theme. -->
+  <style name="Base.${themeName}" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Customize your dark theme here. -->
+    <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+  </style>
+</resources>"""
+
 fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
   if (useAndroidX)
     """<resources xmlns:tools="http://schemas.android.com/tools">

@@ -178,6 +178,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
 
   "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
+  "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
   "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
   "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
   "Login Activity" -> TemplateRenderer.LOGIN_ACTIVITY

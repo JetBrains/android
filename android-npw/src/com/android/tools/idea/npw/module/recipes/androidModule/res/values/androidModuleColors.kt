@@ -17,6 +17,14 @@ package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
 import com.android.tools.idea.wizard.template.MaterialColor
 
+fun androidModuleColorsMaterial3() = """
+  <?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      ${MaterialColor.BLACK.xmlElement()}
+      ${MaterialColor.WHITE.xmlElement()}
+  </resources>
+"""
+
 fun androidModuleColors() = """
   <?xml version="1.0" encoding="utf-8"?>
   <resources>
