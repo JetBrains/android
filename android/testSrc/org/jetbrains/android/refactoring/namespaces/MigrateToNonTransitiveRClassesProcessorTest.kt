@@ -663,84 +663,84 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(refactoringProcessor.findUsages().toList()))
       .isEqualTo("""
-        Usage (33 usages)
-         References to resources defined in com.example.lib (12 usages)
-          Found usages (12 usages)
-           Resource reference in code (12 usages)
-            app (12 usages)
-             com.example.app (6 usages)
-              AppJavaClass (3 usages)
-               foo() (3 usages)
-                8R.string.from_lib,
-                9R.string.another_lib_string,
-                18R.styleable.styleable_from_lib_Attr_from_lib,
-              AppKotlinClass.kt (3 usages)
-               AppKotlinClass (3 usages)
-                foo (3 usages)
+        <root> (33)
+         References to resources defined in com.example.lib (12)
+          Usages in (12)
+           Resource reference in code (12)
+            app (12)
+             com.example.app (6)
+              AppKotlinClass.kt (3)
+               AppKotlinClass (3)
+                foo (3)
                  8R.string.from_lib,
                  9R.string.another_lib_string,
                  18R.styleable.styleable_from_lib_Attr_from_lib,
-             com.other.folder (6 usages)
-              AppOtherPackageJavaClass (3 usages)
-               foo() (3 usages)
+              AppJavaClass (3)
+               foo() (3)
                 8R.string.from_lib,
                 9R.string.another_lib_string,
-                17R.styleable.styleable_from_lib_Attr_from_lib,
-              AppOtherPackageKotlinClass.kt (3 usages)
-               AppOtherPackageKotlinClass (3 usages)
-                foo (3 usages)
+                18R.styleable.styleable_from_lib_Attr_from_lib,
+             com.other.folder (6)
+              AppOtherPackageKotlinClass.kt (3)
+               AppOtherPackageKotlinClass (3)
+                foo (3)
                  8R.string.from_lib,
                  9R.string.another_lib_string,
                  17R.styleable.styleable_from_lib_Attr_from_lib,
-         References to resources defined in com.example.sublib (20 usages)
-          Found usages (20 usages)
-           Resource reference in code (20 usages)
-            app (16 usages)
-             com.example.app (8 usages)
-              AppJavaClass (4 usages)
-               foo() (4 usages)
-                10R.string.from_sublib,
-                13com.example.lib.R.string.from_sublib,
-                19R.styleable.styleable_from_sublib_Attr_from_sublib,
-                21com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-              AppKotlinClass.kt (4 usages)
-               AppKotlinClass (4 usages)
-                foo (4 usages)
+              AppOtherPackageJavaClass (3)
+               foo() (3)
+                8R.string.from_lib,
+                9R.string.another_lib_string,
+                17R.styleable.styleable_from_lib_Attr_from_lib,
+         References to resources defined in com.example.sublib (20)
+          Usages in (20)
+           Resource reference in code (20)
+            app (16)
+             com.example.app (8)
+              AppKotlinClass.kt (4)
+               AppKotlinClass (4)
+                foo (4)
                  10R.string.from_sublib,
                  13com.example.lib.R.string.from_sublib,
                  19R.styleable.styleable_from_sublib_Attr_from_sublib,
                  21com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-             com.other.folder (8 usages)
-              AppOtherPackageJavaClass (4 usages)
-               foo() (4 usages)
+              AppJavaClass (4)
+               foo() (4)
                 10R.string.from_sublib,
                 13com.example.lib.R.string.from_sublib,
-                18R.styleable.styleable_from_sublib_Attr_from_sublib,
-                20com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-              AppOtherPackageKotlinClass.kt (4 usages)
-               AppOtherPackageKotlinClass (4 usages)
-                foo (4 usages)
+                19R.styleable.styleable_from_sublib_Attr_from_sublib,
+                21com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+             com.other.folder (8)
+              AppOtherPackageKotlinClass.kt (4)
+               AppOtherPackageKotlinClass (4)
+                foo (4)
                  10R.string.from_sublib,
                  13com.example.lib.R.string.from_sublib,
                  18R.styleable.styleable_from_sublib_Attr_from_sublib,
                  20com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
-            lib (4 usages)
-             com.example.lib (4 usages)
-              LibJavaClass (2 usages)
-               foo() (2 usages)
-                8R.string.from_sublib,
-                13R.styleable.styleable_from_sublib_Attr_from_sublib,
-              LibKotlinClass.kt (2 usages)
-               LibKotlinClass (2 usages)
-                foo (2 usages)
+              AppOtherPackageJavaClass (4)
+               foo() (4)
+                10R.string.from_sublib,
+                13com.example.lib.R.string.from_sublib,
+                18R.styleable.styleable_from_sublib_Attr_from_sublib,
+                20com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+            lib (4)
+             com.example.lib (4)
+              LibKotlinClass.kt (2)
+               LibKotlinClass (2)
+                foo (2)
                  8R.string.from_sublib,
                  13R.styleable.styleable_from_sublib_Attr_from_sublib,
-         Properties flag to be added: android.nonTransitiveRClass (1 usage)
-          Non-code usages (1 usage)
-           Gradle properties file (1 usage)
-            app (1 usage)
-              (1 usage)
-              gradle.properties (1 usage)
+              LibJavaClass (2)
+               foo() (2)
+                8R.string.from_sublib,
+                13R.styleable.styleable_from_sublib_Attr_from_sublib,
+         Properties flag to be added: android.nonTransitiveRClass (1)
+          Non-code usages in (1)
+           Gradle properties file (1)
+            app (1)
+              (1)
+              gradle.properties (1)
                1
 
         """.trimIndent())
