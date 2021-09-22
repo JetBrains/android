@@ -35,6 +35,6 @@ class ChipHandler : ViewHandler() {
   }
 
   override fun getBaseStyles(tagName: String): List<String> {
-    return listOf("Base.Widget.MaterialComponents.$tagName")
+    return listOf("app:Base.Widget.MaterialComponents.${getSimpleTagName(tagName)}")
   }
 }
