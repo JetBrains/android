@@ -106,6 +106,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module-library">
       <library name="utp-core-proto" type="repository">
         <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha07" />
