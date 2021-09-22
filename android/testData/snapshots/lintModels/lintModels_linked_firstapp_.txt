@@ -652,14 +652,14 @@ MODULE                        : My_First_App.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.0.0)
                 - JarFiles                    : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                 ArtifactAddress               : androidx.collection:collection:1.0.0
@@ -1355,14 +1355,14 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.0.0)
                 - JarFiles                    : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                 ArtifactAddress               : androidx.collection:collection:1.0.0
