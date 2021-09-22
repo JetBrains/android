@@ -30,6 +30,7 @@ import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.UNKNOWN_CONTEXT
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_ACCEPTED
 import com.google.wireless.android.sdk.stats.DataBindingEvent.EventType.DATA_BINDING_COMPLETION_SUGGESTED
+import com.intellij.codeInsight.TailType
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -50,6 +51,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightModifierList
@@ -114,6 +116,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
               autoCompleteVariablesAndUnqualifiedFunctions(getFile(dataBindingExpression), result)
               return
             }
+            result.addAllElements(populatePackageReferenceCompletions(ownerExpr))
             result.addAllElements(populateInnerClassReferenceCompletions(ownerExpr, onlyValidCompletions))
             result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions))
             result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions))
@@ -126,6 +129,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
         }
         else {
           //TODO(b/129497876): improve completion experience for variables and static functions
+          result.addAllElements(populatePackageReferenceCompletions(parent))
           result.addAllElements(populateInnerClassReferenceCompletions(parent, onlyValidCompletions))
           result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions))
           result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions))
@@ -167,20 +171,50 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     }
 
     result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
-      val xmlTag = nameToTag.second ?: return
+      val xmlTag = nameToTag.second ?: return@mapNotNull null
       val name = nameToTag.first
       LookupElementBuilder.create(xmlTag, DataBindingUtil.convertVariableNameToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
     })
 
-    JavaPsiFacade.getInstance(project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
-      .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
-      .forEach {
+    val module = file.androidFacet?.module ?: return
+    JavaPsiFacade.getInstance(project).findPackage(CommonClassNames.DEFAULT_PACKAGE)
+      ?.getClasses(ModulesScope.moduleWithLibrariesScope(module))
+      ?.forEach {
         result.addElement(JavaLookupElementBuilder.forClass(it, it.name, true).withInsertHandler(onCompletionHandler))
+      }
+
+    // Add completions for sub packages from root e.g. "com", "androidx", etc.
+    JavaPsiFacade.getInstance(project).findPackage("")
+      ?.getSubPackages(ModulesScope.moduleWithLibrariesScope(module))
+      ?.filter { pkg -> pkg.getSubPackages(module.moduleScope).isNotEmpty() || pkg.getClasses(module.moduleScope).isNotEmpty() }
+      ?.filter { pkg -> pkg.name?.all { char -> Character.isJavaIdentifierPart(char) } == true }
+      ?.forEach {
+        result.addElement(LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailType.DOT))
       }
   }
 
   private fun autoCompleteUnqualifiedFunctions(result: CompletionResultSet) {
     result.addElement(LookupElementBuilder.create("safeUnbox").withInsertHandler(onCompletionHandler))
+  }
+
+  /**
+   * Given a data binding expression, return a list of [LookupElement] which are the class or package references of the given expression,
+   * which is particularly useful for packages, e.g. `com.android`, `com.intellij.psi.PsiClass`, etc.
+   */
+  private fun populatePackageReferenceCompletions(referenceExpression: PsiElement): List<LookupElement> {
+    val completionSuggestionsList = mutableListOf<LookupElement>()
+    val childReferences = referenceExpression.references
+    for (reference in childReferences) {
+      val psiPackage = reference.resolve() as? PsiPackage ?: continue
+      for (subPackage in psiPackage.subPackages) {
+        completionSuggestionsList.add(
+          LookupElementBuilder.createWithIcon(subPackage).withInsertHandler(onCompletionHandler).withTypeDecorator(TailType.DOT))
+      }
+      for (subClass in psiPackage.classes) {
+        completionSuggestionsList.add(LookupElementBuilder.createWithIcon(subClass).withInsertHandler(onCompletionHandler))
+      }
+    }
+    return completionSuggestionsList
   }
 
   /**

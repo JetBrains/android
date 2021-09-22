@@ -176,7 +176,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         }
 
         val psiPackage = javaPsiFacade.findPackage(simpleName)
-        if (psiPackage != null) {
+        if (psiPackage != null && element is PsiDbRefExpr) {
           return arrayOf(PsiPackageReference(element, psiPackage))
         }
 
@@ -267,7 +267,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
       references
         .filterIsInstance<PsiPackageReference>()
-        .mapNotNull { reference -> reference.resolve() }
+        .mapNotNull { reference -> reference.resolve() as? PsiPackage }
         .forEach { aPackage ->
           for (subPackage in aPackage.getSubPackages(scope)) {
             if (fieldMatchesPackage(fieldText, subPackage)) {

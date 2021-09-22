@@ -21,15 +21,11 @@ import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.TailType
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.lookup.TailTypeDecorator
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
@@ -71,7 +67,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     @VisibleForTesting
     fun getPackagePrefix(text: CharSequence, offset: Int): String {
       var startIndex = offset
-      while (startIndex > 0 && text[startIndex - 1].let { c -> Character.isJavaIdentifierPart(c) || c == '.'}) {
+      while (startIndex > 0 && text[startIndex - 1].let { c -> Character.isJavaIdentifierPart(c) || c == '.' }) {
         startIndex--
       }
       val startToOffset = text.subSequence(startIndex, offset).toString()
@@ -181,13 +177,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // pkg.name is always non-null for subpackages
         .filter { pkg -> pkg.name!!.all { char -> Character.isJavaIdentifierPart(char) } }
         .forEach { pkg ->
-          resultSet.addElement(object : TailTypeDecorator<LookupElement>(LookupElementBuilder.createWithIcon(pkg)) {
-            override fun computeTailType(context: InsertionContext) = TailType.DOT
-            override fun handleInsert(context: InsertionContext) {
-              super.handleInsert(context)
-              AutoPopupController.getInstance(project).scheduleAutoPopup(context.editor)
-            }
-          })
+          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailType.DOT))
         }
 
       if (rootPackage.name.isNullOrEmpty()) {

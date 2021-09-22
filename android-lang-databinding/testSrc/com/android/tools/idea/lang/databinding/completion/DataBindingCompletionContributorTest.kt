@@ -860,6 +860,138 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   }
 
   @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_importedClass() {
+    fixture.addClass("""
+      package test.langdb;
+      import android.view.View;
+      public class Model {}
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{Mod${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{Model}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_packageFromRoot() {
+    fixture.addClass("""
+      package test.langdb;
+      import android.view.View;
+      public class Model {}
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{tes${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{test.}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_packageWithPrefix() {
+    fixture.addClass("""
+      package test.langdb;
+      import android.view.View;
+      public class Model {}
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{android.vie${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{android.view.}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
   fun testDataBindingCompletion_testCompleteVariableOutsideReferenceContext() {
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
