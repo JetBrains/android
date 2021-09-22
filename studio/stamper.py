@@ -103,7 +103,9 @@ def _write_file(zip_path, mode, data, entry, sub_entry=None):
       sub.writestr(sub_entry, data)
     data = buffer.getvalue()
   with zipfile.ZipFile(zip_path, mode) as zip:
-    zip.writestr(entry, data)
+    info = zipfile.ZipInfo(entry)
+    info.external_attr = 0o100664 << 16
+    zip.writestr(info, data)
 
 
 RES_PATH = {
