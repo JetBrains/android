@@ -102,9 +102,6 @@ public class GradleSyncExecutor {
       GradleSyncState.getInstance(myProject).syncSkipped(listener);
       return;
     }
-    // Setup the settings for setup.
-    // Setup the settings for the resolver.
-    myProject.putUserData(ALL_VARIANTS_SYNC_KEY, request.forceAllVariantsSync);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
@@ -137,7 +134,7 @@ public class GradleSyncExecutor {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
-      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.trigger, request.forceAllVariantsSync));
+      myProject.putUserData(PROJECT_SYNC_REQUEST, new ProjectSyncRequest(rootPath, request.trigger, false));
       refreshProject(rootPath, builder.build());
     }
   }
