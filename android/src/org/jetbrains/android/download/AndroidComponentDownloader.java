@@ -42,7 +42,7 @@ public abstract class AndroidComponentDownloader {
   private ReentrantReadWriteLock downloadLock = new ReentrantReadWriteLock();
 
   public boolean makeSureComponentIsInPlace() {
-    if (ApplicationManager.getApplication() == null) return false; // to support regular junit tests with no Application initialized
+    if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isDisposed()) return false; // to support regular junit tests with no Application initialized
     if (IdeInfo.getInstance().isAndroidStudio()) return true;
 
     waitOtherThreadToCompleteIfNotInEDT();
