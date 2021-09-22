@@ -69,8 +69,8 @@ public class AdbFileListing {
   public ListenableFuture<List<AdbFileListingEntry>> getChildrenRunAs(@NotNull AdbFileListingEntry parentEntry,
                                                                       @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
-      // Run "ls -l" command and process matching output lines
-      String command = getCommand(runAs, "ls -l ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
+      // Run "ls -al" command and process matching output lines
+      String command = getCommand(runAs, "ls -al ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
 
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
       boolean escaping = myDeviceCapabilities.hasEscapingLs();
@@ -145,6 +145,9 @@ public class AdbFileListing {
     }
 
     String name = getName(m, escaping);
+    if (name.equals(".") || name.equals("..")) {
+      return null;
+    }
 
     // get the rest of the groups
     String permissions = m.group(1);

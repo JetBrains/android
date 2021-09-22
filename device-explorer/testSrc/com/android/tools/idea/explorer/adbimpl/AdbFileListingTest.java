@@ -66,7 +66,7 @@ public class AdbFileListingTest {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
     TestDevices.addNexus7Api23Commands(commands);
-    commands.addError("ls -l /" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
+    commands.addError("ls -al /" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileListing fileListing = new AdbFileListing(device, new AdbDeviceCapabilities(device), taskExecutor);
@@ -200,7 +200,7 @@ public class AdbFileListingTest {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
     TestDevices.addEmulatorApi25Commands(commands);
-    commands.addError("su 0 sh -c 'ls -l /'" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
+    commands.addError("su 0 sh -c 'ls -al /'" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileListing fileListing = new AdbFileListing(device, new AdbDeviceCapabilities(device), taskExecutor);
