@@ -56,6 +56,7 @@ class AndroidTestApplicationLaunchTask(
   private val myInstrumentationOptions: String,
   private val myTestListeners: List<ITestRunListener>,
   private val myBackgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
+  private val myAndroidTestConfigurationProvider: () -> AndroidTestConfiguration = { AndroidTestConfiguration.getInstance() },
   private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) : AppLaunchTask() {
 
   companion object {
@@ -185,7 +186,7 @@ class AndroidTestApplicationLaunchTask(
     val device = launchContext.device
     val launchStatus = launchContext.launchStatus
 
-    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+    if (myAndroidTestConfigurationProvider().RUN_ANDROID_TEST_USING_GRADLE) {
       printer.stderr(
         "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet.")
     }
