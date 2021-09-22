@@ -15,7 +15,6 @@
  */
 package google.simpleapplication;
 
-import com.example.lib.testFixtures.LibInterfaceTester;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,6 +36,16 @@ public class UnitTest {
 
   @Test
   public void testFixtures() throws Exception {
-    new LibInterfaceTester("test").test("test");
+    new com.example.lib.testFixtures.LibInterfaceTester("test").test("test");
+  }
+
+  @Test
+  public void publishedTestFixtures() throws Exception {
+    new com.example.publishedlib.testFixtures.LibInterfaceTester("test").test("test");
+  }
+
+  @Test
+  public void publishedJavaTestFixtures() throws Exception {
+    new com.example.javalib.testFixtures.JavaLibInterfaceTester(12).test(12);
   }
 }

@@ -1325,6 +1325,38 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
+        LIBRARY                       : Gradle: com.example.javaLib:javaLib:1.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.example.javaLib:javaLib:1.0 [=]
+            *CLASSES                      : jar://<PROJECT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar!/
+        LIBRARY                       : Gradle: com.example.javaLib:javaLib:1.0 (1)
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.example.javaLib:javaLib:1.0 (1) [=]
+            *CLASSES                      : jar://<PROJECT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar!/
+        LIBRARY                       : Gradle: com.example.publishedLib:publishedLib:1.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.example.publishedLib:publishedLib:1.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar!/
+        LIBRARY                       : Gradle: com.example.publishedLib:publishedLib:1.0@aar (1)
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.example.publishedLib:publishedLib:1.0@aar (1) [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.auto.value:auto-value-annotations:1.6.3
             LibraryLevel                  : project
             IsModuleLevel                 : false

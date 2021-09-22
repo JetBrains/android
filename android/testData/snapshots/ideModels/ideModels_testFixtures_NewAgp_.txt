@@ -2008,6 +2008,44 @@ MODULE                        : project.app
                             ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0:test-fixtures@aar
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0:test-fixtures@aar
+                            LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/lint.jar [-]
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0-test-fixtures.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/R.txt
+                        AndroidLibrary                : com.example.publishedLib:publishedLib:1.0@aar
+                            ArtifactAddress               : com.example.publishedLib:publishedLib:1.0@aar
+                            LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/lint.jar [-]
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/publishedLib/publishedLib/1.0/publishedLib-1.0.aar
+                            Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
+                            Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+                            CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            RuntimeJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                            ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+                            ResStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res.apk [-]
+                            AssetFolder                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/assets [-]
+                            JniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jni [-]
+                            AidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/aidl [-]
+                            RenderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/rs [-]
+                            ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                            ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
+                            PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/public.txt [-]
+                            SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
                     JavaLibraries
                         JavaLibrary                   : android.arch.core:common:1.1.1
                             ArtifactAddress               : android.arch.core:common:1.1.1@jar
@@ -2029,6 +2067,14 @@ MODULE                        : project.app
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0@jar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
+                        JavaLibrary                   : com.example.javaLib:javaLib:1.0:test-fixtures
+                            ArtifactAddress               : com.example.javaLib:javaLib:1.0:test-fixtures@jar
+                            IsProvided                    : false
+                            Artifact                      : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar
                         JavaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3
                             ArtifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3@jar
                             IsProvided                    : false

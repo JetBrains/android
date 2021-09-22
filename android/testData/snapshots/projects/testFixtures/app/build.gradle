@@ -23,14 +23,23 @@ android {
     }
 }
 
+repositories {
+  maven {
+    url = '../localrepo'
+  }
+}
+
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
     api 'com.android.support:appcompat-v7:+'
     api 'com.google.guava:guava:19.0'
     api 'com.android.support.constraint:constraint-layout:1.0.2'
 
     testImplementation testFixtures(project(":lib"))
+    testImplementation testFixtures('com.example.javaLib:javaLib:1.0')
+    testImplementation testFixtures('com.example.publishedLib:publishedLib:1.0')
+
     testImplementation 'junit:junit:4.12'
+
     androidTestImplementation 'com.android.support.test:runner:+'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
 }
