@@ -1,0 +1,148 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.example.javaLib",
+    "module": "javaLib",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "javaLib-1.0.jar",
+          "url": "javaLib-1.0.jar",
+          "size": 858,
+          "sha512": "7d771c188e54011ae70717de315ce435da0a9daceeb45214930d01b6a2c640e3ef9e7d6a5f7872f524792d0a57b9dfd42bc47023f97a48583c8c0a8f98f37681",
+          "sha256": "27c676f4faa7cd745d0e7e0c560a3480440dd95dc489799ba437961324ffbd23",
+          "sha1": "8c2939206bf8c29aabc8676612b1b1c6eed82e8c",
+          "md5": "e659dedbc3235785796dc4a8d5d578e1"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "javaLib-1.0.jar",
+          "url": "javaLib-1.0.jar",
+          "size": 858,
+          "sha512": "7d771c188e54011ae70717de315ce435da0a9daceeb45214930d01b6a2c640e3ef9e7d6a5f7872f524792d0a57b9dfd42bc47023f97a48583c8c0a8f98f37681",
+          "sha256": "27c676f4faa7cd745d0e7e0c560a3480440dd95dc489799ba437961324ffbd23",
+          "sha1": "8c2939206bf8c29aabc8676612b1b1c6eed82e8c",
+          "md5": "e659dedbc3235785796dc4a8d5d578e1"
+        }
+      ]
+    },
+    {
+      "name": "testFixturesApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.example.javaLib",
+          "module": "javaLib",
+          "version": {
+            "requires": "1.0"
+          }
+        },
+        {
+          "group": "com.google.truth",
+          "module": "truth",
+          "version": {
+            "requires": "0.44"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "javaLib-1.0-test-fixtures.jar",
+          "url": "javaLib-1.0-test-fixtures.jar",
+          "size": 1422,
+          "sha512": "2823a25d59a9241c8c9f8905389cdf255a2b350cea6aff8b00fe970c78863bf1be1ceab835b8786c4dc713b83b77ee7b58497a7e9db5dfa916445149a0529846",
+          "sha256": "db60f567282810e2c2edcd9aeaaef1966f141a64e30040124960b3ba40cb6d8c",
+          "sha1": "e29a0c7e7c4ce1e3f69a403ee3b1da5573ffedb4",
+          "md5": "7cc9ea1bfc140824fb6fe4960d2c6208"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.javaLib",
+          "name": "javaLib-test-fixtures",
+          "version": "unspecified"
+        }
+      ]
+    },
+    {
+      "name": "testFixturesRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.example.javaLib",
+          "module": "javaLib",
+          "version": {
+            "requires": "1.0"
+          }
+        },
+        {
+          "group": "com.google.truth",
+          "module": "truth",
+          "version": {
+            "requires": "0.44"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "javaLib-1.0-test-fixtures.jar",
+          "url": "javaLib-1.0-test-fixtures.jar",
+          "size": 1422,
+          "sha512": "2823a25d59a9241c8c9f8905389cdf255a2b350cea6aff8b00fe970c78863bf1be1ceab835b8786c4dc713b83b77ee7b58497a7e9db5dfa916445149a0529846",
+          "sha256": "db60f567282810e2c2edcd9aeaaef1966f141a64e30040124960b3ba40cb6d8c",
+          "sha1": "e29a0c7e7c4ce1e3f69a403ee3b1da5573ffedb4",
+          "md5": "7cc9ea1bfc140824fb6fe4960d2c6208"
+        }
+      ],
+      "capabilities": [
+        {
+          "group": "com.example.javaLib",
+          "name": "javaLib-test-fixtures",
+          "version": "unspecified"
+        }
+      ]
+    }
+  ]
+}
