@@ -712,7 +712,7 @@ MODULE                        : project.app
                             ArtifactAddress               : com.example.libs:lib2:1.0@aar [-]
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/lint.jar [-]
                             IsProvided                    : true
-                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/libs/lib2/1.0/lib2-1.0.aar
+                            Artifact                      : <DEV>/android/testData/projects/psdSampleRepo/com/example/libs/lib2/1.0/lib2-1.0.aar
                             Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0
                             Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/AndroidManifest.xml
                             CompileJarFiles               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/classes.jar
@@ -1264,11 +1264,11 @@ MODULE                        : project.app
                         JavaLibrary
                             ArtifactAddress               : com.example.jlib:lib3:1.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
+                            Artifact                      : <DEV>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
                         JavaLibrary
                             ArtifactAddress               : com.example.jlib:lib4:1.0@jar [-]
                             IsProvided                    : true
-                            Artifact                      : /home/open/projects/idea/merge/community/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
+                            Artifact                      : <DEV>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
