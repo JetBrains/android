@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
@@ -116,12 +118,12 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      boolean backgroundable,
                                      @NotNull InstallerFactory factory,
                                      boolean throttleProgress) {
-    super("Component Installer");
+    super(message("android.sdk.manager.installer.panel.title"));
     myInstallRequests = installRequests;
     myUninstallRequests = uninstallRequests;
     myRepoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
-    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
+    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.sdk.manager.installer.panel.description"));
     myBackgroundable = backgroundable;
     mySdkHandler = sdkHandler;
     myFactory = factory;
@@ -136,10 +138,10 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     // This will show a warning to the user once installation starts and will disable the next/finish button until installation finishes
-    String finishedText = "Please wait until the installation finishes";
+    String finishedText = message("android.sdk.manager.installer.install.finished");
     myValidatorPanel.registerValidator(myInstallationFinished, new TrueValidator(Validator.Severity.INFO, finishedText));
 
-    String installError = "Installation did not complete successfully. See the IDE log for details";
+    String installError = message("android.sdk.manager.installer.install.error");
     myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
 
     myBackgroundAction.setWizard(wizard);
