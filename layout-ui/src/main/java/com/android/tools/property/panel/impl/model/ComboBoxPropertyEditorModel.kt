@@ -47,6 +47,7 @@ class ComboBoxPropertyEditorModel(
   private val syncNewValues = Object()
   private val loading = mutableListOf(EnumValue.LOADING)
   private var values: List<EnumValue> = loading
+
   @GuardedBy("syncNewValues")
   private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
@@ -82,7 +83,7 @@ class ComboBoxPropertyEditorModel(
 
   init {
     if (!editable) {
-      setInitialDropDownValue(value.nullize() ?: property.defaultValue.orEmpty())
+      setInitialDropDownValue()
     }
   }
 
@@ -104,7 +105,7 @@ class ComboBoxPropertyEditorModel(
         selectedItem = getElementAt(currentIndex)
       }
       else {
-        setInitialDropDownValue(value)
+        setInitialDropDownValue()
       }
     }
     resetPendingValue()
@@ -122,7 +123,8 @@ class ComboBoxPropertyEditorModel(
     return -1
   }
 
-  private fun setInitialDropDownValue(stringValue: String) {
+  private fun setInitialDropDownValue() {
+    val stringValue = value.nullize() ?: property.defaultValue.orEmpty()
     loading.clear()
     if (stringValue.isNotEmpty()) {
       val newValue = enumSupport.createValue(stringValue)
@@ -221,7 +223,10 @@ class ComboBoxPropertyEditorModel(
             // New values have been loaded but the list model has not been updated.
             synchronized(syncNewValues) {
               values = newValues
-              selectedItem = value
+              if (editable) {
+                // No need to set the item again for non-editable, see setInitialDropDownValue
+                selectedItem = value
+              }
             }
             // Update the data in the list of the popup.
             fireListDataInserted()
@@ -240,7 +245,10 @@ class ComboBoxPropertyEditorModel(
           }
           if (values === loading && newValues !== loading) {
             values = newValues
-            selectedItem = value
+            if (editable) {
+              // No need to set the item again for non-editable, see setInitialDropDownValue
+              selectedItem = value
+            }
           }
         }
       }

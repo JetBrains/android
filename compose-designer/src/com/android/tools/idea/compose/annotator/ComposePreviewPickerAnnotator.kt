@@ -94,8 +94,9 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     AllIcons.Actions.InlayGear,
     { message("picker.preview.annotator.tooltip") },
     { mouseEvent, _ ->
-      val model = PsiCallPropertyModel.fromPreviewElement(project, previewElement)
-      val valuesProvider = element.module?.let {
+      val module = element.module
+      val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElement)
+      val valuesProvider = module?.let {
         PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, element.containingFile.virtualFile)
       } ?: EnumSupportValuesProvider.EMPTY
       PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)

@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Device
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportWithConstantData
+import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.util.text.nullize
@@ -40,11 +41,20 @@ internal fun createDeviceEnumSupport(
   trimmedValue.nullize()?.let {
     val isDeviceSpec = it.startsWith("spec:") // TODO(b/197021783): Reuse constant from PreviewElement.kt
     if (isDeviceSpec) {
+      val knownSpec = DeviceEnumValueBuilder.withDefaultDevices().build()
+        .filter { enumValue ->
+          enumValue.value?.isNotBlank() == true
+        }.firstOrNull { enumValue ->
+          enumValue.value == stringValue
+        }
+      if (knownSpec != null) {
+        return@EnumSupportWithConstantData knownSpec
+      }
       // If the Device definition is a hardware spec. Just show as 'Custom'
       return@EnumSupportWithConstantData EnumValue.item(stringValue, "Custom")
     }
     else {
-      // Show an item with de initial value and make it better to read
+      // Show an item with the initial value and make it better to read
       val readableValue = it.substringAfter(':', it).replace('_', ' ')
       return@EnumSupportWithConstantData EnumValue.item(it, readableValue)
     }
@@ -76,7 +86,7 @@ internal object OrientationEnumSupport : EnumSupport {
   }
 
   override fun createValue(stringValue: String): EnumValue {
-    val orientation = Orientation.valueOfOrPortrait(stringValue)
+    val orientation = enumValueOfOrDefault(stringValue, Orientation.portrait)
     return EnumValue.item(orientation.name)
   }
 }
@@ -87,7 +97,7 @@ internal object DimensionUnitEnumSupport : EnumSupport {
   }
 
   override fun createValue(stringValue: String): EnumValue {
-    val dimUnit = DimUnit.valueOfOrPx(stringValue)
+    val dimUnit = enumValueOfOrDefault(stringValue, DimUnit.px)
     return EnumValue.item(dimUnit.name)
   }
 }

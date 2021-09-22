@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.resources.ScreenRound
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
+import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
@@ -41,50 +49,86 @@ internal class DeviceParameterPropertyItem(
   resolvedCall: ResolvedCall<*>,
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,
-  initialValue: String?
+  defaultValue: String?
 ) : PsiCallParameterPropertyItem(
   project,
   model,
   resolvedCall,
   descriptor,
   argumentExpression,
-  initialValue) {
+  defaultValue) {
+
+  private val initialState: DeviceValues = run {
+    val initialValue = value
+    if (initialValue == null || initialValue.isBlank()) {
+      resolvedCall.call.callElement.module?.let { module ->
+        val config = DeviceConfig().apply { dimensionUnit = DimUnit.px }
+        ConfigurationManager.findExistingInstance(module)?.defaultDevice?.defaultState?.let { deviceState ->
+          val screen = deviceState.hardware.screen
+          config.width = screen.xDimension
+          config.height = screen.yDimension
+          config.density = screen.pixelDensity.dpiValue
+          if (screen.screenRound == ScreenRound.ROUND) {
+            config.shape = if (screen.chin != 0) Shape.Square else Shape.Round
+          }
+          else {
+            config.shape = Shape.Normal
+          }
+          return@run DeviceValues(
+            shape = config.shape,
+            width = config.width,
+            height = config.height,
+            unit = config.dimensionUnit,
+            density = config.density
+          )
+        }
+      }
+    }
+    return@run DeviceValues(
+      shape = DEFAULT_SHAPE,
+      width = DEFAULT_WIDTH,
+      height = DEFAULT_HEIGHT,
+      unit = DEFAULT_UNIT,
+      density = DEFAULT_DENSITY.dpiValue
+    )
+  }
+
   override var name: String = PARAMETER_HARDWARE_DEVICE
 
   // TODO(b/197021783): Have a better/correct wat to choose default values. That matches the device used in Preview when 'Device = null'
   private val width = DeviceConfigProperty(
     getter = { config -> config.width.toString() },
-    setter = { config, newValue -> config.width = newValue.toIntOrNull() ?: DEFAULT_WIDTH },
-    default = DEFAULT_WIDTH.toString()
+    setter = { config, newValue -> config.width = newValue.toIntOrNull() ?: initialState.width },
+    default = initialState.width.toString()
   )
 
   private val height = DeviceConfigProperty(
     getter = { config -> config.height.toString() },
-    setter = { config, newValue -> config.height = newValue.toIntOrNull() ?: DEFAULT_HEIGHT },
-    default = DEFAULT_HEIGHT.toString()
+    setter = { config, newValue -> config.height = newValue.toIntOrNull() ?: initialState.height },
+    default = initialState.height.toString()
   )
 
   private val dimensionUnit = DeviceConfigProperty(
     getter = { config -> config.dimensionUnit.name },
-    setter = { config, newValue -> config.dimensionUnit = DimUnit.valueOfOrPx(newValue) },
-    default = DEFAULT_UNIT.name
+    setter = { config, newValue -> config.dimensionUnit = enumValueOfOrDefault(newValue, initialState.unit) },
+    default = initialState.unit.name
   )
 
   private val density = DeviceConfigProperty(
     getter = { config -> config.density.toString() },
-    setter = { config, newValue -> config.density = newValue.toIntOrNull() ?: DEFAULT_DENSITY.dpiValue },
-    default = DEFAULT_DENSITY.dpiValue.toString()
+    setter = { config, newValue -> config.density = newValue.toIntOrNull() ?: initialState.density },
+    default = initialState.density.toString()
   )
 
   private val orientation = DeviceConfigProperty(
     getter = { config -> config.orientation.name },
-    setter = { config, newValue -> config.orientation = Orientation.valueOfOrPortrait(newValue) },
-    default = Orientation.portrait.name
+    setter = { config, newValue -> config.orientation = enumValueOfOrDefault(newValue, initialState.orientation) },
+    default = initialState.orientation.name
   )
 
   val innerProperties = listOf<PsiPropertyItem>(
-    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_WIDTH, WIDTH_INITIAL, width),
-    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_HEIGHT, HEIGHT_INITIAL, height),
+    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_WIDTH, WIDTH_INITIAL, width, IntegerStrictValidator),
+    DeviceMemoryPropertyItem(PARAMETER_HARDWARE_HEIGHT, HEIGHT_INITIAL, height, IntegerStrictValidator),
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DENSITY, DEFAULT_DENSITY.dpiValue.toString(), density),
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_ORIENTATION, ORIENTATION_DEFAULT, orientation),
     DeviceMemoryPropertyItem(PARAMETER_HARDWARE_DIM_UNIT, DEFAULT_UNIT.name, dimensionUnit)
@@ -98,13 +142,29 @@ internal class DeviceParameterPropertyItem(
     private val setter: (DeviceConfig, String) -> Unit,
     private val default: String
   ) {
-    fun getValue(): String {
-      return getter(DeviceConfig.toDeviceConfigOrDefault(value))
-    }
+    fun getValue(): String = getter(readCurrentConfig())
 
     fun setValue(newValue: String?) {
-      val config = DeviceConfig.toDeviceConfigOrDefault(value).also { setter(it, newValue ?: default) }
+      val config = readCurrentConfig()
+      setter(config, newValue ?: default)
       writeNewValue(config.deviceSpec(), false)
+    }
+
+    /**
+     * Creates a [DeviceConfig] based on the current [value].
+     */
+    private fun readCurrentConfig(): DeviceConfig {
+      val currentValue = value
+      if (currentValue == null || currentValue.isBlank()) {
+        return DeviceConfig(
+          shape = initialState.shape,
+          width = initialState.width,
+          height = initialState.height,
+          dimUnit = initialState.unit,
+          density = initialState.density
+        )
+      }
+      return DeviceConfig.toDeviceConfigOrDefault(currentValue)
     }
   }
 
@@ -116,7 +176,8 @@ internal class DeviceParameterPropertyItem(
   private class DeviceMemoryPropertyItem(
     name: String,
     initialValue: String?,
-    private val property: DeviceParameterPropertyItem.DeviceConfigProperty
+    private val property: DeviceParameterPropertyItem.DeviceConfigProperty,
+    inputValidation: EditingValidation = { EDITOR_NO_ERROR }
   ) : MemoryParameterPropertyItem(
     name,
     initialValue
@@ -128,6 +189,23 @@ internal class DeviceParameterPropertyItem(
           property.setValue(newValue)
         }
       }
+
+    override val editingSupport: EditingSupport = object : EditingSupport {
+      override val validation: EditingValidation = inputValidation
+    }
   }
+}
+
+/**
+ * Immutable equivalent of [DeviceConfig]
+ */
+private data class DeviceValues(
+  val shape: Shape,
+  val width: Int,
+  val height: Int,
+  val unit: DimUnit,
+  val density: Int
+) {
+  val orientation = if (height >= width) Orientation.portrait else Orientation.landscape
 }
 

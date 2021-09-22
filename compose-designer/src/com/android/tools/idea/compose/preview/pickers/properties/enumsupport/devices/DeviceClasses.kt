@@ -156,4 +156,20 @@ internal class DeviceEnumValueBuilder {
     }
     return enumValues
   }
+
+  companion object {
+    fun withDefaultDevices(): DeviceEnumValueBuilder =
+        DeviceEnumValueBuilder()
+          .addDeviceDp("Phone", DeviceClass.Canonical, 360, 640)
+          .addDeviceDp("Foldable", DeviceClass.Canonical, 673, 841)
+          .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
+          .addDeviceDp("Desktop", DeviceClass.Canonical, 1920, 1080)
+          .addWearDevice(Shape.Square)
+          .addWearDevice(Shape.Round)
+          .addWearDevice(Shape.Chin)
+          .addTvDevice(3840, 2160, 55.0)
+          .addTvDevice(1920, 1080, 55.0)
+          .addTvDevice(1280, 720, 55.0)
+          .addAutoDevice(1024, 768, 8.4)
+    }
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
+import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
@@ -30,10 +31,12 @@ import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -81,15 +84,42 @@ class PsiCallPropertyModel internal constructor(
     })
 
   companion object {
-    fun fromPreviewElement(project: Project, previewElement: PreviewElement): PsiCallPropertyModel {
+    fun fromPreviewElement(project: Project, module: Module?, previewElement: PreviewElement): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
-      val defaultValues: Map<String, String?> = (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues() ?: kotlin.run {
-        Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
-        emptyMap()
-      }
-      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable())
+      val libraryDefaultValues: Map<String, String?> =
+        (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues() ?: kotlin.run {
+          Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
+          emptyMap()
+        }
+      val defaultApiLevel = module?.let(ConfigurationManager::findExistingInstance)?.defaultTarget?.version?.apiLevel?.toString()
+
+      /**
+       * Contains the default values for each parameter of the Preview annotation.
+       *
+       * This either makes the existing default values of the @Preview Class presentable, or changes the value based on what the value
+       * actually represents on the preview.
+       */
+      val defaultValues = libraryDefaultValues.mapValues { entry ->
+          when (entry.key) {
+            PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
+            PARAMETER_WIDTH,
+            PARAMETER_WIDTH_DP,
+            PARAMETER_HEIGHT,
+            PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
+            PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
+            PARAMETER_DEVICE -> entry.value ?: " " // Non-empty value, empty values are considered null and not rendered in the DropDown
+            PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+            else -> entry.value
+          }
+        }
+
+      return PsiCallPropertyModel(project, resolvedCall, defaultValues)
     }
+
+    private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
+
+    private fun String.apiToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_API_LEVEL }?.toString()
   }
 }
 
@@ -135,24 +165,3 @@ private fun parserResolvedCallToPsiPropertyItems(
   }
   return properties
 }
-
-/**
- * Get the default values from the [PreviewElement] in a format that's easier to understand for the [PsiPropertyItem]s.
- */
-private fun Map<String, String?>.toReadable(): Map<String, String?> = this.mapValues { entry ->
-  when (entry.key) {
-    PARAMETER_API_LEVEL -> entry.value?.apiToReadable()
-    PARAMETER_WIDTH,
-    PARAMETER_WIDTH_DP,
-    PARAMETER_HEIGHT,
-    PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
-    PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
-    // TODO: Combobox currently doesn't support empty default value, so we set a text, that will fallback to the desired default option.
-    PARAMETER_DEVICE -> entry.value ?: " "
-    else -> entry.value
-  }
-}
-
-private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
-
-private fun String.apiToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_API_LEVEL }?.toString()

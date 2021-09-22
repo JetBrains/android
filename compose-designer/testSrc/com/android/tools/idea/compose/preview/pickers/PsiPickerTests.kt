@@ -22,6 +22,8 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiCallProperty
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.testing.Sdks
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.intellij.openapi.application.ReadAction
@@ -32,6 +34,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -62,6 +65,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   val edtRule = EdtRule()
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
+  private val module get() = projectRule.fixture.module
 
   @RunsInEdt
   @Test
@@ -85,9 +89,9 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       @Preview
       fun PreviewParameters() {
       }
-      
+
       private const val nameFromConst = "Name from Const"
-      
+
       @Composable
       @Preview(nameFromConst)
       fun PreviewWithNameFromConst() {
@@ -98,16 +102,16 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val previews = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview)
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
       }
       previews[1].also { namedPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreview)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview)
         assertEquals("named", parsed.properties["", "name"].value)
       }
       previews[3].also { namedPreviewFromConst ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreviewFromConst)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst)
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
     }
@@ -183,10 +187,13 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
     """.trimIndent()
 
+    Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getPsiPropertyModel(fileContent)
     assertEquals("1f", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
+    assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
+    assertTrue(model.properties["", "apiLevel"].defaultValue!!.toInt() > 0)
 
     // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
     assertEquals("0", model.properties["", "uiMode"].defaultValue)
@@ -202,7 +209,6 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)
     assertEquals(null, model.properties["", "heightDp"].defaultValue)
-    assertEquals(null, model.properties["", "apiLevel"].defaultValue)
     // We don't take the library's default value for color
     assertEquals(null, model.properties["", "backgroundColor"].defaultValue)
   }
@@ -271,7 +277,9 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
+    val model = ReadAction.compute<PsiPropertyModel, Throwable> {
+      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview)
+    }
     var expectedModificationsCountdown = 13
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
       override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
@@ -295,26 +303,26 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // Device parameters modifications
     model.properties["", "Width"].value = "720" // In pixels, this change should populate 'device' parameter in annotation
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;720;1920;px;480dpi")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=720,height=1920,unit=px,dpi=480")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "DimensionUnit"].value = "dp" // Should modify width and height in 'device' parameter
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;240;640;dp;480dpi")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=240,height=640,unit=dp,dpi=480")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "Density"].value = "240" // When changing back to pixels, the width and height should be different than originally
     model.properties["", "DimensionUnit"].value = "px"
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;360;960;px;240dpi")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=360,height=960,unit=px,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
     model.properties["", "Orientation"].value = "landscape" // Changing orientation swaps width/height values
     assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:Normal;960;360;px;240dpi")""",
+      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=960,height=360,unit=px,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
@@ -345,6 +353,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   private fun getPsiPropertyModel(fileContent: String): PsiPropertyModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    return ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
+    ConfigurationManager.getOrCreateInstance(module)
+    return ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, module, preview) }
   }
 }

@@ -93,6 +93,44 @@ class ComboBoxPropertyEditorModelTest {
   }
 
   @Test
+  fun testDropDownValueWithEmptyList() {
+    val model = createModel(editable = false, enumSupport = FakeEnumSupport())
+
+    val initialItem: Any? = model.selectedItem
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("visible"))
+    assertThat(model.getIndexOfCurrentValue()).isEqualTo(0)
+
+    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+
+    assertThat(model.selectedItem).isSameAs(initialItem)
+    assertThat(model.getIndexOfCurrentValue()).isEqualTo(-1)
+  }
+
+  @Test
+  fun testDropDownIsDefaultValueWithNewEmptyValue() {
+    val model = ComboBoxPropertyEditorModel(
+      property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
+      enumSupport = createEnumSupport(),
+      editable = false
+    )
+
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
+    assertThat(model.getIndexOfCurrentValue()).isEqualTo(-1)
+
+    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
+
+    model.value = "visible"
+    model.refresh()
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("visible"))
+
+    model.value = "" // Should change back to show the default value
+    model.refresh()
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
+  }
+
+  @Test
   fun testSelectedItemFromInit() {
     val model = createModel()
     model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
@@ -183,7 +221,7 @@ class ComboBoxPropertyEditorModelTest {
     enumSupport.releaseAll()
   }
 
-  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel): ListDataListener {
+  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) : ListDataListener {
     var called = false
 
     override fun intervalRemoved(event: ListDataEvent) {

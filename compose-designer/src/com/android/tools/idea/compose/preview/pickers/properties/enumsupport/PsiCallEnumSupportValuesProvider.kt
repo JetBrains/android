@@ -26,8 +26,6 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
@@ -85,22 +83,10 @@ class PsiCallEnumSupportValuesProvider private constructor(
 private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
   {
     val existingDevices = getGroupedDevices(module)
-    val devicesEnumValueBuilder = DeviceEnumValueBuilder()
-      .addDeviceDp("Phone", DeviceClass.Canonical, 360, 640)
-      .addDeviceDp("Foldable", DeviceClass.Canonical, 673, 841)
-      .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
-      .addDeviceDp("Desktop", DeviceClass.Canonical, 1920, 1080)
-      .addWearDevice(Shape.Square)
-      .addWearDevice(Shape.Round)
-      .addWearDevice(Shape.Chin)
-      .addTvDevice(3840, 2160, 55.0)
-      .addTvDevice(1920, 1080, 55.0)
-      .addTvDevice(1280, 720, 55.0)
-      .addAutoDevice(1024, 768, 8.4)
+    val devicesEnumValueBuilder = DeviceEnumValueBuilder.withDefaultDevices()
 
     existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhone)
     existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addTablet)
-
     existingDevices[DeviceGroup.GENERIC]?.forEach(devicesEnumValueBuilder::addGeneric)
 
     devicesEnumValueBuilder.build()

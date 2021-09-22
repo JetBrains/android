@@ -18,6 +18,9 @@ package com.android.tools.property.panel.impl.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
@@ -61,6 +64,18 @@ class TextFieldPropertyEditorModelTest {
     model.text = "world"
     model.commit()
     assertThat(model.property.value).isEqualTo("world")
+  }
+
+  @Test
+  fun testEnterWithInvalidInput() {
+    val (model, _) = createModel(FakePropertyItem(ANDROID_URI, "text", "hello", editingSupport = object: EditingSupport {
+      override val validation: EditingValidation = { Pair(EditingErrorCategory.ERROR, "Error") }
+    }))
+    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
+    model.lineModel = line
+    model.text = "world"
+    model.commit()
+    assertThat(model.property.value).isEqualTo("hello")
   }
 
   @Test

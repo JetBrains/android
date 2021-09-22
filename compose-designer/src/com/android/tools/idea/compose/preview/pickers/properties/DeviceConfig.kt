@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
+import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
+import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
@@ -28,7 +30,19 @@ internal val DEFAULT_DENSITY = Density.XXHIGH
 internal val DEFAULT_UNIT = DimUnit.px
 internal val DEFAULT_SHAPE = Shape.Normal
 
+private const val PARAM_SHAPE = "shape"
+private const val PARAM_WIDTH = "width"
+private const val PARAM_HEIGHT = "height"
+private const val PARAM_UNIT = "unit"
+private const val PARAM_DENSITY = "dpi"
+
+private const val PARAM_VALUE_OPERATOR = '='
+private const val PARAM_SEPARATOR = ','
+private const val PARAM_LEGACY_SEPARATOR = ';'
+
 private const val DENSITY_SUFFIX = "dpi"
+private const val WIDTH_SUFFIX = "w"
+private const val HEIGHT_SUFFIX = "h"
 
 /**
  * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrDefault].
@@ -52,6 +66,7 @@ internal class DeviceConfig(
         field = newValue
         val baseDpi = Density.MEDIUM.dpiValue
         when (newValue) {
+          // TODO(197021783): Make a more precise operation, or support floating point for width/height
           DimUnit.px -> {
             width = (1.0f * width * density / baseDpi).roundToInt()
             height = (1.0f * height * density / baseDpi).roundToInt()
@@ -86,7 +101,19 @@ internal class DeviceConfig(
     }
 
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
-  fun deviceSpec(): String = "spec:${shape.name};$width;$height;${dimensionUnit.name};${density}$DENSITY_SUFFIX"
+  fun deviceSpec(): String {
+    val builder = StringBuilder(SPEC_PREFIX)
+    builder.appendParamValue(PARAM_SHAPE, shape.name)
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_WIDTH, width.toString())
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_HEIGHT, height.toString())
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_UNIT, dimensionUnit.name)
+    builder.appendSeparator()
+    builder.appendParamValue(PARAM_DENSITY, density.toString())
+    return builder.toString()
+  }
 
   override fun equals(other: Any?): Boolean {
     if (other !is DeviceConfig) {
@@ -110,23 +137,46 @@ internal class DeviceConfig(
     fun toDeviceConfigOrDefault(serialized: String?): DeviceConfig {
       if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return DeviceConfig()
       val configString = serialized.substringAfter(SPEC_PREFIX)
-      val params = configString.split(';')
-      if (params.size != 5) return DeviceConfig()
+      val paramsMap = configString.split(PARAM_SEPARATOR).filter {
+        it.length >= 3 && it.contains(PARAM_VALUE_OPERATOR)
+      }.associate { paramString ->
+        Pair(paramString.substringBefore(PARAM_VALUE_OPERATOR), paramString.substringAfter(PARAM_VALUE_OPERATOR))
+      }
 
-      val shape = try {
-        Shape.valueOf(params[0])
+      if (paramsMap.size != 5) {
+        // Try to parse with old method, otherwise, continue
+        legacyParseToDeviceConfig(serialized)?.let { return it }
       }
-      catch (e: Exception) {
-        DEFAULT_SHAPE
-      }
-      val width = params[1].toIntOrNull() ?: DEFAULT_WIDTH
-      val height = params[2].toIntOrNull() ?: DEFAULT_HEIGHT
-      val dimUnit = DimUnit.valueOfOrPx(params[3].toLowerCaseAsciiOnly())
-      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: DEFAULT_DENSITY.dpiValue
+
+      val shape = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_SHAPE, ""), DEFAULT_SHAPE)
+      val width = paramsMap.getOrDefault(PARAM_WIDTH, "").toIntOrNull() ?: DEFAULT_WIDTH
+      val height = paramsMap.getOrDefault(PARAM_HEIGHT, "").toIntOrNull() ?: DEFAULT_HEIGHT
+      val dimUnit = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_UNIT, "").toLowerCaseAsciiOnly(), DEFAULT_UNIT)
+      val dpi = paramsMap.getOrDefault(PARAM_DENSITY, "").toIntOrNull() ?: DEFAULT_DENSITY.dpiValue
+      return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
+    }
+
+    private fun legacyParseToDeviceConfig(serialized: String?): DeviceConfig? {
+      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return null
+      val configString = serialized.substringAfter(SPEC_PREFIX)
+      val params = configString.split(PARAM_LEGACY_SEPARATOR)
+      if (params.size != 5) return null
+
+      val shape = enumValueOfOrNull<Shape>(params[0]) ?: return null
+      val width = params[1].substringBefore(WIDTH_SUFFIX).toIntOrNull() ?: return null
+      val height = params[2].substringBefore(HEIGHT_SUFFIX).toIntOrNull() ?: return null
+      val dimUnit = enumValueOfOrNull<DimUnit>(params[3].toLowerCaseAsciiOnly()) ?: return null
+      val dpi = params[4].substringBefore(DENSITY_SUFFIX).toIntOrNull() ?: return null
       return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
     }
   }
 }
+
+private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
+  append("$parameterName$PARAM_VALUE_OPERATOR$value")
+
+private fun StringBuilder.appendSeparator(): StringBuilder =
+  append(PARAM_SEPARATOR)
 
 /**
  * The visual shape of the Device, usually applied as cutout.
@@ -144,27 +194,9 @@ internal enum class Shape(val display: String) {
 internal enum class DimUnit {
   px,
   dp;
-
-  companion object {
-    fun valueOfOrPx(value: String) = try {
-      valueOf(value)
-    }
-    catch (_: Exception) {
-      px
-    }
-  }
 }
 
 internal enum class Orientation {
   portrait,
   landscape;
-
-  companion object {
-    fun valueOfOrPortrait(value: String) = try {
-      valueOf(value)
-    }
-    catch (_: Exception) {
-      portrait
-    }
-  }
 }
