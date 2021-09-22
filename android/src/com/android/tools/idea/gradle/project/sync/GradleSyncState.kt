@@ -72,7 +72,7 @@ import kotlin.concurrent.withLock
 private val SYNC_NOTIFICATION_GROUP =
   NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
-data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger, val allVariantsSync: Boolean)
+data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncStats.Trigger)
 
 @JvmField
 val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST")
@@ -444,7 +444,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         project.getUserData(PROJECT_SYNC_REQUEST)
           ?.takeIf { it.projectRoot == workingDir }
       if (!GradleSyncState.getInstance(project)
-          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, trigger?.allVariantsSync ?: false)
+          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, false)
       ) {
         stopTrackingTask(project, id)
         return
