@@ -211,7 +211,8 @@ private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Se
           head.androidModel.selectedVariant
             .let {
               it.mainArtifact.level2Dependencies.moduleDependencies +
-              it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+              it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty() +
+              it.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
             }
             .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency)] }
         )

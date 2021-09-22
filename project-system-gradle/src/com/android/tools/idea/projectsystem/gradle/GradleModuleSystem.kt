@@ -160,6 +160,7 @@ class GradleModuleSystem(
              DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
              DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.level2Dependencies
              DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.level2Dependencies
+             DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.level2Dependencies
            } ?: return null
   }
 

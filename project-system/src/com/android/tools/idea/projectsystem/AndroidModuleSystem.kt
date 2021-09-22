@@ -342,7 +342,8 @@ enum class DependencyType {
 enum class DependencyScopeType {
   MAIN,
   UNIT_TEST,
-  ANDROID_TEST
+  ANDROID_TEST,
+  TEST_FIXTURES
 }
 
 /**

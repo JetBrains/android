@@ -138,6 +138,14 @@ public class ConflictSet {
       }
     }
 
+    if (variant.getTestFixturesArtifact() != null) {
+      for (IdeModuleLibrary dependency : variant.getTestFixturesArtifact().getLevel2Dependencies().getModuleDependencies()) {
+        if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
+          return dependency.getVariant();
+        }
+      }
+    }
+
     if (variant.getUnitTestArtifact() != null) {
       for (IdeModuleLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {

@@ -458,6 +458,9 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
 
   populateDependenciesFromArtifact(findSourceSetDataForArtifact(variant.mainArtifact), variant.mainArtifact,
                                    DependencyScope.COMPILE)
+  variant.testFixturesArtifact?.also {
+    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.COMPILE)
+  }
   variant.unitTestArtifact?.also {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
