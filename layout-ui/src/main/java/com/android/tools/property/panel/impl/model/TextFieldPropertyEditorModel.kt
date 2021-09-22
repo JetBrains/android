@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.PropertyItem
 import kotlin.properties.Delegates
@@ -85,6 +86,8 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
    * Return true if the change was successfully updated.
    */
   private fun commitChange(): Boolean {
+    val (code, _) = editingSupport.validation(text)
+    if (code == EditingErrorCategory.ERROR) return false
     if (pendingValueChange || text == value) {
       return !pendingValueChange
     }

@@ -102,8 +102,9 @@ internal class PsiPropertyView(
  * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
  */
 object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
-  override fun invoke(property: PsiPropertyItem): ControlType =
-    when (property.name) {
+  override fun invoke(property: PsiPropertyItem): ControlType = when (property.name) {
+      PARAMETER_API_LEVEL,
+      PARAMETER_LOCALE,
       PARAMETER_HARDWARE_DEVICE,
       PARAMETER_HARDWARE_ORIENTATION,
       PARAMETER_HARDWARE_DIM_UNIT,
@@ -115,9 +116,7 @@ object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem>
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
       PARAMETER_GROUP,
-      PARAMETER_LOCALE,
-      PARAMETER_FONT_SCALE,
-      PARAMETER_API_LEVEL -> ControlType.COMBO_BOX
+      PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
       else -> ControlType.TEXT_EDITOR
     }
 }

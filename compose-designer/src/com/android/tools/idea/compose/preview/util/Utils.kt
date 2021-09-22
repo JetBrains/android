@@ -115,3 +115,19 @@ internal fun matchElementsToModels(models: List<NlModel>, elements: List<Preview
 fun Segment?.containsOffset(offset: Int) = this?.let {
   it.startOffset <= offset && offset <= it.endOffset
 } ?: false
+
+/**
+ * Returns an [Enum] that matches [value] from the given class [E]. If no existing Enum, returns [default] instead.
+ */
+internal inline fun <reified E: Enum<E>> enumValueOfOrDefault(value: String, default: E): E = enumValueOfOrNull<E>(value) ?: default
+
+/**
+ * Returns an [Enum] that matches [value] from the given class [E]. Null if no Enum matches [value].
+ */
+internal inline fun <reified E: Enum<E>> enumValueOfOrNull(value: String): E? {
+  return try {
+    enumValueOf<E>(value)
+  }catch (_: Exception) {
+    null
+  }
+}
