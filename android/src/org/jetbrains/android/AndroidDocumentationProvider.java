@@ -1,14 +1,16 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.CLASS_R;
+
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -17,7 +19,6 @@ import com.intellij.lang.java.JavaDocumentationProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -29,20 +30,14 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.compiled.ClsFieldImpl;
-import org.jetbrains.android.augment.ResourceLightField;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
-
-import static com.android.SdkConstants.CLASS_R;
-import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidDocumentationProvider implements DocumentationProvider, ExternalDocumentationProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider");
@@ -106,19 +101,12 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
   @Nullable
   private static Module guessAndroidModule(Project project, PsiElement element) {
     Module module = ModuleUtilCore.findModuleForPsiElement(element);
-    if (module == null) {
-      Module[] modules = ModuleManager.getInstance(project).getModules();
-      for (Module m : modules) {
-        if (AndroidFacet.getInstance(m) != null) {
-          module = m;
-          break;
-        }
-      }
-      if (module == null) {
-        return null;
-      }
+    if (module != null) {
+      return module;
     }
-    return module;
+    return ProjectSystemUtil.getAndroidFacets(project).stream()
+      .map(AndroidFacet::getModule)
+      .findFirst().orElse(null);
   }
 
   private static boolean isFrameworkFieldDeclaration(PsiElement element) {
@@ -129,7 +117,6 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
         PsiClass rClass = typeClass.getContainingClass();
         return rClass != null && CLASS_R.equals(AndroidPsiUtils.getQualifiedNameSafely(rClass));
       }
-
     }
     return false;
   }
