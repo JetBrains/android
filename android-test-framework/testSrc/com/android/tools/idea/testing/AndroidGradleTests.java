@@ -39,6 +39,7 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.plugins.gradle.util.GradlePropertiesUtil.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -304,6 +305,11 @@ public class AndroidGradleTests {
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
       gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
     }
+
+    // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
+    // to JAVA_HOME, which produces different results in different environments.
+    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getJava11Jdk().toString());
+
     gradleProperties.save();
   }
 

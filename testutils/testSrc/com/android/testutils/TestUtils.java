@@ -27,6 +27,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -365,23 +366,8 @@ public class TestUtils {
 
   @NonNull
   public static Path getJava11Jdk() {
-    OsType osType = OsType.getHostOs();
-    String hostDir;
-    switch (osType) {
-      case LINUX:
-        hostDir = "linux";
-        break;
-      case DARWIN:
-        hostDir = "mac/Contents/Home";
-        break;
-      case WINDOWS:
-        hostDir = "win";
-        break;
-      default:
-        throw new IllegalStateException(
-          "Java11 JDK not found for platform: " + OsType.getOsName());
-    }
-    return resolveWorkspacePath("prebuilts/studio/jdk/jdk11/" + hostDir);
+    assert Runtime.version().feature() == 11;
+    return Paths.get(SystemProperties.getJavaHome());
   }
 
   @NonNull
