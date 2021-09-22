@@ -15,34 +15,49 @@
  */
 package com.android.tools.idea.ddms.screenrecord
 
+import com.android.ddmlib.ScreenRecorderOptions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
+import java.awt.Dimension
+import kotlin.math.roundToInt
+
+private const val DEFAULT_BIT_RATE_MBPS = 4
+private const val DEFAULT_RESOLUTION_PERCENT = 100
 
 @State(name = "ScreenRecorderOptions", storages = [Storage("screenRecorderOptions.xml")])
 class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderPersistentOptions> {
-  private val DEFAULT_BIT_RATE_MBPS = 4
 
   var bitRateMbps = DEFAULT_BIT_RATE_MBPS
-  var resolutionWidth: Int = 0
-  var resolutionHeight: Int = 0
+  var resolutionPercent: Int = DEFAULT_RESOLUTION_PERCENT
   var showTaps = false
   var useEmulatorRecording = true
 
   companion object {
     @JvmStatic
-    fun getInstance(): ScreenRecorderPersistentOptions {
-      return ApplicationManager.getApplication().getService(ScreenRecorderPersistentOptions::class.java)
-    }
+    fun getInstance(): ScreenRecorderPersistentOptions =
+      ApplicationManager.getApplication().getService(ScreenRecorderPersistentOptions::class.java)
   }
 
-  override fun getState(): ScreenRecorderPersistentOptions {
-    return this
-  }
+  override fun getState(): ScreenRecorderPersistentOptions = this
 
   override fun loadState(state: ScreenRecorderPersistentOptions) {
     XmlSerializerUtil.copyBean(state, this)
   }
+
+  fun toScreenRecorderOptions(size: Dimension?): ScreenRecorderOptions {
+    val builder = ScreenRecorderOptions.Builder()
+      .setBitRate(bitRateMbps)
+      .setShowTouches(showTaps)
+    if (size != null && resolutionPercent != 100) {
+      val ratio = resolutionPercent.toDouble() / 100
+      builder.setSize(roundToMultipleOf16(size.width * ratio), roundToMultipleOf16(size.height * ratio))
+    }
+    return builder.build()
+  }
 }
+
+private fun roundToMultipleOf16(n: Double): Int = ((n / 16).roundToInt() * 16)
+
