@@ -64,7 +64,8 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface) : IssueListener
           maxY = max(maxY, it.y + it.scaledContentSize.height)
         }
         val currentScale = surface.scale
-        val scale = surface.getFitScale(Dimension(((maxX - minX) / currentScale).toInt(), ((maxY - minY) / currentScale).toInt()), false)
+        val scale = surface.getFitScale(
+          Dimension(((maxX - minX + 2 * MARGIN) / currentScale).toInt(), ((maxY - minY + 2 * MARGIN) / currentScale).toInt()), false)
         surface.setScale(scale)
         surface.setScrollPosition(minX - MARGIN, minY - MARGIN)
       }
