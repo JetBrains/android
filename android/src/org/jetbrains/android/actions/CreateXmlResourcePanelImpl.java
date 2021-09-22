@@ -15,12 +15,16 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
 import com.intellij.application.options.ModulesComboBox;
@@ -289,7 +293,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       return new ValidationInfo("specify resource name", myNameField);
     }
     else if (myNameField.isVisible() && !IdeResourcesUtil.isCorrectAndroidResourceName(resourceName)) {
-      return new ValidationInfo(resourceName + " is not correct resource name", myNameField);
+      return new ValidationInfo(resourceName + " is not a correct resource name", myNameField);
     }
     else if (fileName.isEmpty()) {
       return new ValidationInfo("specify file name", myFileNameCombo);
@@ -305,6 +309,15 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
     else if (resourceName.equals(IdeResourcesUtil.prependResourcePrefix(myModule, null, myFolderType))) {
       return new ValidationInfo("specify more than resource prefix", myNameField);
+    }
+
+    // Resources with names already used in this module will not build.
+    LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(selectedModule);
+    if (moduleResources != null) {
+      List<ResourceItem> resources = moduleResources.getResources(ResourceNamespace.RES_AUTO, myResourceType, resourceName);
+      if (!resources.isEmpty()) {
+        return new ValidationInfo(resourceName + " is a resource that already exists", myNameField);
+      }
     }
 
     return CreateXmlResourceDialog.checkIfResourceAlreadyExists(selectedModule.getProject(), resourceDir, resourceName,
