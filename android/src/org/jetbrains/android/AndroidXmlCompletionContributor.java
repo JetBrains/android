@@ -49,12 +49,15 @@ import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
@@ -94,6 +97,13 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidXmlCompletionContributor extends CompletionContributor {
 
   private static final String LAYOUT_ATTRIBUTE_PREFIX = "layout_";
+
+  private static final String NAMESPACE_PREFIX = "xmlns";
+  private static final String[] AVAILABLE_NAMESPACES = new String[] {
+    "android=\"http://schemas.android.com/apk/res/android\"",
+    "app=\"http://schemas.android.com/apk/res-auto\"",
+    "tools=\"http://schemas.android.com/tools\"",
+  };
 
   @Override
   public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet resultSet) {
@@ -167,11 +177,32 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       if (element instanceof LayoutElement) {
         addAndCustomizeAttributesForLayoutElement(facet, parameters, attribute, resultSet);
       }
+
+      if (tag.getParentTag() == null) {
+        if (attribute.getNamespacePrefix().equals(NAMESPACE_PREFIX)) {
+          addNamespaces(resultSet, tag.getLocalNamespaceDeclarations(), false);
+        }
+        else if (namespace.isEmpty()) {
+          addNamespaces(resultSet, tag.getLocalNamespaceDeclarations(), true);
+        }
+      }
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
       completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
     }
+  }
+
+  private void addNamespaces(CompletionResultSet resultSet,
+                             @NotNull Map<String, String> namespaces,
+                             boolean withPrefix) {
+    Collection<String> declaredNamespaces = namespaces.values();
+    Stream<String> lookupStrings = Arrays.stream(AVAILABLE_NAMESPACES)
+      .filter(availableNamespace -> declaredNamespaces.stream().noneMatch(availableNamespace::contains));
+    if (withPrefix) {
+      lookupStrings = lookupStrings.map(it -> NAMESPACE_PREFIX + ":" + it);
+    }
+    resultSet.addAllElements(lookupStrings.map(LookupElementBuilder::create).collect(Collectors.toList()));
   }
 
   private static void addAll(Collection<String> collection, CompletionResultSet set) {
