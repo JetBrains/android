@@ -33,7 +33,7 @@ class TomlDslTransformerFactory : GradleDslTransformerFactory {
 
   override fun createParser(psiFile: PsiFile, context: BuildModelContext, dslFile: GradleDslFile) =
     // TODO(b/200280395): implement parser
-    GradleDslParser.Adapter(context)
+    TomlDslParser(psiFile as TomlFile, context, dslFile)
 
   override fun createWriter(context: BuildModelContext) =
     // TODO(b/200280395): implement writer
