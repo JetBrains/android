@@ -405,6 +405,8 @@ fun Module.getUnitTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MO
 
 fun Module.getAndroidTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
 
+fun Module.getTestFixturesModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
+
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
  * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the

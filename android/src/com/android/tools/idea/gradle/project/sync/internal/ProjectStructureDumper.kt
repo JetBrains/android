@@ -433,6 +433,7 @@ private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGrou
     prop("main") { linkedAndroidModuleGroup.main.name }
     prop("unitTest") { linkedAndroidModuleGroup.unitTest?.name }
     prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
+    prop("testFixtures") { linkedAndroidModuleGroup.testFixtures?.name }
   }
 }
 
