@@ -34,6 +34,7 @@ import java.awt.Shape
 class WarningLayer(private val screenView: ScreenView) : Layer() {
 
   override fun paint(gc: Graphics2D) {
+    val bounds = screenView.surface.layeredPane.bounds
     val screenShape: Shape? = screenView.screenShape
     gc.color = Color.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
@@ -60,7 +61,8 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
       val icon = generateWhiteIcon(StudioIcons.Common.WARNING)
-      gc.setClip(screenView.x, screenView.y, sceneSize.width + icon.iconWidth + 1, sceneSize.height)
+      gc.clip = bounds
+      gc.clipRect(screenView.x, screenView.y, sceneSize.width + icon.iconWidth + 1, sceneSize.height)
       gc.fillRect(screenView.x + sceneSize.width + 1, screenView.y, icon.iconWidth, icon.iconHeight)
       icon.paintIcon(screenView.surface, gc, screenView.x + sceneSize.width + 1, screenView.y)
       gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
