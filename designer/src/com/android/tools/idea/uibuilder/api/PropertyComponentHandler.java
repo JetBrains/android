@@ -49,9 +49,9 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   @NotNull
   public Map<String, String> getPrefixToNamespaceMap() {
     return ImmutableMap.of(
-      PREFIX_ANDROID, ANDROID_URI,
-      TOOLS_NS_NAME_PREFIX, TOOLS_URI,
-      PREFIX_APP, AUTO_URI);
+      ANDROID_NS_NAME, ANDROID_URI,
+      TOOLS_NS_NAME, TOOLS_URI,
+      APP_PREFIX, AUTO_URI);
   }
 
   /**
