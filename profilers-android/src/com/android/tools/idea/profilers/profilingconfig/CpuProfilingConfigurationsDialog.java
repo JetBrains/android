@@ -346,10 +346,10 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private MyAddAction() {
         super("Add Configuration", "Add a new configuration", IconUtil.getAddIcon());
         myPopup = new CommonPopupMenu();
-        myPopup.add(buildPopupMenuItem("Java Sampled", ArtSampledConfiguration::new));
-        myPopup.add(buildPopupMenuItem("Java Instrumented", ArtInstrumentedConfiguration::new));
-        myPopup.add(buildPopupMenuItem("C++ Sampled", SimpleperfConfiguration::new));
-        myPopup.add(buildPopupMenuItem("System Trace", PerfettoConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(), SimpleperfConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(), PerfettoConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(), ArtInstrumentedConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), ArtSampledConfiguration::new));
       }
 
       private CommonMenuItem buildPopupMenuItem(String name, Function<String, ProfilingConfiguration> configurationConstructor) {
