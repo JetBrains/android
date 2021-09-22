@@ -52,6 +52,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
@@ -79,7 +80,6 @@ import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -101,12 +101,13 @@ import java.awt.Point
 import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import java.nio.file.Path
 import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
-private const val DIFF_THRESHOLD = 0.02
+private const val DIFF_THRESHOLD = 0.01
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewContentPanelTest {
@@ -118,9 +119,12 @@ class DeviceViewContentPanelTest {
   @get:Rule
   val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  var testDataPath: Path = Path.of("")
+
   @Before
   fun before() {
     ApplicationManager.getApplication().replaceService(PropertiesComponent::class.java, PropertiesComponentMock(), disposable.disposable)
+    testDataPath = getWorkspaceRoot().resolve(TEST_DATA_PATH)
   }
 
   @Test
@@ -212,19 +216,19 @@ class DeviceViewContentPanelTest {
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaint_label", generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaint_noborders", generatedImage, DIFF_THRESHOLD)
 
     model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaint_hovered", generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -614,7 +618,6 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithImages() {
-    AssumeUtil.assumeNotMac() // b/163289116
     val image1 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").toFile())
     val image2 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image2.png").toFile())
     val image3 = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/image3.png").toFile())
@@ -676,11 +679,10 @@ class DeviceViewContentPanelTest {
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
-    // Set the font so it will be the same across platforms
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(
-      getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintWithImages_label", generatedImage, DIFF_THRESHOLD)
   }
 
   @Suppress("UndesirableClassUsage")
@@ -739,8 +741,8 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage.createGraphics()
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(
-      getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintWithImagesBetweenChildren_root", generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -828,22 +830,22 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(
-      getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintTransformed_label", generatedImage, DIFF_THRESHOLD)
 
     settings.drawUntransformedBounds = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(
-      getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintTransformed_untransformed", generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(
-      getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(
+      getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintTransformed_onlyUntransformed", generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -1008,8 +1010,6 @@ class DeviceViewContentPanelWithScaledFontTest {
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    // We have to use a big threshold here, since the image is almost all text and despite using the portable font there's still
-    // some differences between platforms.
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintEmpty.png"), generatedImage, 0.1)
+    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testPaintEmpty", generatedImage, DIFF_THRESHOLD)
   }
 }
