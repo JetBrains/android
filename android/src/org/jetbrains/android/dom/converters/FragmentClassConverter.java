@@ -5,6 +5,6 @@ import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
 
 public class FragmentClassConverter extends PackageClassConverter {
   public FragmentClassConverter() {
-    super(CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName());
+    super(CLASS_V4_FRAGMENT.newName(), CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName());
   }
 }
