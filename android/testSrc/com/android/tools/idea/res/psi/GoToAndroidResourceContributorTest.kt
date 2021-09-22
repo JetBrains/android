@@ -23,6 +23,7 @@ import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlToken
 import com.intellij.testFramework.EditorTestUtil
@@ -52,19 +53,23 @@ class GoToAndroidResourceContributorTest {
         </resources>
         """.trimIndent())
     projectRule.fixture.addFileToProject("src/main/res/layout/my_layout.xml", """
-        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/item_detail_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".ItemDetailActivity"
-            tools:ignore="MergeRootFrame">
-          <Button
-              android:id="@+id/my_button"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:text="Sign in"/>
-        </FrameLayout>
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/activity_main"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+          <View
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/my_view"/>
+          <View
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/my_view"/>
+          <View
+            android:id="@+id/my_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        </RelativeLayout>
         """.trimIndent())
   }
 
@@ -113,15 +118,16 @@ class GoToAndroidResourceContributorTest {
 
   @Test
   fun testGoToId() {
-    val element = navigate("my_button", "my_b")
-    Truth.assertThat(element.text).isEqualTo("\"@+id/my_button\"")
+    val element = navigate("my_view", "my_v")
+    Truth.assertThat(element.text).isEqualTo("\"@+id/my_view\"")
+    Truth.assertThat((element.parent as XmlAttribute).name).isEqualTo("android:id")
   }
 
   @Test
   fun testGoToLayout() {
     val element = navigate("my_layout", "my_l")
     Truth.assertThat(element).isInstanceOf(XmlTag::class.java)
-    Truth.assertThat((element as XmlTag).name).isEqualTo("FrameLayout")
+    Truth.assertThat((element as XmlTag).name).isEqualTo("RelativeLayout")
   }
 
   /**
