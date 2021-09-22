@@ -17,7 +17,7 @@ package com.android.tools.idea.res.psi
 
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.gotoByName.GotoSymbolModel2
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -76,10 +76,10 @@ class GoToAndroidResourceContributorTest {
   private fun navigate(name: String, pattern: String, expectedNumberOfResults: Int = 1, selectResult: Int = 0): PsiElement {
     val model = GotoSymbolModel2(projectRule.project)
     val searchResults = model.getElementsByName(name, false, pattern)
-    Truth.assertThat(searchResults).hasLength(expectedNumberOfResults)
+    assertThat(searchResults).hasLength(expectedNumberOfResults)
     val result = searchResults[selectResult]
-    Truth.assertThat(result).isInstanceOf(NavigationItem::class.java)
-    Truth.assertThat((result as NavigationItem).presentation!!.getIcon(false)).isNotNull()
+    assertThat(result).isInstanceOf(NavigationItem::class.java)
+    assertThat((result as NavigationItem).presentation!!.getIcon(false)).isNotNull()
     UIUtil.dispatchAllInvocationEvents()
     result.navigate(true)
     val editorManager = FileEditorManager.getInstance(projectRule.project)
@@ -88,20 +88,20 @@ class GoToAndroidResourceContributorTest {
     val offset = editor!!.caretModel.offset
     val document = editor.document
     val file = PsiDocumentManager.getInstance(projectRule.project).getPsiFile(document)
-    Truth.assertThat(file).isNotNull()
+    assertThat(file).isNotNull()
     var element = file!!.findElementAt(offset)
     if (element is XmlToken) {
       element = element.getParent()
     }
-    Truth.assertThat(element).isNotNull()
+    assertThat(element).isNotNull()
     return element!!
   }
 
   @Test
   fun testGoToString() {
     val element = navigate("my_string", "my_s")
-    Truth.assertThat(element.text).isEqualTo("\"my_string\"")
-    Truth.assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My string</string>")
+    assertThat(element.text).isEqualTo("\"my_string\"")
+    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My string</string>")
   }
 
   @Test
@@ -112,22 +112,22 @@ class GoToAndroidResourceContributorTest {
         </resources>
         """.trimIndent())
     val element = navigate("my_string", "my_s", expectedNumberOfResults = 2, selectResult = 0)
-    Truth.assertThat(element.text).isEqualTo("\"my_string\"")
-    Truth.assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My debug string</string>")
+    assertThat(element.text).isEqualTo("\"my_string\"")
+    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My debug string</string>")
   }
 
   @Test
   fun testGoToId() {
     val element = navigate("my_view", "my_v")
-    Truth.assertThat(element.text).isEqualTo("\"@+id/my_view\"")
-    Truth.assertThat((element.parent as XmlAttribute).name).isEqualTo("android:id")
+    assertThat(element.text).isEqualTo("\"@+id/my_view\"")
+    assertThat((element.parent as XmlAttribute).name).isEqualTo("android:id")
   }
 
   @Test
   fun testGoToLayout() {
     val element = navigate("my_layout", "my_l")
-    Truth.assertThat(element).isInstanceOf(XmlTag::class.java)
-    Truth.assertThat((element as XmlTag).name).isEqualTo("RelativeLayout")
+    assertThat(element).isInstanceOf(XmlTag::class.java)
+    assertThat((element as XmlTag).name).isEqualTo("RelativeLayout")
   }
 
   /**
@@ -140,7 +140,7 @@ class GoToAndroidResourceContributorTest {
     val result: List<NavigationItem> = mutableListOf()
     contributor.addItems(projectRule.module, "my_layout", result)
     contributor.addItems(projectRule.module, "my_layout", result)
-    Truth.assertThat(result).hasSize(2)
-    Truth.assertThat(result.toSet()).hasSize(1)
+    assertThat(result).hasSize(2)
+    assertThat(result.toSet()).hasSize(1)
   }
 }
