@@ -45,6 +45,7 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -62,6 +63,7 @@ import java.util.concurrent.Future
 class GradleConnectedAndroidTestInvoker(
   private val selectedDevices: Int,
   private val executionEnvironment: ExecutionEnvironment,
+  private val moduleData: ModuleData,
   private val uninstallIncompatibleApks: Boolean = false,
   private val backgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
   private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() },
@@ -178,6 +180,7 @@ class GradleConnectedAndroidTestInvoker(
           val rerunInvoker = GradleConnectedAndroidTestInvoker(
             rerunDevices.size,
             executionEnvironment,
+            moduleData,
             uninstallIncompatibleApks = true,
             backgroundTaskExecutor,
             gradleTaskManagerFactory,
@@ -285,10 +288,9 @@ class GradleConnectedAndroidTestInvoker(
   }
 
   private fun getTaskNames(androidModuleModel: AndroidModuleModel): List<String> {
-    var modulePrefix = androidModuleModel.moduleName.replace(".", ":")
-    val index = modulePrefix.indexOf(":")
-    modulePrefix = modulePrefix.substring(index)
-    return listOf("${modulePrefix}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
+    return listOf(
+      "${moduleData.id}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+    )
   }
 
   // TODO: This method is copied from com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider#getDeviceSpecificArguments.

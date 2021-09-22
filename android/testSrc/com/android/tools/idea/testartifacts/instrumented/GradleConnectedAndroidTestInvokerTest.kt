@@ -35,6 +35,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.testFramework.PlatformTestUtil
@@ -71,6 +72,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock lateinit var mockAndroidTestResultListener: AndroidTestResultListener
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
+  @Mock lateinit var mockModuleData: ModuleData
   private lateinit var mockDevices: List<IDevice>
   private lateinit var mockGradleTestResultAdapters: List<GradleTestResultAdapter>
 
@@ -80,7 +82,7 @@ class GradleConnectedAndroidTestInvokerTest {
   fun setup() {
     `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
     `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
-    `when`(mockAndroidModuleModel.moduleName).thenReturn("testProject.app")
+    `when`(mockModuleData.id).thenReturn(":app")
   }
 
   private fun createGradleConnectedAndroidTestInvoker(
@@ -107,6 +109,7 @@ class GradleConnectedAndroidTestInvokerTest {
     return  GradleConnectedAndroidTestInvoker(
       numDevices,
       mockExecutionEnvironment,
+      mockModuleData,
       backgroundTaskExecutor = directExecutor::submit,
       gradleTaskManagerFactory = { mockGradleTaskManager },
       gradleTestResultAdapterFactory = { iDevice, _, _, _ ->
@@ -359,7 +362,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun testTaskNamesMatchSelectedModule() {
-    `when`(mockAndroidModuleModel.moduleName).thenReturn("testProject.app.testModule")
+    `when`(mockModuleData.id).thenReturn(":app:testModule")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
