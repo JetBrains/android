@@ -487,7 +487,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return javaLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeJavaLibraryImpl)
   }
 
-  fun libraryFrom(projectPath: String, buildId: String?, variant: String?, lintJar: File?): IdeLibrary {
+  fun libraryFrom(projectPath: String, buildId: String, variant: String?, lintJar: File?): IdeLibrary {
     val core = IdeModuleLibraryCore(buildId, projectPath, variant, lintJar?.path)
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }

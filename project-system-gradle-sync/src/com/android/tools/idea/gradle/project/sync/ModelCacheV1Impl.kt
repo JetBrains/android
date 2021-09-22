@@ -312,7 +312,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
   fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeLibrary {
     val core = IdeModuleLibraryCore(
-      buildId = copyNewProperty(library::getBuildId),
+      buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
       lintJar = copyNewProperty(library::getLintJar)?.path
@@ -322,7 +322,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): IdeLibrary {
     val core = IdeModuleLibraryCore(
-      buildId = copyNewProperty(library::getBuildId),
+      buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = null,
       lintJar = null
@@ -492,7 +492,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     }
   }
 
-  fun libraryFrom(projectPath: String, buildId: String?, variantName: String?): IdeLibrary {
+  fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeLibrary {
     val core = IdeModuleLibraryCore(
       buildId = buildId,
       projectPath = projectPath,
@@ -518,7 +518,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       visited: MutableSet<String>,
       projectPath: String,
       artifactAddress: String,
-      buildId: String?,
+      buildId: String,
       variantName: String?
     ) {
       if (!visited.contains(artifactAddress)) {

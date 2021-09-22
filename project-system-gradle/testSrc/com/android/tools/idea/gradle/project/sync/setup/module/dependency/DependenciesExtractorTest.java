@@ -134,7 +134,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    IdeModuleLibraryImpl library = new IdeModuleLibraryImpl(gradlePath, null, null);
+    IdeModuleLibraryImpl library = new IdeModuleLibraryImpl(gradlePath, "/tmp", null);
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.google.common.annotations.VisibleForTesting
-import java.io.File
 import java.io.Serializable
 
 /**
@@ -29,7 +28,7 @@ data class IdeModuleLibraryImpl(
   @VisibleForTesting
   constructor(
     projectPath: String,
-    buildId: String?,
+    buildId: String,
     variant: String? = null
   ) : this(
       IdeModuleLibraryCore(
@@ -42,7 +41,7 @@ data class IdeModuleLibraryImpl(
 }
 
 data class IdeModuleLibraryCore(
-  override val buildId: String?,
+  override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
   override val lintJar: String?
@@ -51,7 +50,7 @@ data class IdeModuleLibraryCore(
 
   // Used for serialization by the IDE.
   constructor() : this(
-    buildId = null,
+    buildId = "",
     projectPath = "",
     variant = null,
     lintJar = null
@@ -59,7 +58,7 @@ data class IdeModuleLibraryCore(
 
   constructor(
     projectPath: String,
-    buildId: String?
+    buildId: String
   ) : this(
     buildId = buildId,
     projectPath = projectPath,

@@ -151,5 +151,5 @@ interface IdeModuleLibrary: IdeLibrary {
   /**
    * Returns the build id.
    */
-  val buildId: String?
+  val buildId: String
 }
