@@ -193,7 +193,9 @@ public class TestDevices {
     addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
 
     // Listing commands
-    addCommand(commands, "ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
+    addCommand(commands, "ls -al /", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\r\n" +
+                                    "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\r\n" +
+                                    "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
                                     "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
                                     "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
                                     "dr-x------ root     root              2016-11-21 12:09 config\r\n" +
@@ -243,20 +245,22 @@ public class TestDevices {
     commands.add("ls -l -d /tombstones/", "/tombstones/: Permission denied\r\n");
     commands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
 
-    addCommand(commands, "ls -l /system/", "drwxr-xr-x root     root              2016-05-17 12:04 app\n\n" +
-                                           "drwxr-xr-x root     shell             2016-08-26 12:00 bin\n\n" +
-                                           "-rw-r--r-- root     root         3870 2016-08-26 12:02 build.prop\n\n" +
-                                           "drwxr-xr-x root     root              2016-08-26 12:00 etc\n\n" +
-                                           "drwxr-xr-x root     root              2016-05-27 13:49 fonts\n\n" +
-                                           "drwxr-xr-x root     root              2016-08-26 12:02 framework\n\n" +
-                                           "drwxr-xr-x root     root              2016-08-26 12:00 lib\n\n" +
-                                           "drwxr-xr-x root     root              1969-12-31 16:00 lost+found\n\n" +
-                                           "drwxr-xr-x root     root              2016-05-17 12:01 media\n\n" +
-                                           "drwxr-xr-x root     root              2016-05-17 12:04 priv-app\n\n" +
-                                           "-rw-r--r-- root     root       103290 2008-08-01 05:00 recovery-from-boot.p\n\n" +
-                                           "drwxr-xr-x root     root              2016-05-17 12:04 usr\n\n" +
-                                           "drwxr-xr-x root     shell             2013-06-15 12:54 vendor\n\n" +
-                                           "drwxr-xr-x root     shell             2016-08-24 15:40 xbin\n\n");
+    addCommand(commands, "ls -al /system/", "drwxr-xr-x root     root         4096 2016-08-26 12:12 .\r\n" +
+                                           "drwxr-xr-x root     root         4096 2016-08-26 12:12 ..\r\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:04 app\r\n" +
+                                           "drwxr-xr-x root     shell             2016-08-26 12:00 bin\r\n" +
+                                           "-rw-r--r-- root     root         3870 2016-08-26 12:02 build.prop\r\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:00 etc\r\n" +
+                                           "drwxr-xr-x root     root              2016-05-27 13:49 fonts\r\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:02 framework\r\n" +
+                                           "drwxr-xr-x root     root              2016-08-26 12:00 lib\r\n" +
+                                           "drwxr-xr-x root     root              1969-12-31 16:00 lost+found\r\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:01 media\r\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:04 priv-app\r\n" +
+                                           "-rw-r--r-- root     root       103290 2008-08-01 05:00 recovery-from-boot.p\r\n" +
+                                           "drwxr-xr-x root     root              2016-05-17 12:04 usr\r\n" +
+                                           "drwxr-xr-x root     shell             2013-06-15 12:54 vendor\r\n" +
+                                           "drwxr-xr-x root     shell             2016-08-24 15:40 xbin\r\n");
 
     addFailedCommand(commands, "test -e /foo.txt");
 
@@ -507,7 +511,7 @@ public class TestDevices {
                "package:/data/app/com.google.android.inputmethod.latin-1/base.apk=com.google.android.inputmethod.latin\n");
 
     addCommand(commands,
-               "run-as com.example.rpaquay.myapplication sh -c 'ls -l /data/app/com.example.rpaquay.myapplication-2/'",
+               "run-as com.example.rpaquay.myapplication sh -c 'ls -al /data/app/com.example.rpaquay.myapplication-2/'",
                "-rw-r--r-- system   system     468458 2017-06-12 11:21 base.apk\n" +
                "drwxr-xr-x system   system            2017-06-12 11:21 lib\n" +
                "drwxrwx--x system   install           2017-06-12 11:21 oat\n" +
@@ -550,8 +554,10 @@ public class TestDevices {
                "uid=0(root) gid=0(root) groups=0(root),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r)," +
                "3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc) context=u:r:su:s0\n");
     addCommand(shellCommands,
-               "su 0 sh -c 'ls -l /'",
+               "su 0 sh -c 'ls -al /'",
                "total 3688\n" +
+               "drwxr-xr-x   1 root   root      4096 2016-08-26 12:12 .\n" +
+               "drwxr-xr-x   1 root   root      4096 2016-08-26 12:12 ..\n" +
                "drwxr-xr-x  29 root   root         0 2017-03-06 21:15 acct\n" +
                "drwxrwx---   6 system cache     4096 2016-12-10 21:19 cache\n" +
                "lrwxrwxrwx   1 root   root        13 1969-12-31 16:00 charger -> /sbin/healthd\n" +
@@ -614,8 +620,10 @@ public class TestDevices {
       "cp: /system/build.prop: Read-only file system\n");
     addCommand(shellCommands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
     addCommand(shellCommands, "su 0 sh -c 'rm -f /data/local/tmp/temp0'", "");
-    addCommand(shellCommands, "su 0 sh -c 'ls -l /system/'",
+    addCommand(shellCommands, "su 0 sh -c 'ls -al /system/'",
                "total 144\n" +
+               "drwxr-xr-x  1 root root  4096 2016-08-26 12:12 .\n" +
+               "drwxr-xr-x  1 root root  4096 2016-08-26 12:12 ..\n" +
                "drwxr-xr-x 47 root root  4096 2017-02-22 09:10 app\n" +
                "drwxr-xr-x  2 root shell 8192 2017-02-22 09:06 bin\n" +
                "-rw-r--r--  1 root root  2006 2017-02-22 09:07 build.prop\n" +
@@ -799,8 +807,10 @@ public class TestDevices {
 
     addCommand(
       commands,
-      "su 0 sh -c 'ls -l /sdcard/dir/'",
+      "su 0 sh -c 'ls -al /sdcard/dir/'",
       "total 4\n" +
+      "drwxr-xr-x 1 root root      4096 2016-08-26 12:12 .\n" +
+      "drwxr-xr-x 1 root root      4096 2016-08-26 12:12 ..\n" +
       "drwxrwx--x 2 root sdcard_rw 4096 2018-01-10 12:57 dir\\ with\\ spaces");
 
     addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
@@ -817,8 +827,10 @@ public class TestDevices {
 
     addCommand(
       commands,
-      "su 0 sh -c 'ls -l /sdcard/dir/'",
+      "su 0 sh -c 'ls -al /sdcard/dir/'",
       "total 8\n" +
+      "drwxr-xr-x 1 root root      4096 2016-08-26 12:12 .\n" +
+      "drwxr-xr-x 1 root root      4096 2016-08-26 12:12 ..\n" +
       "drwxrwx--x 2 root sdcard_rw 4096 2018-01-10 15:00 dir with spaces");
 
     addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
