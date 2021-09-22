@@ -20,6 +20,17 @@ import com.android.tools.idea.wizard.template.MaterialColor.*
 const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
 const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"
 
+fun androidModuleThemesMaterial3(themeName: String) =
+  """<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Base application theme. -->
+  <style name="Base.${themeName}" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Customize your light theme here. -->
+    <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+  </style>
+
+  <style name="$themeName" parent="Base.${themeName}" />
+</resources>"""
+
 fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App") =
   if (useAndroidX)
     """<resources xmlns:tools="http://schemas.android.com/tools">

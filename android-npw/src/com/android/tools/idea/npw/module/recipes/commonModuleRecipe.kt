@@ -44,6 +44,7 @@ fun RecipeExecutor.generateCommonModule(
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
   themesXmlNight: String? = null,
+  themesXmlV29: String? = null,
   colorsXml: String? = androidModuleColors(),
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
@@ -119,6 +120,12 @@ fun RecipeExecutor.generateCommonModule(
       // Common themes.xml isn't needed for Compose because theme is created in Composable.
       if (data.category != Category.Compose) {
         save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
+      }
+    }
+    themesXmlV29?.let {
+      // Common themes.xml isn't needed for Compose because theme is created in Composable.
+      if (data.category != Category.Compose) {
+        save(it, resOut.resolve("values-v29").resolve("themes.xml"))
       }
     }
   }

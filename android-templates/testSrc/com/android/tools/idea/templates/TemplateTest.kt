@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.OfflineIdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -157,6 +158,16 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("Basic Activity", withKotlin, avoidModifiedModuleName = true)
+  }
+
+  @TemplateCheck
+  fun testNewBasicActivityMaterial3() {
+    StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
+    try {
+      checkCreateTemplate("Basic Activity (Material3)", withKotlin)
+    } finally {
+      StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
+    }
   }
 
   @TemplateCheck

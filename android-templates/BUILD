@@ -90,6 +90,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 
@@ -127,6 +128,7 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-wearable_17.1.0",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_1.3.0",
         "@maven//:com.google.android.material.material_1.4.0",
+        "@maven//:com.google.android.material.material_1.5.0-alpha04",
         "@maven//:com.google.android.support.wearable_2.8.1",
         "@maven//:com.google.android.wearable.wearable_2.8.1",
         "@maven//:com.google.auto.value.auto-value_1.6.2",

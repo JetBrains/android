@@ -30,7 +30,13 @@ class TemplateResolver {
     fun getAllTemplates(): List<Template> {
       return EP_NAME.extensions
         .flatMap { it.getTemplates() }
-        .filter { it.category != Category.Compose || StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()}
+        .filter {
+          when (it.category) {
+            Category.Compose -> StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()
+            Category.Material3 -> StudioFlags.NPW_MATERIAL3_ENABLED.get()
+            else -> true
+          }
+        }
     }
 
     fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =
