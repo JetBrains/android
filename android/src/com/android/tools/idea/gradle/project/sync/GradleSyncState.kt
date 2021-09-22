@@ -157,7 +157,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
   /**
    * Triggered at the start of a sync.
    */
-  private fun syncStarted(trigger: GradleSyncStats.Trigger, allVariantsSync: Boolean): Boolean {
+  private fun syncStarted(trigger: GradleSyncStats.Trigger): Boolean {
     lock.withLock {
       if (state.isInProgress) {
         LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
@@ -167,10 +167,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       state = LastSyncState.IN_PROGRESS
     }
 
-    val syncType = if (allVariantsSync) "all-variants" else "single-variant"
-    LOG.info("Started $syncType ($trigger) sync with Gradle for project '${project.name}'.")
+    LOG.info("Started ($trigger) sync with Gradle for project '${project.name}'.")
 
-    eventLogger.syncStarted(getSyncType(allVariantsSync), trigger)
+    eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, trigger)
 
     addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
 
@@ -360,11 +359,6 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
-  private fun getSyncType(allVariantsSync: Boolean): GradleSyncStats.GradleSyncType = when(allVariantsSync) {
-    true -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_IDEA
-    else -> GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT
-  }
-
   /**
    * A helper project level service to keep track of external system sync related tasks and to detect and report any mismatched or
    * unexpected events.
@@ -444,7 +438,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         project.getUserData(PROJECT_SYNC_REQUEST)
           ?.takeIf { it.projectRoot == workingDir }
       if (!GradleSyncState.getInstance(project)
-          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, false)
+          .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
       ) {
         stopTrackingTask(project, id)
         return
