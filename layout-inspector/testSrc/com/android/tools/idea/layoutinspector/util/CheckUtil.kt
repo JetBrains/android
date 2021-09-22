@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
+import com.android.SdkConstants
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -26,6 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import java.awt.image.BufferedImage
+import java.nio.file.Path
 
 /**
  * Various checks for tests.
@@ -74,4 +76,15 @@ object CheckUtil {
       fail("$actual was expected to be a ${expected.javaClass.name}")
     }
   }
+
+  fun assertImageSimilarPerPlatform(testDataPath: Path, fileNameBase: String, actual: BufferedImage, maxPercentDifferent: Double) {
+    val os = when (SdkConstants.currentPlatform()) {
+      SdkConstants.PLATFORM_LINUX -> "linux"
+      SdkConstants.PLATFORM_DARWIN -> "mac"
+      SdkConstants.PLATFORM_WINDOWS -> "windows"
+      else -> throw IllegalArgumentException("unknown platform ${SdkConstants.currentPlatform()}")
+    }
+    ImageDiffUtil.assertImageSimilar(testDataPath.resolve("$fileNameBase-$os.png"), actual, maxPercentDifferent)
+  }
+
 }
