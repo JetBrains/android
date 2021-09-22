@@ -308,7 +308,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       String result;
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
       request.runInBackground = false;
-      request.forceAllVariantsSync = false;
 
       AtomicReference<String> errorMsgRef = new AtomicReference<>();
       GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
