@@ -41,8 +41,8 @@ class SourceSetItemTest {
                                 buildMainSourceProviderStub()
                                   .appendDirectories(
                                     resDirectories = listOf(
-                                      basePath.resolve("myResDir"),
-                                      basePath.resolve("foo/bar/deep/resources/android/res")
+                                      moduleBasePath.resolve("myResDir"),
+                                      moduleBasePath.resolve("foo/bar/deep/resources/android/res")
                                     )
                                   )
                               })))

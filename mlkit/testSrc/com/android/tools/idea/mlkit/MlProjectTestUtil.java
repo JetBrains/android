@@ -52,7 +52,7 @@ public class MlProjectTestUtil {
           .withMlModelBindingEnabled(it -> true)
           .withMainSourceProvider(it -> new IdeSourceProviderImpl(
             ARTIFACT_NAME_MAIN,
-            it.getBasePath(),
+            it.getModuleBasePath(),
             "AndroidManifest.xml",
             ImmutableList.of("src"),
             ImmutableList.of("srcKotlin"),
