@@ -88,6 +88,8 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
@@ -1206,7 +1208,7 @@ private fun createGradleModuleDataNode(
  * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
  */
 fun Project.gradleModule(gradlePath: String): Module? =
-  ModuleManager.getInstance(this).modules.singleOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }
+  ModuleManager.getInstance(this).modules.firstOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }?.getHolderModule()
 
 /**
  * Finds a file by the [path] relative to the corresponding Gradle project root.
