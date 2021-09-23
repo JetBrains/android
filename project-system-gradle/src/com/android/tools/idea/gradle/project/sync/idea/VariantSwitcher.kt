@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.applyChange
 import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
@@ -102,8 +103,7 @@ fun computeExpectedVariantsAfterSwitch(
 }
 
 fun Project.getSelectedVariantAndAbis(): Map<String, VariantAndAbi> {
-  return ProjectFacetManager.getInstance(this)
-    .getFacets(AndroidFacet.ID)
+  return getAndroidFacets()
     .mapNotNull { androidFacet ->
       val module = androidFacet.module
       val ndkFacet = NdkFacet.getInstance(module)
