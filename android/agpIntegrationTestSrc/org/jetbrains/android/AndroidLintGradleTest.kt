@@ -145,7 +145,8 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       <media-capabilities xmlns:android="http://schemas.android.com/apk/res/android">
           <!-- TODO Uncomment the following lines to let the Android OS
                  know that the given media format is not supported by the app
-                 and will need to be transcoded. -->
+                 and should be transcoded by the system if a suitable transcoder
+                 is available. -->
           <!--<format android:name="HEVC" supported="false"/>-->
           <!--<format android:name="HDR10" supported="false"/>-->
           <!--<format android:name="HDR10Plus" supported="false"/>-->
