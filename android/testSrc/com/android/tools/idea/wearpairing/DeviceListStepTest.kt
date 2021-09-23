@@ -153,8 +153,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
     assertThat(topLabel).isNotNull()
 
-    val topLabelIcon = topLabel!!.icon as IconLoader.CachedImageIcon
-    assertThat(topLabelIcon.originalPath!!).contains("device-play-store.svg")
+    val topLabelIcon = topLabel!!.icon.toString()
+    assertThat(topLabelIcon).contains("device-play-store.svg")
   }
 
   @Test
