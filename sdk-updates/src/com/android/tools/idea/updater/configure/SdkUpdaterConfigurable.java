@@ -87,7 +87,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * Very rough zip decompression estimate for informational/UI purposes only. Better for it to be a bit higher than average,
    * but not too much. Most of the SDK component files are binary, which should yield 2x-3x compression rate
    * on average - at least this is the assumption we are making here.
-   *
+   * <p>
    * TODO: The need for this will disappear should we revise the packages XML schema and add installation size for a given
    * platform there.
    */
@@ -147,7 +147,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    */
   AndroidSdkHandler getSdkHandler() {
     File location = myPanel.getSelectedSdkLocation();
-    return AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE,  location == null ? null : location.toPath());
+    return AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, location == null ? null : location.toPath());
   }
 
   RepoManager getRepoManager() {
@@ -231,6 +231,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           dependencyIssues.add(s);
           super.logWarning(s);
         }
+
         @Override
         public void logError(@NotNull String s) {
           dependencyIssues.add(s);
@@ -249,7 +250,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               sb.append(issue);
               sb.append(", ");
             }
-            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb.toString();
+            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb;
           }
           else {
             message = "Unable to resolve dependencies for " + item.getDisplayName();
@@ -363,7 +364,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * Attempts to calculate the download size based on package's archive metadata.
    *
    * @param remotePackage the package to calculate the download size for.
-   * @param packages loaded repository packages obtained from the SDK handler.
+   * @param packages      loaded repository packages obtained from the SDK handler.
    * @return A pair of long and boolean, where the first element denotes the calculated size,
    * and the second indicates whether it's a patch installation.
    */
@@ -425,12 +426,11 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   static boolean confirmChange(HtmlBuilder message) {
-    String[] options = {Messages.getOkButton(), Messages.getCancelButton()};
+    String[] options = {Messages.getCancelButton(), Messages.getOkButton()};
     Icon icon = AllIcons.General.Warning;
 
-    // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen
-    return Messages.showIdeaMessageDialog(null, message.getHtml(),
-                                          "Confirm Change", options, 0, icon, null) == Messages.OK;
+    // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscree
+    return Messages.showIdeaMessageDialog(null, message.getHtml(), "Confirm Change", options, 1, icon, null) == 1;
   }
 
   @Override
