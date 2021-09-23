@@ -17,8 +17,7 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
-import com.intellij.lang.annotation.AnnotationSession
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 
 class ProguardR8AnnotatorTest : ProguardR8TestCase() {
   fun testAnnotator() {
@@ -32,19 +31,16 @@ class ProguardR8AnnotatorTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     var element = myFixture.moveCaret("interf|ace")
-    val annotationHolder = AnnotationHolderImpl(AnnotationSession(myFixture.file))
-    ProguardR8Annotator().annotate(element, annotationHolder)
-    assertThat(annotationHolder).hasSize(0)
+    var annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).isEmpty()
 
     element = myFixture.moveCaret("in|t foo")
-    ProguardR8Annotator().annotate(element, annotationHolder)
-    assertThat(annotationHolder).hasSize(1)
-    val attr = annotationHolder[0]
-    assertThat(annotationHolder[0].enforcedTextAttributes).isEqualTo(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
+    annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).hasSize(1)
+    assertThat(annotations[0].enforcedTextAttributes).isEqualTo(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
 
     element = myFixture.moveCaret("int vo|id")
-    ProguardR8Annotator().annotate(element, annotationHolder)
-    assertThat(annotationHolder).hasSize(1)
-    assertThat(annotationHolder[0]).isEqualTo(attr)
+    annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)
+    assertThat(annotations).isEmpty()
   }
 }
