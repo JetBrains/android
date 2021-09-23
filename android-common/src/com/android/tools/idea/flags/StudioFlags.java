@@ -1240,6 +1240,11 @@ public final class StudioFlags {
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
+
+  public static final Flag<Boolean> COMPOSE_POWER_SAVE_MODE_SUPPORT = Flag.create(
+    COMPOSE, "preview.power.save.support", "Enable the Compose preview support for PowerSave mode",
+    "If enabled, the Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
+    true);
   //endregion
 
   //region Manifests

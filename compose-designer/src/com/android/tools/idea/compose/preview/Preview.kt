@@ -53,6 +53,7 @@ import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_POWER_SAVE_MODE_SUPPORT
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -70,6 +71,7 @@ import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
+import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -194,7 +196,7 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
         )
       )
     }
-    setQuality(0.7f)
+    setQuality(if (isInPowerSaveMode) 0.5f else 0.7f)
     setShowDecorations(showDecorations)
     if (reinflate) {
       forceReinflate()
@@ -217,9 +219,10 @@ private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 private const val LAYOUT_KEY = "previewLayout"
 
 /**
- * Frames per second limit for interactive preview.
+ * Same as [PowerSaveMode] but obeys to the [COMPOSE_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
  */
-private val FPS_LIMIT = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+private val isInPowerSaveMode: Boolean
+  get() = COMPOSE_POWER_SAVE_MODE_SUPPORT.get() && PowerSaveMode.isEnabled()
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
@@ -250,9 +253,30 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile, LiveLiteralsPsiFileSnapshotFilter(this, psiFile))
 
   /**
+   * Frames per second limit for interactive preview.
+   */
+  private var fpsLimit = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+
+  init {
+    val project = psiFile.project
+    project.messageBus.connect(this).subscribe(PowerSaveMode.TOPIC, PowerSaveMode.Listener {
+      fpsLimit = if (isInPowerSaveMode) {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
+      }
+      else {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+      }
+      fpsCounter.resetAndStart()
+
+      // When getting out of power save mode, request a refresh
+      if (!isInPowerSaveMode) refresh()
+    })
+  }
+
+  /**
    * [PreviewElementProvider] containing the pinned previews.
    */
-  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider<PreviewElementInstance>(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
+  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
     !(it.previewBodyPsi?.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
   }
 
@@ -260,7 +284,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to `previewProvider` can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider<PreviewElement>(previewProvider) {
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider) {
     ReadAction.compute<Long, Throwable> {
       psiFilePointer.element?.modificationStamp ?: -1
     }
@@ -510,7 +534,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var onRestoreState: (() -> Unit)? = null
 
   private val ticker = ControllableTicker({
-                                            if (!RenderService.isBusy() && fpsCounter.getFps() <= FPS_LIMIT) {
+                                            if (!RenderService.isBusy() && fpsCounter.getFps() <= fpsLimit) {
                                               fpsCounter.incrementFrameCounter()
                                               surface.layoutlibSceneManagers.firstOrNull()?.executeCallbacksAndRequestRender(null)
                                             }
@@ -635,8 +659,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       {
         ApplicationManager.getApplication().invokeLater {
           LOG.debug("changeListener triggered")
-          // Only refresh when in static
-          if (interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) refresh()
+          // Only refresh when in static and not in power save mode
+          if (!isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) refresh()
         }
       },
       this)
@@ -713,12 +737,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
       isActive.set(false)
 
-      project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
+      if  (isInPowerSaveMode) {
+        // When on power saving mode, deactivate immediately to free resources.
+        onDeactivationTimeout()
+      }
+      else {
+        project.getService(PreviewProjectService::class.java).deactivationQueue.addDelayedAction(this, this::onDeactivationTimeout)
+      }
     }
   }
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+    if (isInPowerSaveMode) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (!isActive.get() || interactiveMode.isStartingOrReady()) return
