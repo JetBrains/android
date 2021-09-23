@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure
 
 import com.android.repository.api.UpdatablePackage
+import com.intellij.ide.util.PropertiesComponent
 import org.junit.Test
 import org.mockito.Mockito.mock
 import kotlin.test.assertEquals
@@ -24,7 +25,8 @@ class ToolComponentsPanelTest {
   // basic test of tree construction with no packages installed
   @Test
   fun testNodes() {
-    val panel = ToolComponentsPanel()
+    val propertiesComponent = mock(PropertiesComponent::class.java)
+    val panel = ToolComponentsPanel(propertiesComponent)
     panel.setConfigurable(mock(SdkUpdaterConfigurable::class.java))
     val foo = createLocalPackage("foo", 1)
     val bar = createLocalPackage("bar", 2)

@@ -32,6 +32,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
@@ -65,6 +66,8 @@ public class ToolComponentsPanel {
   private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
     ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.InstallerInfo.getRepoPackagePath(), Gvm.InstallerInfo.getRepoPackagePath());
 
+  private static final String TOOLS_DETAILS_CHECKBOX_SELECTED = "updater.configure.tools.details.checkbox.selected";
+
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
   private JCheckBox myHideObsoletePackagesCheckbox;
@@ -94,8 +97,20 @@ public class ToolComponentsPanel {
   private final ChangeListener myModificationListener = e -> refreshModified();
   private SdkUpdaterConfigurable myConfigurable;
 
-  public ToolComponentsPanel() {
-    myToolsDetailsCheckbox.addActionListener(e -> updateToolsTable());
+  @SuppressWarnings("unused")
+  ToolComponentsPanel() {
+    this(PropertiesComponent.getInstance());
+  }
+
+  @VisibleForTesting
+  ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+    myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
+    myToolsDetailsCheckbox.addActionListener(e -> {
+      propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());
+      updateToolsTable();
+    });
+    updateToolsTable();
+
     myHideObsoletePackagesCheckbox.addActionListener(e -> updateToolsItems());
   }
 
