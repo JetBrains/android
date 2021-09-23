@@ -35,11 +35,19 @@ fun generateManifest(
   theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
   hasRoundIcon: Boolean = true,
-  appCategory: String = ""
+  appCategory: String = "",
+  addBackupRules: Boolean = false
 ): String {
+  val backupBlock = renderIf(addBackupRules) { """
+    android:fullBackupContent="@xml/backup_rules"
+    tools:targetApi="31"
+    android:dataExtractionRules="@xml/data_extraction_rules"
+    """
+  }
   val applicationBlock = if (hasApplicationBlock) """
     <application
     android:allowBackup="true"
+    $backupBlock
     ${renderIf(appCategory.isNotBlank()) { """android:appCategory="$appCategory"""" }}
     android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
@@ -52,6 +60,7 @@ fun generateManifest(
   return """
     <?xml version="1.0" encoding="utf-8"?>
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    ${renderIf(addBackupRules) { """xmlns:tools="http://schemas.android.com/tools"""" }}
     package="${packageName}">
     $usesFeatureBlock
     $applicationBlock
