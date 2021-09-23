@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.folding;
 
+import static com.android.SdkConstants.STRING_PREFIX;
+import static com.android.tools.idea.folding.InlinedResource.NONE;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -29,20 +33,32 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiAnnotationParameterList;
+import com.intellij.psi.PsiArrayInitializerMemberValue;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiExpressionList;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiNameValuePair;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-
-import static com.android.SdkConstants.STRING_PREFIX;
-import static com.android.tools.idea.folding.InlinedResource.NONE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResourceFoldingBuilder extends FoldingBuilderEx {
   private static final String ANDROID_RESOURCE_INT = "android.annotation.ResourceInt";
@@ -233,18 +249,20 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     return ResourceRepositoryManager.getAppResources(module);
   }
 
-  private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name,
-                                                        @NotNull PsiElement foldElement) {
+  private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name, @NotNull PsiElement foldElement) {
     // Not part of a call: just fold the R.string reference itself
-    LocalResourceRepository appResources = getAppResources(foldElement);
+    Module module = ModuleUtilCore.findModuleForPsiElement(foldElement);
+    ResourceRepositoryManager repositoryManager = module == null ? null : ResourceRepositoryManager.getInstance(module);
+    LocalResourceRepository appResources = repositoryManager == null ? null : repositoryManager.getAppResources();
     if (appResources != null && appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();
-        HashSet<Object> dependencies = new HashSet<Object>();
+        HashSet<Object> dependencies = new HashSet<>();
         dependencies.add(foldElement);
         FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null, dependencies);
-        InlinedResource inlinedResource = new InlinedResource(type, name, appResources, descriptor, foldElement);
+        ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(Collections.emptySet());
+        InlinedResource inlinedResource = new InlinedResource(type, name, appResources, frameworkResources, descriptor, foldElement);
         dependencies.add(inlinedResource);
         return inlinedResource;
       }

@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.folding;
 
+import static com.android.SdkConstants.STRING_PREFIX;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -31,17 +35,14 @@ import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.xml.XmlAttributeValue;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.STRING_PREFIX;
-
 /** A resource referenced in code (Java or XML) */
 class InlinedResource implements ModificationTracker {
-  static final InlinedResource NONE = new InlinedResource(ResourceType.STRING, "", null, null, null);
+  static final InlinedResource NONE = new InlinedResource(ResourceType.STRING, "", null, null, null, null);
   private static final int FOLD_MAX_LENGTH = 60;
 
   /** Resource type, typically a string or dimension */
@@ -60,17 +61,21 @@ class InlinedResource implements ModificationTracker {
   /** The associated folding descriptor */
   @Nullable private FoldingDescriptor myDescriptor;
 
-  /** The app resources for looking up resource strings lazily */
-  @Nullable private LocalResourceRepository myResourceRepository;
+  /** The app resources for looking up resource strings lazily. */
+  @Nullable private final LocalResourceRepository myResourceRepository;
+  /** The framework resources for looking up resource strings lazily. */
+  @Nullable private final ResourceRepository myFrameworkResourceRepository;
 
   InlinedResource(@NotNull ResourceType type,
                   @NotNull String key,
                   @Nullable LocalResourceRepository resources,
+                  @Nullable ResourceRepository frameworkResources,
                   @Nullable FoldingDescriptor descriptor,
                   @Nullable PsiElement element) {
     myType = type;
     myKey = key;
     myResourceRepository = resources;
+    myFrameworkResourceRepository = frameworkResources;
     myDescriptor = descriptor;
     myElement = element;
   }
@@ -89,24 +94,30 @@ class InlinedResource implements ModificationTracker {
 
   @Nullable
   public String getResolvedString() {
-    if (myResourceRepository != null) {
+    if (myResourceRepository != null && myFrameworkResourceRepository != null) {
       if (myResourceRepository.hasResources(ResourceNamespace.TODO(), myType, myKey)) {
         FolderConfiguration referenceConfig = new FolderConfiguration();
         // Nonexistent language qualifier: trick it to fall back to the default locale
         referenceConfig.setLocaleQualifier(new LocaleQualifier("xx"));
         ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, myType, myKey, referenceConfig);
         if (value != null) {
+          ResourceItemResolver resolver =
+              new ResourceItemResolver(referenceConfig, myFrameworkResourceRepository, myResourceRepository, null);
+          value = resolver.resolveResValue(value);
           String text = value.getValue();
           if (text != null) {
             if (myElement instanceof PsiMethodCallExpression) {
               text = insertArguments((PsiMethodCallExpression)myElement, text);
             }
             if (myType == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
-              value = ResourceRepositoryUtil
-                .getConfiguredValue(myResourceRepository, ResourceType.STRING, text.substring(STRING_PREFIX.length()), referenceConfig);
-              if (value != null && value.getValue() != null) {
+              String name = text.substring(STRING_PREFIX.length());
+              value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, ResourceType.STRING, name, referenceConfig);
+              if (value != null) {
+                value = resolver.resolveResValue(value);
                 text = value.getValue();
-                return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+                if (text != null) {
+                  return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+                }
               }
             }
             if (myType == ResourceType.STRING || myElement instanceof XmlAttributeValue) {

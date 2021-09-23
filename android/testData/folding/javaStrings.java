@@ -27,7 +27,8 @@ public class MyActivity extends Activity {
     String label2 = <fold text='"This is a really really really long string, and the fol..."' expand='false'>getString(R.string.foobar)</fold>;
     String label3 = <fold text='"Vibration level is {10}."' expand='false'>getString(R.string.string_width_formatting, 10)</fold>;
     String label4 = <fold text='""' expand='false'>getString(R.string.empty)</fold>;
-    String label5 = getString(R.string.unknown);
-    String label6 = <fold text='shortint: 1' expand='false'>getResources().getInteger(R.integer.shortint)</fold>;
+    String label5 = <fold text='"resolved"' expand='false'>c.getString(R.string.alias)</fold>;
+    String label6 = getString(R.string.unknown);
+    String label7 = <fold text='shortint: 1' expand='false'>getResources().getInteger(R.integer.shortint)</fold>;
   }</fold>
 }
