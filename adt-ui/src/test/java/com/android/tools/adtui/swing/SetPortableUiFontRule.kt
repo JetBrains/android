@@ -17,6 +17,8 @@ package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import org.junit.rules.ExternalResource
+import java.awt.RenderingHints.KEY_TEXT_ANTIALIASING
+import java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB
 import java.util.Enumeration
 import javax.swing.UIManager
 import javax.swing.plaf.FontUIResource
@@ -29,7 +31,7 @@ import javax.swing.plaf.FontUIResource
  */
 class SetPortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
 
-  private val originalValues = mutableMapOf<Any, FontUIResource>()
+  private val originalValues = mutableMapOf<Any, Any?>()
 
   override fun before() {
     val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
@@ -43,6 +45,8 @@ class SetPortableUiFontRule(val scale: Float = 1.0f) : ExternalResource() {
         UIManager.put(key, FontUIResource(font))
       }
     }
+    originalValues[KEY_TEXT_ANTIALIASING] = UIManager.get(KEY_TEXT_ANTIALIASING)
+    UIManager.put(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_LCD_HRGB)
   }
 
   override fun after() {

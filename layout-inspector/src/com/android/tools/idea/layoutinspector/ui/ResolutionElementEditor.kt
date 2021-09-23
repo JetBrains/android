@@ -251,7 +251,7 @@ class ResolutionElementEditor(
       if (strikeout) {
         attributes[TextAttribute.STRIKETHROUGH] = TextAttribute.STRIKETHROUGH_ON
       }
-      return Font(attributes)
+      return font.deriveFont(attributes)
     }
   }
 }

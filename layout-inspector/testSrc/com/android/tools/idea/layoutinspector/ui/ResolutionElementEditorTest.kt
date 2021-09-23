@@ -21,8 +21,6 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.AssumeUtil
-import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -35,6 +33,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -45,11 +44,9 @@ import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -63,12 +60,11 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
-import kotlin.math.roundToInt
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
-private const val DIFF_THRESHOLD = 0.2
+private const val DIFF_THRESHOLD = 0.01
 
 @RunsInEdt
 class ResolutionElementEditorTest {
@@ -82,9 +78,6 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintClosed() {
-    // Do not run on Windows (b/187441420) or mac (b/163289116).
-    AssumeUtil.assumeIsLinux()
-
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
     checkImage(editors, "Closed")
@@ -95,18 +88,12 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpen() {
-    // Do not run on Windows (b/187441420) or mac (b/163289116).
-    AssumeUtil.assumeIsLinux()
-
     val editors = createEditors()
     checkImage(editors, "Open")
   }
 
   @Test
   fun testPaintOpenWithDetails() {
-    // Do not run on Windows (b/187441420) or mac (b/163289116).
-    AssumeUtil.assumeIsLinux()
-
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -115,16 +102,11 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpenWithTwoDetails() {
-    // Do not run on Windows (b/187441420) or mac (b/163289116).
-    AssumeUtil.assumeIsLinux()
-
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
     expandFirstLabel(getEditor(editors, 1), true)
-/* b/201102652
     checkImage(editors, "OpenWithTwoDetails")
-b/201102652 */
   }
 
   @Test
@@ -166,7 +148,7 @@ b/201102652 */
     val item2 = InspectorPropertyItem(
       ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
 
-    // The "textColor" attribute is defined in the layout file and we should have a link to the layout definition
+    // The "textColor" attribute is defined in the layout file, and we should have a link to the layout definition
     assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
 
     // The "elevation" attribute is never set so there will not be a link to follow:
@@ -195,31 +177,12 @@ b/201102652 */
   }
 
   private fun checkImage(editors: JPanel, expected: String) {
-    val fontScale = computeFontScale()
-    editors.setBounds(0, 0, scale(200, fontScale), scale(300, fontScale))
+    editors.setBounds(0, 0, 200, 300)
     val ui = FakeUi(editors)
     val generatedImage = ui.render()
-    val platform = "${SystemInfo.OS_NAME.replace(' ', '_')}-$fontScale"
-    val filename = "$TEST_DATA_PATH/testResolutionEditorPaint$expected$platform.png"
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve(filename), generatedImage, DIFF_THRESHOLD)
+    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testResolutionEditorPaint$expected",
+                                            generatedImage, DIFF_THRESHOLD)
   }
-
-  /**
-   * Compute the font scale factor (round to nearest 0.5 value).
-   *
-   * On Windows servers we have seen this factor vary: 1.0 or 2.0
-   * We believe that some machines have a high dpi graphics card without an actual monitor.
-   * On those machine it is not possible to retrieve the GraphicsEnvironment without getting headless exceptions.
-   * This is a workaround to achieve reasonable test output from image producing tests.
-   */
-  private fun computeFontScale(): Float {
-    val label = JBLabel("Hello world")
-    val height = label.preferredSize.height.toFloat()
-    return (2.0f * height / 17.0f).roundToInt().toFloat() / 2.0f
-  }
-
-  private fun scale(size: Int, scale: Float): Int =
-    (scale * size.toFloat()).roundToInt()
 
   private fun expandFirstLabel(editor: ResolutionElementEditor, open: Boolean) {
     val keyStroke = if (open) KeyStrokes.RIGHT else KeyStrokes.LEFT
@@ -270,6 +233,8 @@ class IntelliJLafRule : ExternalResource() {
 
   override fun before() {
     laf = UIManager.getLookAndFeel()
+    // Clear out anything set explicitly by previous tests
+    UIManager.getDefaults().clear()
     UIManager.setLookAndFeel(IntelliJLaf())
   }
 
