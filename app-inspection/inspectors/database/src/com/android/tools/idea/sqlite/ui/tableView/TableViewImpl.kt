@@ -33,8 +33,10 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
@@ -62,6 +64,8 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JLayeredPane
@@ -131,67 +135,39 @@ class TableViewImpl : TableView {
   private var refreshEnabled = true
 
   init {
-    val southPanel = JPanel(BorderLayout())
-    val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    val tableActionsPanel = JPanel().also {
+      it.layout = BoxLayout(it, BoxLayout.X_AXIS)
+    }
+
     rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
-    rootPanel.add(southPanel, BorderLayout.SOUTH)
 
     centerPanel.background = primaryContentBackground
 
     tableActionsPanel.name = "table-actions-panel"
-    tableActionsPanel.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
+    tableActionsPanel.border = JBUI.Borders.merge(
+      BorderFactory.createEmptyBorder(2, 0, 2, 0),
+      IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+      true
+    )
 
-    southPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
-
-    readOnlyLabel.isVisible = false
-    readOnlyLabel.name = "read-only-label"
-    readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 12, 0, 0)
-    southPanel.add(readOnlyLabel, BorderLayout.WEST)
-    val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    southPanel.add(pagingControlsPanel, BorderLayout.EAST)
-
-    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
-    firstRowsPageButton.toolTipText = "Go to first page"
-    pagingControlsPanel.add(firstRowsPageButton)
-    firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
-
-    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
-    previousRowsPageButton.toolTipText = "Go to previous page"
-    pagingControlsPanel.add(previousRowsPageButton)
-    previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
+    val pagingControlsPanel = createPagingControlsPanel()
 
     setFetchNextRowsButtonState(false)
     setFetchPreviousRowsButtonState(false)
-
-    pageSizeComboBox.name = "page-size-combo-box"
-    pageSizeComboBox.isEnabled = false
-    pageSizeComboBox.isEditable = true
-    pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
-    pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
-    pagingControlsPanel.add(pageSizeComboBox)
-    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
-
-    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
-    nextRowsPageButton.toolTipText = "Go to next page"
-    pagingControlsPanel.add(nextRowsPageButton)
-    nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
-
-    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
-    lastRowsPageButton.toolTipText = "Go to last page"
-    pagingControlsPanel.add(lastRowsPageButton)
-    lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
     refreshButton.name = "refresh-button"
     refreshButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshButton.toolTipText = "Refresh table"
     refreshButton.isEnabled = false
+    tableActionsPanel.add(Box.createHorizontalStrut(4))
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
     liveUpdatesCheckBox.name = "live-updates-checkbox"
     liveUpdatesCheckBox.isEnabled = false
     liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
+    tableActionsPanel.add(Box.createHorizontalStrut(4))
     tableActionsPanel.add(liveUpdatesCheckBox)
 
     HelpTooltip()
@@ -208,9 +184,22 @@ class TableViewImpl : TableView {
       HelpTooltip()
         .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
         .installOn(exportButton)
+      tableActionsPanel.add(Box.createHorizontalStrut(4))
       tableActionsPanel.add(exportButton)
       exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
     }
+
+    readOnlyLabel.isVisible = false
+    readOnlyLabel.name = "read-only-label"
+    readOnlyLabel.border = BorderFactory.createEmptyBorder(4, 4, 4, 4)
+    readOnlyLabel.isOpaque = true
+    readOnlyLabel.background = JBColor(Color(0xDCEDFE), Color(0x464A4D))
+
+    tableActionsPanel.add(Box.createHorizontalGlue())
+    tableActionsPanel.add(readOnlyLabel)
+    tableActionsPanel.add(Box.createHorizontalStrut(4))
+    tableActionsPanel.add(pagingControlsPanel)
+    tableActionsPanel.add(Box.createHorizontalStrut(4))
 
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
@@ -275,6 +264,49 @@ class TableViewImpl : TableView {
     progressBar.putClientProperty("ProgressBar.stripeWidth", JBUI.scale(2))
 
     setUpPopUp()
+  }
+
+  private fun createPagingControlsPanel(): Component {
+    val pagingControlsPanel = JPanel().also {
+      it.layout = BoxLayout(it, BoxLayout.X_AXIS)
+    }
+
+    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+    firstRowsPageButton.toolTipText = "Go to first page"
+    pagingControlsPanel.add(Box.createHorizontalStrut(2))
+    pagingControlsPanel.add(firstRowsPageButton)
+    firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
+
+    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+    previousRowsPageButton.toolTipText = "Go to previous page"
+    pagingControlsPanel.add(Box.createHorizontalStrut(2))
+    pagingControlsPanel.add(previousRowsPageButton)
+    previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
+
+    pageSizeComboBox.name = "page-size-combo-box"
+    pageSizeComboBox.isEnabled = false
+    pageSizeComboBox.isEditable = true
+    pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
+    pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
+    pageSizeComboBox.preferredSize = JBUI.size(80, 30)
+    pageSizeComboBox.maximumSize = pageSizeComboBox.preferredSize
+    pagingControlsPanel.add(Box.createHorizontalStrut(2))
+    pagingControlsPanel.add(pageSizeComboBox)
+    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
+
+    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+    nextRowsPageButton.toolTipText = "Go to next page"
+    pagingControlsPanel.add(Box.createHorizontalStrut(2))
+    pagingControlsPanel.add(nextRowsPageButton)
+    nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
+
+    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
+    lastRowsPageButton.toolTipText = "Go to last page"
+    pagingControlsPanel.add(Box.createHorizontalStrut(2))
+    pagingControlsPanel.add(lastRowsPageButton)
+    lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
+
+    return pagingControlsPanel
   }
 
   override fun showPageSizeValue(maxRowCount: Int) {
