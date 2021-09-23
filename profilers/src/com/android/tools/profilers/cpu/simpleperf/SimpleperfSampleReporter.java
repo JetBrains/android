@@ -134,6 +134,10 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     else if (SystemInfo.isMac && CpuArch.isIntel64()) {
       return "darwin-x86_64";
     }
+    else if (SystemInfo.isMac && CpuArch.isArm64()) {
+      // TODO: Update this when NDK supports mac-arm natively.
+      return "darwin-x86_64";
+    }
     else if (SystemInfo.isWindows && CpuArch.isIntel32()) {
       return "windows";
     }
