@@ -22,11 +22,11 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
-import com.intellij.lang.annotation.AnnotationSession
+import com.intellij.lang.annotation.Annotation
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.compose.ANDROIDX_COMPOSE_PACKAGE
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -157,9 +157,9 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
 
   private fun setNewColor(window: String, newColor: Color) {
     val element = myFixture.moveCaret(window)
-    val annotationHolder = AnnotationHolderImpl(AnnotationSession(myFixture.file))
-    annotationHolder.runAnnotatorWithContext(element.parentOfType<KtCallExpression>()!! as PsiElement, ComposeColorAnnotator())
-    val iconRenderer = annotationHolder[0].gutterIconRenderer as ColorIconRenderer
+    val annotator = ComposeColorAnnotator()
+    val annotations: List<Annotation> = CodeInsightTestUtil.testAnnotator(annotator, element.parentOfType<KtCallExpression>()!! as PsiElement)
+    val iconRenderer = annotations[0].gutterIconRenderer as ColorIconRenderer
     iconRenderer.setColorToAttribute(newColor)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
