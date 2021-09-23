@@ -1,6 +1,6 @@
 PROJECT                       : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : app_jdk
+        Version                       : java 11
     MODULE                        : app
         LinkedProjectId               : :app
         LinkedProjectPath             : <TEMP>/app
@@ -127,7 +127,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : java 11
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : lib
     MODULE                        : lib
@@ -256,7 +256,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : java 11
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
         LinkedProjectId               : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase

@@ -1,6 +1,6 @@
 PROJECT                       : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : app_jdk
+        Version                       : java 11
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectPath             : <TEMP>
@@ -37,7 +37,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             EnableManifestMerging         : false
             EnablePreDexing               : true
             CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
+            EnableSourcesAutogeneration   : false
             EnableMultiDex                : false
             MinimalMainDex                : false
             IncludeAssetsFromLibraries    : false
@@ -75,7 +75,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : java 11
         ORDER_ENTRY                   : <Module source>
     RUN_CONFIGURATION             : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         *class*                       : AndroidRunConfiguration
