@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -26,8 +25,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -69,7 +66,6 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -274,22 +270,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
-      getFacet: (Module, DataNode<out ModuleData>) -> V?,
+      getModel: (DataNode<*>, Key<T>) -> T?,
+      getFacet: (Module) -> V?,
       attach: V.(T) -> Unit,
       configure: T.(Module) -> Unit = { _ -> },
       validate: T.() -> Boolean = { true }
     ): (() -> Unit)? {
-      val model =
-        ExternalSystemApiUtil
-          .getChildren(moduleDataNode, dataKey)
-          .singleOrNull() // None or one node is expected here.
-          ?.data
-        ?: return { /* Nothing to do if no model present. */ }
+      val model = getModel(moduleDataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
       if (!model.validate()) {
         requestSync("invalid model found for $dataKey in ${module.name}")
         return null
       }
-      val facet = getFacet(module, moduleDataNode) ?: run {
+      val facet = getFacet(module) ?: run {
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
       }
@@ -302,24 +294,16 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
     }
 
-    // The Android facet is attached to a different module than the data node for module per source set.
-    val androidFacetObtainer : (Module, DataNode<out ModuleData>) -> AndroidFacet? = if (project.isModulePerSourceSetEnabled()) {
-      { _, node ->
-        val mainModuleNode = node.findAll(GradleSourceSetData.KEY).first {
-          it.data.moduleName == getModuleName(IdeArtifactName.MAIN)
-        }
-        val mainModule = modulesById[mainModuleNode.data.id]
-        if (mainModule == null) null else AndroidFacet.getInstance(mainModule)
-      }
-    } else {
-      { m, _ -> AndroidFacet.getInstance(m) }
-    }
+    // For models that can be broken into source sets we need to check the parent datanode for the model
+    // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
+    // module per source set we should replace this code with were we know the model will be living.
+    fun <T> getModelForMaybeSourceSetDataNode() : (DataNode<*>, Key<T>) -> T? = { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
     listOf(
-      prepare(ANDROID_MODEL,  androidFacetObtainer , AndroidModel::set, AndroidModuleModel::setModule,
+      prepare(ANDROID_MODEL, getModelForMaybeSourceSetDataNode(), AndroidFacet::getInstance , AndroidModel::set, AndroidModuleModel::setModule,
               validate = AndroidModuleModel::validate) ?: return,
-      prepare(JAVA_MODULE_MODEL, { m, _ -> JavaFacet.getInstance(m) }, JavaFacet::setJavaModuleModel) ?: return,
-      prepare(GRADLE_MODULE_MODEL, { m, _ -> GradleFacet.getInstance(m) }, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, { m, _ -> NdkFacet.getInstance(m) }, NdkFacet::setNdkModuleModel) ?: return
+      prepare(JAVA_MODULE_MODEL, ::getModelFromDataNode, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
+      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
+      prepare(NDK_MODEL, getModelForMaybeSourceSetDataNode(), NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 
@@ -335,6 +319,12 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   GradleSyncState.getInstance(project).syncSkipped(null)
 }
+
+private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =
+  ExternalSystemApiUtil
+    .getChildren(moduleDataNode, dataKey)
+    .singleOrNull() // None or one node is expected here.
+    ?.data
 
 private fun additionalProjectSetup(project: Project) {
   AndroidPluginInfo.findFromModel(project)?.maybeRecommendPluginUpgrade(project)
