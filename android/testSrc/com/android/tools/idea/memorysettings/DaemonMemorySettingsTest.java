@@ -28,7 +28,6 @@ import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 
-// FIXME-ank6: exclude from IDEA test suite (depends on preconfigured environment variables)
 public class DaemonMemorySettingsTest extends PlatformTestCase {
 
   private String myGradleUserHome;
