@@ -183,11 +183,8 @@ public class VisualizationForm
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
-  private final VisualLintIssues myIssues = new VisualLintIssues();
   private final VisualLintBaseConfigIssues myBaseConfigIssues = new VisualLintBaseConfigIssues();
-  private final ReentrantLock myLintIssueProviderLock = new ReentrantLock();
-  @GuardedBy("myLintIssueProviderLock")
-  @Nullable private VisualLintIssueProvider myLintIssueProvider = null;
+  private final VisualLintIssueProvider myLintIssueProvider = new VisualLintIssueProvider();
 
   public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
@@ -357,16 +354,7 @@ public class VisualizationForm
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
-    myLintIssueProviderLock.lock();
-    try {
-      if (myLintIssueProvider != null) {
-        mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
-        myLintIssueProvider = null;
-      }
-    }
-    finally {
-      myLintIssueProviderLock.unlock();
-    }
+    myLintIssueProvider.clear();
     for (NlModel model : models) {
       mySurface.removeModel(model);
       Disposer.dispose(model);
@@ -641,10 +629,7 @@ public class VisualizationForm
       myCancelRenderingTaskLock.unlock();
     }
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    if (myLintIssueProvider != null) {
-      mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
-    }
-    myIssues.clear();
+    myLintIssueProvider.clear();
     myBaseConfigIssues.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
@@ -658,11 +643,11 @@ public class VisualizationForm
             RenderResult result = layoutlibSceneManager.getRenderResult();
 
             if (result != null) {
-              VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myIssues);
-              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, model, myIssues, myBaseConfigIssues);
+              VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myLintIssueProvider);
+              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues);
 
               if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                CommonLintUserDataHandler.INSTANCE.updateVisualLintIssues(model.getFile(), myIssues);
+                CommonLintUserDataHandler.INSTANCE.updateVisualLintIssues(model.getFile(), myLintIssueProvider);
               }
             }
 
@@ -695,18 +680,7 @@ public class VisualizationForm
         }
       });
     }
-    return renderFuture.thenRun(() -> {
-      myLintIssueProviderLock.lock();
-      try {
-        if (!Disposer.isDisposed(this)) {
-          myLintIssueProvider = new VisualLintIssueProvider(myIssues);
-          mySurface.getIssueModel().addIssueProvider(myLintIssueProvider);
-        }
-      }
-      finally {
-        myLintIssueProviderLock.unlock();
-      }
-    });
+    return renderFuture;
   }
 
   private void interruptRendering() {
@@ -743,6 +717,7 @@ public class VisualizationForm
     initPreviewForm();
     mySurface.activate();
     getAnalyticsManager().trackVisualizationToolWindow(true);
+    mySurface.getIssueModel().addIssueProvider(myLintIssueProvider);
   }
 
   /**
@@ -765,6 +740,7 @@ public class VisualizationForm
       setNoActiveModel();
     }
     getAnalyticsManager().trackVisualizationToolWindow(false);
+    mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
   }
 
   @Override

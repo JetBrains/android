@@ -23,22 +23,26 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
-import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.xml.XmlChildRole
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 
-class VisualLintIssueProvider(
-  private val issuesMap: VisualLintIssues,
-) : IssueProvider() {
+class VisualLintIssueProvider : IssueProvider() {
+  private val issues = VisualLintIssues()
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-    issueListBuilder.addAll(issuesMap.list)
+    issueListBuilder.addAll(issues.list)
   }
+
+  fun addIssue(errorType: VisualLintErrorType, issue: Issue) = issues.add(errorType, issue)
+
+  fun addAllIssues(errorType: VisualLintErrorType, issues: List<Issue>) = this.issues.addAll(errorType, issues)
+
+  fun getIssues() = issues.list
+
+  fun clear() = issues.clear()
 
   data class VisualLintIssueSource(val model: NlModel, val components: List<NlComponent>) : IssueSource {
     override val displayText = ""
