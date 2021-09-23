@@ -66,7 +66,7 @@ public class DeviceArtDescriptor {
     // In the IDE distribution, this should be in plugins/android/resources/FN_BASE
     String base = FileUtil.join(PathManager.getHomePath(), "plugins", "android", "resources");
     if (StudioPathManager.isRunningFromSources()) {
-      base = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources");
+      base = FileUtil.join(PathManager.getCommunityHomePath(), "android", "artwork", "resources");
     }
     File dir = new File(base, FN_BASE);
     if (dir.exists() && dir.isDirectory()) {
