@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
+import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.After
@@ -107,5 +108,25 @@ class ModuleClassLoaderHatcheryTest {
 
     ModuleClassLoaderManager.get().release(donor2, this@ModuleClassLoaderHatcheryTest)
     ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
+  }
+
+  @Test
+  fun `hatchery correctly identifies different parent class loaders`() {
+    val hatchery = ModuleClassLoaderHatchery(1, 2)
+    val parent1 = FirewalledResourcesClassLoader(null)
+    val donor = ModuleClassLoaderManager.get().getPrivate(
+      parent1, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
+    val cloner = ModuleClassLoaderManager.get()::createCopy
+    // Create a request for a new class loader and incubate it
+    assertNull(hatchery.requestClassLoader(
+      parent1, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+    assertTrue(hatchery.incubateIfNeeded(donor, cloner))
+    // This request has the same Request so it should return a new classloader
+    assertNotNull(hatchery.requestClassLoader(
+      parent1, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+    // This request is using a different parent, we should not have anything available and should return null
+    val parent2 = FirewalledResourcesClassLoader(null)
+    assertNull(hatchery.requestClassLoader(
+      parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
   }
 }

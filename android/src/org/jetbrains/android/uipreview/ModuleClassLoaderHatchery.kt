@@ -138,7 +138,7 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
         donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
       return false
     }
-    val request = Request(donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform)
+    val request = Request(donor.parentAtConstruction, donor.projectClassesTransform, donor.nonProjectClassesTransform)
     if (requests.contains(request)) {
       requests.remove(request)
       if (storage.size == capacity) {
