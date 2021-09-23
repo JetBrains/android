@@ -16,7 +16,11 @@
 
 package org.jetbrains.android.dom.xml;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.PsiPackageConverter;
+import com.intellij.util.xml.converters.ClassValueConverterImpl;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
@@ -27,4 +31,12 @@ public interface Intent extends XmlResourceElement {
   @LookupClass("android.content.Intent")
   @LookupPrefix("android.intent.action")
   AndroidAttributeValue<String> getAction();
+
+  @Attribute("targetClass")
+  @Convert(ClassValueConverterImpl.class)
+  AndroidAttributeValue<PsiClass> getTargetClass();
+
+  @Attribute("targetPackage")
+  @Convert(PsiPackageConverter.class)
+  AndroidAttributeValue<String> getTargetPackage();
 }
