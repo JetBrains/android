@@ -85,7 +85,8 @@ internal class GenerateMediaCapabilitiesDescriptorFix(private val myUrl: Resourc
       <media-capabilities xmlns:android="http://schemas.android.com/apk/res/android">
           <!-- TODO Uncomment the following lines to let the Android OS
            know that the given media format is not supported by the app
-           and will need to be transcoded. -->
+           and should be transcoded by the system if a suitable transcoder
+           is available. -->
           ${MEDIA_FORMATS.joinToString("\n") { mediaFormat -> "<!--<format android:name=\"$mediaFormat\" supported=\"false\"/>-->" }}
       </media-capabilities>
     """.trimIndent()
