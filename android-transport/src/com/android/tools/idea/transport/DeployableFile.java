@@ -111,7 +111,7 @@ public final class DeployableFile {
 
   @NotNull
   public File getDir() {
-    if (IdeInfo.getInstance().isAndroidStudio() && myIsRunningFromSourcesSupplier.get()) {
+    if (myIsRunningFromSourcesSupplier.get()) {
       // Development mode
       return getDir(mySourcesRootSupplier.get(), myDevDir);
     } else {
@@ -124,20 +124,17 @@ public final class DeployableFile {
     @NotNull private final String myFileName;
     @NotNull private String myReleaseDir = Constants.PERFA_RELEASE_DIR;
     // TODO b/122597221 refactor general agent code to be outside of profiler-specific directory.
-    @NotNull private String myDevDir = Constants.PERFA_DEV_DIR;
+    @NotNull private String myDevDir = Constants.PERFA_RELEASE_DIR; // This does not work in IDEA: Constants.PERFA_DEV_DIR;
+                                                                    // Any attempt to access a file relative to WORKSPACE_ROOT does not work in IDEA.
     @Nullable private String myOnDeviceAbiFileNameFormat;
 
     @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = StudioPathManager::isRunningFromSources;
     @NotNull private Supplier<String> myHomePathSupplier = () -> {
-      if (IdeInfo.getInstance().isAndroidStudio()){
-        return PathManager.getHomePath();
-      } else {
         AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
         return AndroidProfilerDownloader.getInstance().getPluginDir().getAbsolutePath();
-      }
     };
-    @NotNull private Supplier<String> mySourcesRootSupplier = StudioPathManager::getSourcesRoot;
-
+    @NotNull private Supplier<String> mySourcesRootSupplier = myHomePathSupplier; // This does not work in IDEA: StudioPathManager::getSourcesRoot;
+                                                                                  // Any attempt to access a file relative to WORKSPACE_ROOT does not work in IDEA.
     private boolean myExecutable = false;
 
     public Builder(@NotNull String fileName) {
