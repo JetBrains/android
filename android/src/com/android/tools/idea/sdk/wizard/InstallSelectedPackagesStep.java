@@ -53,8 +53,12 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.GuiUtils;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.nio.file.Path;
@@ -66,7 +70,11 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.StyleConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +96,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   private JPanel myContentPanel;
   private JBLabel myLabelSdkPath;
   private JBLabel myProgressOverallLabel;
-  private JTextArea mySdkManagerOutput;
+  private JTextPane mySdkManagerOutput;
   private JProgressBar myProgressBar;
   private JBLabel myProgressDetailLabel;
 
@@ -103,6 +111,8 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   private final boolean myBackgroundable;
   private InstallerFactory myFactory;
   private boolean myThrottleProgress;
+
+  private MutableAttributeSet myOutputStyle;
 
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
@@ -153,6 +163,8 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   @Override
   protected void onEntering() {
     mySdkManagerOutput.setText("");
+    mySdkManagerOutput.setFont(JBFont.create(new Font("Monospaced", Font.PLAIN, 13)));
+    myOutputStyle = mySdkManagerOutput.addStyle(null, null);
     Path path = myRepoManager.getLocalPath();
     if (path == null) {
       File defaultPath = IdeSdks.getInstance().getAndroidSdkPath();
@@ -357,31 +369,31 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
     @Override
     public void logWarning(@NotNull String s) {
-      appendText(s);
+      appendText(s, JBColor.RED);
       myLogger.warn(s);
     }
 
     @Override
     public void logWarning(@NotNull String s, @Nullable Throwable e) {
-      appendText(s);
+      appendText(s, JBColor.RED);
       myLogger.warn(s, e);
     }
 
     @Override
     public void logError(@NotNull String s) {
-      appendText(s);
+      appendText(s, JBColor.RED);
       myLogger.error(s);
     }
 
     @Override
     public void logError(@NotNull String s, @Nullable Throwable e) {
-      appendText(s);
+      appendText(s, JBColor.RED);
       myLogger.error(s, e);
     }
 
     @Override
     public void logInfo(@NotNull String s) {
-      appendText(s);
+      appendText(s, JBColor.foreground());
       myLogger.info(s);
     }
 
@@ -389,12 +401,12 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     public void logVerbose(@NotNull String s) {
     }
 
-    private void appendText(@NotNull final String s) {
+    private void appendText(@NotNull final String text, @NotNull Color color) {
       UIUtil.invokeLaterIfNeeded(() -> {
         String current = mySdkManagerOutput.getText();
-        String separator = "\n";
+        int offset = 0;
         if (current == null) {
-          current = "";
+          mySdkManagerOutput.setText("");
         }
         else if (current.endsWith("\n")) {
           // Want to chew the first "extra" newline since in different places
@@ -404,9 +416,18 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
           // The calling code can still supply more than one newline,
           // and it will result in empty lines, since 2+ explicitly provided newlines
           // probably mean that this was the intention
-          separator = "";
+          offset = 1;
         }
-        mySdkManagerOutput.setText(current + separator + s);
+
+        Document document = mySdkManagerOutput.getStyledDocument();
+        StyleConstants.setForeground(myOutputStyle, color);
+        try {
+          document.insertString(document.getLength() - offset, text, myOutputStyle);
+          document.insertString(document.getLength(), "\n", myOutputStyle);
+        }
+        catch (BadLocationException exception) {
+          myLogger.warn(exception);
+        }
       });
     }
 

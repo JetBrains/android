@@ -33,12 +33,10 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="68480" class="javax.swing.JTextArea" binding="mySdkManagerOutput">
+          <component id="f43b" class="javax.swing.JTextPane" binding="mySdkManagerOutput">
             <constraints/>
             <properties>
               <editable value="false"/>
-              <lineWrap value="true"/>
-              <wrapStyleWord value="true"/>
             </properties>
           </component>
         </children>
