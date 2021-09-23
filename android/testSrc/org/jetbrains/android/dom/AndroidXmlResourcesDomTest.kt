@@ -17,10 +17,12 @@
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiPackage
 import com.intellij.util.ArrayUtil
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import java.util.Arrays
@@ -302,6 +304,33 @@ abstract class AndroidXPreferenceXmlDomTest : AndroidPreferenceXmlDomBase() {
       </resources>
       """
     )
+  }
+
+  fun testIntentTagClassAndPackageAttribute() {
+    val file = myFixture.addFileToProject("res/xml/preferences.xml", """
+      <PreferenceCategory xmlns:android="http://schemas.android.com/apk/res/android">
+        <intent android:action="android.intent.action.VIEW"
+                android:targetClass="androidx.preference.Preference"
+                android:targetPackage="androidx.preference"
+                android:data="data"
+                />
+      </PreferenceCategory>
+    """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    myFixture.checkHighlighting()
+
+    myFixture.moveCaret("androidx.preference.Pref|erence")
+    with(myFixture.elementAtCaret) {
+      assertThat(this).isInstanceOf(PsiClass::class.java)
+      assertThat((this as PsiClass).name).isEqualTo("Preference")
+    }
+
+    myFixture.moveCaret("\"androidx.prefe|rence\"")
+    with(myFixture.elementAtCaret) {
+      assertThat(this).isInstanceOf(PsiPackage::class.java)
+      assertThat((this as PsiPackage).name).isEqualTo("preference")
+    }
   }
 
   fun testPreferenceGroupChildrenCompletion_androidx() {
