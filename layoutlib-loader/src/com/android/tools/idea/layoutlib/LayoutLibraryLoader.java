@@ -90,7 +90,7 @@ public class LayoutLibraryLoader {
 
   @NotNull
   private static String getNativeLibraryPath(@NotNull String dataPath) {
-    return dataPath + "/" + getPlatformName() + (CpuArch.is32Bit() ? "/lib/" : "/lib64/");
+    return dataPath + "/" + getPlatformName() + "/lib64/";
   }
 
   @NotNull
