@@ -20,6 +20,7 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.google.common.collect.ImmutableMultimap
+import com.intellij.ide.util.PropertiesComponent
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,8 +32,8 @@ import kotlin.test.assertEquals
  * Tests for the node tree inside the [PlatformComponentsPanel]
  */
 class PlatformComponentsPanelTest {
-
   @Mock private lateinit var myConfigurable: SdkUpdaterConfigurable
+  @Mock private lateinit var propertiesComponent: PropertiesComponent
   private lateinit var closeable: AutoCloseable
 
   @Before
@@ -47,7 +48,7 @@ class PlatformComponentsPanelTest {
 
   @Test
   fun testSdkExtensions() {
-    val panel = PlatformComponentsPanel()
+    val panel = PlatformComponentsPanel(propertiesComponent)
     panel.setConfigurable(myConfigurable)
     val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
     panel.setPackages(ImmutableMultimap.of(
@@ -78,7 +79,7 @@ class PlatformComponentsPanelTest {
   @Test
   fun testInvalidSdk() {
     //SDKs with AndroidVersion api 0 will be ignored (b/191014630)
-    val panel = PlatformComponentsPanel()
+    val panel = PlatformComponentsPanel(propertiesComponent)
     panel.setConfigurable(myConfigurable)
     val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
     panel.setPackages(ImmutableMultimap.of(
@@ -104,7 +105,7 @@ class PlatformComponentsPanelTest {
 
   @Test
   fun testValidNodes() {
-    val panel = PlatformComponentsPanel()
+    val panel = PlatformComponentsPanel(propertiesComponent)
     panel.setConfigurable(myConfigurable)
     val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
     panel.setPackages(ImmutableMultimap.of(

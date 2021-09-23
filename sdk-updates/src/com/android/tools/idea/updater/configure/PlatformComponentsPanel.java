@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
@@ -46,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
  * Panel that shows all the packages corresponding to an AndroidVersion.
  */
 public class PlatformComponentsPanel {
+  private static final String PLATFORM_DETAILS_CHECKBOX_SELECTED = "updater.configure.platform.details.checkbox.selected";
+
   private TreeTableView myPlatformSummaryTable;
   private TreeTableView myPlatformDetailTable;
   private JPanel myPlatformPanel;
@@ -75,11 +78,23 @@ public class PlatformComponentsPanel {
   };
   private SdkUpdaterConfigurable myConfigurable;
 
-  public PlatformComponentsPanel() {
+  @SuppressWarnings("unused")
+  PlatformComponentsPanel() {
+    this(PropertiesComponent.getInstance());
+  }
+
+  @VisibleForTesting
+  PlatformComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
     myPlatformLoadingLabel.setForeground(JBColor.GRAY);
 
-    myPlatformDetailsCheckbox.addActionListener(e -> updatePlatformTable());
+    myPlatformDetailsCheckbox.setSelected(propertiesComponent.getBoolean(PLATFORM_DETAILS_CHECKBOX_SELECTED, false));
+    myPlatformDetailsCheckbox.addActionListener(e -> {
+      propertiesComponent.setValue(PLATFORM_DETAILS_CHECKBOX_SELECTED, myPlatformDetailsCheckbox.isSelected());
+      updatePlatformTable();
+    });
+    updatePlatformTable();
+
     myHideObsoletePackagesCheckbox.addActionListener(e -> updatePlatformItems());
   }
 
