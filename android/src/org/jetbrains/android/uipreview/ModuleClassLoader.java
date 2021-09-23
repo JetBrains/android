@@ -208,7 +208,16 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
    * time. This class loader adds additional parents to the chain so {@link ClassLoader#getParent()} can not be used directly.
    */
   boolean isCompatibleParentClassLoader(@Nullable ClassLoader parent) {
-    return myParentAtConstruction == parent;
+    return getParentAtConstruction() == parent;
+  }
+
+  /**
+   * Returns the given parent {@link ClassLoader} at construction time.
+   * This class loader adds additional parents to the chain so {@link ClassLoader#getParent()} can not be used directly.
+   */
+  @Nullable
+  ClassLoader getParentAtConstruction() {
+    return myParentAtConstruction;
   }
 
   @NotNull
