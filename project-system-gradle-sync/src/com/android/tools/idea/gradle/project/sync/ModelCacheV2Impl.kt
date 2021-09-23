@@ -238,19 +238,6 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     )
   }
 
-  // TODO(b/188413335): we shouldn't be looking for patterns in the path. Rework classesFolder on IDE side.
-  fun classFolderFrom(classesFolders: Set<File>): File {
-    return classesFolders.first { FileUtils.toSystemIndependentPath(it.absolutePath).contains("/javac/") }
-  }
-
-  // TODO(b/188413335): we shouldn't be looking for patterns in the path. Rework classesFolder on IDE side.
-  fun additionalClassesFoldersFrom(classesFolders: Set<File>): List<File> {
-    return classesFolders.filter {
-      val path = FileUtils.toSystemIndependentPath(it.absolutePath)
-      !path.contains("/javac/") && !path.contains("/java_res/")
-    }.distinct()
-  }
-
   fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
       name = flavor.name,
@@ -713,13 +700,13 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       name = convertV2ArtifactName(name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = classFolderFrom(artifact.classesFolders),
+      classesFolder = artifact.classesFolders.single(),
       javaResourcesFolder = null,
       ideSetupTaskNames = copy(artifact::ideSetupTaskNames).toList(),
       mutableGeneratedSourceFolders = copy(artifact::generatedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
       variantSourceProvider = copyNewModel(artifact::variantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::multiFlavorSourceProvider, ::sourceProviderFrom),
-      additionalClassesFolders = additionalClassesFoldersFrom(artifact.classesFolders),
+      additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = dependenciesFrom(artifactDependencies, libraries, buildNameMap),
       applicationId = "",
       generatedResourceFolders = copy(artifact::generatedResourceFolders, ::deduplicateFile).distinct(),
@@ -759,13 +746,13 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       name = convertV2ArtifactName(name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      classesFolder = classFolderFrom(artifact.classesFolders),
+      classesFolder = artifact.classesFolders.single(),
       javaResourcesFolder = null,
       ideSetupTaskNames = copy(artifact::ideSetupTaskNames, ::deduplicateString).toList(),
       mutableGeneratedSourceFolders = copy(artifact::generatedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
       variantSourceProvider = copyNewModel(artifact::variantSourceProvider, ::sourceProviderFrom),
       multiFlavorSourceProvider = copyNewModel(artifact::multiFlavorSourceProvider, ::sourceProviderFrom),
-      additionalClassesFolders = additionalClassesFoldersFrom(artifact.classesFolders).toList(),
+      additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = dependenciesFrom(variantDependencies, libraries, buildNameMap),
       mockablePlatformJar = copy(artifact::mockablePlatformJar),
       isTestArtifact = name == "_unit_test_"
