@@ -32,7 +32,7 @@ import com.android.utils.HtmlBuilder
 fun analyzeLocaleText(renderResult: RenderResult,
                       baseConfigIssues: VisualLintBaseConfigIssues,
                       model: NlModel,
-                      output: VisualLintIssues) {
+                      output: VisualLintIssueProvider) {
   val config = renderResult.renderContext?.configuration
 
   if (isBaseConfig(config)) {
@@ -76,7 +76,7 @@ private fun isBaseConfig(config: Configuration?): Boolean {
 private fun findLocaleTextIssue(root: ViewInfo,
                                 baseConfigIssues: VisualLintBaseConfigIssues,
                                 model: NlModel,
-                                output: VisualLintIssues) {
+                                output: VisualLintIssueProvider) {
   root.children.forEach {
     findLocaleTextIssue(it, baseConfigIssues, model, output)
   }
@@ -96,7 +96,7 @@ private fun createEllipsizedIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: VisualLintIssues) {
+                                  output: VisualLintIssueProvider) {
 
   if (value != null && !value.hasI18NEllipsis) {
     // Base locale is not ellipsized but current locale is.
@@ -120,7 +120,7 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: VisualLintIssues) {
+                                  output: VisualLintIssueProvider) {
   if (value == null) {
     // We cannot find the base locale information. Create an issue nonetheless to warn users.
     createIssue(

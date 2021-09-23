@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.tools.idea.common.error.Issue
+import java.util.concurrent.ConcurrentHashMap
 
 /** List of visual lint issues. */
 class VisualLintIssues {
@@ -24,10 +25,10 @@ class VisualLintIssues {
    * Range based hashed map - used for detecting different config same issues.
    * Source of truth.
    */
-  private val _map = HashMap<Int, Issue>()
+  private val _map = ConcurrentHashMap<Int, Issue>()
 
   /** For accessing by type. To be used later for categorization. */
-  private val _mapByType = HashMap<VisualLintErrorType, Issue>()
+  private val _mapByType = ConcurrentHashMap<VisualLintErrorType, Issue>()
 
   val list: Collection<Issue>
     get() = _map.values
