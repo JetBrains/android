@@ -16,9 +16,6 @@
 package com.android.tools.idea.npw.module.recipes.androidModule
 
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
@@ -26,7 +23,10 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.has
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
@@ -37,6 +37,7 @@ fun RecipeExecutor.generateAndroidModule(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
+  val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -44,7 +45,8 @@ fun RecipeExecutor.generateAndroidModule(
     manifestXml = generateManifest(
       packageName = data.packageName,
       hasApplicationBlock = !data.isLibrary,
-      theme = "@style/${data.themesData.main.name}"
+      theme = "@style/${data.themesData.main.name}",
+      addBackupRules = addBackupRules
     ),
     generateTests = true,
     themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
@@ -68,4 +70,49 @@ fun RecipeExecutor.generateAndroidModule(
   if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {
     addDependency("com.google.android.gms:play-services-wearable:+", "compile")
   }
+
+  if (addBackupRules) {
+    save(getBackupRules(), data.resDir.resolve("xml/backup_rules.xml"))
+    save(getDataExtractionRules(), data.resDir.resolve("xml/data_extraction_rules.xml"))
+  }
 }
+
+private fun getBackupRules() = """
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older that API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+<!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>
+"""
+
+private fun getDataExtractionRules() = """
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Use <include> and <exclude> to control what is backed up.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>
+"""
