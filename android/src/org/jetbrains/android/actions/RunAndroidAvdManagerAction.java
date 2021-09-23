@@ -49,7 +49,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     switch (event.getPlace()) {
       case ActionPlaces.TOOLBAR:
         // Layout editor device menu
-        presentation.setText("Add Device Definition...");
+        presentation.setText("Add Device Definition…");
         presentation.setIcon(null);
         break;
       case ActionPlaces.UNKNOWN:
