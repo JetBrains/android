@@ -363,6 +363,24 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
+    fun testKmp() {
+      val text = importSyncAndDumpProject("../projects/testArtifacts/kotlinMultiplatform")
+      assertIsEqualToSnapshot(text)
+    }
+
+    @Test
+    fun testKmp_mpss() {
+      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
+      try {
+        val text = importSyncAndDumpProject("../projects/testArtifacts/kotlinMultiplatform")
+        assertIsEqualToSnapshot(text)
+      }
+      finally {
+        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
+      }
+    }
+
+    @Test
     fun testKapt() {
       importSyncAndDumpProject(KOTLIN_KAPT) { project ->
         val debugBefore = project.saveAndDump()

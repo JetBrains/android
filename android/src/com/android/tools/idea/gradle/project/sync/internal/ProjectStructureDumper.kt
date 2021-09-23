@@ -389,7 +389,9 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.phasesToDumpBefore?.forEach { prop("- phasesToDumpBefore") { it } }
     // TODO(b/136991404): Review whether the following sorted() is safe.
     compilerArguments.pluginClasspaths?.map { it.toPrintablePath() }?.sorted()?.forEach { prop("- pluginClasspaths") { it } }
-    compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") { it } }
+    compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") {
+      it.nullizePrefixedWith("plugin:org.jetbrains.kotlin.android:configuration=") }
+    }
     prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
     prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }
     prop("properIeee754Comparisons") { compilerArguments.properIeee754Comparisons.takeIf { it }?.toString() }
@@ -401,6 +403,8 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.verbosePhases?.forEach { prop("- verbosePhases") { it } }
   }
 }
+
+private fun String.nullizePrefixedWith(vararg prefixes: String): String? = if (prefixes.any { this.startsWith(it) }) null else this
 
 private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   nest {
