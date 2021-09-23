@@ -17,12 +17,14 @@ package org.jetbrains.android.refactoring.renaming
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.resources.ValueResourceNameValidator
+import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
 import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
+import com.android.tools.idea.res.isFileBased
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -41,6 +43,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiElement
@@ -301,6 +304,8 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     providedName: String?
   ) : RenameDialog(project, resourceReferenceElement, nameSuggestionContext, editor) {
 
+    private var nameValidator: InputValidatorEx? = null
+
     init {
       if (providedName != null) {
         (nameSuggestionsField.focusableComponent as? EditorTextField)?.text = providedName
@@ -318,12 +323,30 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       }
     }
 
+    // This method is called by the superclass constructor before this object is fully constructed.
     override fun canRun() {
       val name = newName
-      val errorText = ValueResourceNameValidator.getErrorText(name, null)
+      val errorText = getNameValidator().getErrorText(name)
       if (errorText != null) {
         throw ConfigurationException(errorText)
       }
+    }
+
+    private fun getNameValidator(): InputValidatorEx {
+      var validator = nameValidator
+      if (validator == null) {
+        val resourceType = (psiElement as ResourceReferencePsiElement).resourceReference.resourceType
+        validator = if (resourceType.isFileBased()) {
+          // Guaranteed to be not null for a file based resource type.
+          val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)!!
+          IdeResourceNameValidator.forFilename(resourceFolderType)
+        }
+        else {
+          IdeResourceNameValidator.forResourceName(resourceType)
+        }
+        nameValidator = validator
+      }
+      return validator
     }
   }
 }
