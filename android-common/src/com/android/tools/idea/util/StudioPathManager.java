@@ -52,7 +52,11 @@ public class StudioPathManager {
   /**
    * @return returns the root of the Android repo when running from sources. This method
    * should be called only when {@link #isRunningFromSources()} returns true.
+   *
+   * @deprecated Any attempt to access a file relative to WORKSPACE ROOT does not work in IDEA.
+   * Please consider rewriting usages to `resolve("relative/path")`, so IDEA can override path resolution logic
    */
+  @Deprecated
   public static String getSourcesRoot() {
     assert isRunningFromSources();
 
