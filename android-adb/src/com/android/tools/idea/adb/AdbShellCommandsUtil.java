@@ -60,7 +60,7 @@ public class AdbShellCommandsUtil {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
     String fullCommand = errorCheck ? String.format("%s%s", command, COMMAND_ERROR_CHECK_SUFFIX) : command;
-    executeCommandImpl(device, fullCommand, new MultiLineReceiver() {
+    MultiLineReceiver receiver = new MultiLineReceiver() {
       @Override
       public void processNewLines(@NotNull String[] lines) {
         Arrays.stream(lines).forEach(commandOutput::add);
@@ -70,7 +70,9 @@ public class AdbShellCommandsUtil {
       public boolean isCancelled() {
         return false;
       }
-    });
+    };
+    receiver.setTrimLine(false);
+    executeCommandImpl(device, fullCommand, receiver);
 
     // Look for error marker in the last 2 output lines
     boolean isError = false;
