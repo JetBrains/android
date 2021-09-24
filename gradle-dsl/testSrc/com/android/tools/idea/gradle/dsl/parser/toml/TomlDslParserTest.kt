@@ -215,6 +215,24 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testInlineTable() {
+    val toml = """
+      [libraries]
+      junit = { module = "junit:junit", version = "4.13" }
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit", "version" to "4.13")))
+    doTest(toml, expected)
+  }
+
+  fun testInlineTableWithImplicitTables() {
+    val toml = """
+      [libraries]
+      junit = { module = "junit:junit", version.ref = "junit" }
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit", "version" to mapOf("ref" to "junit"))))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = writeLibsTomlFile(text)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}

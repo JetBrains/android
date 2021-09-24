@@ -97,14 +97,22 @@ class TomlDslParser(
 
       override fun visitKeyValue(element: TomlKeyValue) {
         doVisit("TomlKeyValue (${element.text})") {
-          // TODO(b/200280395): need to support
-          //  - inline maps `foo = { ... }`
           element.key.doWithContext(context) { segment, context ->
             val name = GradleNameElement.from(segment, this@TomlDslParser)
-            val literal = GradleDslLiteral(context, element, name, element.value!!, LITERAL)
-            context.addParsedElement(literal)
+            when (val value = element.value) {
+              is TomlLiteral -> {
+                val literal = GradleDslLiteral(context, element, name, value, LITERAL)
+                context.addParsedElement(literal)
+              }
+              is TomlInlineTable -> {
+                val map = GradleDslExpressionMap(context, element, name, true)
+                context.addParsedElement(map)
+                getVisitor(map).let { visitor -> value.entries.forEach { it.accept(visitor) } }
+              }
+              is TomlArray -> Unit // TODO(b/200280395): need to support arrays
+              else -> Unit
+            }
           }
-          super.visitKeyValue(element)
         }
       }
     }
