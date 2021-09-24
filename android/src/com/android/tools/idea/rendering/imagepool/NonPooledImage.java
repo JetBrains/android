@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering.imagepool;
 
+import static com.android.tools.idea.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
+
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,15 +26,30 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
 
-class NonPooledImage implements ImagePool.Image {
+class NonPooledImage implements ImagePool.Image, DisposableImage {
+  private static final Logger LOG = Logger.getInstance(NonPooledImage.class);
+  // Track dispose call when assertions are enabled
+  private static final boolean ourTrackDisposeCall = NonPooledImage.class.desiredAssertionStatus();
+
   private BufferedImage myImage;
   private final int myWidth;
   private final int myHeight;
+  /**
+   * If we are tracking the dispose calls, this will contain the stack trace of the first caller to dispose
+   */
+  private StackTraceElement[] myDisposeStackTrace = null;
 
   private NonPooledImage(@NotNull BufferedImage image) {
     myImage = image;
     myHeight = myImage.getHeight();
     myWidth = myImage.getWidth();
+  }
+
+  private void assertIfDisposed() {
+    if (myDisposeStackTrace != null) {
+      LOG.warn("Accessing already disposed image\nDispose trace: \n" + stackTraceToAssertionString(myDisposeStackTrace),
+               new Throwable());
+    }
   }
 
   @Override
@@ -46,20 +64,20 @@ class NonPooledImage implements ImagePool.Image {
 
   @Override
   public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
-    assert myImage != null : "Image already disposed";
+    assertIfDisposed();
     g.drawImage(myImage, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
   }
 
   @Override
   public void paint(Consumer<Graphics2D> command) {
-    assert myImage != null : "Image already disposed";
+    assertIfDisposed();
     command.accept(myImage.createGraphics());
   }
 
   @Nullable
   @Override
   public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
-    assert myImage != null : "Image already disposed";
+    assertIfDisposed();
     if (x == 0 && y == 0 && w == getWidth() && h == getHeight()) {
       return copy(myImage);
     }
@@ -68,6 +86,9 @@ class NonPooledImage implements ImagePool.Image {
 
   @Override
   public void dispose() {
+    if (ourTrackDisposeCall) {
+      myDisposeStackTrace = Thread.currentThread().getStackTrace();
+    }
     myImage = null;
   }
 

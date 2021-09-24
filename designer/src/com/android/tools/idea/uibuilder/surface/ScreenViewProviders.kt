@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.flags.StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS
+import com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -268,6 +269,9 @@ internal fun composeProvider(surface: NlDesignSurface,
         })
         NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
           add(ClassLoadingDebugLayer(surface.models.first().facet.module))
+        }
+        NELE_RENDER_DIAGNOSTICS.ifEnabled {
+          add(DiagnosticsLayer(surface))
         }
       }.build()
     }

@@ -39,7 +39,7 @@ public class NonPooledImageTest {
     assertEquals(150, image1copy.getHeight());
     assertEquals(BufferedImage.TYPE_INT_ARGB, image1copy.getType());
 
-    image1.dispose();
+    ImagePoolImageDisposer.disposeImage(image1);
   }
 
   private static void paintSampleImage(@NotNull Graphics2D g) {
@@ -70,6 +70,6 @@ public class NonPooledImageTest {
     golden = golden.getSubimage(20, 40, 50, 50);
     BufferedImage subCopy = image1.getCopy(20, 40, 50, 50);
     ImageDiffUtil.assertImageSimilar("sample", golden, subCopy, 0.0);
-    image1.dispose();
+    ImagePoolImageDisposer.disposeImage(image1);
   }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.imagepool;
 
+import static com.android.tools.idea.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
 import com.google.common.base.FinalizableReferenceQueue;
@@ -432,9 +434,9 @@ class ImagePoolImpl implements ImagePool {
     myPool.clear();
   }
 
-  public static class ImageImpl implements ImagePool.Image {
+  static class ImageImpl implements ImagePool.Image, DisposableImage {
     // Track dispose call when assertions are enabled
-    private static boolean ourTrackDisposeCall = ImageImpl.class.desiredAssertionStatus();
+    private static final boolean ourTrackDisposeCall = ImageImpl.class.desiredAssertionStatus();
 
     private FinalizablePhantomReference<ImagePool.Image> myOwnReference = null;
     private ReadWriteLock myLock = new ReentrantReadWriteLock();
@@ -458,27 +460,10 @@ class ImagePoolImpl implements ImagePool {
       myBuffer = image;
     }
 
-    @NotNull
-    private static String stackTraceToAssertionString(@Nullable StackTraceElement[] trace) {
-      if (trace == null) {
-        return "Image was already disposed";
-      }
-
-      StringBuilder builder = new StringBuilder("Image was already disposed at: \n");
-      int i = 0;
-      for (StackTraceElement element : trace) {
-        if (i++ == 0) {
-          // Skip the first line since it will always show as Thread.getStackTrace()
-          continue;
-        }
-        builder.append("\t\t").append(element.toString()).append('\n');
-      }
-
-      return builder.toString();
-    }
-
     private void assertIfDisposed() {
-      assert myBuffer != null : stackTraceToAssertionString(myDisposeStackTrace);
+      if (myDisposeStackTrace != null) {
+        LOG.warn("Accessing already disposed image\nDispose trace: \n" + stackTraceToAssertionString(myDisposeStackTrace));
+      }
     }
 
     @Override

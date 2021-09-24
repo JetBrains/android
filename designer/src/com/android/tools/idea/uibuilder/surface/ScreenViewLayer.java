@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.AlphaComposite;
@@ -156,40 +156,43 @@ public class ScreenViewLayer extends Layer {
     }
 
     Graphics2D g = (Graphics2D) graphics2D.create();
-    BufferedImage cachedVisibleImage = drawNewImg ? null : previousVisibleImage;
+    BufferedImage[] cachedVisibleImage = new BufferedImage[1];
+    cachedVisibleImage[0] = drawNewImg ? null : previousVisibleImage;
     double currentScale = myScreenView.getScale();
     //noinspection FloatingPointEquality
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null) {
         ImagePool.Image image = myLastRenderResult.getRenderedImage();
-        if (image.isValid()) {
-          int resultImageWidth = image.getWidth();
-          int resultImageHeight = image.getHeight();
+        ImagePoolImageDisposer.runWithDisposeLock(image, theImage -> {
+          if (theImage.isValid()) {
+            int resultImageWidth = theImage.getWidth();
+            int resultImageHeight = theImage.getHeight();
 
-          myCachedScreenViewDisplayRect.setBounds(myScreenViewVisibleRect);
-          // Obtain the factors to convert from screen view coordinates to our result image coordinates
-          double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
-          double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+            myCachedScreenViewDisplayRect.setBounds(myScreenViewVisibleRect);
+            // Obtain the factors to convert from screen view coordinates to our result image coordinates
+            double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
+            double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
 
-          cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), image,
-                                               myScreenView.getX(), myScreenView.getY(),
-                                               myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
-                                               previousVisibleImage, myScreenView.hasBorderLayer());
-          myCachedVisibleImage = cachedVisibleImage;
-          myLastScale = currentScale;
-        } else {
-          // The image is not valid, keep using the previously cached one, if available.
-          cachedVisibleImage = myCachedVisibleImage;
-        }
+            cachedVisibleImage[0] = getPreviewImage(g.getDeviceConfiguration(), theImage,
+                                                 myScreenView.getX(), myScreenView.getY(),
+                                                 myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
+                                                 previousVisibleImage, myScreenView.hasBorderLayer());
+            myCachedVisibleImage = cachedVisibleImage[0];
+            myLastScale = currentScale;
+          } else {
+            // The image is not valid, keep using the previously cached one, if available.
+            cachedVisibleImage[0] = myCachedVisibleImage;
+          }
+        });
       }
     }
 
-    if (cachedVisibleImage != null) {
+    if (cachedVisibleImage[0] != null) {
       Shape screenShape = myScreenView.getScreenShape();
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      StartupUiUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
+      StartupUiUtil.drawImage(g, cachedVisibleImage[0], myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();
   }

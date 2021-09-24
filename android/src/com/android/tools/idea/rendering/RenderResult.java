@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -109,7 +110,7 @@ public class RenderResult {
     myDisposeLock.writeLock().lock();
     try {
       isDisposed = true;
-      myImage.dispose();
+      ImagePoolImageDisposer.disposeImage(myImage);
     } finally {
       myDisposeLock.writeLock().unlock();
     }
