@@ -398,7 +398,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                           @NotNull String fileName) {
     File dir;
     if (StudioPathManager.isRunningFromSources()) {
-      dir = new File(StudioPathManager.getSourcesRoot(), devDir);
+      dir = new File(StudioPathManager.resolveDevPath(devDir));
     } else {
       dir = new File(PathManager.getHomePath(), releaseDir);
     }

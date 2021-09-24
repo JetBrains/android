@@ -302,7 +302,7 @@ class AndroidLiveLiteralDeployMonitor {
     File path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer");
+      path = new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer"));
     } else {
       path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
     }

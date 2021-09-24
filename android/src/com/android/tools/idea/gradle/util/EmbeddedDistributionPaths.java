@@ -78,9 +78,8 @@ public class EmbeddedDistributionPaths {
       // Add prebuilts repo.
       repoCandidates.add("prebuilts/tools/common/m2/repository");
 
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
       for (String candidate : repoCandidates) {
-        File offlineRepo = new File(toCanonicalPath(Paths.get(sourcesRoot, candidate).toString()));
+        File offlineRepo = new File(toCanonicalPath(Paths.get(StudioPathManager.resolveDevPath(candidate)).toString()));
         if (offlineRepo.isDirectory()) {
           repoPaths.add(offlineRepo);
         }
@@ -110,7 +109,7 @@ public class EmbeddedDistributionPaths {
     if (StudioPathManager.isRunningFromSources()) {
       // Development build
       assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
-      return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
+      return new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/profiler/transform/profilers-transform.jar"));
     } else {
       @Nullable File file = getOptionalIjPath("plugins/android/resources/profilers-transform.jar");
       if (file != null && file.exists()) {
@@ -133,7 +132,7 @@ public class EmbeddedDistributionPaths {
     }
       // Development mode
     assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
-    return new File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer").getAbsolutePath();
+    return new File(StudioPathManager.resolveDevPath("bazel-bin/tools/base/deploy/installer/android-installer")).getAbsolutePath();
   }
 
   @Nullable
@@ -152,9 +151,8 @@ public class EmbeddedDistributionPaths {
     //noinspection IfStatementWithIdenticalBranches
     if (StudioPathManager.isRunningFromSources()) {
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
       String relativePath = toSystemDependentName("tools/external/gradle");
-      File distributionPath = new File(toCanonicalPath(Paths.get(sourcesRoot, relativePath).toString()));
+      File distributionPath = new File(toCanonicalPath(Paths.get(StudioPathManager.resolveDevPath(relativePath)).toString()));
       if (distributionPath.isDirectory()) {
         return distributionPath;
       }
@@ -222,8 +220,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
-      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
+      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(StudioPathManager.resolveDevPath("prebuilts/studio/jdk")).toString());
       String relativePath = toSystemDependentName(jdkDevPath);
       Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {

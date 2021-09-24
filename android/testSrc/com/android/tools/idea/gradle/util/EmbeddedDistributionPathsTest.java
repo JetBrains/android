@@ -37,10 +37,9 @@ public class EmbeddedDistributionPathsTest extends TestCase {
 
   @Test
   public void testFindAndroidStudioLocalMavenRepoPaths() {
-    File rootDir = new File(StudioPathManager.getSourcesRoot());
-    List<File> expectedRepo = Arrays.asList(new File(rootDir, "out/repo"),
-                                            new File(rootDir, "out/studio/repo"),
-                                            new File(rootDir, "prebuilts/tools/common/m2/repository"));
+    List<File> expectedRepo = Arrays.asList(new File(StudioPathManager.resolveDevPath("out/repo")),
+                                            new File(StudioPathManager.resolveDevPath("out/studio/repo")),
+                                            new File(StudioPathManager.resolveDevPath("prebuilts/tools/common/m2/repository")));
     expectedRepo = expectedRepo.stream().filter(File::isDirectory).collect(Collectors.toList());
     // Invoke the method to test.
     List<File> paths = inst.doFindAndroidStudioLocalMavenRepoPaths();
