@@ -36,6 +36,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.xml.XmlAttributeImpl;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlChildRole;
@@ -273,13 +274,12 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       AttributeProcessingUtil.processLayoutAttributes(facet, tag, (LayoutElement)element, registeredAttributes,
                                                       (xmlName, attrDef, parentStyleableName) -> {
         if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
-          final String localName = xmlName.getLocalName();
+          String realName = XmlAttributeImpl.getRealName(attribute);
+          final String lookupElementString =
+            realName.length() == 0 ? namespacePrefix + ":" + xmlName.getLocalName() : xmlName.getLocalName();
 
-          // Lookup string is something that would be inserted when attribute is completed, so we want to use
-          // local name as an argument of .create(), otherwise we'll end up with getting completions like
-          // "tools:tools:src".
           final LookupElementBuilder lookupElement =
-            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE);
+            LookupElementBuilder.create(psiElement, lookupElementString).withInsertHandler(XmlAttributeInsertHandler.INSTANCE);
           resultSet.addElement(lookupElement);
         }
         return null;

@@ -826,6 +826,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                           "tools_designtime_completion_background_after.xml")
   }
 
+  // Designtime attributes completion after having typed tools:
+  fun testDesigntimeAttributesCompletion3() {
+    doTestCompletionVariantsContains("tools_designtime_prefix_only.xml", "tools:background")
+  }
+
   fun testToolsUseHandlerAttribute() {
     doTestCompletionVariants("tools_use_handler_completion.xml", "android.view.TextureView",
                              "android.widget.AutoCompleteTextView",
@@ -928,20 +933,20 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testToolsAttributesForOldRecyclerView() {
     myFixture.addClass(recyclerViewOld)
-    doTestCompletionVariants("recycler_view_2.xml",
-                             "tools:targetApi",
-                             "tools:itemCount",
-                             "tools:listitem",
-                             "tools:viewBindingType")
+    doTestCompletionVariantsContains("recycler_view_2.xml",
+                                     "tools:targetApi",
+                                     "tools:itemCount",
+                                     "tools:listitem",
+                                     "tools:viewBindingType")
   }
 
   fun testToolsAttributesForNewRecyclerView() {
     myFixture.addClass(recyclerViewNew)
-    doTestCompletionVariants("recycler_view_3.xml",
-                             "tools:targetApi",
-                             "tools:itemCount",
-                             "tools:listitem",
-                             "tools:viewBindingType")
+    doTestCompletionVariantsContains("recycler_view_3.xml",
+                                     "tools:targetApi",
+                                     "tools:itemCount",
+                                     "tools:listitem",
+                                     "tools:viewBindingType")
   }
 
   fun testCustomTagCompletion() {
@@ -1492,9 +1497,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   fun testFragmentCompletion7() {
-    doTestCompletionVariants("fragmentCompletion7.xml",
-                             "tools:layout",
-                             "tools:targetApi")
+    doTestCompletionVariantsContains("fragmentCompletion7.xml",
+                                     "tools:layout",
+                                     "tools:targetApi",
+                                     "tools:ignore")
   }
 
   fun testCustomAttrsPerformance() {
@@ -2145,12 +2151,13 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testToolsCompletion() {
     // Don't offer tools: completion for the mockup editor yet.
     // Also tests that the current expected set of tools attributes are offered.
-    doTestCompletionVariants("toolsCompletion.xml",
-                             "tools:listfooter",
-                             "tools:listheader",
-                             "tools:listitem",
-                             "tools:targetApi",
-                             "tools:viewBindingType")
+    doTestCompletionVariantsContains("toolsCompletion.xml",
+                                     "tools:listfooter",
+                                     "tools:listheader",
+                                     "tools:listitem",
+                                     "tools:targetApi",
+                                     "tools:viewBindingType",
+                                     "tools:ignore")
   }
 
   // Regression test for http://b/66240917
