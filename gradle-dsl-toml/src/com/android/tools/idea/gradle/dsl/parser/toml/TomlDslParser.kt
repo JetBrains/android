@@ -83,19 +83,10 @@ class TomlDslParser(
         doVisit("TomlTable") {
           val key = element.header.key
           if (key != null) {
-            val segments = key.segments
-            val lastSegmentIndex = segments.size - 1
-            var currentContext = context
-            segments.forEachIndexed { i, segment ->
-              if (i == lastSegmentIndex) {
-                val map = GradleDslExpressionMap(currentContext, element, GradleNameElement.from(segment, this@TomlDslParser), true)
-                currentContext.addParsedElement(map)
-                getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
-              }
-              else {
-                val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
-                currentContext = currentContext.ensurePropertyElement(description)
-              }
+            key.doWithContext(context) { segment, context ->
+              val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
+              context.addParsedElement(map)
+              getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
             }
           }
           else {
@@ -108,20 +99,10 @@ class TomlDslParser(
         doVisit("TomlKeyValue (${element.text})") {
           // TODO(b/200280395): need to support
           //  - inline maps `foo = { ... }`
-          val segments = element.key.segments
-          val lastSegmentIndex = segments.size - 1
-          var currentContext = context
-          segments.forEachIndexed { i, segment ->
-            if (i == lastSegmentIndex) {
-              val name = GradleNameElement.from(segment, this@TomlDslParser)
-              val literal = GradleDslLiteral(currentContext, element, name, element.value!!, LITERAL)
-              currentContext.addParsedElement(literal)
-            }
-            else {
-              val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
-              currentContext = currentContext.ensurePropertyElement(description)
-            }
-
+          element.key.doWithContext(context) { segment, context ->
+            val name = GradleNameElement.from(segment, this@TomlDslParser)
+            val literal = GradleDslLiteral(context, element, name, element.value!!, LITERAL)
+            context.addParsedElement(literal)
           }
           super.visitKeyValue(element)
         }
@@ -165,5 +146,15 @@ class TomlDslParser(
                                     parentElement: GradlePropertiesDslElement,
                                     nameElement: GradleNameElement?): GradlePropertiesDslElement? {
     return null
+  }
+}
+
+fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySegment, GradlePropertiesDslElement) -> Unit) {
+  val lastSegmentIndex = segments.size - 1
+  var currentContext = context
+  segments.forEachIndexed { i, segment ->
+    if (i == lastSegmentIndex) return thunk(segment, currentContext)
+    val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
+    currentContext = currentContext.ensurePropertyElement(description)
   }
 }
