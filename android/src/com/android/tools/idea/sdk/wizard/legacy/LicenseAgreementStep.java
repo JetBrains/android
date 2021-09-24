@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sdk.wizard.legacy;
 
-import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
-
 import com.android.repository.api.License;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -24,7 +22,6 @@ import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -47,6 +44,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -66,7 +64,6 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated Replaced by {@link com.android.tools.idea.sdk.wizard.LicenseAgreementStep}
  */
 public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
-  private final AndroidSdkHandler mySdkHandler;
   private final JTextPane myLicenseTextField;
   private final Tree myChangeTree;
   private final JRadioButton myDeclineRadioButton;
@@ -77,11 +74,16 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final Set<String> myVisibleLicenses = Sets.newHashSet();
   private String myCurrentLicense;
   private final Set<License> myLicenses = Sets.newHashSet();
+  private final Supplier<List<String>> myInstallRequests;
+  private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
 
-  private final Path mySdkRoot;
-
-  public LicenseAgreementStep(@NotNull Disposable disposable) {
+  public LicenseAgreementStep(@NotNull Disposable disposable,
+                              @NotNull Supplier<List<String>> installRequests,
+                              @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier) {
     super(disposable);
+
+    myInstallRequests = installRequests;
+    mySdkHandlerSupplier = sdkHandlerSupplier;
     Splitter splitter = new Splitter(false, .30f);
     splitter.setHonorComponentsMinimumSize(true);
 
@@ -108,13 +110,10 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
     setBodyComponent(mainPanel);
 
-    mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    mySdkRoot = mySdkHandler.getLocation();
+    initUI();
   }
 
-  @Override
-  public void init() {
-    super.init();
+  private void initUI() {
     myChangeTree.setModel(myTreeModel);
     myChangeTree.setShowsRootHandles(false);
     myLicenseTextField.setEditable(false);
@@ -197,7 +196,6 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         }
         else {
           append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-
         }
       }
     });
@@ -207,7 +205,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   @Override
   public boolean isStepVisible() {
-    return myState.listSize(INSTALL_REQUESTS_KEY) > 0 && !myLicenses.isEmpty();
+    return !myVisibleLicenses.isEmpty();
   }
 
   @Override
@@ -246,14 +244,15 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   private List<Change> createChangesList() {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    RepoManager sdkManager = mySdkHandlerSupplier.get().getSdkManager(progress);
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
                                                          StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     List<Change> toReturn = Lists.newArrayList();
-    List<String> requestedPackages = myState.get(INSTALL_REQUESTS_KEY);
+    List<String> requestedPackages = myInstallRequests.get();
 
     if (requestedPackages != null) {
+      Path sdkRoot = mySdkHandlerSupplier.get().getLocation();
       for (String path : requestedPackages) {
         RemotePackage p = remotePackages.get(path);
         License license = p.getLicense();
@@ -263,7 +262,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
               ((DetailsTypes.ApiDetailsType)p.getTypeDetails()).getAndroidVersion().isPreview());
         }
         myLicenses.add(license);
-        if (!license.checkAccepted(mySdkRoot)) {
+        if (!license.checkAccepted(sdkRoot)) {
           toReturn.add(new Change(ChangeType.INSTALL, p, license));
         }
       }
@@ -305,9 +304,14 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   public void performFinishingActions() {
+    Path sdkRoot = mySdkHandlerSupplier.get().getLocation();
     for (License license : myLicenses) {
-      license.setAccepted(mySdkRoot);
+      license.setAccepted(sdkRoot);
     }
+  }
+
+  public void reload() {
+    setChanges(createChangesList());
   }
 
   protected enum ChangeType {

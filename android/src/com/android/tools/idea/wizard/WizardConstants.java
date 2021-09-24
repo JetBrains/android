@@ -24,7 +24,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.util.List;
 
 /**
  * Constants for template based wizards.
@@ -64,8 +63,6 @@ public class WizardConstants {
 
   // State Store Keys
   // TODO After the wizard migration delete as many of these keys as possible
-  @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =
-    createKey("packagesToInstall", WIZARD, (Class<List<String>>)(Class)List.class);
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
   public static final Key<String> KEY_JDK_LOCATION = createKey("wizard.jdk.location", WIZARD, String.class);
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades

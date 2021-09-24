@@ -35,6 +35,7 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
@@ -81,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,6 +103,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private ComponentInstaller myComponentInstaller;
   private final boolean myInstallUpdates;
   private SdkComponentsStep myComponentsStep;
+  @Nullable private LicenseAgreementStep myLicenseAgreementStep;
 
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
@@ -224,6 +227,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
       addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION,
                                      WizardConstants.KEY_JDK_LOCATION, supplier));
+
+      Supplier<List<String>> installRequests = () -> {
+        Collection<RemotePackage> remotePackages = supplier.get();
+        return remotePackages == null ? null : remotePackages.stream().map(it -> it.getPath()).collect(Collectors.toList());
+      };
+      myLicenseAgreementStep = new LicenseAgreementStep(myWizard.getDisposable(), installRequests, () -> myLocalHandler);
+      addStep(myLicenseAgreementStep);
     }
   }
 
@@ -246,6 +256,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                   }), ImmutableList.of(() -> myComponentsStep.loadingError()),
                   new StudioProgressRunner(false, false, "Finding Available SDK Components", getProject()), new StudioDownloader(),
                   StudioSettingsController.getInstance());
+          if (myLicenseAgreementStep != null) {
+            myLicenseAgreementStep.reload();
+          }
         }
       }
     }
@@ -270,6 +283,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
     InstallComponentsOperation install =
       new InstallComponentsOperation(installContext, selectedComponents, myComponentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+
+    if (myLicenseAgreementStep != null) {
+      myLicenseAgreementStep.performFinishingActions();
+    }
 
     Sdk jdk = null;
     String jdkLocation = myState.get(KEY_JDK_LOCATION);
