@@ -252,7 +252,7 @@ public class ConfigurationManager implements Disposable {
     }
     String avdName = avd.getName();
     Device.Builder builder = new Device.Builder(modelDevice);
-    builder.setName(avdName);
+    builder.setName(avd.getDisplayName());
     builder.setId(Configuration.AVD_ID_PREFIX + avdName);
     return builder.build();
   }
