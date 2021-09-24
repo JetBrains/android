@@ -16,7 +16,9 @@ public final class TestProjectToSnapshotPaths {
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String KOTLIN_MULTIPLATFORM = "projects/kotlinMultiplatform";
   public static final String LINKED = "projects/linked";
+  public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String MULTI_FLAVOR = "projects/multiFlavor";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
@@ -30,6 +32,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40 = "projects/simpleApplication_corrupted_missing_iml_40";
   public static final String TEST_FIXTURES = "projects/testFixtures";
+  public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
   public static final String TWO_JARS = "projects/two_jars";
   public static final String VARIANT_SPECIFIC_DEPENDENCIES = "projects/variantSpecificDependencies";

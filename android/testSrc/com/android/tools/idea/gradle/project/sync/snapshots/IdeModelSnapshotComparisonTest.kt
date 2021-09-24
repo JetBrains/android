@@ -93,10 +93,10 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
+      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
       TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
-      TestProject("../projects/testOnlyModule"),
-      TestProject("../projects/testArtifacts/kotlinMultiplatform", incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
+      TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
+      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM, incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2)),
       )
 
     fun testProjectsFor(agpVersions: Collection<AgpVersion>) =
