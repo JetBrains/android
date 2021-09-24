@@ -283,6 +283,18 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ImageDiffUtil.assertImageSimilar("ic_delete", goldenImage, image, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
   }
 
+  public void testResolveAsIconFromStateListDrawable() throws IOException {
+    myFixture.copyFileToProject("resourceHelper/ic_delete.png", "res/drawable/ic_delete.png");
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/icon_state_list.xml", "res/drawable/icon_state_list.xml");
+    ResourceUrl url = ResourceUrl.parse("@drawable/icon_state_list");
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
+    ResourceValue value = rr.getResolvedResource(reference);
+    VirtualFile iconFile = IdeResourcesUtil.resolveDrawable(rr, value, getProject());
+    assertThat(iconFile.getName()).isEqualTo("ic_delete.png");
+    assertThat(iconFile.exists()).isTrue();
+  }
+
   public void testGetCompletionFromTypes() {
     myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");

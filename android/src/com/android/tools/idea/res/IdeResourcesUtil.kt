@@ -51,6 +51,7 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE
@@ -804,12 +805,15 @@ fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project):
 
   var result = resolvedDrawable.value
 
+  // For a StateListDrawable, look up the last state, which is typically the default.
   val stateList = resolveStateList(resolvedDrawable, project)
   if (stateList != null) {
     val states = stateList.states
     if (!states.isEmpty()) {
       val state = states[states.size - 1]
-      result = state.value
+      // If the state refers to another drawable with a ResourceUrl, we need to resolve it first to a file resource path.
+      val resourceValue = ResourceValueImpl(resolvedDrawable.asReference(), state.value)
+      result = resolveResValue(resourceValue)?.value
     }
   }
 
