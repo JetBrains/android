@@ -388,6 +388,7 @@ object AndroidAttributeFact {
       "targetApi" -> return NlPropertyType.STRING
       "viewBindingIgnore" -> return NlPropertyType.STRING
       "viewBindingType" -> return NlPropertyType.STRING
+      "ignore" -> return NlPropertyType.STRING
 
       // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NlPropertyType.ENUM

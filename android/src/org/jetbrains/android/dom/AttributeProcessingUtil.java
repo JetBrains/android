@@ -25,6 +25,7 @@ import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
 import static com.android.SdkConstants.ATTR_COMPOSABLE_NAME;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.ATTR_DISCARD;
+import static com.android.SdkConstants.ATTR_IGNORE;
 import static com.android.SdkConstants.ATTR_ITEM_COUNT;
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.ATTR_LAYOUT;
@@ -518,6 +519,7 @@ public class AttributeProcessingUtil {
     // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones.
     if (!(element instanceof DataBindingElement)) {
       registerToolsAttribute(ATTR_TARGET_API, callback);
+      registerToolsAttribute(ATTR_IGNORE, callback);
       if (tag.getParentTag() == null) {
         registerToolsAttribute(ATTR_CONTEXT, callback);
         registerToolsAttribute(ATTR_MENU, callback);
