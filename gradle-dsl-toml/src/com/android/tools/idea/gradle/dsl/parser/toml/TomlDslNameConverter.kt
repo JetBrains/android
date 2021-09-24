@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
@@ -31,4 +32,5 @@ interface TomlDslNameConverter: GradleDslNameConverter {
     is TomlKey -> element.name ?: element.text
     else -> element.text
   }
+    .let { GradleNameElement.escape(it) }
 }

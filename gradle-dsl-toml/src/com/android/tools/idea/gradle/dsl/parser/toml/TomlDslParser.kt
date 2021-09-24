@@ -83,9 +83,20 @@ class TomlDslParser(
         doVisit("TomlTable") {
           val key = element.header.key
           if (key != null) {
-            val map = GradleDslExpressionMap(context, element, GradleNameElement.from(key, this@TomlDslParser), true)
-            context.addParsedElement(map)
-            getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+            val segments = key.segments
+            val lastSegmentIndex = segments.size - 1
+            var currentContext = context
+            segments.forEachIndexed { i, segment ->
+              if (i == lastSegmentIndex) {
+                val map = GradleDslExpressionMap(currentContext, element, GradleNameElement.from(segment, this@TomlDslParser), true)
+                currentContext.addParsedElement(map)
+                getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+              }
+              else {
+                val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
+                currentContext = currentContext.ensurePropertyElement(description)
+              }
+            }
           }
           else {
             super.visitTable(element)
