@@ -134,7 +134,7 @@ class DeviceMenuAction2Test {
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
         Resizable (674 × 841 dp, xxhdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)
-        7.6" Fold-in with outer display (589 × 736 dp, xxhdpi)
+        7.6" Fold-in with outer display (674 × 841 dp, xxhdpi)
         8" Fold-out (838 × 945 dp, xxhdpi)
         Tablet (1280 × 800 dp, xxhdpi)
         10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
