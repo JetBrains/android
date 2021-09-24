@@ -51,6 +51,6 @@ class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
 
     val gradleWrapperFile = File(File(File(project.basePath, "gradle"), "wrapper"), "gradle-wrapper.properties")
     val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
-    assertThat(distributionUrlLine).contains("gradle-6.5-bin.zip")
+    assertThat(distributionUrlLine).contains("gradle-7.0.2-bin.zip")
   }
 }
