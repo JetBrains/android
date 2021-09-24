@@ -207,7 +207,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
   private void updateForwardStatus(boolean hasValidPath) {
     // Validation of import location can be superseded by lack of modules selected for import
-    myCanGoForward.set(hasValidPath && myModulesPanel.canImport() && myModulesPanel.getSelectedModules().isEmpty());
+    myCanGoForward.set(hasValidPath && myModulesPanel.canImport() && !myModulesPanel.getSelectedModules().isEmpty());
   }
 
   @NotNull
