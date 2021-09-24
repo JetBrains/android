@@ -80,10 +80,10 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks"),
+      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS),
       TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, skipV1toV2Comparison = true),
-      TestProject("../projects/testOnlyModule", v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
-      TestProject("../projects/testArtifacts/kotlinMultiplatform")
+      TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
+      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM)
     )
   }
 

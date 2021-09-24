@@ -77,7 +77,7 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks")
+      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS)
     )
   }
 
