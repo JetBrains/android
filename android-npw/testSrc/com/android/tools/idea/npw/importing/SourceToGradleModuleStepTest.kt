@@ -41,6 +41,12 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
     assertEquals(Validator.Severity.OK, page.checkPath(path).severity)
   }
 
+  fun testUpdateForwardStatusValidInput() {
+    val path = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING).path
+    page.updateForwardStatus(path)
+    assertEquals(true, page.canGoForward().get())
+  }
+
   fun testCheckPathDoesNotExist() {
     val path = File(AndroidTestBase.getTestDataPath(), "path_that_does_not_exist").path
     assertEquals(message("android.wizard.module.import.source.browse.invalid.location"), page.checkPath(path).message)
