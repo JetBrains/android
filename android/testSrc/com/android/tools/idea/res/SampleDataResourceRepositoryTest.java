@@ -103,11 +103,14 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "Insert image here 2\n");
     myFixture.addFileToProject("sampledata/images/image3.png",
                                "Insert image here 3\n");
+    myFixture.addFileToProject("sampledata/root_image.png",
+                               "Insert image here 3\n");
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
-    assertEquals(2, getResources(repo).size());
+    assertEquals(3, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
     assertEquals(1, getResources(repo, "images").size());
+    assertEquals(1, getResources(repo, "root_image.png").size());
   }
 
   public void testResolver() {
@@ -345,11 +348,15 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/images/image1.png", "\n");
     myFixture.addFileToProject("sampledata/images/image2.png", "\n");
     myFixture.addFileToProject("sampledata/images/image3.png", "\n");
+    PsiFile rootImagePsiFile = myFixture.addFileToProject("sampledata/root_image.png", "\n");
+
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
     Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
-    assertSize(1, items);
-    SampleDataResourceItem item = (SampleDataResourceItem)Iterables.getOnlyElement(items);
+    assertSize(2, items);
+    SampleDataResourceItem item =
+      (SampleDataResourceItem)Iterables.getOnlyElement(
+        repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, "images"));
     assertEquals("images", item.getName());
     assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
     SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
@@ -357,6 +364,12 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
          .map(file -> new File(file).getName())
          .collect(Collectors.toList());
     assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
+
+    SampleDataResourceItem rootImageItem =
+      (SampleDataResourceItem)Iterables.getOnlyElement(repository.getResources(
+        RES_AUTO, ResourceType.SAMPLE_DATA, "root_image.png"));
+    assertEquals(rootImageItem.getContentType(), rootImageItem.getContentType());
+    assertEquals(rootImagePsiFile.getVirtualFile().getPath(), rootImageItem.getValueText());
   }
 
   public void testSubsetSampleData() {

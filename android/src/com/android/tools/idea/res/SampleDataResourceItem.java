@@ -38,6 +38,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiBinaryFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
@@ -58,6 +59,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,23 +143,34 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
                                                          @NotNull SmartPsiElementPointer<PsiElement> filePointer) {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
+    PsiElement sourceElement = filePointer.getElement();
+    boolean isImageType = (sourceElement instanceof PsiBinaryFile
+                           && ((PsiBinaryFile)sourceElement).getFileType() == ImageFileTypeManager.getInstance().getImageFileType());
 
-    return new SampleDataResourceItem(repository, fileName, output -> {
-      PsiElement sourceElement = filePointer.getElement();
-      if (sourceElement == null) {
-        LOG.warn("File pointer was invalidated and the repository was not refreshed");
-        return null;
-      }
+    return new SampleDataResourceItem(repository,
+                                      fileName,
+                                      output -> {
+                                        if (sourceElement == null) {
+                                          LOG.warn("File pointer was invalidated and the repository was not refreshed");
+                                          return null;
+                                        }
 
-      try {
-        output.write(sourceElement.getText().getBytes(UTF_8));
-      }
-      catch (IOException e) {
-        LOG.warn("Unable to load content from plain file " + fileName, e);
-        return e;
-      }
-      return null;
-    }, () -> vFile.getModificationStamp() + 1, filePointer, ContentType.UNKNOWN);
+                                        try {
+                                          if (isImageType) {
+                                            output.write(vFile.getPath().getBytes(UTF_8));
+                                          }
+                                          else {
+                                            output.write(sourceElement.getText().getBytes(UTF_8));
+                                          }
+                                        }
+                                        catch (IOException e) {
+                                          LOG.warn("Unable to load content from plain file " + fileName, e);
+                                          return e;
+                                        }
+                                        return null;
+                                      },
+                                      () -> vFile.getModificationStamp() + 1, filePointer,
+                                      isImageType ? ContentType.IMAGE : ContentType.UNKNOWN);
   }
 
   /**
