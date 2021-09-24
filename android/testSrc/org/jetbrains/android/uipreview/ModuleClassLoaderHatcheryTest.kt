@@ -128,5 +128,7 @@ class ModuleClassLoaderHatcheryTest {
     val parent2 = FirewalledResourcesClassLoader(null)
     assertNull(hatchery.requestClassLoader(
       parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }
 }
