@@ -55,9 +55,6 @@ public interface ImagePool {
     }
 
     @Override
-    public void dispose() {}
-
-    @Override
     public boolean isValid() {
       // The content of this image is never valid
       return false;
@@ -208,14 +205,6 @@ public interface ImagePool {
     default BufferedImage getCopy() {
       return getCopy(null, 0, 0, getWidth(), getHeight());
     }
-
-    /**
-     * Manually disposes the current image. After calling this method, the image can not be used anymore.
-     * <p>
-     * This method does not need to be called directly as the images will be eventually collected anyway. However, using this method, you can
-     * speed up the collection process to avoid generating extra images.
-     */
-    void dispose();
 
     /**
      * Returns true if the image is valid. It will return false after the image has been disposed

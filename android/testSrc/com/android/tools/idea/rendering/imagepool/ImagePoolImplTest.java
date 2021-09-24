@@ -135,7 +135,7 @@ public class ImagePoolImplTest {
     BufferedImage internalPtr = image.myBuffer;
 
     assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
-    image.dispose();
+    ImagePoolImageDisposer.disposeImage(image);
     assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
     assertNull(image.getCopy());
 
