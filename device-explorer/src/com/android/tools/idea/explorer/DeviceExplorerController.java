@@ -1148,15 +1148,38 @@ public class DeviceExplorerController {
       if (filesRef.get() == null || filesRef.get().isEmpty()) {
         return;
       }
+      List<VirtualFile> files = filesRef.get();
+      uploadVirtualFilesInvoked(treeNode, files);
+    }
+
+    @Override
+    public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files) {
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
+        return;
+      }
+      List<VirtualFile> vfiles = files.stream()
+        .map(f -> VfsUtil.findFile(f, true))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+      uploadVirtualFilesInvoked(treeNode, vfiles);
+    }
+
+
+    private void uploadVirtualFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<VirtualFile> files) {
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
+        return;
+      }
 
       ListenableFuture<FileTransferSummary> futureSummary =
         wrapFileTransfer(tracker -> {
-                           List<Path> paths = filesRef.get().stream()
+                           List<Path> paths = files.stream()
                              .map(x -> Paths.get(x.getPath()))
                              .collect(Collectors.toList());
                            return addUploadOperationWork(tracker, paths);
                          },
-                         tracker -> uploadVirtualFiles(treeNode, filesRef.get(), tracker));
+                         tracker -> uploadVirtualFiles(treeNode, files, tracker));
       myEdtExecutor.addCallback(futureSummary, new FutureCallback<FileTransferSummary>() {
         @Override
         public void onSuccess(@Nullable FileTransferSummary result) {
@@ -1169,6 +1192,7 @@ public class DeviceExplorerController {
           myView.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t);
         }
       });
+
     }
 
     private void reportUploadFilesSummary(@NotNull DeviceFileEntryNode treeNode, @NotNull FileTransferSummary summary) {

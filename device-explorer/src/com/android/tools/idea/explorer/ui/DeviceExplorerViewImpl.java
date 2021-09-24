@@ -33,6 +33,7 @@ import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.dnd.FileCopyPasteUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -48,10 +49,15 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
 import java.awt.BorderLayout;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,6 +70,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.TransferHandler;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -288,6 +295,37 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
         }
       }
     });
+
+
+    tree.setTransferHandler(new TransferHandler() {
+      @Override
+      public boolean importData(TransferHandler.TransferSupport support) {
+        Transferable t = support.getTransferable();
+        final List<Path> files = FileCopyPasteUtil.getFiles(t);
+        if (files == null) {
+          return false;
+        }
+        Point point = support.getDropLocation().getDropPoint();
+        TreePath treePath = tree.getPathForLocation((int)point.getX(), (int)point.getY());
+        if (treePath == null) {
+          return false;
+        }
+        DeviceFileEntryNode node = DeviceFileEntryNode.fromNode(treePath.getLastPathComponent());
+        if (node != null && node.getEntry().isDirectory()) {
+          myListeners.forEach(l -> l.uploadFilesInvoked(node, files));
+          return true;
+        } else {
+          return false;
+        }
+      }
+
+      @Override
+      public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+        return FileCopyPasteUtil.isFileListFlavorAvailable(transferFlavors);
+      }
+    });
+    tree.setDragEnabled(!GraphicsEnvironment.isHeadless());
+
 
     createTreePopupMenu();
     myLoadingPanel.setLoadingText("Initializing ADB");
