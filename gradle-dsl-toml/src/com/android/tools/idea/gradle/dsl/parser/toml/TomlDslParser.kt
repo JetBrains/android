@@ -96,7 +96,6 @@ class TomlDslParser(
           // TODO(b/200280395): need to support
           //  - inline maps `foo = { ... }`
           //  - implicit maps foo.bar = ...
-          //  - quoted key names "foo" = ...
           val literal = GradleDslLiteral(context, element, GradleNameElement.from(element.key, this@TomlDslParser), element.value!!,
                                          GradleDslLiteral.LiteralType.LITERAL)
           context.addParsedElement(literal)

@@ -109,6 +109,52 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testLiteralStringKey() {
+    val toml = """
+      [libraries]
+      'junit' = "junit:junit:4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to "junit:junit:4.13"))
+    doTest(toml, expected)
+  }
+
+  fun testBasicStringKey() {
+    val toml = """
+      [libraries]
+      "junit" = "junit:junit:4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to "junit:junit:4.13"))
+    doTest(toml, expected)
+  }
+
+  fun _testBasicStringEscapesKey() {
+    assumeTrue("Toml does not unescape names from quoted keys: https://github.com/JetBrains/intellij-community/pull/1754/commits/d97f0e1cc4fd6fede790f39ac3e9d3c4cef57ed4", false)
+    val toml = """
+      [libraries]
+      "\u006au\u006ei\u0074" = "junit:junit:4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to "junit:junit:4.13"))
+    doTest(toml, expected)
+  }
+
+  fun testEmptyBasicStringKey() {
+    val toml = """
+      [libraries]
+      "" = "junit:junit:4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("" to "junit:junit:4.13"))
+    doTest(toml, expected)
+  }
+
+  fun testEmptyLiteralStringKey() {
+    val toml = """
+      [libraries]
+      '' = "junit:junit:4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("" to "junit:junit:4.13"))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = writeLibsTomlFile(text)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}

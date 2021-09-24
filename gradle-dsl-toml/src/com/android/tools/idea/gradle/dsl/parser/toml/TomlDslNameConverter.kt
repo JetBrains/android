@@ -18,10 +18,17 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.intellij.psi.PsiElement
+import org.toml.lang.psi.TomlKey
+import org.toml.lang.psi.TomlKeySegment
+import org.toml.lang.psi.ext.name
 
 interface TomlDslNameConverter: GradleDslNameConverter {
   override fun getKind() = TOML
 
   @JvmDefault
-  override fun psiToName(element: PsiElement): String = element.text
+  override fun psiToName(element: PsiElement): String = when(element) {
+    is TomlKeySegment -> element.name ?: element.text
+    is TomlKey -> element.name ?: element.text
+    else -> element.text
+  }
 }
