@@ -70,14 +70,15 @@ fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String,
   assertThat(actual).isEqualTo(expected)
 }
 
-private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
+fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   snapshotTestSuffix: String,
-  text: String
+  text: String,
+  doNotUpdate: Boolean = false
 ): Pair<String, String> {
   val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
   val expectedText = getExpectedTextFor(fullSnapshotName)
 
-  if (System.getProperty(updateSnapshotsJvmProperty) != null) {
+  if (!doNotUpdate && System.getProperty(updateSnapshotsJvmProperty) != null) {
     updateSnapshotFile(fullSnapshotName, text)
   }
   return fullSnapshotName to expectedText

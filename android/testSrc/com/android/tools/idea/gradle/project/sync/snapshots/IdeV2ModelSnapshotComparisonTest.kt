@@ -21,13 +21,16 @@ import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
+import com.google.common.truth.Truth
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -54,7 +57,12 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --tes
 @RunsInEdt
 @RunWith(Parameterized::class)
 class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
-  data class TestProject(val template: String, val pathToOpen: String = "") {
+  data class TestProject(
+    val template: String,
+    val pathToOpen: String = "",
+    val skipV1toV2Comparison: Boolean = false,
+    val v1toV2PropertiesToSkip: Set<String> = emptySet()
+  ) {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
   @JvmField
@@ -73,8 +81,8 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
       TestProject("../projects/lintCustomChecks"),
-      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES),
-      TestProject("../projects/testOnlyModule"),
+      TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, skipV1toV2Comparison = true),
+      TestProject("../projects/testOnlyModule", v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
       TestProject("../projects/testArtifacts/kotlinMultiplatform")
     )
   }
@@ -109,4 +117,68 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
   }
+
+  @Test
+  fun testV1vsV2() {
+    Assume.assumeFalse(testProjectName!!.skipV1toV2Comparison)
+    val adjustedTestName = this@IdeV2ModelSnapshotComparisonTest.getName().replace("V1vsV2", "ideModels")
+    val v1snapshots = object : SnapshotComparisonTest by this {
+      override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/ideModels"
+      override fun getName(): String = adjustedTestName
+    }
+    val (_, expectedTextV1) = v1snapshots.getAndMaybeUpdateSnapshot("NewAgp_", "", doNotUpdate = true)
+
+    val v2snapshots = object : SnapshotComparisonTest by this {
+      override fun getName(): String = adjustedTestName
+    }
+    val (_, expectedTextV2) = v2snapshots.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
+
+
+    val expectedTextV2Filtered = expectedTextV2.filterOutProperties()
+    val expectedTextV1Filtered = expectedTextV1.filterOutProperties()
+
+    Truth.assertThat(expectedTextV2Filtered).isEqualTo(expectedTextV1Filtered)
+  }
+
+  private fun Sequence<String>.nameProperties(): Sequence<Pair<String, String>> = sequence {
+    val context = mutableListOf<Pair<Int, String>>()
+    var previousIndentation = -1
+    for (line in this@nameProperties) {
+      val propertyName = line.trimStart().substringBefore(' ', line).trim()
+      val indentation = line.indexOfFirst { !it.isWhitespace() }.let { if (it == -1) line.length else it }
+      when {
+        indentation > previousIndentation -> context.add(indentation to propertyName)
+        indentation == previousIndentation -> context[context.size - 1] = indentation to propertyName
+        else -> {
+          while (context.size > 1 && context[context.size - 1].first > indentation) {
+            context.removeLast()
+          }
+          context[context.size - 1] = indentation to propertyName
+        }
+      }
+      previousIndentation = indentation
+      yield(context.map { it.second }.joinToString(separator = "/") to line)
+    }
+  }
+
+  private fun String.filterOutProperties(): String =
+    this
+      .splitToSequence('\n')
+      .nameProperties()
+      .filter { (property, line) ->
+        !PROPERTIES_TO_SKIP.any { property.endsWith(it) } &&
+        !testProjectName!!.v1toV2PropertiesToSkip.any { property.endsWith(it) }
+      }
+      .filter { (property, line) -> !VALUES_TO_SUPPRESS.any { property.endsWith(it.key) and line.contains(it.value) } }
+      .map { it.second }
+      .joinToString(separator = "\n")
+
 }
+
+private val PROPERTIES_TO_SKIP = setOf(
+  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/LintJars"
+)
+
+private val VALUES_TO_SUPPRESS = mapOf(
+  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/ArtifactAddress" to "__local_aars__"
+)
