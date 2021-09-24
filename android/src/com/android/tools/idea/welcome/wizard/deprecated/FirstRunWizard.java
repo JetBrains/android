@@ -21,7 +21,6 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -91,9 +90,6 @@ public class FirstRunWizard extends DynamicWizard {
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 
-    if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
-    }
     addPath(new SingleStepPath(progressStep));
     super.init();
   }

@@ -221,6 +221,7 @@ public class VmWizard extends DynamicWizard {
     @NotNull SetupProgressStep mySetupProgressStep;
     @NotNull VmType myType;
     @NotNull Vm myVm;
+    private LicenseAgreementStep myLicenseAgreementStep;
 
     private VmPath(@NotNull VmType type) {
       myType = type;
@@ -240,7 +241,10 @@ public class VmWizard extends DynamicWizard {
         addStep(step);
       }
       if (!VmWizard.this.myInvokedToUninstall) {
-        addStep(new LicenseAgreementStep(getWizard().getDisposable()));
+        addStep(
+          myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myVm.getRequiredSdkPackages(),
+                                                            AndroidSdks.getInstance()::tryToChooseSdkHandler)
+        );
       }
       mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myVm, VmWizard.this.myHost, myType);
       addStep(mySetupProgressStep);
@@ -258,6 +262,9 @@ public class VmWizard extends DynamicWizard {
 
     @Override
     public boolean performFinishingActions() {
+      if (myLicenseAgreementStep != null) {
+        myLicenseAgreementStep.performFinishingActions();
+      }
       return true;
     }
   }
