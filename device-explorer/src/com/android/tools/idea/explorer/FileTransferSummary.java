@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,7 @@ public class FileTransferSummary {
   private int myDirectoryCount;
   private long myByteCount;
   private long myDurationMillis;
+  @NotNull private DeviceExplorerEvent.Action myAction = DeviceExplorerEvent.Action.UNSPECIFIED;
   @NotNull private List<Throwable> myProblems = new ArrayList<>();
 
   @NotNull
@@ -61,5 +63,13 @@ public class FileTransferSummary {
 
   public void setDurationMillis(long durationMillis) {
     myDurationMillis = durationMillis;
+  }
+
+  void setAction(DeviceExplorerEvent.Action action) {
+    myAction = action;
+  }
+
+  DeviceExplorerEvent.Action getAction() {
+    return myAction;
   }
 }

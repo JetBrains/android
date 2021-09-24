@@ -14,5 +14,7 @@
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
