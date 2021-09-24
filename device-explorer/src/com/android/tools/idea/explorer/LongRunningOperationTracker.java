@@ -17,20 +17,22 @@ package com.android.tools.idea.explorer;
 
 import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Base class of all long running operations that need to be tracked with the
- * progress panel of a {@link DeviceExplorerView} instance.
+ * Base class of all long-running operations that need to be tracked with
+ * the progress panel of a {@link DeviceExplorerView} instance.
  */
 abstract class LongRunningOperationTracker implements Disposable {
-  @NotNull private DeviceExplorerView myView;
-  @NotNull private final DeviceExplorerViewProgressListener myProgressListener;
+  @Nullable private DeviceExplorerView myView;
+  private final boolean myBackgroundable;
+  @NotNull private final DeviceExplorerViewProgressListener myProgressListener = () -> myIsCancelled = true;
   private boolean myIsCancelled;
   private long myStartNanoTime;
 
-  public LongRunningOperationTracker(@NotNull DeviceExplorerView view) {
+  public LongRunningOperationTracker(@NotNull DeviceExplorerView view, boolean backgroundable) {
     myView = view;
-    myProgressListener = () -> myIsCancelled = true;
+    myBackgroundable = backgroundable;
   }
 
   public void cancel() {
@@ -41,11 +43,18 @@ abstract class LongRunningOperationTracker implements Disposable {
     return myIsCancelled;
   }
 
+  protected boolean isBackgroundable() {
+    return myBackgroundable;
+  }
+
   public long getDurationMillis() {
     return (System.nanoTime() - myStartNanoTime) / 1_000_000;
   }
 
   public void start() {
+    if (myView == null) {
+      throw new UnsupportedOperationException("A background operation cannot be started again");
+    }
     myView.addProgressListener(myProgressListener);
     myView.startProgress();
     myStartNanoTime = System.nanoTime();
@@ -53,8 +62,27 @@ abstract class LongRunningOperationTracker implements Disposable {
   }
 
   public void stop() {
+    if (myView != null) {
+      myView.removeProgressListener(myProgressListener);
+      myView.stopProgress();
+    }
+  }
+
+  public void moveToBackground() {
+    if (!myBackgroundable) {
+      throw new UnsupportedOperationException("This operation is not backgroundable");
+    }
+    if (myView == null) {
+      throw new IllegalStateException("This operation is already in background");
+    }
     myView.removeProgressListener(myProgressListener);
     myView.stopProgress();
+    myView.stopTreeBusyIndicator();
+    myView = null;
+  }
+
+  public boolean isInForeground() {
+    return myView != null;
   }
 
   @Override
@@ -63,18 +91,26 @@ abstract class LongRunningOperationTracker implements Disposable {
   }
 
   public void setIndeterminate(boolean indeterminate) {
-    myView.setProgressIndeterminate(indeterminate);
+    if (myView != null) {
+      myView.setProgressIndeterminate(indeterminate);
+    }
   }
 
   public void setProgress(double fraction) {
-    myView.setProgressValue(fraction);
+    if (myView != null) {
+      myView.setProgressValue(fraction);
+    }
   }
 
   public void setStatusText(@NotNull String text) {
-    myView.setProgressText(text);
+    if (myView != null) {
+      myView.setProgressText(text);
+    }
   }
 
   public void setWarningColor() {
-    myView.setProgressWarningColor();
+    if (myView != null) {
+      myView.setProgressWarningColor();
+    }
   }
 }

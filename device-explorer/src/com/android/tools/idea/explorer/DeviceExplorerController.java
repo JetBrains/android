@@ -22,13 +22,13 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.adb.AdbFileProvider;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
 import com.android.tools.idea.explorer.fs.DeviceState;
+import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.ui.TreeUtil;
 import com.android.utils.FileUtils;
@@ -252,7 +252,7 @@ public class DeviceExplorerController {
   }
 
   private void refreshDeviceList(@Nullable String serialNumberToSelect) {
-    cancelPendingOperations();
+    cancelOrMoveToBackgroundPendingOperations();
 
     myView.startRefresh("Refreshing list of devices");
     ListenableFuture<? extends List<? extends DeviceFileSystem>> futureDevices = myService.getDevices();
@@ -286,14 +286,14 @@ public class DeviceExplorerController {
   }
 
   private void setNoActiveDevice() {
-    cancelPendingOperations();
+    cancelOrMoveToBackgroundPendingOperations();
     myModel.setActiveDevice(null);
     myModel.setActiveDeviceTreeModel(null, null, null);
     myView.showNoDeviceScreen();
   }
 
   private void setActiveDevice(@NotNull DeviceFileSystem device) {
-    cancelPendingOperations();
+    cancelOrMoveToBackgroundPendingOperations();
     myModel.setActiveDevice(device);
     trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE);
     refreshActiveDevice(device);
@@ -352,14 +352,20 @@ public class DeviceExplorerController {
     });
   }
 
-  private void cancelPendingOperations() {
+  private void cancelOrMoveToBackgroundPendingOperations() {
     myLoadingNodesAlarms.cancelAllRequests();
     myLoadingChildrenAlarms.cancelAllRequests();
     myTransferringNodesAlarms.cancelAllRequests();
     myLoadingChildren.clear();
     myTransferringNodes.clear();
     if (myLongRunningOperationTracker != null) {
-      myLongRunningOperationTracker.cancel();
+      if (myLongRunningOperationTracker.isBackgroundable()) {
+        myLongRunningOperationTracker.moveToBackground();
+        myLongRunningOperationTracker = null;
+      }
+      else {
+        myLongRunningOperationTracker.cancel();
+      }
     }
   }
 
@@ -439,7 +445,9 @@ public class DeviceExplorerController {
     myLongRunningOperationTracker = tracker;
     Disposer.register(myLongRunningOperationTracker, () -> {
       assert ApplicationManager.getApplication().isDispatchThread();
-      myLongRunningOperationTracker = null;
+      if (myLongRunningOperationTracker == tracker) {
+        myLongRunningOperationTracker = null;
+      }
     });
   }
 
@@ -606,7 +614,8 @@ public class DeviceExplorerController {
 
       ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
         tracker -> addDownloadOperationWork(tracker, treeNode),
-        tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)));
+        tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)),
+        true);
       return myEdtExecutor.transform(futureSave, summary -> localPath);
     }
 
@@ -665,7 +674,8 @@ public class DeviceExplorerController {
 
         return wrapFileTransfer(
           tracker -> addDownloadOperationWork(tracker, treeNode),
-          tracker -> downloadSingleDirectory(treeNode, localDirectory, tracker));
+          tracker -> downloadSingleDirectory(treeNode, localDirectory, tracker),
+          false);
       }
       else {
         // If single file, choose the local file path to download to, then download
@@ -683,7 +693,8 @@ public class DeviceExplorerController {
 
         return wrapFileTransfer(
           tracker -> addDownloadOperationWork(tracker, treeNode),
-          tracker -> downloadSingleFile(treeNode, localFile, tracker));
+          tracker -> downloadSingleFile(treeNode, localFile, tracker),
+          false);
       }
     }
 
@@ -711,7 +722,8 @@ public class DeviceExplorerController {
         tracker -> executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
           Path nodePath = localDirectory.resolve(treeNode.getEntry().getName());
           return downloadSingleNode(treeNode, nodePath, tracker);
-        }));
+        }),
+        true);
     }
 
     /**
@@ -730,10 +742,10 @@ public class DeviceExplorerController {
     @UiThread
     @NotNull
     private ListenableFuture<FileTransferSummary> wrapFileTransfer(
-      @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> prepareTransfer,
-      @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> performTransfer) {
-
-      FileTransferOperationTracker tracker = new FileTransferOperationTracker(myView);
+        @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> prepareTransfer,
+        @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> performTransfer,
+        boolean backgroundable) {
+      FileTransferOperationTracker tracker = new FileTransferOperationTracker(myView, backgroundable);
       try {
         registerLongRunningOperation(tracker);
       }
@@ -1192,7 +1204,8 @@ public class DeviceExplorerController {
                              .collect(Collectors.toList());
                            return addUploadOperationWork(tracker, paths);
                          },
-                         tracker -> uploadVirtualFiles(treeNode, files, tracker));
+                         tracker -> uploadVirtualFiles(treeNode, files, tracker),
+                         true);
       myEdtExecutor.addCallback(futureSummary, new FutureCallback<FileTransferSummary>() {
         @Override
         public void onSuccess(@Nullable FileTransferSummary result) {
@@ -1327,33 +1340,35 @@ public class DeviceExplorerController {
           tracker.setUploadFileText(file, currentBytes, totalBytes);
           previousBytes = currentBytes;
 
-          // Update Tree UI
-          uploadState.byteCount = totalBytes;
-          // First check if child node already exists
-          if (uploadState.childNode == null) {
-            String fileName = localPath.getFileName().toString();
-            uploadState.childNode = parentNode.findChildEntry(fileName);
-            if (uploadState.childNode != null) {
-              startNodeUpload(uploadState.childNode);
+          if (tracker.isInForeground()) {
+            // Update Tree UI
+            uploadState.byteCount = totalBytes;
+            // First check if child node already exists
+            if (uploadState.childNode == null) {
+              String fileName = localPath.getFileName().toString();
+              uploadState.childNode = parentNode.findChildEntry(fileName);
+              if (uploadState.childNode != null) {
+                startNodeUpload(uploadState.childNode);
+              }
             }
-          }
 
-          // If the child node entry is present, simply update its upload status
-          if (uploadState.childNode != null) {
-            uploadState.childNode.setTransferProgress(currentBytes, totalBytes);
-            return;
-          }
+            // If the child node entry is present, simply update its upload status
+            if (uploadState.childNode != null) {
+              uploadState.childNode.setTransferProgress(currentBytes, totalBytes);
+              return;
+            }
 
-          // If we already tried to load the children, reset so we try again
-          if (uploadState.loadChildrenFuture != null && uploadState.loadChildrenFuture.isDone()) {
-            uploadState.loadChildrenFuture = null;
-          }
+            // If we already tried to load the children, reset so we try again
+            if (uploadState.loadChildrenFuture != null && uploadState.loadChildrenFuture.isDone()) {
+              uploadState.loadChildrenFuture = null;
+            }
 
-          // Start loading children
-          if (currentBytes > 0) {
-            if (uploadState.loadChildrenFuture == null) {
-              parentNode.setLoaded(false);
-              uploadState.loadChildrenFuture = loadNodeChildren(parentNode);
+            // Start loading children
+            if (currentBytes > 0) {
+              if (uploadState.loadChildrenFuture == null) {
+                parentNode.setLoaded(false);
+                uploadState.loadChildrenFuture = loadNodeChildren(parentNode);
+              }
             }
           }
         }
@@ -1378,7 +1393,7 @@ public class DeviceExplorerController {
         }
 
         // Signal upload is done
-        if (uploadState.childNode != null) {
+        if (uploadState.childNode != null && tracker.isInForeground()) {
           stopNodeUpload(uploadState.childNode);
         }
       });
@@ -1558,16 +1573,21 @@ public class DeviceExplorerController {
           tracker.processFileBytes(currentBytes - previousBytes);
           previousBytes = currentBytes;
           tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes);
-          currentNode.setTransferProgress(currentBytes, totalBytes);
+          if (tracker.isInForeground()) {
+            currentNode.setTransferProgress(currentBytes, totalBytes);
+          }
         }
 
         @Override
         public void onCompleted(@NotNull String entryFullPath) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
-          assert currentNode != null;
+          sizeRef.set(sizeRef.get() + previousBytes);
 
-          sizeRef.set(sizeRef.get()+previousBytes);
-          stopNodeDownload(currentNode);
+          if (tracker.isInForeground()) {
+            DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
+            assert currentNode != null;
+
+            stopNodeDownload(currentNode);
+          }
         }
 
         @Override

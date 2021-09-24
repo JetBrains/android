@@ -41,8 +41,8 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
   @SuppressWarnings("unused") private int myCurrentDirectoryCount;
   @SuppressWarnings("unused") private int myTotalDirectoryCount;
 
-  public FileTransferOperationTracker(@NotNull DeviceExplorerView view) {
-    super(view);
+  public FileTransferOperationTracker(@NotNull DeviceExplorerView view, boolean backgroundable) {
+    super(view, backgroundable);
     mySummary = new FileTransferSummary();
   }
 
