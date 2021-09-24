@@ -125,6 +125,11 @@ class StateChartTest {
     assertThat(stateChart.itemAtMouse(Point(10, 80))).isEqualTo(0)
     assertThat(stateChart.itemAtMouse(Point(75, 20))).isEqualTo(7)
     assertThat(stateChart.itemAtMouse(Point(75, 80))).isEqualTo(6)
+
+    assertThat(stateChart.itemAtMouse(Point(5, 200))).isEqualTo(null)
+    assertThat(stateChart.itemAtMouse(Point(5, 101))).isEqualTo(0)
+    assertThat(stateChart.itemAtMouse(Point(25, -1))).isEqualTo(1)
+    assertThat(stateChart.itemAtMouse(Point(25, -100))).isEqualTo(null)
   }
 
   @Test
