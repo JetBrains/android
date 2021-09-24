@@ -563,6 +563,35 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     checkMockViewActiveDevice(myDevice2);
   }
 
+  public void testChangeActiveDeviceDuringFileDownload() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Start file download.
+    downloadFile(myFile1, () -> {
+      // Send a VK_ENTER key event.
+      fireEnterKey(myMockView.getTree());
+
+      pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
+    });
+
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    myMockView.getReportMessageRelatedToNodeTracker().clear();
+
+    // Change selected device.
+    myMockView.getDeviceCombo().setSelectedItem(myDevice2);
+
+    // Check that the view shows the second device.
+    checkMockViewActiveDevice(myDevice2);
+    // Check that the download from the first device finished successfully.
+    pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
+  }
+
   public void testUpdateActiveDeviceState() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     DeviceExplorerController controller = createController();
