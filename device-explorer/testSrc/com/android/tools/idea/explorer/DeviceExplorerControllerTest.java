@@ -69,6 +69,7 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -97,6 +98,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.RepaintManager;
+import javax.swing.TransferHandler;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.TreeModelEvent;
@@ -1319,6 +1321,71 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myMockView.getStartTreeBusyIndicatorTacker().clear();
     myMockView.getStopTreeBusyIndicatorTacker().clear();
     action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+
+    // Assert
+    // One node has been added
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(5, fooNode.getChildCount());
+  }
+
+
+  public void testFileSystemTree_DropFile_SingleFile_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    TreePath path = getFileEntryPath(myFoo);
+    Rectangle bounds = myMockView.getTree().getUI().getPathBounds(myMockView.getTree(), path);
+    myMockView.getTree().setSelectionPath(path);
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+
+    File tempFile = FileUtil.createTempFile("foo", "bar.txt");
+    Files.write(tempFile.toPath(), new byte[10_000]);
+    myDevice1.setUploadFileChunkSize(500);
+    myDevice1.setUploadFileChunkIntervalMillis(20);
+
+    TransferHandler handler = myMockView.getTree().getTransferHandler();
+    assertFalse(handler.canImport(myMockView.getTree(), new DataFlavor[]{DataFlavor.stringFlavor}));
+    assertTrue(handler.canImport(myMockView.getTree(), new DataFlavor[]{DataFlavor.javaFileListFlavor}));
+
+    Transferable transferable = new Transferable() {
+      @Override
+      public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[]{DataFlavor.javaFileListFlavor};
+      }
+
+      @Override
+      public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return flavor.equals(DataFlavor.javaFileListFlavor);
+      }
+
+      @NotNull
+      @Override
+      public Object getTransferData(DataFlavor flavor) {
+        return Arrays.asList(tempFile);
+      }
+    };
+    TransferHandler.TransferSupport support = mock(TransferHandler.TransferSupport.class);
+    TransferHandler.DropLocation location = mock(TransferHandler.DropLocation.class);
+
+    when(location.getDropPoint()).thenReturn(new Point((int)bounds.getCenterX(), (int)bounds.getCenterY()));
+    when(support.getTransferable()).thenReturn(transferable);
+    when(support.getDropLocation()).thenReturn(location);
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+
+    assertTrue(handler.importData(support));
+
     pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
     pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
     pumpEventsAndWaitForFuture(futureTreeChanged);

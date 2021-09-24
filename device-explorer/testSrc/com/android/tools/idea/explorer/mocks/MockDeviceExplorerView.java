@@ -29,6 +29,7 @@ import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import java.awt.Dimension;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComboBox;
@@ -462,6 +463,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode) {
       myUploadFilesTracker.produce(treeNode);
       myListeners.forEach(l -> l.uploadFilesInvoked(treeNode));
+    }
+
+    @Override
+    public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files) {
+      myUploadFilesTracker.produce(treeNode);
+      myListeners.forEach(l -> l.uploadFilesInvoked(treeNode, files));
     }
 
     @Override
