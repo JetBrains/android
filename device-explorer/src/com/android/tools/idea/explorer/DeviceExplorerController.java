@@ -19,6 +19,7 @@ import static com.android.tools.idea.concurrency.FutureUtils.ignoreResult;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.adb.AdbFileProvider;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DownloadProgress;
@@ -36,6 +37,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -292,6 +295,7 @@ public class DeviceExplorerController {
   private void setActiveDevice(@NotNull DeviceFileSystem device) {
     cancelPendingOperations();
     myModel.setActiveDevice(device);
+    trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE);
     refreshActiveDevice(device);
   }
 
@@ -626,6 +630,7 @@ public class DeviceExplorerController {
         @Override
         public void onSuccess(@Nullable FileTransferSummary result) {
           assert result != null;
+          result.setAction(DeviceExplorerEvent.Action.SAVE_AS);
           reportSaveNodesAsSummary(commonParentNode, result);
         }
 
@@ -892,6 +897,7 @@ public class DeviceExplorerController {
     public void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
       String text = treeNodes.stream().map(x -> x.getEntry().getFullPath()).collect(Collectors.joining("\n"));
       CopyPasteManager.getInstance().setContents(new StringSelection(text));
+      trackAction(DeviceExplorerEvent.Action.COPY_PATH);
     }
 
     @Override
@@ -903,6 +909,7 @@ public class DeviceExplorerController {
                          UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
                          x -> UIBundle.message("create.new.file.could.not.create.file.error.message", x),
                          x -> parentTreeNode.getEntry().createNewFile(x));
+      trackAction(DeviceExplorerEvent.Action.NEW_FILE);
     }
 
     @Override
@@ -940,6 +947,7 @@ public class DeviceExplorerController {
         })
         .collect(Collectors.toSet());
 
+      trackAction(DeviceExplorerEvent.Action.SYNC);
       myView.startTreeBusyIndicator();
       ListenableFuture<Void> futuresRefresh = executeFuturesInSequence(directoryNodes.iterator(), treeNode -> {
         treeNode.setLoaded(false);
@@ -991,6 +999,8 @@ public class DeviceExplorerController {
 
       if (!problems.isEmpty()) {
         reportDeletionProblem(problems);
+      } else {
+        trackAction(DeviceExplorerEvent.Action.DELETE);
       }
 
       // Refresh the parent node(s) to remove the deleted files
@@ -1059,6 +1069,7 @@ public class DeviceExplorerController {
                          UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
                          x -> UIBundle.message("create.new.folder.could.not.create.folder.error.message", x),
                          x -> parentTreeNode.getEntry().createNewDirectory(x));
+      trackAction(DeviceExplorerEvent.Action.NEW_DIRECTORY);
     }
 
     private void newFileOrDirectory(@NotNull DeviceFileEntryNode parentTreeNode,
@@ -1149,7 +1160,7 @@ public class DeviceExplorerController {
         return;
       }
       List<VirtualFile> files = filesRef.get();
-      uploadVirtualFilesInvoked(treeNode, files);
+      uploadVirtualFilesInvoked(treeNode, files, DeviceExplorerEvent.Action.UPLOAD);
     }
 
     @Override
@@ -1162,11 +1173,13 @@ public class DeviceExplorerController {
         .map(f -> VfsUtil.findFile(f, true))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-      uploadVirtualFilesInvoked(treeNode, vfiles);
+      uploadVirtualFilesInvoked(treeNode, vfiles, DeviceExplorerEvent.Action.DROP);
     }
 
 
-    private void uploadVirtualFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<VirtualFile> files) {
+    private void uploadVirtualFilesInvoked(@NotNull DeviceFileEntryNode treeNode,
+                                           List<VirtualFile> files,
+                                           DeviceExplorerEvent.Action action) {
       if (!checkLongRunningOperationAllowed()) {
         myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
         return;
@@ -1184,6 +1197,7 @@ public class DeviceExplorerController {
         @Override
         public void onSuccess(@Nullable FileTransferSummary result) {
           assert result != null;
+          result.setAction(action);
           reportUploadFilesSummary(treeNode, result);
         }
 
@@ -1386,6 +1400,14 @@ public class DeviceExplorerController {
       String directoryString = StringUtil.pluralize("directory", summary.getDirectoryCount());
       String byteCountString = StringUtil.pluralize("byte", Ints.saturatedCast(summary.getByteCount()));
 
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder()
+          .setAction(summary.getAction())
+          .setTransferFileCount(summary.getFileCount())
+          .setTransferTotalSize((int)summary.getByteCount())
+          .setTransferTimeMs((int)summary.getDurationMillis())));
+
       // Report success if no errors
       if (summary.getProblems().isEmpty()) {
         String successMessage;
@@ -1564,6 +1586,12 @@ public class DeviceExplorerController {
     }
 
     private ListenableFuture<Void> loadNodeChildren(@NotNull final DeviceFileEntryNode node) {
+
+      // Track a specific set of directories to analyze user behaviour
+      if (node.getEntry().getFullPath().matches("^/data/data/[^/]+$")) {
+        trackAction(DeviceExplorerEvent.Action.EXPAND_APP_DATA);
+      }
+
       // Ensure node is expanded only once
       if (node.isLoaded()) {
         return Futures.immediateFuture(null);
@@ -1780,6 +1808,13 @@ public class DeviceExplorerController {
              "[root]" :
              "\"" + node.getEntry().getName() + "\"";
     }
+  }
+
+  private void trackAction(DeviceExplorerEvent.Action action) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
+                       .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+                       .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder()
+                                                 .setAction(action)));
   }
 
   private static class ShowLoadingNodeRequest implements Runnable {
