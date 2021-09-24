@@ -321,7 +321,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
   if (ideDependencies.moduleDependencies.isNotEmpty()) {
     head("ModuleDependencies")
     nest {
-      ideDependencies.moduleDependencies.sortedBy { it.projectPath }.forEach {
+      ideDependencies.moduleDependencies.sortedWith(compareBy<IdeModuleLibrary> { it.projectPath }.thenBy { it.buildId }).forEach {
         head("ModuleDependency")
         nest {
           dump(it)
