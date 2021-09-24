@@ -729,6 +729,7 @@ class AndroidTestResultsTableViewTest {
     val mockPsiMethod = mock<PsiMethod>()
     `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
     `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
+    `when`(mockJavaPsiFacade.project).thenReturn(projectRule.project)
     `when`(mockPsiClass.findMethodsByName(any(), anyBoolean())).thenReturn(arrayOf())
     `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"), anyBoolean())).thenReturn(arrayOf(mockPsiMethod))
     `when`(mockPsiClass.name).thenReturn("myTestClassName")
