@@ -155,6 +155,36 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testImplicitMap() {
+    val toml = """
+      [libraries]
+      junit.module = "junit:junit"
+      junit.version = "4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit", "version" to "4.13")))
+    doTest(toml, expected)
+  }
+
+  fun testImplicitMapWithQuotedKeys() {
+    val toml = """
+      [libraries]
+      'junit'.module = "junit:junit"
+      junit."version" = "4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit", "version" to "4.13")))
+    doTest(toml, expected)
+  }
+
+  fun testQuotedDottedKeys() {
+    val toml = """
+      [libraries]
+      'junit.module' = "junit:junit"
+      "junit.version" = "4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit.module" to "junit:junit", "junit.version" to "4.13"))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = writeLibsTomlFile(text)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}

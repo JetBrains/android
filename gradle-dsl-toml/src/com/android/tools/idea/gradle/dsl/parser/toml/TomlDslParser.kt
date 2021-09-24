@@ -21,10 +21,12 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlArrayTable
@@ -95,10 +97,21 @@ class TomlDslParser(
         doVisit("TomlKeyValue (${element.text})") {
           // TODO(b/200280395): need to support
           //  - inline maps `foo = { ... }`
-          //  - implicit maps foo.bar = ...
-          val literal = GradleDslLiteral(context, element, GradleNameElement.from(element.key, this@TomlDslParser), element.value!!,
-                                         GradleDslLiteral.LiteralType.LITERAL)
-          context.addParsedElement(literal)
+          val segments = element.key.segments
+          val lastSegmentIndex = segments.size - 1
+          var currentContext = context
+          segments.forEachIndexed { i, segment ->
+            if (i == lastSegmentIndex) {
+              val name = GradleNameElement.from(segment, this@TomlDslParser)
+              val literal = GradleDslLiteral(currentContext, element, name, element.value!!, LITERAL)
+              currentContext.addParsedElement(literal)
+            }
+            else {
+              val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
+              currentContext = currentContext.ensurePropertyElement(description)
+            }
+
+          }
           super.visitKeyValue(element)
         }
       }
