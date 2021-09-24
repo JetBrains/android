@@ -36,6 +36,7 @@ import java.awt.geom.Rectangle2D
 import java.util.function.Consumer
 import java.util.function.IntConsumer
 import javax.swing.JList
+import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -361,25 +362,32 @@ class StateChart<T>(private val model: StateChartModel<T>,
     if (series.isEmpty()) return null
 
     val scaleX = width.toDouble()
-    val seriesIndex = seriesIndexAtPoint(point)
-    val seriesAtMouse = series[seriesIndex]
-    val seriesData = seriesAtMouse.series
-    val min = seriesAtMouse.xRange.min
-    val max = seriesAtMouse.xRange.max
-    val range = max - min
+    return seriesIndexAtPoint(point)?.let { seriesIndex ->
+      val seriesAtMouse = series[seriesIndex]
+      val seriesData = seriesAtMouse.series
+      val min = seriesAtMouse.xRange.min
+      val max = seriesAtMouse.xRange.max
+      val range = max - min
 
-    // Convert mouseX into data/series coordinate space
-    val modelMouseX = point.x / scaleX * range + min
-    return when {
-      seriesData.isEmpty() -> null
-      else -> seriesIndex to seriesData.binarySearch { it.x.compareTo(modelMouseX) }
+      // Convert mouseX into data/series coordinate space
+      val modelMouseX = point.x / scaleX * range + min
+      when {
+        seriesData.isEmpty() -> null
+        else -> seriesIndex to seriesData.binarySearch { it.x.compareTo(modelMouseX) }
+      }
     }
   }
 
   private fun seriesIndexAtPoint(point: Point) = (1f - point.y / height.toFloat()).let { normalizedY ->
     val n = model.series.size
-    // Clamp just in case of Swing off-by-one-pixel-mouse-handling issues
-    min(n - 1, (normalizedY * n).toInt())
+    val i = (normalizedY * n).toInt()
+    val tolerancePixels = 2 // just in case of Swing off-by-one-pixel-mouse-handling issues
+    when {
+      i in 0 until n -> i
+      point.y in height .. (height + tolerancePixels) -> 0 // a hair too low
+      point.y in -tolerancePixels .. 0 -> n - 1 // a hair too high
+      else -> null
+    }
   }
 
   private fun renderUnion(container: Any?, containerOffset: Point) {
