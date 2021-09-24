@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
@@ -573,6 +574,9 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     for (Module module : sortedModules) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model == null) {
+        continue;
+      }
+      if (!ModuleSystemUtil.isMainModule(module)) {
         continue;
       }
       // dependsOn transitively checks for dependencies so we mark the modules that will
