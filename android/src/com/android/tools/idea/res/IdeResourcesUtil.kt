@@ -29,7 +29,6 @@ import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_PREFIX
 import com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX
-import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ANDROID_VIEW_PKG
 import com.android.SdkConstants.ANDROID_WEBKIT_PKG
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
@@ -154,7 +153,6 @@ import org.jetbrains.android.dom.resources.Resources
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
@@ -193,8 +191,7 @@ val ALL_VALUE_RESOURCE_TYPES: EnumSet<ResourceType> = EnumSet.copyOf(VALUE_RESOU
 }
 
 /**
- * Returns the theme name to be shown for theme styles, e.g. for "@style/Theme" it
- * returns "Theme"
+ * Returns the theme name to be shown for theme styles, e.g. for "@style/Theme" it returns "Theme".
  *
  * @param style a theme style string
  * @return the user visible theme name
@@ -251,7 +248,6 @@ fun ResourceType.isFileBased(): Boolean {
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
-
   return when {
     file == null -> null
     !ApplicationManager.getApplication().isReadAccessAllowed -> runReadAction { getFolderType(file) }
@@ -351,8 +347,7 @@ val NO_PREFIX_PACKAGES_FOR_VIEW = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PK
  * project's minSdkVersion and the layout file's version qualifier, if any.
  * You can pass -1 if this is not known, which will force fully qualified
  * names on some packages which recently no longer require it.
- * @return true if the full package path should be included in the layout XML element
- * tag
+ * @return true if the full package path should be included in the layout XML element tag
  */
 fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
   for (noPrefixPackage in NO_PREFIX_PACKAGES_FOR_VIEW) {
@@ -386,7 +381,7 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  * @param parentClassQualifiedName Optional. Optimisation that can be used if you already know what the baseclass inherits from. If matching
  *                                 qualified name is found, then inheritance check is avoided.
  *
- * @see .isViewPackageNeeded
+ * @see [isViewPackageNeeded]
  */
 fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int, parentClassQualifiedName: String?): Boolean {
   return when {
@@ -503,7 +498,7 @@ private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int,
 }
 
 private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color {
-  return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
+  return colors.maxByOrNull { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
 }
 
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
@@ -809,7 +804,7 @@ fun RenderResources.resolveDrawable(drawable: ResourceValue?, project: Project):
   val stateList = resolveStateList(resolvedDrawable, project)
   if (stateList != null) {
     val states = stateList.states
-    if (!states.isEmpty()) {
+    if (states.isNotEmpty()) {
       val state = states[states.size - 1]
       // If the state refers to another drawable with a ResourceUrl, we need to resolve it first to a file resource path.
       val resourceValue = ResourceValueImpl(resolvedDrawable.asReference(), state.value)
@@ -889,7 +884,7 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
 }
 
 fun clamp(i: Int, min: Int, max: Int): Int {
-  return Math.max(min, Math.min(i, max))
+  return i.coerceIn(min, max)
 }
 
 /**
@@ -941,7 +936,7 @@ fun getCompletionFromTypes(
 }
 
 /**
- * Return all the IDs in a XML file.
+ * Return all the IDs in an XML file.
  */
 fun findIdsInFile(file: PsiFile): Set<String> {
   val ids = HashSet<String>()
@@ -949,8 +944,8 @@ fun findIdsInFile(file: PsiFile): Set<String> {
     override fun visitElement(element: PsiElement) {
       super.visitElement(element)
       if (element is XmlTag) {
-        val id = stripIdPrefix(element.getAttributeValue(ATTR_ID, ANDROID_URI))
-        if (!id.isEmpty()) {
+        val id = stripIdPrefix(element.getAttributeValue(ATTR_ID, SdkConstants.ANDROID_URI))
+        if (id.isNotEmpty()) {
           ids.add(id)
         }
       }
@@ -960,7 +955,7 @@ fun findIdsInFile(file: PsiFile): Set<String> {
 }
 
 /**
- * Comparator function for resource references (e.g. `@foo/bar`.
+ * Comparator function for resource references (e.g. `@foo/bar`).
  * Sorts project resources higher than framework resources.
  */
 fun compareResourceReferences(resource1: String, resource2: String): Int {
@@ -1187,7 +1182,8 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
  * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes
  * that only public resources can be accessed.
  */
-// TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+// TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module)
+//                   into repositories, items and values.
 fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
   val repositoryManager = ResourceRepositoryManager.getInstance(facet)
   val repository = repositoryManager.getResourcesForNamespace(namespace)
@@ -1243,7 +1239,7 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
     val base: String = prefix
     var i = 2
     while (true) {
-      prefix = base + Integer.toString(i)
+      prefix = base + i.toString()
       if (rootTag.getAttribute(SdkConstants.XMLNS_PREFIX + prefix) == null) {
         break
       }
@@ -1256,7 +1252,7 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
   var next = if (attributes.isNotEmpty()) attributes[0] else null
   for (attribute in attributes) {
     val attributeName = attribute.name
-    if (!attributeName.startsWith(SdkConstants.XMLNS_PREFIX) || attributeName.compareTo(name) > 0) {
+    if (!attributeName.startsWith(SdkConstants.XMLNS_PREFIX) || attributeName > name) {
       next = attribute
       break
     }
@@ -1315,7 +1311,6 @@ fun findResourceFields(
  * Like [.findResourceFields] but
  * can match than more than a single field name
  */
-
 fun findResourceFields(
   facet: AndroidFacet,
   resClassName: String,
@@ -1365,7 +1360,6 @@ fun findStyleableAttrFieldsForStyleable(facet: AndroidFacet, styleableName: Stri
  * This is necessary after a complex Android Resource refactor where the ResourceFolderRepository needs to rescan files to stay up to
  * date. This must be called after the ResourceFolderRepository has scheduled the scan (at the end of the refactor) so that the caches
  * are dropped after the repository is updated.
- *
  */
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
   ApplicationManager.getApplication().invokeLater {
@@ -1483,7 +1477,7 @@ fun isResourceDeclaration(resourceElement: PsiElement, targetElement: ResourceRe
     is XmlFile -> { // If the ReferencePsiElement created from the resourceElement matches the targetElement, then it must be a declaration of the
       // targetElement.
       val referencePsiElement = create(resourceElement)
-      referencePsiElement != null && referencePsiElement.equals(targetElement)
+      referencePsiElement != null && referencePsiElement == targetElement
     }
     is XmlAttributeValue -> {
       if (isIdDeclaration(
@@ -1556,10 +1550,9 @@ fun isConstraintReferencedIds(nsURI: String?, nsPrefix: String?, key: String?): 
 fun isConstraintReferencedIds(value: XmlAttributeValue): Boolean {
   val parent = value.parent
   if (parent is XmlAttribute) {
-    val xmlAttribute = parent
-    val nsURI = xmlAttribute.namespace
-    val nsPrefix = xmlAttribute.namespacePrefix
-    val key = xmlAttribute.localName
+    val nsURI = parent.namespace
+    val nsPrefix = parent.namespacePrefix
+    val key = parent.localName
     return isConstraintReferencedIds(nsURI, nsPrefix, key)
   }
   return false
@@ -1573,11 +1566,7 @@ fun getResourceNameByReferenceText(text: String): String? {
   else null
 }
 
-fun addValueResource(
-  resType: ResourceType,
-  resources: Resources,
-  value: String?
-): ResourceElement {
+fun addValueResource(resType: ResourceType, resources: Resources, value: String?): ResourceElement {
   return when (resType) {
     ResourceType.STRING -> resources.addString()
     ResourceType.PLURALS -> resources.addPlurals()
@@ -1615,10 +1604,7 @@ fun addValueResource(
   }
 }
 
-fun getResourceSubdirs(
-  resourceType: ResourceFolderType,
-  resourceDirs: Iterable<VirtualFile?>
-): List<VirtualFile> {
+fun getResourceSubdirs(resourceType: ResourceFolderType, resourceDirs: Iterable<VirtualFile?>): List<VirtualFile> {
   val dirs: MutableList<VirtualFile> = ArrayList()
   for (resourcesDir in resourceDirs) {
     if (resourcesDir == null || !resourcesDir.isValid) {
@@ -1651,8 +1637,7 @@ fun getDefaultResourceFileName(type: ResourceType): String? {
   else null
 }
 
-fun getValueResourcesFromElement(resourceType: ResourceType,
-                                 resources: Resources): List<ResourceElement> {
+fun getValueResourcesFromElement(resourceType: ResourceType, resources: Resources): List<ResourceElement> {
   val result: MutableList<ResourceElement> = ArrayList()
   when (resourceType) {
     ResourceType.STRING -> result.addAll(resources.strings)
@@ -1700,16 +1685,12 @@ private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
 }
 
 fun isInResourceSubdirectoryInAnyVariant(file: PsiFile, resourceType: String? = null): Boolean {
-  var file = file
-  file = file.originalFile
-  val dir = file.containingDirectory ?: return false
+  val dir = file.originalFile.containingDirectory ?: return false
   return isResourceSubdirectory(dir, resourceType, searchInAllVariants = true)
 }
 
 fun isInResourceSubdirectory(file: PsiFile, resourceType: String? = null): Boolean {
-  var file = file
-  file = file.originalFile
-  val dir = file.containingDirectory ?: return false
+  val dir = file.originalFile.containingDirectory ?: return false
   return isResourceSubdirectory(dir, resourceType, searchInAllVariants = false)
 }
 
@@ -1847,23 +1828,18 @@ fun createValueResource(
     value,
     resourceType,
     fileName,
-    dirNames,
-    Processor { element: ResourceElement ->
-      if (!value.isEmpty()) {
-        val s = if (resourceType == ResourceType.STRING) normalizeXmlResourceValue(
-          value)
-        else value
-        element.setStringValue(s)
-      }
-      else if (resourceType == ResourceType.STYLEABLE || resourceType == ResourceType.STYLE) {
-        element.setStringValue("value")
-        element.xmlTag!!.value.setText(
-          "")
-      }
-      outTags?.add(element)
-      true
+    dirNames) { element: ResourceElement ->
+    if (value.isNotEmpty()) {
+      val s = if (resourceType == ResourceType.STRING) normalizeXmlResourceValue(value) else value
+      element.stringValue = s
     }
-  )
+    else if (resourceType == ResourceType.STYLEABLE || resourceType == ResourceType.STYLE) {
+      element.stringValue = "value"
+      element.xmlTag!!.value.text = ""
+    }
+    outTags?.add(element)
+    true
+  }
 }
 
 private fun addValueResource(
@@ -1897,7 +1873,7 @@ private fun addValueResource(
   }
   val resourcesElements = arrayOfNulls<Resources>(resFiles.size)
   for (i in resFiles.indices) {
-    val resources: Resources? = AndroidUtils.loadDomElement<Resources>(project, resFiles[i]!!, Resources::class.java)
+    val resources: Resources? = AndroidUtils.loadDomElement(project, resFiles[i]!!, Resources::class.java)
     if (resources == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("not.resource.file.error", fileName))
       return false
@@ -1922,7 +1898,7 @@ private fun addValueResource(
       else {
         val element = addValueResource(
           resourceType, resources!!, resourceValue)
-        element.name.setValue(resourceName)
+        element.name.value = resourceName
         afterAddedProcessor.process(element)
       }
     }
@@ -1939,8 +1915,8 @@ private fun addValueResource(
  * @param newValue the new resource value
  * @param fileName the resource values file name
  * @param dirNames list of values directories where the resource should be changed
- * @param useGlobalCommand if true, the undo will be registered globally. This allows the command to be undone from anywhere in the IDE
- * and not only the XML editor
+ * @param useGlobalCommand if true, the undo operation will be registered globally. This allows
+ *     the command to be undone from anywhere in the IDE and not only the XML editor
  * @return true if the resource value was changed
  */
 fun changeValueResource(
@@ -2104,25 +2080,23 @@ fun getReferredResourceOrManifestField(
   if (qExp !is PsiReferenceExpression) {
     return null
   }
-  val resolvedElement = qExp.resolve() as? PsiClass ?: return null
-  val resolvedModule = ModuleUtilCore.findModuleForPsiElement(resolvedElement)
-  val aClass = resolvedElement
-  val classShortName = aClass.name!!
+  val psiClass = qExp.resolve() as? PsiClass ?: return null
+  val resolvedModule = ModuleUtilCore.findModuleForPsiElement(psiClass)
+  val classShortName = psiClass.name!!
   val fromManifest = AndroidUtils.MANIFEST_CLASS_NAME == classShortName
   if (!fromManifest && AndroidUtils.R_CLASS_NAME != classShortName) {
     return null
   }
-  val qName = aClass.qualifiedName ?: return null
+  val qName = psiClass.qualifiedName ?: return null
   if (!localOnly) {
     if (SdkConstants.CLASS_R == qName || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME == qName) {
       return ReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, ResourceNamespace.ANDROID, false)
     }
   }
-  return if (if (fromManifest) !isManifestClass(aClass) else !isRJavaClass(aClass)) {
+  return if (if (fromManifest) !isManifestClass(psiClass) else !isRJavaClass(psiClass)) {
     null
   }
-  else ReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, getRClassNamespace(facet, qName),
-                                 fromManifest)
+  else ReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, getRClassNamespace(facet, qName), fromManifest)
 }
 
 fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
@@ -2193,7 +2167,6 @@ fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
  * XML files higher than non-XML files. (Resource file folders are sorted by folder configuration
  * order.)
  */
-
 fun compareResourceFiles(file1: PsiFile?, file2: PsiFile?): Int {
   return if (file1 === file2) {
     0
@@ -2255,7 +2228,7 @@ fun ensureFilesWritable(project: Project, files: Collection<VirtualFile>): Boole
 fun getResourceDirectoriesForFacets(facets: List<AndroidFacet?>): Map<VirtualFile, AndroidFacet?> {
   val resDirectories: MutableMap<VirtualFile, AndroidFacet?> = HashMap()
   for (facet in facets) {
-    for (resourceDir in getInstance(facet!!).folders) {
+    for (resourceDir in ResourceFolderManager.getInstance(facet!!).folders) {
       if (!resDirectories.containsKey(resourceDir)) {
         resDirectories[resourceDir] = facet
       }
@@ -2305,7 +2278,7 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
  */
 fun ResourceItem.isIdDefinition(project: Project): Boolean {
   assert(type == ResourceType.ID)
-  return !isInlineIdDeclaration() || getIdDeclarationAttribute(project, this)?.name == "android:id";
+  return !isInlineIdDeclaration() || getIdDeclarationAttribute(project, this)?.name == "android:id"
 }
 
 /**
@@ -2363,7 +2336,7 @@ fun getItemTag(project: Project, item: ResourceItem): XmlTag? {
           continue
         }
         if (item.name == attr.getAttributeValue(SdkConstants.ATTR_NAME) && (attr.getAttribute(
-            SdkConstants.ATTR_FORMAT) != null || attr.subTags.size > 0)) {
+            SdkConstants.ATTR_FORMAT) != null || attr.subTags.isNotEmpty())) {
           return attr
         }
       }
@@ -2377,8 +2350,7 @@ fun getResourceElementFromSurroundingValuesTag(element: PsiElement): ResourceRef
   if (file != null && isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName()) &&
       (element.text == null || ResourceUrl.parse(element.text) == null)) {
     val valuesResource = PsiTreeUtil.getParentOfType(element, XmlTag::class.java)
-    if (valuesResource != null && VALUE_RESOURCE_TYPES.contains(
-        getResourceTypeForResourceTag(valuesResource))) {
+    if (valuesResource != null && VALUE_RESOURCE_TYPES.contains(getResourceTypeForResourceTag(valuesResource))) {
       val attribute = valuesResource.getAttribute(SdkConstants.ATTR_NAME) ?: return null
       val valueElement = attribute.valueElement ?: return null
       val elementReference = valueElement.reference ?: return null
@@ -2391,8 +2363,7 @@ fun getResourceElementFromSurroundingValuesTag(element: PsiElement): ResourceRef
 
 fun getViewTag(item: ResourceItem): String? {
   if (item is PsiResourceItem) {
-    val psiItem = item
-    val tag = psiItem.tag
+    val tag = item.tag
     val id = item.getName()
     if (tag != null && tag.isValid // Make sure that the id attribute we're searching for is actually
         // defined for this tag, not just referenced from this tag.
@@ -2400,10 +2371,10 @@ fun getViewTag(item: ResourceItem): String? {
         //    <Button a:alignLeft="@+id/target" a:id="@+id/something ...>
         // and this should *not* return "Button" as the view tag for
         // @+id/target!
-        && id == stripIdPrefix(tag.getAttributeValue(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI))) {
+        && id == stripIdPrefix(tag.getAttributeValue(ATTR_ID, SdkConstants.ANDROID_URI))) {
       return tag.name
     }
-    val file = psiItem.psiFile
+    val file = item.psiFile
     if (file is XmlFile && file.isValid()) {
       val rootTag = file.rootTag
       if (rootTag != null && rootTag.isValid) {
@@ -2415,7 +2386,7 @@ fun getViewTag(item: ResourceItem): String? {
 }
 
 private fun findViewTag(tag: XmlTag, target: String): String? {
-  val id = tag.getAttributeValue(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)
+  val id = tag.getAttributeValue(ATTR_ID, SdkConstants.ANDROID_URI)
   if (id != null && id.endsWith(target) && target == stripIdPrefix(id)) {
     return tag.name
   }
@@ -2464,7 +2435,8 @@ private fun getTemplateName(resourceType: String, valuesResourceFile: Boolean, r
     return AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE
   }
   if (ResourceType.LAYOUT.getName() == resourceType && SdkConstants.TAG_LAYOUT != rootTagName && SdkConstants.VIEW_MERGE != rootTagName) {
-    return if (AndroidUtils.TAG_LINEAR_LAYOUT == rootTagName) AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE else AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE
+    return if (AndroidUtils.TAG_LINEAR_LAYOUT == rootTagName) AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE
+           else AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE
   }
   return if (ResourceType.NAVIGATION.getName() == resourceType) {
     AndroidFileTemplateProvider.NAVIGATION_RESOURCE_FILE_TEMPLATE
@@ -2488,6 +2460,7 @@ fun getFieldNameByResourceName(styleName: String): String {
 /**
  * Finds and returns the resource files named stateListName in the directories listed in dirNames.
  * If some of the directories do not contain a file with that name, creates such a resource file.
+ *
  * @param project the project
  * @param resDir the res/ dir containing the directories under investigation
  * @param folderType Type of the directories under investigation
@@ -2505,13 +2478,12 @@ fun findOrCreateStateListFiles(
   dirNames: List<String>
 ): List<VirtualFile>? {
   val manager = PsiManager.getInstance(project)
-  val files: MutableList<VirtualFile> = Lists.newArrayListWithCapacity(
-    dirNames.size)
+  val files: MutableList<VirtualFile> = Lists.newArrayListWithCapacity(dirNames.size)
   val foundFiles = writeCommandAction(project).withName("Find statelists files").compute<Boolean, Exception> {
     try {
       var fileName = stateListName
-      if (!stateListName.endsWith(SdkConstants.DOT_XML)) {
-        fileName += SdkConstants.DOT_XML
+      if (!stateListName.endsWith(DOT_XML)) {
+        fileName += DOT_XML
       }
       for (dirName in dirNames) {
         val dirPath = FileUtil.toSystemDependentName(resDir.path + '/' + dirName)
@@ -2532,8 +2504,7 @@ fun findOrCreateStateListFiles(
         )
         file = dir.findChild(fileName)
         if (file == null) {
-          throw IOException(
-            "cannot find " + Joiner.on(File.separatorChar).join(resDir, dirPath, fileName))
+          throw IOException("cannot find " + Joiner.on(File.separatorChar).join(resDir, dirPath, fileName))
         }
         files.add(file)
       }
