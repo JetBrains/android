@@ -16,7 +16,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completion-ranking-typescript-0.3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/completionMlRankingModels/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

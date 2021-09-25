@@ -2,7 +2,6 @@
   <library name="studio-plugin-copyright">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/copyright/lib/copyright.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/copyright/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

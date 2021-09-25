@@ -2,7 +2,6 @@
   <library name="studio-plugin-c-plugin">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/c-plugin/lib/c-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/c-plugin/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
