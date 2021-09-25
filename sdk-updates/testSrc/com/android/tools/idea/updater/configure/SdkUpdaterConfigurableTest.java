@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
+
+import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.sdklib.repository.generated.addon.v2.ExtraDetailsType;
+import com.android.sdklib.repository.generated.sysimg.v2.SysImgDetailsType;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
 import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
 
 public class SdkUpdaterConfigurableTest {
   private static final long USABLE_DISK_SPACE = 1024*1024*1024L; // 1GB
@@ -136,5 +140,30 @@ public class SdkUpdaterConfigurableTest {
       assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE_WITHOUT_DOWNLOADS, "800.0 MB"),
                    messages.getFirst().getHtml());
       assertNull(messages.getSecond());
+  }
+
+  @Test
+  public void getItemMessageForImage() {
+    SysImgDetailsType detailsType = Mockito.mock(SysImgDetailsType.class);
+    Mockito.when(detailsType.getApiLevel()).thenReturn(30);
+
+    RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
+    Mockito.when(remotePackage.getDisplayName()).thenReturn("Test Image");
+    Mockito.when(remotePackage.getVersion()).thenReturn(new Revision(1));
+    Mockito.when(remotePackage.getTypeDetails()).thenReturn(detailsType);
+
+    assertEquals("Test Image: API level 30 revision 1", SdkUpdaterConfigurable.getItemMessage(remotePackage));
+  }
+
+  @Test
+  public void getItemMessageForTool() {
+    ExtraDetailsType detailsType = Mockito.mock(ExtraDetailsType.class);
+
+    RemotePackage remotePackage = Mockito.mock(RemotePackage.class);
+    Mockito.when(remotePackage.getDisplayName()).thenReturn("Test SDK Tool");
+    Mockito.when(remotePackage.getVersion()).thenReturn(new Revision(12));
+    Mockito.when(remotePackage.getTypeDetails()).thenReturn(detailsType);
+
+    assertEquals("Test SDK Tool: version 12", SdkUpdaterConfigurable.getItemMessage(remotePackage));
   }
 }

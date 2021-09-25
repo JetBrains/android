@@ -23,6 +23,7 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -212,8 +213,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       }
       for (LocalPackage item : toDelete) {
         messageToDelete.listItem()
-                       .add(item.getDisplayName()).add(", Revision: ")
-                       .add(item.getVersion().toString());
+                       .add(getItemMessage(item));
       }
       messageToDelete.endList();
     }
@@ -261,9 +261,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         for (RemotePackage dependency : packageDependencies) {
           dependencies.put(dependency, item);
         }
-        messageToInstall.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
-                                             item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
-                                             item.getVersion()));
+
+        messageToInstall.listItem().add(getItemMessage(item));
 
         Pair<Long, Boolean> itemDownloadSize = calculateDownloadSizeForPackage(item, packages);
         if (itemDownloadSize.getSecond()) {
@@ -342,6 +341,18 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       // We didn't have any changes, so just reload (maybe the channel changed).
       myChannelChangedCallback.run();
     }
+  }
+
+  @VisibleForTesting
+  static @NotNull String getItemMessage(@NotNull RepoPackage item) {
+    String apiLevelString = item.getTypeDetails() instanceof DetailsTypes.SysImgDetailsType ?
+                            " API level " + ((DetailsTypes.SysImgDetailsType)item.getTypeDetails()).getApiLevel() : "";
+    String revisionOrVersion = String.format("%1$s %2$s",
+                                             item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
+                                             item.getVersion());
+    return String.format("%1$s:%2$s %3$s", item.getDisplayName(),
+                         apiLevelString,
+                         revisionOrVersion);
   }
 
   private static long getLocalInstallationSize(@NotNull Collection<LocalPackage> localPackages) {
