@@ -13,7 +13,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/coverage/lib/org.jacoco.ant-0.8.7.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/coverage/lib/org.jacoco.core-0.8.7.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/coverage/lib/org.jacoco.report-0.8.7.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/coverage/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

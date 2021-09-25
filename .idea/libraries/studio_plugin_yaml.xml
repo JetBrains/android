@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="studio-plugin-yaml">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/yaml/lib/resources_en.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/yaml/lib/yaml.jar!/" />
     </CLASSES>
     <JAVADOC />

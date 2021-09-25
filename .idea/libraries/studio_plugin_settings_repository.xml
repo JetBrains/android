@@ -2,7 +2,6 @@
   <library name="studio-plugin-settings-repository">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/settings-repository/lib/jgit.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/settings-repository/lib/resources_en.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/settings-repository/lib/settings-repository.jar!/" />
     </CLASSES>
     <JAVADOC />

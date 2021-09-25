@@ -3,7 +3,6 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/editorconfig/lib/editorconfig-core-java.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/editorconfig/lib/editorconfig.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/editorconfig/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
