@@ -201,26 +201,26 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY");
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
-  @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   private boolean myShouldExportDependencies;
 
+  private @Nullable Project myProject;
+
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectFinder(), new IdeaJavaModuleModelFactory());
+    this(new CommandLineArgs(), new IdeaJavaModuleModelFactory());
   }
 
   @NonInjectable
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
-                               @NotNull ProjectFinder projectFinder,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory) {
     myCommandLineArgs = commandLineArgs;
-    myProjectFinder = projectFinder;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
   }
 
   @Override
   public void setProjectResolverContext(@NotNull ProjectResolverContext projectResolverContext) {
+    myProject = projectResolverContext.getExternalSystemTaskId().findProject();
     // Setting this flag on the `projectResolverContext` tells the Kotlin IDE plugin that we are requesting `KotlinGradleModel` for all
     // modules. This is to be able to provide additional arguments to the model builder and avoid unnecessary processing of currently the
     // inactive build variants.
@@ -289,6 +289,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                  ? GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
                                  : null;
     boolean result = modelVersion != null && modelVersion.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
+    Project project = getProject();
     if (!result) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       // @formatter:off
@@ -297,13 +298,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
            .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
            .setGradleVersion(modelVersionString);
       // @formatter:on
-      UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
+      UsageTrackerUtils.withProjectId(event, project);
       UsageTracker.log(event);
 
       String msg = getUnsupportedModelVersionErrorMsg(modelVersion);
       throw new IllegalStateException(msg);
     }
-    Project project = myProjectFinder.findProject(resolverCtx);
 
     // Before anything, check to see if what we have is compatible with this version of studio.
     GradleVersion currentAgpVersion = GradleVersion.tryParse(modelVersionString);
@@ -401,7 +401,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // We also need to patch java modules as we disabled the kapt resolver.
     // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     if (project != null && ModuleUtil.isModulePerSourceSetEnabled(project) && androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
       createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact());
@@ -635,7 +635,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   private void populateAdditionalClassifierArtifactsModel(@NotNull IdeaModule gradleModule) {
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     AdditionalClassifierArtifactsModel artifacts = resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel.class);
     if (artifacts != null && project != null) {
       LibraryFilePaths.getInstance(project).populate(artifacts);
@@ -653,7 +653,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
 
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     if (project != null && ModuleUtil.isModulePerSourceSetEnabled(project)) {
       ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(
         ideModule,
@@ -717,7 +717,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
 
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     LibraryFilePaths libraryFilePaths;
     if (project == null) {
       libraryFilePaths = null;
@@ -796,7 +796,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     if (project != null) {
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode);
     }
@@ -849,7 +849,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     String projectPath = resolverCtx.getProjectPath();
     syncAndroidSdks(SdkSync.getInstance(), projectPath);
 
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     JdkImportCheck.validateProjectGradleJdk(project, projectPath);
     validateGradleWrapper(projectPath);
 
@@ -904,7 +904,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @Override
   @NotNull
   public List<String> getExtraCommandLineArgs() {
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     return myCommandLineArgs.get(project);
   }
 
@@ -927,7 +927,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                .setKind(GRADLE_SYNC_FAILURE_DETAILS)
                .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION);
           // @formatter:on;
-          UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
+          UsageTrackerUtils.withProjectId(event, getProject());
           UsageTracker.log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
@@ -985,7 +985,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (projectResolutionMode == ProjectResolutionMode.SyncProjectMode.INSTANCE) {
       // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
       // to decide which models to request from Gradle.
-      @Nullable Project project = myProjectFinder.findProject(resolverCtx);
+      @Nullable Project project = getProject();
 
       AdditionalClassifierArtifactsActionOptions additionalClassifierArtifactsAction =
         new AdditionalClassifierArtifactsActionOptions(
@@ -1036,7 +1036,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private void displayInternalWarningIfForcedUpgradesAreDisabled() {
     if (DISABLE_FORCED_UPGRADES.get()) {
-      Project project = myProjectFinder.findProject(resolverCtx);
+      Project project = getProject();
       if (project != null) {
         displayForceUpdatesDisabledMessage(project);
       }
@@ -1044,7 +1044,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   private void cleanUpHttpProxySettings() {
-    Project project = myProjectFinder.findProject(resolverCtx);
+    Project project = getProject();
     if (project != null) {
       ApplicationManager.getApplication().invokeAndWait(() -> HttpProxySettingsCleanUp.cleanUp(project));
     }
@@ -1099,5 +1099,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (projectUserData != null) {
       projectDataNode.createChild(CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, projectUserData);
     }
+  }
+
+  @Nullable
+  public Project getProject() {
+    return myProject;
   }
 }
