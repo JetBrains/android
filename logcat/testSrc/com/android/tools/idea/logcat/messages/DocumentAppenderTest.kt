@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -99,18 +100,67 @@ class DocumentAppenderTest {
     })
 
     assertThat(markupModel.allHighlighters.map(RangeHighlighter::toHighlighterRange)).containsExactly(
-      HighlighterRange(0, 3, red),
+      TextAccumulator.Range(0, 3, red),
       getHighlighterRangeForText("ijkl\n", blue)
     )
   }
 
-  private fun getHighlighterRangeForText(text: String, textAttributes: TextAttributes): HighlighterRange? {
+  @Test
+  fun appendToDocument_setsHintRanges() {
+    document.setText("Start\n")
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("No hint\n")
+      accumulate("Foo\n", hint = "foo")
+      accumulate("Bar\n", hint = "bar")
+    })
+
+    val rangeMarkers = mutableListOf<RangeMarker>()
+    document.processRangeMarkers {
+      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+        rangeMarkers.add(it)
+      }
+      true
+    }
+    assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
+      getHighlighterRangeForText("Foo\n", "foo"),
+      getHighlighterRangeForText("Bar\n", "bar")
+    )
+  }
+
+  @Test
+  fun appendToDocument_setsHintRanges_cyclicBuffer() {
+    // This size will truncate in the middle of the second line
+    document.setCyclicBufferSize(8)
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("abcd\n", hint = "foo")
+      accumulate("efgh\n", hint = "bar")
+      accumulate("ijkl\n", hint = "duh")
+    })
+
+    val rangeMarkers = mutableListOf<RangeMarker>()
+    document.processRangeMarkers {
+      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+        rangeMarkers.add(it)
+      }
+      true
+    }
+    assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
+      TextAccumulator.Range(0, 3, "bar"),
+      getHighlighterRangeForText("ijkl\n", "duh")
+    )
+  }
+
+  private fun <T> getHighlighterRangeForText(text: String, data: T): TextAccumulator.Range<T>? {
     val start = document.text.indexOf(text)
     if (start < 0) {
       return null
     }
-    return HighlighterRange(start, start + text.length, textAttributes)
+    return TextAccumulator.Range(start, start + text.length, data)
   }
 }
 
-private fun RangeHighlighter.toHighlighterRange() = HighlighterRange(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)
+private fun RangeHighlighter.toHighlighterRange() = TextAccumulator.Range(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)
+
+private fun RangeMarker.toHintRange() = TextAccumulator.Range(startOffset, endOffset, getUserData(LOGCAT_HINT_KEY))

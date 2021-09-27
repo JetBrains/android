@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.time.Instant
@@ -48,7 +48,7 @@ class MessageFormatterTest {
         LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag", timestamp), "message"),
       ))
 
-    Truth.assertThat(textAccumulator.text).isEqualTo("""
+    assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000      1-2      tag app W message
       1970-01-01 04:00:01.000  12345-12345      app W message
       1970-01-01 04:00:01.000  12345-12345      long app W message
@@ -72,7 +72,7 @@ class MessageFormatterTest {
         LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag2", timestamp), "message4"),
       ))
 
-    Truth.assertThat(textAccumulator.text).isEqualTo("""
+    assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000      1-2      tag1 app W message1
       1970-01-01 04:00:01.000      1-2           app W message2
       1970-01-01 04:00:01.000      1-2           app W message3
@@ -92,10 +92,10 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = textAccumulator.ranges.filter { getRangeText(textAccumulator.text, it).matches(" [VDIWEA] ".toRegex()) }
-      .associate { getRangeText(textAccumulator.text, it).trim() to it.textAttributes }
+    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
+      .associate { it.getText(textAccumulator.text).trim() to it.data }
 
-    Truth.assertThat(textAttributes).containsExactly(
+    assertThat(textAttributes).containsExactly(
       "V", logcatColors.getLogLevelColor(Log.LogLevel.VERBOSE),
       "D", logcatColors.getLogLevelColor(Log.LogLevel.DEBUG),
       "I", logcatColors.getLogLevelColor(Log.LogLevel.INFO),
@@ -118,11 +118,11 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a tag and build a map tag -> color.
-    val tagColors = textAccumulator.ranges.filter { getRangeText(textAccumulator.text, it).matches(" tag\\d+ *".toRegex()) }
-      .associate { getRangeText(textAccumulator.text, it).trim() to it.textAttributes }
-    Truth.assertThat(tagColors).hasSize(numTags)
+    val tagColors = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" tag\\d+ *".toRegex()) }
+      .associate { it.getText(textAccumulator.text).trim() to it.data }
+    assertThat(tagColors).hasSize(numTags)
     tagColors.forEach { (tag, color) ->
-      Truth.assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
+      assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
     }
   }
 
@@ -133,7 +133,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator, listOf(LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 1, 2, "app", "", timestamp), "message")))
 
-    Truth.assertThat(textAccumulator.text).isEqualTo("""
+    assertThat(textAccumulator.text).isEqualTo("""
         1970-01-01 04:00:01.000      1-2        app I message
 
       """.trimIndent())
@@ -146,11 +146,27 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator, listOf(LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 1, 2, "", "tag", timestamp), "message")))
 
-    Truth.assertThat(textAccumulator.text).isEqualTo("""
+    assertThat(textAccumulator.text).isEqualTo("""
         1970-01-01 04:00:01.000      1-2      tag   I message
 
       """.trimIndent())
   }
+
+  @Test
+  fun formatMessages_hints() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app2", "tag2", timestamp), "message2"),
+      ))
+
+    textAccumulator.hintRanges.forEach {
+      assertThat(it.getText(textAccumulator.text).trim()).isEqualTo(it.data)
+    }
+  }
 }
 
-private fun getRangeText(text: String, range: HighlighterRange) = text.substring(range.start, range.end)
+private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)

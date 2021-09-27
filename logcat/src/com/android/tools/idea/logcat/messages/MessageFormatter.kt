@@ -62,8 +62,8 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
         maxAppNameLength = header.appName.length
       }
 
-      textAccumulator.accumulate(" %-${maxTagNameLength}s".format(tag), logcatColors.getTagColor(header.tag))
-      textAccumulator.accumulate(" %-${maxAppNameLength}s".format(header.appName))
+      textAccumulator.accumulate(" %-${maxTagNameLength}s".format(tag), logcatColors.getTagColor(header.tag), header.tag)
+      textAccumulator.accumulate(" %-${maxAppNameLength}s".format(header.appName), hint = header.appName)
       textAccumulator.accumulate(" ${header.logLevel.priorityLetter} ", logcatColors.getLogLevelColor(header.logLevel))
       textAccumulator.accumulate("${message.message}\n")
     }
