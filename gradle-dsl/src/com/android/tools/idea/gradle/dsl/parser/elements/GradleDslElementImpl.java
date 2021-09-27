@@ -502,6 +502,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
+  public void addDependency(@NotNull GradleReferenceInjection injection) {
+    myDependencies.add(injection);
+  }
+
+  @Override
   public void resolve() {
   }
 

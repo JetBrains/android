@@ -174,5 +174,6 @@ fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySe
     if (i == lastSegmentIndex) return thunk(segment, currentContext)
     val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
     currentContext = currentContext.ensurePropertyElement(description)
+    if (currentContext.psiElement == null) currentContext.psiElement = segment
   }
 }

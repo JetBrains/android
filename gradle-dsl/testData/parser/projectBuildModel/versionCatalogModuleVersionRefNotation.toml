@@ -1,0 +1,5 @@
+[versions]
+aversion = '1.2.3'
+
+[libraries]
+adep = { module = 'com.example:example', version.ref = 'aversion' }

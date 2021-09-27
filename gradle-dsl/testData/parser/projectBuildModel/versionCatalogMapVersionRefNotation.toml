@@ -1,0 +1,5 @@
+[versions]
+aversion = '1.2.3'
+
+[libraries]
+adep = { group = 'com.example', name = 'example', version.ref = 'aversion' }
