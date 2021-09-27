@@ -2007,7 +2007,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :lib
-                            Variant                       : debug
+                            Variant                       : debugTestFixtures
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -2478,7 +2478,7 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :lib
-                            Variant                       : debug
+                            Variant                       : debugTestFixtures
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -2567,7 +2567,7 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :lib
-                            Variant                       : debug
+                            Variant                       : debugTestFixtures
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
