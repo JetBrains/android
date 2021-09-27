@@ -25,10 +25,12 @@ import com.android.tools.idea.gradle.project.sync.VariantDetails
 import com.android.tools.idea.gradle.project.sync.VariantSelectionChange
 import com.android.tools.idea.gradle.project.sync.applyChange
 import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.intellij.facet.ProjectFacetManager
+import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.toGradleProjectPath
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -39,9 +41,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.model.data.CompositeBuildData
 import java.util.ArrayDeque
 
 class VariantProjectDataNodes {
@@ -74,7 +74,7 @@ fun computeExpectedVariantsAfterSwitch(
   module: Module,
   variantNameAndAbi: VariantAndAbi,
   data: ExternalProjectInfo?
-): Map<String, VariantAndAbi>? {
+): Map<GradleProjectPath, VariantAndAbi>? {
   val projectDataDataNode = data?.externalProjectStructure ?: return null
   val cachedVariants =
     ExternalSystemApiUtil.find(projectDataDataNode, AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS)?.data
@@ -84,35 +84,36 @@ fun computeExpectedVariantsAfterSwitch(
 
   val androidModules = projectDataDataNode.getAndroidModules()
 
-  val affectedModules = androidModules.getAffectedModuleIds(ExternalSystemApiUtil.getExternalProjectId(module) ?: return null)
+  val affectedModules =
+    androidModules.getAffectedModuleIds(
+      module.getGradleProjectPath()
+        ?.let { GradleProjectPath(it.projectRoot, it.gradleProjectPath) }
+      ?: return null
+    )
 
   val sourceVariants =
     androidModules
-      .modulesById
-      .mapNotNull { nameAndVariantDetails(it.value.module) }
+      .modulesByGradleProjectPath
+      .mapNotNull { (key, value) -> nameAndVariantDetails(value.module)?.let {key to it} }
       .toMap()
 
   // Both `affectedModules` and `expectedVariants` in some edge cases may differ from variants resolved by Gradle/AGP. If it happens,
   // switching will unfortunately fall back to Gradle sync as it won't find the expected set of variants cached.
   return sourceVariants
-    .mapValues { (moduleId, value) ->
-      if (affectedModules.contains(moduleId)) value.applyChange(variantChange, applyAbiMode = OVERRIDE_ONLY)
+    .mapValues { (gradleProjectPath, value) ->
+      if (affectedModules.contains(gradleProjectPath)) value.applyChange(variantChange, applyAbiMode = OVERRIDE_ONLY)
       else value
     }
     .mapValues { (_, value) -> VariantAndAbi(value.name, value.abi) }
 }
 
-fun Project.getSelectedVariantAndAbis(): Map<String, VariantAndAbi> {
+fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
   return getAndroidFacets()
     .mapNotNull { androidFacet ->
       val module = androidFacet.module
       val ndkFacet = NdkFacet.getInstance(module)
-      val moduleId = if (isModulePerSourceSetEnabled()) {
-        ExternalSystemApiUtil.getExternalProjectId(module)?.removeSourceSetSuffixFromExternalProjectID()
-      } else {
-        ExternalSystemApiUtil.getExternalProjectId(module)
-      } ?: return@mapNotNull null
-      moduleId to
+      val gradleProjectPath = module.getHolderModule().getGradleProjectPath()?.toGradleProjectPath() ?: return@mapNotNull null
+      gradleProjectPath to
           VariantAndAbi(
             androidFacet.properties.SELECTED_BUILD_VARIANT,
             // NOTE: Do not use `ndkFacet?.selectedVariantAbi` whis is too smart and assumes NdkModuleModel is already attached.
@@ -121,7 +122,7 @@ fun Project.getSelectedVariantAndAbis(): Map<String, VariantAndAbi> {
     }.toMap()
 }
 
-fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variants: Map<String, VariantAndAbi>): DataNode<ProjectData>? {
+fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variants: Map<GradleProjectPath, VariantAndAbi>): DataNode<ProjectData>? {
   val projectDataDataNode = externalProjectStructure ?: return null
   if (projectDataDataNode.getSelectedVariants() == variants) return projectDataDataNode
 
@@ -151,7 +152,7 @@ fun switchVariant(
 
 private fun DataNode<ProjectData>.repopulateProjectDataWith(
   from: VariantProjectDataNodes,
-  variants: Map<String, VariantAndAbi>
+  variants: Map<GradleProjectPath, VariantAndAbi>
 ): Boolean {
   val selectedVariantIndex = from.data.indexOfFirst { it.getSelectedVariants() == variants }
   if (selectedVariantIndex == -1) return false
@@ -166,30 +167,29 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
   return true
 }
 
-private fun nameAndVariantDetails(moduleDataNode: DataNode<ModuleData>): Pair<String, VariantDetails>? {
+private fun nameAndVariantDetails(moduleDataNode: DataNode<ModuleData>): VariantDetails? {
   val androidModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
                            ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
-  return moduleDataNode.data.id to (getSelectedVariantDetails(androidModuleModel, ndkModuleModel) ?: return null)
+  return getSelectedVariantDetails(androidModuleModel, ndkModuleModel)
 }
 
-private fun variantAndAbi(moduleDataNode: DataNode<ModuleData>): Pair<String, VariantAndAbi>? {
+private fun variantAndAbi(moduleDataNode: DataNode<ModuleData>): VariantAndAbi? {
   val androidModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
                            ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
-  return moduleDataNode.data.id to (VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi))
+  return VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
 
 private class AndroidModule(
-  val moduleId: String,
+  val gradleProjectPath: GradleProjectPath,
   val module: DataNode<ModuleData>,
   val androidModel: AndroidModuleModel
 )
 
 private class AndroidModules(
-  val modulesById: Map<String, AndroidModule>,
-  val projectData: ProjectData,
-  val compositeData: CompositeBuildData?
+  val modulesByGradleProjectPath: Map<GradleProjectPath, AndroidModule>,
+  val projectData: ProjectData
 )
 
 /**
@@ -197,26 +197,26 @@ private class AndroidModules(
  * identified by a `moduleId`. It includes any modules the target module depends directly or indirectly on and also any of their feature
  * modules.
  */
-private fun AndroidModules.getAffectedModuleIds(moduleId: String): Set<String> {
+private fun AndroidModules.getAffectedModuleIds(moduleId: GradleProjectPath): Set<GradleProjectPath> {
   return sequence {
-    val queue = ArrayDeque(listOfNotNull(modulesById[moduleId]))
-    val seen = mutableSetOf<String>()
+    val queue = ArrayDeque(listOfNotNull(modulesByGradleProjectPath[moduleId]))
+    val seen = mutableSetOf<GradleProjectPath>()
     while (queue.isNotEmpty()) {
       val head = queue.pop()
-      if (seen.add(head.moduleId)) {
-        yield(head.moduleId)
+      if (seen.add(head.gradleProjectPath)) {
+        yield(head.gradleProjectPath)
         queue.addAll(
           head.androidModel.selectedVariant
             .let {
               it.mainArtifact.level2Dependencies.moduleDependencies +
               it.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
             }
-            .mapNotNull { dependency -> modulesById[computeModuleIdForLibraryTarget(dependency, projectData, compositeData)] }
+            .mapNotNull { dependency -> modulesByGradleProjectPath[computeModuleIdForLibraryTarget(dependency)] }
         )
         queue.addAll(
           head.androidModel.androidProject.dynamicFeatures
             // TODO: Fix support for dynamic features in included builds.
-            .mapNotNull { dynamicFeatureId -> modulesById[dynamicFeatureId] }
+            .mapNotNull { dynamicFeatureId -> modulesByGradleProjectPath[GradleProjectPath(head.gradleProjectPath.buildRoot, dynamicFeatureId)] }
         )
       }
     }
@@ -225,15 +225,31 @@ private fun AndroidModules.getAffectedModuleIds(moduleId: String): Set<String> {
 }
 
 private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
+  val modules = findAll(this, ProjectKeys.MODULE)
+  val roots = modules.filter { !it.data.id.contains(':') }.associateBy { it.data.id }
   return AndroidModules(
-    findAll(this, ProjectKeys.MODULE)
+    modules
       .mapNotNull {
         val androidModel = ExternalSystemApiUtil.find(it, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return@mapNotNull null
-        AndroidModule(it.data.id, it, androidModel)
+        val moduleId = it.data.id
+        // Note: The root project name extracted below does not necessarily match the name of any Gradle projects or included builds.
+        // However, it is expected to be always the same for all modules derived from one `IdeaProject` model instance.
+        val rootProjectName = moduleId.substringBefore(':', moduleId)
+        val projectPath = ":" + moduleId.substringAfter(':', "")
+        AndroidModule(
+          gradleProjectPath = GradleProjectPath(
+            (
+              if (rootProjectName == "") this.data.linkedExternalProjectPath
+              else roots[rootProjectName]?.data?.linkedExternalProjectPath
+            ) ?: error("Cannot find root module data: $rootProjectName"),
+            projectPath
+          ),
+          module = it,
+          androidModel = androidModel
+        )
       }
-      .associateBy { it.moduleId },
-    data,
-    ExternalSystemApiUtil.find(this, CompositeBuildData.KEY)?.data
+      .associateBy { it.gradleProjectPath },
+    data
   )
 }
 
@@ -249,9 +265,10 @@ private fun VariantProjectDataNodes.findCachedVariantData(moduleVariants: Map<St
 }
 
 @VisibleForTesting
-fun DataNode<ProjectData>.getSelectedVariants(): Map<String, VariantAndAbi> {
-  return findAll(this, ProjectKeys.MODULE)
-    .mapNotNull(::variantAndAbi)
+fun DataNode<ProjectData>.getSelectedVariants(): Map<GradleProjectPath, VariantAndAbi> {
+  return getAndroidModules()
+    .modulesByGradleProjectPath
+    .mapNotNull { (key, value) -> variantAndAbi(value.module)?.let { key to it } }
     .toMap()
 }
 

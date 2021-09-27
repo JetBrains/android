@@ -20,7 +20,6 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.module.ModuleManager
 import java.io.File
 
 /**

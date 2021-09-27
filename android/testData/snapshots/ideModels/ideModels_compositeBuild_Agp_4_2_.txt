@@ -8565,6 +8565,9 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
                             ProjectPath                   : :
@@ -9168,6 +9171,9 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
+                        ModuleDependency
+                            ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
                             ProjectPath                   : :
@@ -9769,6 +9775,9 @@ MODULE                        : project.app
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
                         ModuleDependency
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2

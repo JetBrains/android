@@ -2803,6 +2803,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -2844,6 +2845,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -2894,6 +2896,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
@@ -2936,6 +2939,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
+                    artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::                   : null => artifacts:::unspecified
                     artifacts::app                : null => artifacts::app:unspecified
@@ -2993,6 +2997,7 @@ MODULE                        : project.app
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
                 artifacts::lib                : null => artifacts::lib:unspecified
@@ -3028,6 +3033,7 @@ MODULE                        : project.app
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
+                artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified

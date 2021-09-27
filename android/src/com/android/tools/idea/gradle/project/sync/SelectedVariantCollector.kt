@@ -59,6 +59,8 @@ fun getSelectedVariantDetails(androidModel: AndroidModuleModel, ndkModel: NdkMod
 }
 
 private fun Module.getModuleId(): String? {
-  val gradleProjectPath = getGradleProjectPath() ?: return null
+  // Android Studio internally use paths as they are returned by models, however to avoid ambiguity communication between
+  // the code injected into the Gradle process and the IDE uses canonical paths.
+  val gradleProjectPath = getGradleProjectPath(useCanonicalPath = true) ?: return null
   return Modules.createUniqueModuleId(gradleProjectPath.projectRoot, gradleProjectPath.gradleProjectPath)
 }

@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.variant.conflict;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.toGradleProjectPath;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -26,10 +28,13 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.util.AndroidGradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -70,7 +75,7 @@ public class ConflictSet {
       if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
         continue;
       }
-      String gradlePath = getGradlePath(module);
+      GradleProjectPath gradlePath = getGradleProjectPath(module);
       if (gradlePath == null) {
         continue;
       }
@@ -117,17 +122,17 @@ public class ConflictSet {
   }
 
   @Nullable
-  private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
+  private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull GradleProjectPath dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
     for (IdeModuleLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
-      if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+      if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
         return dependency.getVariant();
       }
     }
 
     if (variant.getAndroidTestArtifact() != null) {
       for (IdeModuleLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
-        if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+        if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
           return dependency.getVariant();
         }
       }
@@ -135,7 +140,7 @@ public class ConflictSet {
 
     if (variant.getUnitTestArtifact() != null) {
       for (IdeModuleLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
-        if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+        if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
           return dependency.getVariant();
         }
       }

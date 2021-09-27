@@ -524,6 +524,7 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib
         ORDER_ENTRY                   : composite2
         ORDER_ENTRY                   : composite4
+        ORDER_ENTRY                   : compositeNest
     MODULE                        : TestCompositeLib1.lib
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
@@ -1530,6 +1531,7 @@ PROJECT                       : testWithCompositeBuild
             Name                          : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : TestCompositeLib3.lib
+        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest
         ORDER_ENTRY                   : composite4
     MODULE                        : TestCompositeLib3.lib
         ExternalModuleGroup           : com.test.composite3
@@ -2576,6 +2578,7 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib
         ORDER_ENTRY                   : composite2
         ORDER_ENTRY                   : composite4
+        ORDER_ENTRY                   : compositeNest
         ORDER_ENTRY                   : testWithCompositeBuild.lib
     MODULE                        : testWithCompositeBuild.lib
         ExternalModuleGroup           : com.test.composite
