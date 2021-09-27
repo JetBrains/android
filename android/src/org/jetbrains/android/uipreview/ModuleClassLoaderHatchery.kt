@@ -54,27 +54,35 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
     parent: ClassLoader?,
     projectTransformations: ClassTransform,
     nonProjectTransformations: ClassTransform) =
-    eggs.peek().isForCompatible(parent, projectTransformations, nonProjectTransformations)
+    eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
 
   /**
    * If possible, returns a [ModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
    */
   fun retrieve(): ModuleClassLoader? {
-    eggs.poll().getClassLoader()?.let { egg ->
-      cloner(egg)?.let { newClassLoader ->
-        eggs.add(Preloader(newClassLoader, classesToPreload))
+    return generateSequence { eggs.poll()?.getClassLoader() }
+      .firstOrNull {
+        if (!it.isUserCodeUpToDate) {
+          // This class loader can not be used, it's not up-to-date
+          Disposer.dispose(it)
+          false
+        }
+        else true
       }
-      return egg
-    }
-    return null
+      ?.let { compatibleClassLoader ->
+        // Incubate the next one
+        cloner(compatibleClassLoader)?.let { newClassLoader ->
+          eggs.add(Preloader(newClassLoader, classesToPreload))
+        }
+        compatibleClassLoader
+      }
   }
 
   /**
    * Should be called when the clutch is no longer needed to free all the resources.
    */
   fun destroy() {
-    eggs.forEach { Disposer.dispose(it) }
-    eggs.clear()
+    generateSequence { eggs.poll() }.forEach { Disposer.dispose(it) }
   }
 
   fun getStats(): Stats {
