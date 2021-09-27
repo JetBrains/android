@@ -17,7 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
-import com.android.tools.idea.codenavigation.FakeCodeNavigator;
+import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -70,7 +70,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator();
+  private final CodeNavigator myFakeNavigationService = new CodeNavigator(
+      new FakeNavSource(), CodeNavigator.Companion.getTestExecutor());
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
   private TraceProcessorService myTraceProcessorService = new FakeTraceProcessorService();
   private NativeFrameSymbolizer myFakeSymbolizer = new NativeFrameSymbolizer() {
