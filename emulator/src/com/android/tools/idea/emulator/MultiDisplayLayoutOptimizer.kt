@@ -31,6 +31,10 @@ import kotlin.math.min
  *     before scaling. The size of this array may not exceed 4.
  */
 fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
+  require(rectangleSizes.isNotEmpty())
+  if (rectangleSizes.size < 2) {
+    return LeafNode(0, availableSpace)
+  }
   val optimizer = LayoutOptimizer(rectangleSizes)
   return optimizer.optimize(availableSpace)
 }
