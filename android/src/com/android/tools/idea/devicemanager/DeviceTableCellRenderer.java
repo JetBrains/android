@@ -74,10 +74,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
       .addPreferredGap(ComponentPlacement.RELATED)
       .addGroup(layout.createParallelGroup()
                   .addGroup(layout.createSequentialGroup()
-                              .addComponent(myNameLabel, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                              .addComponent(myNameLabel, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                               .addPreferredGap(ComponentPlacement.RELATED)
                               .addComponent(myOnlineLabel))
-                  .addComponent(myLine2Label, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                  .addComponent(myLine2Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
       .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       .addComponent(myPairedLabel)
       .addGap(JBUIScale.scale(4));
