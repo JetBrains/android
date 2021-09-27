@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.ibm.icu.number.LocalizedNumberFormatter;
 import com.ibm.icu.number.NumberFormatter;
 import com.ibm.icu.util.MeasureUnit;
@@ -37,7 +38,8 @@ final class StorageDevice {
    */
   private final int myAvailableSpace;
 
-  private StorageDevice(int availableSpace) {
+  @VisibleForTesting
+  StorageDevice(int availableSpace) {
     myAvailableSpace = availableSpace;
   }
 
