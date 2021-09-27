@@ -276,7 +276,7 @@ public class AvdManagerConnection {
           SDK_LOG);
       }
       catch (AndroidLocationsException e) {
-        IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
+        IJ_LOG.error(e);
         return false;
       }
 
