@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
@@ -69,13 +70,10 @@ class TomlDslParser(
         }
       }
 
-      override fun visitArray(element: TomlArray) = doVisit("TomlArray") { super.visitArray(element) }
       override fun visitArrayTable(element: TomlArrayTable) = doVisit("TomlArrayTable") { super.visitArrayTable(element) }
-      override fun visitInlineTable(element: TomlInlineTable) = doVisit("TomlInlineTable") { super.visitInlineTable(element) }
       override fun visitKey(element: TomlKey) = doVisit("TomlKey (${element.text})") { super.visitKey(element) }
       override fun visitKeySegment(element: TomlKeySegment) = doVisit("TomlKeySegment (${element.text})") { super.visitKeySegment(element) }
       override fun visitKeyValueOwner(element: TomlKeyValueOwner) = doVisit("TomlKeyValueOwner") { super.visitKeyValueOwner(element) }
-      override fun visitLiteral(element: TomlLiteral) = doVisit("TomlLiteral (${element.text})") { super.visitLiteral(element) }
       override fun visitValue(element: TomlValue) = doVisit("TomlValue (${element.text})") { super.visitValue(element) }
       override fun visitTableHeader(element: TomlTableHeader) = doVisit("TomlTableHeader") { super.visitTableHeader(element) }
 
@@ -95,6 +93,30 @@ class TomlDslParser(
         }
       }
 
+      // TODO(xof): these will only be visited when context is a List: for well-formed Toml, map entries will be handled by
+      //  visitKeyValue.  This separation, which is motivated by the fact that TomlValue is apparently deeper in the Psi hierarchy than
+      //  these specific value instances, is nevertheless confusing and we should probably rewrite so that all values are handled here
+      //  whether the context is List or Map: essentially all we would need is to pass the name of the resultant element down, though the
+      //  accept and visitor interface makes this annoying.  (My kingdom for dynamic scope.)
+      override fun visitArray(element: TomlArray) = doVisit("TomlArray") {
+        val name = GradleNameElement.empty()
+        val list = GradleDslExpressionList(context, element, true, name)
+        context.addParsedElement(list)
+        getVisitor(list).let { visitor -> element.elements.forEach { it.accept(visitor) } }
+      }
+
+      override fun visitInlineTable(element: TomlInlineTable) = doVisit("TomlInlineTable") {
+        val name = GradleNameElement.empty()
+        val map = GradleDslExpressionMap(context, element, name, true)
+        context.addParsedElement(map)
+        getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+      }
+      override fun visitLiteral(element: TomlLiteral) = doVisit("TomlLiteral (${element.text})") {
+        val name = GradleNameElement.empty()
+        val literal = GradleDslLiteral(context, element, name, element, LITERAL)
+        context.addParsedElement(literal)
+      }
+
       override fun visitKeyValue(element: TomlKeyValue) {
         doVisit("TomlKeyValue (${element.text})") {
           element.key.doWithContext(context) { segment, context ->
@@ -109,7 +131,11 @@ class TomlDslParser(
                 context.addParsedElement(map)
                 getVisitor(map).let { visitor -> value.entries.forEach { it.accept(visitor) } }
               }
-              is TomlArray -> Unit // TODO(b/200280395): need to support arrays
+              is TomlArray -> {
+                val list = GradleDslExpressionList(context, element, true, name)
+                context.addParsedElement(list)
+                getVisitor(list).let { visitor -> value.elements.forEach { it.accept(visitor) } }
+              }
               else -> Unit
             }
           }

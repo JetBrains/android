@@ -18,9 +18,10 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VfsUtil
@@ -233,6 +234,33 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testArray() {
+    val toml = """
+      [bundles]
+      groovy = ["groovy-core", "groovy-json", "groovy-nio"]
+    """.trimIndent()
+    val expected = mapOf("bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", "groovy-nio")))
+    doTest(toml, expected)
+  }
+
+  fun testArrayWithInlineTable() {
+    val toml = """
+      [bundles]
+      groovy = ["groovy-core", "groovy-json", { name = "groovy-nio", version = "3.14" } ]
+    """.trimIndent()
+    val expected = mapOf("bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", mapOf("name" to "groovy-nio", "version" to "3.14"))))
+    doTest(toml, expected)
+  }
+
+  fun testInlineTableWithArray() {
+    val toml = """
+      [libraries]
+      junit = { module = ["junit", "junit"], version = "4.13" }
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to listOf("junit", "junit"), "version" to "4.13")))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = writeLibsTomlFile(text)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}
@@ -252,20 +280,25 @@ class TomlDslParserTest : PlatformTestCase() {
   }
 
   private fun propertiesToMap(dslFile: GradleDslFile): Map<String, Any> {
-    fun populate(context: GradlePropertiesDslElement, key: String, map: MutableMap<String, Any>) {
-      val value = when (val element = context.getElement(key)) {
+    fun populate(key: String, element: GradleDslElement?, setter: (String, Any) -> Unit) {
+      val value = when (element) {
         is GradleDslLiteral -> element.value ?: "null literal"
         is GradleDslExpressionMap -> {
           val newMap = HashMap<String, Any>()
-          element.properties.forEach { populate(element, it, newMap) }
+          element.properties.forEach { populate(it, element.getElement(it)) { k, v -> newMap[k] = v } }
           newMap
+        }
+        is GradleDslExpressionList -> {
+          val newList = ArrayList<Any>()
+          element.allElements.forEach { populate("", it) { _, v -> newList.add(v) } }
+          newList
         }
         else -> "Unknown element: $element"
       }
-      map[key] = value
+      setter(key, value)
     }
     val map = HashMap<String,Any>()
-    dslFile.properties.forEach { populate(dslFile, it, map) }
+    dslFile.properties.forEach { populate(it, dslFile.getElement(it)) { key, value -> map[key] = value } }
     return map
   }
 }
