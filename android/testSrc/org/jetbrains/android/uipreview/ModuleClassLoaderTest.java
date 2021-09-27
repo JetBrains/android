@@ -21,7 +21,6 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -29,7 +28,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -40,7 +38,6 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
@@ -56,6 +53,7 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -79,7 +77,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
    */
   @SuppressWarnings("SameParameterValue")
   private static void generateRClass(@NotNull String pkg, @NotNull File outputFile) throws IOException {
-    File tmpDir = FileUtil.createTempDirectory("source", null);
+    File tmpDir = Files.createTempDirectory("source").toFile();
     File tmpClass = new File(tmpDir, "R.java");
     FileUtil.writeToFile(tmpClass,
                          "package " + pkg + ";" +
@@ -94,11 +92,10 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   // Disabled. Failing in post-submit
-  public void disabledTestModuleClassLoading() throws ClassNotFoundException, IOException {
-    LayoutLibrary layoutLibrary = mock(LayoutLibrary.class);
-
+  @SuppressWarnings("unused")
+  public void disabledTestModuleClassLoading() throws IOException {
     Module module = myFixture.getModule();
-    File tmpDir = Files.createTempDir();
+    File tmpDir = Files.createTempDirectory("testProject").toFile();
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + module.getName() + "/test");
     assertTrue(FileUtil.createDirectory(outputDir));
     CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
@@ -137,18 +134,16 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   private void doTestAARPriority() throws IOException {
-    LayoutLibrary layoutLibrary = mock(LayoutLibrary.class);
-
     Module module = myFixture.getModule();
-    File tmpDir = Files.createTempDir();
+    File tmpDir = Files.createTempDirectory("testProject").toFile();
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + module.getName() + "/test");
     assertTrue(FileUtil.createDirectory(outputDir));
-    CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
 
     generateRClass("test", new File(outputDir, "R.class"));
 
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
-    ResourceNamespace namespace = repositoryManager.getNamespace();
+    ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
     List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
     // In the namespaced case two repositories are returned. The first one is a module repository,
     // the second one is an empty repository of user-defined sample data. In the non-namespaced case
@@ -175,35 +170,36 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     });
   }
 
-  public void testIsSourceModified() throws IOException, ClassNotFoundException {
+  public void testIsSourceModified() throws IOException {
     setupTestProjectFromAndroidModel(
       getProject(),
-      new File(getProject().getBasePath()),
+      new File(Objects.requireNonNull(getProject().getBasePath())),
       new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
 
-    File srcDir = new File(Files.createTempDir(), "src");
-    File rSrc = new File(srcDir, "com/google/example/R.java");
-    FileUtil.writeToFile(rSrc, "package com.google.example; public class R { public class string {} }");
-    File modifiedSrc = new File(srcDir, "com/google/example/Modified.java");
-    FileUtil.writeToFile(modifiedSrc, "package com.google.example; public class Modified {}");
-    File notModifiedSrc = new File(srcDir, "/com/google/example/NotModified.java");
-    FileUtil.writeToFile(notModifiedSrc, "package com.google.example; public class NotModified {}");
+    Path srcDir = Files.createDirectories(Files.createTempDirectory("testProject").resolve("src"));
+    Path packageDir = Files.createDirectories(srcDir.resolve("com/google/example"));
+    Path rSrc = Files.createFile(packageDir.resolve("R.java"));
+    FileUtil.writeToFile(rSrc.toFile(), "package com.google.example; public class R { public class string {} }");
+    Path modifiedSrc = Files.createFile(packageDir.resolve("Modified.java"));
+    FileUtil.writeToFile(modifiedSrc.toFile(), "package com.google.example; public class Modified {}");
+    Path notModifiedSrc = Files.createFile(packageDir.resolve("NotModified.java"));
+    FileUtil.writeToFile(notModifiedSrc.toFile(), "package com.google.example; public class NotModified {}");
 
     ApplicationManager.getApplication().runWriteAction(
-      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
+      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir.toFile(), true)));
 
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    for (File src : ImmutableList.of(rSrc, modifiedSrc, notModifiedSrc)) {
-      javac.run(null, null, null, src.getPath());
+    for (Path src : ImmutableList.of(rSrc, modifiedSrc, notModifiedSrc)) {
+      javac.run(null, null, null, src.toAbsolutePath().toString());
     }
 
-    VirtualFile rClass = VfsUtil.findFileByIoFile(new File(rSrc.getParent(), "R.class"), true);
+    VirtualFile rClass = VfsUtil.findFileByIoFile(new File(rSrc.getParent().toFile(), "R.class"), true);
     assertThat(rClass).isNotNull();
-    VirtualFile rStringClass = VfsUtil.findFileByIoFile(new File(rSrc.getParent(), "R$string.class"), true);
+    VirtualFile rStringClass = VfsUtil.findFileByIoFile(new File(rSrc.getParent().toFile(), "R$string.class"), true);
     assertThat(rStringClass).isNotNull();
-    VirtualFile modifiedClass = VfsUtil.findFileByIoFile(new File(modifiedSrc.getParent(), "Modified.class"), true);
+    VirtualFile modifiedClass = VfsUtil.findFileByIoFile(new File(modifiedSrc.getParent().toFile(), "Modified.class"), true);
     assertThat(modifiedClass).isNotNull();
-    VirtualFile notModifiedClass = VfsUtil.findFileByIoFile(new File(notModifiedSrc.getParent(), "NotModified.class"), true);
+    VirtualFile notModifiedClass = VfsUtil.findFileByIoFile(new File(notModifiedSrc.getParent().toFile(), "NotModified.class"), true);
     assertThat(notModifiedClass).isNotNull();
 
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
@@ -221,14 +217,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.R$string", null)).isFalse();
 
     // Even if we modify them.
-    FileUtil.appendToFile(rSrc, "// some comments.");
-    LocalFileSystem.getInstance().refreshIoFiles(Collections.singleton(rSrc));
+    FileUtil.appendToFile(rSrc.toFile(), "// some comments.");
+    LocalFileSystem.getInstance().refreshIoFiles(Collections.singleton(rSrc.toFile()));
     assertThat(loader.isSourceModified("com.google.example.R", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.R$string", null)).isFalse();
 
     // No build yet.
-    FileUtil.appendToFile(modifiedSrc, "// some comments.");
-    LocalFileSystem.getInstance().refreshIoFiles(Collections.singleton(modifiedSrc));
+    FileUtil.appendToFile(modifiedSrc.toFile(), "// some comments.");
+    LocalFileSystem.getInstance().refreshIoFiles(Collections.singleton(modifiedSrc.toFile()));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isTrue();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
@@ -240,7 +236,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     // Recompile and check ClassLoader is out of date. We are not really modifying the PSI so we can not use isUserCodeUpToDate
     // since it relies on the PSI modification to cache the information.
     assertTrue(loader.isUserCodeUpToDateNonCached());
-    javac.run(null, null, null, modifiedSrc.getPath());
+    javac.run(null, null, null, modifiedSrc.toAbsolutePath().toString());
     assertFalse(loader.isUserCodeUpToDateNonCached());
 
     ModuleClassLoaderManager.get().release(loader, this);
@@ -254,13 +250,13 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
       new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
 
     // Create regular project path
-    Path srcDir = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("testProject").resolve("src"));
-    Path packageDir = java.nio.file.Files.createDirectories(srcDir.resolve("com/google/example"));
-    Path aClassSrc = java.nio.file.Files.createFile(packageDir.resolve("AClass.java"));
+    Path srcDir = Files.createDirectories(Files.createTempDirectory("testProject").resolve("src"));
+    Path packageDir = Files.createDirectories(srcDir.resolve("com/google/example"));
+    Path aClassSrc = Files.createFile(packageDir.resolve("AClass.java"));
     FileUtil.writeToFile(aClassSrc.toFile(), "package com.google.example; public class AClass {}");
 
-    Path overlayDir1 = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("overlay"));
-    Path overlayDir2 = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("overlay"));
+    Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
+    Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
     ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
@@ -282,7 +278,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testLibRClass() throws Exception {
     setupTestProjectFromAndroidModel(
       getProject(),
-      new File(getProject().getBasePath()),
+      new File(Objects.requireNonNull(getProject().getBasePath())),
       new AndroidModuleModelBuilder(
         ":",
         "debug",
@@ -297,10 +293,10 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
         String manifestUrl = Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrls());
         VirtualFile manifestDirectory =
           Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectories());
-        manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
+        manifestFile = manifestDirectory.createChildData(this, Objects.requireNonNull(VfsUtil.extractFileName(manifestUrl)));
       }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
-      byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
+      byte[] defaultManifestContent = Objects.requireNonNull(defaultManifest).contentsToByteArray();
       assertNotNull(defaultManifestContent);
       manifestFile.setBinaryContent(defaultManifestContent);
     });
@@ -312,14 +308,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testNotUpToDate_whenDependenciesChange() throws IOException {
-    File basePath = new File(getProject().getBasePath());
+    File basePath = new File(Objects.requireNonNull(getProject().getBasePath()));
     File gradleFolder = basePath.toPath().resolve(".gradle").toFile();
     String libFolder = "libraryFolder";
     String libJar = "file.jar";
     File libFolderFile = gradleFolder.toPath().resolve(libFolder).toFile();
     assertTrue(libFolderFile.exists() || libFolderFile.mkdirs());
     // We have to actually create the file so that the ".exists()" check in ModuleClassLoader succeeds
-    java.nio.file.Files.createFile(libFolderFile.toPath().resolve(libJar));
+    Files.createFile(libFolderFile.toPath().resolve(libJar));
 
     ModuleModelBuilder appModuleBuilder =
       new AndroidModuleModelBuilder(
@@ -336,7 +332,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     );
 
     Module appModule = gradleModule(getProject(), ":app");
-    ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(appModule), this);
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(
+      Objects.requireNonNull(appModule)), this);
     // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
     assertTrue(loader.areDependenciesUpToDate());
 
@@ -362,7 +359,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  private static IdeAndroidLibraryImpl ideAndroidLibrary(File gradleCacheRoot, String artifactAddress, String folder, String libJar) {
+  private static IdeAndroidLibraryImpl ideAndroidLibrary(File gradleCacheRoot, @SuppressWarnings("SameParameterValue") String artifactAddress, String folder, String libJar) {
     return new IdeAndroidLibraryImpl(
       artifactAddress,
       artifactAddress,
