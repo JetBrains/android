@@ -246,7 +246,6 @@ studio_plugin(
     },
     resources = {
         "resources": [
-            "//prebuilts/studio/layoutlib:layoutlib",
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
@@ -330,6 +329,11 @@ studio_plugin(
             "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
+        ],
+    },
+    resources = {
+        "resources": [
+            "//prebuilts/studio/layoutlib:layoutlib",
         ],
     },
     deps = [

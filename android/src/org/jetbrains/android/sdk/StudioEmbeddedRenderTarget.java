@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -101,9 +102,9 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
    */
   @Nullable
   public static String getEmbeddedLayoutLibPath() {
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    String homePath = FileUtil.toSystemIndependentName(PluginPathManager.getPluginHomePath("design-tools"));
 
-    String path = FileUtil.join(homePath, "plugins/android/resources/layoutlib/");
+    String path = FileUtil.join(homePath, "/resources/layoutlib/");
     if (StudioPathManager.isRunningFromSources()) {
       path = FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/");
     }
