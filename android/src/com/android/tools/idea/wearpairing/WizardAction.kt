@@ -18,6 +18,6 @@ package com.android.tools.idea.wearpairing
 import com.intellij.openapi.project.Project
 
 interface WizardAction {
-  fun closeAndStartAvd(project: Project) {}
-  fun restart(project: Project) {}
+  fun closeAndStartAvd(project: Project?) {}
+  fun restart(project: Project?) {}
 }

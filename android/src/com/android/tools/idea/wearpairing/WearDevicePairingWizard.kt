@@ -41,19 +41,19 @@ private var wizardDialog: ModelWizardDialog? = null
 
 internal class WearDevicePairingWizard {
   @Synchronized
-  fun show(project: Project, selectedDevice: PairingDevice?) {
+  fun show(project: Project?, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {
       window?.toFront()  // We already have a dialog, just bring it to the front and return
       return
     }
 
     val wizardAction = object : WizardAction {
-      override fun closeAndStartAvd(project: Project) {
+      override fun closeAndStartAvd(project: Project?) {
         wizardDialog?.close(CANCEL_EXIT_CODE)
         (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
       }
 
-      override fun restart(project: Project) {
+      override fun restart(project: Project?) {
         wizardDialog?.close(CANCEL_EXIT_CODE)
         show(project, selectedDevice)
       }

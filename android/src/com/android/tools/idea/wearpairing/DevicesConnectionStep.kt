@@ -89,7 +89,7 @@ private const val PATH_PAIR_SCREEN = "/wearPairing/screens/wearPair.png"
 private val LOG get() = logger<WearPairingManager>()
 
 class DevicesConnectionStep(model: WearDevicePairingModel,
-                            val project: Project,
+                            val project: Project?,
                             val wizardAction: WizardAction,
                             private val isFirstStage: Boolean = true) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private var runningJob: Job? = null

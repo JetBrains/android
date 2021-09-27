@@ -17,7 +17,6 @@ package com.android.tools.idea.wearpairing
 
 import com.android.tools.idea.wearpairing.WearPairingManager.supportsMultipleWatchConnections
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBFont
@@ -37,7 +36,6 @@ import javax.swing.JPanel
 
 class NewConnectionAlertStep(
   model: WearDevicePairingModel,
-  val project: Project
 ) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val mainPanel = JPanel()
   private val selectedPhoneSupportsMultipleWatchConnections: Boolean by lazy {

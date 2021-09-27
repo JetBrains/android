@@ -83,7 +83,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   }
 
   private fun createNewConnectionAlertStepUi(): FakeUi {
-    val newConnectionAlertStep = NewConnectionAlertStep(model, project)
+    val newConnectionAlertStep = NewConnectionAlertStep(model)
     val modelWizard = ModelWizard.Builder().addStep(newConnectionAlertStep).build()
     Disposer.register(testRootDisposable, modelWizard)
     invokeStrategy.updateAllSteps()

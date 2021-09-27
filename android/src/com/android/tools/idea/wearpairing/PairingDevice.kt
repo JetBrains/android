@@ -35,7 +35,7 @@ data class PairingDevice(
   val isPaired: Boolean,
 ) {
   // This field is declared outside the main constructor because it should not be used for equals/hash. Kotlin doesn't have a better way.
-  lateinit var launch: (Project) -> ListenableFuture<IDevice>
+  lateinit var launch: (Project?) -> ListenableFuture<IDevice>
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE
 
