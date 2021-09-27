@@ -79,6 +79,8 @@ import org.jetbrains.annotations.Nullable;
  * Panel that displays a list of {@link Issue}.
  */
 public class IssuePanel extends JPanel implements Disposable, PropertyChangeListener {
+  private static final String ACTION_BAR_PLACE = "issue_panel";
+
   private static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
@@ -260,7 +262,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       // The minimize button is not needed when showing issue panel in IJ's problem panel.
       actionGroup.add(new MinimizeAction());
     }
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ACTION_BAR_PLACE, actionGroup, true);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
     toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
     return toolbar;
