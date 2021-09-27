@@ -64,7 +64,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-        Found usages (1)
+        Usages in Project Files (1)
           Referenced in Shrinker Config files (1)
       """.trimIndent()
     )
