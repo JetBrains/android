@@ -123,7 +123,7 @@ class DataBindingFindUsagesTest() {
       <root> (5)
        Layout Resource
         @layout/activity_main
-       Found usages (5)
+       Usages in Project Files (5)
         Class static member access (1)
          app (1)
           java.test.db (1)
@@ -211,7 +211,7 @@ class DataBindingFindUsagesTest() {
       <root> (2)
        ID Resource
         @id/button
-       Found usages (2)
+       Usages in Project Files (2)
         Resource declaration in Android resources XML (1)
          app (1)
           res/layout (1)

@@ -50,7 +50,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (4)\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource reference Android resources XML (2)\n" +
                  "   color (1)\n" +
                  "    abc_tint_default.xml (1)\n" +
@@ -90,7 +90,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (6)\n" +
-                 " Found usages (6)\n" +
+                 " Usages in (6)\n" +
                  "  Resource reference Android resources XML (2)\n" +
                  "   color (1)\n" +
                  "    abc_tint_default.xml (1)\n" +

@@ -88,7 +88,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @android:color/background_dark\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   values (1)\n" +
                  "    colors.xml (1)\n" +
@@ -115,7 +115,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -149,7 +149,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (2)\n" +
                  " Targets\n" +
                  "  @font/new_font\n" +
-                 " Found usages (2)\n" +
+                 " Usages in (2)\n" +
                  "  Android resource file (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "font (1)\n" +
@@ -171,7 +171,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @drawable/picture3\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Android resource file (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "drawable (1)\n" +
@@ -206,7 +206,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     Collection<UsageInfo> references = findUsagesNoEditor("res/layout/layout.xml", myFixture);
     // Fixture Usage View tree is sufficient for file resources with no editor.
     assertEquals("<root> (2)\n" +
-                 " Found usages (2)\n" +
+                 " Usages in (2)\n" +
                  "  Resource reference Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "layout (1)\n" +
@@ -227,7 +227,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @drawable/picture3\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Android resource file (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "drawable (1)\n" +
@@ -251,7 +251,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/second\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (2)\n" +
                  "   app (2)\n" +
                  "    res" + File.separatorChar + "layout (2)\n" +
@@ -272,7 +272,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "layout (1)\n" +
@@ -298,7 +298,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "layout (1)\n" +
@@ -324,7 +324,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @id/anchor\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "layout (1)\n" +
@@ -350,7 +350,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @array/str_arr\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -376,7 +376,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @styleable/MyView\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -400,7 +400,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (1)\n" +
                  " Targets\n" +
                  "  @styleable/MyView_answer\n" +
-                 " Found usages (1)\n" +
+                 " Usages in (1)\n" +
                  "  Resource reference in code (1)\n" +
                  "   app (1)\n" +
                  "    p1.p2 (1)\n" +
@@ -415,7 +415,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -435,7 +435,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -455,7 +455,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @style/myStyle\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -477,7 +477,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hi\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -503,7 +503,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hi\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -529,7 +529,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -555,7 +555,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -581,7 +581,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -607,7 +607,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -633,7 +633,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -659,7 +659,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -685,7 +685,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -711,7 +711,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -737,7 +737,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -763,7 +763,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (4)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (4)\n" +
+                 " Usages in (4)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -792,7 +792,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @string/hello\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -851,7 +851,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @attr/newAttr\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -910,7 +910,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     assertEquals("<root> (3)\n" +
                  " Targets\n" +
                  "  @attr/newAttr\n" +
-                 " Found usages (3)\n" +
+                 " Usages in (3)\n" +
                  "  Resource declaration in Android resources XML (1)\n" +
                  "   app (1)\n" +
                  "    res" + File.separatorChar + "values (1)\n" +
@@ -947,7 +947,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     String expected = "<root> (1)\n" +
                       " Targets\n" +
                       "  foo()\n" +
-                      " Found usages (1)\n" +
+                      " Usages in (1)\n" +
                       "  Unclassified (1)\n" +
                       "   app (1)\n" +
                       "    p1.p2 (1)\n" +
@@ -975,7 +975,7 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
     String expected = "<root> (1)\n" +
                       " Targets\n" +
                       "  foo()\n" +
-                      " Found usages (1)\n" +
+                      " Usages in (1)\n" +
                       "  Function call (1)\n" +
                       "   app (1)\n" +
                       "    p1.p2 (1)\n" +

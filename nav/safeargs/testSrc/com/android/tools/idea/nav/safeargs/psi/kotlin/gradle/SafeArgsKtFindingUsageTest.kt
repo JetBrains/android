@@ -90,7 +90,7 @@ class SafeArgsKtFindingUsageTest {
       <root> (3)
        XML tag
         <FirstFragmentArgs> of file nav_graph.xml
-       Found usages (3)
+       Usages in Project Files (3)
         Nested class/object (1)
          testFindingUsages.app (1)
           com.example.myapplication (1)
