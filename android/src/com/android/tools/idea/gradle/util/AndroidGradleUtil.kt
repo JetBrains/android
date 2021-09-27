@@ -54,20 +54,27 @@ fun getDisplayNameForModule(module: Module): String {
 data class GradleProjectPath(val projectRoot: File, val gradleProjectPath: String)
 
 @JvmName("getModuleGradleProjectPath")
-fun Module.getGradleProjectPath(): GradleProjectPath? {
+fun Module.getGradleProjectPath(useCanonicalPath: Boolean = false): GradleProjectPath? {
   // The external system projectId is:
-  // <projectName> for the root module of a main or only build in a composite build
+  // <projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
   // :gradle:path for a non-root module of a main or only build in a composite build
-  // <projectName> for the root module of an included build
-  // <projectName>:gradle:path for a non-root module of an included build
+  // <projectName-uniqualized-by-Gradle> for the root module of an included build
+  // <projectName-uniqualized-by-Gradle>:gradle:path for a non-root module of an included build
+  // NOTE: The project name uniqualization is performed by Gradle and may be version dependent. It should not be assumed to match
+  //       any Gradle project name or any Gradle included build name.
   val externalSystemProjectId = ExternalSystemApiUtil.getExternalProjectId(this) ?: return null
   val gradleProjectPath = ":" + externalSystemProjectId.substringAfter(':', "")
   val rootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null).let {
-    try {
-      it.canonicalFile
+    if (useCanonicalPath) {
+      try {
+        it.canonicalFile
+      }
+      catch (e: IOException) {
+        it
+      }
     }
-    catch (e: IOException) {
-      it
+    else {
+      it.absoluteFile
     }
   }
   return GradleProjectPath(rootFolder, gradleProjectPath)

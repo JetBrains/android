@@ -96,6 +96,7 @@ import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -138,6 +139,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -145,6 +147,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 import kotlin.Unit;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -206,6 +209,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private @Nullable Project myProject;
   private boolean myIsModulePerSourceSetMode;
+  private final Map<GradleProjectPath, ModuleData> myModuleDataByGradlePath = new LinkedHashMap<>();
 
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(), new IdeaJavaModuleModelFactory());
@@ -253,7 +257,39 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels);
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels != null ? androidModels.getAndroidProject() : null);
 
+    registerModuleData(gradleModule, moduleDataNode);
     return moduleDataNode;
+  }
+
+  private void registerModuleData(@NotNull IdeaModule gradleModule,
+                                  DataNode<ModuleData> moduleDataNode) {
+    ProjectIdentifier projectIdentifier = gradleModule.getGradleProject().getProjectIdentifier();
+    GradleProjectPath gradleProjectPath = new GradleProjectPath(
+      projectIdentifier.getBuildIdentifier().getRootDir(),
+      projectIdentifier.getProjectPath()
+    );
+
+    DataNode<? extends ModuleData> targetData = null;
+    if (isModulePerSourceSetEnabled()) {
+      Collection<DataNode<GradleSourceSetData>> sourceSetNodes = findAll(moduleDataNode, GradleSourceSetData.KEY);
+
+      // TODO: Generate entries for each source set/capability when the notion is added to GradleProjectPath.
+      //       This should result in correct dependency resolution in `DependencyUtil.kt`
+      if (!sourceSetNodes.isEmpty()) {
+        // ":" and similar holder projects do not have any source sets and should not be a target of module dependencies.
+        targetData = sourceSetNodes.stream()
+          .filter(it -> it.getData().getModuleName().equals("main"))
+          .findFirst()
+          .orElseThrow(
+            () -> new IllegalStateException(
+              String.format("Source set 'main' not found in '%s'", gradleModule.getGradleProject().getPath())));
+      }
+    } else {
+      targetData = moduleDataNode;
+    }
+    if (targetData != null) {
+      myModuleDataByGradlePath.put(gradleProjectPath, targetData.getData());
+    }
   }
 
   private void patchLanguageLevels(DataNode<ModuleData> moduleDataNode,
@@ -725,12 +761,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       libraryFilePaths = LibraryFilePaths.getInstance(project);
     }
 
-    Function<String, ModuleData> moduleDataLookup = (id) -> {
-      if (workspace != null) {
-        return workspace.findModuleDataByModuleId(id);
-      }
-      return null;
-    };
+    Function<GradleProjectPath, ModuleData> moduleDataLookup = myModuleDataByGradlePath::get;
 
     Function<String, AdditionalArtifactsPaths> artifactLookup = (artifactId) -> {
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null

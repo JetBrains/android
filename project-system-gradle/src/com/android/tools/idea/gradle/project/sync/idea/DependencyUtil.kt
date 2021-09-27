@@ -21,7 +21,6 @@ import com.android.SdkConstants.DOT_JAR
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
-import com.android.builder.model.level2.Library
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -32,9 +31,9 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -53,14 +52,10 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import org.gradle.tooling.model.UnsupportedMethodException
-import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.model.data.CompositeBuildData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.linkProjectLibrary
@@ -88,13 +83,13 @@ data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: Javad
  * [additionalArtifactsMapper] is used to obtain the respective sources and Javadocs which are attached to the
  * libraries. TODO: Replace with something that makes the call sites nicer and shouldn't rely on the project object.
  *
- * The [idToModuleData] map must be provided and must correctly map module ids created in the same form
+ * The [gradleProjectPathToModuleData] map must be provided and must correctly map module ids created in the same form
  * as [GradleProjectResolverUtil.getModuleId] to the [ModuleData]. This is used to set up
  * [ModuleDependencyData].
  */
 @JvmOverloads
 fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
-  idToModuleData: (String) -> ModuleData?,
+  gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   variant: IdeVariant? = null,
   project: Project?
@@ -111,14 +106,10 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     return
   }
 
-  // We need the composite information to compute the module IDs we compute here to only traverse the data
-  // node tree once.
-  val compositeData = ExternalSystemApiUtil.find(projectDataNode, CompositeBuildData.KEY)?.data
-
   // These maps keep track of all the dependencies that we have already seen. This allows us to skip over processing
   // dependencies multiple times with more specific scopes.
   val processedLibraries = mutableMapOf<String, LibraryDependencyData>()
-  val processedModuleDependencies = mutableMapOf<String, ModuleDependencyData>()
+  val processedModuleDependencies = mutableMapOf<GradleProjectPath, ModuleDependencyData>()
 
   val selectedVariant = variant ?: androidModel.selectedVariant
 
@@ -131,8 +122,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     this,
     androidModel.features.shouldExportDependencies(),
     projectDataNode,
-    compositeData,
-    idToModuleData,
+    gradleProjectPathToModuleData,
     additionalArtifactsMapper,
     processedLibraries,
     processedModuleDependencies,
@@ -207,38 +197,20 @@ catch (e: UnsupportedMethodException) {
  *
  */
 fun computeModuleIdForLibraryTarget(
-  library: IdeModuleLibrary,
-  projectData: ProjectData,
-  compositeData: CompositeBuildData?
-): String {
-  val libraryBuildId = library.buildId?.let { toSystemIndependentName(it) }
-  if (libraryBuildId == null ||
-      libraryBuildId == projectData.linkedExternalProjectPath ||
-      compositeData == null) {
-    return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
-  }
-
-  // Since the dependency doesn't have the same root path as the module's project it must be pointing to a
-  // module in an included build. We now need to find the name of the root Gradle build that the module
-  // belongs to in order to construct the module ID.
-  val projectName =
-    compositeData.compositeParticipants.firstOrNull { it.rootPath == libraryBuildId }?.rootProjectName
-    ?: return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName).also {
-      LOG.error("Cannot resolve buildId '$libraryBuildId' for '$library'")
-    }
-
-  return if (library.projectPath == ":") projectName else projectName + library.projectPath
+  library: IdeModuleLibrary
+): GradleProjectPath {
+  val libraryBuildId = toSystemIndependentName(library.buildId)
+  return GradleProjectPath(libraryBuildId, library.projectPath)
 }
 
 private class AndroidDependenciesSetupContext(
   private val moduleDataNode: DataNode<out ModuleData>,
   private val shouldExportDependencies: Boolean,
   private val projectDataNode: DataNode<ProjectData>,
-  private val compositeData: CompositeBuildData?,
-  private val idToModuleData: (String) -> ModuleData?,
+  private val gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
   private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
-  private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>,
+  private val processedModuleDependencies: MutableMap<GradleProjectPath, ModuleDependencyData>,
   private val project: Project?
 ) {
 
@@ -299,10 +271,10 @@ private class AndroidDependenciesSetupContext(
   }
 
   private inner class ModuleLibraryWorkItem(
-    val targetModuleId: String,
+    val targetModuleGradlePath: GradleProjectPath,
     val targetData: ModuleData
   ) : WorkItem<IdeModuleLibrary>() {
-    override fun isAlreadyProcessed(): Boolean = processedModuleDependencies.containsKey(targetModuleId)
+    override fun isAlreadyProcessed(): Boolean = processedModuleDependencies.containsKey(targetModuleGradlePath)
 
     override fun setupTarget() {
       // Module has been already set up.
@@ -318,38 +290,17 @@ private class AndroidDependenciesSetupContext(
       val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
       moduleDependencyData.scope = scope
       moduleDependencyData.isExported = shouldExportDependencies
-      processedModuleDependencies[targetModuleId] = moduleDependencyData
+      processedModuleDependencies[targetModuleGradlePath] = moduleDependencyData
     }
   }
 
   private fun createModuleLibraryWorkItem(library: IdeModuleLibrary): ModuleLibraryWorkItem? {
     if (library.projectPath.isEmpty()) return null
-    val targetModuleId = computeModuleIdForLibraryTarget(library, projectDataNode.data, compositeData)
-    // If we aren't using module per source set then we short cut here as the current implementation takes a long time
-    if (project != null && !project.isModulePerSourceSetEnabled()) {
-      val targetData = idToModuleData(targetModuleId) ?: return null
-      return ModuleLibraryWorkItem(targetModuleId, targetData)
-    }
-
-    // TODO: This is really slow, we need to modify the platform so that the GradleExecutionWorkspace makes the data node accessible
-    val targetDataNode = ExternalSystemApiUtil.find(projectDataNode, ProjectKeys.MODULE) { moduleDataNode ->
-      moduleDataNode.data.id == targetModuleId
-    } ?: return null
-
-    val sourceSets = ExternalSystemApiUtil.findAll(targetDataNode, GradleSourceSetData.KEY)
-    // TODO: Get the correct source set to depend on from Gradle
-    val sourceSet = sourceSets.firstOrNull {
-      it.data.moduleName == "main"
-    } ?: sourceSets.firstOrNull {
-      !it.data.moduleName.contains("test")
-    }
-
-    return if (sourceSet != null) {
-      ModuleLibraryWorkItem(sourceSet.data.id, sourceSet.data)
-    }
-    else {
-      ModuleLibraryWorkItem(targetModuleId, targetDataNode.data)
-    }
+    val targetModuleGradlePath = computeModuleIdForLibraryTarget(library)
+    val targetData =
+      (gradleProjectPathToModuleData(targetModuleGradlePath)
+       ?: error("Cannot find module with id: $targetModuleGradlePath")) // uncomment and see what we gte in IdeaProject
+    return ModuleLibraryWorkItem(targetModuleGradlePath, targetData)
   }
 
   fun setupForArtifact(artifact: IdeBaseArtifact, scope: DependencyScope) {
@@ -455,7 +406,7 @@ private fun getExtraSdkLibraries(
 //****************************************************************************************************************************
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
-  idToModuleData: (String) -> ModuleData?,
+  gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   androidModel: AndroidModuleModel,
   variant: IdeVariant,
@@ -472,17 +423,13 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
     return
   }
 
-  // We need the composite information to compute the module IDs we compute here to only traverse the data
-  // node tree once.
-  val compositeData = ExternalSystemApiUtil.find(projectDataNode, CompositeBuildData.KEY)?.data
-
   fun populateDependenciesFromArtifact(
     gradleSourceSetData: DataNode<GradleSourceSetData>,
     ideBaseArtifact: IdeBaseArtifact,
     dependencyScope: DependencyScope
   ) {
     val processedLibraries = mutableMapOf<String, LibraryDependencyData>()
-    val processedModuleDependencies = mutableMapOf<String, ModuleDependencyData>()
+    val processedModuleDependencies = mutableMapOf<GradleProjectPath, ModuleDependencyData>()
 
     // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
     // This allows us to just skip the dependency if it is already present.
@@ -490,8 +437,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       gradleSourceSetData,
       androidModel.features.shouldExportDependencies(),
       projectDataNode,
-      compositeData,
-      idToModuleData,
+      gradleProjectPathToModuleData,
       additionalArtifactsMapper,
       processedLibraries,
       processedModuleDependencies,

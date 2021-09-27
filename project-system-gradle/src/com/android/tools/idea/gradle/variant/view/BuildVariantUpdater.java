@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResol
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.gradle.project.sync.idea.VariantAndAbi;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -181,7 +182,7 @@ public class BuildVariantUpdater {
     @Nullable ExternalProjectInfo data =
       ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.getBasePath());
 
-    Map<String, VariantAndAbi> variantsExpectedAfterSwitch =
+    Map<GradleProjectPath, VariantAndAbi> variantsExpectedAfterSwitch =
       StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get()
       ? VariantSwitcher.computeExpectedVariantsAfterSwitch(module, variantAndAbi, data)
       : null;
