@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
-import com.android.tools.idea.codenavigation.FakeCodeNavigator
+import com.android.tools.idea.codenavigation.CodeNavigator
+import com.android.tools.idea.codenavigation.FakeNavSource
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
@@ -23,7 +24,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 class StubUiComponentsProvider : UiComponentsProvider {
-  override val codeNavigator = FakeCodeNavigator()
+  override val codeNavigator = CodeNavigator(FakeNavSource(), CodeNavigator.testExecutor)
 
   override fun createStackTraceView(model: StackTraceModel): StackTraceView {
     return StackTraceGroupStub().createStackView(model)

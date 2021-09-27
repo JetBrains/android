@@ -20,10 +20,11 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
-import com.android.tools.idea.codenavigation.IntellijCodeNavigator;
+import com.android.tools.idea.codenavigation.IntellijNavSource;
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
 import com.android.tools.nativeSymbolizer.SymbolSource;
@@ -291,9 +292,9 @@ public class AndroidProfilerToolWindow implements Disposable {
       myWindow = window;
       ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
       myProfilers = new StudioProfilers(client, ideProfilerServices);
-      IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
+      CodeNavigator navigator = ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
-      navigator.setCpuAbiArchSupplier(() ->
+      navigator.setCpuArchSource(() ->
         myProfilers.getSessionsManager().getSelectedSessionMetaData().getProcessAbi()
       );
 

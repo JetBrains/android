@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.network.ide
+package com.android.tools.idea.codenavigation
 
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.codenavigation.IntellijNavSource
-import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
-import org.junit.Test
+import com.intellij.pom.Navigatable
 
-class CodeNavigationProviderTest {
-
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @Test
-  fun getCodeNavigator() {
-    val navigator = DefaultCodeNavigationProvider(projectRule.project).codeNavigator
-    assertThat(navigator.mySource).isInstanceOf(IntellijNavSource::class.java)
-  }
+/**
+ * An interface to get a [Navigatable] for a given [CodeLocation] using a specific strategy (e.g.
+ * looking at the APK information).
+ */
+interface NavSource {
+  /**
+   * Gets a [Navigatable] for a [CodeLocation] for a specific architecture. [arch] will be CPU
+   * arch as defined in the [Abi] enum. If no [Navigatable] can be found, null will be returned.
+   */
+  fun lookUp(location: CodeLocation, arch: String?): Navigatable?
 }

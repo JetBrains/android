@@ -28,7 +28,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.codenavigation.IntellijCodeNavigator;
+import com.android.tools.idea.codenavigation.IntellijNavSource;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -79,6 +79,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
+import org.apache.xmlbeans.impl.xb.ltgfmt.Code;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +90,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @NotNull private final SymbolFilesLocator mySymbolLocator;
-  private final IntellijCodeNavigator myCodeNavigator;
+  private final CodeNavigator myCodeNavigator;
   @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
 
@@ -112,7 +113,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myTemporaryPreferences = new TemporaryProfilerPreferences();
     myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
 
-    myCodeNavigator = new IntellijCodeNavigator(project, nativeSymbolizer);
+    myCodeNavigator = new CodeNavigator(
+        new IntellijNavSource(project, nativeSymbolizer),
+        CodeNavigator.Companion.getApplicationExecutor());
     myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
   }
 
@@ -285,7 +288,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull
   @Override
   public List<String> getNativeSymbolsDirectories() {
-    String arch = myCodeNavigator.fetchCpuAbiArch();
+    String arch = myCodeNavigator.getCpuArchSource().get();
     Collection<File> dirs = mySymbolLocator.getDirectories(arch);
     return ContainerUtil.map(dirs, file -> file.getAbsolutePath());
   }

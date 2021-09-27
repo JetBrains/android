@@ -15,23 +15,13 @@
  */
 package com.android.tools.idea.codenavigation
 
-import java.util.concurrent.CompletableFuture
+import com.intellij.pom.Navigatable
 
 /**
- * A test-only [CodeNavigator] that says every [CodeLocation] is navigable but does nothing when
- * asked to navigate to a [CodeLocation]. If a test actually cares about acting on navigation
- * requests, it should add a listener via [addListener].
+ * A test-only [NavSource] that says that no code location is navigable.
  */
-class FakeCodeNavigator : CodeNavigator() {
-  override fun isNavigatable(location: CodeLocation): CompletableFuture<Boolean> {
-    return noop()
-  }
-
-  override fun handleNavigate(location: CodeLocation): CompletableFuture<Boolean> {
-    return noop()
-  }
-
-  private fun noop(): CompletableFuture<Boolean> {
-    return CompletableFuture.completedFuture(true)
+class FakeNavSource : NavSource {
+  override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
+    return null
   }
 }
