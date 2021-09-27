@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.messages.TextAccumulator.Range
 import com.intellij.openapi.editor.markup.TextAttributes
 
 /**
@@ -25,16 +26,20 @@ internal class TextAccumulator {
 
   val text: String get() = stringBuilder.toString()
 
-  val ranges = mutableListOf<HighlighterRange>()
+  val highlightRanges = mutableListOf<Range<TextAttributes>>()
+  val hintRanges = mutableListOf<Range<String>>()
 
-  fun accumulate(text: String, textAttributes: TextAttributes? = null) {
+  fun accumulate(text: String, textAttributes: TextAttributes? = null, hint: String? = null) {
     val start = stringBuilder.length
+    val end = start + text.length
     stringBuilder.append(text)
-    textAttributes?.let { ranges.add(HighlighterRange(start, start + text.length, it)) }
+    highlightRanges.addRange(start, end, textAttributes)
+    hintRanges.addRange(start, end, hint)
   }
+
+  internal data class Range<T>(val start: Int, val end: Int, val data: T)
 }
 
-/**
- * Defines a range of text with a specified color.
- */
-internal data class HighlighterRange(val start: Int, val end: Int, val textAttributes: TextAttributes)
+private fun <T> MutableList<Range<T>>.addRange(start: Int, end: Int, data: T?) = data?.let {
+  add(Range(start, end, data))
+}

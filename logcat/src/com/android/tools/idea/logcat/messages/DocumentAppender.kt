@@ -21,7 +21,10 @@ import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import kotlin.math.max
+
+internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, /* create= */ true)
@@ -34,14 +37,24 @@ internal class DocumentAppender(project: Project, private val document: Document
 
     // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
     val offset = document.textLength - buffer.text.length
-    for (range in buffer.ranges) {
-      val rangeEnd = offset + range.end
-      if (rangeEnd <= 0) {
-        continue
+    for (range in buffer.highlightRanges) {
+      range.applyRange(offset) { start, end, textAttributes ->
+        markupModel.addRangeHighlighter(start, end, HighlighterLayer.SYNTAX, textAttributes, HighlighterTargetArea.EXACT_RANGE)
       }
-      val rangeStart = max(offset + range.start, 0)
-      markupModel.addRangeHighlighter(
-        rangeStart, offset + range.end, HighlighterLayer.SYNTAX, range.textAttributes, HighlighterTargetArea.EXACT_RANGE)
+    }
+    for (range in buffer.hintRanges) {
+      range.applyRange(offset) { start, end, hint ->
+        document.createRangeMarker(start, end).putUserData(LOGCAT_HINT_KEY, hint)
+      }
     }
   }
+}
+
+private fun <T> TextAccumulator.Range<T>.applyRange(offset: Int, apply: (start: Int, end: Int, data: T) -> Unit) {
+  val rangeEnd = offset + end
+  if (rangeEnd <= 0) {
+    return
+  }
+  val rangeStart = max(offset + start, 0)
+  apply(rangeStart, rangeEnd, data)
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.messages.TextAccumulator.Range
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import org.junit.Test
@@ -35,7 +36,7 @@ class TextAccumulatorTest {
     buffer.accumulate("bar")
 
     assertThat(buffer.text).isEqualTo("foobar")
-    assertThat(buffer.ranges).isEmpty()
+    assertThat(buffer.highlightRanges).isEmpty()
   }
 
   @Test
@@ -48,6 +49,18 @@ class TextAccumulatorTest {
     buffer.accumulate("red", red)
 
     assertThat(buffer.text).isEqualTo("foo-blue-bar-red")
-    assertThat(buffer.ranges).containsExactly(HighlighterRange(4, 8, blue), HighlighterRange(13, 16, red))
+    assertThat(buffer.highlightRanges).containsExactly(Range(4, 8, blue), Range(13, 16, red))
+  }
+
+  @Test
+  fun accumulate_withHint() {
+    val buffer = TextAccumulator()
+
+    buffer.accumulate("foo", hint="foo")
+    buffer.accumulate("-")
+    buffer.accumulate("bar", hint="bar")
+
+    assertThat(buffer.text).isEqualTo("foo-bar")
+    assertThat(buffer.hintRanges).containsExactly(Range(0, 3, "foo"), Range(4, 7, "bar"))
   }
 }
