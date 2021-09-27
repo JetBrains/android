@@ -96,7 +96,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     }
 
     val wizardAction = object : WizardAction {
-      override fun restart(project: Project) {
+      override fun restart(project: Project?) {
         WearDevicePairingWizard().show(project, null)
       }
     }

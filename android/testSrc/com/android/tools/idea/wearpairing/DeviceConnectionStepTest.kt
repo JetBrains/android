@@ -235,11 +235,11 @@ internal class WizardActionTest : WizardAction {
   var closeCalled = false
   var restartCalled = false
 
-  override fun closeAndStartAvd(project: Project) {
+  override fun closeAndStartAvd(project: Project?) {
     closeCalled = true
   }
 
-  override fun restart(project: Project) {
+  override fun restart(project: Project?) {
     restartCalled = true
   }
 }

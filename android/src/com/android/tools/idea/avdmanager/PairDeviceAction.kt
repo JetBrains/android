@@ -48,7 +48,6 @@ internal class PairDeviceAction(
       UsageTracker.log(builder)
     }
 
-    val project = myAvdInfoProvider.project ?: return
     val avdInfo = avdInfo ?: return
     WearDevicePairingWizard().show(project, avdInfo.toPairingDevice(avdInfo.name, false))
   }

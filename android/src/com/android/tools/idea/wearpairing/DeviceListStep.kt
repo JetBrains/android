@@ -78,7 +78,7 @@ import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
 
-class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wizardAction: WizardAction) :
+class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
   private val phoneListPanel = createDeviceListPanel(
@@ -118,7 +118,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
-      NewConnectionAlertStep(model, project),
+      NewConnectionAlertStep(model),
       DevicesConnectionStep(model, project, wizardAction),
     )
   }
