@@ -109,7 +109,7 @@ public class QrCodeTabPanel {
     myQrCodePanel.setActive(false);
 
     setBold(myPairingStatusLabel, true);
-    myPairingStatusLabel.setText("Gathering device information");
+    myPairingStatusLabel.setText("Connecting to device. This takes up to 2 minutes.");
     myPairingStatusIconLabel.setVisible(false);
     myPairingStatusProcessIcon.setVisible(true);
 
