@@ -26,7 +26,8 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 class ComposePluginIrGenerationExtension : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
-        ComposeIrGenerationExtension().generate(moduleFragment, pluginContext);
+        ComposeIrGenerationExtension(reportsDestination = null,
+                                     metricsDestination = null).generate(moduleFragment, pluginContext);
     } catch (t : Throwable) {
       t.printStackTrace()
     }
