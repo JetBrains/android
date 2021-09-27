@@ -294,7 +294,9 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     if (module == null) return true;
     // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
     return CachedValuesManager.getManager(module.getProject()).getCachedValue(myImpl, () ->
-      CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(), PsiModificationTracker.MODIFICATION_COUNT));
+      CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(),
+                                        PsiModificationTracker.MODIFICATION_COUNT,
+                                        ModuleClassLoaderOverlays.getInstance(module)));
   }
 
   public boolean isClassLoaded(@NotNull String className) {

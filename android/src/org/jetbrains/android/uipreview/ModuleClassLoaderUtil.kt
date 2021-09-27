@@ -243,10 +243,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
-  private val overlayModificationTracker = if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get())
-    ModuleClassLoaderOverlays.getInstance(module)
-  else
-    ModificationTracker.NEVER_CHANGED
+  private val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module)
 
   /**
    * Initial count for the overlay. Used to detect if this [ModuleClassLoaderImpl] is up to date or if the
