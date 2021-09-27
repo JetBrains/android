@@ -45,8 +45,8 @@ public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
     if (gradlePath != null) {
       taskNamePrefix = gradlePath.equals(":") ? gradlePath : gradlePath + ":";
     }
-    final String testTask = "test" + StringUtil.capitalize(variant) + "UnitTest";
-    return Arrays.asList(StringHelper.appendCapitalized(taskNamePrefix + "clean", testTask), taskNamePrefix + testTask);
+    final String testTask = StringHelper.appendCapitalized("test", variant, "unitTest");
+    return Collections.singletonList(taskNamePrefix + testTask);
   }
 
   @Nullable
