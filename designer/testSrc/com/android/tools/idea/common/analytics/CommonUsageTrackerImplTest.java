@@ -93,8 +93,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(result.getRootViews()).thenReturn(ImmutableList.of(rootView));
     when(result.getRenderResult()).thenReturn(renderResult);
     when(result.getLogger()).thenReturn(logger);
-/* b/201109484
-    when(result.getModule()).thenReturn(new MockModule(getProject(), getTestRootDisposable()));
+    when(result.getModule()).thenReturn(new MockModule(getTestRootDisposable()));
     when(result.getStats()).thenReturn(new RenderResultStats(-1, 230L, -1, -1, -1));
 
     tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, CommonUsageTracker.RenderResultType.RENDER);
@@ -106,6 +105,5 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(loggedResult.getTotalIssueCount()).isEqualTo(1);
     assertThat(loggedResult.getErrorCount()).isEqualTo(1);
     assertThat(loggedResult.getFidelityWarningCount()).isEqualTo(0);
-b/201109484 */
   }
 }
