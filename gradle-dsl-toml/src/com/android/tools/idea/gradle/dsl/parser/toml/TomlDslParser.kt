@@ -53,7 +53,7 @@ class TomlDslParser(
   override fun getContext(): BuildModelContext = context
 
   override fun parse() {
-    fun getVisitor(context: GradlePropertiesDslElement): TomlRecursiveVisitor = object : TomlRecursiveVisitor() {
+    fun getVisitor(context: GradlePropertiesDslElement, name: GradleNameElement): TomlRecursiveVisitor = object : TomlRecursiveVisitor() {
       var stringContext = ""
 
       // TODO(b/200280395): this is just around for print-debugging the visited structure of the Psi.  Probably remove this (and
@@ -84,7 +84,7 @@ class TomlDslParser(
             key.doWithContext(context) { segment, context ->
               val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
               context.addParsedElement(map)
-              getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+              getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
             }
           }
           else {
@@ -93,26 +93,18 @@ class TomlDslParser(
         }
       }
 
-      // TODO(xof): these will only be visited when context is a List: for well-formed Toml, map entries will be handled by
-      //  visitKeyValue.  This separation, which is motivated by the fact that TomlValue is apparently deeper in the Psi hierarchy than
-      //  these specific value instances, is nevertheless confusing and we should probably rewrite so that all values are handled here
-      //  whether the context is List or Map: essentially all we would need is to pass the name of the resultant element down, though the
-      //  accept and visitor interface makes this annoying.  (My kingdom for dynamic scope.)
       override fun visitArray(element: TomlArray) = doVisit("TomlArray") {
-        val name = GradleNameElement.empty()
         val list = GradleDslExpressionList(context, element, true, name)
         context.addParsedElement(list)
-        getVisitor(list).let { visitor -> element.elements.forEach { it.accept(visitor) } }
+        getVisitor(list, GradleNameElement.empty()).let { visitor -> element.elements.forEach { it.accept(visitor) } }
       }
 
       override fun visitInlineTable(element: TomlInlineTable) = doVisit("TomlInlineTable") {
-        val name = GradleNameElement.empty()
         val map = GradleDslExpressionMap(context, element, name, true)
         context.addParsedElement(map)
-        getVisitor(map).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+        getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
       }
       override fun visitLiteral(element: TomlLiteral) = doVisit("TomlLiteral (${element.text})") {
-        val name = GradleNameElement.empty()
         val literal = GradleDslLiteral(context, element, name, element, LITERAL)
         context.addParsedElement(literal)
       }
@@ -120,29 +112,13 @@ class TomlDslParser(
       override fun visitKeyValue(element: TomlKeyValue) {
         doVisit("TomlKeyValue (${element.text})") {
           element.key.doWithContext(context) { segment, context ->
-            val name = GradleNameElement.from(segment, this@TomlDslParser)
-            when (val value = element.value) {
-              is TomlLiteral -> {
-                val literal = GradleDslLiteral(context, element, name, value, LITERAL)
-                context.addParsedElement(literal)
-              }
-              is TomlInlineTable -> {
-                val map = GradleDslExpressionMap(context, element, name, true)
-                context.addParsedElement(map)
-                getVisitor(map).let { visitor -> value.entries.forEach { it.accept(visitor) } }
-              }
-              is TomlArray -> {
-                val list = GradleDslExpressionList(context, element, true, name)
-                context.addParsedElement(list)
-                getVisitor(list).let { visitor -> value.elements.forEach { it.accept(visitor) } }
-              }
-              else -> Unit
-            }
+            val key = GradleNameElement.from(segment, this@TomlDslParser)
+            getVisitor(context, key).let { element.value?.accept(it) }
           }
         }
       }
     }
-    psiFile.accept(getVisitor(dslFile))
+    psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
   }
 
   override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
