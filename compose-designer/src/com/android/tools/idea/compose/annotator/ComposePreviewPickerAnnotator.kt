@@ -32,6 +32,7 @@ import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.NavigateAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -70,7 +71,7 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
 
     if (uElement.isPreviewAnnotation()) {
       uElement.toPreviewElement()?.let {
-        val info = createInfo(element, parentElement.textRange, parentElement.project, it)
+        val info = createInfo(element, element.textRange, parentElement.project, parentElement.module, it)
         NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
         return info
       }
@@ -87,6 +88,7 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     element: PsiElement,
     textRange: TextRange,
     project: Project,
+    module: Module?,
     previewElement: PreviewElement
   ) = LineMarkerInfo<PsiElement>(
     element,
@@ -94,7 +96,6 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     AllIcons.Actions.InlayGear,
     { message("picker.preview.annotator.tooltip") },
     { mouseEvent, _ ->
-      val module = element.module
       val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElement)
       val valuesProvider = module?.let {
         PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, element.containingFile.virtualFile)
