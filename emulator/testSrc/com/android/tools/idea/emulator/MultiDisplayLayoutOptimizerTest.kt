@@ -24,6 +24,12 @@ import java.awt.Dimension
  */
 class MultiDisplayLayoutOptimizerTest {
   @Test
+  fun test1Rectangle() {
+    val rectangleSizes = listOf(Dimension(2, 4))
+    assertThat(computeBestLayout(Dimension(4, 4), rectangleSizes).toString()).isEqualTo("#0")
+  }
+
+  @Test
   fun test2Rectangles() {
     val rectangleSizes = listOf(Dimension(2, 4), Dimension(3, 2))
     assertThat(computeBestLayout(Dimension(4, 4), rectangleSizes).toString()).isEqualTo("[#0] | [#1] 0.40")
