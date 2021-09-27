@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
@@ -33,11 +34,7 @@ import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
-import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
-import com.intellij.openapi.editor.impl.EditorImpl
-import com.intellij.openapi.editor.markup.HighlighterLayer
-import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -58,8 +55,7 @@ internal class LogcatMainPanel(
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
-  private val document = editor.document
-  private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
+  private val documentAppender = DocumentAppender(project, editor.document)
   private val deviceContext = DeviceContext()
   private val messageFormatter = MessageFormatter(logcatColors, zoneId)
 
@@ -127,7 +123,6 @@ internal class LogcatMainPanel(
     editorSettings.isShowingSpecialChars = false
     editor.gutterComponentEx.isPaintBackground = false
 
-    (editor as EditorImpl).isDisposed
     return editor
   }
 
@@ -135,19 +130,7 @@ internal class LogcatMainPanel(
     if (!isActive) {
       return@withContext
     }
-    document.insertString(document.textLength, buffer.text)
-
-    // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
-    val start = document.textLength - buffer.text.length
-    buffer.ranges.forEach {
-      val rangeStart = start + it.start
-      // Under extreme conditions, we could be inserting text that is longer than the cyclic buffer.
-      // TODO(aalbert): Consider optimizing by truncating text to not be longer than cyclic buffer.
-      if (rangeStart >= 0) {
-        markupModel.addRangeHighlighter(
-          rangeStart, start + it.end, HighlighterLayer.SYNTAX, it.textAttributes, HighlighterTargetArea.EXACT_RANGE)
-      }
-    }
+    documentAppender.appendToDocument(buffer)
     EditorUtil.scrollToTheEnd(editor, true)
   }
 
