@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.ibm.icu.number.LocalizedNumberFormatter;
 import com.ibm.icu.number.NumberFormatter;
 import com.ibm.icu.util.NoUnit;
@@ -29,11 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class Battery {
-  private static final @NotNull Pattern AC = Pattern.compile("AC powered: (\\w+)");
-  private static final @NotNull Pattern USB = Pattern.compile("USB powered: (\\w+)");
-  private static final @NotNull Pattern WIRELESS = Pattern.compile("Wireless powered: (\\w+)");
-  private static final @NotNull Pattern LEVEL = Pattern.compile("level: (\\d+)");
-  private static final @NotNull Pattern SCALE = Pattern.compile("scale: (\\d+)");
+  private static final @NotNull Pattern AC = Pattern.compile(" {2}AC powered: (\\w+)");
+  private static final @NotNull Pattern USB = Pattern.compile(" {2}USB powered: (\\w+)");
+  private static final @NotNull Pattern WIRELESS = Pattern.compile(" {2}Wireless powered: (\\w+)");
+  private static final @NotNull Pattern LEVEL = Pattern.compile(" {2}level: (\\d+)");
+  private static final @NotNull Pattern SCALE = Pattern.compile(" {2}scale: (\\d+)");
 
   private static final @NotNull LocalizedNumberFormatter FORMATTER = NumberFormatter.withLocale(Locale.US)
     .unit(NoUnit.PERCENT);
@@ -41,7 +42,8 @@ final class Battery {
   private final @NotNull ChargingType myChargingType;
   private final int myLevel;
 
-  private enum ChargingType {
+  @VisibleForTesting
+  enum ChargingType {
     NOT_CHARGING, AC, USB, WIRELESS;
 
     private static @NotNull ChargingType valueOf(boolean ac, boolean usb, boolean wireless) {
@@ -61,7 +63,8 @@ final class Battery {
     }
   }
 
-  private Battery(@NotNull ChargingType chargingType, int level) {
+  @VisibleForTesting
+  Battery(@NotNull ChargingType chargingType, int level) {
     myChargingType = chargingType;
     myLevel = level;
   }
