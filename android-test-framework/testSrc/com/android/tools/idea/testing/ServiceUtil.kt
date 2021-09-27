@@ -18,10 +18,8 @@ package com.android.tools.idea.testing
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ComponentManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
-import org.picocontainer.MutablePicoContainer
 
 /**
  * Registers a service implementation, possibly replacing an existent one. The lifetime of the of
@@ -30,7 +28,8 @@ import org.picocontainer.MutablePicoContainer
 fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
   if (getService(serviceInterface) == null) {
     registerServiceInstance(serviceInterface, instance)
-    Disposer.register(parentDisposable) { (picoContainer as MutablePicoContainer).unregisterComponent(serviceInterface.name) }
+    // TODO: Replace the line above by the line below when https://youtrack.jetbrains.com/issue/IDEA-279127 is fixed.
+    //Disposer.register(parentDisposable) { (picoContainer as MutablePicoContainer).unregisterComponent(serviceInterface.name) }
     return
   }
 
