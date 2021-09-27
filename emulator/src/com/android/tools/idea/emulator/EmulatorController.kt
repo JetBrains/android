@@ -127,7 +127,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       return connectionStateInternal.get()
     }
     private set(value) {
-      if (connectionStateInternal.getAndSet(value) != value) {
+      val oldValue = connectionStateInternal.getAndSet(value)
+      if (oldValue != value) {
+        if (value == ConnectionState.DISCONNECTED) {
+          if (oldValue == ConnectionState.CONNECTED) {
+            LOG.info("Disconnected from ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+          }
+          else {
+            LOG.warn("Unable to connect ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+          }
+        }
         for (listener in connectionStateListeners) {
           listener.connectionStateChanged(this, value)
         }
@@ -592,7 +601,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       }
 
       override fun onError(t: Throwable) {
-        connectionState = ConnectionState.DISCONNECTED
+        if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE || connectionState != ConnectionState.CONNECTED) {
+          connectionState = ConnectionState.DISCONNECTED
+        }
       }
     }
 
