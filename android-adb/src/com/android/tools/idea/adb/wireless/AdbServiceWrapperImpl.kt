@@ -39,7 +39,7 @@ class AdbServiceWrapperImpl(
   val taskExecutor: ListeningExecutorService
 ) : AdbServiceWrapper {
   private val ADB_TIMEOUT_MILLIS = 30_000L
-  private val ADB_DEVICE_CONNECT_MILLIS = 30_000L
+  private val ADB_DEVICE_CONNECT_MILLIS = 120_000L
   private val LOG = logger<AdbServiceWrapperImpl>()
 
   override fun executeCommand(args: List<String>, stdin: String): ListenableFuture<AdbCommandResult> {

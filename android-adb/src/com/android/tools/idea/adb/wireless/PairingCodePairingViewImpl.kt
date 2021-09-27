@@ -64,7 +64,7 @@ class PairingCodePairingViewImpl(project: Project,
   }
 
   override fun showWaitingForDeviceProgress(pairingResult: PairingResult) {
-    dlg.showPairingInProgress("Gathering device information...")
+    dlg.showPairingInProgress("Connecting to device. This takes up to 2 minutes.")
     allowPairAction = false
   }
 
