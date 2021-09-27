@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.liveEdit
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.sdk.IdeSdks
@@ -63,6 +64,9 @@ private const val SUCCESS_RESULT_CODE = 0
 /** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
 private val DEFAULT_RUNTIME_VERSION = GradleVersion.parse("1.1.0-alpha02")
 
+/** Settings passed to the compiler daemon in debug mode. */
+private const val DAEMON_DEBUG_SETTINGS = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+
 /**
  * Starts the daemon in the given [daemonPath].
  */
@@ -72,11 +76,13 @@ private fun startDaemon(daemonPath: String): Process {
                       ?.let { javaHomePath -> "$javaHomePath/bin/java" }
                     ?: throw IllegalStateException("No SDK found")
   return ProcessBuilder().command(
-    javaCommand,
-    // This line can be used to start the daemon in debug mode and debug issues on the daemon JVM.
-    //"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005",
-    "-jar",
-    daemonPath
+    listOfNotNull(
+      javaCommand,
+      // This flag can be used to start the daemon in debug mode and debug issues on the daemon JVM.
+      if (StudioFlags.COMPOSE_LIVE_EDIT_DEBUG_DAEMON.get()) DAEMON_DEBUG_SETTINGS else null,
+      "-jar",
+      daemonPath
+    )
   ).redirectError(ProcessBuilder.Redirect.INHERIT).start()
 }
 
