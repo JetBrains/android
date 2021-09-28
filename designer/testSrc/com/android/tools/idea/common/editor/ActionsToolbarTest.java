@@ -44,7 +44,6 @@ public class ActionsToolbarTest extends LayoutTestCase {
     // Regression test for b/79110899
     ActionsToolbar toolbar = createToolbar();
     ActionToolbarImpl centerToolBar = toolbar.getCenterToolbar();
-/* b/201102692
     Map<?, ?> cache = getPresentationCache(centerToolBar);
     centerToolBar.updateActionsImmediately();
     int initialSize = cache.size();
@@ -64,7 +63,6 @@ public class ActionsToolbarTest extends LayoutTestCase {
     toolbar.updateActions();
     centerToolBar.updateActionsImmediately();
     assertThat(cache.size()).isAtMost(initialSize);
-b/201102692 */
   }
 
   private ActionsToolbar createToolbar() {
@@ -87,7 +85,7 @@ b/201102692 */
     Field factoryField = ActionToolbarImpl.class.getDeclaredField("myPresentationFactory");
     factoryField.setAccessible(true);
     PresentationFactory factory = (PresentationFactory)factoryField.get(actionToolbar);
-    Field cacheField = PresentationFactory.class.getDeclaredField("myAction2Presentation");
+    Field cacheField = PresentationFactory.class.getDeclaredField("myPresentations");
     cacheField.setAccessible(true);
     return (Map<?,?>)cacheField.get(factory);
   }
