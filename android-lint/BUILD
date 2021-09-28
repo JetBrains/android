@@ -38,6 +38,7 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android-lint/testData",
         "//tools/adt/idea/android/testData",
     ],
     test_shard_count = 2,

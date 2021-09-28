@@ -439,7 +439,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       InspectionsKt.createGlobalContextForTool(scope, getProject(), Arrays.<InspectionToolWrapper<?, ?>>asList(wrapper));
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
+    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, myFixture.getTestDataPath() + globalTestDir);
 
     return globalContext.getPresentation(wrapper).getProblemElements();
   }

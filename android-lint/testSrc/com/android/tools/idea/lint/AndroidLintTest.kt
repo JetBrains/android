@@ -196,6 +196,7 @@ class AndroidLintTest : AndroidTestCase() {
     setInstanceForTest(analyticsSettings)
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     myFixture.allowTreeAccessForAllFiles()
+    myFixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
   }
 
   override fun configureAdditionalModules(
