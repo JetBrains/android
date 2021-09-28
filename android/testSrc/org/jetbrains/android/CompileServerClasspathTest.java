@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.impl.light.LightJavaModule;
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +27,7 @@ public class CompileServerClasspathTest extends BareTestFixtureTestCase {
 
   @NotNull
   private Set<String> getBuildProcessClasspath() {
-    List<String> baseCp = ClasspathBootstrap.getBuildProcessApplicationClasspath();
+    Collection<String> baseCp = ClasspathBootstrap.getBuildProcessApplicationClasspath();
     Project project = DefaultProjectFactory.getInstance().getDefaultProject();
     @NotNull List<String> pluginsCp = new BuildProcessClasspathManager(getTestRootDisposable()).getBuildProcessPluginsClasspath(project);
     return Streams.concat(baseCp.stream(), pluginsCp.stream())
