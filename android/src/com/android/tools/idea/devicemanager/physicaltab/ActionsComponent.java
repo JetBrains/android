@@ -25,13 +25,11 @@ import java.awt.Color;
 import java.awt.Component;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JTable;
-import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 final class ActionsComponent extends JBPanel<ActionsComponent> {
@@ -102,11 +100,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     return myMoreButton;
   }
 
-  @NotNull Component getTableCellComponent(@NotNull JTable table,
-                                           boolean selected,
-                                           boolean focused,
-                                           int viewRowIndex,
-                                           @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> getBorder) {
+  @NotNull Component getTableCellComponent(@NotNull JTable table, boolean selected, boolean focused, int viewRowIndex) {
     boolean online = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex).isOnline();
     Color foreground = Tables.getForeground(table, selected);
 
@@ -122,7 +116,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     myMoreButton.setSelectedInTableCell(selected);
 
     setBackground(Tables.getBackground(table, selected));
-    setBorder(getBorder.apply(selected, focused));
+    setBorder(Tables.getBorder(selected, focused));
 
     return this;
   }

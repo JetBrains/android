@@ -29,8 +29,6 @@ import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import javax.swing.JTable;
-import javax.swing.border.Border;
-import javax.swing.plaf.BorderUIResource.EmptyBorderUIResource;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
 import org.junit.Test;
@@ -40,13 +38,12 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
-  private static final Border BORDER = new EmptyBorderUIResource(2, 3, 2, 3);
   private final JTable myTable = new JBTable();
 
   @Test
   public void getTableCellRendererComponentDeviceIsOnline() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
     Device device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
@@ -69,7 +66,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponentDeviceIsPaired() throws InterruptedException {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
     PairingDevice wearDevice = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE, false);
     PairingDevice phoneDevice = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE, false);
     IDevice device = Mockito.mock(IDevice.class);
@@ -89,7 +86,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponent() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
@@ -104,7 +101,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getForegroundSelected() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
@@ -116,7 +113,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getForeground() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);

@@ -28,7 +28,6 @@ import com.intellij.util.ui.UIUtil.FontSize;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
-import java.util.function.BiFunction;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
@@ -37,7 +36,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,15 +49,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JComponent myPanel;
 
   private final @NotNull Class<@NotNull D> myValueClass;
-  private final @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> myGetBorder;
 
-  public DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
-    this(valueClass, Tables::getBorder);
-  }
-
-  @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass,
-                          @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> getBorder) {
+  protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myOnlineLabel = new JBLabel();
@@ -99,7 +90,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myPanel.setLayout(layout);
 
     myValueClass = valueClass;
-    myGetBorder = getBorder;
   }
 
   @Override
@@ -134,7 +124,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     }
 
     myPanel.setBackground(Tables.getBackground(table, selected));
-    myPanel.setBorder(myGetBorder.apply(selected, focused));
+    myPanel.setBorder(Tables.getBorder(selected, focused));
 
     return myPanel;
   }
