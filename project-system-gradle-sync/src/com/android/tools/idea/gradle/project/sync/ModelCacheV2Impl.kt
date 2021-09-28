@@ -480,13 +480,19 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return javaLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeJavaLibraryImpl)
   }
 
-  fun libraryFrom(projectPath: String, buildId: String, variant: String?, lintJar: File?): IdeLibrary {
+  fun libraryFrom(
+    projectPath: String,
+    buildId: String,
+    variant: String?,
+    lintJar: File?,
+    isTestFixturesComponent: Boolean
+  ): IdeLibrary {
     val core = IdeModuleLibraryCore(
       buildId = buildId,
       projectPath = projectPath,
       variant = variant,
       lintJar = lintJar?.path,
-      sourceSet = IdeModuleSourceSet.MAIN
+      sourceSet = if (isTestFixturesComponent) IdeModuleSourceSet.TEST_FIXTURES else IdeModuleSourceSet.MAIN
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -508,11 +514,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       artifactAddress: String,
       variant: String?,
       lintJar: File?,
-      buildId: String
+      buildId: String,
+      isTestFixturesComponent: Boolean
     ) {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
-        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar) }
+        librariesById.computeIfAbsent(artifactAddress) {
+          libraryFrom(projectPath, buildNameMap[buildId]!!.absolutePath, variant, lintJar, isTestFixturesComponent)
+        }
       }
     }
 
@@ -524,13 +533,20 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
           projectInfo.attributes["com.android.build.api.attributes.BuildTypeAttr"],
           { dimension -> projectInfo.attributes[dimension] ?: error("$dimension attribute not found. Library: ${identifier.key}") }
         )
+        val projectName = projectInfo.projectPath.split(":").last()
         createModuleLibrary(
           visited,
           projectInfo.projectPath, // this should always be non-null as this is a module library
           identifier.key,
           variantName,
           identifier.lintJar,
-          projectInfo.buildId
+          projectInfo.buildId,
+          // A testFixtures component of a project will have the capability (group = project.group, name = project.name + "-test-fixtures",
+          // version = null), and the string representation will be `${project.group}:${project.name}-test-fixtures:unspecified`
+          // See [DefaultDependencyHandler.testFixtures](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/src/main/java/org/gradle/api/internal/artifacts/dsl/dependencies/DefaultDependencyHandler.java)
+          // to know how testFixtures capability is created.
+          // TODO(b/202838863): have a better way to figure out whether the dependency is on a testFixtures component
+          isTestFixturesComponent = identifier.projectInfo!!.capabilities.any { it.endsWith(":$projectName-test-fixtures:unspecified") }
         )
       }
     }
