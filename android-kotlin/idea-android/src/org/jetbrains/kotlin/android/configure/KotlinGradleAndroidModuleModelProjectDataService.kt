@@ -51,7 +51,7 @@ class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataServ
             if (sourceSetNodes.isNotEmpty()) {
               sourceSetNodes.forEach { sourceSetNode ->
                 val ideModule = modelsProvider.findIdeModule(sourceSetNode.data) ?: return@forEach
-                ideModule.compilerArgumentsBySourceSet = moduleNode.compilerArgumentsBySourceSet
+                ideModule.compilerArgumentsBySourceSet = moduleNode.compilerArgumentsBySourceSet()
                 val kotlinSourceSetName = moduleModelNode.data.selectedVariantName +
                                           (sourceSetNode.data.moduleName.takeUnless { it == "main" }?.usLocaleCapitalize() ?: "")
                 val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode, kotlinSourceSetName)
