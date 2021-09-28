@@ -422,7 +422,7 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
   }
 }
 
-fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): PairingDevice {
+private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): PairingDevice {
   return PairingDevice(
     deviceID = deviceID,
     displayName = displayName,

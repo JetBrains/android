@@ -41,7 +41,7 @@ private var wizardDialog: ModelWizardDialog? = null
 
 internal class WearDevicePairingWizard {
   @Synchronized
-  fun show(project: Project?, selectedDevice: PairingDevice?) {
+  private fun show(project: Project?, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {
       window?.toFront()  // We already have a dialog, just bring it to the front and return
       return
@@ -87,12 +87,14 @@ internal class WearDevicePairingWizard {
   }
 
   @UiThread
-  fun show(project: Project, selectedDeviceId: String) {
+  fun show(project: Project?, selectedDeviceId: String?) {
     object : Task.Modal(project, message("wear.assistant.device.connection.balloon.link"), true) {
       var selectedDevice: PairingDevice? = null
 
       override fun run(indicator: ProgressIndicator) {
+        if (selectedDeviceId != null) {
           selectedDevice = WearPairingManager.findDevice(selectedDeviceId)
+        }
       }
 
       override fun onFinished() {
