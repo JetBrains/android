@@ -44,6 +44,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
@@ -55,7 +56,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -72,6 +76,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -113,6 +118,23 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
     AndroidModel androidModel = AndroidModel.get(androidFacet);
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
+  }
+
+  @Nullable
+  public static AndroidModuleModel findFromModuleDataNode(@NotNull DataNode<?> dataNode) {
+    if (dataNode.getKey().equals(ProjectKeys.MODULE)) {
+      DataNode<AndroidModuleModel> androidModelNode = ExternalSystemApiUtil.find(dataNode, AndroidProjectKeys.ANDROID_MODEL);
+      if (androidModelNode != null) {
+        return androidModelNode.getData();
+      }
+    } else if (dataNode.getKey().equals(GradleSourceSetData.KEY)) {
+      // Source set nodes have the module attached to the parent node
+      DataNode<?> parent = dataNode.getParent();
+      if (parent != null) {
+        return findFromModuleDataNode(parent);
+      }
+    }
+    return null;
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,

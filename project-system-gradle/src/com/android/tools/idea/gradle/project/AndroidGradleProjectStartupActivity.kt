@@ -165,7 +165,16 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 
-  val moduleVariants = project.getSelectedVariantAndAbis()
+  val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
+
+  val modulesById =
+    existingGradleModules
+      .asSequence()
+      .mapNotNull { module ->
+        val externalId = ExternalSystemApiUtil.getExternalProjectId(module) ?: return@mapNotNull null
+        externalId to module
+      }
+      .toMap()
 
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
@@ -178,6 +187,12 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
           return
         }
+        externalProjectInfo?.externalProjectStructure?.modules()?.forEach { moduleDataNode ->
+          if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
+            moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
+          }
+        }
+        val moduleVariants = project.getSelectedVariantAndAbis()
         externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
         ?: run { requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants"); return }
       }
@@ -187,8 +202,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     requestSync("No linked projects found")
     return
   }
-
-  val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
 
   val facets =
     existingGradleModules
@@ -225,16 +238,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         return
       }
     }
-
-
-  val modulesById =
-    existingGradleModules
-      .asSequence()
-      .mapNotNull { module ->
-        val externalId = ExternalSystemApiUtil.getExternalProjectId(module) ?: return@mapNotNull null
-        externalId to module
-      }
-      .toMap()
 
   val holderModuleToDataNodePairs: Collection<Pair<Module, DataNode<out ModuleData>>> =
     projectDataNodes.flatMap { projectData ->
@@ -290,10 +293,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       return { facet.attach(model) }
     }
 
-    if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
-      moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
-    }
-
     // For models that can be broken into source sets we need to check the parent datanode for the model
     // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
     // module per source set we should replace this code with were we know the model will be living.
@@ -303,7 +302,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
               validate = AndroidModuleModel::validate) ?: return,
       prepare(JAVA_MODULE_MODEL, ::getModelFromDataNode, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, getModelForMaybeSourceSetDataNode(), NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
+      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 
