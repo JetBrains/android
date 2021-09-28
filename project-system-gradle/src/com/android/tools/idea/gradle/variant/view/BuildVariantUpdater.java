@@ -203,7 +203,6 @@ public final class BuildVariantUpdater {
     if (variantsExpectedAfterSwitch != null) {
       DataNode<ProjectData> variantProjectDataNode = VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantsExpectedAfterSwitch);
       if (variantProjectDataNode != null) {
-        restoreKotlinUserDataFromDataNodes(variantProjectDataNode);
         setupCachedVariant(project, variantProjectDataNode, invokeVariantSelectionChangeListeners);
         return true;
       }

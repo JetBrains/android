@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.sim
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.preserveKotlinUserDataInDataNodes;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
@@ -52,11 +51,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleId;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
@@ -67,7 +61,11 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -154,8 +152,8 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel;
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService ;
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel ;
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService;
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
@@ -182,16 +180,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull public static final com.intellij.openapi.externalSystem.model.Key<VariantProjectDataNodes>
     CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
     com.intellij.openapi.externalSystem.model.Key.create(VariantProjectDataNodes.class, 1 /* not used */);
-
-  /**
-   * Stores a collection of internal in-memory properties used by Kotlin 1.4/1.5 IDE plugin so that they can be restored when the data node
-   * tree is re-used to re-import a build variant it represents.
-   *
-   * NOTE: This key/data is not directly processed by any data importers.
-   */
-  @NotNull public static final com.intellij.openapi.externalSystem.model.Key<KotlinProperties>
-    KOTLIN_PROPERTIES =
-    com.intellij.openapi.externalSystem.model.Key.create(KotlinProperties.class, 1 /* not used */);
 
   public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
@@ -786,7 +774,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @SuppressWarnings("UnstableApiUsage")
   @Override
   public void resolveFinished(@NotNull DataNode<ProjectData> projectDataNode) {
-    preserveKotlinUserDataInDataNodes(projectDataNode);
     disableOrphanModuleNotifications();
   }
 
