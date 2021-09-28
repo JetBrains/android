@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -52,7 +53,8 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
       config.deviceState = device.getState(if (device.id.contains(PORTRAIT_DEVICE_KEYWORD)) "portrait" else "landscape")
-      val builder = NlModel.builder(facet, virtualFile, config)
+      val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
+      val builder = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(device.displayName)
         .withModelTooltip(config.toHtmlTooltip())
