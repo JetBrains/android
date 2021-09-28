@@ -126,14 +126,15 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     () ->
       ComboCheckBox.of(new ArrayList<>(getStage().getCapture().getTags()),
                        getStage().getCapture().getCollapsedTags(),
-                            selected -> {
-                              getStage().getCapture().collapseNodesWithTags(new HashSet<>(selected));
-                              onTrackGroupSelectionChange();
-                              updateComponents();
-                              return Unit.INSTANCE;
-                            },
+                       selected -> {
+                         getStage().getCapture().collapseNodesWithTags(new HashSet<>(selected));
+                         onTrackGroupSelectionChange();
+                         updateComponents();
+                         getComponent().requestFocus();
+                         return Unit.INSTANCE;
+                       },
                        "Apply",
-                            filter -> PathUtils.abbreviate(filter.toString()))
+                       PathUtils::abbreviate)
   );
   private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("Vsync guide", true);
 
