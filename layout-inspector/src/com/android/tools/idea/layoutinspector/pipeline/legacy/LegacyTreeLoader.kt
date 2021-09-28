@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -24,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.annotations.VisibleForTesting
@@ -37,9 +37,9 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
  */
-class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: LegacyClient) : TreeLoader {
+class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   private val LegacyClient.selectedDdmClient: Client?
-    get() = ddmClientOverride ?: adb.findClient(process)
+    get() = ddmClientOverride ?: AdbUtils.getAdbFuture(client.model.project).get()?.findClient(process)
 
   @VisibleForTesting
   var ddmClientOverride: Client? = null

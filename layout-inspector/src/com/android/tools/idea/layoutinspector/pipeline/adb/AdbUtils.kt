@@ -20,13 +20,13 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -76,10 +76,9 @@ fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
   } ?: throw IllegalArgumentException("Could not execute ADB command [$command]. Device (${device.model}) is disconnected.")
 }
 
-
 object AdbUtils {
-  fun getAdbFuture(project: Project): ListenableFuture<AndroidDebugBridge> {
-    return AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) }
-           ?: Futures.immediateFuture(AndroidDebugBridge.createBridge())
+  fun getAdbFuture(project: Project): ListenableFuture<AndroidDebugBridge?> {
+    return AdbFileProvider.fromProject(project)?.adbFile?.let { AdbService.getInstance()?.getDebugBridge(it) }
+           ?: Futures.immediateFuture(null)
   }
 }
