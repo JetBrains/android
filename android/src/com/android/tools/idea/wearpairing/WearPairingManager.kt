@@ -27,6 +27,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -52,7 +53,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle.message
+import java.util.concurrent.TimeUnit
 
 private val LOG get() = logger<WearPairingManager>()
 
@@ -309,8 +312,18 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   suspend fun PairingDevice.supportsMultipleWatchConnections(): Boolean =
     getConnectedDevices()[deviceID]?.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING, null) == true
 
+  private fun findAdb() : AndroidDebugBridge? {
+    AndroidDebugBridge.getBridge()?.also {
+      return it // Instance found, just return it
+    }
+    AndroidSdkUtils.findAdb(null).adbPath?.apply {
+      AdbService.getInstance().getDebugBridge(this).get(1, TimeUnit.SECONDS) // Create new instance
+    }
+    return AndroidDebugBridge.getBridge() // Return current instance
+  }
+
   private fun getConnectedDevices(): Map<String, IDevice> {
-    val connectedDevices = AndroidDebugBridge.getBridge()?.devices ?: return emptyMap()
+    val connectedDevices = findAdb()?.devices ?: return emptyMap()
     return connectedDevices
       .filter { it.isEmulator || it.arePropertiesSet() } // Ignore un-populated physical devices (still loading properties)
       .filter { it.isOnline }
