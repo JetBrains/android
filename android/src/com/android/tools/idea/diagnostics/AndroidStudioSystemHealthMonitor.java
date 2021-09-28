@@ -16,7 +16,6 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
@@ -41,7 +40,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.GcPauseInfo;
-import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.google.wireless.android.sdk.stats.StudioCrash;
 import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
 import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
@@ -88,12 +86,14 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -690,18 +690,8 @@ public class AndroidStudioSystemHealthMonitor {
    * Android Studio-specific checks of Java runtime.
    */
   private void checkRuntime() {
-    warnIfIntelOnArm();
     warnIfOpenJDK();
     warnIfMacDragNDropJDKBug();
-  }
-
-  private void warnIfIntelOnArm() {
-    if (SystemInfo.isMac && CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM) {
-      showNotification(
-        "unsupported.mac.intelonarm.message",
-        new BrowseNotificationAction("Download", "https://developer.android.com/studio")
-      );
-    }
   }
 
   private void warnIfOpenJDK() {
