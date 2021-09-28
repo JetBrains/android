@@ -17,21 +17,21 @@ package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.codenavigation.CodeNavigator
-import com.android.tools.idea.codenavigation.IntellijNavSource
-import com.android.tools.idea.codenavigation.NavSource
+import com.android.tools.idea.codenavigation.IntellijNavSourceProxy
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
 import com.android.tools.nativeSymbolizer.createNativeSymbolizer
 import com.intellij.openapi.project.Project
 
 /**
- * The Android Studio implementation of [CodeNavigationProvider] that provides a single
- * instance of [IntellijNavSource].
+ * The Android Studio implementation of [CodeNavigationProvider] that provides a [CodeNavigator]
+ * for IntelliJ projects.
  */
 class DefaultCodeNavigationProvider(project: Project) : CodeNavigationProvider {
   private val locator = SymbolFilesLocator(ProjectSymbolSource(project))
   private val symbolizer = createNativeSymbolizer(locator)
 
-  override val codeNavigator: CodeNavigator = CodeNavigator(IntellijNavSource(project, symbolizer),
-                                                            CodeNavigator.applicationExecutor)
+  override val codeNavigator: CodeNavigator = CodeNavigator(
+      IntellijNavSourceProxy(project, symbolizer),
+      CodeNavigator.applicationExecutor)
 }

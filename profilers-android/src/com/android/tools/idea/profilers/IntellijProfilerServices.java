@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.idea.codenavigation.PsiNavSource;
+import com.android.tools.idea.codenavigation.IntellijNavSourceProxy;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
@@ -79,7 +81,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
-import org.apache.xmlbeans.impl.xb.ltgfmt.Code;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,9 +114,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myTemporaryPreferences = new TemporaryProfilerPreferences();
     myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
 
-    myCodeNavigator = new CodeNavigator(
-        new IntellijNavSource(project, nativeSymbolizer),
-        CodeNavigator.Companion.getApplicationExecutor());
+    myCodeNavigator = new CodeNavigator(new IntellijNavSourceProxy(project, nativeSymbolizer),
+                                        CodeNavigator.Companion.getApplicationExecutor());
     myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
   }
 

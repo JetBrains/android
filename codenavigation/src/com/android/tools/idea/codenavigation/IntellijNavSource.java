@@ -28,10 +28,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.util.ClassUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -84,34 +80,7 @@ public class IntellijNavSource implements NavSource {
       return getNativeNavigatable(location, arch);
     }
 
-    PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
-    if (psiClass == null) {
-      if (location.getLineNumber() >= 0) {
-        // There has been at least one case where the PsiManager could not find an inner class in
-        // Kotlin code, which caused us to abort navigating. However, if we have the outer class
-        // (which is easier for PsiManager to find) and a line number, that's enough information to
-        // help us navigate. So, to be more robust against PsiManager error, we try one more time.
-        psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getOuterClassName());
-      }
-    }
-
-    if (psiClass == null) {
-      return null;
-    }
-    else if (location.getLineNumber() >= 0) {
-      // If the specified CodeLocation has a line number, navigatable is that line
-      return new OpenFileDescriptor(myProject, psiClass.getNavigationElement().getContainingFile().getVirtualFile(),
-                                    location.getLineNumber(), 0);
-    }
-    else if (location.getMethodName() != null && location.getSignature() != null) {
-      // If it has both method name and signature, navigatable is the corresponding method
-      PsiMethod method = findMethod(psiClass, location.getMethodName(), location.getSignature());
-      return method != null ? method : psiClass;
-    }
-    else {
-      // Otherwise, navigatable is the class
-      return psiClass;
-    }
+    return null;
   }
 
   /**
@@ -191,15 +160,5 @@ public class IntellijNavSource implements NavSource {
       }
     }
     return sourceMap;
-  }
-
-  @Nullable
-  private static PsiMethod findMethod(@NotNull PsiClass psiClass, @NotNull String methodName, @NotNull String signature) {
-    for (PsiMethod method : psiClass.findMethodsByName(methodName, true)) {
-      if (signature.equals(TraceSignatureConverter.getTraceSignature(method))) {
-        return method;
-      }
-    }
-    return null;
   }
 }
