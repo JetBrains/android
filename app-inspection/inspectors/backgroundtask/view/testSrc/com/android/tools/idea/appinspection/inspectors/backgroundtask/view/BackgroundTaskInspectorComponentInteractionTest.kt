@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -258,8 +259,11 @@ class BackgroundTaskInspectorComponentInteractionTest {
         .findFirst()
         .get() as ActionLink
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)
+      val scrollPosition = 10
+      detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value = scrollPosition
       showInGraphLabel.doClick()
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
+      assertThat(detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value).isEqualTo(scrollPosition)
     }
   }
 

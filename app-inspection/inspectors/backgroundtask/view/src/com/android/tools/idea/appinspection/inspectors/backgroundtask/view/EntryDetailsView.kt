@@ -102,24 +102,24 @@ class EntryDetailsView(
         tab.isDetailsViewVisible = false
       }
       else {
-        updateSelectedTask()
+        updateSelectedTask(true)
       }
     }
     client.addEntryUpdateEventListener { type, _ ->
       scope.launch(uiDispatcher) {
         if (type == EntryUpdateEventType.UPDATE) {
-          updateSelectedTask()
+          updateSelectedTask(false)
         }
       }
     }
     entriesView.addContentModeChangedListener {
       if (selectionModel.selectedEntry is WorkEntry) {
-        updateSelectedTask()
+        updateSelectedTask(false)
       }
     }
   }
 
-  private fun updateSelectedTask() {
+  private fun updateSelectedTask(isSelectionChanged: Boolean) {
     val detailsPanel = object : ScrollablePanel(VerticalLayout(18)) {
       override fun getScrollableTracksViewportWidth(): Boolean {
         val parent = SwingUtilities.getUnwrappedParent(this)
@@ -138,7 +138,11 @@ class EntryDetailsView(
 
     TreeWalker(detailsPanel).descendantStream().forEach { it.background = null }
     detailsPanel.background = primaryContentBackground
+    val scrollBarPosition = scrollPane.verticalScrollBar.value
     scrollPane.setViewportView(detailsPanel)
+    if (!isSelectionChanged) {
+      scrollPane.verticalScrollBar.value = scrollBarPosition
+    }
     revalidate()
     repaint()
   }
