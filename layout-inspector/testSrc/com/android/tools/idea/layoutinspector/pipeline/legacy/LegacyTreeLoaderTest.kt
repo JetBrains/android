@@ -106,7 +106,7 @@ DONE.
    */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
-    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = false, model,
+    return LegacyClient(LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = false, model,
                         SessionStatistics(model, FakeTreeSettings()), disposableRule.disposable).apply {
       launchMonitor = mock()
     }
@@ -120,7 +120,7 @@ DONE.
   private fun createMockLegacyClient(): LegacyClient {
     val legacyClient = mock<LegacyClient>()
     `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
-    `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(adb.bridge, legacyClient))
+    `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(legacyClient))
     `when`(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
     `when`(legacyClient.launchMonitor).thenReturn(mock())
     return legacyClient

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -37,7 +36,6 @@ import java.nio.file.Path
  * Since it doesn't use `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually fired.
  */
 class LegacyClient(
-  adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
@@ -75,7 +73,7 @@ class LegacyClient(
       else -> false
     }
 
-  override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(adb, this)
+  override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(this)
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()
