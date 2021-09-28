@@ -123,7 +123,7 @@ private fun findBottomNavigationIssue(root: ViewInfo,
     if (widthInDp > 600) {
       val content =  { count: Int ->
         HtmlBuilder()
-          .add("Bottom navigation bar is not recommended for breakpoints over 600dp,")
+          .add("Bottom navigation bar is not recommended for breakpoints over 600dp, ")
           .add("which affects ${previewConfigurations(count)}.")
           .newline()
           .add("Material Design recommends replacing bottom navigation bar with ")
@@ -171,15 +171,15 @@ private fun findBottomAppBarIssue(root: ViewInfo,
   if (root.className == BOTTOM_APP_BAR_CLASS_NAME) {
     val content = { count: Int ->
       HtmlBuilder()
-        .add("Bottom app bars are only recommended for compact screens,")
+        .add("Bottom app bars are only recommended for compact screens, ")
         .add("which affects ${previewConfigurations(count)}.")
         .newline()
         .add("Material Design recommends replacing bottom app bar with ")
-        .addLink("top app bar", TOP_APP_BAR_URL)
-        .add(", ")
         .addLink("navigation rail", NAVIGATION_RAIL_URL)
-        .add(" or ")
+        .add(", ")
         .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
+        .add(" or ")
+        .addLink("top app bar", TOP_APP_BAR_URL)
         .add(" for breakpoints over 600dp.")
     }
     createIssue(
