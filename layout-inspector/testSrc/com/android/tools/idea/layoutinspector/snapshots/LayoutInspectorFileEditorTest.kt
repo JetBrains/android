@@ -17,35 +17,34 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
-import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
+@RunsInEdt
 class LayoutInspectorFileEditorTest {
   val projectRule = ProjectRule()
   val disposableRule = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(disposableRule)!!
+  val chain = RuleChain.outerRule(projectRule).around(disposableRule).around(EdtRule())!!
 
   @Test
   fun editorCreatesCorrectSettings() {
@@ -54,13 +53,11 @@ class LayoutInspectorFileEditorTest {
       TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
-    waitForCondition(5L, TimeUnit.SECONDS) {
-      ComponentUtil.flatten(editor.component).firstIsInstanceOrNull<DeviceViewPanel>() != null
-    }
-    val settings = ComponentUtil.flatten(editor.component).firstIsInstance<DeviceViewContentPanel>().viewSettings
+    val editorComponent = editor.component
+    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().viewSettings
     assertThat(settings).isInstanceOf(EditorDeviceViewSettings::class.java)
 
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editor.component).firstIsInstance<WorkBench<*>>())?.getData(
+    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
@@ -73,13 +70,11 @@ class LayoutInspectorFileEditorTest {
       TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/compose-snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
-    waitForCondition(5L, TimeUnit.SECONDS) {
-      ComponentUtil.flatten(editor.component).firstIsInstanceOrNull<DeviceViewPanel>() != null
-    }
-    val settings = ComponentUtil.flatten(editor.component).firstIsInstance<DeviceViewContentPanel>().viewSettings
+    val editorComponent = editor.component
+    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().viewSettings
     assertThat(settings).isInstanceOf(EditorDeviceViewSettings::class.java)
 
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editor.component).firstIsInstance<WorkBench<*>>())?.getData(
+    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(

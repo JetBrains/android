@@ -421,6 +421,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     Dimension buttonSize = myDefinition.getButtonSize();
     int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
     actionToolbar.getComponent().setBorder(JBUI.Borders.empty(border, 0));
+    actionToolbar.updateActionsImmediately();
     return actionToolbar;
   }
 
