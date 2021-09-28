@@ -494,6 +494,7 @@ class DeviceViewPanel(
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
     actionToolbar.setTargetComponent(this)
+    actionToolbar.updateActionsImmediately()
     return actionToolbar
   }
 

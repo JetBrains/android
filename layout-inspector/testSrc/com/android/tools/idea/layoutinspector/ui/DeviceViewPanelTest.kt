@@ -101,7 +101,6 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
 private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
-@org.junit.Ignore("b/201102697")
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
   private val disposableRule = DisposableRule()
@@ -668,7 +667,6 @@ class DeviceViewPanelTest {
   }
 }
 
-@org.junit.Ignore("b/201102697")
 @RunsInEdt
 class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   @get:Rule
