@@ -19,7 +19,6 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceExplorerViewServiceInvokeLater;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
-import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.android.tools.idea.wearpairing.PairingDevice;
@@ -39,7 +38,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
@@ -49,7 +47,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
 import javax.swing.table.TableCellEditor;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
@@ -64,28 +61,21 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   private final @NotNull Function<@NotNull Project, @NotNull DeviceExplorerViewService> myDeviceExplorerViewServiceGetInstance;
   private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
   private final @NotNull BiPredicate<@NotNull Device, @NotNull Project> myAskWithRemoveDeviceDialog;
-  private final @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> myGetBorder;
   private final @NotNull ActionsComponent myComponent;
 
   ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel) {
-    this(panel,
-         DeviceExplorerViewServiceInvokeLater::new,
-         EditDeviceNameDialog::new,
-         ActionsTableCellEditor::askWithRemoveDeviceDialog,
-         Tables::getBorder);
+    this(panel, DeviceExplorerViewServiceInvokeLater::new, EditDeviceNameDialog::new, ActionsTableCellEditor::askWithRemoveDeviceDialog);
   }
 
   @VisibleForTesting
   ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel,
                          @NotNull Function<@NotNull Project, @NotNull DeviceExplorerViewService> deviceExplorerViewServiceGetInstance,
                          @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog,
-                         @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog,
-                         @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> getBorder) {
+                         @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog) {
     myPanel = panel;
     myDeviceExplorerViewServiceGetInstance = deviceExplorerViewServiceGetInstance;
     myNewEditDeviceNameDialog = newEditDeviceNameDialog;
     myAskWithRemoveDeviceDialog = askWithRemoveDeviceDialog;
-    myGetBorder = getBorder;
 
     myComponent = new ActionsComponent();
 
@@ -271,7 +261,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
                                                         int viewColumnIndex) {
     myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
 
-    myComponent.getTableCellComponent(table, selected, false, viewRowIndex, myGetBorder);
+    myComponent.getTableCellComponent(table, selected, false, viewRowIndex);
     JComponent button = myComponent.getRemoveButton();
 
     String text = button.isEnabled() ? "Remove this offline device from the list." : "Connected devices can not be removed from the list.";

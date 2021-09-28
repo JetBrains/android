@@ -29,6 +29,7 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Tables {
   private Tables() {
@@ -42,12 +43,12 @@ public final class Tables {
     return table.getBackground();
   }
 
-  public static @NotNull Border getBorder(boolean selected, boolean focused) {
+  public static @Nullable Border getBorder(boolean selected, boolean focused) {
     return getBorder(selected, focused, UIManager::getBorder);
   }
 
   @VisibleForTesting
-  static @NotNull Border getBorder(boolean selected, boolean focused, @NotNull Function<@NotNull Object, @NotNull Border> getBorder) {
+  static @Nullable Border getBorder(boolean selected, boolean focused, @NotNull Function<@NotNull Object, @Nullable Border> getBorder) {
     if (!focused) {
       return getBorder.apply("Table.cellNoFocusBorder");
     }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.Tables;
 import java.awt.Component;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
@@ -31,6 +30,6 @@ final class ActionsTableCellRenderer implements TableCellRenderer {
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    return myComponent.getTableCellComponent(table, selected, focused, viewRowIndex, Tables::getBorder);
+    return myComponent.getTableCellComponent(table, selected, focused, viewRowIndex);
   }
 }
