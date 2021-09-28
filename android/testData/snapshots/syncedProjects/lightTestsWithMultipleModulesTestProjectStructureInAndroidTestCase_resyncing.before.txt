@@ -1,6 +1,5 @@
 PROJECT                       : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK
     MODULE                        : app
         LinkedProjectId               : :app
         LinkedProjectPath             : <TEMP>/app

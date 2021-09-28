@@ -24,7 +24,7 @@ object AndroidFacetProjectDescriptor : DefaultLightProjectDescriptor() {
   override fun getSdk(): Sdk {
     // SDKs used by light fixtures are not in the global table. This way heavy fixtures that clean the global table in tearDown() don't
     // affect the shared light modules.
-    return Sdks.createLatestAndroidSdk(AndroidFacetProjectDescriptor::class.qualifiedName, false)
+    return Sdks.createLatestAndroidSdk(null, AndroidFacetProjectDescriptor::class.qualifiedName, false)
   }
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
