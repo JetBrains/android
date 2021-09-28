@@ -138,7 +138,7 @@ class LintModelFactory : LintModelModuleLoader {
           folder = library.folder!!, // Needed for workaround for b/66166521
           resFolder = File(library.resFolder),
           assetsFolder = File(library.assetsFolder),
-          lintJar = File(library.lintJar!!),
+          lintJar = library.lintJar?.let(::File),
           publicResources = File(library.publicResources),
           symbolFile = File(library.symbolFile),
           externalAnnotations = File(library.externalAnnotations),
