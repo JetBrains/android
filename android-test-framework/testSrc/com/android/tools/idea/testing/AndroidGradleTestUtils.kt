@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -1551,7 +1552,7 @@ private fun createGradleProjectPathToModuleDataMap(
 ): Map<GradleProjectPath, ModuleData> {
   return moduleNodes
     .map { moduleDataNode -> moduleDataNode.data }
-    .associateBy { moduleData -> GradleProjectPath(buildId, moduleData.id) }
+    .associateBy { moduleData -> GradleProjectPath(buildId, moduleData.id, IdeModuleSourceSet.MAIN) }
 }
 
 fun injectBuildOutputDumpingBuildViewManager(

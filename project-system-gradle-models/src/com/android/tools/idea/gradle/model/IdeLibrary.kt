@@ -136,6 +136,14 @@ interface IdeJavaLibrary: IdeArtifactLibrary {
   val artifact: File
 }
 
+/**
+ * Currently we only support depending on only main or testFixtures sourceSets as it's not possible to depend on test sourceSets.
+ */
+enum class IdeModuleSourceSet(val sourceSetName: String) {
+  MAIN("main"),
+  TEST_FIXTURES("testFixtures"),
+}
+
 interface IdeModuleLibrary: IdeLibrary {
   /**
    * Returns the gradle path.
@@ -152,4 +160,9 @@ interface IdeModuleLibrary: IdeLibrary {
    * Returns the build id.
    */
   val buildId: String
+
+  /**
+   * Returns the sourceSet associated with the library.
+   */
+  val sourceSet: IdeModuleSourceSet
 }

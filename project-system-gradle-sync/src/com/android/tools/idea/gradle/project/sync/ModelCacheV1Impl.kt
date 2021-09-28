@@ -81,6 +81,7 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -316,7 +317,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
-      lintJar = copyNewProperty(library::getLintJar)?.path
+      lintJar = copyNewProperty(library::getLintJar)?.path,
+      sourceSet = IdeModuleSourceSet.MAIN
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -326,7 +328,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
       projectPath = projectPath,
       variant = null,
-      lintJar = null
+      lintJar = null,
+      sourceSet = IdeModuleSourceSet.MAIN
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
@@ -498,7 +501,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildId = buildId,
       projectPath = projectPath,
       variant = variantName,
-      lintJar = null
+      lintJar = null,
+      sourceSet = IdeModuleSourceSet.MAIN
     )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }

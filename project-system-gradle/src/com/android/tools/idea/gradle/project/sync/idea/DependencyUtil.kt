@@ -200,7 +200,7 @@ fun computeModuleIdForLibraryTarget(
   library: IdeModuleLibrary
 ): GradleProjectPath {
   val libraryBuildId = toSystemIndependentName(library.buildId)
-  return GradleProjectPath(libraryBuildId, library.projectPath)
+  return GradleProjectPath(libraryBuildId, library.projectPath, library.sourceSet)
 }
 
 private class AndroidDependenciesSetupContext(

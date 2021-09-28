@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.utils.FileUtils
 import com.intellij.openapi.module.Module
 import org.jetbrains.annotations.SystemIndependent
@@ -25,11 +26,21 @@ import com.android.tools.idea.gradle.util.getGradleProjectPath as getGradleProje
 
 data class GradleProjectPath(
   val buildRoot: @SystemIndependent String,
-  val path: String
+  val path: String,
+  val sourceSet: IdeModuleSourceSet
 ) {
-  constructor (buildRoot: File, path: String) : this(FileUtils.toSystemIndependentPath(buildRoot.path), path)
+  constructor (buildRoot: File, path: String, sourceSet: IdeModuleSourceSet): this(
+    FileUtils.toSystemIndependentPath(buildRoot.path),
+    path,
+    sourceSet
+  )
 }
 
-fun GradleProjectPathFromCore.toGradleProjectPath(): GradleProjectPath = GradleProjectPath(projectRoot, gradleProjectPath)
+fun GradleProjectPathFromCore.toGradleProjectPath(): GradleProjectPath =
+  GradleProjectPath(
+    projectRoot,
+    gradleProjectPath,
+    IdeModuleSourceSet.MAIN
+  )
 fun Module.getGradleProjectPath(): GradleProjectPath? = getGradleProjectPathFromCore()?.toGradleProjectPath()
-fun IdeModuleLibrary.getGradleProjectPath(): GradleProjectPath = GradleProjectPath(buildId, projectPath)
+fun IdeModuleLibrary.getGradleProjectPath(): GradleProjectPath = GradleProjectPath(buildId, projectPath, sourceSet)

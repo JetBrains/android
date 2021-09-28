@@ -64,6 +64,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
@@ -266,7 +267,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     ProjectIdentifier projectIdentifier = gradleModule.getGradleProject().getProjectIdentifier();
     GradleProjectPath gradleProjectPath = new GradleProjectPath(
       projectIdentifier.getBuildIdentifier().getRootDir(),
-      projectIdentifier.getProjectPath()
+      projectIdentifier.getProjectPath(),
+      IdeModuleSourceSet.MAIN
     );
 
     DataNode<? extends ModuleData> targetData = null;

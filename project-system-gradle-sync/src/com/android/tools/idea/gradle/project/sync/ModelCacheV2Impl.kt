@@ -79,6 +79,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
@@ -480,7 +481,13 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   }
 
   fun libraryFrom(projectPath: String, buildId: String, variant: String?, lintJar: File?): IdeLibrary {
-    val core = IdeModuleLibraryCore(buildId, projectPath, variant, lintJar?.path)
+    val core = IdeModuleLibraryCore(
+      buildId = buildId,
+      projectPath = projectPath,
+      variant = variant,
+      lintJar = lintJar?.path,
+      sourceSet = IdeModuleSourceSet.MAIN
+    )
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
