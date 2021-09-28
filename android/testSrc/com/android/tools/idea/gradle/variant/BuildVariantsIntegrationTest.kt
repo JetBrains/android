@@ -514,6 +514,45 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     }
   }
 
+  @Test
+  fun `switch variants in app with a test dependency on an android library`() {
+    prepareGradleProject(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY, "project")
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+      val allDebugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "release")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      // TODO(b/201199496): Expected to be "release".
+      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+
+      switchVariant(project, ":app", "debug")
+      // TODO(b/201199496): Uncomment when fixed.
+      /*
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+      expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
+       */
+
+      switchVariant(project, ":app", "release")
+      // TODO(b/201199496): Uncomment when fixed.
+      /*
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":testDependency", "release")
+      expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
+       */
+    }
+  }
+
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
