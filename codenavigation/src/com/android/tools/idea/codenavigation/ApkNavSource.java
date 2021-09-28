@@ -32,15 +32,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A {@link NavSource} that searches for a navigatble within an IntelliJ project.
+ * A {@link NavSource} that searches an APK to convert a {@link CodeLocation} to a
+ * {@link Navigatable}.
  */
-public class IntellijNavSource implements NavSource {
+public class ApkNavSource implements NavSource {
   @NotNull
   private final Project myProject;
   @NotNull
   private final List<LibraryMapping> myLibraryMappings;
 
-  public IntellijNavSource(@NotNull Project project) {
+  public ApkNavSource(@NotNull Project project) {
     myProject = project;
     myLibraryMappings = getLibraryMappings(project);
   }
@@ -48,11 +49,6 @@ public class IntellijNavSource implements NavSource {
   @Nullable
   @Override
   public Navigatable lookUp(@NotNull CodeLocation location, @Nullable String arch) {
-    return getNavigatable(location);
-  }
-
-  @Nullable
-  private Navigatable getNavigatable(@NotNull CodeLocation location) {
     if (!Strings.isNullOrEmpty(location.getFileName()) &&
         location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
       Navigatable navigatable = getExplicitLocationNavigable(location);

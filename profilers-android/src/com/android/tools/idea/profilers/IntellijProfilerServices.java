@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.codenavigation.CodeNavigator;
-import com.android.tools.idea.codenavigation.PsiNavSource;
 import com.android.tools.idea.codenavigation.IntellijNavSourceProxy;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
@@ -30,7 +29,6 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.codenavigation.IntellijNavSource;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
