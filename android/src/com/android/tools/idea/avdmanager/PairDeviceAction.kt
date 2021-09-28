@@ -19,7 +19,6 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
-import com.android.tools.idea.wearpairing.toPairingDevice
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import icons.StudioIcons
@@ -49,7 +48,7 @@ internal class PairDeviceAction(
     }
 
     val avdInfo = avdInfo ?: return
-    WearDevicePairingWizard().show(project, avdInfo.toPairingDevice(avdInfo.name, false))
+    WearDevicePairingWizard().show(project, avdInfo.name)
   }
 
   override fun isEnabled() = Actions.isPairingActionEnabled(avdInfo)
