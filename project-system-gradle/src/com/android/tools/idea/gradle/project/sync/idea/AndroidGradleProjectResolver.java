@@ -138,6 +138,7 @@ import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -265,32 +266,37 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private void registerModuleData(@NotNull IdeaModule gradleModule,
                                   DataNode<ModuleData> moduleDataNode) {
     ProjectIdentifier projectIdentifier = gradleModule.getGradleProject().getProjectIdentifier();
-    GradleProjectPath gradleProjectPath = new GradleProjectPath(
-      projectIdentifier.getBuildIdentifier().getRootDir(),
-      projectIdentifier.getProjectPath(),
-      IdeModuleSourceSet.MAIN
-    );
 
-    DataNode<? extends ModuleData> targetData = null;
     if (isModulePerSourceSetEnabled()) {
       Collection<DataNode<GradleSourceSetData>> sourceSetNodes = findAll(moduleDataNode, GradleSourceSetData.KEY);
 
-      // TODO: Generate entries for each source set/capability when the notion is added to GradleProjectPath.
-      //       This should result in correct dependency resolution in `DependencyUtil.kt`
       if (!sourceSetNodes.isEmpty()) {
         // ":" and similar holder projects do not have any source sets and should not be a target of module dependencies.
-        targetData = sourceSetNodes.stream()
-          .filter(it -> it.getData().getModuleName().equals("main"))
-          .findFirst()
-          .orElseThrow(
-            () -> new IllegalStateException(
-              String.format("Source set 'main' not found in '%s'", gradleModule.getGradleProject().getPath())));
+        sourceSetNodes.forEach(node -> {
+          IdeModuleSourceSet sourceSet = Arrays.stream(IdeModuleSourceSet.values())
+            .filter(sourceSetEnum -> sourceSetEnum.getSourceSetName().equals(node.getData().getModuleName()))
+            .findFirst()
+            .orElse(null);
+
+          if (sourceSet != null) {
+            GradleProjectPath gradleProjectPath = new GradleProjectPath(
+              projectIdentifier.getBuildIdentifier().getRootDir(),
+              projectIdentifier.getProjectPath(),
+              sourceSet
+            );
+            myModuleDataByGradlePath.put(gradleProjectPath, node.getData());
+          }
+        });
       }
     } else {
-      targetData = moduleDataNode;
-    }
-    if (targetData != null) {
-      myModuleDataByGradlePath.put(gradleProjectPath, targetData.getData());
+      if (moduleDataNode != null) {
+        GradleProjectPath gradleProjectPath = new GradleProjectPath(
+          projectIdentifier.getBuildIdentifier().getRootDir(),
+          projectIdentifier.getProjectPath(),
+          IdeModuleSourceSet.MAIN
+        );
+        myModuleDataByGradlePath.put(gradleProjectPath, moduleDataNode.getData());
+      }
     }
   }
 
