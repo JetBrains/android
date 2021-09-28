@@ -120,7 +120,7 @@ fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
       gradleProjectPath to
           VariantAndAbi(
             androidFacet.properties.SELECTED_BUILD_VARIANT,
-            // NOTE: Do not use `ndkFacet?.selectedVariantAbi` whis is too smart and assumes NdkModuleModel is already attached.
+            // NOTE: Do not use `ndkFacet?.selectedVariantAbi` which assumes NdkModuleModel is already attached.
             ndkFacet?.configuration?.selectedVariantAbi?.abi
           )
     }.toMap()
@@ -254,17 +254,6 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
   )
 }
 
-private fun VariantProjectDataNodes.findCachedVariantData(moduleVariants: Map<String, VariantAndAbi>): DataNode<ProjectData>? {
-  for (projectDataNode in data) {
-    val targetVariants = projectDataNode.getSelectedVariants()
-
-    if (moduleVariants == targetVariants) {
-      return projectDataNode
-    }
-  }
-  return null
-}
-
 @VisibleForTesting
 fun DataNode<ProjectData>.getSelectedVariants(): Map<GradleProjectPath, VariantAndAbi> {
   return getAndroidModules()
@@ -283,8 +272,7 @@ private fun createVariantSelectionChange(
   // Find any cached variant with the [updatedModule] configured for [targetVariantName] and build the diff if found. We only need it to
   // deconstruct the target variant name without guessing.
   for (projectDataNode in cachedVariants.data) {
-    val moduleDataDataNode = findAll(projectDataNode, ProjectKeys.MODULE)
-                               .firstOrNull { it: DataNode<ModuleData> -> it.data.internalName == updatedModule.name }
+    val moduleDataDataNode = findAll(projectDataNode, ProjectKeys.MODULE).firstOrNull { it.data.internalName == updatedModule.name }
                              ?: continue
     val androidModelDataNode = ExternalSystemApiUtil.find(moduleDataDataNode, AndroidProjectKeys.ANDROID_MODEL)
                                ?: continue
