@@ -151,6 +151,7 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
       else {
         val node = treeModel.getTreeNode(entry.id) ?: return@registerEntrySelectionListener
         tree.selectionModel.selectionPath = TreePath(node.path)
+        tree.scrollPathToVisible(tree.selectionModel.selectionPath)
       }
     }
 
