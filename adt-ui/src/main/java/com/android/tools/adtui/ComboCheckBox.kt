@@ -33,22 +33,32 @@ object ComboCheckBox {
   /**
    * Creates a panel for selecting multiple items
    * @param options The pool of items
-   * @param selected The initially selected items
+   * @param initialSelection The initially selected items
    * @param onOk Action to run with selected items when confirmed
    * @param abbreviate Compact text for item to display within the list
    * @param elaborate Full text for item to display as tooltip
    */
   @JvmStatic @JvmOverloads
-  fun <T> of(options: List<T>, selected: Set<T>, onOk: (List<T>) -> Unit,
+  fun <T> of(options: List<T>, initialSelection: Set<T>, onOk: (List<T>) -> Unit,
              okButtonText: String = "Apply",
              abbreviate: (T) -> String = { it.toString() }, elaborate: (T) -> String = { it.toString() }): JPanel {
-    val selectionState = selected.toMutableSet()
+    val selectionState = initialSelection.toMutableSet()
+    val okButton = JButton(okButtonText).apply {
+      isEnabled = false
+      addActionListener {
+        isEnabled = false
+        onOk(selectionState.toList())
+      }
+    }
     val checkBoxes = options.map {
       val title = abbreviate(it)
       JBCheckBox(title).apply {
-        isSelected = it in selected
+        isSelected = it in initialSelection
         toolTipText = elaborate(it)
-        addItemListener { _ -> if (isSelected) selectionState.add(it) else selectionState.remove(it) }
+        addItemListener { _ ->
+          if (isSelected) selectionState.add(it) else selectionState.remove(it)
+          okButton.isEnabled = selectionState != initialSelection
+        }
       }
     }
     val checkBoxList = JPanel().apply {
@@ -68,7 +78,7 @@ object ComboCheckBox {
     return JBPanel<Nothing>(BorderLayout()).apply {
       add(header, BorderLayout.NORTH)
       add(scrollPane, BorderLayout.CENTER)
-      add(JButton(okButtonText).apply { addActionListener { onOk(selectionState.toList()) } }, BorderLayout.SOUTH)
+      add(okButton, BorderLayout.SOUTH)
     }
   }
 }
