@@ -19,8 +19,11 @@ import com.android.tools.nativeSymbolizer.NativeSymbolizer
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
-// TODO(vaage): Rename this [NavSource] to [IntellijNavSource].
-class IntellijNavSourceProxy(project:Project, symbolizer: NativeSymbolizer): NavSource {
+/**
+ * Combines all the individual [NavSource]s needed navigate to [CodeLocation]s in an IntelliJ
+ * project.
+ */
+class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSource {
   private val sources = listOf(ApkNavSource(project),
                                NativeNavSource(project, symbolizer),
                                PsiNavSource(project))

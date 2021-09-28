@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.codenavigation.CodeNavigator;
-import com.android.tools.idea.codenavigation.IntellijNavSourceProxy;
+import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
@@ -112,7 +112,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myTemporaryPreferences = new TemporaryProfilerPreferences();
     myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
 
-    myCodeNavigator = new CodeNavigator(new IntellijNavSourceProxy(project, nativeSymbolizer),
+    myCodeNavigator = new CodeNavigator(new IntelliJNavSource(project, nativeSymbolizer),
                                         CodeNavigator.Companion.getApplicationExecutor());
     myCodeNavigator.addListener(location -> myFeatureTracker.trackNavigateToCode());
   }
