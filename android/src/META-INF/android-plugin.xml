@@ -996,10 +996,6 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
-    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
-              topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
-    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener"
-              topic="com.intellij.execution.ExecutionListener"/>
     <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"

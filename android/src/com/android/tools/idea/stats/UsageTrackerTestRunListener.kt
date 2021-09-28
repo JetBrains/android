@@ -32,8 +32,6 @@ fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
 
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
- *
- * @see AnalyticsTestRunnerEventsListener for how we track unit test runs.
  */
 class UsageTrackerTestRunListener constructor(
     private val artifact: IdeAndroidArtifact?,
