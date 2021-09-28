@@ -74,15 +74,19 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final Set<String> myVisibleLicenses = Sets.newHashSet();
   private String myCurrentLicense;
   private final Set<License> myLicenses = Sets.newHashSet();
-  private final Supplier<List<String>> myInstallRequests;
+  private final Supplier<List<String>> myInstallRequestsProvider;
   private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
 
-  public LicenseAgreementStep(@NotNull Disposable disposable,
-                              @NotNull Supplier<List<String>> installRequests,
+  /**
+   * @param installRequestsProvider Provides a list of {@link RepoPackage#getPath() remote package} paths. See
+   *                                also {@link DetailsTypes.MavenType#getRepositoryPath(String, String, String)}
+   */
+  public LicenseAgreementStep(@NotNull Disposable parentDisposable,
+                              @NotNull Supplier<List<String>> installRequestsProvider,
                               @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier) {
-    super(disposable);
+    super(parentDisposable);
 
-    myInstallRequests = installRequests;
+    myInstallRequestsProvider = installRequestsProvider;
     mySdkHandlerSupplier = sdkHandlerSupplier;
     Splitter splitter = new Splitter(false, .30f);
     splitter.setHonorComponentsMinimumSize(true);
@@ -249,7 +253,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
                                                          StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     List<Change> toReturn = Lists.newArrayList();
-    List<String> requestedPackages = myInstallRequests.get();
+    List<String> requestedPackages = myInstallRequestsProvider.get();
 
     if (requestedPackages != null) {
       Path sdkRoot = mySdkHandlerSupplier.get().getLocation();
