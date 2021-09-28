@@ -59,6 +59,7 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 
+private const val MINIMUM_DETAILS_VIEW_WIDTH = 400
 private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
 
@@ -87,6 +88,7 @@ class EntryDetailsView(
   init {
     layout = TabularLayout("*", "28px,*")
     border = BorderFactory.createEmptyBorder()
+    minimumSize = Dimension(MINIMUM_DETAILS_VIEW_WIDTH, minimumSize.height)
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Task Details")
     instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
