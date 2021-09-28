@@ -85,7 +85,12 @@ public final class TimelineTable {
       public void hierarchyChanged(HierarchyEvent e) {
         if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
           if (table.isShowing()) {
-            timeline.getSelectionRange().addDependency(timelineObserver).onChange(Range.Aspect.RANGE, () -> table.repaint());
+            timeline.getSelectionRange().addDependency(timelineObserver).onChange(
+              Range.Aspect.RANGE, () -> {
+                table.repaint();
+                table.getTableHeader().revalidate();
+              }
+            );
           }
           else {
             timeline.getSelectionRange().removeDependencies(timelineObserver);
