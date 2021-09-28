@@ -16,17 +16,33 @@
 package com.android.tools.idea.codenavigation
 
 import com.android.tools.nativeSymbolizer.NativeSymbolizer
+import com.intellij.build.FileNavigatable
+import com.intellij.build.FilePosition
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import java.io.File
+import java.io.IOException
 
-// TODO(vaage): Once [IntellijNavSource] has been fully broken-up, rename this [NavSource] to be
-//  [IntellijNavSource].
-class IntellijNavSourceProxy(project:Project, symbolizer: NativeSymbolizer): NavSource {
-  private val sources = listOf(IntellijNavSource(project),
-                               NativeNavSource(project, symbolizer),
-                               PsiNavSource(project))
-
+class NativeNavSource(private val project: Project,
+                      private val symbolizer: NativeSymbolizer): NavSource {
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
-    return sources.asSequence().map { it.lookUp(location, arch) }.filterNotNull().firstOrNull()
+    if (!location.isNativeCode || location.fileName == null || arch == null) {
+      return null
+    }
+
+    return try {
+      val symbol = symbolizer.symbolize(arch,
+                                        File(location.fileName),
+                                        location.nativeVAddress)
+
+      if (symbol == null) {
+        null
+      } else {
+        FileNavigatable(project, FilePosition(File(symbol.sourceFile), symbol.lineNumber - 1, 0))
+      }
+    }
+    catch (e: IOException) {
+      null
+    }
   }
 }

@@ -16,11 +16,7 @@
 package com.android.tools.idea.codenavigation;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.nativeSymbolizer.NativeSymbolizer;
-import com.android.tools.nativeSymbolizer.Symbol;
 import com.google.common.base.Strings;
-import com.intellij.build.FileNavigatable;
-import com.intellij.build.FilePosition;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -28,8 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,25 +38,21 @@ public class IntellijNavSource implements NavSource {
   @NotNull
   private final Project myProject;
   @NotNull
-  private final NativeSymbolizer myNativeSymbolizer;
-  @NotNull
   private final List<LibraryMapping> myLibraryMappings;
 
-  public IntellijNavSource(@NotNull Project project,
-                           @NotNull NativeSymbolizer nativeSymbolizer) {
+  public IntellijNavSource(@NotNull Project project) {
     myProject = project;
-    myNativeSymbolizer = nativeSymbolizer;
     myLibraryMappings = getLibraryMappings(project);
   }
 
   @Nullable
   @Override
   public Navigatable lookUp(@NotNull CodeLocation location, @Nullable String arch) {
-    return getNavigatable(location, arch);
+    return getNavigatable(location);
   }
 
   @Nullable
-  private Navigatable getNavigatable(@NotNull CodeLocation location, @Nullable String arch) {
+  private Navigatable getNavigatable(@NotNull CodeLocation location) {
     if (!Strings.isNullOrEmpty(location.getFileName()) &&
         location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
       Navigatable navigatable = getExplicitLocationNavigable(location);
@@ -74,10 +64,6 @@ public class IntellijNavSource implements NavSource {
       if (navigatable != null) {
         return navigatable;
       }
-    }
-
-    if (location.isNativeCode()) {
-      return getNativeNavigatable(location, arch);
     }
 
     return null;
@@ -116,30 +102,6 @@ public class IntellijNavSource implements NavSource {
     }
 
     return null;
-  }
-
-  /**
-   * Attempts to symbolize the code location to find and return the functions's corresponding {@link Navigatable} within the project.
-   */
-  @Nullable
-  private Navigatable getNativeNavigatable(@NotNull CodeLocation location, @Nullable String arch) {
-    if (location.getFileName() == null || arch == null) {
-      return null;
-    }
-    Symbol symbol;
-    try {
-      symbol = myNativeSymbolizer.symbolize(arch,
-                                            new File(location.getFileName()),
-                                            location.getNativeVAddress());
-    }
-    catch (IOException e) {
-      return null;
-    }
-
-    if (symbol == null) {
-      return null;
-    }
-    return new FileNavigatable(myProject, new FilePosition(new File(symbol.getSourceFile()), symbol.getLineNumber() - 1, 0));
   }
 
   /** Get all the file mappings that connect the library in the APK with a build machine. */
