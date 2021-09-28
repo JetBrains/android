@@ -44,12 +44,14 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Dimension
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
+private const val MINIMUM_ENTRIES_VIEW_WIDTH = 400
 
 /**
  * View containing a table view and graph view, and offers toggle control between the two.
@@ -190,6 +192,7 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
     graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
 
     layout = TabularLayout("*", "Fit,*")
+    minimumSize = Dimension(MINIMUM_ENTRIES_VIEW_WIDTH, minimumSize.height)
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
 
     cardLayout = CardLayout()
