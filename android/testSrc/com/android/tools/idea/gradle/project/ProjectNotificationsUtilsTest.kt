@@ -18,9 +18,24 @@ package com.android.tools.idea.gradle.project
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.ProjectRule
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 
-class ProjectNotificationsUtilsTest: HeavyPlatformTestCase() {
+class ProjectNotificationsUtilsTest {
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
+
+  @JvmField
+  @Rule
+  val projectRule = ProjectRule()
+
+  @Test
   fun testInvalidJdkErrorMessageNullPath() {
     val expectedMessage = "Could not determine Gradle JDK\n" +
                           "Having an incorrect Gradle JDK may result in unresolved symbols and problems when running Gradle tasks."
@@ -28,6 +43,7 @@ class ProjectNotificationsUtilsTest: HeavyPlatformTestCase() {
     assertThat(actualMessage).isEqualTo(expectedMessage)
   }
 
+  @Test
   fun testInvalidJdkErrorMessageInvalidPath() {
     val expectedMessage = "Could not find a valid JDK at /path/to/invalid/jdk/\n" +
                           "Having an incorrect Gradle JDK may result in unresolved symbols and problems when running Gradle tasks."
@@ -35,6 +51,7 @@ class ProjectNotificationsUtilsTest: HeavyPlatformTestCase() {
     assertThat(actualMessage).isEqualTo(expectedMessage)
   }
 
+  @Test
   fun testInvalidJdkErrorMessageValidPath() {
     val jdk = IdeSdks.getInstance().jdk
     assertThat(jdk).isNotNull()
@@ -44,8 +61,9 @@ class ProjectNotificationsUtilsTest: HeavyPlatformTestCase() {
     assertThat(actualMessage).isNull()
   }
 
+  @Test
   fun testInvalidGradleJdkLinks() {
-    val links = generateInvalidGradleJdkLinks(project)
+    val links = generateInvalidGradleJdkLinks(projectRule.project)
     assertThat(links).hasSize(1)
     assertThat(links[0]).isInstanceOf(UseEmbeddedJdkHyperlink::class.java)
   }
