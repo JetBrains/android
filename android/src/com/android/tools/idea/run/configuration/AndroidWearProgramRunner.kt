@@ -15,30 +15,50 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.run.configuration.execution.AndroidWearConfigurationExecutorBase
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.runners.AsyncProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.GenericProgramRunner
-import com.intellij.execution.runners.executeState
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import org.jetbrains.concurrency.AsyncPromise
+import org.jetbrains.concurrency.Promise
 
 /**
  * Class required by platform to determine which execution buttons are available for given configuration. See [canRun] method.
  *
- * Actual execution for configuration, after build, happens in [AndroidWatchFaceConfigurationExecutor]
+ * Actual execution for configuration, after build, happens in [AndroidWearConfigurationExecutorBase]
  */
-class AndroidWearProgramRunner : GenericProgramRunner<RunnerSettings>() {
-
+class AndroidWearProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   override fun getRunnerId(): String = "AndroidWearProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     return (DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId) && profile is AndroidWearConfiguration
   }
 
-  override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-    return executeState(state, environment, this)
+  override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
+    val promise = AsyncPromise<RunContentDescriptor?>()
+    assert(state is AndroidWearConfigurationExecutorBase)
+
+    FileDocumentManager.getInstance().saveAllDocuments()
+
+    ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${environment.runProfile.name}") {
+      override fun run(indicator: ProgressIndicator) {
+        promise.setResult((state as AndroidWearConfigurationExecutorBase).execute())
+      }
+
+      override fun onThrowable(error: Throwable) {
+        promise.setError(error)
+      }
+    })
+
+    return promise
   }
 }
