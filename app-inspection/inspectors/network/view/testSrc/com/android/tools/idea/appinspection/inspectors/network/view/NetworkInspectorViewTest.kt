@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view
 
+import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
@@ -118,13 +120,27 @@ class NetworkInspectorViewTest {
   }
 
   @Test
-  fun connectionsViewIsVisibleAtStart() {
+  fun draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() {
     if (SystemInfoRt.isWindows) {
       return  // b/163140665
     }
+    val stageWalker = TreeWalker(inspectorView.component)
+    val lineChart = stageWalker.descendants().first { it is LineChart }
+    val rangeSelectionComponent = stageWalker.descendants().first { it is RangeSelectionComponent }
     val connectionsView = inspectorView.connectionsView
     val connectionsViewWalker = TreeWalker(connectionsView.component)
+    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
+    val start = fakeUi.getPosition(lineChart)
+    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
+    fakeUi.mouse.press(start.x, start.y)
+    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
+    fakeUi.mouse.dragDelta(10, 0)
+    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
+    fakeUi.mouse.release()
     assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isTrue()
+    fakeUi.keyboard.setFocus(rangeSelectionComponent)
+    fakeUi.keyboard.press(FakeKeyboard.Key.ESC)
+    assertThat(connectionsViewWalker.ancestors().all { it.isVisible }).isFalse()
   }
 
   @Test

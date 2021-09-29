@@ -34,7 +34,7 @@ class HttpDataFetcherTest {
     // and again when the range is modified.
     val listenerFiredLatch = CountDownLatch(2)
     val selectionRange = Range(0.0, 0.0)
-    val fetcher = HttpDataFetcher(dataModel, selectionRange, Range(0.0, 0.0))
+    val fetcher = HttpDataFetcher(dataModel, selectionRange)
 
     fetcher.addListener {
       listenerFiredLatch.countDown()
