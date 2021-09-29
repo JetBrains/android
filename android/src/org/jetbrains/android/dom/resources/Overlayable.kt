@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom.resources
 
+import com.intellij.util.xml.GenericAttributeValue
 import com.intellij.util.xml.Required
-import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
 
 interface Overlayable : ResourceElement {
@@ -24,7 +24,7 @@ interface Overlayable : ResourceElement {
 
   interface Policy: AndroidDomElement {
     @Required
-    fun getType(): AndroidAttributeValue<String>
+    fun getType(): GenericAttributeValue<String>
 
     fun getItems(): List<Item>
   }

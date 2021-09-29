@@ -59,10 +59,10 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
     ResourceType type = null;
     XmlTag tag = context.getTag();
-    if (tag != null && SdkConstants.TAG_ATTR.equals(tag.getName())) {
+    if (tag != null) {
       // The resource name validator needs to know if we're dealing with
-      // an <attr>
-      type = ResourceType.ATTR;
+      // an attr or an overlayable
+      type = ResourceType.fromXmlTagName(tag.getName());
     }
     return s == null ? null : ValueResourceNameValidator.getErrorText(s, type);
   }
