@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.TextRange
+import java.util.Objects
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 
@@ -85,15 +86,11 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   }
 
   /** Hash code that depends on xml range rather than component. */
-  fun rangeBasedHashCode(): Int {
-    var result = 13
-    result += 17 * severity.hashCode()
-    result += 19 * summary.hashCode()
-    result += 23 * description.hashCode()
-    result += 29 * category.hashCode()
-    result += 31 * range.hashCode()
-    return result
-  }
+  fun rangeBasedHashCode() = Objects.hash(severity, summary, category, range)
+
+  override fun equals(other: Any?) = other === this
+
+  override fun hashCode() = Objects.hash(severity, summary, category)
 
   /** Builder for [VisualLintRenderIssue] */
   data class Builder(
