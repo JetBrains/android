@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
+typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
+
 class BackgroundTaskTreeModel(
   private val client: BackgroundTaskInspectorClient,
   scope: CoroutineScope,
@@ -33,6 +35,7 @@ class BackgroundTaskTreeModel(
 ) : DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
+  private val filterListeners = mutableListOf<BackgroundTaskOnFilteredListener>()
 
   /**
    * A Mapping from work id to its related [JobEntry].
@@ -51,6 +54,7 @@ class BackgroundTaskTreeModel(
       if (field != value) {
         field = value
         refreshTree()
+        filterListeners.forEach { listener -> listener(value) }
       }
     }
 
@@ -125,6 +129,10 @@ class BackgroundTaskTreeModel(
         }
       }
     }
+  }
+
+  fun addOnFilteredListener(listener: BackgroundTaskOnFilteredListener) {
+    filterListeners.add(listener)
   }
 
   fun getTreeNode(id: String) = nodeMap[client.getEntry(id)]
