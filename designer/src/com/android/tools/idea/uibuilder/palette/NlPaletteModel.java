@@ -18,7 +18,8 @@ package com.android.tools.idea.uibuilder.palette;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
@@ -180,9 +181,21 @@ public class NlPaletteModel implements Disposable {
   private void registerAdditionalComponents(@NotNull LayoutEditorFileType type) {
     loadAdditionalComponents(type, VIEW_CLASSES_QUERY);
 
-    // Reload the additional components after every build to find new custom components
-    AndroidProjectBuildNotifications
-      .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, VIEW_CLASSES_QUERY));
+    ProjectSystemService.getInstance(myModule.getProject()).getProjectSystem().getBuildManager().addBuildListener(
+      this, new ProjectSystemBuildManager.BuildListener() {
+        @Override
+        public void buildStarted(@NotNull ProjectSystemBuildManager.BuildMode mode) {
+        }
+
+        @Override
+        public void beforeBuildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
+        }
+
+        @Override
+        public void buildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
+          loadAdditionalComponents(type, VIEW_CLASSES_QUERY);
+        }
+      });
   }
 
   public void addUpdateListener(@Nullable UpdateListener updateListener) {
@@ -235,8 +248,7 @@ public class NlPaletteModel implements Disposable {
    * components from the project.
    */
   @VisibleForTesting
-  void loadAdditionalComponents(@NotNull LayoutEditorFileType type,
-                                              @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+  void loadAdditionalComponents(@NotNull LayoutEditorFileType type, @NotNull Function<Project, Query<PsiClass>> viewClasses) {
     Application application = ApplicationManager.getApplication();
     Project project = myModule.getProject();
     ReadAction
