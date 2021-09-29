@@ -16,18 +16,27 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
 internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, /* create= */ true)
+
+  /**
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
+   * they are valid.
+   */
+  @VisibleForTesting
+  internal val hintRanges = ArrayDeque<RangeMarker>()
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
@@ -44,8 +53,14 @@ internal class DocumentAppender(project: Project, private val document: Document
     }
     for (range in buffer.hintRanges) {
       range.applyRange(offset) { start, end, hint ->
-        document.createRangeMarker(start, end).putUserData(LOGCAT_HINT_KEY, hint)
+        hintRanges.add(document.createRangeMarker(start, end).apply {
+          putUserData(LOGCAT_HINT_KEY, hint)
+        })
       }
+    }
+
+    while (!hintRanges.isEmpty() && !hintRanges.first().isValid) {
+      hintRanges.removeFirst()
     }
   }
 }
