@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
+import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.nj2k.postProcessing.type
@@ -77,6 +78,20 @@ class AndroidLiveEditCodeGenerator {
           resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
         }
 
+        if (analysisResult.isError()) {
+          println("Live Edit: resolution analysis error\n ${analysisResult.error.message}")
+          return@runReadAction
+        }
+
+        var bindingContext = analysisResult.bindingContext
+
+        for (diagnostic in bindingContext.diagnostics) {
+          if (diagnostic.severity == Severity.ERROR) {
+            println("Live Edit: resolution analysis error\n $diagnostic")
+            return@runReadAction
+          }
+        }
+
         val compilerConfiguration = CompilerConfiguration()
 
         compilerConfiguration.languageVersionSettings = root.languageVersionSettings
@@ -90,7 +105,7 @@ class AndroidLiveEditCodeGenerator {
         val generationStateBuilder = GenerationState.Builder(project,
                                                       ClassBuilderFactories.BINARIES,
                                                       resolution.moduleDescriptor,
-                                                      analysisResult.bindingContext,
+                                                      bindingContext,
                                                       filesToAnalyze,
                                                       compilerConfiguration);
 
