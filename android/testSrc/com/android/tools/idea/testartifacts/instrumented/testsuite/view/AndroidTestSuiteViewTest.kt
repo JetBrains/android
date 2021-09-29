@@ -684,7 +684,7 @@ class AndroidTestSuiteViewTest {
       "Next Occurrence",
       "Test History",
       "Import Tests from File...",
-      "Export Test Results..."
+      "Export Test Results\u2026"
     ).inOrder()
   }
 
