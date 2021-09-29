@@ -451,6 +451,7 @@ public class AvdManagerConnection {
     });
   }
 
+  @Slow
   public void stopAvd(@NotNull AvdInfo info) {
     assert myAvdManager != null;
     myAvdManager.stopAvd(info);
