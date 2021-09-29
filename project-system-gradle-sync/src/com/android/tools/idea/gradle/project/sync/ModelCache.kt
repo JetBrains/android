@@ -24,6 +24,7 @@ import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
+import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
@@ -54,6 +55,7 @@ interface ModelCache {
   ): IdeVariantImpl
   fun variantFrom(
     androidProject: IdeAndroidProject,
+    basicVariant: BasicVariant,
     variant: com.android.builder.model.v2.ide.Variant,
     modelVersion: GradleVersion?,
     variantDependencies: VariantDependencies,
@@ -61,6 +63,7 @@ interface ModelCache {
   ): IdeVariantImpl
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
   fun androidProjectFrom(
+    basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
     project: com.android.builder.model.v2.models.AndroidProject,
     androidVersion: Versions,
     androidDsl: AndroidDsl
@@ -115,6 +118,12 @@ internal inline fun <K : Any, R: Any, V> copyModel(key: K, key2: R, mappingFunct
 
 @JvmName("copyModelNullable")
 internal inline fun <K : Any, V> copyModel(key: K?, mappingFunction: (K) -> V): V? = key?.let(mappingFunction)
+
+@JvmName("copyModelNullable")
+internal inline fun <K : Any, R : Any, V> copyModel(key: K?,
+                                                    key2: R?,
+                                                    mappingFunction: (K, R) -> V): V? =
+  if (key != null && key2 != null) mappingFunction(key, key2) else null
 
 internal inline fun <K, V : Any> copyNewModel(
   getter: () -> K?,

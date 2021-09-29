@@ -56,6 +56,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
+import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
@@ -1165,6 +1166,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,
+      basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
       modelVersion: GradleVersion?,
       variantDependencies: VariantDependencies,
@@ -1173,6 +1175,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = androidProjectFrom(project)
     override fun androidProjectFrom(
+      basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl
