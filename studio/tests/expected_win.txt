@@ -5,7 +5,6 @@ android-studio/bin/IdeaWin32.dll
 android-studio/bin/IdeaWin64.dll
 android-studio/bin/WinProcessListHelper.exe
 android-studio/bin/WinShellIntegrationBridge.dll
-android-studio/bin/WinShellIntegrationBridge64.dll
 android-studio/bin/appInfo.xml
 android-studio/bin/append.bat
 android-studio/bin/appletviewer.policy
@@ -16,7 +15,6 @@ android-studio/bin/elevator.exe
 android-studio/bin/format.bat
 android-studio/bin/fsnotifier-wsl
 android-studio/bin/fsnotifier.exe
-android-studio/bin/fsnotifier64.exe
 android-studio/bin/game-tools.bat
 android-studio/bin/helpers/jb_declarative_formatters/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/__init__.py
@@ -53,8 +51,6 @@ android-studio/bin/profiler.exe
 android-studio/bin/restarter.exe
 android-studio/bin/runnerw.exe
 android-studio/bin/studio.bat
-android-studio/bin/studio.exe
-android-studio/bin/studio.exe.vmoptions
 android-studio/bin/studio.ico
 android-studio/bin/studio.svg
 android-studio/bin/studio64.exe
@@ -522,7 +518,7 @@ android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-3.0.2.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/cglib-nodep-3.2.4.jar
-android-studio/lib/classgraph-4.8.102.jar
+android-studio/lib/classgraph-4.8.105.jar
 android-studio/lib/classpath.txt
 android-studio/lib/cli-parser-1.1.5.jar
 android-studio/lib/common-image-3.6.1.jar
@@ -534,7 +530,7 @@ android-studio/lib/commons-collections-3.2.2.jar
 android-studio/lib/commons-compress-1.20.jar
 android-studio/lib/commons-httpclient-3.1-patched.jar
 android-studio/lib/commons-imaging-1.0-RC-1.jar
-android-studio/lib/commons-io-2.8.0.jar
+android-studio/lib/commons-io-2.9.0.jar
 android-studio/lib/commons-lang-2.4.jar
 android-studio/lib/commons-lang3-3.10.jar
 android-studio/lib/commons-logging-1.2.jar
@@ -579,8 +575,8 @@ android-studio/lib/imageio-metadata-3.6.1.jar
 android-studio/lib/imageio-tiff-3.6.1.jar
 android-studio/lib/imgscalr-lib-4.2.jar
 android-studio/lib/ini4j-0.5.5-2.jar
-android-studio/lib/intellij-coverage-agent-1.0.587.jar
-android-studio/lib/intellij-test-discovery-agent-1.0.587.jar
+android-studio/lib/intellij-coverage-agent-1.0.588.jar
+android-studio/lib/intellij-test-discovery-agent-1.0.588.jar
 android-studio/lib/ion-java-1.8.2-4.jar
 android-studio/lib/isorelax-20030108.jar
 android-studio/lib/istack-commons-runtime-3.0.7.jar
@@ -597,8 +593,8 @@ android-studio/lib/javax.annotation-api-1.3.2.jar
 android-studio/lib/jaxb-api-2.3.1.jar
 android-studio/lib/jaxb-runtime-2.3.1.jar
 android-studio/lib/jaxen-1.2.0.jar
-android-studio/lib/jb-jdi-2.8.jar
-android-studio/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.4.jar
+android-studio/lib/jb-jdi-2.9.jar
+android-studio/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.5.jar
 android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
@@ -2303,6 +2299,12 @@ android-studio/plugins/java/lib/sa-jdwp-1.16.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
+android-studio/plugins/markdown/lib/google-api-client-1.25.0.jar
+android-studio/plugins/markdown/lib/google-api-services-drive-v3-rev197-1.25.0.jar
+android-studio/plugins/markdown/lib/google-http-client-1.25.0.jar
+android-studio/plugins/markdown/lib/google-http-client-jackson2-1.25.0.jar
+android-studio/plugins/markdown/lib/google-oauth-client-1.25.0.jar
+android-studio/plugins/markdown/lib/j2objc-annotations-1.1.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/ml-models-local/lib/ml-models-local.jar
