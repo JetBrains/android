@@ -69,7 +69,7 @@ public class IssueView extends JPanel {
   private boolean myInitialized;
 
   @NotNull
-  private final String myErrorDescriptionContent;
+  private String myErrorDescriptionContent;
 
   /**
    * Construct a new {@link IssueView} representing the provided {@link Issue}
@@ -147,6 +147,10 @@ public class IssueView extends JPanel {
         setFocused(true);
       }
     });
+  }
+
+  public void updateDescription(@NotNull Issue issue) {
+    myErrorDescriptionContent = new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml();
   }
 
   /**

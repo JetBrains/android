@@ -379,6 +379,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         addErrorEntry(error);
         needsRevalidate = true;
       }
+      else {
+        myDisplayedError.get(error).updateDescription(error);
+      }
     }
     return needsRevalidate;
   }
