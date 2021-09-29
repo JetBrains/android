@@ -76,7 +76,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * config as runnable. This allows Studio to disable the debug button when this type of run config
  * is selected, but the Debug action doesn't support running on multiple devices.
  */
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element>
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
   implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -96,10 +96,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
+  private final boolean myIsTestConfiguration;
 
-  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory) {
-    super(new JavaRunConfigurationModule(project, false), factory);
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean isTestConfiguration) {
+    super(new AndroidRunConfigurationModule(project, isTestConfiguration), factory);
 
+    myIsTestConfiguration = isTestConfiguration;
     myProfilerState = new ProfilerState();
     getOptions().setAllowRunningInParallel(true);
   }
@@ -407,7 +409,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
   }
 
-  public abstract boolean isTestConfiguration();
+  public boolean isTestConfiguration() {
+    return myIsTestConfiguration;
+  }
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);

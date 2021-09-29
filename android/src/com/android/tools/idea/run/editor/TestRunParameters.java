@@ -29,6 +29,7 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassBrowser;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassVisibilityChecker;
@@ -151,7 +152,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
           Messages.showErrorDialog(myContentPanel, ExecutionBundle.message("module.not.specified.error.text"));
           return null;
         }
-        final PackageChooserDialog dialog = new PackageChooserDialog(ExecutionBundle.message("choose.package.dialog.title"), module);
+        final PackageChooserDialog dialog = new PackageChooserDialog(ExecutionBundle.message("choose.package.dialog.title"),
+                                                                     ModuleSystemUtil.getAndroidTestModule(module));
         dialog.selectPackage(myTestPackageComponent.getComponent().getText());
         dialog.show();
         final PsiPackage aPackage = dialog.getSelectedPackage();

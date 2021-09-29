@@ -111,7 +111,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
-    super(project, factory);
+    super(project, factory, false);
 
     for (LaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
@@ -182,11 +182,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     // is stored on disk (run configuration parameters).
     List<String> sortedFeatures = features.stream().distinct().sorted().collect(Collectors.toList());
     DYNAMIC_FEATURES_DISABLED_LIST = StringUtil.join(sortedFeatures, FEATURE_LIST_SEPARATOR);
-  }
-
-  @Override
-  public boolean isTestConfiguration() {
-    return false;
   }
 
   @NotNull

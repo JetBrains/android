@@ -16,11 +16,13 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -48,5 +50,11 @@ public class AndroidTestClassBrowser<T extends JComponent> extends AndroidClassB
         return classFilter.isAccepted(aClass) && JUnitUtil.isTestClass(aClass);
       }
     }, initialSelection);
+  }
+
+  @Override
+  protected @Nullable Module getModuleForScope() {
+    Module module = super.getModuleForScope();
+    return module == null ? null : ModuleSystemUtil.getAndroidTestModule(module);
   }
 }

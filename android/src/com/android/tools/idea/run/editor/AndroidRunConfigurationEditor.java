@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -24,6 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Ordering;
 import com.intellij.application.options.ModulesComboBox;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -46,7 +48,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JTextPane;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,11 +100,20 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
 
-        if (!ModuleSystemUtil.isMainModule(module)) {
+        if (!ModuleSystemUtil.isHolderModule(module)) {
           return false;
         }
 
         return !facet.getConfiguration().isLibraryProject() || libraryProjectValidator.apply(facet);
+      }
+
+      @Override
+      public JavaRunConfigurationModule getConfigurationModule() {
+        // ConfigurationModuleSelector creates JavaRunConfigurationModule the same way, but we need to replace it with
+        // our enhanced version for things to work correctly.
+        AndroidRunConfigurationModule configurationModule = new AndroidRunConfigurationModule(getProject(), config.isTestConfiguration());
+        configurationModule.setModule(getModule());
+        return configurationModule;
       }
     };
     myModulesComboBox.addActionListener(this);
