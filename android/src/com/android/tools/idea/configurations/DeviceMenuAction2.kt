@@ -48,7 +48,7 @@ internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
   "_device_class_tablet" to "This reference device uses the EXPANDED width size class," +
     " which represents 97% of Android tablets in landscape orientation.",
   "_device_class_desktop" to "This reference device uses the EXPANDED width size class," +
-    " which represents 97% of Android tablets in landscape orientation."
+    " which represents 97% of Android desktops in landscape orientation."
 )
 
 /**
