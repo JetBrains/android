@@ -17,99 +17,83 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter
+import com.android.ddmlib.MultiLineReceiver
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.wearpairing.await
-import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
-import com.intellij.execution.KillableProcess
 import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 abstract class AndroidWearConfigurationExecutorBase(private val environment: ExecutionEnvironment) : RunProfileState {
 
-  val configuration = environment.runProfile as AndroidWearConfiguration
-  val project = configuration.project
-  val facet = AndroidFacet.getInstance(configuration.configurationModule.module!!)!!
+  protected val configuration = environment.runProfile as AndroidWearConfiguration
+  protected val project = configuration.project
+  protected val facet = AndroidFacet.getInstance(configuration.configurationModule.module!!)!!
+  protected val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
+                        ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
-  override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
-    val processHandler: ProcessHandler = object : ProcessHandler(), KillableProcess {
-      override fun destroyProcessImpl() = notifyProcessTerminated(0)
-      override fun detachProcessImpl() = notifyProcessDetached()
-      override fun detachIsDefault() = true
-      override fun getProcessInput() = null
-      override fun canKillProcess() = true
-      override fun killProcess() {}
-    }
-
-    val consolePrinterWithTime = ProcessHandlerConsolePrinterWithTime(processHandler)
-
-    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-    console.attachToProcess(processHandler)
-
-    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Launching ${configuration.name}") {
-      override fun run(indicator: ProgressIndicator) {
-        doExecute(indicator, consolePrinterWithTime, processHandler)
-      }
-
-      override fun onThrowable(error: Throwable) {
-        if (error is ExecutionException) {
-          error.message?.let { consolePrinterWithTime.stderr(it) }
-        }
-        processHandler.destroyProcess()
-        super.onThrowable(error)
-      }
-    })
-
-    return DefaultExecutionResult(console, processHandler)
+  override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
+    throw RuntimeException("Unexpected code path")
   }
 
   @WorkerThread
-  private fun doExecute(indicator: ProgressIndicator, consolePrinter: ProcessHandlerConsolePrinter, processHandler: ProcessHandler) {
-    consolePrinter.stdout("Launching '${configuration.name}'")
+  fun execute(): RunContentDescriptor? {
+    ProgressManager.checkCanceled()
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
     indicator.text = "Waiting for all target devices to come online"
+
+    val devices = getDevices()
+    devices.forEach { LaunchUtils.initiateDismissKeyguard(it) }
+    return doOnDevices(devices, indicator)
+  }
+
+  abstract fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor?
+
+  private fun getDevices(): List<IDevice> {
     val devices = runBlocking {
-      consolePrinter.stdout("Waiting for devices...")
-      getDevices()
+      val provider = DeviceAndSnapshotComboBoxTargetProvider()
+      val deployTarget = if (provider.requiresRuntimePrompt(project)) invokeAndWaitIfNeeded {
+        provider.showPrompt(facet)
+      }
+      else provider.getDeployTarget(project)
+      val deviceFutureList = deployTarget?.getDevices(facet)?.get() ?: return@runBlocking emptyList()
+      return@runBlocking deviceFutureList.map { it.await() }
     }
     if (devices.isEmpty()) {
       throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
     }
-    devices.forEach {
-      LaunchUtils.initiateDismissKeyguard(it)
-      doOnDevice(DeviceWearConfigurationExecutionSession(it, environment, processHandler, consolePrinter, indicator))
+    return devices
+  }
+
+  class EmptyProcessHandler : ProcessHandler() {
+    override fun destroyProcessImpl() = notifyProcessTerminated(0)
+    override fun detachProcessImpl() = notifyProcessDetached()
+    override fun detachIsDefault() = true
+    override fun getProcessInput() = null
+  }
+
+  open class AndroidLaunchReceiver(private val indicator: ProgressIndicator, private val consoleView: ConsoleView) : MultiLineReceiver() {
+    override fun isCancelled() = indicator.isCanceled
+
+    override fun processNewLines(lines: Array<String>) = lines.forEach {
+      consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
   }
-
-  abstract fun doOnDevice(deviceWearConfigurationExecutionSession: DeviceWearConfigurationExecutionSession)
-
-  private suspend fun getDevices(): List<IDevice> {
-    val provider = DeviceAndSnapshotComboBoxTargetProvider()
-    val deployTarget = if (provider.requiresRuntimePrompt(project)) provider.showPrompt(facet) else provider.getDeployTarget(project)
-    val deviceFutureList = deployTarget?.getDevices(facet)?.get() ?: return emptyList()
-    return deviceFutureList.map { it.await() }
-  }
-}
-
-private class ProcessHandlerConsolePrinterWithTime(processHandler: ProcessHandler) : ProcessHandlerConsolePrinter(processHandler) {
-  private val dateFormat = SimpleDateFormat("MM/dd HH:mm:ss: ", Locale.US)
-  private fun getTimeString() = dateFormat.format(Date())
-  override fun stdout(text: String) = super.stdout("${getTimeString()} $text")
-  override fun stderr(text: String) = super.stderr("${getTimeString()} $text")
 }

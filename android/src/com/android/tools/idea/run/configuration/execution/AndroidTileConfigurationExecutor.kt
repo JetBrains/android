@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.ddmlib.MultiLineReceiver
+import com.android.annotations.concurrency.WorkerThread
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
-import com.android.tools.deployer.model.component.AppComponent.Mode
-import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.deployer.model.component.AppComponent
+import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.showRunContent
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.progress.ProgressIndicator
 import java.util.concurrent.TimeUnit
 
 
@@ -32,35 +39,47 @@ class AndroidTileConfigurationExecutor(private val environment: ExecutionEnviron
     private val SHOW_TILE_COMMAND = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index"
   }
 
-  override fun doOnDevice(deviceWearConfigurationExecutionSession: DeviceWearConfigurationExecutionSession) {
+  @WorkerThread
+  override fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor? {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
-
-    val tileIndexReceiver = TileIndexReceiver(deviceWearConfigurationExecutionSession.processHandler,
-                                              deviceWearConfigurationExecutionSession.consolePrinter)
-    val app = deviceWearConfigurationExecutionSession.installAppOnDevice()
-    deviceWearConfigurationExecutionSession.activateComponent(app, if (isDebug) Mode.DEBUG else Mode.RUN, tileIndexReceiver)
-    if (tileIndexReceiver.tileIndex == null) {
-      throw ExecutionException("Can't find Tile index")
+    if (isDebug && devices.size > 1) {
+      throw ExecutionException("Debugging is allowed only for a single device")
     }
-    deviceWearConfigurationExecutionSession.consolePrinter.stdout("Tile index ${tileIndexReceiver.tileIndex}")
+    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
 
-    if (isDebug) {
-      deviceWearConfigurationExecutionSession.attachDebuggerToClient()
+    val applicationInstaller = ApplicationInstaller(configuration)
+    val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
+    devices.forEach {
+      indicator.checkCanceled()
+      val app = applicationInstaller.installAppOnDevice(it, indicator, console)
+      val receiver = TileIndexReceiver(indicator, console)
+      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
+      if (receiver.tileIndex == null) {
+        throw ExecutionException("Tile index is not found")
+      }
+      val command = "$SHOW_TILE_COMMAND ${receiver.tileIndex!! + 1}"
+      console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
+      it.executeShellCommand(command, NullOutputReceiver(), 5, TimeUnit.SECONDS)
+    }
+    indicator.checkCanceled()
+    val runContentDescriptor = if (isDebug) {
+      DebugSessionStarter(environment).attachDebuggerToClient(devices.single(), console, indicator)
+    }
+    else {
+      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }
     }
 
-    // Brining the tile on the screen
-    val command = "$SHOW_TILE_COMMAND ${tileIndexReceiver.tileIndex!! + 1}"
-    deviceWearConfigurationExecutionSession.consolePrinter.stdout(command)
-    deviceWearConfigurationExecutionSession.executeShellCommand(command, NullOutputReceiver(), 5, TimeUnit.SECONDS)
+    return runContentDescriptor
   }
 }
 
-private class TileIndexReceiver(private val processHandler: ProcessHandler, val consolePrinter: ConsolePrinter) : MultiLineReceiver() {
+private class TileIndexReceiver(indicator: ProgressIndicator,
+                                consoleView: ConsoleView) : AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver(indicator,
+                                                                                                                       consoleView) {
   var tileIndex: Int? = null
   val indexPattern = "Index=\\[(\\d+)]".toRegex()
-  override fun isCancelled() = processHandler.isProcessTerminated
-  override fun processNewLines(lines: Array<out String>) {
+  override fun processNewLines(lines: Array<String>) {
+    super.processNewLines(lines)
     lines.forEach { line -> indexPattern.find(line)?.groupValues?.getOrNull(1)?.let { tileIndex = it.toInt() } }
-    lines.forEach { consolePrinter.stdout(it) }
   }
 }
