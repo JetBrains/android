@@ -36,3 +36,6 @@ Package 'org.jetbrains.kotlin.fir.lightTree' is not found
 
 // Known issue, but currently unreachable at runtime.
 Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented
+
+// b/201574409
+.*unresolved field com.intellij.internal.statistic.eventLog.EventLogConfiguration.INSTANCE.*
