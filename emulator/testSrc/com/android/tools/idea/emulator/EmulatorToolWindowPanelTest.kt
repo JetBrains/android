@@ -411,7 +411,7 @@ class EmulatorToolWindowPanelTest {
     verify(event).isDropPossible = true
 
     val installPackagesCalled = CountDownLatch(1)
-    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
+    val installOptions = listOf("-t", "--user", "current", "--full")
     val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
     `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
       installPackagesCalled.countDown()

@@ -133,7 +133,7 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
 
   private fun install(files: List<File>, device: IDevice): InstallResult {
     val filePaths = files.map(File::getPath).toList()
-    return createAdbClient(device).install(filePaths, listOf("-t", "--user", "current", "--full", "--dont-kill"), true)
+    return createAdbClient(device).install(filePaths, listOf("-t", "--user", "current", "--full"), true)
   }
 
   private fun push(files: List<File>, device: IDevice) {
