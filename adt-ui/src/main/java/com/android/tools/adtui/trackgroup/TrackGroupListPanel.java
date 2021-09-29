@@ -23,20 +23,23 @@ import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,7 +115,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  public <T extends SelectableTrackModel> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
+  public <T> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
     myTrackGroups.forEach(
       trackGroup -> {
         if (trackGroup.getModel().isTrackSelectable()) {
@@ -228,49 +231,22 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  private static class TrackGroupSelectionListener<T extends SelectableTrackModel> implements ListSelectionListener {
+  private static class TrackGroupSelectionListener<T> implements ListSelectionListener {
     private final TrackGroup myTrackGroup;
     private final MultiSelectionModel<T> myMultiSelectionModel;
-    private boolean handleListSelectionEvent = true;
 
     TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
       myTrackGroup = trackGroup;
       myMultiSelectionModel = multiSelectionModel;
-
-      // Subscribe to multi-selection changes as selection can be modified by other sources.
-      // For example, multiple track groups share the same MultiSelectionModel in CPU capture stage. Selecting a track in Track Group A
-      // should clear the track selection in Track Group B and vice versa.
-      multiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-        // The logic here is for matching the selection state of the track groups to the multi-selection model when the that model is
-        // modified by another source (e.g. trace event selection) and therefore we don't want to handle the ListSelectionEvent, which will
-        // modify the multi-selection model again.
-        handleListSelectionEvent = false;
-        if (multiSelectionModel.isEmpty()) {
-          trackGroup.getTrackList().clearSelection();
-        }
-        else if (!trackGroup.isEmpty()) {
-          // Selection is changed and may come from another source.
-          T selection = multiSelectionModel.getSelection().get(0);
-          T listModel = (T)trackGroup.getTrackModelAt(0).getDataModel();
-          // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
-          if (!listModel.isCompatibleWith(selection)) {
-            // Selection no longer contains this list model, update the list selection state to match that.
-            trackGroup.getTrackList().clearSelection();
-          }
-        }
-        handleListSelectionEvent = true;
-      });
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      if (handleListSelectionEvent) {
-        Set<T> selection = new HashSet<>();
-        for (int selectedIndex : myTrackGroup.getTrackList().getSelectedIndices()) {
-          selection.add((T)myTrackGroup.getTrackModelAt(selectedIndex).getDataModel());
-        }
-        myMultiSelectionModel.setSelection(selection);
-      }
+      Iterable<Map.Entry<Object, Set<Object>>> selections =
+        myTrackGroup.getModel().select(Arrays.stream(myTrackGroup.getTrackList().getSelectedIndices())
+                                         .mapToObj(i -> (TrackModel<Object, ?>)myTrackGroup.getTrackModelAt(i))
+                                         .collect(Collectors.toSet()));
+      selections.forEach(s -> myMultiSelectionModel.setSelection(s.getKey(), (Set<T>)s.getValue()));
     }
   }
 

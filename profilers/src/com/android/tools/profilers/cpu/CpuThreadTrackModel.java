@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisEventsTabModel;
@@ -128,11 +127,6 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     model.addTabModel(events);
 
     return model;
-  }
-
-  @Override
-  public boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj) {
-    return otherObj instanceof CpuThreadTrackModel;
   }
 
   /**

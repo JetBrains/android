@@ -155,7 +155,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
-  private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
+  private final List<CpuAnalysisModel> myPinnedAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
   private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
@@ -245,8 +245,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @NotNull
-  public List<CpuAnalysisModel> getAnalysisModels() {
-    return myAnalysisModels;
+  public List<CpuAnalysisModel> getPinnedAnalysisModels() {
+    return myPinnedAnalysisModels;
   }
 
   /**
@@ -321,8 +321,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE;
   }
 
-  public void addCpuAnalysisModel(@NotNull CpuAnalysisModel model) {
-    myAnalysisModels.add(model);
+  private void addPinnedCpuAnalysisModel(@NotNull CpuAnalysisModel model) {
+    myPinnedAnalysisModels.add(model);
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
@@ -338,17 +338,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return CpuProfilerStage.class;
   }
 
-  public void removeCpuAnalysisModel(int index) {
-    myAnalysisModels.remove(index);
-    myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
-  }
-
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, getTimeline().getViewRange());
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
-      addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+      addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
     }
     if (getStudioProfilers().getSession().getPid() == 0) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
@@ -586,7 +581,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitle(threadsTitle)
       .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
                         "Shift+click to select multiple threads.")
-      .setTrackSelectable(true)
+      .setSelector(TrackGroupModel.makeBatchSelector(CpuThreadTrackModel.class.getName()))
       // For box selection
       .setBoxSelectionModel(boxSelectionModel)
       .build();

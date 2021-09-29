@@ -42,7 +42,6 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -73,16 +72,11 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-      List<CpuAnalyzable> selection = multiSelectionModel.getSelection();
-      if (!selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel) {
-        // A trace event is selected, possibly in another thread track.
-        // Update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
-        traceEventChart.setSelectedNode(((CaptureNodeAnalysisModel)selection.get(0)).getNode());
-      }
-      else {
-        // No trace event is selected. Reset all tracks' selection so they render the trace events in their default state.
-        traceEventChart.setSelectedNode(null);
-      }
+      CaptureNodeAnalysisModel firstActiveNode = multiSelectionModel.getFirstActiveSelectionItem(CaptureNodeAnalysisModel.class);
+      // If a trace event is selected, possibly in another thread track,
+      // update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
+      // If no trace event is selected, reset all tracks' selection so they render the trace events in their default state.
+      traceEventChart.setSelectedNode(firstActiveNode != null ? firstActiveNode.getNode() : null);
     });
 
     StateChart<ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
@@ -135,10 +129,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             // Trace events only support single-selection.
             if (node != null) {
               multiSelectionModel.setSelection(
+                node.getData(),
                 Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
-            }
-            else {
-              multiSelectionModel.clearSelection();
             }
             traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }

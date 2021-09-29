@@ -19,8 +19,13 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DragAndDropListModel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +44,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   @Nullable private final String myTitleHelpLinkUrl;
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
-  private final boolean myTrackSelectable;
+  @Nullable private final Selector mySelector;
   @Nullable private final BoxSelectionModel myBoxSelectionModel;
 
   private final AspectObserver myObserver = new AspectObserver();
@@ -55,7 +60,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     myTitleHelpLinkUrl = builder.myTitleHelpLinkUrl;
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
-    myTrackSelectable = builder.myTrackSelectable;
+    mySelector = builder.mySelector;
     myBoxSelectionModel = builder.myBoxSelectionModel;
   }
 
@@ -117,7 +122,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    * @return whether the tracks inside this track group are selectable.
    */
   public boolean isTrackSelectable() {
-    return myTrackSelectable;
+    return mySelector != null;
   }
 
   /**
@@ -140,6 +145,10 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     return myActionListeners;
   }
 
+  public<M> Iterable<Map.Entry<Object, Set<M>>> select(Set<TrackModel<M, ?>> models) {
+    return mySelector.apply(models);
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -151,7 +160,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     @Nullable private String myTitleHelpLinkUrl;
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
-    private boolean myTrackSelectable;
+    @Nullable Selector mySelector;
     @Nullable private BoxSelectionModel myBoxSelectionModel;
 
     private Builder() {
@@ -161,7 +170,6 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
       myTitleHelpLinkUrl = null;
       myCollapsedInitially = false;
       myHideHeader = false;
-      myTrackSelectable = false;
     }
 
     /**
@@ -202,8 +210,11 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
       return this;
     }
 
-    public Builder setTrackSelectable(boolean trackSelectable) {
-      myTrackSelectable = trackSelectable;
+    /**
+     * @param selector how this model handles selection, or null if it is not supposed to be selectable.
+     */
+    public Builder setSelector(@Nullable Selector selector) {
+      mySelector = selector;
       return this;
     }
 
@@ -215,5 +226,52 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     public TrackGroupModel build() {
       return new TrackGroupModel(this);
     }
+  }
+
+  public static Selector makeBatchSelector(Object id) {
+    return new Selector() {
+      @Override
+      public <M> Iterable<Map.Entry<Object, Set<M>>> apply(Set<TrackModel<M, ?>> selections) {
+        return Collections.singletonList(entry(id,
+                                               selections.stream()
+                                                 .map(TrackModel::getDataModel)
+                                                 .collect(Collectors.toSet())));
+      }
+    };
+  }
+
+  public static Selector makeItemSelector() {
+    return new Selector() {
+      @Override
+      public <M> Iterable<Map.Entry<Object, Set<M>>> apply(Set<TrackModel<M, ?>> selections) {
+        return selections.stream()
+          .map(m -> entry((Object)m.getId(), Collections.singleton(m.getDataModel())))
+          .collect(Collectors.toList());
+      }
+    };
+  }
+
+  private static<K, V> Map.Entry<K, V> entry(K key, V val) {
+    return new Map.Entry<K, V>() {
+      @Override
+      public K getKey() {
+        return key;
+      }
+      @Override
+      public V getValue() {
+        return val;
+      }
+      @Override
+      public V setValue(V value) {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
+
+  /**
+   * Function that takes selected tracks and returns pairs of keys and selections.
+   */
+  public interface Selector {
+    <M> Iterable<Map.Entry<Object, Set<M>>> apply(Set<TrackModel<M, ?>> selections);
   }
 }

@@ -15,19 +15,4 @@
  */
 package com.android.tools.adtui.model.trackgroup
 
-class BooleanSelectable(val value: Boolean) : SelectableTrackModel {
-  override fun isCompatibleWith(otherObj: SelectableTrackModel): Boolean {
-    return otherObj is BooleanSelectable
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (other is BooleanSelectable) {
-      return value == other.value
-    }
-    return false
-  }
-
-  override fun hashCode(): Int {
-    return value.hashCode()
-  }
-}
+data class BooleanSelectable(val value: Boolean)

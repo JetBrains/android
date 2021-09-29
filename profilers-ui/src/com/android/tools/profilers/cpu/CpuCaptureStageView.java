@@ -41,9 +41,7 @@ import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
@@ -61,7 +59,6 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.DropDownButton;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
@@ -429,33 +426,20 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private void onTrackGroupSelectionChange() {
-    // Remove the last selection if any.
-    if (getStage().getAnalysisModels().size() > 1) {
-      getStage().removeCpuAnalysisModel(getStage().getAnalysisModels().size() - 1);
-    }
-
-    // Merge all selected items' analysis models and provide one combined model to the analysis panel.
-    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
-    getStage().getMultiSelectionModel().getSelection().stream()
-      .map(CpuAnalyzable::getAnalysisModel)
-      .reduce(CpuAnalysisModel::mergeWith)
-      .ifPresent(getStage()::addCpuAnalysisModel);
-
-    // Now update track groups.
+    // Update track groups.
     updateTrackGroupList();
 
     // Update selection range
-    if (selection.isEmpty()) {
+    CaptureNodeAnalysisModel firstActiveNode = getStage().getMultiSelectionModel().getFirstActiveSelectionItem(CaptureNodeAnalysisModel.class);
+    if (firstActiveNode == null) {
       getStage().getTimeline().getSelectionRange().clear();
     }
-    else if (selection.get(0) instanceof CaptureNodeAnalysisModel) {
-      // Use the first item to determine selection type as all items in the selection model are of the same type.
-      Range selectedNodeRange = ((CaptureNodeAnalysisModel)selection.get(0)).getNodeRange();
-      getStage().getTimeline().getSelectionRange().set(selectedNodeRange);
+    else {
+      getStage().getTimeline().getSelectionRange().set(firstActiveNode.getNodeRange());
     }
 
     // Show/hide "Deselect All" label.
-    myDeselectAllToolbar.setVisible(!selection.isEmpty());
+    myDeselectAllToolbar.setVisible(!getStage().getMultiSelectionModel().getSelections().isEmpty());
   }
 
   @VisibleForTesting

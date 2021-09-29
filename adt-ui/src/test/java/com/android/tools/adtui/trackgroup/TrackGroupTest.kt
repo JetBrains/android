@@ -165,7 +165,8 @@ class TrackGroupTest {
 
   @Test
   fun mouseClickExpandsCollapsesTrack() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1")
+      .setSelector(TrackGroupModel.makeBatchSelector("tag")).build()
     val trackModel = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
       .setCollapsible(true)
     trackGroupModel.addTrackModel(trackModel)
@@ -187,7 +188,8 @@ class TrackGroupTest {
 
   @Test
   fun keyboardExpandsCollapsesTrack() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1")
+      .setSelector(TrackGroupModel.makeBatchSelector("tag")).build()
 
     // build two track models both of which are collapsible and initially in a collapsed state
     val trackModel1 = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")

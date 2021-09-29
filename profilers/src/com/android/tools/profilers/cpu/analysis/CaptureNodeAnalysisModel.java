@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import java.util.Collection;
@@ -104,10 +103,5 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
     model.addTabModel(events);
 
     return model;
-  }
-
-  @Override
-  public boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj) {
-    return otherObj instanceof CaptureNodeAnalysisModel;
   }
 }

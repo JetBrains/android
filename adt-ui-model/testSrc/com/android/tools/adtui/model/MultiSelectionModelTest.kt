@@ -15,93 +15,65 @@
  */
 package com.android.tools.adtui.model
 
+import com.android.tools.adtui.model.MultiSelectionModel.Entry
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 
 class MultiSelectionModelTest {
-  private val observer = AspectObserver()
-  private val eventCounter = SelectionChangeCounter()
+  @Test
+  fun `selections indexed by multiple keys have stable order`() = testWithObserver<Int> { model, selections ->
+    model.setSelection("Key1", setOf(1, 2, 3))
+    model.setSelection("Key2", setOf(2, 3, 4, 5))
+    model.setSelection("Key3", setOf(0))
+    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
+                                             Entry("Key2", setOf(2, 3, 4, 5)),
+                                             Entry("Key3", setOf(0)))
 
-  @Before
-  fun setUp() {
-    observer.dependencies.clear()
-    eventCounter.reset()
+    model.setSelection("Key2", setOf(42))
+    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
+                                             Entry("Key2", setOf(42)),
+                                             Entry("Key3", setOf(0)))
+
+    model.removeSelection("Key2")
+    assertThat(selections()).containsExactly(Entry("Key1", setOf(1, 2, 3)),
+                                             Entry("Key3", setOf(0)))
+
+    model.clearSelection()
+    assertThat(selections()).isEmpty()
   }
 
   @Test
-  fun getSelection() {
-    val selectionModel = MultiSelectionModel<Int>()
-    selectionModel.setSelection(setOf(1, 2, 2))
-    assertThat(selectionModel.selection).containsExactly(1, 2)
+  fun `most recently modified selection is active`() = testWithObserver<Int> { model, selections ->
+    assertThat(model.activeSelectionKey).isNull()
+
+    model.setSelection("Key1", setOf(1, 2, 3))
+    assertThat(model.activeSelectionKey).isEqualTo("Key1")
+
+    model.setSelection("Key2", setOf(2, 3, 4, 5))
+    assertThat(model.activeSelectionKey).isEqualTo("Key2")
+
+    model.setSelection("Key3", setOf(0))
+    assertThat(model.activeSelectionKey).isEqualTo("Key3")
+
+    model.setSelection("Key2", setOf(42))
+    assertThat(model.activeSelectionKey).isEqualTo("Key2")
   }
 
   @Test
-  fun setSelection() {
-    val selectionModel = MultiSelectionModel<String>()
-    selectionModel.addDependency(observer).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, eventCounter)
-
-    selectionModel.setSelection(setOf("foo", "bar"))
-    assertThat(selectionModel.selection).containsExactly("foo", "bar")
-    assertThat(eventCounter.count).isEqualTo(1)
-
-    eventCounter.reset()
-    selectionModel.setSelection(setOf("foo"))
-    assertThat(selectionModel.selection).containsExactly("foo")
-    // Selecting different items should fire a CHANGE_SELECTION event.
-    assertThat(eventCounter.count).isEqualTo(1)
-
-    eventCounter.reset()
-    selectionModel.setSelection(setOf("foo"))
-    assertThat(selectionModel.selection).containsExactly("foo")
-    // Selecting the same items should not fire a CHANGE_SELECTION event.
-    assertThat(eventCounter.count).isEqualTo(0)
+  fun `no item for selection is the same as deselection`() = testWithObserver<Int> { model, selections ->
+    model.setSelection("Key1", setOf(1, 2, 3))
+    model.setSelection("Key2", setOf(2, 3, 4, 5))
+    model.setSelection("Key1", setOf())
+    assertThat(selections()).containsExactly(Entry("Key2", setOf(2, 3, 4, 5)))
   }
 
-  @Test
-  fun clearSelection() {
-    val selectionModel = MultiSelectionModel<Int>()
-    selectionModel.addDependency(observer).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, eventCounter)
-    selectionModel.setSelection(setOf(1, 2))
-
-    eventCounter.reset()
-    selectionModel.clearSelection()
-    assertThat(selectionModel.selection).isEmpty()
-    assertThat(eventCounter.count).isEqualTo(1)
-
-    eventCounter.reset()
-    selectionModel.clearSelection()
-    assertThat(selectionModel.selection).isEmpty()
-    // Clearing an already empty model should not fire CHANGE_SELECTION event.
-    assertThat(eventCounter.count).isEqualTo(0)
-  }
-
-  @Test
-  fun isSelected() {
-    val selectionModel = MultiSelectionModel<Int>()
-    selectionModel.setSelection(setOf(1))
-
-    assertThat(selectionModel.isSelected(1)).isTrue()
-    assertThat(selectionModel.isSelected(2)).isFalse()
-  }
-
-  @Test
-  fun isEmpty() {
-    val selectionModel = MultiSelectionModel<Int>()
-    assertThat(selectionModel.isEmpty).isTrue()
-    selectionModel.setSelection(setOf(1))
-    assertThat(selectionModel.isEmpty).isFalse()
-  }
-
-  private class SelectionChangeCounter : Runnable {
-    var count = 0
-
-    override fun run() {
-      count++
+  private fun<T> testWithObserver(f: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) {
+    val model = MultiSelectionModel<T>()
+    val observer = AspectObserver()
+    var currentSelections = listOf<Entry<T>>()
+    model.addDependency(observer).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION) {
+      currentSelections = model.selections
     }
-
-    fun reset() {
-      count = 0
-    }
+    f(model) { currentSelections.also { observer.hashCode() /* keep it live */ } }
   }
 }

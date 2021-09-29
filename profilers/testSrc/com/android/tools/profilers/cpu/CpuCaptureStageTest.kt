@@ -101,7 +101,7 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(profilers.stage).isInstanceOf(CpuCaptureStage::class.java)
     assertThat(stage.trackGroupModels).isEmpty()
-    assertThat(stage.analysisModels).isEmpty()
+    assertThat(stage.pinnedAnalysisModels).isEmpty()
     assertThat(services.notification).isNull()
   }
 
@@ -250,9 +250,9 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
     profilers.stage = stage
-    assertThat(stage.analysisModels.size).isEqualTo(1)
-    assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    assertThat(stage.analysisModels[0].tabModels).isNotEmpty()
+    assertThat(stage.pinnedAnalysisModels.size).isEqualTo(1)
+    assertThat(stage.pinnedAnalysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
+    assertThat(stage.pinnedAnalysisModels[0].tabModels).isNotEmpty()
   }
 
   @Test
@@ -309,9 +309,9 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
     profilers.stage = stage
-    assertThat(stage.analysisModels.size).isEqualTo(1)
-    assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    val tabTypes = stage.analysisModels[0].tabModels.map { it.tabType }.toList()
+    assertThat(stage.pinnedAnalysisModels.size).isEqualTo(1)
+    assertThat(stage.pinnedAnalysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
+    val tabTypes = stage.pinnedAnalysisModels[0].tabModels.map { it.tabType }.toList()
     assertThat(tabTypes).containsExactly(Type.SUMMARY, Type.TOP_DOWN, Type.FLAME_CHART, Type.BOTTOM_UP).inOrder()
   }
 

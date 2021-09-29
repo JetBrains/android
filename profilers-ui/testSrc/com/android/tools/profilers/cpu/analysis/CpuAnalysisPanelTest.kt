@@ -82,31 +82,6 @@ class CpuAnalysisPanelTest {
   }
 
   @Test
-  fun newAnalysisIsAutoSelected() {
-    // Add test-only binding.
-    class TestCpuAnalysisTabModel(type: Type) : CpuAnalysisTabModel<CpuCapture>(type)
-    class TestCpuAnalysisTab(profilersView: StudioProfilersView, model: TestCpuAnalysisTabModel)
-      : CpuAnalysisTab<TestCpuAnalysisTabModel>(profilersView, model)
-    panel.tabViewsBinder.bind(TestCpuAnalysisTabModel::class.java, ::TestCpuAnalysisTab)
-
-    stage.enter()
-    val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
-    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
-    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
-    stage.addCpuAnalysisModel(selectedModel)
-    assertThat(panel.tabView.tabCount).isEqualTo(2)
-  }
-
-  @Test
-  fun tabsUpdatedOnTabRemoved() {
-    stage.enter()
-    val treeWalker = TreeWalker(panel.tabs.tabsPanel)
-    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(1)
-    stage.removeCpuAnalysisModel(0)
-    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(0)
-  }
-
-  @Test
   fun tabsAreOnlyPopulatedWhenSelected() {
     stage.enter()
     assertThat(panel.tabView.selectedIndex).isEqualTo(0)
