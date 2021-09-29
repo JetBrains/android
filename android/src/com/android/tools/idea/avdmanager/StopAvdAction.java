@@ -121,6 +121,6 @@ final class StopAvdAction extends AvdUiAction {
       UsageTracker.log(builder);
     }
 
-    AvdManagerConnection.getDefaultAvdManagerConnection().stopAvd(Objects.requireNonNull(getAvdInfo()));
+    myExecutor.execute(() -> AvdManagerConnection.getDefaultAvdManagerConnection().stopAvd(Objects.requireNonNull(getAvdInfo())));
   }
 }
