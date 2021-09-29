@@ -44,10 +44,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
 public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvider {
   @NotNull private final AvdInfo myAvdInfo;
   private final AvdRefreshProvider myRefreshProvider;
-  private final JBPopupMenu myOverflowMenu = new JBPopupMenu();
+  private final @NotNull Collection<@NotNull AvdUiAction> myOverflowActions = new ArrayList<>();
   private final FocusableHyperlinkLabel myOverflowMenuButton = new FocusableHyperlinkLabel("", AllIcons.Actions.MoveDown);
 
   private final @NotNull List<@NotNull HyperlinkLabel> myVisibleComponents = new ArrayList<>();
@@ -114,20 +117,10 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       errorState = true;
     }
 
-    Border border = JBUI.Borders.empty(5, 3);
-
     for (AvdUiAction action : actions) {
       // Add extra items to the overflow menu
       if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
-        JBMenuItem menuItem = new JBMenuItem(action);
-        if (action instanceof Separator) {
-          myOverflowMenu.addSeparator();
-        }
-        else {
-          myOverflowMenu.add(menuItem);
-        }
-        menuItem.setToolTipText(action.getDescription());
-        menuItem.setBorder(border);
+        myOverflowActions.add(action);
       }
       else {
         // Add visible items to the panel
@@ -141,8 +134,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
     add(myOverflowMenuButton);
     myVisibleComponents.add(myOverflowMenuButton);
-    myOverflowMenuButton.addHyperlinkListener(event -> myOverflowMenu
-      .show(myOverflowMenuButton, myOverflowMenuButton.getX() - myOverflowMenu.getPreferredSize().width, myOverflowMenuButton.getY()));
+    myOverflowMenuButton.addHyperlinkListener(event -> showPopup(myOverflowMenuButton, JBUI.scale(28), JBUI.scale(10)));
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -224,7 +216,28 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   }
 
   public void showPopup(@NotNull Component c, @NotNull MouseEvent e) {
-    myOverflowMenu.show(c, e.getX(), e.getY());
+    showPopup(c, e.getX(), e.getY());
+  }
+
+  private void showPopup(@NotNull Component c, int x, int y) {
+    JPopupMenu overflowMenu = new JBPopupMenu();
+    Border border = JBUI.Borders.empty(5, 3);
+
+    for (AvdUiAction action : myOverflowActions) {
+      if (action instanceof Separator) {
+        overflowMenu.addSeparator();
+      }
+      else {
+        JMenuItem menuItem = new JBMenuItem(action);
+
+        menuItem.setBorder(border);
+        menuItem.setToolTipText(action.getDescription());
+
+        overflowMenu.add(menuItem);
+      }
+    }
+
+    overflowMenu.show(c, x, y);
   }
 
   private void runFocusedAction() {
