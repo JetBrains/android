@@ -2431,5 +2431,5 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : kotlinMultiPlatform.app.main
-        Module                        : kotlinMultiPlatform.app.main
+        ModuleName                    : kotlinMultiPlatform.app
+        Module                        : kotlinMultiPlatform.app

@@ -53,11 +53,16 @@ public abstract class AndroidClassBrowserBase<T extends JComponent> extends Brow
     return myModuleSelector.findClass(className);
   }
 
+  @Nullable
+  protected Module getModuleForScope() {
+    return myModuleSelector.getModule();
+  }
+
   @Override
   protected String showDialog() {
     Project project = getProject();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    Module module = myModuleSelector.getModule();
+    Module module = getModuleForScope();
     if (module == null) {
       Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), CommonBundle.getErrorTitle());
       return null;

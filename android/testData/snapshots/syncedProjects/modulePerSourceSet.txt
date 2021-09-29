@@ -4870,5 +4870,5 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : testModulePerSourceSet.app.main
-        Module                        : testModulePerSourceSet.app.main
+        ModuleName                    : testModulePerSourceSet.app
+        Module                        : testModulePerSourceSet.app

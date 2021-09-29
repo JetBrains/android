@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -151,7 +152,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public boolean RETENTION_COMPRESS_SNAPSHOTS = false;
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
-    super(project, factory);
+    super(project, factory, true);
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
@@ -247,11 +248,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
-  @Override
-  public boolean isTestConfiguration() {
-    return true;
-  }
-
   private static int getTestSourceRootCount(@NotNull Module module) {
     final ModuleRootManager manager = ModuleRootManager.getInstance(module);
     return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
@@ -287,7 +283,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
-        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(configurationModule.getModule());
+        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(getConfigurationModule().getAndroidTestModule());
         if (!testClass.isInheritor(testCaseClass, true)) {
           errors.add(ValidationError.fatal(JUnitBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
@@ -346,7 +342,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return (parent, handler, executor) -> {
-      final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(),
+      final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getAndroidTestModule(),
                                                                executor.getToolWindowId(), this);
       consoleView.attachToProcess(handler);
       return consoleView;

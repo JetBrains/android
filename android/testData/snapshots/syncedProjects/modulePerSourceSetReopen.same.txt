@@ -4870,5 +4870,5 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.nested2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.main
-        Module                        : project.app.main
+        ModuleName                    : project.app
+        Module                        : project.app
