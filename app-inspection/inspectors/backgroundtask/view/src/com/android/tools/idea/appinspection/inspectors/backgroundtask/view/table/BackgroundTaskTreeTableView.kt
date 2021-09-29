@@ -46,6 +46,8 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.event.TreeExpansionEvent
+import javax.swing.event.TreeExpansionListener
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -88,6 +90,7 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
                                   uiDispatcher: CoroutineDispatcher) {
   val component: JComponent
   val treeModel = BackgroundTaskTreeModel(client, scope, uiDispatcher)
+  val expandedPaths = mutableSetOf<TreePath>()
 
   init {
     val tree = JTree(treeModel)
@@ -102,6 +105,20 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         tree.expandPath(event.treePath)
       }
     })
+
+    tree.addTreeExpansionListener(object : TreeExpansionListener {
+      override fun treeExpanded(event: TreeExpansionEvent) {
+        expandedPaths.add(event.path)
+      }
+
+      override fun treeCollapsed(event: TreeExpansionEvent) {
+        expandedPaths.remove(event.path)
+      }
+    })
+
+    treeModel.addOnFilteredListener {
+      restoreExpandedPaths(tree)
+    }
 
     tree.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
@@ -270,5 +287,11 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
     )
 
     component = builder.build()
+  }
+
+  private fun restoreExpandedPaths(tree: JTree) {
+    for (path in expandedPaths) {
+      tree.expandPath(path)
+    }
   }
 }

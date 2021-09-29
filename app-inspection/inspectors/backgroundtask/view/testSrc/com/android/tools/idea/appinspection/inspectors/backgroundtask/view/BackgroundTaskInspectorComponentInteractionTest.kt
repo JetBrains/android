@@ -59,6 +59,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 import kotlin.streams.toList
 
 class BackgroundTaskInspectorComponentInteractionTest {
@@ -134,13 +135,18 @@ class BackgroundTaskInspectorComponentInteractionTest {
       val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
       val root = tree.model.root
       val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Workers" }
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
       tag1Filter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(2)
+      // Workers node should keep being expanded.
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
       tag2Filter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(1)
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
       val allTagsFilter = filterActionList[0]
       allTagsFilter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(3)
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
     }
   }
 
