@@ -321,6 +321,12 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     toTestCompletion("overlayable.xml", "overlayable_after.xml");
   }
 
+  public void testOverlayable() throws Throwable {
+    // Note that the expected
+    doTestHighlighting("overlayable_example.xml");
+  }
+
+
   public void testPolicyTagCompletion() throws Throwable {
     toTestCompletion("policy.xml", "policy_after.xml");
   }
