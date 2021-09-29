@@ -47,17 +47,16 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
   /**
    * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
    */
-  fun findClassVirtualFile(fqcn: String): VirtualFile? =
-    virtualFileCache.compute(fqcn) { key, value ->
-      if (value?.first?.isValid == true)
-        value
-      else {
-        val vFile = findClassVirtualFileImpl(key)
-        vFile?.let {
-          Pair(it, ClassModificationTimestamp.fromVirtualFile(vFile))
-        }
-      }
-    }?.first
+  fun findClassVirtualFile(fqcn: String): VirtualFile? {
+    val cachedVirtualFile = virtualFileCache[fqcn]
+
+    if (cachedVirtualFile?.first?.isValid == true) return cachedVirtualFile.first
+    val vFile = findClassVirtualFileImpl(fqcn)
+    return vFile?.let {
+      virtualFileCache[fqcn] = Pair(it, ClassModificationTimestamp.fromVirtualFile(it))
+      it
+    }
+  }
 
   /**
    * Clears all the internal caches. Next `find` call will reload the information directly from the VFS.
