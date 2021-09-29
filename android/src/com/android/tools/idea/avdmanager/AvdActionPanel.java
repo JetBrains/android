@@ -34,7 +34,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
-import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
@@ -115,10 +114,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       errorState = true;
     }
 
-    Border border = new JBEmptyBorder(5, 3, 5, 3);
+    Border border = JBUI.Borders.empty(5, 3);
 
     for (AvdUiAction action : actions) {
-      JComponent actionLabel;
       // Add extra items to the overflow menu
       if (errorState || numVisibleActions != -1 && visibleActionCount >= numVisibleActions) {
         JBMenuItem menuItem = new JBMenuItem(action);
@@ -128,20 +126,19 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
         else {
           myOverflowMenu.add(menuItem);
         }
-        actionLabel = menuItem;
+        menuItem.setToolTipText(action.getDescription());
+        menuItem.setBorder(border);
       }
       else {
         // Add visible items to the panel
-        actionLabel = new FocusableHyperlinkLabel("", action.getIcon());
-        ((FocusableHyperlinkLabel)actionLabel).addHyperlinkListener(action);
+        FocusableHyperlinkLabel actionLabel = new FocusableHyperlinkLabel("", action.getIcon());
+        actionLabel.addHyperlinkListener(action);
+        actionLabel.setToolTipText(action.getDescription());
         add(actionLabel);
-        myVisibleComponents.add((FocusableHyperlinkLabel)actionLabel);
+        myVisibleComponents.add(actionLabel);
         visibleActionCount++;
       }
-      actionLabel.setToolTipText(action.getDescription());
-      actionLabel.setBorder(border);
     }
-    myOverflowMenuButton.setBorder(border);
     add(myOverflowMenuButton);
     myVisibleComponents.add(myOverflowMenuButton);
     myOverflowMenuButton.addHyperlinkListener(event -> myOverflowMenu
