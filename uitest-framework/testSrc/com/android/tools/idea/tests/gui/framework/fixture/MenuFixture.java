@@ -95,7 +95,7 @@ class MenuFixture {
         initialPopups, initiallyVisible.size());
 
       // Check whether the timeout has expired after we closed all previously opened popups.
-      if (System.currentTimeMillis() - started > wait * 1000L) {
+      if (System.currentTimeMillis() - started > wait * 3000L) {
         throw new WaitTimedOutError("Timed out while attempting to open: " + String.join(" / ", path));
       }
 
