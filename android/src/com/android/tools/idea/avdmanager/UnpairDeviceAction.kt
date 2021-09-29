@@ -48,18 +48,20 @@ internal class UnpairDeviceAction(
       UsageTracker.log(builder)
     }
 
-    val avdInfo = avdInfo ?: return
+    val deviceID = avdInfo?.name ?: return
 
-    if (WearPairingManager.getPairedDevices(avdInfo.name) == null) {
+    if (WearPairingManager.getPairedDevices(deviceID) == null) {
       Messages.showMessageDialog(project, "Not paired yet. Please pair device first.", "Unpair Device", Messages.getInformationIcon())
     }
     else {
       GlobalScope.launch(AndroidDispatchers.ioThread) {
-        WearPairingManager.removePairedDevices(avdInfo.name)
+        WearPairingManager.removePairedDevices(deviceID)
       }
     }
   }
 
-  // TODO: Menu refreshing is not properly implemented, so we use the same logic as PairDeviceAction for now.
-  override fun isEnabled() = Actions.isPairingActionEnabled(avdInfo)
+  override fun isEnabled(): Boolean {
+    val deviceID = avdInfo?.name ?: return false
+    return WearPairingManager.getPairedDevices(deviceID) != null
+  }
 }
