@@ -20,6 +20,9 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildResult
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.run.ApkProvisionException
@@ -230,23 +233,32 @@ class TestProjectSystem @JvmOverloads constructor(
     override fun getLastSyncResult() = lastSyncResult
   }
 
-  override fun getBuildManager(): ProjectSystemBuildManager = object : ProjectSystemBuildManager {
+  override fun getBuildManager(): ProjectSystemBuildManager = buildManager
+
+  private val buildManager = object : ProjectSystemBuildManager {
+    private val buildListeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
+
     override fun compileProject() {
-      error("not supported for the test implementation")
+      simulateBuild()
     }
 
     override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
       error("not supported for the test implementation")
     }
 
-    override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult {
+    override fun getLastBuildResult(): BuildResult {
       error("not supported for the test implementation")
     }
 
     override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
-      error("not supported for the test implementation")
+      buildListeners.add(buildListener)
     }
 
+    private fun simulateBuild() {
+      buildListeners.forEach { it.buildStarted(BuildMode.UNKNOWN) }
+      buildListeners.forEach { it.beforeBuildCompleted(BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, 5000L)) }
+      buildListeners.forEach { it.buildCompleted(BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, 5500L)) }
+    }
   }
 
   override fun getDefaultApkFile(): VirtualFile? {

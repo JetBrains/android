@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.SdkConstants
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
@@ -27,8 +28,10 @@ import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.CollectionQuery
 import icons.StudioIcons
@@ -40,6 +43,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -49,15 +53,21 @@ class NlPaletteModelTest {
   private var facet: AndroidFacet? = null
   private var fixture: JavaCodeInsightTestFixture? = null
   private var model: NlPaletteModel? = null
+  private var projectSystem: TestProjectSystem? = null
+  private val projectRule = onDisk().initAndroid(true)
 
   @get:Rule
-  val projectRule = onDisk().initAndroid(true)
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun setUp() {
     fixture = projectRule.getFixture(JavaCodeInsightTestFixture::class.java)
     facet = AndroidFacet.getInstance(projectRule.module)
     model = NlPaletteModel.get(facet!!)
+    projectSystem = TestProjectSystem(projectRule.project)
+    runInEdt {
+      projectSystem!!.useInTests()
+    }
   }
 
   @After
@@ -213,6 +223,22 @@ class NlPaletteModelTest {
     checkIdsAreUniqueInPalette(LayoutFileType)
     checkIdsAreUniqueInPalette(MenuFileType)
     checkIdsAreUniqueInPalette(PreferenceScreenFileType)
+  }
+
+  @Test
+  fun testThirdPartyComponentsAreReloadedAfterBuild() {
+    registerJavaClasses()
+    registerFakeBaseViewHandler()
+    var palette = getPaletteWhenAdditionalComponentsReady(model)
+    var thirdParty = getProjectGroup(palette)
+    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup")
+
+    // Simulate a build where a new custom component was added:
+    fixture!!.addClass("package com.example; public class AnotherFakeCustomView extends android.view.View {}")
+    projectSystem!!.getBuildManager().compileProject()
+    palette = getPaletteWhenAdditionalComponentsReady(model)
+    thirdParty = getProjectGroup(palette)
+    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup", "AnotherFakeCustomView")
   }
 
   private fun checkIdsAreUniqueInPalette(layoutType: LayoutEditorFileType) {
