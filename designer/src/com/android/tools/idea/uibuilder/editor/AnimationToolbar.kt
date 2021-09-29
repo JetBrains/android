@@ -319,7 +319,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myPauseButton.isVisible = false
     // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
     myStopButton = newControlButton(
-      StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
+      StudioIcons.LayoutEditor.Motion.GO_TO_START, "Stop", DEFAULT_STOP_TOOLTIP,
       AnimationToolbarAction.STOP
     ) { stop() }
     controlBar = object : JPanel(FlowLayout()) {
@@ -342,7 +342,9 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
       myTimeSliderModel = DefaultBoundedRangeModel(0, 0, 0, 100)
       myTimeSliderChangeModel = ChangeListener { e: ChangeEvent? ->
         myAnalyticsManager.trackAction(this.toolbarType, AnimationToolbarAction.FRAME_CONTROL)
-        val newPositionMs = ((myMaxTimeMs - myMinTimeMs) * (myTimeSliderModel!!.value / 100f)).toLong()
+        val sliderValue = myTimeSliderModel!!.value
+        val newPositionMs = ((myMaxTimeMs - myMinTimeMs) * (sliderValue / 100f)).toLong()
+        myStopButton.isEnabled = sliderValue != 0
         seek(newPositionMs)
       }
       myTimeSlider = object : JSlider(0, 100, 0) {

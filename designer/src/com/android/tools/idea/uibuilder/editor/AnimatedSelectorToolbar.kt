@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.SdkConstants
 import com.android.resources.ResourceUrl
-import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
@@ -91,25 +90,25 @@ private constructor(
         animatedSelectorModel.setPreviewOption(transitionId)
         // Update visibility of slider bar
         setTimeSliderVisibility(SdkConstants.TAG_ANIMATION_LIST == animatedSelectorModel.getPreviewOptionTagName(transitionId))
-        updateControlBar(transitionId != ID_ANIMATED_SELECTOR_MODEL)
+        onTransitionChanged(transitionId != ID_ANIMATED_SELECTOR_MODEL)
       }
     }
     // The default select item should be ID_ANIMATED_SELECTOR_MODEL, which is not an animation
     setTimeSliderVisibility(false)
-    updateControlBar(false)
+    onTransitionChanged(false)
   }
 
   /**
    * Set up the ability and visibility of control buttons.
-   * When [canPlay] is true, it means there is an animation to play, we enable backFrame, stop, play, and forwardFrame buttons and setup
+   * When [playable] is true, it means there is an animation to play, we enable backFrame, stop, play, and forwardFrame buttons and setup
    * the property tooltips.
    *
-   * When [canPlay] is false, it means there is no animation to play. We still keep them visible but disable them, and setup the tooltips
+   * When [playable] is false, it means there is no animation to play. We still keep them visible but disable them, and setup the tooltips
    * to notify user there is no animation.
    */
-  private fun updateControlBar(canPlay: Boolean) {
-    if (canPlay) {
-      setEnabledState(play = true, pause = false, stop = true, frame = true, speed = true)
+  private fun onTransitionChanged(playable: Boolean) {
+    if (playable) {
+      setEnabledState(play = true, pause = false, stop = false, frame = true, speed = true)
       setPlayButtonStatus(false)
       setTooltips(DEFAULT_PLAY_TOOLTIP, DEFAULT_PAUSE_TOOLTIP, DEFAULT_STOP_TOOLTIP)
     }
