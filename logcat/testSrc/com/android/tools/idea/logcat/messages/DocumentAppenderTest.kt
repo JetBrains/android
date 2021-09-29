@@ -89,7 +89,7 @@ class DocumentAppenderTest {
   }
 
   @Test
-  fun appendToDocument_setsHighlightRanges_cyclicBuffer() {
+  fun appendToDocument_setsHighlightRanges_ignoresRangesOutsideCyclicBuffer() {
     // This size will truncate in the middle of the second line
     document.setCyclicBufferSize(8)
 
@@ -115,6 +115,7 @@ class DocumentAppenderTest {
       accumulate("Bar\n", hint = "bar")
     })
 
+    System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
       if (it.getUserData(LOGCAT_HINT_KEY) != null) {
@@ -129,7 +130,7 @@ class DocumentAppenderTest {
   }
 
   @Test
-  fun appendToDocument_setsHintRanges_cyclicBuffer() {
+  fun appendToDocument_setsHintRanges_ignoresRangesOutsideCyclicBuffer() {
     // This size will truncate in the middle of the second line
     document.setCyclicBufferSize(8)
 
@@ -139,6 +140,7 @@ class DocumentAppenderTest {
       accumulate("ijkl\n", hint = "duh")
     })
 
+    System.gc() // Range markers are weak refs so make sure they survive garbage collection
     val rangeMarkers = mutableListOf<RangeMarker>()
     document.processRangeMarkers {
       if (it.getUserData(LOGCAT_HINT_KEY) != null) {
@@ -150,6 +152,35 @@ class DocumentAppenderTest {
       TextAccumulator.Range(0, 3, "bar"),
       getHighlighterRangeForText("ijkl\n", "duh")
     )
+  }
+
+  @Test
+  fun appendToDocument_setsHintRanges_removesRangesOutsideCyclicBuffer() {
+    // This size will truncate in the middle of the second line
+    document.setCyclicBufferSize(8)
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("1234\n", hint = "pre")
+    })
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("abcd\n", hint = "foo")
+      accumulate("efgh\n", hint = "bar")
+      accumulate("ijkl\n", hint = "duh")
+    })
+
+    System.gc() // Range markers are weak refs so make sure they survive garbage collection
+    val rangeMarkers = mutableListOf<RangeMarker>()
+    document.processRangeMarkers {
+      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+        rangeMarkers.add(it)
+      }
+      true
+    }
+    assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
+      TextAccumulator.Range(0, 3, "bar"),
+      getHighlighterRangeForText("ijkl\n", "duh")
+    )
+    assertThat(documentAppender.hintRanges).containsExactlyElementsIn(rangeMarkers)
   }
 
   private fun <T> getHighlighterRangeForText(text: String, data: T): TextAccumulator.Range<T>? {
