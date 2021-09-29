@@ -52,7 +52,6 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
     for (device in devices) {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
-      config.deviceState = device.getState(if (device.id.contains(PORTRAIT_DEVICE_KEYWORD)) "portrait" else "landscape")
       val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val builder = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)

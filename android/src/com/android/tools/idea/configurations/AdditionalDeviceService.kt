@@ -48,7 +48,8 @@ class AdditionalDeviceService: DumbAware {
 }
 
 
-data class WindowSizeData(val id: String, val name: String, val widthDp: Double, val heightDp: Double, val density: Density) {
+data class WindowSizeData(val id: String, val name: String, val widthDp: Double, val heightDp: Double, val density: Density,
+                          val defaultOrientation: ScreenOrientation) {
   val widthPx: Int = widthDp.toPx(density)
   val heightPx: Int = heightDp.toPx(density)
 }
@@ -57,10 +58,10 @@ data class WindowSizeData(val id: String, val name: String, val widthDp: Double,
  * The device definitions used by Android Studio only
  */
 val PREDEFINED_WINDOW_SIZES_DEFINITIONS: List<WindowSizeData> = listOf(
-  WindowSizeData("_device_class_phone", "Phone", 411.0, 891.0, Density.DPI_420),
-  WindowSizeData("_device_class_foldable", "Foldable", 673.5, 841.0, Density.XXHIGH),
-  WindowSizeData("_device_class_tablet", "Tablet", 1280.0, 800.0, Density.XXHIGH),
-  WindowSizeData("_device_class_desktop", "Desktop", 1920.0, 1080.0, Density.XXHIGH))
+  WindowSizeData("_device_class_phone", "Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
+  WindowSizeData("_device_class_foldable", "Foldable", 673.5, 841.0, Density.XXHIGH, ScreenOrientation.PORTRAIT),
+  WindowSizeData("_device_class_tablet", "Tablet", 1280.0, 800.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE),
+  WindowSizeData("_device_class_desktop", "Desktop", 1920.0, 1080.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE))
 
 private fun createWindowDevices(): List<Device> =
   PREDEFINED_WINDOW_SIZES_DEFINITIONS.map { windowSizeDef ->
@@ -88,13 +89,15 @@ private fun createWindowDevices(): List<Device> =
       setManufacturer("")
       addSoftware(Software())
       addState(State().apply {
-        isDefaultState = true
+        isDefaultState = windowSizeDef.defaultOrientation == ScreenOrientation.PORTRAIT
 
         hardware = deviceHardware
         name = "portrait"
         orientation = ScreenOrientation.PORTRAIT
       })
       addState(State().apply {
+        isDefaultState = windowSizeDef.defaultOrientation == ScreenOrientation.LANDSCAPE
+
         hardware = deviceHardware
         name = "landscape"
         orientation = ScreenOrientation.LANDSCAPE
