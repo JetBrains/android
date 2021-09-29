@@ -4,7 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <ConstraintSet android:id="@+id/start">
     <Constraint android:id="@+id/widget">
-      <CustomAttribute app:customFloatValue=".5"/>
+      <CustomAttribute
+          app:customFloatValue=".5"
+          app:attributeName="alpha" />
+      <<error descr="The custom attribute `alpha` was specified multiple times">Cust<caret>omAttribute</error>
+          app:customFloatValue=".7"
+          app:attributeName="alpha" />
     </Constraint>
   </ConstraintSet>
 </MotionScene>

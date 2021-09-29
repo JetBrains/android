@@ -80,6 +80,8 @@ import com.android.tools.idea.lint.inspections.AndroidLintMissingLeanbackSupport
 import com.android.tools.idea.lint.inspections.AndroidLintMissingPermissionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMissingPrefixInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMissingTvBannerInspection
+import com.android.tools.idea.lint.inspections.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintMotionSceneFileValidationErrorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNetworkSecurityConfigInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNonResizeableActivityInspection
@@ -1475,6 +1477,33 @@ class AndroidLintTest : AndroidTestCase() {
 
   fun testOldBetaPluginNoGMaven() {
     doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
+  }
+
+  fun testCustomTagWithoutName() {
+    doTestWithFix(
+      AndroidLintMotionSceneFileValidationErrorInspection(),
+      "Set attributeName",
+      "/res/xml/customTagWithoutName.xml", "xml"
+    )
+  }
+
+  fun testCustomTagWithDuplicateName() {
+    doTestWithFix(
+      AndroidLintMotionSceneFileValidationErrorInspection(),
+      "Delete this custom attribute",
+      "/res/xml/customTagWithDuplicateName.xml", "xml"
+    )
+  }
+
+  fun testMotionLayoutWithoutLayoutDescription() {
+    doTestWithFix(
+      AndroidLintMotionLayoutInvalidSceneFileReferenceInspection(),
+      "Generate MotionScene file",
+      "/res/layout/motionLayoutWithoutLayoutDescription.xml", "xml"
+    )
+
+    val sceneFile = "${getTestName(true)}_scene.xml"
+    myFixture.checkResultByFile("res/xml/$sceneFile", "$BASE_PATH/$sceneFile", false)
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
