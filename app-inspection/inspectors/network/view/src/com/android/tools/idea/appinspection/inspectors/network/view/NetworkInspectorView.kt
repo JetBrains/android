@@ -175,6 +175,7 @@ class NetworkInspectorView(
     toolbar.add(selectionTimeLabel)
     mainPanel.add(toolbar, TabularLayout.Constraint(0, 1))
     mainPanel.add(connectionsPanel, TabularLayout.Constraint(0, 0, 2, 2))
+    mainPanel.isVisible = false
     leftSplitter.secondComponent = mainPanel
     model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
       val cardLayout = connectionsPanel.layout as CardLayout
@@ -310,9 +311,13 @@ class NetworkInspectorView(
     legendPanel.add(label, BorderLayout.WEST)
     legendPanel.add(legend, BorderLayout.EAST)
     model.rangeSelectionModel.addListener(object : RangeSelectionListener {
-      override fun selectionCreated() = Unit
+      override fun selectionCreated() {
+        mainPanel.isVisible = true
+      }
+
       override fun selectionCleared() {
-        model.setSelectedConnection(null)
+        mainPanel.isVisible = false
+        connectionDetails.setHttpData(null)
       }
     })
     selection.addMouseListener(TooltipMouseAdapter(model) { NetworkTrafficTooltipModel(model) })
