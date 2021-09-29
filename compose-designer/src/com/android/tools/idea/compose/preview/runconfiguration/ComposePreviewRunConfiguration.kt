@@ -17,7 +17,9 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.stats.RunStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -25,9 +27,11 @@ import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Pair
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jdom.Element
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
 private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
@@ -37,6 +41,25 @@ open class ComposePreviewRunConfiguration(
   project: Project,
   factory: ConfigurationFactory,
   activityName: String = "androidx.compose.ui.tooling.PreviewActivity") : AndroidRunConfiguration(project, factory) {
+
+  /**
+   * To be able to support deploying compose preview to devices for library projects, the android test artifact and .apk is used.
+   * The validations needed to make sure that is possible to provide this support are already part of [AndroidRunConfigurationBase.validate]
+   */
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String>? = Pair(java.lang.Boolean.TRUE, null)
+
+  /**
+   * Compose preview run configuration is considered a test configuration in order to use the test artifact when performing apk related
+   * validations, because non-test configurations use the main artifact instead, and that would cause validations to fail for library
+   * projects, as the main artifact would produce an .aar file instead of an .apk file, and as a consequence, this run configuration
+   * wouldn't be able to be executed in library projects.
+   */
+  override fun isTestConfiguration() = true
+  override val testCompileMode: TestCompileType get() = TestCompileType.ANDROID_TESTS
+
+  override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
+    return checkDeployConfiguration(facet)
+  }
 
   /**
    * Represents where this Run Configuration was triggered from.

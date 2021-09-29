@@ -41,7 +41,6 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     // Marker should be in a single LeafPsiElement. We choose the identifier and return null for other elements within the function.
     if (element !is LeafPsiElement) return null
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
-    if (element.getModuleSystem()?.module?.isNonLibraryAndroidModule() != true) return null
 
     (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
       return Info(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }

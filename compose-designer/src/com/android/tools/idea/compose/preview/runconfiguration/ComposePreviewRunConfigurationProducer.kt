@@ -53,7 +53,6 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
     if (!isComposeRunConfigurationEnabled()) return false
-    if (context.module?.isNonLibraryAndroidModule() != true) return false
 
     configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName, true)
     context.containingComposePreviewFunction()?.let {
