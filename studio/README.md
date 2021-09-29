@@ -16,17 +16,20 @@ If you are using IntelliJ 2020.2 or earlier, create a template JUnit configurati
 
 ## From `go/ab`
 
-The official way of updating prebuilts that can be commited to `prebuilts/studio/intellij-sdk` is to get them from the `go/ab` target [here](https://android-build.googleplex.com/builds/branches/git_studio-sdk-main/grid?).
-
-First identify the `<bid>` you want to update to. If you want to know what is the current build checked in into prebuilts you can look at the [METADATA](https://googleplex-android.git.corp.google.com/platform/tools/vendor/google_prebuilts/studio/intellij-sdk/+/refs/heads/studio-main/AI-202/METADATA) file.
-
-Then you can run the following command:
+The official way of updating prebuilts that can be commited to
+`prebuilts/studio/intellij-sdk` is to get them from the `IntelliJ` target from
+[ab/studio-main](http://ab/studio-main).  First identify the numeric build_id
+`<bid>` (as of September 2021, a seven-digit number beginning with 7) you want
+to update to; you can also use the presubmit build identifier `P` followed by an
+8-digit number, findable from presubmit build display or from
+[go/studio-presubmits](http://go/studio-presubmits).  Then you can run the
+following command:
 
 ```
 ./tools/adt/idea/studio/update_sdk.py --download <bid>
 ```
 
-which will update `tools/adt/idea` and `prebuilts/studio/intellij-sdk` with the new prebuilts. Note that if there jars are the same and there are no major version changes, `tools/adt/idea` won't need to be updated. At this point you are ready to upload the changes for review.
+which will update `tools/adt/idea` and `prebuilts/studio/intellij-sdk` with the new prebuilts. Note that if the jars are the same and there are no major version changes, `tools/adt/idea` won't need to be updated. At this point you are ready to upload the changes for review.
 
 ## From a locally built platform
 
