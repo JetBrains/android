@@ -19,9 +19,11 @@ import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
@@ -154,14 +156,19 @@ class ProjectBuildStatusManager(parentDisposable: Disposable,
       }
     })
 
-    project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
-      fileChangeDetector.markFileAsUpToDate(editorFile)
+    project.runWhenSmartAndSynced(parentDisposable, {
+      ApplicationManager.getApplication().executeOnPooledThread {
+        DumbService.getInstance(project).runReadActionInSmartMode {
+          fileChangeDetector.markFileAsUpToDate(editorFile)
 
-      if (projectBuildStatus === ProjectBuildStatus.NotReady) {
-        // Set the initial state of the project and initialize the modification count.
-        projectBuildStatus = if (hasBeenBuiltSuccessfully(project) { editorFile }) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
+          if (projectBuildStatus === ProjectBuildStatus.NotReady) {
+            // Set the initial state of the project and initialize the modification count.
+            projectBuildStatus = if (hasBeenBuiltSuccessfully(project) { editorFile }) ProjectBuildStatus.Built
+            else ProjectBuildStatus.NeedsBuild
+          }
+        }
       }
-    })
+    }, runOnEdt = false)
   }
 
   private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
