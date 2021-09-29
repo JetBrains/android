@@ -127,7 +127,10 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         val bounds = tree.getRowBounds(row)
         val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
         if (tableBounds.contains(e.point)) {
-          tab.isDetailsViewVisible = true
+          val path = tree.getPathForRow(row)
+          if ((path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is BackgroundTaskEntry) {
+            tab.isDetailsViewVisible = true
+          }
         }
       }
     })
