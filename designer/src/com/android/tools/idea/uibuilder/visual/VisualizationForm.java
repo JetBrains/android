@@ -297,6 +297,7 @@ public class VisualizationForm
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
     ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
+    actionToolbar.setTargetComponent(mySurface);
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
 
@@ -305,6 +306,7 @@ public class VisualizationForm
       lintGroup.add(new ToggleOnlyShowLayoutWithIssuesAction(mySurface));
       lintGroup.add(new IssuePanelToggleAction(mySurface));
       ActionToolbar lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true);
+      lintToolbar.setTargetComponent(mySurface);
       lintToolbar.updateActionsImmediately();
       ActionToolbarUtil.makeToolbarNavigable(lintToolbar);
       myActionToolbarPanel.add(lintToolbar.getComponent(), BorderLayout.EAST);
