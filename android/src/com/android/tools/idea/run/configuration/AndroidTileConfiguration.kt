@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration
 
 import com.android.SdkConstants
 import com.android.tools.deployer.model.component.ComponentType
-import com.android.tools.idea.run.configuration.executors.AndroidTileConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
