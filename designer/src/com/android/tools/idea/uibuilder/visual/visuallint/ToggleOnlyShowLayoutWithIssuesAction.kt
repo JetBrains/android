@@ -33,8 +33,8 @@ class ToggleOnlyShowLayoutWithIssuesAction(val surface: NlDesignSurface) : AnAct
     checkBox = JBCheckBox("Show issues only")
     checkBox.addItemListener {
       if (it.stateChange == ItemEvent.SELECTED) {
-        val managersWithIssue = surface.issueModel.issues.filterIsInstance<VisualLintRenderIssue>()
-          .mapNotNull { issue -> surface.getSceneManager(issue.sourceModel) }
+        val managersWithIssue = surface.issueModel.issues.filterIsInstance<VisualLintRenderIssue>().flatMap { issue -> issue.models }
+          .mapNotNull { model -> surface.getSceneManager(model) }
           .toList()
         managersWithIssue.flatMap { manager -> manager.sceneViews }.forEach { view -> view.isVisible = true }
         surface.sceneManagers.minus(managersWithIssue).flatMap { manager -> manager.sceneViews }.forEach { view -> view.isVisible = false }
