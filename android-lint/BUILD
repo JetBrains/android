@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -32,21 +33,37 @@ iml_module(
 iml_module(
     name = "intellij.android.lint.tests",
     iml_files = ["intellij.android.lint.tests.iml"],
+    split_test_targets = {
+        "AndroidLintCustomCheckTest": {
+            "test_filter": "com.android.tools.idea.lint.AndroidLintCustomCheckTest",
+        },
+        "AndroidLintGradleTest": {
+            "test_filter": "com.android.tools.idea.lint.AndroidLintGradleTest",
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.lint.AndroidLintTestSuite",
     # keep sorted
     test_data = [
+        ":test_deps",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android-lint/testData",
         "//tools/adt/idea/android/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
-    test_shard_count = 2,
     test_srcs = ["testSrc"],
+    test_tags = [],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
@@ -64,5 +81,23 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+    ],
+)
+
+maven_repository(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
+        "@maven//:com.android.support.appcompat-v7_28.0.0",
+        "@maven//:com.android.support.multidex-instrumentation_1.0.2",
+        "@maven//:com.android.support.support-v13_28.0.0",
+        "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
     ],
 )

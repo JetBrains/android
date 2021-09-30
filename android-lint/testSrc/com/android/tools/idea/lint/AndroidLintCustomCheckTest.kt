@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package com.android.tools.idea.lint
 
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -41,6 +41,7 @@ class AndroidLintCustomCheckTest {
 
   @Before
   fun setUp() {
+    myProjectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
 
     ApplicationManager.getApplication().invokeAndWait {
