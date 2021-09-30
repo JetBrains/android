@@ -21,16 +21,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
-import org.toml.lang.psi.ext.name
 
 interface TomlDslNameConverter: GradleDslNameConverter {
   override fun getKind() = TOML
 
   @JvmDefault
   override fun psiToName(element: PsiElement): String = when(element) {
-    is TomlKeySegment -> element.name ?: element.text
-    is TomlKey -> element.name ?: element.text
-    else -> element.text
+    is TomlKeySegment -> GradleNameElement.escape(element.name ?: element.text)
+    is TomlKey -> element.segments.let { segments ->
+      GradleNameElement.join(segments.map { segment -> segment.name ?: return@let null })
+    } ?: GradleNameElement.escape(element.text)
+    else -> GradleNameElement.escape(element.text)
   }
-    .let { GradleNameElement.escape(it) }
 }
