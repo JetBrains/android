@@ -53,7 +53,7 @@ class VisualLintIssues {
           // original and issue are same issue, diff config.
           // TODO: Check if components already exist (set instead of list)
           (original as VisualLintRenderIssue).components.addAll(issue.components)
-          original.count ++
+          original.models.addAll(issue.models)
         }
         else -> {
           // Same issue, same config. ignore.

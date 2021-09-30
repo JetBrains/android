@@ -47,9 +47,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface) : IssueListener
       is VisualLintIssueProvider.VisualLintIssueSource -> {
         // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
         surface.repaint()
-        val models = source.components.map { it.model }.toMutableSet()
-        models.add(source.model)
-        val sceneViews = surface.sceneViews.filter { models.contains(it.sceneManager.model) }
+        val sceneViews = surface.sceneViews.filter { source.models.contains(it.sceneManager.model) }
         if (sceneViews.isEmpty()) {
           return
         }
