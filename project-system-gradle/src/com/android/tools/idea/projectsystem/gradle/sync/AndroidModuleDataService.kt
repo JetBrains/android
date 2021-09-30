@@ -108,6 +108,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       androidModel.setModule(mainIdeModule)
 
       var mainArtifactModule : Module? = null
+      val modules = listOf(mainIdeModule)
+      /* FIXME-ank6: this does not work with MPP projects, because source sets of main module are: common, jvm, ios, etc.
       val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
         modelsProvider.findIdeModule(dataNode.data).also { module ->
           if (dataNode.data.externalName.substringAfterLast(":") == "main") {
@@ -115,6 +117,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
           }
         }
       }
+      */
 
       modules.forEach { module ->
         nonAndroidModules.remove<Module>(module)
