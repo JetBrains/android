@@ -380,8 +380,8 @@
     <option name="new" path="ActionManager" hit="New Module…" />
     <option name="new" path="ActionManager" hit="New Project" />
     <option name="project" path="ActionManager" hit="New Project" />
-    <option name="new" path="ActionManager" hit="New Project..." />
-    <option name="project" path="ActionManager" hit="New Project..." />
+    <option name="new" path="ActionManager" hit="New Project…" />
+    <option name="project" path="ActionManager" hit="New Project…" />
     <option name="open" path="ActionManager" hit="Open" />
     <option name="an" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="asset" path="ActionManager" hit="Open Asset Studio to create an image asset" />
