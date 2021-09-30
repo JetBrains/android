@@ -75,7 +75,7 @@ class ManifestPanelContentTest : GradleIntegrationTest {
       }
 
       ProjectDumper().nest(projectRoot, "~") {
-        assertThat(normalizeReportForTests(reportBuilder))
+        assertThat(normalizeReportForTests(reportBuilder).lines().filter { it != "" }.sorted())
           .isEqualTo("""
 
 <B>manifest</B>
@@ -352,7 +352,7 @@ Added from the <a href='<~>/lib/src/main/res/navigation/lib_nav.xml:21:8'>lib_na
 
 Added from the <a href='<~>/lib/src/main/AndroidManifest.xml:2:2'>navgraph.lib</a> manifest, line 2
 
-          """.trimIndent())
+          """.trimIndent().lines().filter { it != "" }.sorted())
       }
     }
   }

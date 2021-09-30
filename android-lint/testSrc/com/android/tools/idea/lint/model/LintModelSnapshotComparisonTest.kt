@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.model
 
 import com.android.tools.idea.lint.TestDataPaths
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest

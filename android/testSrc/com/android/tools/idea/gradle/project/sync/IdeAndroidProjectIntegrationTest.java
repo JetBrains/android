@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
 import com.android.tools.idea.testing.TestProjectPaths;
 
@@ -30,6 +31,6 @@ public class IdeAndroidProjectIntegrationTest extends IdeAndroidProjectIntegrati
 
   public void testLocalAarsAsModulesWithHeadPlugin() throws Exception {
     loadProject(TestProjectPaths.LOCAL_AARS_AS_MODULES);
-    verifyAarModuleShowsAsAndroidLibrary("artifacts:library-debug:unspecified@jar");
+    verifyAarModuleShowsAsAndroidLibrary("(artifacts|__wrapped_aars__):?:?\\|?:library\\-debug:unspecified(@aar|@jar)?$");
   }
 }

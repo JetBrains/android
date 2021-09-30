@@ -23,6 +23,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -100,6 +101,8 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testNoVariantsGiveCorrectError() throws Exception {
+    //TODO(b/202142748): enable for V2 as well when bug is fixed.
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false);
     prepareProjectForImport(NEW_SYNC_KOTLIN_TEST);
 
     GradleSyncMessagesStub messagesStub = new GradleSyncMessagesStub(getProject()) {
@@ -127,6 +130,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
 
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
     assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride();
   }
 
   @NotNull
